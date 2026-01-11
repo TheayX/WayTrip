@@ -1,0 +1,275 @@
+.spot-detail-page {
+  padding-bottom: 120rpx;
+}
+
+/* 图片轮播 */
+.image-section {
+  position: relative;
+}
+
+.image-swiper {
+  height: 500rpx;
+}
+
+.swiper-image {
+  width: 100%;
+  height: 100%;
+}
+
+.image-counter {
+  position: absolute;
+  right: 20rpx;
+  bottom: 20rpx;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+}
+
+/* 基本信息 */
+.info-section {
+  background: #fff;
+  padding: 30rpx;
+}
+
+.spot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.spot-name {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  flex: 1;
+}
+
+.favorite-btn {
+  padding: 10rpx;
+}
+
+.favorite-icon {
+  font-size: 48rpx;
+}
+
+.spot-tags {
+  display: flex;
+  margin-top: 16rpx;
+}
+
+.tag {
+  font-size: 24rpx;
+  color: #409EFF;
+  background: rgba(64, 158, 255, 0.1);
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  margin-right: 16rpx;
+}
+
+.spot-rating {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+}
+
+.star {
+  margin-right: 8rpx;
+}
+
+.rating-value {
+  font-size: 32rpx;
+  color: #ff9500;
+  font-weight: bold;
+}
+
+.rating-count {
+  font-size: 26rpx;
+  color: #999;
+  margin-left: 10rpx;
+}
+
+.spot-price {
+  margin-top: 20rpx;
+  display: flex;
+  align-items: baseline;
+}
+
+.price-label {
+  font-size: 26rpx;
+  color: #666;
+  margin-right: 10rpx;
+}
+
+.price-value {
+  font-size: 44rpx;
+  color: #f56c6c;
+  font-weight: bold;
+}
+
+/* 详细信息 */
+.detail-section {
+  background: #fff;
+  margin-top: 20rpx;
+  padding: 20rpx 30rpx;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-icon {
+  margin-right: 16rpx;
+}
+
+.detail-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.detail-action {
+  font-size: 26rpx;
+  color: #409EFF;
+}
+
+/* 景点简介 */
+.desc-section {
+  background: #fff;
+  margin-top: 20rpx;
+  padding: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.desc-content {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.8;
+}
+
+/* 用户评价 */
+.comment-section {
+  background: #fff;
+  margin-top: 20rpx;
+  padding: 30rpx;
+}
+
+.comment-list {
+  margin-top: 20rpx;
+}
+
+.comment-item {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comment-nickname {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.comment-rating {
+  font-size: 24rpx;
+}
+
+.comment-text {
+  font-size: 28rpx;
+  color: #666;
+  margin-top: 10rpx;
+  display: block;
+}
+
+.comment-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+  display: block;
+}
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background: #fff;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.bottom-left {
+  display: flex;
+}
+
+.bottom-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 40rpx;
+}
+
+.action-icon {
+  font-size: 40rpx;
+}
+
+.action-text {
+  font-size: 22rpx;
+  color: #666;
+  margin-top: 4rpx;
+}
+
+.order-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #ff6b6b, #f56c6c);
+  color: #fff;
+  border: none;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 100rpx;
+  color: #999;
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.travel.mapper.BannerMapper">
+
+    <resultMap id="BannerResultMap" type="com.travel.entity.Banner">
+        <id column="id" property="id"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="spot_id" property="spotId"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="enabled" property="enabled"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="spot_name" property="spotName"/>
+    </resultMap>
+
+    <select id="selectEnabledBanners" resultMap="BannerResultMap">
+        SELECT b.*,
+               s.name AS spot_name
+        FROM banner b
+        LEFT JOIN spot s ON b.spot_id = s.id
+        WHERE b.enabled = 1
+        ORDER BY b.sort_order ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.travel.mapper.RatingMapper">
+
+    <resultMap id="RatingResultMap" type="com.travel.entity.Rating">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="spot_id" property="spotId"/>
+        <result column="score" property="score"/>
+        <result column="comment" property="comment"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+    </resultMap>
+    
+    <resultMap id="CommentItemResultMap" type="com.travel.dto.spot.SpotDetailResponse$CommentItem">
+        <result column="id" property="id"/>
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+        <result column="score" property="score"/>
+        <result column="comment" property="comment"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <select id="selectRatingPage" resultMap="RatingResultMap">
+        SELECT r.*,
+               u.nickname,
+               u.avatar
+        FROM rating r
+        LEFT JOIN user u ON r.user_id = u.id
+        WHERE r.spot_id = #{spotId}
+        ORDER BY r.created_at DESC
+    </select>
+    
+    <select id="selectLatestComments" resultMap="CommentItemResultMap">
+        SELECT r.id,
+               u.nickname,
+               u.avatar,
+               r.score,
+               r.comment,
+               DATE_FORMAT(r.created_at, '%Y-%m-%d %H:%i:%s') as created_at
+        FROM rating r
+        LEFT JOIN user u ON r.user_id = u.id
+        WHERE r.spot_id = #{spotId}
+          AND r.comment IS NOT NULL
+          AND r.comment != ''
+        ORDER BY r.created_at DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

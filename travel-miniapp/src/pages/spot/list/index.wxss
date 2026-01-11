@@ -1,0 +1,179 @@
+.spot-list-page {
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 搜索栏 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  margin: 20rpx;
+  padding: 20rpx 30rpx;
+  background: #fff;
+  border-radius: 40rpx;
+}
+
+.search-icon {
+  margin-right: 16rpx;
+}
+
+.search-placeholder {
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.filter-btn {
+  padding: 10rpx 20rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.arrow {
+  font-size: 20rpx;
+  margin-left: 6rpx;
+}
+
+.sort-tabs {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.sort-tab {
+  padding: 10rpx 20rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.sort-tab.active {
+  color: #409EFF;
+  font-weight: bold;
+}
+
+/* 筛选面板 */
+.filter-panel {
+  background: #fff;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.filter-section {
+  margin-bottom: 20rpx;
+}
+
+.filter-title {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.filter-tag {
+  padding: 12rpx 24rpx;
+  margin: 8rpx;
+  background: #f0f0f0;
+  border-radius: 30rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.filter-tag.active {
+  background: #409EFF;
+  color: #fff;
+}
+
+/* 景点列表 */
+.spot-list {
+  padding: 20rpx;
+}
+
+.spot-item {
+  display: flex;
+  background: #fff;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+}
+
+.spot-image {
+  width: 240rpx;
+  height: 180rpx;
+}
+
+.spot-info {
+  flex: 1;
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.spot-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spot-meta {
+  display: flex;
+  margin-top: 10rpx;
+}
+
+.spot-region, .spot-category {
+  font-size: 24rpx;
+  color: #999;
+  margin-right: 20rpx;
+}
+
+.spot-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spot-rating {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #ff9500;
+}
+
+.star {
+  margin-right: 6rpx;
+}
+
+.rating-count {
+  color: #999;
+  margin-left: 6rpx;
+}
+
+.spot-price {
+  font-size: 32rpx;
+  color: #f56c6c;
+  font-weight: bold;
+}
+
+/* 加载状态 */
+.loading-tip, .no-more, .empty {
+  text-align: center;
+  padding: 30rpx;
+  color: #999;
+  font-size: 26rpx;
+}

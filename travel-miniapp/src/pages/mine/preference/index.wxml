@@ -1,0 +1,26 @@
+<view class="preference-container">
+  <view class="header">
+    <text class="title">选择您的旅游偏好</text>
+    <text class="subtitle">最多选择5个标签，帮助我们为您推荐更合适的景点</text>
+  </view>
+
+  <view class="tags-section">
+    <view 
+      class="tag {{selectedTags.indexOf(item) > -1 ? 'selected' : ''}}" 
+      wx:for="{{allTags}}" 
+      wx:key="index"
+      data-tag="{{item}}"
+      bindtap="toggleTag"
+    >
+      {{item}}
+    </view>
+  </view>
+
+  <view class="selected-info">
+    已选择 {{selectedTags.length}}/5 个标签
+  </view>
+
+  <view class="btn-section">
+    <button class="save-btn" bindtap="handleSave">保存偏好</button>
+  </view>
+</view>

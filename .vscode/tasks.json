@@ -1,0 +1,64 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "启动后端 (Spring Boot)",
+      "type": "shell",
+      "command": "mvn spring-boot:run",
+      "options": {
+        "cwd": "${workspaceFolder}/travel-server"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "启动管理端 (Vue Admin)",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/travel-admin"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "启动小程序 (Uni-app)",
+      "type": "shell",
+      "command": "npm run dev:mp-weixin",
+      "options": {
+        "cwd": "${workspaceFolder}/travel-miniapp"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "🚀 一键启动全部",
+      "dependsOn": [
+        "启动后端 (Spring Boot)",
+        "启动管理端 (Vue Admin)",
+        "启动小程序 (Uni-app)"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
