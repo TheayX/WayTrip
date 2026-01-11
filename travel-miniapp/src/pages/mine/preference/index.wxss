@@ -1,0 +1,70 @@
+.preference-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 30rpx;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.subtitle {
+  display: block;
+  font-size: 26rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+.tags-section {
+  display: flex;
+  flex-wrap: wrap;
+  background: #fff;
+  padding: 30rpx;
+  border-radius: 16rpx;
+}
+
+.tag {
+  padding: 16rpx 32rpx;
+  margin: 10rpx;
+  background: #f0f0f0;
+  border-radius: 30rpx;
+  font-size: 28rpx;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.tag.selected {
+  background: #409EFF;
+  color: #fff;
+}
+
+.selected-info {
+  text-align: center;
+  margin-top: 30rpx;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.btn-section {
+  margin-top: 60rpx;
+}
+
+.save-btn {
+  background: #409EFF;
+  color: #fff;
+  border: none;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+}
+
+.save-btn::after {
+  border: none;
+}

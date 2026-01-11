@@ -1,0 +1,53 @@
+<view class="container">
+  <!-- 轮播图 -->
+  <swiper class="banner" indicator-dots autoplay circular>
+    <swiper-item wx:for="{{banners}}" wx:key="id" bindtap="onBannerTap" data-spot-id="{{item.spotId}}">
+      <image src="{{item.imageUrl}}" mode="aspectFill" class="banner-image" />
+    </swiper-item>
+  </swiper>
+
+  <!-- 热门推荐 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">热门推荐</text>
+    </view>
+    <view class="spot-grid">
+      <view class="spot-item" wx:for="{{hotSpots}}" wx:key="id" bindtap="onSpotTap" data-id="{{item.id}}">
+        <image src="{{item.coverImage || '/images/default-spot.png'}}" mode="aspectFill" class="spot-image" />
+        <view class="spot-info">
+          <text class="spot-name text-ellipsis">{{item.name}}</text>
+          <view class="spot-meta">
+            <text class="spot-rating">{{item.avgRating}}分</text>
+            <text class="spot-price">¥{{item.price}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 个性化推荐 -->
+  <view class="section" wx:if="{{recommendations.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">猜你喜欢</text>
+      <text class="refresh-btn" bindtap="onRefreshRecommendations">换一批</text>
+    </view>
+    <view class="spot-grid">
+      <view class="spot-item" wx:for="{{recommendations}}" wx:key="id" bindtap="onSpotTap" data-id="{{item.id}}">
+        <image src="{{item.coverImage || '/images/default-spot.png'}}" mode="aspectFill" class="spot-image" />
+        <view class="spot-info">
+          <text class="spot-name text-ellipsis">{{item.name}}</text>
+          <view class="spot-meta">
+            <text class="spot-rating">{{item.avgRating}}分</text>
+            <text class="spot-price">¥{{item.price}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 偏好引导 -->
+  <view class="preference-guide" wx:if="{{showPreferenceGuide}}">
+    <text>设置偏好标签，获取更精准的推荐</text>
+    <button class="btn-primary" size="mini">去设置</button>
+  </view>
+</view>

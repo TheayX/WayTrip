@@ -1,0 +1,90 @@
+<view class="spot-detail-page" wx:if="{{!loading && spot}}">
+  <!-- 图片轮播 -->
+  <view class="image-section">
+    <swiper class="image-swiper" indicator-dots autoplay circular bindchange="onSwiperChange">
+      <swiper-item wx:for="{{spot.images}}" wx:key="index">
+        <image class="swiper-image" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="previewImage" />
+      </swiper-item>
+    </swiper>
+    <view class="image-counter">{{currentImageIndex + 1}}/{{spot.images.length}}</view>
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="info-section">
+    <view class="spot-header">
+      <text class="spot-name">{{spot.name}}</text>
+      <view class="favorite-btn" bindtap="toggleFavorite">
+        <text class="favorite-icon">{{spot.isFavorite ? '❤️' : '🤍'}}</text>
+      </view>
+    </view>
+    <view class="spot-tags">
+      <text class="tag">{{spot.regionName}}</text>
+      <text class="tag">{{spot.categoryName}}</text>
+    </view>
+    <view class="spot-rating">
+      <text class="star">⭐</text>
+      <text class="rating-value">{{spot.avgRating || '-'}}</text>
+      <text class="rating-count">({{spot.ratingCount || 0}}条评价)</text>
+    </view>
+    <view class="spot-price">
+      <text class="price-label">门票</text>
+      <text class="price-value">¥{{spot.price}}</text>
+    </view>
+  </view>
+
+  <!-- 详细信息 -->
+  <view class="detail-section">
+    <view class="detail-item" bindtap="openNavigation">
+      <text class="detail-icon">📍</text>
+      <text class="detail-text">{{spot.address}}</text>
+      <text class="detail-action">导航</text>
+    </view>
+    <view class="detail-item" wx:if="{{spot.openTime}}">
+      <text class="detail-icon">🕐</text>
+      <text class="detail-text">{{spot.openTime}}</text>
+    </view>
+  </view>
+
+  <!-- 景点简介 -->
+  <view class="desc-section" wx:if="{{spot.description}}">
+    <text class="section-title">景点简介</text>
+    <text class="desc-content">{{spot.description}}</text>
+  </view>
+
+  <!-- 用户评价 -->
+  <view class="comment-section" wx:if="{{spot.latestComments && spot.latestComments.length > 0}}">
+    <text class="section-title">用户评价</text>
+    <view class="comment-list">
+      <view class="comment-item" wx:for="{{spot.latestComments}}" wx:key="id">
+        <image class="comment-avatar" src="{{item.avatar || '/images/default-avatar.png'}}" />
+        <view class="comment-content">
+          <view class="comment-header">
+            <text class="comment-nickname">{{item.nickname}}</text>
+            <view class="comment-rating">
+              <text wx:for="{{item.score}}" wx:for-item="s" wx:key="s">⭐</text>
+            </view>
+          </view>
+          <text class="comment-text">{{item.comment}}</text>
+          <text class="comment-time">{{item.createdAt}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <view class="bottom-left">
+      <view class="bottom-action" bindtap="toggleFavorite">
+        <text class="action-icon">{{spot.isFavorite ? '❤️' : '🤍'}}</text>
+        <text class="action-text">收藏</text>
+      </view>
+      <view class="bottom-action" bindtap="openNavigation">
+        <text class="action-icon">📍</text>
+        <text class="action-text">导航</text>
+      </view>
+    </view>
+    <button class="order-btn" bindtap="goToOrder">立即预订 ¥{{spot.price}}</button>
+  </view>
+</view>
+
+<view class="loading" wx:if="{{loading}}">加载中...</view>

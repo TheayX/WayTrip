@@ -1,0 +1,104 @@
+.container {
+  padding-bottom: 20rpx;
+}
+
+/* 轮播图 */
+.banner {
+  width: 100%;
+  height: 360rpx;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+}
+
+/* 区块 */
+.section {
+  margin: 20rpx;
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.refresh-btn {
+  font-size: 24rpx;
+  color: #409EFF;
+}
+
+/* 景点网格 */
+.spot-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -10rpx;
+}
+
+.spot-item {
+  width: calc(50% - 20rpx);
+  margin: 10rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  background-color: #f9f9f9;
+}
+
+.spot-image {
+  width: 100%;
+  height: 200rpx;
+}
+
+.spot-info {
+  padding: 16rpx;
+}
+
+.spot-name {
+  font-size: 28rpx;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.spot-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spot-rating {
+  font-size: 24rpx;
+  color: #E6A23C;
+}
+
+.spot-price {
+  font-size: 28rpx;
+  color: #F56C6C;
+  font-weight: bold;
+}
+
+/* 偏好引导 */
+.preference-guide {
+  margin: 20rpx;
+  padding: 30rpx;
+  background-color: #fff;
+  border-radius: 16rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preference-guide text {
+  font-size: 26rpx;
+  color: #666;
+}

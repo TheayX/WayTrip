@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "vscjava.vscode-java-pack",
+    "vmware.vscode-boot-dev-pack",
+    "gabrielbb.vscode-lombok",
+    "Vue.volar",
+    "uni-helper.uni-helper-vscode",
+    "mrmaoddxxaa.create-uniapp-view",
+    "cweijan.vscode-database-client-jdbc",
+    "cweijan.vscode-mysql-client2",
+    "cweijan.vscode-redis-client",
+    "rangav.vscode-thunder-client",
+    "eamodio.gitlens",
+    "usernamehw.errorlens",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint"
+  ],
+  "unwantedRecommendations": []
+}

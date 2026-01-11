@@ -1,0 +1,54 @@
+<view class="search-page">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input 
+        class="search-input" 
+        placeholder="搜索景点" 
+        value="{{keyword}}"
+        focus
+        confirm-type="search"
+        bindinput="onInput"
+        bindconfirm="onSearch"
+      />
+      <text class="clear-btn" wx:if="{{keyword}}" bindtap="onClear">✕</text>
+    </view>
+    <text class="search-btn" bindtap="onSearch">搜索</text>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view class="search-result" wx:if="{{searched}}">
+    <view class="spot-list" wx:if="{{spots.length > 0}}">
+      <view class="spot-item" wx:for="{{spots}}" wx:key="id" data-id="{{item.id}}" bindtap="goToDetail">
+        <image class="spot-image" src="{{item.coverImage}}" mode="aspectFill" />
+        <view class="spot-info">
+          <text class="spot-name">{{item.name}}</text>
+          <view class="spot-meta">
+            <text class="spot-region">{{item.regionName}}</text>
+            <text class="spot-category">{{item.categoryName}}</text>
+          </view>
+          <view class="spot-bottom">
+            <view class="spot-rating">
+              <text class="star">⭐</text>
+              <text>{{item.avgRating || '-'}}</text>
+            </view>
+            <text class="spot-price">¥{{item.price}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{!loading && spots.length === 0}}">
+      <text>未找到相关景点</text>
+    </view>
+
+    <view class="loading-tip" wx:if="{{loading}}">加载中...</view>
+    <view class="no-more" wx:if="{{!hasMore && spots.length > 0}}">没有更多了</view>
+  </view>
+
+  <!-- 搜索提示 -->
+  <view class="search-tip" wx:if="{{!searched}}">
+    <text>输入关键词搜索景点</text>
+  </view>
+</view>

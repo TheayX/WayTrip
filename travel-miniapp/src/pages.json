@@ -1,0 +1,118 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "首页"
+      }
+    },
+    {
+      "path": "pages/spot/list",
+      "style": {
+        "navigationBarTitleText": "景点列表"
+      }
+    },
+    {
+      "path": "pages/spot/detail",
+      "style": {
+        "navigationBarTitleText": "景点详情"
+      }
+    },
+    {
+      "path": "pages/spot/search",
+      "style": {
+        "navigationBarTitleText": "搜索景点"
+      }
+    },
+    {
+      "path": "pages/guide/list",
+      "style": {
+        "navigationBarTitleText": "旅游攻略"
+      }
+    },
+    {
+      "path": "pages/guide/detail",
+      "style": {
+        "navigationBarTitleText": "攻略详情"
+      }
+    },
+    {
+      "path": "pages/order/list",
+      "style": {
+        "navigationBarTitleText": "我的订单"
+      }
+    },
+    {
+      "path": "pages/order/detail",
+      "style": {
+        "navigationBarTitleText": "订单详情"
+      }
+    },
+    {
+      "path": "pages/order/create",
+      "style": {
+        "navigationBarTitleText": "确认订单"
+      }
+    },
+    {
+      "path": "pages/favorite/index",
+      "style": {
+        "navigationBarTitleText": "我的收藏"
+      }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/mine/preference",
+      "style": {
+        "navigationBarTitleText": "偏好设置"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "旅游推荐",
+    "navigationBarBackgroundColor": "#409EFF",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#409EFF",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/shouye.png",
+        "selectedIconPath": "static/tabbar/shouye-active.png"
+      },
+      {
+        "pagePath": "pages/spot/list",
+        "text": "景点",
+        "iconPath": "static/tabbar/jingdian.png",
+        "selectedIconPath": "static/tabbar/jingdian-active.png"
+      },
+      {
+        "pagePath": "pages/guide/list",
+        "text": "攻略",
+        "iconPath": "static/tabbar/gonglve.png",
+        "selectedIconPath": "static/tabbar/gonglve-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "static/tabbar/wode.png",
+        "selectedIconPath": "static/tabbar/wode-active.png"
+      }
+    ]
+  },
+  "easycom": {
+    "autoscan": true,
+    "custom": {}
+  }
+}
