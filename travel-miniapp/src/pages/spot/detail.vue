@@ -1,22 +1,24 @@
 <template>
-  <view class="spot-detail-page" v-if="spot">
+  <view class="ios-page" v-if="spot">
     <!-- 图片轮播 -->
-    <swiper class="image-swiper" indicator-dots circular>
+    <swiper class="image-swiper" indicator-dots indicator-active-color="#fff" circular>
       <swiper-item v-for="(img, index) in spotImages" :key="index">
         <image class="swiper-image" :src="img" mode="aspectFill" @click="previewImage(index)" />
       </swiper-item>
     </swiper>
 
-    <!-- 基本信息 -->
-    <view class="info-card card">
+    <!-- 基本信息卡片 -->
+    <view class="info-card">
       <view class="info-header">
         <text class="spot-name">{{ spot.name }}</text>
         <view class="favorite-btn" @click="toggleFavorite">
-          <text>{{ spot.isFavorite ? '❤️' : '🤍' }}</text>
+          <text class="fav-icon">{{ spot.isFavorite ? '❤️' : '🤍' }}</text>
         </view>
       </view>
       <view class="info-meta">
-        <text class="rating">⭐ {{ spot.avgRating }} ({{ spot.ratingCount }}条评价)</text>
+        <text class="rating">★ {{ spot.avgRating }}</text>
+        <text class="rating-count">({{ spot.ratingCount }}条评价)</text>
+        <text class="divider">·</text>
         <text class="category">{{ spot.regionName }} · {{ spot.categoryName }}</text>
       </view>
       <view class="price-row">
@@ -26,31 +28,31 @@
     </view>
 
     <!-- 详细信息 -->
-    <view class="detail-card card">
+    <view class="detail-card">
       <view class="detail-item">
         <text class="detail-label">开放时间</text>
         <text class="detail-value">{{ spot.openTime || '暂无信息' }}</text>
       </view>
       <view class="detail-item" @click="openNavigation">
         <text class="detail-label">景点地址</text>
-        <view class="detail-value address">
-          <text>{{ spot.address }}</text>
-          <text class="nav-icon">📍导航</text>
+        <view class="detail-value-row">
+          <text class="detail-value address-text">{{ spot.address }}</text>
+          <text class="nav-link">导航 ›</text>
         </view>
       </view>
     </view>
 
     <!-- 景点简介 -->
-    <view class="desc-card card">
+    <view class="desc-card">
       <text class="card-title">景点简介</text>
       <text class="desc-content">{{ spot.description || '暂无简介' }}</text>
     </view>
 
     <!-- 最新评论 -->
-    <view class="comment-card card">
+    <view class="comment-card">
       <view class="card-header">
         <text class="card-title">最新评论</text>
-        <text class="more-link" @click="goComments">查看全部</text>
+        <text class="more-link" @click="goComments">查看全部 ›</text>
       </view>
       <view class="comment-list" v-if="spot.latestComments?.length">
         <view class="comment-item" v-for="comment in spot.latestComments" :key="comment.id">
@@ -58,7 +60,7 @@
           <view class="comment-content">
             <view class="comment-header">
               <text class="comment-name">{{ comment.nickname }}</text>
-              <text class="comment-score">⭐ {{ comment.score }}</text>
+              <text class="comment-score">★ {{ comment.score }}</text>
             </view>
             <text class="comment-text">{{ comment.comment }}</text>
             <text class="comment-time">{{ comment.createdAt }}</text>
@@ -119,47 +121,33 @@ import { addFavorite, removeFavorite } from '@/api/favorite'
 import { submitRating } from '@/api/rating'
 import { getImageUrl } from '@/utils/request'
 
-// 景点数据
 const spot = ref(null)
 const spotId = ref(null)
 
-// 处理后的图片列表
 const spotImages = computed(() => {
   if (!spot.value?.images) return []
   return spot.value.images.map(img => getImageUrl(img))
 })
 
-// 评分弹窗
 const ratingVisible = ref(false)
-const ratingForm = reactive({
-  score: 5,
-  comment: ''
-})
+const ratingForm = reactive({ score: 5, comment: '' })
 
-// 获取景点详情
 const fetchSpotDetail = async () => {
   try {
     const res = await getSpotDetail(spotId.value)
     spot.value = res.data
-    // 如果用户已评分，设置默认值
     if (spot.value.userRating) {
       ratingForm.score = spot.value.userRating
     }
   } catch (e) {
-    console.error('获取景点详情失败', e)
     uni.showToast({ title: '加载失败', icon: 'none' })
   }
 }
 
-// 预览图片
 const previewImage = (index) => {
-  uni.previewImage({
-    current: index,
-    urls: spotImages.value
-  })
+  uni.previewImage({ current: index, urls: spotImages.value })
 }
 
-// 切换收藏
 const toggleFavorite = async () => {
   try {
     if (spot.value.isFavorite) {
@@ -176,7 +164,6 @@ const toggleFavorite = async () => {
   }
 }
 
-// 打开导航
 const openNavigation = () => {
   if (!spot.value.latitude || !spot.value.longitude) {
     uni.showToast({ title: '暂无位置信息', icon: 'none' })
@@ -190,23 +177,19 @@ const openNavigation = () => {
   })
 }
 
-// 跳转评论列表
 const goComments = () => {
   uni.showToast({ title: '功能开发中', icon: 'none' })
 }
 
-// 显示评分弹窗
 const showRatingPopup = () => {
   ratingVisible.value = true
 }
 
-// 提交评分
 const submitRatingHandler = async () => {
   if (ratingForm.score < 1) {
     uni.showToast({ title: '请选择评分', icon: 'none' })
     return
   }
-  
   try {
     await submitRating({
       spotId: spotId.value,
@@ -215,22 +198,16 @@ const submitRatingHandler = async () => {
     })
     uni.showToast({ title: '评价成功', icon: 'success' })
     ratingVisible.value = false
-    // 刷新详情
     fetchSpotDetail()
   } catch (e) {
-    console.error('评价失败', e)
     uni.showToast({ title: '评价失败', icon: 'none' })
   }
 }
 
-// 跳转购票
 const goBuy = () => {
-  uni.navigateTo({
-    url: `/pages/order/create?spotId=${spotId.value}`
-  })
+  uni.navigateTo({ url: `/pages/order/create?spotId=${spotId.value}` })
 }
 
-// 页面加载
 onLoad((options) => {
   spotId.value = options.id
   fetchSpotDetail()
@@ -238,8 +215,10 @@ onLoad((options) => {
 </script>
 
 <style scoped>
-.spot-detail-page {
-  padding-bottom: 140rpx;
+.ios-page {
+  background: #F2F2F7;
+  min-height: 100vh;
+  padding-bottom: 160rpx;
 }
 
 /* 图片轮播 */
@@ -255,9 +234,13 @@ onLoad((options) => {
 
 /* 信息卡片 */
 .info-card {
-  margin: -40rpx 20rpx 20rpx;
+  margin: -60rpx 32rpx 24rpx;
+  padding: 28rpx;
+  background: #fff;
+  border-radius: 28rpx;
   position: relative;
   z-index: 1;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
 .info-header {
@@ -267,27 +250,44 @@ onLoad((options) => {
 }
 
 .spot-name {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1C1C1E;
   flex: 1;
 }
 
 .favorite-btn {
-  font-size: 48rpx;
   padding: 10rpx;
+}
+
+.fav-icon {
+  font-size: 48rpx;
 }
 
 .info-meta {
   display: flex;
-  gap: 20rpx;
+  align-items: center;
   margin-top: 16rpx;
   font-size: 26rpx;
-  color: #666;
 }
 
 .rating {
-  color: #ff9500;
+  color: #FF9500;
+  font-weight: 600;
+}
+
+.rating-count {
+  color: #8E8E93;
+  margin-left: 8rpx;
+}
+
+.divider {
+  color: #C7C7CC;
+  margin: 0 12rpx;
+}
+
+.category {
+  color: #8E8E93;
 }
 
 .price-row {
@@ -296,24 +296,28 @@ onLoad((options) => {
 
 .price {
   font-size: 48rpx;
-  color: #ff6b6b;
-  font-weight: bold;
+  color: #FF3B30;
+  font-weight: 700;
 }
 
 .price-label {
   font-size: 26rpx;
-  color: #999;
+  color: #8E8E93;
 }
 
-/* 详细信息 */
+/* 详细信息卡片 */
 .detail-card {
-  margin: 0 20rpx 20rpx;
+  margin: 0 32rpx 24rpx;
+  padding: 0 28rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .detail-item {
   display: flex;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  padding: 28rpx 0;
+  border-bottom: 1px solid #F2F2F7;
 }
 
 .detail-item:last-child {
@@ -323,49 +327,65 @@ onLoad((options) => {
 .detail-label {
   width: 160rpx;
   font-size: 28rpx;
-  color: #999;
+  color: #8E8E93;
   flex-shrink: 0;
 }
 
 .detail-value {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: #1C1C1E;
 }
 
-.detail-value.address {
+.detail-value-row {
+  flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.nav-icon {
-  color: #409EFF;
-  font-size: 26rpx;
+.address-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #1C1C1E;
 }
 
-/* 简介 */
+.nav-link {
+  color: #007AFF;
+  font-size: 28rpx;
+  margin-left: 16rpx;
+}
+
+/* 简介卡片 */
 .desc-card {
-  margin: 0 20rpx 20rpx;
+  margin: 0 32rpx 24rpx;
+  padding: 28rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .card-title {
-  font-size: 30rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1C1C1E;
   display: block;
   margin-bottom: 16rpx;
 }
 
 .desc-content {
   font-size: 28rpx;
-  color: #666;
+  color: #8E8E93;
   line-height: 1.6;
 }
 
-/* 评论 */
+/* 评论卡片 */
 .comment-card {
-  margin: 0 20rpx 20rpx;
+  margin: 0 32rpx 24rpx;
+  padding: 28rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .card-header {
@@ -376,14 +396,14 @@ onLoad((options) => {
 }
 
 .more-link {
-  font-size: 26rpx;
-  color: #409EFF;
+  font-size: 28rpx;
+  color: #007AFF;
 }
 
 .comment-item {
   display: flex;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1px solid #F2F2F7;
 }
 
 .comment-item:last-child {
@@ -410,24 +430,27 @@ onLoad((options) => {
 
 .comment-name {
   font-size: 28rpx;
-  color: #333;
+  color: #1C1C1E;
+  font-weight: 500;
 }
 
 .comment-score {
   font-size: 24rpx;
-  color: #ff9500;
+  color: #FF9500;
+  font-weight: 600;
 }
 
 .comment-text {
   font-size: 28rpx;
-  color: #666;
+  color: #8E8E93;
   margin-top: 12rpx;
   display: block;
+  line-height: 1.5;
 }
 
 .comment-time {
   font-size: 24rpx;
-  color: #999;
+  color: #C7C7CC;
   margin-top: 12rpx;
   display: block;
 }
@@ -435,7 +458,7 @@ onLoad((options) => {
 .empty-comment {
   text-align: center;
   padding: 40rpx;
-  color: #999;
+  color: #8E8E93;
   font-size: 28rpx;
 }
 
@@ -447,9 +470,10 @@ onLoad((options) => {
   right: 0;
   display: flex;
   align-items: center;
-  padding: 20rpx 30rpx;
-  background: #fff;
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 20rpx 32rpx;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -1rpx 0 rgba(0, 0, 0, 0.05);
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 }
 
@@ -457,7 +481,7 @@ onLoad((options) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 30rpx;
+  padding: 0 28rpx;
 }
 
 .action-icon {
@@ -466,19 +490,21 @@ onLoad((options) => {
 
 .action-text {
   font-size: 22rpx;
-  color: #666;
+  color: #8E8E93;
   margin-top: 4rpx;
 }
 
 .buy-btn {
   flex: 1;
-  height: 80rpx;
-  line-height: 80rpx;
-  background: #ff6b6b;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #007AFF;
   color: #fff;
   font-size: 32rpx;
-  border-radius: 40rpx;
-  margin-left: 30rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  margin-left: 24rpx;
+  border: none;
 }
 
 /* 评分弹窗 */
@@ -488,7 +514,7 @@ onLoad((options) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -498,14 +524,14 @@ onLoad((options) => {
 .rating-content {
   width: 600rpx;
   background: #fff;
-  border-radius: 20rpx;
+  border-radius: 28rpx;
   padding: 40rpx;
 }
 
 .rating-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1C1C1E;
   text-align: center;
   display: block;
   margin-bottom: 30rpx;
@@ -520,18 +546,18 @@ onLoad((options) => {
 
 .star {
   font-size: 60rpx;
-  color: #ddd;
+  color: #E5E5EA;
 }
 
 .star.active {
-  color: #ff9500;
+  color: #FF9500;
 }
 
 .rating-textarea {
   width: 100%;
   height: 200rpx;
-  border: 1rpx solid #eee;
-  border-radius: 12rpx;
+  border: 1px solid #E5E5EA;
+  border-radius: 16rpx;
   padding: 20rpx;
   font-size: 28rpx;
   box-sizing: border-box;
@@ -546,19 +572,20 @@ onLoad((options) => {
 .cancel-btn,
 .submit-btn {
   flex: 1;
-  height: 80rpx;
-  line-height: 80rpx;
-  border-radius: 40rpx;
-  font-size: 28rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  border: none;
 }
 
 .cancel-btn {
-  background: #f5f5f5;
-  color: #666;
+  background: #F2F2F7;
+  color: #8E8E93;
 }
 
 .submit-btn {
-  background: #409EFF;
+  background: #007AFF;
   color: #fff;
 }
 </style>

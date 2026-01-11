@@ -1,9 +1,12 @@
 <template>
-  <view class="spot-list-page">
-    <!-- 搜索栏 -->
-    <view class="search-bar" @click="goSearch">
-      <text class="search-icon">🔍</text>
-      <text class="search-placeholder">搜索景点</text>
+  <view class="ios-page">
+    <!-- iOS 风格头部 -->
+    <view class="ios-header">
+      <text class="large-title">景点</text>
+      <view class="search-bar" @click="goSearch">
+        <image class="search-icon" src="/static/搜索.png" />
+        <text class="search-placeholder">搜索景点</text>
+      </view>
     </view>
 
     <!-- 筛选栏 -->
@@ -54,10 +57,9 @@
       class="spot-list" 
       scroll-y 
       @scrolltolower="loadMore"
-      :style="{ height: listHeight }"
     >
       <view 
-        class="spot-item card" 
+        class="spot-card" 
         v-for="spot in spotList" 
         :key="spot.id"
         @click="goDetail(spot.id)"
@@ -67,8 +69,8 @@
           <text class="spot-name">{{ spot.name }}</text>
           <text class="spot-region">{{ spot.regionName }} · {{ spot.categoryName }}</text>
           <view class="spot-bottom">
-            <text class="spot-rating">⭐ {{ spot.avgRating }}</text>
-            <text class="spot-price price">¥{{ spot.price }}</text>
+            <text class="spot-rating">★ {{ spot.avgRating }}</text>
+            <text class="spot-price">¥{{ spot.price }}</text>
           </view>
         </view>
       </view>
@@ -83,7 +85,6 @@
 
       <!-- 空状态 -->
       <view class="empty" v-if="!loading && spotList.length === 0">
-        <text class="empty-icon">📭</text>
         <text class="empty-text">暂无景点</text>
       </view>
     </scroll-view>
@@ -119,9 +120,6 @@ const pageSize = ref(10)
 const total = ref(0)
 const loading = ref(false)
 const hasMore = computed(() => spotList.value.length < total.value)
-
-// 列表高度计算
-const listHeight = ref('calc(100vh - 200rpx)')
 
 // 筛选选项
 const filterOptions = computed(() => {
@@ -231,16 +229,12 @@ const loadMore = () => {
 
 // 跳转搜索
 const goSearch = () => {
-  uni.navigateTo({
-    url: '/pages/spot/search'
-  })
+  uni.navigateTo({ url: '/pages/spot/search' })
 }
 
 // 跳转详情
 const goDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/spot/detail?id=${id}`
-  })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${id}` })
 }
 
 // 初始化
@@ -251,38 +245,53 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.spot-list-page {
+.ios-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: #f5f5f5;
+  min-height: 100vh;
+  background: #F2F2F7;
 }
 
-/* 搜索栏 */
+/* iOS 头部 */
+.ios-header {
+  padding: 88rpx 32rpx 20rpx;
+  background: #fff;
+}
+
+.large-title {
+  font-size: 60rpx;
+  font-weight: 800;
+  color: #000;
+  display: block;
+  margin-bottom: 24rpx;
+}
+
 .search-bar {
+  background: #E3E3E8;
+  height: 72rpx;
+  border-radius: 16rpx;
   display: flex;
   align-items: center;
-  margin: 20rpx;
-  padding: 20rpx 24rpx;
-  background: #fff;
-  border-radius: 40rpx;
+  padding: 0 24rpx;
 }
 
 .search-icon {
-  margin-right: 16rpx;
+  width: 32rpx;
+  height: 32rpx;
 }
 
 .search-placeholder {
-  color: #999;
-  font-size: 28rpx;
+  color: #8E8E93;
+  font-size: 30rpx;
+  margin-left: 12rpx;
 }
 
 /* 筛选栏 */
 .filter-bar {
   display: flex;
   background: #fff;
-  padding: 20rpx;
-  border-bottom: 1rpx solid #eee;
+  padding: 20rpx 32rpx;
+  border-top: 1px solid #F2F2F7;
 }
 
 .filter-item {
@@ -291,54 +300,57 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
-  color: #666;
+  color: #8E8E93;
 }
 
 .filter-item.active {
-  color: #409EFF;
+  color: #007AFF;
 }
 
 .filter-arrow {
-  font-size: 20rpx;
+  font-size: 18rpx;
   margin-left: 8rpx;
 }
 
 /* 筛选面板 */
 .filter-panel {
   background: #fff;
-  padding: 20rpx;
-  border-bottom: 1rpx solid #eee;
+  padding: 24rpx 32rpx;
+  border-top: 1px solid #F2F2F7;
 }
 
 .filter-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .filter-option {
-  padding: 16rpx 32rpx;
-  background: #f5f5f5;
-  border-radius: 8rpx;
+  padding: 16rpx 28rpx;
+  background: #F2F2F7;
+  border-radius: 100rpx;
   font-size: 26rpx;
   color: #666;
 }
 
 .filter-option.selected {
-  background: #409EFF;
+  background: #007AFF;
   color: #fff;
 }
 
 /* 景点列表 */
 .spot-list {
   flex: 1;
-  padding: 20rpx;
+  padding: 24rpx 32rpx;
 }
 
-.spot-item {
+.spot-card {
   display: flex;
-  padding: 0;
+  background: #fff;
+  border-radius: 24rpx;
   overflow: hidden;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .spot-image {
@@ -357,13 +369,13 @@ onMounted(() => {
 
 .spot-name {
   font-size: 30rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #1C1C1E;
 }
 
 .spot-region {
   font-size: 24rpx;
-  color: #999;
+  color: #8E8E93;
   margin-top: 8rpx;
 }
 
@@ -375,11 +387,14 @@ onMounted(() => {
 
 .spot-rating {
   font-size: 24rpx;
-  color: #ff9500;
+  color: #FF9500;
+  font-weight: 600;
 }
 
 .spot-price {
   font-size: 32rpx;
+  color: #FF3B30;
+  font-weight: 600;
 }
 
 /* 加载状态 */
@@ -387,7 +402,20 @@ onMounted(() => {
 .no-more {
   text-align: center;
   padding: 30rpx;
-  color: #999;
+  color: #8E8E93;
   font-size: 26rpx;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #8E8E93;
 }
 </style>

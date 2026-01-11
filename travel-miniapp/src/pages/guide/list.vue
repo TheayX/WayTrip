@@ -1,7 +1,7 @@
 <template>
-  <view class="guide-list-page">
+  <view class="ios-page">
     <!-- 分类筛选 -->
-    <scroll-view class="category-bar" scroll-x>
+    <scroll-view class="category-bar" scroll-x :show-scrollbar="false">
       <view 
         class="category-item" 
         :class="{ active: currentCategory === '' }"
@@ -21,13 +21,9 @@
     </scroll-view>
 
     <!-- 攻略列表 -->
-    <scroll-view 
-      class="guide-list" 
-      scroll-y 
-      @scrolltolower="loadMore"
-    >
+    <scroll-view class="guide-list" scroll-y @scrolltolower="loadMore">
       <view 
-        class="guide-item card" 
+        class="guide-card" 
         v-for="guide in guideList" 
         :key="guide.id"
         @click="goDetail(guide.id)"
@@ -53,7 +49,6 @@
 
       <!-- 空状态 -->
       <view class="empty" v-if="!loading && guideList.length === 0">
-        <text class="empty-icon">📖</text>
         <text class="empty-text">暂无攻略</text>
       </view>
     </scroll-view>
@@ -64,11 +59,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { getGuideList, getCategories } from '@/api/guide'
 
-// 分类数据
 const categories = ref([])
 const currentCategory = ref('')
 
-// 列表数据
 const guideList = ref([])
 const page = ref(1)
 const pageSize = ref(10)
@@ -76,7 +69,6 @@ const total = ref(0)
 const loading = ref(false)
 const hasMore = computed(() => guideList.value.length < total.value)
 
-// 获取分类
 const fetchCategories = async () => {
   try {
     const res = await getCategories()
@@ -86,7 +78,6 @@ const fetchCategories = async () => {
   }
 }
 
-// 获取攻略列表
 const fetchGuideList = async (isRefresh = false) => {
   if (loading.value) return
   loading.value = true
@@ -119,27 +110,21 @@ const fetchGuideList = async (isRefresh = false) => {
   }
 }
 
-// 选择分类
 const selectCategory = (cat) => {
   currentCategory.value = cat
   fetchGuideList(true)
 }
 
-// 加载更多
 const loadMore = () => {
   if (hasMore.value && !loading.value) {
     fetchGuideList()
   }
 }
 
-// 跳转详情
 const goDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/guide/detail?id=${id}`
-  })
+  uni.navigateTo({ url: `/pages/guide/detail?id=${id}` })
 }
 
-// 初始化
 onMounted(() => {
   fetchCategories()
   fetchGuideList(true)
@@ -147,47 +132,50 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.guide-list-page {
+.ios-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: #f5f5f5;
+  min-height: 100vh;
+  background: #F2F2F7;
 }
 
 /* 分类栏 */
 .category-bar {
   white-space: nowrap;
   background: #fff;
-  padding: 20rpx;
-  border-bottom: 1rpx solid #eee;
+  padding: 20rpx 32rpx;
+  border-bottom: 1px solid #F2F2F7;
 }
 
 .category-item {
   display: inline-block;
-  padding: 12rpx 32rpx;
-  margin-right: 20rpx;
-  background: #f5f5f5;
-  border-radius: 30rpx;
+  padding: 14rpx 32rpx;
+  margin-right: 16rpx;
+  background: #F2F2F7;
+  border-radius: 100rpx;
   font-size: 26rpx;
-  color: #666;
+  color: #8E8E93;
 }
 
 .category-item.active {
-  background: #409EFF;
+  background: #007AFF;
   color: #fff;
 }
 
 /* 攻略列表 */
 .guide-list {
   flex: 1;
-  padding: 20rpx;
+  padding: 24rpx 32rpx;
 }
 
-.guide-item {
+.guide-card {
   display: flex;
   flex-direction: column;
-  padding: 0;
+  background: #fff;
+  border-radius: 24rpx;
   overflow: hidden;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .guide-cover {
@@ -201,15 +189,15 @@ onMounted(() => {
 
 .guide-title {
   font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #1C1C1E;
   display: block;
   margin-bottom: 12rpx;
 }
 
 .guide-summary {
   font-size: 26rpx;
-  color: #666;
+  color: #8E8E93;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -226,15 +214,15 @@ onMounted(() => {
 
 .guide-category {
   font-size: 24rpx;
-  color: #409EFF;
-  background: rgba(64, 158, 255, 0.1);
+  color: #007AFF;
+  background: rgba(0, 122, 255, 0.1);
   padding: 6rpx 16rpx;
-  border-radius: 4rpx;
+  border-radius: 100rpx;
 }
 
 .guide-views {
   font-size: 24rpx;
-  color: #999;
+  color: #8E8E93;
 }
 
 /* 加载状态 */
@@ -242,7 +230,20 @@ onMounted(() => {
 .no-more {
   text-align: center;
   padding: 30rpx;
-  color: #999;
+  color: #8E8E93;
   font-size: 26rpx;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #8E8E93;
 }
 </style>

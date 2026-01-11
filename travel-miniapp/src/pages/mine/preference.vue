@@ -1,5 +1,5 @@
 <template>
-  <view class="preference-page">
+  <view class="ios-page">
     <view class="header">
       <text class="title">选择你感兴趣的类型</text>
       <text class="subtitle">最多选择5个，帮助我们为你推荐更精准的内容</text>
@@ -13,7 +13,6 @@
         :class="{ active: selectedIds.includes(cat.id) }"
         @click="toggleCategory(cat.id)"
       >
-        <text class="category-icon">{{ cat.icon || '🏷️' }}</text>
         <text class="category-name">{{ cat.name }}</text>
         <view class="check-icon" v-if="selectedIds.includes(cat.id)">✓</view>
       </view>
@@ -39,7 +38,6 @@ const categories = ref([])
 const selectedIds = ref([])
 const saving = ref(false)
 
-// 获取分类列表
 const fetchCategories = async () => {
   try {
     const res = await getFilters()
@@ -49,7 +47,6 @@ const fetchCategories = async () => {
   }
 }
 
-// 获取用户当前偏好
 const fetchUserPreferences = async () => {
   try {
     const res = await getUserInfo()
@@ -62,7 +59,6 @@ const fetchUserPreferences = async () => {
   }
 }
 
-// 切换选择
 const toggleCategory = (id) => {
   const index = selectedIds.value.indexOf(id)
   if (index > -1) {
@@ -76,7 +72,6 @@ const toggleCategory = (id) => {
   }
 }
 
-// 保存偏好
 const savePreferences = async () => {
   if (selectedIds.value.length === 0) {
     uni.showToast({ title: '请至少选择一个', icon: 'none' })
@@ -87,10 +82,7 @@ const savePreferences = async () => {
   try {
     await updatePreferences({ categoryIds: selectedIds.value })
     uni.showToast({ title: '保存成功', icon: 'success' })
-    
-    // 更新本地用户信息
     userStore.updatePreferences(selectedIds.value.join(','))
-    
     setTimeout(() => {
       uni.navigateBack()
     }, 1500)
@@ -108,75 +100,76 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.preference-page {
+.ios-page {
   min-height: 100vh;
-  background: #f5f5f5;
-  padding-bottom: 140rpx;
+  background: #F2F2F7;
+  padding-bottom: 160rpx;
 }
 
 .header {
-  padding: 40rpx;
+  padding: 40rpx 32rpx;
   background: #fff;
 }
 
 .title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1C1C1E;
   display: block;
   margin-bottom: 12rpx;
 }
 
 .subtitle {
   font-size: 26rpx;
-  color: #999;
+  color: #8E8E93;
 }
 
 .category-list {
   display: flex;
   flex-wrap: wrap;
-  padding: 20rpx;
+  padding: 24rpx 32rpx;
   gap: 20rpx;
 }
 
 .category-item {
   width: calc(50% - 10rpx);
   background: #fff;
-  border-radius: 16rpx;
-  padding: 30rpx;
+  border-radius: 20rpx;
+  padding: 32rpx 24rpx;
   display: flex;
   align-items: center;
-  position: relative;
+  justify-content: space-between;
   border: 2rpx solid transparent;
-  transition: all 0.3s;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
 }
 
 .category-item.active {
-  border-color: #409EFF;
-  background: #ecf5ff;
-}
-
-.category-icon {
-  font-size: 48rpx;
-  margin-right: 16rpx;
+  border-color: #007AFF;
+  background: rgba(0, 122, 255, 0.05);
 }
 
 .category-name {
-  font-size: 28rpx;
-  color: #333;
-  flex: 1;
+  font-size: 30rpx;
+  color: #1C1C1E;
+  font-weight: 500;
+}
+
+.category-item.active .category-name {
+  color: #007AFF;
 }
 
 .check-icon {
   width: 40rpx;
   height: 40rpx;
-  background: #409EFF;
+  background: #007AFF;
   color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
+  font-weight: 600;
 }
 
 .bottom-bar {
@@ -187,28 +180,31 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx 30rpx;
-  background: #fff;
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 20rpx 32rpx;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -1rpx 0 rgba(0, 0, 0, 0.05);
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 }
 
 .selected-count {
   font-size: 28rpx;
-  color: #666;
+  color: #8E8E93;
 }
 
 .save-btn {
   width: 240rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  background: #409EFF;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #007AFF;
   color: #fff;
   font-size: 30rpx;
-  border-radius: 40rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  border: none;
 }
 
 .save-btn[disabled] {
-  background: #ccc;
+  background: #C7C7CC;
 }
 </style>

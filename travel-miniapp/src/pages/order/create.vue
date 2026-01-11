@@ -1,7 +1,7 @@
 <template>
-  <view class="order-create-page" v-if="spot">
+  <view class="ios-page" v-if="spot">
     <!-- 景点信息 -->
-    <view class="spot-card card">
+    <view class="spot-card">
       <image class="spot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
       <view class="spot-info">
         <text class="spot-name">{{ spot.name }}</text>
@@ -10,12 +10,12 @@
     </view>
 
     <!-- 订单表单 -->
-    <view class="form-card card">
+    <view class="form-card">
       <view class="form-item">
         <text class="form-label">游玩日期</text>
         <picker mode="date" :start="minDate" @change="onDateChange">
           <view class="form-value picker">
-            <text>{{ form.visitDate || '请选择日期' }}</text>
+            <text :class="{ placeholder: !form.visitDate }">{{ form.visitDate || '请选择日期' }}</text>
             <text class="arrow">›</text>
           </view>
         </picker>
@@ -24,7 +24,7 @@
       <view class="form-item">
         <text class="form-label">购票数量</text>
         <view class="quantity-control">
-          <view class="qty-btn" @click="changeQuantity(-1)">-</view>
+          <view class="qty-btn" @click="changeQuantity(-1)">−</view>
           <text class="qty-value">{{ form.quantity }}</text>
           <view class="qty-btn" @click="changeQuantity(1)">+</view>
         </view>
@@ -53,7 +53,7 @@
     </view>
 
     <!-- 价格明细 -->
-    <view class="price-card card">
+    <view class="price-card">
       <view class="price-row">
         <text>门票单价</text>
         <text>¥{{ spot.price }}</text>
@@ -99,20 +99,17 @@ const form = reactive({
   contactPhone: ''
 })
 
-// 最小日期（明天）
 const minDate = computed(() => {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   return tomorrow.toISOString().split('T')[0]
 })
 
-// 总价
 const totalPrice = computed(() => {
   if (!spot.value) return '0.00'
   return (spot.value.price * form.quantity).toFixed(2)
 })
 
-// 获取景点信息
 const fetchSpotDetail = async () => {
   try {
     const res = await getSpotDetail(spotId.value)
@@ -122,12 +119,10 @@ const fetchSpotDetail = async () => {
   }
 }
 
-// 日期选择
 const onDateChange = (e) => {
   form.visitDate = e.detail.value
 }
 
-// 数量调整
 const changeQuantity = (delta) => {
   const newQty = form.quantity + delta
   if (newQty >= 1 && newQty <= 99) {
@@ -135,15 +130,11 @@ const changeQuantity = (delta) => {
   }
 }
 
-// 生成幂等键
 const generateIdempotentKey = () => {
   return `${spotId.value}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }
 
-
-// 提交订单
 const handleSubmit = async () => {
-  // 表单验证
   if (!form.visitDate) {
     uni.showToast({ title: '请选择游玩日期', icon: 'none' })
     return
@@ -169,12 +160,8 @@ const handleSubmit = async () => {
     })
 
     uni.showToast({ title: '订单创建成功', icon: 'success' })
-    
-    // 跳转到订单详情
     setTimeout(() => {
-      uni.redirectTo({
-        url: `/pages/order/detail?id=${res.data.id}`
-      })
+      uni.redirectTo({ url: `/pages/order/detail?id=${res.data.id}` })
     }, 1500)
   } catch (e) {
     uni.showToast({ title: e.message || '创建订单失败', icon: 'none' })
@@ -190,29 +177,27 @@ onLoad((options) => {
 </script>
 
 <style scoped>
-.order-create-page {
+.ios-page {
   min-height: 100vh;
-  background: #f5f5f5;
-  padding-bottom: 140rpx;
-}
-
-.card {
-  background: #fff;
-  margin: 20rpx;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  background: #F2F2F7;
+  padding-bottom: 160rpx;
 }
 
 /* 景点卡片 */
 .spot-card {
   display: flex;
   align-items: center;
+  margin: 24rpx 32rpx;
+  padding: 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .spot-image {
   width: 160rpx;
   height: 120rpx;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   margin-right: 20rpx;
 }
 
@@ -222,23 +207,32 @@ onLoad((options) => {
 
 .spot-name {
   font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #1C1C1E;
   display: block;
   margin-bottom: 12rpx;
 }
 
 .spot-price {
   font-size: 28rpx;
-  color: #ff6b6b;
+  color: #FF3B30;
+  font-weight: 600;
 }
 
-/* 表单 */
+/* 表单卡片 */
+.form-card {
+  margin: 0 32rpx 24rpx;
+  padding: 0 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
 .form-item {
   display: flex;
   align-items: center;
-  padding: 24rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  padding: 28rpx 0;
+  border-bottom: 1px solid #F2F2F7;
 }
 
 .form-item:last-child {
@@ -247,15 +241,15 @@ onLoad((options) => {
 
 .form-label {
   width: 160rpx;
-  font-size: 28rpx;
-  color: #333;
+  font-size: 30rpx;
+  color: #1C1C1E;
   flex-shrink: 0;
 }
 
 .form-value {
   flex: 1;
-  font-size: 28rpx;
-  color: #333;
+  font-size: 30rpx;
+  color: #1C1C1E;
 }
 
 .form-value.picker {
@@ -264,15 +258,20 @@ onLoad((options) => {
   align-items: center;
 }
 
+.form-value .placeholder {
+  color: #C7C7CC;
+}
+
 .arrow {
-  color: #999;
+  color: #C7C7CC;
   font-size: 32rpx;
 }
 
 .form-input {
   flex: 1;
-  font-size: 28rpx;
+  font-size: 30rpx;
   text-align: right;
+  color: #1C1C1E;
 }
 
 /* 数量控制 */
@@ -283,45 +282,54 @@ onLoad((options) => {
 }
 
 .qty-btn {
-  width: 56rpx;
-  height: 56rpx;
-  background: #f5f5f5;
-  border-radius: 8rpx;
+  width: 60rpx;
+  height: 60rpx;
+  background: #F2F2F7;
+  border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
-  color: #333;
+  font-size: 36rpx;
+  color: #1C1C1E;
 }
 
 .qty-value {
   width: 80rpx;
   text-align: center;
   font-size: 32rpx;
-  color: #333;
+  color: #1C1C1E;
+  font-weight: 600;
 }
 
-/* 价格明细 */
+/* 价格卡片 */
+.price-card {
+  margin: 0 32rpx 24rpx;
+  padding: 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
 .price-row {
   display: flex;
   justify-content: space-between;
-  padding: 16rpx 0;
+  padding: 12rpx 0;
   font-size: 28rpx;
-  color: #666;
+  color: #8E8E93;
 }
 
 .price-row.total {
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1px solid #F2F2F7;
   margin-top: 12rpx;
-  padding-top: 24rpx;
+  padding-top: 20rpx;
   font-size: 30rpx;
-  color: #333;
+  color: #1C1C1E;
 }
 
 .total-price {
-  color: #ff6b6b;
+  color: #FF3B30;
   font-size: 36rpx;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 /* 底部栏 */
@@ -333,9 +341,10 @@ onLoad((options) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx 30rpx;
-  background: #fff;
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 20rpx 32rpx;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -1rpx 0 rgba(0, 0, 0, 0.05);
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 }
 
@@ -346,26 +355,28 @@ onLoad((options) => {
 
 .total-info .label {
   font-size: 28rpx;
-  color: #666;
+  color: #8E8E93;
 }
 
 .total-info .amount {
   font-size: 40rpx;
-  color: #ff6b6b;
-  font-weight: bold;
+  color: #FF3B30;
+  font-weight: 700;
 }
 
 .submit-btn {
   width: 280rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  background: #ff6b6b;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #007AFF;
   color: #fff;
   font-size: 32rpx;
-  border-radius: 40rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  border: none;
 }
 
 .submit-btn[disabled] {
-  background: #ccc;
+  background: #C7C7CC;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <view class="order-list-page">
+  <view class="ios-page">
     <!-- 状态筛选 -->
     <view class="tabs">
       <view 
@@ -14,11 +14,7 @@
     </view>
 
     <!-- 订单列表 -->
-    <scroll-view 
-      scroll-y 
-      class="order-list"
-      @scrolltolower="loadMore"
-    >
+    <scroll-view scroll-y class="order-list" @scrolltolower="loadMore">
       <view v-if="orderList.length">
         <view 
           class="order-card" 
@@ -45,27 +41,21 @@
 
           <view class="order-actions" v-if="order.status === 'pending' || order.status === 'paid'">
             <button 
-              v-if="order.status === 'pending'" 
+              v-if="order.canCancel" 
               class="action-btn cancel" 
               @click.stop="handleCancel(order)"
-            >取消订单</button>
+            >{{ order.status === 'paid' ? '申请退款' : '取消订单' }}</button>
             <button 
               v-if="order.status === 'pending'" 
               class="action-btn pay" 
               @click.stop="handlePay(order)"
             >去支付</button>
-            <button 
-              v-if="order.status === 'paid'" 
-              class="action-btn cancel" 
-              @click.stop="handleCancel(order)"
-            >申请退款</button>
           </view>
         </view>
       </view>
 
       <!-- 空状态 -->
       <view class="empty" v-else-if="!loading">
-        <text class="empty-icon">📋</text>
         <text class="empty-text">暂无订单</text>
       </view>
 
@@ -98,12 +88,8 @@ const currentTab = ref('')
 const orderList = ref([])
 const loading = ref(false)
 const noMore = ref(false)
-const pagination = reactive({
-  page: 1,
-  pageSize: 10
-})
+const pagination = reactive({ page: 1, pageSize: 10 })
 
-// 获取订单列表
 const fetchOrders = async (refresh = false) => {
   if (loading.value) return
   if (!refresh && noMore.value) return
@@ -138,13 +124,11 @@ const fetchOrders = async (refresh = false) => {
   }
 }
 
-// 切换标签
 const switchTab = (value) => {
   currentTab.value = value
   fetchOrders(true)
 }
 
-// 加载更多
 const loadMore = () => {
   if (!noMore.value && !loading.value) {
     pagination.page++
@@ -152,19 +136,14 @@ const loadMore = () => {
   }
 }
 
-// 跳转详情
 const goDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/order/detail?id=${id}`
-  })
+  uni.navigateTo({ url: `/pages/order/detail?id=${id}` })
 }
 
-
-// 取消订单
 const handleCancel = async (order) => {
   uni.showModal({
     title: '提示',
-    content: '确定要取消该订单吗？',
+    content: order.status === 'paid' ? '确定要申请退款吗？' : '确定要取消该订单吗？',
     success: async (res) => {
       if (res.confirm) {
         try {
@@ -179,7 +158,6 @@ const handleCancel = async (order) => {
   })
 }
 
-// 去支付
 const handlePay = async (order) => {
   try {
     await payOrder(order.id)
@@ -196,9 +174,9 @@ onShow(() => {
 </script>
 
 <style scoped>
-.order-list-page {
+.ios-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #F2F2F7;
   display: flex;
   flex-direction: column;
 }
@@ -207,7 +185,7 @@ onShow(() => {
 .tabs {
   display: flex;
   background: #fff;
-  padding: 0 10rpx;
+  padding: 0 16rpx;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -216,15 +194,15 @@ onShow(() => {
 .tab-item {
   flex: 1;
   text-align: center;
-  padding: 24rpx 0;
+  padding: 28rpx 0;
   font-size: 28rpx;
-  color: #666;
+  color: #8E8E93;
   position: relative;
 }
 
 .tab-item.active {
-  color: #409EFF;
-  font-weight: bold;
+  color: #007AFF;
+  font-weight: 600;
 }
 
 .tab-item.active::after {
@@ -235,21 +213,22 @@ onShow(() => {
   transform: translateX(-50%);
   width: 40rpx;
   height: 4rpx;
-  background: #409EFF;
+  background: #007AFF;
   border-radius: 2rpx;
 }
 
 /* 订单列表 */
 .order-list {
   flex: 1;
-  padding: 20rpx;
+  padding: 24rpx 32rpx;
 }
 
 .order-card {
   background: #fff;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: 24rpx;
+  margin-bottom: 24rpx;
   overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .order-header {
@@ -257,34 +236,23 @@ onShow(() => {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1px solid #F2F2F7;
 }
 
 .order-no {
   font-size: 24rpx;
-  color: #999;
+  color: #8E8E93;
 }
 
 .order-status {
   font-size: 26rpx;
-  font-weight: bold;
+  font-weight: 600;
 }
 
-.order-status.pending {
-  color: #e6a23c;
-}
-
-.order-status.paid {
-  color: #409EFF;
-}
-
-.order-status.completed {
-  color: #67c23a;
-}
-
-.order-status.cancelled {
-  color: #909399;
-}
+.order-status.pending { color: #FF9500; }
+.order-status.paid { color: #007AFF; }
+.order-status.completed { color: #34C759; }
+.order-status.cancelled { color: #8E8E93; }
 
 .order-content {
   display: flex;
@@ -294,7 +262,7 @@ onShow(() => {
 .spot-image {
   width: 160rpx;
   height: 120rpx;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   margin-right: 20rpx;
 }
 
@@ -306,14 +274,14 @@ onShow(() => {
 }
 
 .spot-name {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: bold;
+  font-size: 30rpx;
+  color: #1C1C1E;
+  font-weight: 600;
 }
 
 .visit-date {
   font-size: 24rpx;
-  color: #999;
+  color: #8E8E93;
 }
 
 .price-row {
@@ -323,13 +291,13 @@ onShow(() => {
 
 .price {
   font-size: 32rpx;
-  color: #ff6b6b;
-  font-weight: bold;
+  color: #FF3B30;
+  font-weight: 600;
 }
 
 .quantity {
   font-size: 24rpx;
-  color: #999;
+  color: #8E8E93;
   margin-left: 12rpx;
 }
 
@@ -337,25 +305,26 @@ onShow(() => {
   display: flex;
   justify-content: flex-end;
   padding: 16rpx 24rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1px solid #F2F2F7;
   gap: 20rpx;
 }
 
 .action-btn {
-  padding: 12rpx 32rpx;
+  padding: 0 32rpx;
+  height: 64rpx;
+  line-height: 64rpx;
   font-size: 26rpx;
   border-radius: 32rpx;
-  line-height: 1.5;
+  border: none;
 }
 
 .action-btn.cancel {
-  background: #fff;
-  color: #666;
-  border: 1rpx solid #ddd;
+  background: #F2F2F7;
+  color: #8E8E93;
 }
 
 .action-btn.pay {
-  background: #ff6b6b;
+  background: #007AFF;
   color: #fff;
 }
 
@@ -364,18 +333,12 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 100rpx 0;
-}
-
-.empty-icon {
-  font-size: 80rpx;
-  margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: #8E8E93;
 }
 
 /* 加载状态 */
@@ -384,6 +347,6 @@ onShow(() => {
   text-align: center;
   padding: 30rpx;
   font-size: 26rpx;
-  color: #999;
+  color: #8E8E93;
 }
 </style>
