@@ -1,35 +1,38 @@
 <template>
-  <view class="index-page">
-    <!-- 轮播图 -->
-    <swiper class="banner" indicator-dots autoplay circular v-if="banners.length">
-      <swiper-item v-for="banner in banners" :key="banner.id" @click="handleBannerClick(banner)">
-        <image class="banner-image" :src="getImageUrl(banner.imageUrl)" mode="aspectFill" />
-      </swiper-item>
-    </swiper>
-    <view class="banner-placeholder" v-else>
-      <text>暂无轮播图</text>
+  <view class="ios-page">
+    <!-- iOS 风格头部 -->
+    <view class="ios-header">
+      <view class="header-top">
+        <text class="large-title">探索</text>
+        <image class="avatar-sm" :src="userInfo?.avatar || '/static/default-avatar.png'" @click="goMine"/>
+      </view>
+      <view class="search-bar" @click="goSearch">
+        <image class="search-icon" src="/static/搜索.png" />
+        <text class="search-placeholder">搜索景点、攻略...</text>
+      </view>
     </view>
 
-    <!-- 热门推荐 -->
+    <!-- 轮播图 -->
+    <view class="banner-container" v-if="banners.length">
+      <swiper class="banner" indicator-dots indicator-active-color="#fff" autoplay circular>
+        <swiper-item v-for="banner in banners" :key="banner.id" @click="handleBannerClick(banner)">
+          <image class="banner-image" :src="getImageUrl(banner.imageUrl)" mode="aspectFill" />
+        </swiper-item>
+      </swiper>
+    </view>
+
+    <!-- 热门目的地 -->
     <view class="section">
       <view class="section-header">
-        <text class="section-title">🔥 热门推荐</text>
-        <text class="section-more" @click="goSpotList">更多</text>
+        <text class="section-title">热门目的地</text>
+        <text class="section-more" @click="goSpotList">查看全部</text>
       </view>
-      <scroll-view class="hot-list" scroll-x v-if="hotSpots.length">
-        <view 
-          class="hot-item" 
-          v-for="spot in hotSpots" 
-          :key="spot.id"
-          @click="goSpotDetail(spot.id)"
-        >
-          <image class="hot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
-          <view class="hot-info">
+      <scroll-view class="hot-scroll" scroll-x :show-scrollbar="false" v-if="hotSpots.length">
+        <view class="hot-card" v-for="spot in hotSpots" :key="spot.id" @click="goSpotDetail(spot.id)">
+          <image class="hot-img" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
+          <view class="hot-overlay">
             <text class="hot-name">{{ spot.name }}</text>
-            <view class="hot-meta">
-              <text class="hot-rating">⭐ {{ spot.avgRating || '暂无' }}</text>
-              <text class="hot-price">¥{{ spot.price }}</text>
-            </view>
+            <view class="hot-badge">¥{{ spot.price }} 起</view>
           </view>
         </view>
       </scroll-view>
@@ -38,34 +41,31 @@
       </view>
     </view>
 
-    <!-- 个性化推荐 -->
+    <!-- 为你推荐 -->
     <view class="section">
       <view class="section-header">
-        <text class="section-title">✨ {{ recommendType }}</text>
-        <text class="section-refresh" @click="handleRefresh">换一批</text>
+        <text class="section-title">{{ recommendType }}</text>
+        <text class="section-more" @click="handleRefresh">换一批</text>
       </view>
       
       <!-- 偏好设置提示 -->
       <view class="preference-tip" v-if="needPreference" @click="showPreferencePopup">
-        <text class="tip-icon">💡</text>
         <text class="tip-text">设置偏好标签，获取更精准的推荐</text>
         <text class="tip-arrow">›</text>
       </view>
 
       <view class="recommend-list" v-if="recommendations.length">
-        <view 
-          class="recommend-item card" 
-          v-for="spot in recommendations" 
-          :key="spot.id"
-          @click="goSpotDetail(spot.id)"
-        >
-          <image class="recommend-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
-          <view class="recommend-info">
-            <text class="recommend-name">{{ spot.name }}</text>
-            <text class="recommend-category">{{ spot.categoryName }}</text>
-            <view class="recommend-meta">
-              <text class="recommend-rating">⭐ {{ spot.avgRating || '暂无' }}</text>
-              <text class="recommend-price">¥{{ spot.price }}</text>
+        <view class="recommend-card" v-for="spot in recommendations" :key="spot.id" @click="goSpotDetail(spot.id)">
+          <image class="rec-img" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
+          <view class="rec-content">
+            <view class="rec-header">
+              <text class="rec-name">{{ spot.name }}</text>
+              <text class="rec-rating">★ {{ spot.avgRating || '4.5' }}</text>
+            </view>
+            <text class="rec-desc">{{ spot.intro || '暂无介绍，点击查看详情...' }}</text>
+            <view class="rec-footer">
+              <text class="rec-tag">{{ spot.categoryName }}</text>
+              <text class="rec-price">¥{{ spot.price }}</text>
             </view>
           </view>
         </view>
@@ -83,7 +83,7 @@
           <view 
             v-for="cat in categories" 
             :key="cat.id"
-            class="preference-tag"
+            class="preference-tag-item"
             :class="{ active: selectedCategories.includes(cat.id) }"
             @click="toggleCategory(cat.id)"
           >
@@ -106,6 +106,11 @@ import { getHotSpots, getRecommendations, refreshRecommendations, getBanners } f
 import { getFilters } from '@/api/spot'
 import { setPreferences } from '@/api/auth'
 import { getImageUrl } from '@/utils/request'
+import { useUserStore } from '@/stores/user'
+
+// 用户信息
+const userStore = useUserStore()
+const userInfo = computed(() => userStore.userInfo)
 
 // 数据
 const banners = ref([])
@@ -148,7 +153,6 @@ const fetchHotSpots = async () => {
     console.error('获取热门景点失败', e)
   }
 }
-
 
 // 获取个性化推荐
 const fetchRecommendations = async () => {
@@ -218,12 +222,9 @@ const savePreferences = async () => {
   }
   
   try {
-    // 调用保存偏好接口
     await setPreferences(selectedCategories.value)
     uni.showToast({ title: '设置成功', icon: 'success' })
     preferenceVisible.value = false
-    
-    // 刷新推荐
     handleRefresh()
   } catch (e) {
     console.error('保存偏好失败', e)
@@ -235,23 +236,24 @@ const savePreferences = async () => {
 const handleBannerClick = (banner) => {
   if (banner.spotId) {
     goSpotDetail(banner.spotId)
-  } else if (banner.linkUrl) {
-    // 外部链接
   }
 }
 
-// 跳转景点详情
+// 跳转
 const goSpotDetail = (spotId) => {
-  uni.navigateTo({
-    url: `/pages/spot/detail?id=${spotId}`
-  })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}` })
 }
 
-// 跳转景点列表
 const goSpotList = () => {
-  uni.switchTab({
-    url: '/pages/spot/list'
-  })
+  uni.switchTab({ url: '/pages/spot/list' })
+}
+
+const goMine = () => {
+  uni.switchTab({ url: '/pages/mine/index' })
+}
+
+const goSearch = () => {
+  uni.navigateTo({ url: '/pages/spot/search' })
 }
 
 // 下拉刷新
@@ -269,202 +271,264 @@ onShow(() => {
 </script>
 
 <style scoped>
-.index-page {
-  padding-bottom: 20rpx;
-  background: #f5f5f5;
+/* iOS 风格页面 */
+.ios-page {
+  background-color: #F2F2F7;
   min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+/* 头部 */
+.ios-header {
+  padding: 88rpx 32rpx 20rpx;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.large-title {
+  font-size: 60rpx;
+  font-weight: 800;
+  color: #000;
+  letter-spacing: -1px;
+}
+
+.avatar-sm {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+
+/* 搜索栏 */
+.search-bar {
+  background: #E3E3E8;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 24rpx;
+}
+
+.search-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.search-placeholder {
+  color: #8E8E93;
+  font-size: 30rpx;
+  margin-left: 12rpx;
 }
 
 /* 轮播图 */
+.banner-container {
+  padding: 32rpx;
+}
+
 .banner {
   width: 100%;
   height: 360rpx;
+  border-radius: 32rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.08);
 }
 
 .banner-image {
   width: 100%;
-  height: 100%;
-}
-
-.banner-placeholder {
-  width: 100%;
   height: 360rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 28rpx;
+  border-radius: 32rpx;
 }
 
-/* 区块 */
+/* 板块通用 */
 .section {
-  margin-top: 20rpx;
-  padding: 0 20rpx;
+  margin-bottom: 40rpx;
 }
 
 .section-header {
+  padding: 0 32rpx 24rpx;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
+  align-items: flex-end;
 }
 
 .section-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #000;
 }
 
-.section-more,
-.section-refresh {
-  font-size: 26rpx;
-  color: #409EFF;
+.section-more {
+  color: #007AFF;
+  font-size: 30rpx;
 }
 
-/* 热门推荐横向滚动 */
-.hot-list {
+/* 热门横向滚动 */
+.hot-scroll {
   white-space: nowrap;
+  padding-left: 32rpx;
 }
 
-.hot-item {
+.hot-card {
   display: inline-block;
-  width: 280rpx;
-  margin-right: 20rpx;
-  background: #fff;
-  border-radius: 16rpx;
+  width: 300rpx;
+  height: 400rpx;
+  margin-right: 24rpx;
+  border-radius: 32rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  position: relative;
+  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.1);
 }
 
-.hot-image {
-  width: 280rpx;
-  height: 200rpx;
+.hot-img {
+  width: 100%;
+  height: 100%;
 }
 
-.hot-info {
-  padding: 16rpx;
+.hot-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30rpx 20rpx;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
 }
 
 .hot-name {
-  font-size: 28rpx;
-  color: #333;
   display: block;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: bold;
 }
 
-.hot-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12rpx;
-}
-
-.hot-rating {
-  font-size: 24rpx;
-  color: #ff9500;
-}
-
-.hot-price {
-  font-size: 28rpx;
-  color: #ff6b6b;
-  font-weight: bold;
+.hot-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  color: #fff;
+  font-size: 22rpx;
+  margin-top: 8rpx;
 }
 
 /* 偏好设置提示 */
 .preference-tip {
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
-  padding: 20rpx 24rpx;
-  border-radius: 12rpx;
-  margin-bottom: 20rpx;
-}
-
-.tip-icon {
-  font-size: 32rpx;
-  margin-right: 12rpx;
+  justify-content: space-between;
+  background: #fff;
+  padding: 24rpx 32rpx;
+  margin: 0 32rpx 24rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
 }
 
 .tip-text {
-  flex: 1;
-  font-size: 26rpx;
-  color: #856404;
+  font-size: 28rpx;
+  color: #007AFF;
 }
 
 .tip-arrow {
   font-size: 32rpx;
-  color: #856404;
+  color: #C7C7CC;
 }
 
-/* 个性化推荐 */
+/* 推荐列表 */
 .recommend-list {
+  padding: 0 32rpx;
   display: flex;
-  flex-wrap: wrap;
-  gap: 20rpx;
+  flex-direction: column;
+  gap: 32rpx;
 }
 
-.recommend-item {
-  width: calc(50% - 10rpx);
-  padding: 0;
-  overflow: hidden;
+.recommend-card {
   background: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-}
-
-.recommend-image {
-  width: 100%;
-  height: 200rpx;
-}
-
-.recommend-info {
-  padding: 16rpx;
-}
-
-.recommend-name {
-  font-size: 28rpx;
-  color: #333;
-  display: block;
+  border-radius: 32rpx;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: bold;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
 }
 
-.recommend-category {
-  font-size: 22rpx;
-  color: #999;
-  margin-top: 8rpx;
-  display: block;
+.rec-img {
+  width: 100%;
+  height: 300rpx;
 }
 
-.recommend-meta {
+.rec-content {
+  padding: 24rpx;
+}
+
+.rec-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12rpx;
+  margin-bottom: 12rpx;
 }
 
-.recommend-rating {
-  font-size: 24rpx;
-  color: #ff9500;
+.rec-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1c1c1e;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.recommend-price {
+.rec-rating {
+  color: #FF9500;
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-left: 16rpx;
+}
+
+.rec-desc {
   font-size: 28rpx;
-  color: #ff6b6b;
-  font-weight: bold;
+  color: #8E8E93;
+  line-height: 1.4;
+  margin-bottom: 16rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.rec-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rec-tag {
+  font-size: 22rpx;
+  color: #007AFF;
+  background: rgba(0, 122, 255, 0.1);
+  padding: 6rpx 16rpx;
+  border-radius: 100rpx;
+}
+
+.rec-price {
+  font-size: 32rpx;
+  color: #FF3B30;
+  font-weight: 600;
 }
 
 /* 空状态 */
 .empty-tip {
   text-align: center;
-  padding: 40rpx;
-  color: #999;
+  padding: 60rpx;
+  color: #8E8E93;
   font-size: 28rpx;
 }
 
@@ -475,7 +539,7 @@ onShow(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -485,14 +549,14 @@ onShow(() => {
 .preference-content {
   width: 600rpx;
   background: #fff;
-  border-radius: 20rpx;
+  border-radius: 28rpx;
   padding: 40rpx;
 }
 
 .preference-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #000;
   text-align: center;
   display: block;
   margin-bottom: 30rpx;
@@ -505,16 +569,16 @@ onShow(() => {
   margin-bottom: 30rpx;
 }
 
-.preference-tag {
+.preference-tag-item {
   padding: 16rpx 28rpx;
-  background: #f5f5f5;
-  border-radius: 32rpx;
+  background: #F2F2F7;
+  border-radius: 100rpx;
   font-size: 26rpx;
   color: #666;
 }
 
-.preference-tag.active {
-  background: #409EFF;
+.preference-tag-item.active {
+  background: #007AFF;
   color: #fff;
 }
 
@@ -526,19 +590,20 @@ onShow(() => {
 .cancel-btn,
 .confirm-btn {
   flex: 1;
-  height: 80rpx;
-  line-height: 80rpx;
-  border-radius: 40rpx;
-  font-size: 28rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  border: none;
 }
 
 .cancel-btn {
-  background: #f5f5f5;
+  background: #F2F2F7;
   color: #666;
 }
 
 .confirm-btn {
-  background: #409EFF;
+  background: #007AFF;
   color: #fff;
 }
 </style>

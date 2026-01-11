@@ -1,25 +1,28 @@
 /**
- * Uni-app 全局样式变量
+ * Uni-app 全局样式变量 - Apple iOS 风格
  */
 
-/* 主题色 */
-$uni-color-primary: #409EFF;
-$uni-color-success: #67C23A;
-$uni-color-warning: #E6A23C;
-$uni-color-error: #F56C6C;
-
-/* 文字颜色 */
-$uni-text-color: #333333;
-$uni-text-color-inverse: #ffffff;
-$uni-text-color-grey: #999999;
-$uni-text-color-placeholder: #cccccc;
+/* Apple iOS Color System */
+$uni-color-primary: #007AFF;   /* iOS Blue */
+$uni-color-success: #34C759;   /* iOS Green */
+$uni-color-warning: #FF9500;   /* iOS Orange */
+$uni-color-error: #FF3B30;     /* iOS Red */
 
 /* 背景颜色 */
-$uni-bg-color: #ffffff;
-$uni-bg-color-grey: #f5f5f5;
+$uni-bg-color: #F2F2F7;        /* iOS System Gray 6 (背景灰) */
+$uni-bg-color-card: #FFFFFF;   /* 卡片白 */
+$uni-bg-color-grey: #E5E5EA;   /* iOS 分割线/次要背景 */
+
+/* 文字颜色 */
+$uni-text-title: #000000;      /* 纯黑标题 */
+$uni-text-color: #1C1C1E;      /* 主要文字 */
+$uni-text-color-inverse: #FFFFFF;
+$uni-text-secondary: #8E8E93;  /* 次要文字灰 */
+$uni-text-color-grey: #8E8E93;
+$uni-text-color-placeholder: #C7C7CC;
 
 /* 边框颜色 */
-$uni-border-color: #eeeeee;
+$uni-border-color: #E5E5EA;
 
 /* 字体大小 */
 $uni-font-size-sm: 24rpx;
@@ -31,8 +34,9 @@ $uni-spacing-sm: 16rpx;
 $uni-spacing-base: 24rpx;
 $uni-spacing-lg: 32rpx;
 
-/* 圆角 */
-$uni-border-radius-sm: 8rpx;
-$uni-border-radius-base: 12rpx;
-$uni-border-radius-lg: 16rpx;
+/* 圆角 - iOS 大圆角 */
+$uni-border-radius-sm: 12rpx;
+$uni-border-radius-base: 20rpx;
+$uni-border-radius-lg: 24rpx;
+$uni-border-radius-card: 32rpx; /* 卡片大圆角 */
 $uni-border-radius-circle: 50%;

@@ -1,13 +1,9 @@
 <template>
-  <view class="favorite-page">
+  <view class="ios-page">
     <!-- 收藏列表 -->
-    <scroll-view 
-      class="favorite-list" 
-      scroll-y 
-      @scrolltolower="loadMore"
-    >
+    <scroll-view class="favorite-list" scroll-y @scrolltolower="loadMore">
       <view 
-        class="favorite-item card" 
+        class="favorite-card" 
         v-for="spot in favoriteList" 
         :key="spot.id"
         @click="goDetail(spot.id)"
@@ -17,8 +13,8 @@
           <text class="spot-name">{{ spot.name }}</text>
           <text class="spot-region">{{ spot.regionName }} · {{ spot.categoryName }}</text>
           <view class="spot-bottom">
-            <text class="spot-rating">⭐ {{ spot.avgRating }}</text>
-            <text class="spot-price price">¥{{ spot.price }}</text>
+            <text class="spot-rating">★ {{ spot.avgRating }}</text>
+            <text class="spot-price">¥{{ spot.price }}</text>
           </view>
         </view>
         <view class="remove-btn" @click.stop="removeFavoriteHandler(spot.id)">
@@ -45,12 +41,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getFavoriteList, removeFavorite } from '@/api/favorite'
 import { getImageUrl } from '@/utils/request'
 
-// 列表数据
 const favoriteList = ref([])
 const page = ref(1)
 const pageSize = ref(10)
@@ -58,7 +53,6 @@ const total = ref(0)
 const loading = ref(false)
 const hasMore = computed(() => favoriteList.value.length < total.value)
 
-// 获取收藏列表
 const fetchFavoriteList = async (isRefresh = false) => {
   if (loading.value) return
   loading.value = true
@@ -82,11 +76,9 @@ const fetchFavoriteList = async (isRefresh = false) => {
   }
 }
 
-// 取消收藏
 const removeFavoriteHandler = async (spotId) => {
   try {
     await removeFavorite(spotId)
-    // 从列表中移除
     favoriteList.value = favoriteList.value.filter(item => item.id !== spotId)
     total.value--
     uni.showToast({ title: '已取消收藏', icon: 'none' })
@@ -95,42 +87,40 @@ const removeFavoriteHandler = async (spotId) => {
   }
 }
 
-// 加载更多
 const loadMore = () => {
   if (hasMore.value && !loading.value) {
     fetchFavoriteList()
   }
 }
 
-// 跳转详情
 const goDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/spot/detail?id=${id}`
-  })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${id}` })
 }
 
-// 页面显示时刷新
 onShow(() => {
   fetchFavoriteList(true)
 })
 </script>
 
 <style scoped>
-.favorite-page {
+.ios-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #F2F2F7;
 }
 
 .favorite-list {
   height: 100vh;
-  padding: 20rpx;
+  padding: 24rpx 32rpx;
 }
 
-.favorite-item {
+.favorite-card {
   display: flex;
   align-items: center;
-  padding: 0;
+  background: #fff;
+  border-radius: 24rpx;
   overflow: hidden;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .spot-image {
@@ -149,14 +139,14 @@ onShow(() => {
 }
 
 .spot-name {
-  font-size: 28rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1C1C1E;
 }
 
 .spot-region {
   font-size: 24rpx;
-  color: #999;
+  color: #8E8E93;
   margin-top: 8rpx;
 }
 
@@ -169,17 +159,20 @@ onShow(() => {
 
 .spot-rating {
   font-size: 24rpx;
-  color: #ff9500;
+  color: #FF9500;
+  font-weight: 600;
 }
 
 .spot-price {
   font-size: 28rpx;
+  color: #FF3B30;
+  font-weight: 600;
 }
 
 .remove-btn {
   padding: 20rpx;
-  color: #999;
-  font-size: 24rpx;
+  color: #8E8E93;
+  font-size: 26rpx;
 }
 
 /* 加载状态 */
@@ -187,7 +180,7 @@ onShow(() => {
 .no-more {
   text-align: center;
   padding: 30rpx;
-  color: #999;
+  color: #8E8E93;
   font-size: 26rpx;
 }
 
@@ -196,7 +189,6 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding-top: 200rpx;
 }
 
@@ -207,12 +199,12 @@ onShow(() => {
 
 .empty-text {
   font-size: 32rpx;
-  color: #333;
+  color: #1C1C1E;
   margin-bottom: 10rpx;
 }
 
 .empty-tip {
   font-size: 26rpx;
-  color: #999;
+  color: #8E8E93;
 }
 </style>

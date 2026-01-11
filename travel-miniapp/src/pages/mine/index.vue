@@ -1,55 +1,65 @@
 <template>
-  <view class="mine-page">
-    <!-- 用户信息 -->
-    <view class="user-card">
-      <image class="user-avatar" :src="userInfo?.avatar || '/static/default-avatar.png'" />
-      <view class="user-info" v-if="isLoggedIn">
-        <text class="user-name">{{ userInfo?.nickname || '旅行者' }}</text>
-        <view class="user-tags" v-if="userInfo?.preferences?.length">
-          <text class="tag" v-for="tag in userInfo.preferences" :key="tag">{{ tag }}</text>
+  <view class="ios-mine">
+    <!-- 个人信息头 -->
+    <view class="profile-header" @click="isLoggedIn ? null : doLogin()">
+      <view class="avatar-container">
+        <image class="avatar-lg" :src="userInfo?.avatar || '/static/default-avatar.png'" />
+      </view>
+      <view class="profile-info">
+        <text class="user-name">{{ isLoggedIn ? (userInfo?.nickname || '旅行家') : '点击登录' }}</text>
+        <text class="user-desc">{{ isLoggedIn ? '开启你的探索之旅' : '登录同步数据' }}</text>
+      </view>
+      <view class="arrow-right" v-if="!isLoggedIn">›</view>
+    </view>
+
+    <!-- 菜单组1 -->
+    <view class="ios-group">
+      <view class="ios-cell" @click="goOrders">
+        <view class="cell-icon">
+          <image class="cell-icon-img" src="/static/icons/订单.png" />
         </view>
+        <text class="cell-title">我的订单</text>
+        <text class="cell-arrow">›</text>
       </view>
-      <view class="user-info" v-else @click="doLogin">
-        <text class="login-tip">点击登录</text>
-      </view>
-    </view>
-
-    <!-- 功能菜单 -->
-    <view class="menu-card card">
-      <view class="menu-item" @click="goOrders">
-        <text class="menu-icon">📋</text>
-        <text class="menu-text">我的订单</text>
-        <text class="menu-arrow">›</text>
-      </view>
-      <view class="menu-item" @click="goFavorites">
-        <text class="menu-icon">❤️</text>
-        <text class="menu-text">我的收藏</text>
-        <text class="menu-arrow">›</text>
-      </view>
-      <view class="menu-item" @click="goPreference">
-        <text class="menu-icon">🏷️</text>
-        <text class="menu-text">偏好设置</text>
-        <text class="menu-arrow">›</text>
+      <view class="ios-cell" @click="goFavorites">
+        <view class="cell-icon">
+          <image class="cell-icon-img" src="/static/icons/收藏.png" />
+        </view>
+        <text class="cell-title">我的收藏</text>
+        <text class="cell-arrow">›</text>
       </view>
     </view>
 
-    <!-- 其他菜单 -->
-    <view class="menu-card card">
-      <view class="menu-item" @click="contactService">
-        <text class="menu-icon">📞</text>
-        <text class="menu-text">联系客服</text>
-        <text class="menu-arrow">›</text>
+    <!-- 菜单组2 -->
+    <view class="ios-group">
+      <view class="ios-cell" @click="goPreference">
+        <view class="cell-icon">
+          <image class="cell-icon-img" src="/static/icons/偏好.png" />
+        </view>
+        <text class="cell-title">偏好设置</text>
+        <text class="cell-arrow">›</text>
       </view>
-      <view class="menu-item" @click="showAbout">
-        <text class="menu-icon">ℹ️</text>
-        <text class="menu-text">关于我们</text>
-        <text class="menu-arrow">›</text>
+      <view class="ios-cell" @click="contactService">
+        <view class="cell-icon">
+          <image class="cell-icon-img" src="/static/icons/客服.png" />
+        </view>
+        <text class="cell-title">联系客服</text>
+        <text class="cell-arrow">›</text>
+      </view>
+      <view class="ios-cell" @click="showAbout">
+        <view class="cell-icon">
+          <image class="cell-icon-img" src="/static/icons/关于.png" />
+        </view>
+        <text class="cell-title">关于我们</text>
+        <text class="cell-arrow">›</text>
       </view>
     </view>
 
     <!-- 退出登录 -->
-    <view class="logout-btn" v-if="isLoggedIn" @click="doLogout">
-      退出登录
+    <view class="ios-group logout-group" v-if="isLoggedIn">
+      <view class="ios-cell center-align" @click="doLogout">
+        <text class="logout-text">退出登录</text>
+      </view>
     </view>
   </view>
 </template>
@@ -125,108 +135,129 @@ const contactService = () => {
 const showAbout = () => {
   uni.showModal({
     title: '关于我们',
-    content: 'WayTrip·微旅 v1.0.0 - 基于协同过滤的个性化推荐',
+    content: 'WayTrip·微旅 v1.0.0\n基于协同过滤的个性化旅游推荐',
     showCancel: false
   })
 }
 </script>
 
 <style scoped>
-.mine-page {
-  padding: 20rpx;
+.ios-mine {
+  background-color: #F2F2F7;
   min-height: 100vh;
-  background: #f5f5f5;
+  padding: 20rpx 32rpx;
+  padding-top: 120rpx;
 }
 
-/* 用户卡片 */
-.user-card {
+/* 个人信息头 */
+.profile-header {
   display: flex;
   align-items: center;
-  padding: 40rpx;
-  background: linear-gradient(135deg, #409EFF, #67C23A);
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 60rpx;
 }
 
-.user-avatar {
-  width: 120rpx;
-  height: 120rpx;
+.avatar-lg {
+  width: 140rpx;
+  height: 140rpx;
   border-radius: 50%;
-  border: 4rpx solid rgba(255, 255, 255, 0.5);
-  margin-right: 30rpx;
+  border: 4rpx solid #fff;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
 }
 
-.user-info {
+.profile-info {
+  margin-left: 32rpx;
   flex: 1;
 }
 
 .user-name {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #fff;
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #000;
   display: block;
+  margin-bottom: 8rpx;
 }
 
-.user-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-  margin-top: 16rpx;
+.user-desc {
+  font-size: 28rpx;
+  color: #8E8E93;
 }
 
-.tag {
-  font-size: 22rpx;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.3);
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
+.arrow-right {
+  font-size: 40rpx;
+  color: #C7C7CC;
 }
 
-.login-tip {
-  font-size: 32rpx;
-  color: #fff;
+/* 菜单组 - iOS Inset Grouped 风格 */
+.ios-group {
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  margin-bottom: 32rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.02);
 }
 
-/* 菜单卡片 */
-.menu-card {
-  margin-bottom: 20rpx;
-}
-
-.menu-item {
+.ios-cell {
   display: flex;
   align-items: center;
-  padding: 30rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
-}
-
-.menu-item:last-child {
-  border-bottom: none;
-}
-
-.menu-icon {
-  font-size: 40rpx;
-  margin-right: 20rpx;
-}
-
-.menu-text {
-  flex: 1;
-  font-size: 30rpx;
-  color: #333;
-}
-
-.menu-arrow {
-  font-size: 32rpx;
-  color: #ccc;
-}
-
-/* 退出按钮 */
-.logout-btn {
-  margin-top: 60rpx;
-  text-align: center;
-  padding: 30rpx;
+  padding: 32rpx;
   background: #fff;
-  border-radius: 16rpx;
-  color: #ff6b6b;
-  font-size: 30rpx;
+  position: relative;
+}
+
+/* 分割线 */
+.ios-cell:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 112rpx;
+  right: 0;
+  height: 1px;
+  background-color: #E5E5EA;
+}
+
+.ios-cell:active {
+  background-color: #F2F2F7;
+}
+
+/* 图标容器 - 毛玻璃风格 */
+.cell-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  background: rgba(120, 120, 128, 0.08);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.cell-icon-img {
+  width: 32rpx;
+  height: 32rpx;
+  opacity: 0.85;
+}
+
+.cell-title {
+  font-size: 34rpx;
+  color: #000;
+  flex: 1;
+}
+
+.cell-arrow {
+  color: #C7C7CC;
+  font-size: 34rpx;
+  font-weight: 300;
+}
+
+/* 退出登录 */
+.center-align {
+  justify-content: center;
+}
+
+.logout-text {
+  color: #FF3B30;
+  font-size: 34rpx;
+  font-weight: 600;
 }
 </style>

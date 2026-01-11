@@ -1,9 +1,9 @@
 <template>
-  <view class="search-page">
-    <!-- 搜索框 -->
+  <view class="ios-page">
+    <!-- 搜索头部 -->
     <view class="search-header">
       <view class="search-input-wrap">
-        <text class="search-icon">🔍</text>
+        <image class="search-icon" src="/static/搜索.png" />
         <input 
           class="search-input" 
           v-model="keyword" 
@@ -20,7 +20,7 @@
     <!-- 搜索结果 -->
     <scroll-view class="search-result" scroll-y @scrolltolower="loadMore">
       <view 
-        class="result-item card" 
+        class="result-card" 
         v-for="spot in resultList" 
         :key="spot.id"
         @click="goDetail(spot.id)"
@@ -29,13 +29,12 @@
         <view class="result-info">
           <text class="result-name">{{ spot.name }}</text>
           <text class="result-region">{{ spot.regionName }}</text>
-          <text class="result-price price">¥{{ spot.price }}</text>
+          <text class="result-price">¥{{ spot.price }}</text>
         </view>
       </view>
 
       <!-- 空状态 -->
       <view class="empty" v-if="searched && resultList.length === 0">
-        <text class="empty-icon">🔍</text>
         <text class="empty-text">暂无搜索结果</text>
       </view>
     </scroll-view>
@@ -98,24 +97,23 @@ const goBack = () => {
 
 // 跳转详情
 const goDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/spot/detail?id=${id}`
-  })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${id}` })
 }
 </script>
 
 <style scoped>
-.search-page {
+.ios-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: #f5f5f5;
+  min-height: 100vh;
+  background: #F2F2F7;
 }
 
+/* 搜索头部 */
 .search-header {
   display: flex;
   align-items: center;
-  padding: 20rpx;
+  padding: 60rpx 32rpx 20rpx;
   background: #fff;
 }
 
@@ -123,40 +121,48 @@ const goDetail = (id) => {
   flex: 1;
   display: flex;
   align-items: center;
-  background: #f5f5f5;
-  border-radius: 40rpx;
-  padding: 16rpx 24rpx;
+  background: #E3E3E8;
+  border-radius: 16rpx;
+  padding: 16rpx 20rpx;
 }
 
 .search-icon {
-  margin-right: 16rpx;
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
-  font-size: 28rpx;
+  font-size: 30rpx;
+  color: #1C1C1E;
 }
 
 .clear-btn {
-  color: #999;
+  color: #8E8E93;
   padding: 10rpx;
-}
-
-.cancel-btn {
-  margin-left: 20rpx;
-  color: #409EFF;
   font-size: 28rpx;
 }
 
-.search-result {
-  flex: 1;
-  padding: 20rpx;
+.cancel-btn {
+  margin-left: 24rpx;
+  color: #007AFF;
+  font-size: 30rpx;
 }
 
-.result-item {
+/* 搜索结果 */
+.search-result {
+  flex: 1;
+  padding: 24rpx 32rpx;
+}
+
+.result-card {
   display: flex;
-  padding: 0;
+  background: #fff;
+  border-radius: 24rpx;
   overflow: hidden;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .result-image {
@@ -175,16 +181,31 @@ const goDetail = (id) => {
 
 .result-name {
   font-size: 30rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #1C1C1E;
 }
 
 .result-region {
   font-size: 24rpx;
-  color: #999;
+  color: #8E8E93;
 }
 
 .result-price {
   font-size: 32rpx;
+  color: #FF3B30;
+  font-weight: 600;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #8E8E93;
 }
 </style>
