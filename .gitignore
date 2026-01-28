@@ -10,9 +10,6 @@ target/
 *.iml
 .vscode/
 
-# Kiro
-.kiro/
-
 # Logs
 *.log
 npm-debug.log*
