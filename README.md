@@ -16,10 +16,10 @@
 
 ```
 WayTrip/
+├── .kiro/             # 项目文档
 ├── travel-server/      # 后端服务 (Spring Boot)
 ├── travel-admin/       # 管理后台 (Vue 3 + Element Plus)
-├── travel-miniapp/     # 小程序端 (Uni-app)
-└── Requirement_v1.0.md # 需求文档
+└── travel-miniapp/     # 小程序端 (Uni-app)
 ```
 
 ## 快速开始
@@ -44,6 +44,8 @@ CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 ### 2. 启动后端服务
+
+> **⚠️ 注意**：VS Code 默认可正常启动。若使用 **IntelliJ IDEA**，请务必在启动配置中将 **Working directory** 修改为 `travel-server` 子模块目录（或填入 `$MODULE_WORKING_DIR$`），否则会导致图片无法显示或上传路径错误。
 
 ```bash
 cd travel-server
@@ -116,7 +118,7 @@ npm install
 
 ## 文档
 
-- [需求文档](./Requirement_v1.0.md)
+- [需求文档](./.kiro/specs/travel-recommendation-system/requirements.md)
 - [设计文档](./.kiro/specs/travel-recommendation-system/design.md)
 - [API 文档](./.kiro/specs/travel-recommendation-system/api.md)
 - [数据库设计](./.kiro/specs/travel-recommendation-system/database.md)
