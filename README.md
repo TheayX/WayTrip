@@ -66,6 +66,8 @@ mvn spring-boot:run
 ```bash
 cd travel-admin
 npm install
+
+# 启动服务
 npm run dev
 ```
 
@@ -79,7 +81,8 @@ npm run dev
 cd travel-miniapp
 npm install
 
-# 使用 HBuilderX 打开项目，运行到微信开发者工具
+# 启动服务
+# 打开 微信开发者工具, 导入 dist\dev\mp-weixin 运行
 ```
 
 ## 核心功能
