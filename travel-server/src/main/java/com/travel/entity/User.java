@@ -19,7 +19,13 @@ public class User {
 
     private String nickname;
 
+    private String phone;
+
+    @TableField("avatar_url")
     private String avatar;
+
+    @TableField("is_deleted")
+    private Integer isDeleted;
 
     /**
      * 用户偏好标签（非数据库字段，通过关联查询获取）

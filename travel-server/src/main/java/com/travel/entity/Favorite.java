@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * 收藏实体
  */
 @Data
-@TableName("favorite")
+@TableName("user_spot_favorite")
 public class Favorite {
 
     @TableId(type = IdType.AUTO)
@@ -18,6 +18,9 @@ public class Favorite {
     private Long userId;
 
     private Long spotId;
+
+    @TableField("is_deleted")
+    private Integer isDeleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

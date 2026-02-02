@@ -11,13 +11,14 @@
         <result column="address" property="address"/>
         <result column="latitude" property="latitude"/>
         <result column="longitude" property="longitude"/>
-        <result column="cover_image" property="coverImage"/>
+        <result column="cover_image_url" property="coverImage"/>
         <result column="category_id" property="categoryId"/>
         <result column="region_id" property="regionId"/>
         <result column="heat_score" property="heatScore"/>
         <result column="avg_rating" property="avgRating"/>
         <result column="rating_count" property="ratingCount"/>
-        <result column="published" property="published"/>
+        <result column="is_published" property="published"/>
+        <result column="is_deleted" property="isDeleted"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
         <result column="category_name" property="categoryName"/>
@@ -29,11 +30,12 @@
                c.name AS category_name,
                r.name AS region_name
         FROM spot s
-        LEFT JOIN spot_category c ON s.category_id = c.id
-        LEFT JOIN region r ON s.region_id = r.id
+        LEFT JOIN spot_category c ON s.category_id = c.id AND c.is_deleted = 0
+        LEFT JOIN spot_region r ON s.region_id = r.id AND r.is_deleted = 0
         <where>
+            s.is_deleted = 0
             <if test="published != null">
-                AND s.published = #{published}
+                AND s.is_published = #{published}
             </if>
             <if test="regionId != null">
                 AND s.region_id = #{regionId}

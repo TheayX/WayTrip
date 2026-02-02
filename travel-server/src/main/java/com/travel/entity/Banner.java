@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * 轮播图实体
  */
 @Data
-@TableName("banner")
+@TableName("spot_banner")
 public class Banner {
 
     @TableId(type = IdType.AUTO)
@@ -21,7 +21,11 @@ public class Banner {
 
     private Integer sortOrder;
 
+    @TableField("is_enabled")
     private Integer enabled;
+
+    @TableField("is_deleted")
+    private Integer isDeleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

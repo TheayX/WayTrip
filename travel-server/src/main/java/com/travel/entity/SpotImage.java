@@ -21,6 +21,12 @@ public class SpotImage {
 
     private Integer sortOrder;
 
+    @TableField("is_deleted")
+    private Integer isDeleted;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updatedAt;
 }

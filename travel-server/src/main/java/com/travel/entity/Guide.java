@@ -19,6 +19,7 @@ public class Guide {
 
     private String content;
 
+    @TableField("cover_image_url")
     private String coverImage;
 
     private String category;
@@ -27,7 +28,11 @@ public class Guide {
 
     private Integer viewCount;
 
+    @TableField("is_published")
     private Integer published;
+
+    @TableField("is_deleted")
+    private Integer isDeleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

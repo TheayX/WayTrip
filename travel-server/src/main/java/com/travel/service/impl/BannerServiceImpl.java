@@ -26,6 +26,7 @@ public class BannerServiceImpl implements BannerService {
         List<Banner> banners = bannerMapper.selectList(
             new LambdaQueryWrapper<Banner>()
                 .eq(Banner::getEnabled, 1)
+                .eq(Banner::getIsDeleted, 0)
                 .orderByAsc(Banner::getSortOrder)
         );
 
@@ -49,7 +50,9 @@ public class BannerServiceImpl implements BannerService {
     @Override
     public AdminBannerListResponse getAdminBanners() {
         List<Banner> banners = bannerMapper.selectList(
-            new LambdaQueryWrapper<Banner>().orderByAsc(Banner::getSortOrder)
+            new LambdaQueryWrapper<Banner>()
+                .eq(Banner::getIsDeleted, 0)
+                .orderByAsc(Banner::getSortOrder)
         );
 
         Map<Long, String> spotNameMap = getSpotNameMap(banners);
@@ -84,7 +87,7 @@ public class BannerServiceImpl implements BannerService {
     @Override
     public void updateBanner(Long id, AdminBannerRequest request) {
         Banner banner = bannerMapper.selectById(id);
-        if (banner == null) {
+        if (banner == null || banner.getIsDeleted() == 1) {
             throw new RuntimeException("轮播图不存在");
         }
 
@@ -97,13 +100,18 @@ public class BannerServiceImpl implements BannerService {
 
     @Override
     public void deleteBanner(Long id) {
-        bannerMapper.deleteById(id);
+        Banner banner = bannerMapper.selectById(id);
+        if (banner == null || banner.getIsDeleted() == 1) {
+            throw new RuntimeException("轮播图不存在");
+        }
+        banner.setIsDeleted(1);
+        bannerMapper.updateById(banner);
     }
 
     @Override
     public void toggleEnabled(Long id) {
         Banner banner = bannerMapper.selectById(id);
-        if (banner == null) {
+        if (banner == null || banner.getIsDeleted() == 1) {
             throw new RuntimeException("轮播图不存在");
         }
 
@@ -123,6 +131,7 @@ public class BannerServiceImpl implements BannerService {
         }
 
         return spotMapper.selectBatchIds(spotIds).stream()
+            .filter(spot -> spot.getIsDeleted() == 0)
             .collect(Collectors.toMap(Spot::getId, Spot::getName));
     }
 }

@@ -19,6 +19,9 @@ public class UserPreference {
 
     private String tag;
 
+    @TableField("is_deleted")
+    private Integer isDeleted;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 }

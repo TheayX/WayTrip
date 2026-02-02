@@ -42,7 +42,7 @@ public class RatingServiceImpl implements RatingService {
     public void submitRating(Long userId, RatingRequest request) {
         // 检查景点是否存在
         Spot spot = spotMapper.selectById(request.getSpotId());
-        if (spot == null) {
+        if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
         
@@ -57,6 +57,7 @@ public class RatingServiceImpl implements RatingService {
             // 更新评分
             existingRating.setScore(request.getScore());
             existingRating.setComment(request.getComment());
+            existingRating.setIsDeleted(0);
             ratingMapper.updateById(existingRating);
         } else {
             // 新增评分
@@ -78,6 +79,7 @@ public class RatingServiceImpl implements RatingService {
             new LambdaQueryWrapper<Rating>()
                 .eq(Rating::getUserId, userId)
                 .eq(Rating::getSpotId, spotId)
+                .eq(Rating::getIsDeleted, 0)
         );
         
         if (rating == null) {
@@ -103,7 +105,9 @@ public class RatingServiceImpl implements RatingService {
     @Override
     public int getUserRatingCount(Long userId) {
         return Math.toIntExact(ratingMapper.selectCount(
-            new LambdaQueryWrapper<Rating>().eq(Rating::getUserId, userId)
+            new LambdaQueryWrapper<Rating>()
+                .eq(Rating::getUserId, userId)
+                .eq(Rating::getIsDeleted, 0)
         ));
     }
 
@@ -111,6 +115,7 @@ public class RatingServiceImpl implements RatingService {
         // 计算平均评分
         LambdaQueryWrapper<Rating> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Rating::getSpotId, spotId);
+        wrapper.eq(Rating::getIsDeleted, 0);
         List<Rating> ratings = ratingMapper.selectList(wrapper);
         
         if (ratings.isEmpty()) {
