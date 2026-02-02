@@ -26,6 +26,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public AdminUserListResponse getAdminUsers(AdminUserListRequest request) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getIsDeleted, 0);
         
         if (StringUtils.hasText(request.getNickname())) {
             wrapper.like(User::getNickname, request.getNickname());
@@ -50,7 +51,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public AdminUserDetailResponse getAdminUserDetail(Long userId) {
         User user = userMapper.selectById(userId);
-        if (user == null) {
+        if (user == null || user.getIsDeleted() == 1) {
             throw new RuntimeException("用户不存在");
         }
 
@@ -63,19 +64,26 @@ public class UserServiceImpl implements UserService {
 
         // 统计数据
         response.setOrderCount(Math.toIntExact(orderMapper.selectCount(
-            new LambdaQueryWrapper<Order>().eq(Order::getUserId, userId)
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
         )));
         response.setFavoriteCount(Math.toIntExact(favoriteMapper.selectCount(
-            new LambdaQueryWrapper<Favorite>().eq(Favorite::getUserId, userId)
+            new LambdaQueryWrapper<Favorite>()
+                .eq(Favorite::getUserId, userId)
+                .eq(Favorite::getIsDeleted, 0)
         )));
         response.setRatingCount(Math.toIntExact(ratingMapper.selectCount(
-            new LambdaQueryWrapper<Rating>().eq(Rating::getUserId, userId)
+            new LambdaQueryWrapper<Rating>()
+                .eq(Rating::getUserId, userId)
+                .eq(Rating::getIsDeleted, 0)
         )));
 
         // 最近订单
         List<Order> recentOrders = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
                 .orderByDesc(Order::getCreatedAt)
                 .last("LIMIT 5")
         );
@@ -124,13 +132,19 @@ public class UserServiceImpl implements UserService {
 
         // 统计数据
         item.setOrderCount(Math.toIntExact(orderMapper.selectCount(
-            new LambdaQueryWrapper<Order>().eq(Order::getUserId, user.getId())
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, user.getId())
+                .eq(Order::getIsDeleted, 0)
         )));
         item.setFavoriteCount(Math.toIntExact(favoriteMapper.selectCount(
-            new LambdaQueryWrapper<Favorite>().eq(Favorite::getUserId, user.getId())
+            new LambdaQueryWrapper<Favorite>()
+                .eq(Favorite::getUserId, user.getId())
+                .eq(Favorite::getIsDeleted, 0)
         )));
         item.setRatingCount(Math.toIntExact(ratingMapper.selectCount(
-            new LambdaQueryWrapper<Rating>().eq(Rating::getUserId, user.getId())
+            new LambdaQueryWrapper<Rating>()
+                .eq(Rating::getUserId, user.getId())
+                .eq(Rating::getIsDeleted, 0)
         )));
 
         return item;

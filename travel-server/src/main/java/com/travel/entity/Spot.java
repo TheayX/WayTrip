@@ -30,6 +30,7 @@ public class Spot {
 
     private BigDecimal longitude;
 
+    @TableField("cover_image_url")
     private String coverImage;
 
     private Long categoryId;
@@ -42,7 +43,11 @@ public class Spot {
 
     private Integer ratingCount;
 
+    @TableField("is_published")
     private Integer published;
+
+    @TableField("is_deleted")
+    private Integer isDeleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

@@ -50,7 +50,8 @@ public class AuthServiceImpl implements AuthService {
 
         // 查询用户是否存在
         User user = userMapper.selectOne(
-            new LambdaQueryWrapper<User>().eq(User::getOpenid, openid)
+            new LambdaQueryWrapper<User>()
+                .eq(User::getOpenid, openid)
         );
 
         boolean isNewUser = false;
@@ -63,6 +64,9 @@ public class AuthServiceImpl implements AuthService {
             userMapper.insert(user);
             isNewUser = true;
             log.info("新用户注册: userId={}", user.getId());
+        } else if (user.getIsDeleted() == 1) {
+            user.setIsDeleted(0);
+            userMapper.updateById(user);
         }
 
         // 生成Token
@@ -83,13 +87,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserInfoResponse getUserInfo(Long userId) {
         User user = userMapper.selectById(userId);
-        if (user == null) {
+        if (user == null || user.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.TOKEN_INVALID);
         }
 
         // 获取用户偏好标签
         List<UserPreference> preferences = userPreferenceMapper.selectList(
-            new LambdaQueryWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
+            new LambdaQueryWrapper<UserPreference>()
+                .eq(UserPreference::getUserId, userId)
+                .eq(UserPreference::getIsDeleted, 0)
         );
         List<String> tags = preferences.stream()
                 .map(UserPreference::getTag)
@@ -106,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void updateUserInfo(Long userId, UpdateUserInfoRequest request) {
         User user = userMapper.selectById(userId);
-        if (user == null) {
+        if (user == null || user.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.TOKEN_INVALID);
         }
 
@@ -123,7 +129,10 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void setPreferences(Long userId, List<String> tags) {
         // 删除旧的偏好
-        userPreferenceMapper.delete(
+        UserPreference deletedPreference = new UserPreference();
+        deletedPreference.setIsDeleted(1);
+        userPreferenceMapper.update(
+            deletedPreference,
             new LambdaQueryWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
         );
 
@@ -139,7 +148,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AdminLoginResponse adminLogin(AdminLoginRequest request) {
         Admin admin = adminMapper.selectOne(
-            new LambdaQueryWrapper<Admin>().eq(Admin::getUsername, request.getUsername())
+            new LambdaQueryWrapper<Admin>()
+                .eq(Admin::getUsername, request.getUsername())
+                .eq(Admin::getIsDeleted, 0)
         );
 
         if (admin == null) {
@@ -172,7 +183,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AdminLoginResponse.AdminInfo getAdminInfo(Long adminId) {
         Admin admin = adminMapper.selectById(adminId);
-        if (admin == null) {
+        if (admin == null || admin.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.TOKEN_INVALID);
         }
 

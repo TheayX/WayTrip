@@ -41,6 +41,9 @@ public class Order {
 
     private LocalDateTime paidAt;
 
+    @TableField("is_deleted")
+    private Integer isDeleted;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 

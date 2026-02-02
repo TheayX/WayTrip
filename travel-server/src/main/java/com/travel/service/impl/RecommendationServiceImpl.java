@@ -63,7 +63,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
         // 获取用户评分数量
         Long ratingCount = ratingMapper.selectCount(
-            new LambdaQueryWrapper<Rating>().eq(Rating::getUserId, userId)
+            new LambdaQueryWrapper<Rating>()
+                .eq(Rating::getUserId, userId)
+                .eq(Rating::getIsDeleted, 0)
         );
 
         // 冷启动：评分不足
@@ -106,6 +108,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 new LambdaQueryWrapper<Spot>()
                     .eq(Spot::getPublished, 1)
                     .in(Spot::getCategoryId, categoryIds)
+                    .eq(Spot::getIsDeleted, 0)
                     .orderByDesc(Spot::getHeatScore)
                     .last("LIMIT " + limit)
             );
@@ -140,7 +143,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     private List<Long> computeItemCFRecommendations(Long userId, Integer limit) {
         // 获取用户评分过的景点
         List<Rating> userRatings = ratingMapper.selectList(
-            new LambdaQueryWrapper<Rating>().eq(Rating::getUserId, userId)
+            new LambdaQueryWrapper<Rating>()
+                .eq(Rating::getUserId, userId)
+                .eq(Rating::getIsDeleted, 0)
         );
 
         if (userRatings.isEmpty()) {
@@ -200,18 +205,23 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         // 已评分
         Set<Long> ratedIds = ratingMapper.selectList(
-            new LambdaQueryWrapper<Rating>().eq(Rating::getUserId, userId)
+            new LambdaQueryWrapper<Rating>()
+                .eq(Rating::getUserId, userId)
+                .eq(Rating::getIsDeleted, 0)
         ).stream().map(Rating::getSpotId).collect(Collectors.toSet());
 
         // 已收藏
         Set<Long> favoriteIds = favoriteMapper.selectList(
-            new LambdaQueryWrapper<Favorite>().eq(Favorite::getUserId, userId)
+            new LambdaQueryWrapper<Favorite>()
+                .eq(Favorite::getUserId, userId)
+                .eq(Favorite::getIsDeleted, 0)
         ).stream().map(Favorite::getSpotId).collect(Collectors.toSet());
 
         // 已下单（不含已取消）
         Set<Long> orderedIds = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
                 .ne(Order::getStatus, "cancelled")
         ).stream().map(Order::getSpotId).collect(Collectors.toSet());
 
@@ -233,6 +243,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<Spot> spots = spotMapper.selectList(
             new LambdaQueryWrapper<Spot>()
                 .eq(Spot::getPublished, 1)
+                .eq(Spot::getIsDeleted, 0)
                 .orderByDesc(Spot::getHeatScore)
                 .last("LIMIT " + limit)
         );
@@ -261,7 +272,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         log.info("开始更新物品相似度矩阵...");
 
         // 获取所有评分数据
-        List<Rating> allRatings = ratingMapper.selectList(null);
+        List<Rating> allRatings = ratingMapper.selectList(
+            new LambdaQueryWrapper<Rating>().eq(Rating::getIsDeleted, 0)
+        );
         
         if (allRatings.isEmpty()) {
             log.info("无评分数据，跳过相似度计算");
@@ -366,7 +379,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         response.setNeedPreference(needPreference);
         response.setList(limitedIds.stream()
             .map(spotMap::get)
-            .filter(Objects::nonNull)
+            .filter(spot -> spot != null && spot.getIsDeleted() == 0)
             .map(spot -> {
                 RecommendationResponse.SpotItem item = new RecommendationResponse.SpotItem();
                 item.setId(spot.getId());
@@ -385,12 +398,12 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private Map<Long, String> getCategoryMap() {
-        return categoryMapper.selectList(null).stream()
+        return categoryMapper.selectList(new LambdaQueryWrapper<SpotCategory>().eq(SpotCategory::getIsDeleted, 0)).stream()
             .collect(Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
     }
 
     private Map<Long, String> getRegionMap() {
-        return regionMapper.selectList(null).stream()
+        return regionMapper.selectList(new LambdaQueryWrapper<Region>().eq(Region::getIsDeleted, 0)).stream()
             .collect(Collectors.toMap(Region::getId, Region::getName));
     }
 }

@@ -21,7 +21,11 @@ public class Admin {
 
     private String realName;
 
+    @TableField("is_enabled")
     private Integer status;
+
+    @TableField("is_deleted")
+    private Integer isDeleted;
 
     private LocalDateTime lastLoginAt;
 

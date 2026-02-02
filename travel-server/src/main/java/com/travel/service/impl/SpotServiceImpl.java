@@ -37,6 +37,7 @@ public class SpotServiceImpl implements SpotService {
         
         LambdaQueryWrapper<Spot> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Spot::getPublished, 1);
+        wrapper.eq(Spot::getIsDeleted, 0);
         
         if (request.getRegionId() != null) {
             wrapper.eq(Spot::getRegionId, request.getRegionId());
@@ -72,6 +73,7 @@ public class SpotServiceImpl implements SpotService {
         
         LambdaQueryWrapper<Spot> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Spot::getPublished, 1);
+        wrapper.eq(Spot::getIsDeleted, 0);
         wrapper.and(w -> w.like(Spot::getName, keyword).or().like(Spot::getDescription, keyword));
         wrapper.orderByDesc(Spot::getHeatScore);
         
@@ -87,7 +89,7 @@ public class SpotServiceImpl implements SpotService {
     @Override
     public SpotDetailResponse getSpotDetail(Long spotId, Long userId) {
         Spot spot = spotMapper.selectById(spotId);
-        if (spot == null) {
+        if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
         if (spot.getPublished() != 1) {
@@ -100,7 +102,10 @@ public class SpotServiceImpl implements SpotService {
         
         // 获取图片
         List<SpotImage> images = spotImageMapper.selectList(
-            new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId).orderByAsc(SpotImage::getSortOrder)
+            new LambdaQueryWrapper<SpotImage>()
+                .eq(SpotImage::getSpotId, spotId)
+                .eq(SpotImage::getIsDeleted, 0)
+                .orderByAsc(SpotImage::getSortOrder)
         );
         List<String> imageUrls = images.stream().map(SpotImage::getImageUrl).collect(Collectors.toList());
         if (StringUtils.hasText(spot.getCoverImage())) {
@@ -119,6 +124,7 @@ public class SpotServiceImpl implements SpotService {
                 new LambdaQueryWrapper<Favorite>()
                     .eq(Favorite::getUserId, userId)
                     .eq(Favorite::getSpotId, spotId)
+                    .eq(Favorite::getIsDeleted, 0)
             );
             isFavorite = favoriteCount > 0;
             
@@ -126,6 +132,7 @@ public class SpotServiceImpl implements SpotService {
                 new LambdaQueryWrapper<Rating>()
                     .eq(Rating::getUserId, userId)
                     .eq(Rating::getSpotId, spotId)
+                    .eq(Rating::getIsDeleted, 0)
             );
             if (rating != null) {
                 userRating = rating.getScore();
@@ -157,8 +164,12 @@ public class SpotServiceImpl implements SpotService {
 
     @Override
     public SpotFilterResponse getFilters() {
-        List<Region> regions = regionMapper.selectList(null);
-        List<SpotCategory> categories = spotCategoryMapper.selectList(null);
+        List<Region> regions = regionMapper.selectList(
+            new LambdaQueryWrapper<Region>().eq(Region::getIsDeleted, 0)
+        );
+        List<SpotCategory> categories = spotCategoryMapper.selectList(
+            new LambdaQueryWrapper<SpotCategory>().eq(SpotCategory::getIsDeleted, 0)
+        );
         
         return SpotFilterResponse.builder()
                 .regions(regions.stream()
@@ -175,6 +186,7 @@ public class SpotServiceImpl implements SpotService {
         Page<Spot> page = new Page<>(request.getPage(), request.getPageSize());
         
         LambdaQueryWrapper<Spot> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Spot::getIsDeleted, 0);
         
         if (StringUtils.hasText(request.getKeyword())) {
             wrapper.like(Spot::getName, request.getKeyword());
@@ -202,12 +214,14 @@ public class SpotServiceImpl implements SpotService {
     @Override
     public AdminSpotRequest getAdminSpotDetail(Long spotId) {
         Spot spot = spotMapper.selectById(spotId);
-        if (spot == null) {
+        if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
         
         List<SpotImage> images = spotImageMapper.selectList(
-            new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId)
+            new LambdaQueryWrapper<SpotImage>()
+                .eq(SpotImage::getSpotId, spotId)
+                .eq(SpotImage::getIsDeleted, 0)
         );
         
         AdminSpotRequest response = new AdminSpotRequest();
@@ -244,7 +258,7 @@ public class SpotServiceImpl implements SpotService {
     @Transactional
     public void updateSpot(Long spotId, AdminSpotRequest request) {
         Spot spot = spotMapper.selectById(spotId);
-        if (spot == null) {
+        if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
         
@@ -252,14 +266,19 @@ public class SpotServiceImpl implements SpotService {
         spotMapper.updateById(spot);
         
         // 更新图片
-        spotImageMapper.delete(new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId));
+        SpotImage deletedImage = new SpotImage();
+        deletedImage.setIsDeleted(1);
+        spotImageMapper.update(
+            deletedImage,
+            new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId)
+        );
         saveSpotImages(spotId, request.getImages());
     }
 
     @Override
     public void updatePublishStatus(Long spotId, Boolean published) {
         Spot spot = spotMapper.selectById(spotId);
-        if (spot == null) {
+        if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
         spot.setPublished(published ? 1 : 0);
@@ -268,8 +287,19 @@ public class SpotServiceImpl implements SpotService {
 
     @Override
     public void deleteSpot(Long spotId) {
-        spotMapper.deleteById(spotId);
-        spotImageMapper.delete(new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId));
+        Spot spot = spotMapper.selectById(spotId);
+        if (spot == null || spot.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
+        }
+        spot.setIsDeleted(1);
+        spotMapper.updateById(spot);
+
+        SpotImage deletedImage = new SpotImage();
+        deletedImage.setIsDeleted(1);
+        spotImageMapper.update(
+            deletedImage,
+            new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId)
+        );
     }
 
     private SpotListResponse convertToListResponse(Spot spot) {
@@ -303,13 +333,13 @@ public class SpotServiceImpl implements SpotService {
     private String getRegionName(Long regionId) {
         if (regionId == null) return null;
         Region region = regionMapper.selectById(regionId);
-        return region != null ? region.getName() : null;
+        return region != null && region.getIsDeleted() == 0 ? region.getName() : null;
     }
 
     private String getCategoryName(Long categoryId) {
         if (categoryId == null) return null;
         SpotCategory category = spotCategoryMapper.selectById(categoryId);
-        return category != null ? category.getName() : null;
+        return category != null && category.getIsDeleted() == 0 ? category.getName() : null;
     }
 
     private void copyProperties(AdminSpotRequest request, Spot spot) {

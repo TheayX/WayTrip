@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * 地区实体
  */
 @Data
-@TableName("region")
+@TableName("spot_region")
 public class Region {
 
     @TableId(type = IdType.AUTO)
@@ -18,6 +18,9 @@ public class Region {
     private String name;
 
     private Integer sortOrder;
+
+    @TableField("is_deleted")
+    private Integer isDeleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

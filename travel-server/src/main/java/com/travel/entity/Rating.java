@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * 评分评论实体
  */
 @Data
-@TableName("rating")
+@TableName("user_spot_review")
 public class Rating {
 
     @TableId(type = IdType.AUTO)
@@ -22,6 +22,9 @@ public class Rating {
     private Integer score;
 
     private String comment;
+
+    @TableField("is_deleted")
+    private Integer isDeleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

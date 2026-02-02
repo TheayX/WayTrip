@@ -15,11 +15,17 @@ public class SpotCategory {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    private Long parentId;
+
     private String name;
 
+    @TableField("icon_url")
     private String icon;
 
     private Integer sortOrder;
+
+    @TableField("is_deleted")
+    private Integer isDeleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

@@ -35,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDetailResponse createOrder(Long userId, CreateOrderRequest request) {
         Spot spot = spotMapper.selectById(request.getSpotId());
-        if (spot == null) {
+        if (spot == null || spot.getIsDeleted() == 1) {
             throw new RuntimeException("景点不存在");
         }
         if (spot.getPublished() != 1) {
@@ -66,6 +66,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderListResponse getUserOrders(Long userId, OrderListRequest request) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Order::getUserId, userId);
+        wrapper.eq(Order::getIsDeleted, 0);
 
         if (request.getStatus() != null && !request.getStatus().isEmpty()) {
             Integer statusCode = convertStatusToCode(request.getStatus());
@@ -98,6 +99,7 @@ public class OrderServiceImpl implements OrderService {
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getId, orderId)
                 .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
         );
 
         if (order == null) {
@@ -115,6 +117,7 @@ public class OrderServiceImpl implements OrderService {
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getId, orderId)
                 .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
         );
 
         if (order == null) {
@@ -145,6 +148,7 @@ public class OrderServiceImpl implements OrderService {
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getId, orderId)
                 .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
         );
 
         if (order == null) {
@@ -171,6 +175,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public AdminOrderListResponse getAdminOrders(AdminOrderListRequest request) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Order::getIsDeleted, 0);
 
         if (request.getOrderNo() != null && !request.getOrderNo().isEmpty()) {
             wrapper.like(Order::getOrderNo, request.getOrderNo());
@@ -228,7 +233,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDetailResponse getAdminOrderDetail(Long orderId) {
         Order order = orderMapper.selectById(orderId);
-        if (order == null) {
+        if (order == null || order.getIsDeleted() == 1) {
             throw new RuntimeException("订单不存在");
         }
         fillSpotInfoSingle(order);
@@ -239,7 +244,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDetailResponse completeOrder(Long orderId) {
         Order order = orderMapper.selectById(orderId);
-        if (order == null) {
+        if (order == null || order.getIsDeleted() == 1) {
             throw new RuntimeException("订单不存在");
         }
         fillSpotInfoSingle(order);
@@ -297,6 +302,7 @@ public class OrderServiceImpl implements OrderService {
 
         List<Spot> spots = spotMapper.selectBatchIds(spotIds);
         Map<Long, Spot> spotMap = spots.stream()
+            .filter(spot -> spot.getIsDeleted() == 0)
             .collect(Collectors.toMap(Spot::getId, s -> s));
 
         for (Order order : orders) {
@@ -312,7 +318,7 @@ public class OrderServiceImpl implements OrderService {
     private void fillSpotInfoSingle(Order order) {
         if (order == null || order.getSpotId() == null) return;
         Spot spot = spotMapper.selectById(order.getSpotId());
-        if (spot != null) {
+        if (spot != null && spot.getIsDeleted() == 0) {
             order.setSpotName(spot.getName());
             order.setSpotImage(spot.getCoverImage());
             order.setUnitPrice(spot.getPrice());
