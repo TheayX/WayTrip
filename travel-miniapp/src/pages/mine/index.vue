@@ -7,7 +7,7 @@
       </view>
       <view class="profile-info">
         <text class="user-name">{{ isLoggedIn ? (userInfo?.nickname || '旅行家') : '点击登录' }}</text>
-        <text class="user-desc">{{ isLoggedIn ? '开启你的探索之旅' : '登录同步数据' }}</text>
+        <text class="user-desc">{{ isLoggedIn ? (userInfo?.phone || '未绑定手机号') : '登录同步数据' }}</text>
       </view>
       <view class="arrow-right" v-if="!isLoggedIn">›</view>
     </view>
@@ -46,6 +46,17 @@
         <text class="cell-title">联系客服</text>
         <text class="cell-arrow">›</text>
       </view>
+
+      <view class="ios-cell" v-if="isLoggedIn">
+        <view class="cell-icon">
+          <image class="cell-icon-img" src="/static/icons/关于.png" />
+        </view>
+        <view class="phone-editor">
+          <text class="cell-title">手机号</text>
+          <input class="phone-input" v-model="phoneInput" placeholder="请输入手机号" maxlength="20" />
+        </view>
+        <button class="phone-save-btn" size="mini" @click.stop="savePhone">保存</button>
+      </view>
       <view class="ios-cell" @click="showAbout">
         <view class="cell-icon">
           <image class="cell-icon-img" src="/static/icons/关于.png" />
@@ -65,14 +76,19 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { wxLogin } from '@/api/auth'
+import { wxLogin, updateUserInfo } from '@/api/auth'
 
 const userStore = useUserStore()
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
+const phoneInput = ref('')
+
+watch(userInfo, (val) => {
+  phoneInput.value = val?.phone || ''
+}, { immediate: true })
 
 // 登录
 const doLogin = async () => {
@@ -120,6 +136,17 @@ const goFavorites = () => {
 // 跳转偏好设置
 const goPreference = () => {
   uni.navigateTo({ url: '/pages/mine/preference' })
+}
+
+const savePhone = async () => {
+  if (!isLoggedIn.value) return
+  try {
+    await updateUserInfo({ phone: phoneInput.value })
+    userStore.setUserInfo({ ...(userInfo.value || {}), phone: phoneInput.value })
+    uni.showToast({ title: '手机号已更新', icon: 'success' })
+  } catch (e) {
+    uni.showToast({ title: '保存失败', icon: 'none' })
+  }
 }
 
 // 联系客服
@@ -248,6 +275,24 @@ const showAbout = () => {
   color: #C7C7CC;
   font-size: 34rpx;
   font-weight: 300;
+}
+
+.phone-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-input {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #8E8E93;
+}
+
+.phone-save-btn {
+  margin-left: 16rpx;
+  font-size: 24rpx;
+  line-height: 1.4;
 }
 
 /* 退出登录 */

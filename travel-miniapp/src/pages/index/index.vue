@@ -186,7 +186,8 @@ const handleRefresh = async () => {
 const fetchCategories = async () => {
   try {
     const res = await getFilters()
-    categories.value = res.data?.categories || []
+    const tree = res.data?.categoryTree || []
+    categories.value = tree.length ? tree : (res.data?.categories || [])
   } catch (e) {
     console.error('获取分类失败', e)
   }

@@ -9,4 +9,5 @@ import lombok.Data;
 public class UpdateUserInfoRequest {
     private String nickname;
     private String avatar;
+    private String phone;
 }

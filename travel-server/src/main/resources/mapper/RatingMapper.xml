@@ -11,14 +11,14 @@
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
         <result column="nickname" property="nickname"/>
-        <result column="avatar" property="avatar"/>
+        <result column="avatar_url" property="avatar"/>
         <result column="is_deleted" property="isDeleted"/>
     </resultMap>
     
     <resultMap id="CommentItemResultMap" type="com.travel.dto.spot.SpotDetailResponse$CommentItem">
         <result column="id" property="id"/>
         <result column="nickname" property="nickname"/>
-        <result column="avatar" property="avatar"/>
+        <result column="avatar_url" property="avatar"/>
         <result column="score" property="score"/>
         <result column="comment" property="comment"/>
         <result column="created_at" property="createdAt"/>
@@ -27,7 +27,7 @@
     <select id="selectRatingPage" resultMap="RatingResultMap">
         SELECT r.*,
                u.nickname,
-               u.avatar_url AS avatar
+               u.avatar_url
         FROM user_spot_review r
         LEFT JOIN user u ON r.user_id = u.id AND u.is_deleted = 0
         WHERE r.spot_id = #{spotId}
@@ -38,7 +38,7 @@
     <select id="selectLatestComments" resultMap="CommentItemResultMap">
         SELECT r.id,
                u.nickname,
-               u.avatar_url AS avatar,
+               u.avatar_url,
                r.score,
                r.comment,
                DATE_FORMAT(r.created_at, '%Y-%m-%d %H:%i:%s') as created_at

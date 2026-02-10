@@ -28,16 +28,22 @@ public class DashboardServiceImpl implements DashboardService {
         DashboardOverviewResponse response = new DashboardOverviewResponse();
 
         // 总用户数
-        response.setTotalUsers(userMapper.selectCount(null));
+        response.setTotalUsers(userMapper.selectCount(
+            new LambdaQueryWrapper<User>().eq(User::getIsDeleted, 0)
+        ));
 
         // 总景点数
         response.setTotalSpots(spotMapper.selectCount(
-            new LambdaQueryWrapper<Spot>().eq(Spot::getPublished, 1)
+            new LambdaQueryWrapper<Spot>()
+                .eq(Spot::getPublished, 1)
+                .eq(Spot::getIsDeleted, 0)
         ));
 
         // 总订单数和收入 (排除已取消的订单)
         List<Order> allOrders = orderMapper.selectList(
-            new LambdaQueryWrapper<Order>().ne(Order::getStatus, Order.STATUS_CANCELLED)
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getIsDeleted, 0)
+                .ne(Order::getStatus, Order.STATUS_CANCELLED)
         );
         response.setTotalOrders((long) allOrders.size());
         response.setTotalRevenue(allOrders.stream()
@@ -50,6 +56,7 @@ public class DashboardServiceImpl implements DashboardService {
         
         List<Order> todayOrders = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
+                .eq(Order::getIsDeleted, 0)
                 .ge(Order::getCreatedAt, todayStart)
                 .ne(Order::getStatus, Order.STATUS_CANCELLED)
         );
@@ -60,7 +67,9 @@ public class DashboardServiceImpl implements DashboardService {
             .reduce(BigDecimal.ZERO, BigDecimal::add));
 
         response.setTodayNewUsers(userMapper.selectCount(
-            new LambdaQueryWrapper<User>().ge(User::getCreatedAt, todayStart)
+            new LambdaQueryWrapper<User>()
+                .eq(User::getIsDeleted, 0)
+                .ge(User::getCreatedAt, todayStart)
         ));
 
         return response;
@@ -75,6 +84,7 @@ public class DashboardServiceImpl implements DashboardService {
 
         List<Order> orders = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
+                .eq(Order::getIsDeleted, 0)
                 .ge(Order::getCreatedAt, startDate.atStartOfDay())
                 .ne(Order::getStatus, Order.STATUS_CANCELLED)
         );
@@ -113,7 +123,9 @@ public class DashboardServiceImpl implements DashboardService {
 
         // 统计订单数量 (排除已取消的订单)
         List<Order> orders = orderMapper.selectList(
-            new LambdaQueryWrapper<Order>().ne(Order::getStatus, Order.STATUS_CANCELLED)
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getIsDeleted, 0)
+                .ne(Order::getStatus, Order.STATUS_CANCELLED)
         );
 
         Map<Long, List<Order>> ordersBySpot = orders.stream()
@@ -121,7 +133,9 @@ public class DashboardServiceImpl implements DashboardService {
 
         // 获取景点信息
         List<Spot> spots = spotMapper.selectList(
-            new LambdaQueryWrapper<Spot>().eq(Spot::getPublished, 1)
+            new LambdaQueryWrapper<Spot>()
+                .eq(Spot::getPublished, 1)
+                .eq(Spot::getIsDeleted, 0)
         );
 
         Map<Long, Spot> spotMap = spots.stream()

@@ -99,6 +99,19 @@ import { getImageUrl } from '@/utils/request'
 // 筛选数据
 const regions = ref([])
 const categories = ref([])
+
+const flattenCategoryTree = (nodes = [], level = 0, list = []) => {
+  nodes.forEach((node) => {
+    list.push({
+      id: node.id,
+      name: `${"  ".repeat(level)}${node.name}`
+    })
+    if (node.children?.length) {
+      flattenCategoryTree(node.children, level + 1, list)
+    }
+  })
+  return list
+}
 const sortOptions = [
   { label: '热度排序', value: 'heat' },
   { label: '评分排序', value: 'rating' },
@@ -173,7 +186,8 @@ const fetchFilters = async () => {
   try {
     const res = await getFilters()
     regions.value = res.data.regions || []
-    categories.value = res.data.categories || []
+    const tree = res.data?.categoryTree || []
+    categories.value = tree.length ? flattenCategoryTree(tree) : (res.data?.categories || [])
   } catch (e) {
     console.error('获取筛选选项失败', e)
   }

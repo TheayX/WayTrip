@@ -13,7 +13,10 @@
         :class="{ active: selectedIds.includes(cat.id) }"
         @click="toggleCategory(cat.id)"
       >
-        <text class="category-name">{{ cat.name }}</text>
+        <view class="category-main">
+          <image v-if="cat.iconUrl" class="category-icon" :src="cat.iconUrl" mode="aspectFill" />
+          <text class="category-name">{{ cat.displayName || cat.name }}</text>
+        </view>
         <view class="check-icon" v-if="selectedIds.includes(cat.id)">✓</view>
       </view>
     </view>
@@ -35,13 +38,27 @@ import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 const categories = ref([])
+
+const flattenCategoryTree = (nodes = [], level = 0, list = []) => {
+  nodes.forEach((node) => {
+    list.push({
+      ...node,
+      displayName: `${"  ".repeat(level)}${node.name}`
+    })
+    if (node.children?.length) {
+      flattenCategoryTree(node.children, level + 1, list)
+    }
+  })
+  return list
+}
 const selectedIds = ref([])
 const saving = ref(false)
 
 const fetchCategories = async () => {
   try {
     const res = await getFilters()
-    categories.value = res.data?.categories || []
+    const tree = res.data?.categoryTree || []
+    categories.value = tree.length ? flattenCategoryTree(tree) : (res.data?.categories || [])
   } catch (e) {
     console.error('获取分类失败', e)
   }
@@ -147,6 +164,19 @@ onMounted(() => {
 .category-item.active {
   border-color: #007AFF;
   background: rgba(0, 122, 255, 0.05);
+}
+
+.category-main {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+}
+
+.category-icon {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 8rpx;
 }
 
 .category-name {

@@ -20,7 +20,7 @@
         </el-form-item>
         <el-form-item label="分类">
           <el-select v-model="queryParams.categoryId" placeholder="全部" clearable>
-            <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.id" />
+            <el-option v-for="item in categories" :key="item.id" :label="item.displayName || item.name" :value="item.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -97,9 +97,16 @@
           </el-select>
         </el-form-item>
         <el-form-item label="分类" prop="categoryId">
-          <el-select v-model="form.categoryId" placeholder="请选择分类">
-            <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
+          <el-tree-select
+            v-model="form.categoryId"
+            :data="categoryTreeOptions"
+            node-key="id"
+            :props="{ label: 'name', children: 'children', value: 'id' }"
+            placeholder="请选择分类"
+            check-strictly
+            clearable
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="地址" prop="address">
           <el-input v-model="form.address" placeholder="请输入详细地址" />
@@ -206,6 +213,7 @@ const tableData = ref([])
 const total = ref(0)
 const regions = ref([])
 const categories = ref([])
+const categoryTree = ref([])
 
 const queryParams = reactive({
   page: 1,
@@ -235,6 +243,22 @@ const form = reactive({
   coverImage: ''
 })
 
+const categoryTreeOptions = computed(() => categoryTree.value || [])
+
+const flattenCategories = (nodes = [], level = 0, list = []) => {
+  nodes.forEach((node) => {
+    list.push({
+      id: node.id,
+      name: node.name,
+      displayName: `${'—'.repeat(level)}${level ? ' ' : ''}${node.name}`
+    })
+    if (node.children?.length) {
+      flattenCategories(node.children, level + 1, list)
+    }
+  })
+  return list
+}
+
 const rules = {
   name: [{ required: true, message: '请输入景点名称', trigger: 'blur' }],
   price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
@@ -249,8 +273,9 @@ onMounted(() => {
 const loadFilters = async () => {
   try {
     const res = await getFilters()
-    regions.value = res.data.regions
-    categories.value = res.data.categories
+    regions.value = res.data.regions || []
+    categoryTree.value = res.data.categoryTree || []
+    categories.value = categoryTree.value.length ? flattenCategories(categoryTree.value) : (res.data.categories || [])
   } catch (e) {}
 }
 
