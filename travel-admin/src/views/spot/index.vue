@@ -20,7 +20,7 @@
         </el-form-item>
         <el-form-item label="分类">
           <el-select v-model="queryParams.categoryId" placeholder="全部" clearable>
-            <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.id" />
+            <el-option v-for="item in categoryOptions" :key="item.id" :label="item.label" :value="item.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -98,7 +98,7 @@
         </el-form-item>
         <el-form-item label="分类" prop="categoryId">
           <el-select v-model="form.categoryId" placeholder="请选择分类">
-            <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.id" />
+            <el-option v-for="item in leafCategoryOptions" :key="item.id" :label="item.label" :value="item.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="地址" prop="address">
@@ -206,6 +206,27 @@ const tableData = ref([])
 const total = ref(0)
 const regions = ref([])
 const categories = ref([])
+const categoryTree = ref([])
+
+const flattenCategories = (nodes = [], level = 0) => {
+  return nodes.reduce((acc, node) => {
+    const hasChildren = Array.isArray(node.children) && node.children.length > 0
+    acc.push({
+      id: node.id,
+      label: `${'　'.repeat(level)}${level > 0 ? '└ ' : ''}${node.name}`,
+      hasChildren
+    })
+
+    if (hasChildren) {
+      acc.push(...flattenCategories(node.children, level + 1))
+    }
+
+    return acc
+  }, [])
+}
+
+const categoryOptions = computed(() => flattenCategories(categoryTree.value))
+const leafCategoryOptions = computed(() => categoryOptions.value.filter(item => !item.hasChildren))
 
 const queryParams = reactive({
   page: 1,
@@ -249,8 +270,9 @@ onMounted(() => {
 const loadFilters = async () => {
   try {
     const res = await getFilters()
-    regions.value = res.data.regions
-    categories.value = res.data.categories
+    regions.value = res.data.regions || []
+    categories.value = res.data.categories || []
+    categoryTree.value = res.data.categoryTree?.length ? res.data.categoryTree : categories.value
   } catch (e) {}
 }
 
