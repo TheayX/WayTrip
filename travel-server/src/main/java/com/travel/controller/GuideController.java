@@ -30,7 +30,7 @@ public class GuideController {
 
     @Operation(summary = "获取攻略详情")
     @GetMapping("/{guideId}")
-    public ApiResponse<GuideDetailResponse> getGuideDetail(@PathVariable Long guideId) {
+    public ApiResponse<GuideDetailResponse> getGuideDetail(@PathVariable("guideId") Long guideId) {
         return ApiResponse.success(guideService.getGuideDetail(guideId));
     }
 

@@ -33,7 +33,7 @@ public class AdminBannerController {
     @Operation(summary = "更新轮播图")
     @PutMapping("/{id}")
     public ApiResponse<Void> updateBanner(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody AdminBannerRequest request) {
         bannerService.updateBanner(id, request);
         return ApiResponse.success(null);
@@ -41,14 +41,14 @@ public class AdminBannerController {
 
     @Operation(summary = "删除轮播图")
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteBanner(@PathVariable Long id) {
+    public ApiResponse<Void> deleteBanner(@PathVariable("id") Long id) {
         bannerService.deleteBanner(id);
         return ApiResponse.success(null);
     }
 
     @Operation(summary = "切换启用状态")
     @PostMapping("/{id}/toggle")
-    public ApiResponse<Void> toggleEnabled(@PathVariable Long id) {
+    public ApiResponse<Void> toggleEnabled(@PathVariable("id") Long id) {
         bannerService.toggleEnabled(id);
         return ApiResponse.success(null);
     }

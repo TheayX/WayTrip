@@ -38,7 +38,7 @@ public class SpotController {
 
     @Operation(summary = "获取景点详情")
     @GetMapping("/{spotId}")
-    public ApiResponse<SpotDetailResponse> getSpotDetail(@PathVariable Long spotId) {
+    public ApiResponse<SpotDetailResponse> getSpotDetail(@PathVariable("spotId") Long spotId) {
         Long userId = UserContext.getUserId();
         return ApiResponse.success(spotService.getSpotDetail(spotId, userId));
     }

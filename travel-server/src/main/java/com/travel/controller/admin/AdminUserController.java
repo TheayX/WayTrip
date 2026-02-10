@@ -24,7 +24,7 @@ public class AdminUserController {
 
     @Operation(summary = "获取用户详情")
     @GetMapping("/{id}")
-    public ApiResponse<AdminUserDetailResponse> getUserDetail(@PathVariable Long id) {
+    public ApiResponse<AdminUserDetailResponse> getUserDetail(@PathVariable("id") Long id) {
         return ApiResponse.success(userService.getAdminUserDetail(id));
     }
 }

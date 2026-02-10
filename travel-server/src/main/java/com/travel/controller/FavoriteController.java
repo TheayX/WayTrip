@@ -35,7 +35,7 @@ public class FavoriteController {
 
     @Operation(summary = "取消收藏")
     @DeleteMapping("/{spotId}")
-    public ApiResponse<Void> removeFavorite(@PathVariable Long spotId) {
+    public ApiResponse<Void> removeFavorite(@PathVariable("spotId") Long spotId) {
         Long userId = UserContext.getUserId();
         favoriteService.removeFavorite(userId, spotId);
         return ApiResponse.success();
@@ -43,7 +43,7 @@ public class FavoriteController {
 
     @Operation(summary = "检查收藏状态")
     @GetMapping("/check/{spotId}")
-    public ApiResponse<Map<String, Boolean>> checkFavorite(@PathVariable Long spotId) {
+    public ApiResponse<Map<String, Boolean>> checkFavorite(@PathVariable("spotId") Long spotId) {
         Long userId = UserContext.getUserId();
         boolean isFavorite = favoriteService.isFavorite(userId, spotId);
         return ApiResponse.success(Map.of("isFavorite", isFavorite));
