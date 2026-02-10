@@ -112,7 +112,7 @@ public class GuideServiceImpl implements GuideService {
             wrapper.eq(Guide::getCategory, request.getCategory());
         }
         if (request.getPublished() != null) {
-            wrapper.eq(Guide::getPublished, request.getPublished() == 1);
+            wrapper.eq(Guide::getPublished, request.getPublished());
         }
         wrapper.orderByDesc(Guide::getCreatedAt);
         

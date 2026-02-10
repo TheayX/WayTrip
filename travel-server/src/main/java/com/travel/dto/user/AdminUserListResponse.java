@@ -25,6 +25,7 @@ public class AdminUserListResponse {
         private Long id;
         private String nickname;
         private String avatar;
+        private String phone;
         private Integer orderCount;
         private Integer favoriteCount;
         private Integer ratingCount;

@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -165,20 +167,59 @@ public class SpotServiceImpl implements SpotService {
     @Override
     public SpotFilterResponse getFilters() {
         List<Region> regions = regionMapper.selectList(
-            new LambdaQueryWrapper<Region>().eq(Region::getIsDeleted, 0)
+            new LambdaQueryWrapper<Region>()
+                .eq(Region::getIsDeleted, 0)
+                .orderByAsc(Region::getSortOrder)
         );
         List<SpotCategory> categories = spotCategoryMapper.selectList(
-            new LambdaQueryWrapper<SpotCategory>().eq(SpotCategory::getIsDeleted, 0)
+            new LambdaQueryWrapper<SpotCategory>()
+                .eq(SpotCategory::getIsDeleted, 0)
+                .orderByAsc(SpotCategory::getSortOrder)
+                .orderByAsc(SpotCategory::getId)
         );
-        
+
+        List<SpotFilterResponse.FilterItem> categoryItems = categories.stream()
+            .map(this::convertCategoryFilterItem)
+            .collect(Collectors.toList());
+
         return SpotFilterResponse.builder()
                 .regions(regions.stream()
                         .map(r -> SpotFilterResponse.FilterItem.builder().id(r.getId()).name(r.getName()).build())
                         .collect(Collectors.toList()))
-                .categories(categories.stream()
-                        .map(c -> SpotFilterResponse.FilterItem.builder().id(c.getId()).name(c.getName()).build())
-                        .collect(Collectors.toList()))
+                .categories(categoryItems)
+                .categoryTree(buildCategoryTree(categoryItems))
                 .build();
+    }
+
+    private SpotFilterResponse.FilterItem convertCategoryFilterItem(SpotCategory category) {
+        return SpotFilterResponse.FilterItem.builder()
+            .id(category.getId())
+            .name(category.getName())
+            .parentId(category.getParentId())
+            .iconUrl(category.getIcon())
+            .children(new ArrayList<>())
+            .build();
+    }
+
+    private List<SpotFilterResponse.FilterItem> buildCategoryTree(List<SpotFilterResponse.FilterItem> categories) {
+        Map<Long, SpotFilterResponse.FilterItem> categoryMap = categories.stream()
+            .collect(Collectors.toMap(SpotFilterResponse.FilterItem::getId, item -> item));
+
+        List<SpotFilterResponse.FilterItem> roots = new ArrayList<>();
+        for (SpotFilterResponse.FilterItem item : categories) {
+            Long parentId = item.getParentId();
+            if (parentId == null || parentId <= 0 || !categoryMap.containsKey(parentId)) {
+                roots.add(item);
+                continue;
+            }
+            SpotFilterResponse.FilterItem parent = categoryMap.get(parentId);
+            if (parent.getChildren() == null) {
+                parent.setChildren(new ArrayList<>());
+            }
+            parent.getChildren().add(item);
+        }
+
+        return roots;
     }
 
     @Override
@@ -198,7 +239,7 @@ public class SpotServiceImpl implements SpotService {
             wrapper.eq(Spot::getCategoryId, request.getCategoryId());
         }
         if (request.getPublished() != null) {
-            wrapper.eq(Spot::getPublished, request.getPublished() == 1);
+            wrapper.eq(Spot::getPublished, request.getPublished());
         }
         wrapper.orderByDesc(Spot::getCreatedAt);
         
