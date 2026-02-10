@@ -45,6 +45,9 @@ public class RatingServiceImpl implements RatingService {
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
+        if (spot.getPublished() != 1) {
+            throw new BusinessException(ResultCode.SPOT_OFFLINE);
+        }
         
         // 查找是否已有评分
         Rating existingRating = ratingMapper.selectOne(

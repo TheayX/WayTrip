@@ -19,6 +19,7 @@ public class LoginResponse {
         private Long id;
         private String nickname;
         private String avatar;
+        private String phone;
         private Boolean isNewUser;
     }
 }

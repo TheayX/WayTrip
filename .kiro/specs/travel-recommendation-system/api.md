@@ -78,6 +78,18 @@
 | 60001 | 400 | 参数校验失败 |
 | 60002 | 500 | 服务器内部错误 |
 
+### 数据口径与过滤规则（PR-5）
+
+为保持用户端展示、管理端列表与统计数据一致，接口默认遵循以下规则：
+
+1. 软删除过滤：业务读取默认 `is_deleted = 0`。
+2. 发布过滤：用户端可见内容默认 `is_published = 1`。
+3. 时间戳语义：
+   - `created_at`：创建时间；
+   - `updated_at`：更新时间（仅在存在该字段的表维护）；
+   - 无 `updated_at` 表仅依赖 `created_at`。
+4. 兼容策略：新增字段采用向后兼容方式，不移除旧字段。
+
 ---
 
 ## 用户端 API
@@ -119,6 +131,7 @@ POST /api/v1/auth/wx-login
             "id": 1,
             "nickname": "用户昵称",
             "avatar": "https://example.com/avatar.jpg",
+            "phone": "13800000000",
             "isNewUser": false
         }
     }
@@ -145,6 +158,7 @@ GET /api/v1/auth/user-info
         "id": 1,
         "nickname": "用户昵称",
         "avatar": "https://example.com/avatar.jpg",
+        "phone": "13800000000",
         "preferences": ["自然风光", "历史文化"]
     }
 }
@@ -152,7 +166,7 @@ GET /api/v1/auth/user-info
 
 #### 1.3 更新用户信息
 
-更新用户昵称和头像。
+更新用户昵称、头像和手机号。
 
 **请求**
 
@@ -165,7 +179,8 @@ PUT /api/v1/auth/user-info
 ```json
 {
     "nickname": "新昵称",
-    "avatar": "https://example.com/new-avatar.jpg"
+    "avatar": "https://example.com/new-avatar.jpg",
+    "phone": "13800000000"
 }
 ```
 
@@ -173,6 +188,7 @@ PUT /api/v1/auth/user-info
 |------|------|------|------|
 | nickname | string | 否 | 用户昵称 |
 | avatar | string | 否 | 头像URL |
+| phone | string | 否 | 手机号（可传空字符串清空） |
 
 **响应**
 
@@ -458,7 +474,7 @@ GET /api/v1/spots/{spotId}
 
 #### 4.4 获取筛选选项
 
-获取地区和分类列表。
+获取地区、扁平分类列表和分类树（parent_id 层级结构）。
 
 **请求**
 
@@ -478,8 +494,19 @@ GET /api/v1/spots/filters
             {"id": 2, "name": "上海"}
         ],
         "categories": [
-            {"id": 1, "name": "自然风光"},
-            {"id": 2, "name": "历史文化"}
+            {"id": 1, "name": "自然风光", "parentId": 0, "iconUrl": "https://example.com/icon-nature.png", "children": []},
+            {"id": 2, "name": "山岳", "parentId": 1, "iconUrl": "https://example.com/icon-mountain.png", "children": []}
+        ],
+        "categoryTree": [
+            {
+                "id": 1,
+                "name": "自然风光",
+                "parentId": 0,
+                "iconUrl": "https://example.com/icon-nature.png",
+                "children": [
+                    {"id": 2, "name": "山岳", "parentId": 1, "iconUrl": "https://example.com/icon-mountain.png", "children": []}
+                ]
+            }
         ]
     }
 }
