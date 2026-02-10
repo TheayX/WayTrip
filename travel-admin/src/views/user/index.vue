@@ -26,6 +26,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="nickname" label="昵称" min-width="120" />
+        <el-table-column prop="phone" label="手机号" width="140" />
         <el-table-column prop="orderCount" label="订单数" width="100" />
         <el-table-column prop="favoriteCount" label="收藏数" width="100" />
         <el-table-column prop="ratingCount" label="评价数" width="100" />
@@ -58,6 +59,7 @@
           <el-avatar :src="currentUser.avatar" :size="60">{{ currentUser.nickname?.charAt(0) }}</el-avatar>
         </el-descriptions-item>
         <el-descriptions-item label="昵称">{{ currentUser.nickname }}</el-descriptions-item>
+        <el-descriptions-item label="手机号">{{ currentUser.phone || '未绑定' }}</el-descriptions-item>
         <el-descriptions-item label="偏好标签" :span="2">{{ currentUser.preferences || '未设置' }}</el-descriptions-item>
         <el-descriptions-item label="注册时间" :span="2">{{ currentUser.createdAt }}</el-descriptions-item>
         <el-descriptions-item label="订单数">{{ currentUser.orderCount }}</el-descriptions-item>

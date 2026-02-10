@@ -12,6 +12,11 @@
       <view class="arrow-right" v-if="!isLoggedIn">›</view>
     </view>
 
+    <view class="profile-extra" v-if="isLoggedIn">
+      <text class="profile-line">手机号：{{ userInfo?.phone || '未绑定' }}</text>
+      <text class="profile-edit" @click="openEditPopup">编辑资料</text>
+    </view>
+
     <!-- 菜单组1 -->
     <view class="ios-group">
       <view class="ios-cell" @click="goOrders">
@@ -61,18 +66,44 @@
         <text class="logout-text">退出登录</text>
       </view>
     </view>
+
+    <view class="edit-mask" v-if="editVisible" @click="editVisible = false">
+      <view class="edit-panel" @click.stop>
+        <text class="edit-title">编辑资料</text>
+        <input class="edit-input" v-model="editForm.nickname" placeholder="请输入昵称" maxlength="30" />
+        <input class="edit-input" v-model="editForm.phone" placeholder="请输入手机号（可选）" maxlength="20" />
+        <view class="edit-actions">
+          <button class="edit-btn cancel" @click="editVisible = false">取消</button>
+          <button class="edit-btn confirm" @click="submitProfile">保存</button>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { wxLogin } from '@/api/auth'
+import { wxLogin, getUserInfo, updateUserInfo } from '@/api/auth'
 
 const userStore = useUserStore()
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
+const editVisible = ref(false)
+const editForm = reactive({
+  nickname: '',
+  phone: ''
+})
+
+const syncUserInfo = async () => {
+  try {
+    const res = await getUserInfo()
+    userStore.setUserInfo(res.data)
+  } catch (e) {
+    console.error('同步用户信息失败', e)
+  }
+}
 
 // 登录
 const doLogin = async () => {
@@ -81,15 +112,36 @@ const doLogin = async () => {
     const loginRes = await uni.login({ provider: 'weixin' })
     const res = await wxLogin(loginRes.code)
     userStore.login(res.data)
+    await syncUserInfo()
     uni.showToast({ title: '登录成功', icon: 'success' })
     // #endif
-    
+
     // #ifdef H5
     uni.showToast({ title: 'H5端暂不支持微信登录', icon: 'none' })
     // #endif
   } catch (e) {
     console.error('登录失败', e)
     uni.showToast({ title: '登录失败', icon: 'none' })
+  }
+}
+
+const openEditPopup = () => {
+  editForm.nickname = userInfo.value?.nickname || ''
+  editForm.phone = userInfo.value?.phone || ''
+  editVisible.value = true
+}
+
+const submitProfile = async () => {
+  try {
+    await updateUserInfo({
+      nickname: editForm.nickname.trim(),
+      phone: editForm.phone.trim()
+    })
+    await syncUserInfo()
+    editVisible.value = false
+    uni.showToast({ title: '保存成功', icon: 'success' })
+  } catch (e) {
+    uni.showToast({ title: '保存失败', icon: 'none' })
   }
 }
 
@@ -153,7 +205,25 @@ const showAbout = () => {
 .profile-header {
   display: flex;
   align-items: center;
-  margin-bottom: 60rpx;
+  margin-bottom: 16rpx;
+}
+
+.profile-extra {
+  margin-bottom: 36rpx;
+  padding-left: 172rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-line {
+  font-size: 26rpx;
+  color: #8E8E93;
+}
+
+.profile-edit {
+  font-size: 26rpx;
+  color: #007AFF;
 }
 
 .avatar-lg {
@@ -259,5 +329,61 @@ const showAbout = () => {
   color: #FF3B30;
   font-size: 34rpx;
   font-weight: 600;
+}
+
+.edit-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: flex-end;
+  z-index: 999;
+}
+
+.edit-panel {
+  width: 100%;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom));
+}
+
+.edit-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+}
+
+.edit-input {
+  height: 84rpx;
+  border-radius: 16rpx;
+  background: #F2F2F7;
+  padding: 0 24rpx;
+  margin-bottom: 20rpx;
+  font-size: 30rpx;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.edit-btn {
+  flex: 1;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+}
+
+.edit-btn.cancel {
+  color: #666;
+  background: #f0f0f0;
+}
+
+.edit-btn.confirm {
+  color: #fff;
+  background: #007AFF;
 }
 </style>
