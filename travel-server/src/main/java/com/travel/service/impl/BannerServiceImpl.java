@@ -23,15 +23,7 @@ public class BannerServiceImpl implements BannerService {
 
     @Override
     public BannerResponse getBanners() {
-        List<Banner> banners = bannerMapper.selectList(
-            new LambdaQueryWrapper<Banner>()
-                .eq(Banner::getEnabled, 1)
-                .eq(Banner::getIsDeleted, 0)
-                .orderByAsc(Banner::getSortOrder)
-        );
-
-        // 获取景点名称
-        Map<Long, String> spotNameMap = getSpotNameMap(banners);
+        List<Banner> banners = bannerMapper.selectEnabledBanners();
 
         BannerResponse response = new BannerResponse();
         response.setList(banners.stream().map(banner -> {
@@ -39,7 +31,7 @@ public class BannerServiceImpl implements BannerService {
             item.setId(banner.getId());
             item.setImageUrl(banner.getImageUrl());
             item.setSpotId(banner.getSpotId());
-            item.setSpotName(spotNameMap.get(banner.getSpotId()));
+            item.setSpotName(banner.getSpotName());
             item.setSortOrder(banner.getSortOrder());
             return item;
         }).collect(Collectors.toList()));
