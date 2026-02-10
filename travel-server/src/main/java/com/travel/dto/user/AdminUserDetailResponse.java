@@ -14,6 +14,7 @@ public class AdminUserDetailResponse {
     private Long id;
     private String nickname;
     private String avatar;
+    private String phone;
     private String preferences;
     private LocalDateTime createdAt;
 

@@ -13,5 +13,6 @@ public class UserInfoResponse {
     private Long id;
     private String nickname;
     private String avatar;
+    private String phone;
     private List<String> preferences;
 }

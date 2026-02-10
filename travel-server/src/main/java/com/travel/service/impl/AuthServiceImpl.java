@@ -79,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
                         .id(user.getId())
                         .nickname(user.getNickname())
                         .avatar(user.getAvatar())
+                        .phone(user.getPhone())
                         .isNewUser(isNewUser)
                         .build())
                 .build();
@@ -105,6 +106,7 @@ public class AuthServiceImpl implements AuthService {
                 .id(user.getId())
                 .nickname(user.getNickname())
                 .avatar(user.getAvatar())
+                .phone(user.getPhone())
                 .preferences(tags)
                 .build();
     }
@@ -121,6 +123,9 @@ public class AuthServiceImpl implements AuthService {
         }
         if (StringUtils.hasText(request.getAvatar())) {
             user.setAvatar(request.getAvatar());
+        }
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone().trim());
         }
         userMapper.updateById(user);
     }
