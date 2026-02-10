@@ -222,7 +222,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getUserId, userId)
                 .eq(Order::getIsDeleted, 0)
-                .ne(Order::getStatus, "cancelled")
+                .ne(Order::getStatus, Order.STATUS_CANCELLED)
         ).stream().map(Order::getSpotId).collect(Collectors.toSet());
 
         Set<Long> excludeIds = new HashSet<>();
@@ -379,7 +379,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         response.setNeedPreference(needPreference);
         response.setList(limitedIds.stream()
             .map(spotMap::get)
-            .filter(spot -> spot != null && spot.getIsDeleted() == 0)
+            .filter(spot -> spot != null && spot.getIsDeleted() == 0 && spot.getPublished() == 1)
             .map(spot -> {
                 RecommendationResponse.SpotItem item = new RecommendationResponse.SpotItem();
                 item.setId(spot.getId());

@@ -112,6 +112,22 @@ npm install
 
 详细接口文档请查看: http://localhost:8080/doc.html
 
+## 数据口径规则（PR-5）
+
+为确保列表展示、详情查询与仪表盘统计一致，系统统一采用以下规则：
+
+- 软删除规则：业务查询默认过滤 `is_deleted = 0`。
+- 发布规则：用户端可见内容默认过滤 `is_published = 1`（如景点、攻略及其关联展示）。
+- 时间戳规则：
+  - `created_at` 表示创建时间，仅首次写入；
+  - `updated_at` 表示更新时间，更新时自动维护；
+  - 对不含 `updated_at` 的表，不做更新时间写入要求。
+- 分类规则：`/api/v1/spots/filters` 同时返回扁平 `categories` 与树形 `categoryTree`，兼容旧客户端并支持新端分类树渲染。
+
+详细说明见：
+- [接口文档-数据口径说明](./.kiro/specs/travel-recommendation-system/api.md)
+- [回归验证清单](./.kiro/specs/travel-recommendation-system/regression-validation.md)
+
 ## 推荐算法
 
 采用 ItemCF (基于物品的协同过滤) 算法:

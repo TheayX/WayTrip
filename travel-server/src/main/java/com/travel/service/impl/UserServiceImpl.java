@@ -59,6 +59,7 @@ public class UserServiceImpl implements UserService {
         response.setId(user.getId());
         response.setNickname(user.getNickname());
         response.setAvatar(user.getAvatar());
+        response.setPhone(user.getPhone());
         response.setPreferences(user.getPreferences());
         response.setCreatedAt(user.getCreatedAt());
 
@@ -128,6 +129,7 @@ public class UserServiceImpl implements UserService {
         item.setId(user.getId());
         item.setNickname(user.getNickname());
         item.setAvatar(user.getAvatar());
+        item.setPhone(user.getPhone());
         item.setCreatedAt(user.getCreatedAt());
 
         // 统计数据
