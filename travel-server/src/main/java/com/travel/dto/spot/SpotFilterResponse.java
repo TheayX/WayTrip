@@ -11,12 +11,22 @@ import java.util.List;
 @Builder
 public class SpotFilterResponse {
     private List<FilterItem> regions;
+    /**
+     * 扁平分类列表（兼容旧版客户端）
+     */
     private List<FilterItem> categories;
+    /**
+     * 分类树（parent_id 层级结构）
+     */
+    private List<FilterItem> categoryTree;
     
     @Data
     @Builder
     public static class FilterItem {
         private Long id;
         private String name;
+        private Long parentId;
+        private String iconUrl;
+        private List<FilterItem> children;
     }
 }
