@@ -198,7 +198,7 @@ public class SpotServiceImpl implements SpotService {
             wrapper.eq(Spot::getCategoryId, request.getCategoryId());
         }
         if (request.getPublished() != null) {
-            wrapper.eq(Spot::getPublished, request.getPublished() == 1);
+            wrapper.eq(Spot::getPublished, request.getPublished());
         }
         wrapper.orderByDesc(Spot::getCreatedAt);
         
