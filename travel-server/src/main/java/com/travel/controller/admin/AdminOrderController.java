@@ -24,13 +24,13 @@ public class AdminOrderController {
 
     @Operation(summary = "获取订单详情")
     @GetMapping("/{id}")
-    public ApiResponse<OrderDetailResponse> getOrderDetail(@PathVariable Long id) {
+    public ApiResponse<OrderDetailResponse> getOrderDetail(@PathVariable("id") Long id) {
         return ApiResponse.success(orderService.getAdminOrderDetail(id));
     }
 
     @Operation(summary = "完成订单")
     @PostMapping("/{id}/complete")
-    public ApiResponse<OrderDetailResponse> completeOrder(@PathVariable Long id) {
+    public ApiResponse<OrderDetailResponse> completeOrder(@PathVariable("id") Long id) {
         return ApiResponse.success(orderService.completeOrder(id));
     }
 }

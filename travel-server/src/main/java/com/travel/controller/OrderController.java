@@ -34,7 +34,7 @@ public class OrderController {
 
     @Operation(summary = "获取订单详情")
     @GetMapping("/{id}")
-    public ApiResponse<OrderDetailResponse> getOrderDetail(@PathVariable Long id) {
+    public ApiResponse<OrderDetailResponse> getOrderDetail(@PathVariable("id") Long id) {
         Long userId = UserContext.getUserId();
         return ApiResponse.success(orderService.getOrderDetail(userId, id));
     }
@@ -42,7 +42,7 @@ public class OrderController {
     @Operation(summary = "模拟支付")
     @PostMapping("/{id}/pay")
     public ApiResponse<OrderDetailResponse> payOrder(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestParam(required = false) String idempotentKey) {
         Long userId = UserContext.getUserId();
         return ApiResponse.success(orderService.payOrder(userId, id, idempotentKey));
@@ -50,7 +50,7 @@ public class OrderController {
 
     @Operation(summary = "取消订单")
     @PostMapping("/{id}/cancel")
-    public ApiResponse<OrderDetailResponse> cancelOrder(@PathVariable Long id) {
+    public ApiResponse<OrderDetailResponse> cancelOrder(@PathVariable("id") Long id) {
         Long userId = UserContext.getUserId();
         return ApiResponse.success(orderService.cancelOrder(userId, id));
     }

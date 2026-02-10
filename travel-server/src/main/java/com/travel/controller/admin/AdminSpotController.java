@@ -31,7 +31,7 @@ public class AdminSpotController {
 
     @Operation(summary = "获取景点详情")
     @GetMapping("/{spotId}")
-    public ApiResponse<AdminSpotRequest> getSpotDetail(@PathVariable Long spotId) {
+    public ApiResponse<AdminSpotRequest> getSpotDetail(@PathVariable("spotId") Long spotId) {
         return ApiResponse.success(spotService.getAdminSpotDetail(spotId));
     }
 
@@ -44,21 +44,21 @@ public class AdminSpotController {
 
     @Operation(summary = "更新景点")
     @PutMapping("/{spotId}")
-    public ApiResponse<Void> updateSpot(@PathVariable Long spotId, @RequestBody AdminSpotRequest request) {
+    public ApiResponse<Void> updateSpot(@PathVariable("spotId") Long spotId, @RequestBody AdminSpotRequest request) {
         spotService.updateSpot(spotId, request);
         return ApiResponse.success();
     }
 
     @Operation(summary = "更新发布状态")
     @PutMapping("/{spotId}/publish")
-    public ApiResponse<Void> updatePublishStatus(@PathVariable Long spotId, @RequestBody Map<String, Boolean> body) {
+    public ApiResponse<Void> updatePublishStatus(@PathVariable("spotId") Long spotId, @RequestBody Map<String, Boolean> body) {
         spotService.updatePublishStatus(spotId, body.get("published"));
         return ApiResponse.success();
     }
 
     @Operation(summary = "删除景点")
     @DeleteMapping("/{spotId}")
-    public ApiResponse<Void> deleteSpot(@PathVariable Long spotId) {
+    public ApiResponse<Void> deleteSpot(@PathVariable("spotId") Long spotId) {
         spotService.deleteSpot(spotId);
         return ApiResponse.success();
     }

@@ -33,7 +33,7 @@ public class AdminGuideController {
 
     @Operation(summary = "获取攻略详情")
     @GetMapping("/{guideId}")
-    public ApiResponse<AdminGuideRequest> getGuideDetail(@PathVariable Long guideId) {
+    public ApiResponse<AdminGuideRequest> getGuideDetail(@PathVariable("guideId") Long guideId) {
         return ApiResponse.success(guideService.getAdminGuideDetail(guideId));
     }
 
@@ -53,21 +53,21 @@ public class AdminGuideController {
 
     @Operation(summary = "更新攻略")
     @PutMapping("/{guideId}")
-    public ApiResponse<Void> updateGuide(@PathVariable Long guideId, @RequestBody AdminGuideRequest request) {
+    public ApiResponse<Void> updateGuide(@PathVariable("guideId") Long guideId, @RequestBody AdminGuideRequest request) {
         guideService.updateGuide(guideId, request);
         return ApiResponse.success();
     }
 
     @Operation(summary = "更新发布状态")
     @PutMapping("/{guideId}/publish")
-    public ApiResponse<Void> updatePublishStatus(@PathVariable Long guideId, @RequestBody Map<String, Boolean> body) {
+    public ApiResponse<Void> updatePublishStatus(@PathVariable("guideId") Long guideId, @RequestBody Map<String, Boolean> body) {
         guideService.updatePublishStatus(guideId, body.get("published"));
         return ApiResponse.success();
     }
 
     @Operation(summary = "删除攻略")
     @DeleteMapping("/{guideId}")
-    public ApiResponse<Void> deleteGuide(@PathVariable Long guideId) {
+    public ApiResponse<Void> deleteGuide(@PathVariable("guideId") Long guideId) {
         guideService.deleteGuide(guideId);
         return ApiResponse.success();
     }

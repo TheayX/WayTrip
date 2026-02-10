@@ -34,7 +34,7 @@ public class RatingController {
 
     @Operation(summary = "获取用户对景点的评分")
     @GetMapping("/spot/{spotId}")
-    public ApiResponse<RatingResponse> getUserRating(@PathVariable Long spotId) {
+    public ApiResponse<RatingResponse> getUserRating(@PathVariable("spotId") Long spotId) {
         Long userId = UserContext.getUserId();
         return ApiResponse.success(ratingService.getUserRating(userId, spotId));
     }
@@ -42,7 +42,7 @@ public class RatingController {
     @Operation(summary = "获取景点评论列表")
     @GetMapping("/spot/{spotId}/comments")
     public ApiResponse<PageResult<RatingResponse>> getSpotRatings(
-            @PathVariable Long spotId,
+            @PathVariable("spotId") Long spotId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
         return ApiResponse.success(ratingService.getSpotRatings(spotId, page, pageSize));
