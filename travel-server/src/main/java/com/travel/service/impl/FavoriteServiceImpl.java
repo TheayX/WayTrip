@@ -41,6 +41,9 @@ public class FavoriteServiceImpl implements FavoriteService {
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
+        if (spot.getPublished() != 1) {
+            throw new BusinessException(ResultCode.SPOT_OFFLINE);
+        }
         
         // 检查是否已收藏
         Favorite existingFavorite = favoriteMapper.selectOne(
@@ -110,7 +113,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         
         // 转换为响应
         List<SpotListResponse> list = spots.stream()
-                .filter(spot -> spot.getIsDeleted() == 0)
+                .filter(spot -> spot.getIsDeleted() == 0 && spot.getPublished() == 1)
                 .map(this::convertToListResponse)
                 .collect(Collectors.toList());
         
