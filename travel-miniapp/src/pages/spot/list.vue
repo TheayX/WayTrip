@@ -24,7 +24,7 @@
         :class="{ active: currentFilter === 'category' }"
         @click="toggleFilter('category')"
       >
-        <text>{{ currentCategory?.name || '分类' }}</text>
+        <text>{{ currentCategory?.rawName || currentCategory?.name || '分类' }}</text>
         <text class="filter-arrow">▼</text>
       </view>
       <view 
@@ -99,6 +99,7 @@ import { getImageUrl } from '@/utils/request'
 // 筛选数据
 const regions = ref([])
 const categories = ref([])
+const categoryTree = ref([])
 const sortOptions = [
   { label: '热度排序', value: 'heat' },
   { label: '评分排序', value: 'rating' },
@@ -126,12 +127,30 @@ const filterOptions = computed(() => {
   if (currentFilter.value === 'region') {
     return [{ id: null, name: '全部地区' }, ...regions.value]
   } else if (currentFilter.value === 'category') {
-    return [{ id: null, name: '全部分类' }, ...categories.value]
+    return [{ id: null, name: '全部分类' }, ...flattenCategoryTree(categoryTree.value)]
   } else if (currentFilter.value === 'sort') {
     return sortOptions
   }
   return []
 })
+
+const flattenCategoryTree = (nodes = [], level = 0) => {
+  return nodes.reduce((acc, node) => {
+    const hasChildren = Array.isArray(node.children) && node.children.length > 0
+    acc.push({
+      id: node.id,
+      name: `${'　'.repeat(level)}${level > 0 ? '└ ' : ''}${node.name}`,
+      rawName: node.name,
+      hasChildren
+    })
+
+    if (hasChildren) {
+      acc.push(...flattenCategoryTree(node.children, level + 1))
+    }
+
+    return acc
+  }, [])
+}
 
 // 切换筛选面板
 const toggleFilter = (type) => {
@@ -160,6 +179,9 @@ const selectOption = (option) => {
   if (currentFilter.value === 'region') {
     currentRegion.value = option.id ? option : null
   } else if (currentFilter.value === 'category') {
+    if (option.hasChildren) {
+      return
+    }
     currentCategory.value = option.id ? option : null
   } else if (currentFilter.value === 'sort') {
     sortBy.value = option.value
@@ -174,6 +196,7 @@ const fetchFilters = async () => {
     const res = await getFilters()
     regions.value = res.data.regions || []
     categories.value = res.data.categories || []
+    categoryTree.value = res.data.categoryTree?.length ? res.data.categoryTree : categories.value
   } catch (e) {
     console.error('获取筛选选项失败', e)
   }
