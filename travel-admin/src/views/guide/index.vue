@@ -14,12 +14,12 @@
           <el-input v-model="queryParams.keyword" placeholder="攻略标题" clearable />
         </el-form-item>
         <el-form-item label="分类">
-          <el-select v-model="queryParams.category" placeholder="全部" clearable @change="handleSearch" @clear="handleSearch">
+          <el-select v-model="queryParams.category" placeholder="全部" clearable style="width: 200px" @change="handleSearch" @clear="handleSearch">
             <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="uiFilters.published" placeholder="全部" clearable @change="handleFilterChange" @clear="handleFilterChange">
+          <el-select v-model="uiFilters.published" placeholder="全部" clearable style="width: 140px" @change="handleFilterChange" @clear="handleFilterChange">
             <el-option label="已发布" value="1" />
             <el-option label="未发布" value="0" />
           </el-select>
@@ -263,7 +263,9 @@ const formatDate = (dateStr) => {
 
 const handleSearch = () => {
   queryParams.page = 1
-  queryParams.published = uiFilters.published === '' ? null : Number(uiFilters.published)
+  queryParams.published = uiFilters.published == null || uiFilters.published === ''
+    ? null
+    : Number(uiFilters.published)
   loadData()
 }
 

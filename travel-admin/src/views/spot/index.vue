@@ -14,17 +14,17 @@
           <el-input v-model="queryParams.keyword" placeholder="景点名称" clearable />
         </el-form-item>
         <el-form-item label="地区">
-          <el-select v-model="uiFilters.regionId" placeholder="全部" clearable @change="handleFilterChange" @clear="handleFilterChange">
+          <el-select v-model="uiFilters.regionId" placeholder="全部" clearable style="width: 180px" @change="handleFilterChange" @clear="handleFilterChange">
             <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="String(item.id)" />
           </el-select>
         </el-form-item>
         <el-form-item label="分类">
-          <el-select v-model="uiFilters.categoryId" placeholder="全部" clearable @change="handleFilterChange" @clear="handleFilterChange">
+          <el-select v-model="uiFilters.categoryId" placeholder="全部" clearable style="width: 200px" @change="handleFilterChange" @clear="handleFilterChange">
             <el-option v-for="item in categoryOptions" :key="item.id" :label="item.label" :value="String(item.id)" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="uiFilters.published" placeholder="全部" clearable @change="handleFilterChange" @clear="handleFilterChange">
+          <el-select v-model="uiFilters.published" placeholder="全部" clearable style="width: 140px" @change="handleFilterChange" @clear="handleFilterChange">
             <el-option label="已发布" value="1" />
             <el-option label="未发布" value="0" />
           </el-select>
@@ -308,7 +308,9 @@ const loadFilters = async () => {
 const syncFilters = () => {
   queryParams.regionId = uiFilters.regionId ? Number(uiFilters.regionId) : null
   queryParams.categoryId = uiFilters.categoryId ? Number(uiFilters.categoryId) : null
-  queryParams.published = uiFilters.published === '' ? null : Number(uiFilters.published)
+  queryParams.published = uiFilters.published == null || uiFilters.published === ''
+    ? null
+    : Number(uiFilters.published)
 }
 
 const loadData = async () => {
