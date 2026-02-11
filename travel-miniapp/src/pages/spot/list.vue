@@ -24,7 +24,7 @@
         :class="{ active: currentFilter === 'category' }"
         @click="toggleFilter('category')"
       >
-        <text>{{ currentCategory?.rawName || currentCategory?.name || '分类' }}</text>
+        <text>{{ currentCategory?.displayName || currentCategory?.rawName || currentCategory?.name || '分类' }}</text>
         <text class="filter-arrow">▼</text>
       </view>
       <view 
@@ -44,10 +44,10 @@
           class="filter-option" 
           v-for="option in filterOptions" 
           :key="option.id || option.value"
-          :class="{ selected: isOptionSelected(option) }"
+          :class="{ selected: isOptionSelected(option), 'has-children': option.hasChildren }"
           @click="selectOption(option)"
         >
-          {{ option.name || option.label }}
+          {{ option.displayName || option.name || option.label }}
         </view>
       </view>
     </view>
@@ -127,25 +127,28 @@ const filterOptions = computed(() => {
   if (currentFilter.value === 'region') {
     return [{ id: null, name: '全部地区' }, ...regions.value]
   } else if (currentFilter.value === 'category') {
-    return [{ id: null, name: '全部分类' }, ...flattenCategoryTree(categoryTree.value)]
+    return [{ id: null, name: '全部分类', displayName: '全部分类' }, ...flattenCategoryTree(categoryTree.value)]
   } else if (currentFilter.value === 'sort') {
     return sortOptions
   }
   return []
 })
 
-const flattenCategoryTree = (nodes = [], level = 0) => {
+const flattenCategoryTree = (nodes = [], parentPath = []) => {
   return nodes.reduce((acc, node) => {
     const hasChildren = Array.isArray(node.children) && node.children.length > 0
+    const path = [...parentPath, node.name]
     acc.push({
       id: node.id,
-      name: `${'　'.repeat(level)}${level > 0 ? '└ ' : ''}${node.name}`,
+      name: node.name,
+      displayName: path.join(' / '),
       rawName: node.name,
-      hasChildren
+      hasChildren,
+      path
     })
 
     if (hasChildren) {
-      acc.push(...flattenCategoryTree(node.children, level + 1))
+      acc.push(...flattenCategoryTree(node.children, path))
     }
 
     return acc
@@ -179,9 +182,6 @@ const selectOption = (option) => {
   if (currentFilter.value === 'region') {
     currentRegion.value = option.id ? option : null
   } else if (currentFilter.value === 'category') {
-    if (option.hasChildren) {
-      return
-    }
     currentCategory.value = option.id ? option : null
   } else if (currentFilter.value === 'sort') {
     sortBy.value = option.value
@@ -359,6 +359,11 @@ onMounted(() => {
 .filter-option.selected {
   background: #007AFF;
   color: #fff;
+}
+
+.filter-option.has-children {
+  background: #ECECF1;
+  color: #8E8E93;
 }
 
 /* 景点列表 */
