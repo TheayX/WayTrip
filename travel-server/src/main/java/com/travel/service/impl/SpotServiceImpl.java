@@ -15,8 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +48,12 @@ public class SpotServiceImpl implements SpotService {
             wrapper.eq(Spot::getRegionId, request.getRegionId());
         }
         if (request.getCategoryId() != null) {
-            wrapper.eq(Spot::getCategoryId, request.getCategoryId());
+            Set<Long> categoryIds = findCategoryAndChildrenIds(request.getCategoryId());
+            if (categoryIds.isEmpty()) {
+                wrapper.eq(Spot::getCategoryId, request.getCategoryId());
+            } else {
+                wrapper.in(Spot::getCategoryId, categoryIds);
+            }
         }
         
         // 排序
@@ -236,7 +244,12 @@ public class SpotServiceImpl implements SpotService {
             wrapper.eq(Spot::getRegionId, request.getRegionId());
         }
         if (request.getCategoryId() != null) {
-            wrapper.eq(Spot::getCategoryId, request.getCategoryId());
+            Set<Long> categoryIds = findCategoryAndChildrenIds(request.getCategoryId());
+            if (categoryIds.isEmpty()) {
+                wrapper.eq(Spot::getCategoryId, request.getCategoryId());
+            } else {
+                wrapper.in(Spot::getCategoryId, categoryIds);
+            }
         }
         if (request.getPublished() != null) {
             wrapper.eq(Spot::getPublished, request.getPublished());
@@ -381,6 +394,38 @@ public class SpotServiceImpl implements SpotService {
         if (categoryId == null) return null;
         SpotCategory category = spotCategoryMapper.selectById(categoryId);
         return category != null && category.getIsDeleted() == 0 ? category.getName() : null;
+    }
+
+    private Set<Long> findCategoryAndChildrenIds(Long categoryId) {
+        List<SpotCategory> categories = spotCategoryMapper.selectList(
+            new LambdaQueryWrapper<SpotCategory>()
+                .eq(SpotCategory::getIsDeleted, 0)
+                .select(SpotCategory::getId, SpotCategory::getParentId)
+        );
+
+        Map<Long, List<Long>> childrenMap = new HashMap<>();
+        for (SpotCategory category : categories) {
+            Long parentId = category.getParentId();
+            if (parentId != null && parentId > 0) {
+                childrenMap.computeIfAbsent(parentId, key -> new ArrayList<>()).add(category.getId());
+            }
+        }
+
+        Set<Long> allCategoryIds = new HashSet<>();
+        List<Long> stack = new ArrayList<>();
+        stack.add(categoryId);
+        while (!stack.isEmpty()) {
+            Long currentId = stack.remove(stack.size() - 1);
+            if (!allCategoryIds.add(currentId)) {
+                continue;
+            }
+            List<Long> children = childrenMap.get(currentId);
+            if (children != null && !children.isEmpty()) {
+                stack.addAll(children);
+            }
+        }
+
+        return allCategoryIds;
     }
 
     private void copyProperties(AdminSpotRequest request, Spot spot) {

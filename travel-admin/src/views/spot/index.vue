@@ -96,9 +96,14 @@
             <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="分类" prop="categoryId">
-          <el-select v-model="form.categoryId" placeholder="请选择分类">
-            <el-option v-for="item in leafCategoryOptions" :key="item.id" :label="item.label" :value="item.id" />
+        <el-form-item label="父分类" prop="parentCategoryId">
+          <el-select v-model="form.parentCategoryId" placeholder="请选择父分类" @change="handleParentCategoryChange">
+            <el-option v-for="item in parentCategoryOptions" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="子分类" prop="categoryId">
+          <el-select v-model="form.categoryId" placeholder="请选择子分类" :disabled="!form.parentCategoryId">
+            <el-option v-for="item in childCategoryOptions" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="地址" prop="address">
@@ -213,6 +218,8 @@ const flattenCategories = (nodes = [], level = 0) => {
     const hasChildren = Array.isArray(node.children) && node.children.length > 0
     acc.push({
       id: node.id,
+      name: node.name,
+      parentId: node.parentId,
       label: `${'　'.repeat(level)}${level > 0 ? '└ ' : ''}${node.name}`,
       hasChildren
     })
@@ -227,6 +234,20 @@ const flattenCategories = (nodes = [], level = 0) => {
 
 const categoryOptions = computed(() => flattenCategories(categoryTree.value))
 const leafCategoryOptions = computed(() => categoryOptions.value.filter(item => !item.hasChildren))
+const parentCategoryOptions = computed(() => categoryTree.value.filter(item => item.children?.length))
+const childCategoryOptions = computed(() => {
+  if (!form.parentCategoryId) {
+    return []
+  }
+  const parent = categoryTree.value.find(item => item.id === form.parentCategoryId)
+  return parent?.children || []
+})
+const categoryParentMap = computed(() => {
+  return leafCategoryOptions.value.reduce((acc, item) => {
+    acc[item.id] = item.parentId || null
+    return acc
+  }, {})
+})
 
 const queryParams = reactive({
   page: 1,
@@ -247,6 +268,7 @@ const form = reactive({
   name: '',
   price: 0,
   regionId: null,
+  parentCategoryId: null,
   categoryId: null,
   address: '',
   latitude: null,
@@ -259,6 +281,8 @@ const form = reactive({
 const rules = {
   name: [{ required: true, message: '请输入景点名称', trigger: 'blur' }],
   price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
+  parentCategoryId: [{ required: true, message: '请选择父分类', trigger: 'change' }],
+  categoryId: [{ required: true, message: '请选择子分类', trigger: 'change' }],
   address: [{ required: true, message: '请输入地址', trigger: 'blur' }]
 }
 
@@ -302,7 +326,7 @@ const handleReset = () => {
 
 const handleAdd = () => {
   editId.value = null
-  Object.assign(form, { name: '', price: 0, regionId: null, categoryId: null, address: '', latitude: null, longitude: null, openTime: '', description: '', coverImage: '' })
+  Object.assign(form, { name: '', price: 0, regionId: null, parentCategoryId: null, categoryId: null, address: '', latitude: null, longitude: null, openTime: '', description: '', coverImage: '' })
   dialogVisible.value = true
 }
 
@@ -311,8 +335,13 @@ const handleEdit = async (row) => {
   try {
     const res = await getSpotDetail(row.id)
     Object.assign(form, res.data)
+    form.parentCategoryId = categoryParentMap.value[form.categoryId] || null
     dialogVisible.value = true
   } catch (e) {}
+}
+
+const handleParentCategoryChange = () => {
+  form.categoryId = null
 }
 
 const handleSubmit = async () => {
@@ -320,10 +349,10 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     if (editId.value) {
-      await updateSpot(editId.value, form)
+      await updateSpot(editId.value, buildSubmitPayload())
       ElMessage.success('更新成功')
     } else {
-      await createSpot(form)
+      await createSpot(buildSubmitPayload())
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false
@@ -347,6 +376,21 @@ const handleDelete = async (row) => {
   ElMessage.success('删除成功')
   loadData()
 }
+
+const buildSubmitPayload = () => ({
+  name: form.name,
+  description: form.description,
+  price: form.price,
+  openTime: form.openTime,
+  address: form.address,
+  latitude: form.latitude,
+  longitude: form.longitude,
+  coverImage: form.coverImage,
+  regionId: form.regionId,
+  categoryId: form.categoryId,
+  published: form.published,
+  images: form.images
+})
 </script>
 
 <style lang="scss" scoped>
