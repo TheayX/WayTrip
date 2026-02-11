@@ -1,4 +1,4 @@
-package com.travel.service;
+﻿package com.travel.service;
 
 import com.travel.dto.order.*;
 
@@ -46,4 +46,10 @@ public interface OrderService {
      * 管理端完成订单
      */
     OrderDetailResponse completeOrder(Long orderId);
+
+    /**
+     * 管理端退款订单
+     */
+    OrderDetailResponse refundOrder(Long orderId);
 }
+

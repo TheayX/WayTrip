@@ -120,6 +120,7 @@ public class UserServiceImpl implements UserService {
             case Order.STATUS_PAID -> "paid";
             case Order.STATUS_CANCELLED -> "cancelled";
             case Order.STATUS_REFUNDED -> "refunded";
+            case Order.STATUS_COMPLETED -> "completed";
             default -> "unknown";
         };
     }

@@ -1,4 +1,4 @@
-package com.travel.dto.order;
+﻿package com.travel.dto.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,6 +41,7 @@ public class AdminOrderListResponse {
         private LocalDateTime paidAt;
         private LocalDateTime completedAt;
         private LocalDateTime cancelledAt;
+        private LocalDateTime refundedAt;
         private LocalDateTime createdAt;
     }
 }

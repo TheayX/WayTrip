@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * 订单实体 - 与数据库order表完全对应
- * status: 0-待支付，1-已支付，2-已取消，3-已退款
+ * status: 0-待支付，1-已支付，2-已取消，3-已退款，4-已完成
  */
 @Data
 @TableName("`order`")
@@ -29,7 +29,7 @@ public class Order {
     private BigDecimal totalAmount;
 
     /**
-     * 订单状态：0-待支付，1-已支付，2-已取消，3-已退款
+     * 订单状态：0-待支付，1-已支付，2-已取消，3-已退款，4-已完成
      */
     private Integer status;
 
@@ -40,6 +40,12 @@ public class Order {
     private String contactPhone;
 
     private LocalDateTime paidAt;
+
+    private LocalDateTime cancelledAt;
+
+    private LocalDateTime refundedAt;
+
+    private LocalDateTime completedAt;
 
     @TableField("is_deleted")
     private Integer isDeleted;
@@ -66,4 +72,5 @@ public class Order {
     public static final int STATUS_PAID = 1;
     public static final int STATUS_CANCELLED = 2;
     public static final int STATUS_REFUNDED = 3;
+    public static final int STATUS_COMPLETED = 4;
 }
