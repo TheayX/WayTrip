@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+﻿import request from '@/utils/request'
 
 /**
  * 获取订单列表
@@ -27,6 +27,16 @@ export function getOrderDetail(id) {
 export function completeOrder(id) {
   return request({
     url: `/orders/${id}/complete`,
+    method: 'post'
+  })
+}
+
+/**
+ * 退款订单
+ */
+export function refundOrder(id) {
+  return request({
+    url: `/orders/${id}/refund`,
     method: 'post'
   })
 }

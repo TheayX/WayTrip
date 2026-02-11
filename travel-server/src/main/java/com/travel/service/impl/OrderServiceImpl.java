@@ -1,4 +1,4 @@
-package com.travel.service.impl;
+﻿package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -165,6 +165,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setStatus(Order.STATUS_CANCELLED);
+        order.setCancelledAt(LocalDateTime.now());
         orderMapper.updateById(order);
 
         fillSpotInfoSingle(order);
@@ -247,6 +248,37 @@ public class OrderServiceImpl implements OrderService {
         if (order == null || order.getIsDeleted() == 1) {
             throw new RuntimeException("订单不存在");
         }
+        if (order.getStatus() == Order.STATUS_COMPLETED) {
+            fillSpotInfoSingle(order);
+            return buildOrderDetail(order);
+        }
+        if (order.getStatus() != Order.STATUS_PAID) {
+            throw new RuntimeException("订单状态不允许完成");
+        }
+        order.setStatus(Order.STATUS_COMPLETED);
+        order.setCompletedAt(LocalDateTime.now());
+        orderMapper.updateById(order);
+        fillSpotInfoSingle(order);
+        return buildOrderDetail(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderDetailResponse refundOrder(Long orderId) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || order.getIsDeleted() == 1) {
+            throw new RuntimeException("订单不存在");
+        }
+        if (order.getStatus() == Order.STATUS_REFUNDED) {
+            fillSpotInfoSingle(order);
+            return buildOrderDetail(order);
+        }
+        if (order.getStatus() != Order.STATUS_PAID) {
+            throw new RuntimeException("订单状态不允许退款");
+        }
+        order.setStatus(Order.STATUS_REFUNDED);
+        order.setRefundedAt(LocalDateTime.now());
+        orderMapper.updateById(order);
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
     }
@@ -264,6 +296,7 @@ public class OrderServiceImpl implements OrderService {
             case "paid" -> Order.STATUS_PAID;
             case "cancelled" -> Order.STATUS_CANCELLED;
             case "refunded" -> Order.STATUS_REFUNDED;
+            case "completed" -> Order.STATUS_COMPLETED;
             default -> null;
         };
     }
@@ -275,6 +308,7 @@ public class OrderServiceImpl implements OrderService {
             case Order.STATUS_PAID -> "paid";
             case Order.STATUS_CANCELLED -> "cancelled";
             case Order.STATUS_REFUNDED -> "refunded";
+            case Order.STATUS_COMPLETED -> "completed";
             default -> "unknown";
         };
     }
@@ -286,6 +320,7 @@ public class OrderServiceImpl implements OrderService {
             case Order.STATUS_PAID -> "已支付";
             case Order.STATUS_CANCELLED -> "已取消";
             case Order.STATUS_REFUNDED -> "已退款";
+            case Order.STATUS_COMPLETED -> "已完成";
             default -> "未知";
         };
     }
@@ -358,8 +393,9 @@ public class OrderServiceImpl implements OrderService {
         item.setStatus(convertStatusToString(order.getStatus()));
         item.setStatusText(getStatusText(order.getStatus()));
         item.setPaidAt(order.getPaidAt());
-        item.setCompletedAt(null);
-        item.setCancelledAt(null);
+        item.setCompletedAt(order.getCompletedAt());
+        item.setCancelledAt(order.getCancelledAt());
+        item.setRefundedAt(order.getRefundedAt());
         item.setCreatedAt(order.getCreatedAt());
 
         User user = userMapper.selectById(order.getUserId());
@@ -386,8 +422,9 @@ public class OrderServiceImpl implements OrderService {
         response.setStatus(convertStatusToString(order.getStatus()));
         response.setStatusText(getStatusText(order.getStatus()));
         response.setPaidAt(order.getPaidAt());
-        response.setCancelledAt(null);
-        response.setCompletedAt(null);
+        response.setCancelledAt(order.getCancelledAt());
+        response.setCompletedAt(order.getCompletedAt());
+        response.setRefundedAt(order.getRefundedAt());
         response.setCreatedAt(order.getCreatedAt());
 
         response.setCanPay(order.getStatus() == Order.STATUS_PENDING);
@@ -396,3 +433,7 @@ public class OrderServiceImpl implements OrderService {
         return response;
     }
 }
+
+
+
+

@@ -1,4 +1,4 @@
-package com.travel.dto.order;
+﻿package com.travel.dto.order;
 
 import lombok.Data;
 
@@ -27,6 +27,7 @@ public class OrderDetailResponse {
     private String statusText;
     private LocalDateTime paidAt;
     private LocalDateTime cancelledAt;
+    private LocalDateTime refundedAt;
     private LocalDateTime completedAt;
     private LocalDateTime createdAt;
 

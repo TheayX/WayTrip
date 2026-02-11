@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="order-page">
     <el-card shadow="never">
       <template #header>
@@ -19,8 +19,9 @@
           <el-select v-model="searchForm.status" placeholder="全部状态" clearable style="width: 120px">
             <el-option label="待支付" value="pending" />
             <el-option label="已支付" value="paid" />
-            <el-option label="已完成" value="completed" />
             <el-option label="已取消" value="cancelled" />
+            <el-option label="已退款" value="refunded" />
+            <el-option label="已完成" value="completed" />
           </el-select>
         </el-form-item>
         <el-form-item label="下单时间">
@@ -64,19 +65,24 @@
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="下单时间" width="170" />
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
-            <el-button 
-              v-if="row.status === 'paid'" 
-              type="success" 
-              link 
+            <el-button
+              v-if="row.status === 'paid'"
+              type="success"
+              link
               @click="handleComplete(row)"
             >完成</el-button>
+            <el-button
+              v-if="row.status === 'paid'"
+              type="danger"
+              link
+              @click="handleRefund(row)"
+            >退款</el-button>
           </template>
         </el-table-column>
       </el-table>
-
 
       <!-- 分页 -->
       <div class="pagination-wrapper">
@@ -112,23 +118,29 @@
         <el-descriptions-item label="支付时间" v-if="currentOrder.paidAt" :span="2">{{ currentOrder.paidAt }}</el-descriptions-item>
         <el-descriptions-item label="完成时间" v-if="currentOrder.completedAt" :span="2">{{ currentOrder.completedAt }}</el-descriptions-item>
         <el-descriptions-item label="取消时间" v-if="currentOrder.cancelledAt" :span="2">{{ currentOrder.cancelledAt }}</el-descriptions-item>
+        <el-descriptions-item label="退款时间" v-if="currentOrder.refundedAt" :span="2">{{ currentOrder.refundedAt }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
         <el-button @click="detailVisible = false">关闭</el-button>
-        <el-button 
-          v-if="currentOrder?.status === 'paid'" 
-          type="primary" 
+        <el-button
+          v-if="currentOrder?.status === 'paid'"
+          type="primary"
           @click="handleComplete(currentOrder)"
         >完成订单</el-button>
+        <el-button
+          v-if="currentOrder?.status === 'paid'"
+          type="danger"
+          @click="handleRefund(currentOrder)"
+        >退款订单</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrderList, getOrderDetail, completeOrder } from '@/api/order'
+import { getOrderList, getOrderDetail, completeOrder, refundOrder } from '@/api/order'
 
 // 搜索表单
 const searchForm = reactive({
@@ -194,8 +206,9 @@ const getStatusType = (status) => {
   const types = {
     pending: 'warning',
     paid: 'primary',
-    completed: 'success',
-    cancelled: 'info'
+    cancelled: 'info',
+    refunded: 'danger',
+    completed: 'success'
   }
   return types[status] || 'info'
 }
@@ -219,6 +232,23 @@ const handleComplete = async (row) => {
     })
     await completeOrder(row.id)
     ElMessage.success('订单已完成')
+    detailVisible.value = false
+    fetchOrderList()
+  } catch (e) {
+    if (e !== 'cancel') {
+      ElMessage.error('操作失败')
+    }
+  }
+}
+
+// 退款订单
+const handleRefund = async (row) => {
+  try {
+    await ElMessageBox.confirm('确认将此订单标记为已退款？', '提示', {
+      type: 'warning'
+    })
+    await refundOrder(row.id)
+    ElMessage.success('订单已退款')
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {

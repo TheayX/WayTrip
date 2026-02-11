@@ -1,4 +1,4 @@
-package com.travel.controller.admin;
+﻿package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.order.*;
@@ -32,5 +32,11 @@ public class AdminOrderController {
     @PostMapping("/{id}/complete")
     public ApiResponse<OrderDetailResponse> completeOrder(@PathVariable("id") Long id) {
         return ApiResponse.success(orderService.completeOrder(id));
+    }
+
+    @Operation(summary = "退款订单")
+    @PostMapping("/{id}/refund")
+    public ApiResponse<OrderDetailResponse> refundOrder(@PathVariable("id") Long id) {
+        return ApiResponse.success(orderService.refundOrder(id));
     }
 }
