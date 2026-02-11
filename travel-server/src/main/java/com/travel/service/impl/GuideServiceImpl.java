@@ -20,6 +20,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -287,11 +288,44 @@ public class GuideServiceImpl implements GuideService {
     }
 
     private void saveGuideSpots(Long guideId, List<Long> spotIds) {
-        if (spotIds == null || spotIds.isEmpty()) return;
-        for (Long spotId : spotIds) {
+        if (spotIds == null || spotIds.isEmpty()) {
+            return;
+        }
+
+        List<Long> uniqueSpotIds = spotIds.stream()
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<GuideSpot> existingSpots = guideSpotMapper.selectList(
+            new LambdaQueryWrapper<GuideSpot>()
+                .eq(GuideSpot::getGuideId, guideId)
+                .in(GuideSpot::getSpotId, uniqueSpotIds)
+        );
+        HashSet<Long> existingSpotIds = existingSpots.stream()
+                .map(GuideSpot::getSpotId)
+                .collect(Collectors.toCollection(HashSet::new));
+
+        for (GuideSpot existingSpot : existingSpots) {
+            if (existingSpot.getIsDeleted() != null && existingSpot.getIsDeleted() == 1) {
+                GuideSpot toUpdate = new GuideSpot();
+                toUpdate.setIsDeleted(0);
+                guideSpotMapper.update(
+                    toUpdate,
+                    new LambdaQueryWrapper<GuideSpot>()
+                        .eq(GuideSpot::getGuideId, guideId)
+                        .eq(GuideSpot::getSpotId, existingSpot.getSpotId())
+                );
+            }
+        }
+
+        for (Long spotId : uniqueSpotIds) {
+            if (existingSpotIds.contains(spotId)) {
+                continue;
+            }
             GuideSpot guideSpot = new GuideSpot();
             guideSpot.setGuideId(guideId);
             guideSpot.setSpotId(spotId);
+            guideSpot.setIsDeleted(0);
             guideSpotMapper.insert(guideSpot);
         }
     }
