@@ -16,7 +16,7 @@
           <el-input v-model="searchForm.spotName" placeholder="请输入景点名称" clearable style="width: 180px" />
         </el-form-item>
         <el-form-item label="订单状态">
-          <el-select v-model="searchForm.status" placeholder="全部状态" clearable style="width: 120px">
+          <el-select v-model="searchForm.status" placeholder="全部状态" clearable style="width: 120px" @change="handleSearch" @clear="handleSearch">
             <el-option label="待支付" value="pending" />
             <el-option label="已支付" value="paid" />
             <el-option label="已取消" value="cancelled" />
@@ -33,6 +33,7 @@
             end-placeholder="结束日期"
             value-format="YYYY-MM-DD"
             style="width: 240px"
+            @change="handleSearch"
           />
         </el-form-item>
         <el-form-item>

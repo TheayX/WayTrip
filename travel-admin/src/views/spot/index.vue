@@ -14,19 +14,19 @@
           <el-input v-model="queryParams.keyword" placeholder="景点名称" clearable />
         </el-form-item>
         <el-form-item label="地区">
-          <el-select v-model="queryParams.regionId" placeholder="全部" clearable>
-            <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="item.id" />
+          <el-select v-model="uiFilters.regionId" placeholder="全部" clearable @change="handleFilterChange" @clear="handleFilterChange">
+            <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="String(item.id)" />
           </el-select>
         </el-form-item>
         <el-form-item label="分类">
-          <el-select v-model="queryParams.categoryId" placeholder="全部" clearable>
-            <el-option v-for="item in categoryOptions" :key="item.id" :label="item.label" :value="item.id" />
+          <el-select v-model="uiFilters.categoryId" placeholder="全部" clearable @change="handleFilterChange" @clear="handleFilterChange">
+            <el-option v-for="item in categoryOptions" :key="item.id" :label="item.label" :value="String(item.id)" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="queryParams.published" placeholder="全部" clearable>
-            <el-option label="已发布" :value="1" />
-            <el-option label="未发布" :value="0" />
+          <el-select v-model="uiFilters.published" placeholder="全部" clearable @change="handleFilterChange" @clear="handleFilterChange">
+            <el-option label="已发布" value="1" />
+            <el-option label="未发布" value="0" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -257,6 +257,11 @@ const queryParams = reactive({
   categoryId: null,
   published: null
 })
+const uiFilters = reactive({
+  regionId: '',
+  categoryId: '',
+  published: ''
+})
 
 // 弹窗相关
 const dialogVisible = ref(false)
@@ -300,6 +305,12 @@ const loadFilters = async () => {
   } catch (e) {}
 }
 
+const syncFilters = () => {
+  queryParams.regionId = uiFilters.regionId ? Number(uiFilters.regionId) : null
+  queryParams.categoryId = uiFilters.categoryId ? Number(uiFilters.categoryId) : null
+  queryParams.published = uiFilters.published === '' ? null : Number(uiFilters.published)
+}
+
 const loadData = async () => {
   loading.value = true
   try {
@@ -313,7 +324,12 @@ const loadData = async () => {
 
 const handleSearch = () => {
   queryParams.page = 1
+  syncFilters()
   loadData()
+}
+
+const handleFilterChange = () => {
+  handleSearch()
 }
 
 const handleReset = () => {
@@ -321,6 +337,9 @@ const handleReset = () => {
   queryParams.regionId = null
   queryParams.categoryId = null
   queryParams.published = null
+  uiFilters.regionId = ''
+  uiFilters.categoryId = ''
+  uiFilters.published = ''
   handleSearch()
 }
 
