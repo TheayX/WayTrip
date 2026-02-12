@@ -4,13 +4,13 @@
 
 ## 技术栈
 
-| 模块 | 技术 |
-|------|------|
-| 后端 | Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 3.5.5 |
-| 数据库 | MySQL 8.0 + Redis |
-| 用户端 | Uni-app + Vue.js 3 + Pinia |
-| 管理端 | Vue.js 3 + Element Plus + Vite |
-| API 文档 | Knife4j 4.5.0 (OpenAPI 3) |
+| 模块     | 技术                                              |
+| -------- | ------------------------------------------------- |
+| 后端     | Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 3.5.5 |
+| 数据库   | MySQL 8.0 + Redis                                 |
+| 用户端   | Uni-app + Vue.js 3 + Pinia                        |
+| 管理端   | Vue.js 3 + Element Plus + Vite                    |
+| API 文档 | Knife4j 4.5.0 (OpenAPI 3)                         |
 
 ## 项目结构
 
@@ -58,6 +58,7 @@ mvn spring-boot:run
 ```
 
 服务启动后访问:
+
 - API 服务: http://localhost:8080
 - API 文档: http://localhost:8080/doc.html
 
@@ -81,13 +82,16 @@ npm run dev
 cd travel-miniapp
 npm install
 
-# 启动服务
+# 开发编译
+npm run dev:mp-weixin
+
 # 打开 微信开发者工具, 导入 dist\dev\mp-weixin 运行
 ```
 
 ## 核心功能
 
 ### 用户端 (小程序)
+
 - 微信一键登录
 - 景点浏览、搜索、筛选
 - 个性化推荐 (ItemCF 协同过滤)
@@ -98,9 +102,10 @@ npm install
 - 导航跳转
 
 ### 管理端 (Web)
+
 - 景点管理 (增删改查、上下架)
 - 攻略管理 (富文本编辑)
-- 订单管理 (查看、完成)
+- 订单管理 (查看、完成、退款)
 - 用户管理 (只读)
 - 轮播图管理
 - 数据统计仪表板
@@ -124,13 +129,12 @@ npm install
   - 对不含 `updated_at` 的表，不做更新时间写入要求。
 - 分类规则：`/api/v1/spots/filters` 同时返回扁平 `categories` 与树形 `categoryTree`，兼容旧客户端并支持新端分类树渲染。
 
-详细说明见：
-- [接口文档-数据口径说明](./.kiro/specs/travel-recommendation-system/api.md)
-- [回归验证清单](./.kiro/specs/travel-recommendation-system/regression-validation.md)
+详细说明见：[接口文档-数据口径说明](./.kiro/specs/travel-recommendation-system/api.md)
 
 ## 推荐算法
 
 采用 ItemCF (基于物品的协同过滤) 算法:
+
 - 基于用户评分计算物品相似度
 - 冷启动策略: 热门推荐 + 偏好标签引导
 - 推荐过滤: 排除已评分/已收藏/已下单景点
