@@ -33,7 +33,9 @@
       "urlCheck": false,
       "es6": true,
       "minified": true,
-      "postcss": true
+      "postcss": true,
+      "ignoreDevUnusedFiles": false,
+      "checkInvalidPayLoads": true
     },
     "usingComponents": true,
     "permission": {

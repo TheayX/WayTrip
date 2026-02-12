@@ -28,7 +28,7 @@
         :key="guide.id"
         @click="goDetail(guide.id)"
       >
-        <image class="guide-cover" :src="guide.coverImage" mode="aspectFill" />
+        <image class="guide-cover" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
         <view class="guide-info">
           <text class="guide-title">{{ guide.title }}</text>
           <text class="guide-summary">{{ guide.summary }}</text>
@@ -58,6 +58,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getGuideList, getCategories } from '@/api/guide'
+import { getImageUrl } from '@/utils/request'
+
 
 const categories = ref([])
 const currentCategory = ref('')
