@@ -168,6 +168,7 @@ onMounted(() => {
 .guide-list {
   flex: 1;
   padding: 24rpx 32rpx;
+  box-sizing: border-box;
 }
 
 .guide-card {
@@ -178,11 +179,13 @@ onMounted(() => {
   overflow: hidden;
   margin-bottom: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  width: 100%;
 }
 
 .guide-cover {
   width: 100%;
   height: 300rpx;
+  display: block;
 }
 
 .guide-info {
