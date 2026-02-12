@@ -22,3 +22,7 @@ Thumbs.db
 
 # Application
 application-local.yml
+
+# Uploads
+uploads/images/
+!uploads/images/.keep
