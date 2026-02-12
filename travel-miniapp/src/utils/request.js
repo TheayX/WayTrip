@@ -43,8 +43,20 @@ const request = (options) => {
           } else if (result.code === 10002) {
             // Token 失效
             userStore.logout()
-            uni.showToast({ title: '请重新登录', icon: 'none' })
-            reject(result)
+            // 弹窗提示，不显式 reject 避免报错提示
+            uni.showModal({
+              title: '提示',
+              content: '登录状态已失效，请重新登录',
+              confirmText: '去登录',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  uni.reLaunch({ url: '/pages/mine/index' })
+                }
+              }
+            })
+            // 这里 resolve(null) 或者 reject(result) 取决于业务需要，
+            // 为了防止页面爆红，可以 resolve(null) 并让调用方自行处理空数据
+            resolve(null)
           } else {
             uni.showToast({ title: result.message || '请求失败', icon: 'none' })
             reject(result)
