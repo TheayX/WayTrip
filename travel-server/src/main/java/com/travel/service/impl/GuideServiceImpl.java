@@ -34,34 +34,34 @@ public class GuideServiceImpl implements GuideService {
     private final GuideMapper guideMapper;
     private final GuideSpotMapper guideSpotMapper;
     private final SpotMapper spotMapper;
-    
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
     public PageResult<GuideListResponse> getGuideList(GuideListRequest request) {
         Page<Guide> page = new Page<>(request.getPage(), request.getPageSize());
-        
+
         LambdaQueryWrapper<Guide> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Guide::getPublished, 1);
         wrapper.eq(Guide::getIsDeleted, 0);
-        
+
         if (StringUtils.hasText(request.getCategory())) {
             wrapper.eq(Guide::getCategory, request.getCategory());
         }
-        
+
         // 排序
         if ("category".equals(request.getSortBy())) {
             wrapper.orderByAsc(Guide::getCategory).orderByDesc(Guide::getCreatedAt);
         } else {
             wrapper.orderByDesc(Guide::getCreatedAt);
         }
-        
+
         Page<Guide> result = guideMapper.selectPage(page, wrapper);
-        
+
         List<GuideListResponse> list = result.getRecords().stream()
                 .map(this::convertToListResponse)
                 .collect(Collectors.toList());
-        
+
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
@@ -74,14 +74,14 @@ public class GuideServiceImpl implements GuideService {
         if (guide.getPublished() != 1) {
             throw new BusinessException(ResultCode.GUIDE_OFFLINE);
         }
-        
+
         // 增加浏览量
         guide.setViewCount(guide.getViewCount() + 1);
         guideMapper.updateById(guide);
-        
+
         // 获取关联景点
         List<GuideDetailResponse.RelatedSpot> relatedSpots = getRelatedSpots(guideId);
-        
+
         return GuideDetailResponse.builder()
                 .id(guide.getId())
                 .title(guide.getTitle())
@@ -102,10 +102,10 @@ public class GuideServiceImpl implements GuideService {
     @Override
     public PageResult<AdminGuideListResponse> getAdminGuideList(AdminGuideListRequest request) {
         Page<Guide> page = new Page<>(request.getPage(), request.getPageSize());
-        
+
         LambdaQueryWrapper<Guide> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Guide::getIsDeleted, 0);
-        
+
         if (StringUtils.hasText(request.getKeyword())) {
             wrapper.like(Guide::getTitle, request.getKeyword());
         }
@@ -115,14 +115,14 @@ public class GuideServiceImpl implements GuideService {
         if (request.getPublished() != null) {
             wrapper.eq(Guide::getPublished, request.getPublished());
         }
-        wrapper.orderByDesc(Guide::getCreatedAt);
-        
+        wrapper.orderByAsc(Guide::getId);
+
         Page<Guide> result = guideMapper.selectPage(page, wrapper);
-        
+
         List<AdminGuideListResponse> list = result.getRecords().stream()
                 .map(this::convertToAdminListResponse)
                 .collect(Collectors.toList());
-        
+
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
@@ -132,17 +132,16 @@ public class GuideServiceImpl implements GuideService {
         if (guide == null || guide.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.GUIDE_NOT_FOUND);
         }
-        
+
         // 获取关联景点ID
         List<GuideSpot> guideSpots = guideSpotMapper.selectList(
-            new LambdaQueryWrapper<GuideSpot>()
-                .eq(GuideSpot::getGuideId, guideId)
-                .eq(GuideSpot::getIsDeleted, 0)
-        );
+                new LambdaQueryWrapper<GuideSpot>()
+                        .eq(GuideSpot::getGuideId, guideId)
+                        .eq(GuideSpot::getIsDeleted, 0));
         List<Long> spotIds = guideSpots.stream()
                 .map(GuideSpot::getSpotId)
                 .collect(Collectors.toList());
-        
+
         AdminGuideRequest response = new AdminGuideRequest();
         response.setTitle(guide.getTitle());
         response.setCoverImage(guide.getCoverImage());
@@ -150,7 +149,7 @@ public class GuideServiceImpl implements GuideService {
         response.setContent(guide.getContent());
         response.setPublished(guide.getPublished() == 1);
         response.setSpotIds(spotIds);
-        
+
         return response;
     }
 
@@ -166,10 +165,10 @@ public class GuideServiceImpl implements GuideService {
         guide.setPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
         guide.setViewCount(0);
         guideMapper.insert(guide);
-        
+
         // 保存关联景点
         saveGuideSpots(guide.getId(), request.getSpotIds());
-        
+
         return guide.getId();
     }
 
@@ -180,21 +179,20 @@ public class GuideServiceImpl implements GuideService {
         if (guide == null || guide.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.GUIDE_NOT_FOUND);
         }
-        
+
         guide.setTitle(request.getTitle());
         guide.setCoverImage(request.getCoverImage());
         guide.setCategory(request.getCategory());
         guide.setContent(request.getContent());
         guide.setPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
         guideMapper.updateById(guide);
-        
+
         // 更新关联景点
         GuideSpot deletedSpot = new GuideSpot();
         deletedSpot.setIsDeleted(1);
         guideSpotMapper.update(
-            deletedSpot,
-            new LambdaQueryWrapper<GuideSpot>().eq(GuideSpot::getGuideId, guideId)
-        );
+                deletedSpot,
+                new LambdaQueryWrapper<GuideSpot>().eq(GuideSpot::getGuideId, guideId));
         saveGuideSpots(guideId, request.getSpotIds());
     }
 
@@ -221,9 +219,8 @@ public class GuideServiceImpl implements GuideService {
         GuideSpot deletedSpot = new GuideSpot();
         deletedSpot.setIsDeleted(1);
         guideSpotMapper.update(
-            deletedSpot,
-            new LambdaQueryWrapper<GuideSpot>().eq(GuideSpot::getGuideId, guideId)
-        );
+                deletedSpot,
+                new LambdaQueryWrapper<GuideSpot>().eq(GuideSpot::getGuideId, guideId));
     }
 
     private GuideListResponse convertToListResponse(Guide guide) {
@@ -235,7 +232,7 @@ public class GuideServiceImpl implements GuideService {
                 summary = summary.substring(0, 100) + "...";
             }
         }
-        
+
         return GuideListResponse.builder()
                 .id(guide.getId())
                 .title(guide.getTitle())
@@ -261,21 +258,20 @@ public class GuideServiceImpl implements GuideService {
 
     private List<GuideDetailResponse.RelatedSpot> getRelatedSpots(Long guideId) {
         List<GuideSpot> guideSpots = guideSpotMapper.selectList(
-            new LambdaQueryWrapper<GuideSpot>()
-                .eq(GuideSpot::getGuideId, guideId)
-                .eq(GuideSpot::getIsDeleted, 0)
-        );
-        
+                new LambdaQueryWrapper<GuideSpot>()
+                        .eq(GuideSpot::getGuideId, guideId)
+                        .eq(GuideSpot::getIsDeleted, 0));
+
         if (guideSpots.isEmpty()) {
             return new ArrayList<>();
         }
-        
+
         List<Long> spotIds = guideSpots.stream()
                 .map(GuideSpot::getSpotId)
                 .collect(Collectors.toList());
-        
+
         List<Spot> spots = spotMapper.selectBatchIds(spotIds);
-        
+
         return spots.stream()
                 .filter(s -> s.getIsDeleted() == 0 && s.getPublished() == 1)
                 .map(s -> GuideDetailResponse.RelatedSpot.builder()
@@ -297,10 +293,9 @@ public class GuideServiceImpl implements GuideService {
                 .collect(Collectors.toList());
 
         List<GuideSpot> existingSpots = guideSpotMapper.selectList(
-            new LambdaQueryWrapper<GuideSpot>()
-                .eq(GuideSpot::getGuideId, guideId)
-                .in(GuideSpot::getSpotId, uniqueSpotIds)
-        );
+                new LambdaQueryWrapper<GuideSpot>()
+                        .eq(GuideSpot::getGuideId, guideId)
+                        .in(GuideSpot::getSpotId, uniqueSpotIds));
         HashSet<Long> existingSpotIds = existingSpots.stream()
                 .map(GuideSpot::getSpotId)
                 .collect(Collectors.toCollection(HashSet::new));
@@ -310,11 +305,10 @@ public class GuideServiceImpl implements GuideService {
                 GuideSpot toUpdate = new GuideSpot();
                 toUpdate.setIsDeleted(0);
                 guideSpotMapper.update(
-                    toUpdate,
-                    new LambdaQueryWrapper<GuideSpot>()
-                        .eq(GuideSpot::getGuideId, guideId)
-                        .eq(GuideSpot::getSpotId, existingSpot.getSpotId())
-                );
+                        toUpdate,
+                        new LambdaQueryWrapper<GuideSpot>()
+                                .eq(GuideSpot::getGuideId, guideId)
+                                .eq(GuideSpot::getSpotId, existingSpot.getSpotId()));
             }
         }
 
