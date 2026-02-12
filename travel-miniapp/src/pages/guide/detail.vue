@@ -1,7 +1,7 @@
 <template>
   <view class="guide-detail-page" v-if="guide">
     <!-- 封面图 -->
-    <image class="guide-cover" :src="guide.coverImage" mode="aspectFill" />
+    <image class="guide-cover" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
 
     <!-- 标题信息 -->
     <view class="guide-header card">
@@ -27,7 +27,7 @@
           :key="spot.id"
           @click="goSpotDetail(spot.id)"
         >
-          <image class="spot-image" :src="spot.coverImage" mode="aspectFill" />
+          <image class="spot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="spot-info">
             <text class="spot-name">{{ spot.name }}</text>
             <text class="spot-price price">{{ spot.price }}</text>
@@ -42,6 +42,7 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getGuideDetail } from '@/api/guide'
+import { getImageUrl } from '@/utils/request'
 
 // 攻略数据
 const guide = ref(null)
@@ -57,6 +58,7 @@ const fetchGuideDetail = async () => {
     uni.showToast({ title: '加载失败', icon: 'none' })
   }
 }
+
 
 // 跳转景点详情
 const goSpotDetail = (id) => {
