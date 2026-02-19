@@ -6,8 +6,14 @@ export default defineConfig({
   transpileDependencies: ['@dcloudio/uni-ui'],
   css: {
     preprocessorOptions: {
-      sass: { api: 'modern-compiler' },
-      scss: { api: 'modern-compiler' }
+      sass: {
+        api: 'modern-compiler',
+        silenceDeprecations: ['legacy-js-api']
+      },
+      scss: {
+        api: 'modern-compiler',
+        silenceDeprecations: ['legacy-js-api']
+      }
     }
   }
 })
