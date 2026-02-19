@@ -162,6 +162,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.ADMIN_LOGIN_FAILED);
         }
 
+        if (admin.getStatus() == null || admin.getStatus() == 0) {
+            throw new BusinessException(ResultCode.ADMIN_DISABLED);
+        }
+
         // 验证密码
         if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
             throw new BusinessException(ResultCode.ADMIN_LOGIN_FAILED);
