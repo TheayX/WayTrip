@@ -16,6 +16,10 @@ public enum ResultCode {
     TOKEN_INVALID(10002, "Token无效或过期"),
     ACCESS_DENIED(10003, "无权限访问"),
     ADMIN_LOGIN_FAILED(10004, "用户名或密码错误"),
+    ADMIN_NOT_FOUND(10005, "管理员不存在"),
+    ADMIN_USERNAME_EXISTS(10006, "管理员账号已存在"),
+    ADMIN_SELF_OPERATION_FORBIDDEN(10007, "不能对当前登录的管理员执行该操作"),
+    ADMIN_DISABLED(10008, "当前管理员已被禁用"),
 
     // 景点相关 20xxx
     SPOT_NOT_FOUND(20001, "景点不存在"),
