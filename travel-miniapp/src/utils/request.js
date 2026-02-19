@@ -1,16 +1,29 @@
 import { useUserStore } from '@/stores/user'
 
 // 基础 URL 配置
-const BASE_URL = 'http://localhost:8080/api/v1'
+// Base URLs
 const SERVER_URL = 'http://localhost:8080'
+const BASE_URL = `${SERVER_URL.replace(/\/$/, '')}/api/v1`
 
 /**
  * 获取完整图片URL
  */
+const isHttpUrl = (value) => /^http:\/\//i.test(value)
+const isHttpsUrl = (value) => /^https:\/\//i.test(value)
+const isAbsoluteUrl = (value) => isHttpUrl(value) || isHttpsUrl(value)
+const isLocalHostUrl = (value) => /\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(\/|$)/i.test(value)
+const toHttps = (value) => value.replace(/^http:\/\//i, 'https://')
+
 export const getImageUrl = (url) => {
   if (!url) return ''
-  if (url.startsWith('http')) return url
-  return SERVER_URL + url
+  if (isAbsoluteUrl(url)) {
+    // WeChat mini program disallows HTTP images; upgrade when not localhost.
+    return isHttpUrl(url) && !isLocalHostUrl(url) ? toHttps(url) : url
+  }
+  const base = SERVER_URL.replace(/\/$/, '')
+  const path = url.startsWith('/') ? url : `/${url}`
+  const fullUrl = `${base}${path}`
+  return isHttpUrl(fullUrl) && !isLocalHostUrl(fullUrl) ? toHttps(fullUrl) : fullUrl
 }
 
 /**
@@ -56,7 +69,7 @@ const request = (options) => {
             })
             // 这里 resolve(null) 或者 reject(result) 取决于业务需要，
             // 为了防止页面爆红，可以 resolve(null) 并让调用方自行处理空数据
-            resolve(null)
+            resolve({ code: 10002, data: null, message: result.message || 'Token invalid' })
           } else {
             uni.showToast({ title: result.message || '请求失败', icon: 'none' })
             reject(result)

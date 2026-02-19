@@ -16,6 +16,12 @@ export default defineConfig({
       }
     }
   ],
+  css: {
+    preprocessorOptions: {
+      sass: { api: 'modern-compiler' },
+      scss: { api: 'modern-compiler' }
+    }
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src')
