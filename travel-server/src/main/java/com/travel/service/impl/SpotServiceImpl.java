@@ -46,7 +46,12 @@ public class SpotServiceImpl implements SpotService {
         wrapper.eq(Spot::getIsDeleted, 0);
 
         if (request.getRegionId() != null) {
-            wrapper.eq(Spot::getRegionId, request.getRegionId());
+            Set<Long> regionIds = findRegionAndChildrenIds(request.getRegionId());
+            if (regionIds.isEmpty() || regionIds.size() == 1) {
+                wrapper.eq(Spot::getRegionId, request.getRegionId());
+            } else {
+                wrapper.in(Spot::getRegionId, regionIds);
+            }
         }
         if (request.getCategoryId() != null) {
             Set<Long> categoryIds = findCategoryAndChildrenIds(request.getCategoryId());
@@ -185,16 +190,31 @@ public class SpotServiceImpl implements SpotService {
                         .orderByAsc(SpotCategory::getSortOrder)
                         .orderByAsc(SpotCategory::getId));
 
+        List<SpotFilterResponse.FilterItem> regionItems = regions.stream()
+                .map(r -> SpotFilterResponse.FilterItem.builder()
+                        .id(r.getId())
+                        .name(r.getName())
+                        .parentId(r.getParentId())
+                        .children(new ArrayList<>())
+                        .build())
+                .collect(Collectors.toList());
         List<SpotFilterResponse.FilterItem> categoryItems = categories.stream()
                 .map(this::convertCategoryFilterItem)
                 .collect(Collectors.toList());
+        List<SpotFilterResponse.FilterItem> regionTree = buildFilterTree(regionItems);
+        Set<Long> regionParentIds = regionItems.stream()
+                .map(SpotFilterResponse.FilterItem::getParentId)
+                .filter(parentId -> parentId != null && parentId > 0)
+                .collect(Collectors.toSet());
+        List<SpotFilterResponse.FilterItem> regionLeaves = regionItems.stream()
+                .filter(item -> !regionParentIds.contains(item.getId()))
+                .collect(Collectors.toList());
 
         return SpotFilterResponse.builder()
-                .regions(regions.stream()
-                        .map(r -> SpotFilterResponse.FilterItem.builder().id(r.getId()).name(r.getName()).build())
-                        .collect(Collectors.toList()))
+                .regions(regionLeaves)
+                .regionTree(regionTree)
                 .categories(categoryItems)
-                .categoryTree(buildCategoryTree(categoryItems))
+                .categoryTree(buildFilterTree(categoryItems))
                 .build();
     }
 
@@ -208,18 +228,18 @@ public class SpotServiceImpl implements SpotService {
                 .build();
     }
 
-    private List<SpotFilterResponse.FilterItem> buildCategoryTree(List<SpotFilterResponse.FilterItem> categories) {
-        Map<Long, SpotFilterResponse.FilterItem> categoryMap = categories.stream()
+    private List<SpotFilterResponse.FilterItem> buildFilterTree(List<SpotFilterResponse.FilterItem> items) {
+        Map<Long, SpotFilterResponse.FilterItem> itemMap = items.stream()
                 .collect(Collectors.toMap(SpotFilterResponse.FilterItem::getId, item -> item));
 
         List<SpotFilterResponse.FilterItem> roots = new ArrayList<>();
-        for (SpotFilterResponse.FilterItem item : categories) {
+        for (SpotFilterResponse.FilterItem item : items) {
             Long parentId = item.getParentId();
-            if (parentId == null || parentId <= 0 || !categoryMap.containsKey(parentId)) {
+            if (parentId == null || parentId <= 0 || !itemMap.containsKey(parentId)) {
                 roots.add(item);
                 continue;
             }
-            SpotFilterResponse.FilterItem parent = categoryMap.get(parentId);
+            SpotFilterResponse.FilterItem parent = itemMap.get(parentId);
             if (parent.getChildren() == null) {
                 parent.setChildren(new ArrayList<>());
             }
@@ -240,7 +260,12 @@ public class SpotServiceImpl implements SpotService {
             wrapper.like(Spot::getName, request.getKeyword());
         }
         if (request.getRegionId() != null) {
-            wrapper.eq(Spot::getRegionId, request.getRegionId());
+            Set<Long> regionIds = findRegionAndChildrenIds(request.getRegionId());
+            if (regionIds.isEmpty() || regionIds.size() == 1) {
+                wrapper.eq(Spot::getRegionId, request.getRegionId());
+            } else {
+                wrapper.in(Spot::getRegionId, regionIds);
+            }
         }
         if (request.getCategoryId() != null) {
             Set<Long> categoryIds = findCategoryAndChildrenIds(request.getCategoryId());
@@ -430,6 +455,37 @@ public class SpotServiceImpl implements SpotService {
         }
 
         return allCategoryIds;
+    }
+
+    private Set<Long> findRegionAndChildrenIds(Long regionId) {
+        List<Region> regions = regionMapper.selectList(
+                new LambdaQueryWrapper<Region>()
+                        .eq(Region::getIsDeleted, 0)
+                        .select(Region::getId, Region::getParentId));
+
+        Map<Long, List<Long>> childrenMap = new HashMap<>();
+        for (Region region : regions) {
+            Long parentId = region.getParentId();
+            if (parentId != null && parentId > 0) {
+                childrenMap.computeIfAbsent(parentId, key -> new ArrayList<>()).add(region.getId());
+            }
+        }
+
+        Set<Long> allRegionIds = new HashSet<>();
+        List<Long> stack = new ArrayList<>();
+        stack.add(regionId);
+        while (!stack.isEmpty()) {
+            Long currentId = stack.remove(stack.size() - 1);
+            if (!allRegionIds.add(currentId)) {
+                continue;
+            }
+            List<Long> children = childrenMap.get(currentId);
+            if (children != null && !children.isEmpty()) {
+                stack.addAll(children);
+            }
+        }
+
+        return allRegionIds;
     }
 
     private void copyProperties(AdminSpotRequest request, Spot spot) {

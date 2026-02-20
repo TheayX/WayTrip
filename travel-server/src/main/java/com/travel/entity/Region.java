@@ -15,6 +15,8 @@ public class Region {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    private Long parentId;
+
     private String name;
 
     private Integer sortOrder;
