@@ -5,6 +5,9 @@
       <text class="status-icon">{{ getStatusIcon(order.status) }}</text>
       <text class="status-text">{{ order.statusText }}</text>
       <text class="status-desc">{{ getStatusDesc(order.status) }}</text>
+      <text v-if="order.status === 'pending' && countdownText" class="countdown-text">
+        剩余支付时间 {{ countdownText }}
+      </text>
     </view>
 
     <!-- 景点信息 -->
@@ -76,35 +79,91 @@
 
 <script setup>
 import { ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
 import { getOrderDetail, payOrder, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 
 const order = ref(null)
 const orderId = ref(null)
+const countdownText = ref('')
+let countdownTimer = null
+let countdownTargetMs = null
 
 const fetchOrderDetail = async () => {
   try {
     const res = await getOrderDetail(orderId.value)
     order.value = res.data
+    setupCountdown()
   } catch (e) {
     uni.showToast({ title: '获取订单详情失败', icon: 'none' })
   }
 }
 
 const getStatusIcon = (status) => {
-  const icons = { pending: '⏳', paid: '✅', completed: '🎉', cancelled: '❌' }
+  const icons = {
+    pending: '⏳',
+    paid: '✅',
+    completed: '🎉',
+    cancelled: '❌',
+    refunded: '💸'
+  }
   return icons[status] || '📋'
 }
 
 const getStatusDesc = (status) => {
   const descs = {
-    pending: '请在30分钟内完成支付',
+    pending: '请在5分钟内完成支付',
     paid: '订单已支付，请按时前往游玩',
     completed: '感谢您的使用，期待再次光临',
-    cancelled: '订单已取消'
+    cancelled: '订单已取消',
+    refunded: '订单已退款'
   }
   return descs[status] || ''
+}
+
+const parseDateTime = (value) => {
+  if (!value) return null
+  const normalized = value.includes('T') ? value : value.replace(' ', 'T')
+  const date = new Date(normalized)
+  if (Number.isNaN(date.getTime())) return null
+  return date
+}
+
+const formatRemaining = (seconds) => {
+  if (seconds <= 0) return '00:00'
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+const clearCountdown = () => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+}
+
+const setupCountdown = () => {
+  clearCountdown()
+  countdownText.value = ''
+  countdownTargetMs = null
+  if (!order.value || order.value.status !== 'pending') return
+
+  const createdAt = parseDateTime(order.value.createdAt)
+  if (!createdAt) return
+  countdownTargetMs = createdAt.getTime() + 5 * 60 * 1000
+
+  const tick = () => {
+    const remaining = Math.floor((countdownTargetMs - Date.now()) / 1000)
+    countdownText.value = formatRemaining(remaining)
+    if (remaining <= 0) {
+      clearCountdown()
+      fetchOrderDetail()
+    }
+  }
+
+  tick()
+  countdownTimer = setInterval(tick, 1000)
 }
 
 const goSpot = () => {
@@ -143,6 +202,16 @@ onLoad((options) => {
   orderId.value = options.id
   fetchOrderDetail()
 })
+
+onShow(() => {
+  if (orderId.value) {
+    fetchOrderDetail()
+  }
+})
+
+onUnload(() => {
+  clearCountdown()
+})
 </script>
 
 <style scoped>
@@ -165,6 +234,7 @@ onLoad((options) => {
 .status-card.paid { background: linear-gradient(135deg, #007AFF, #5AC8FA); }
 .status-card.completed { background: linear-gradient(135deg, #34C759, #30D158); }
 .status-card.cancelled { background: linear-gradient(135deg, #8E8E93, #AEAEB2); }
+.status-card.refunded { background: linear-gradient(135deg, #FF3B30, #FF8A80); }
 
 .status-icon {
   font-size: 64rpx;
@@ -181,6 +251,12 @@ onLoad((options) => {
 .status-desc {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.85);
+}
+.countdown-text {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 600;
 }
 
 /* 景点卡片 */

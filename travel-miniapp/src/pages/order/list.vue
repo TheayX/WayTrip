@@ -158,14 +158,8 @@ const handleCancel = async (order) => {
   })
 }
 
-const handlePay = async (order) => {
-  try {
-    await payOrder(order.id)
-    uni.showToast({ title: '支付成功', icon: 'success' })
-    fetchOrders(true)
-  } catch (e) {
-    uni.showToast({ title: e.message || '支付失败', icon: 'none' })
-  }
+const handlePay = (order) => {
+  uni.navigateTo({ url: `/pages/order/detail?id=${order.id}` })
 }
 
 onShow(() => {
@@ -220,7 +214,9 @@ onShow(() => {
 /* 订单列表 */
 .order-list {
   flex: 1;
-  padding: 24rpx 32rpx;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24rpx calc(32rpx + env(safe-area-inset-right)) 24rpx calc(32rpx + env(safe-area-inset-left));
 }
 
 .order-card {
@@ -229,6 +225,8 @@ onShow(() => {
   margin-bottom: 24rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .order-header {
