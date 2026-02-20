@@ -18,6 +18,7 @@ public class AdminSpotListResponse {
     private String regionName;
     private String categoryName;
     private BigDecimal avgRating;
+    private Integer ratingCount;
     private Integer heatScore;
     private Boolean published;
     private LocalDateTime createdAt;
