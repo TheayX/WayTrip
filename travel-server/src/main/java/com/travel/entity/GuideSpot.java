@@ -19,6 +19,7 @@ public class GuideSpot {
 
     private Long spotId;
 
+    @TableField("sort_order")
     private Integer sortOrder;
 
     @TableField("is_deleted")
