@@ -40,4 +40,10 @@ public class AdminSpotRequest {
     private Long categoryId;
     
     private Boolean published = false;
+
+    private BigDecimal avgRating;
+
+    private Integer ratingCount;
+
+    private Integer heatScore;
 }

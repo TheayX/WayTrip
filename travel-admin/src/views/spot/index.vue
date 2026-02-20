@@ -66,6 +66,7 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
+            <el-button link type="primary" @click="handleRatingEdit(row)">评分/热度</el-button>
             <el-button link :type="row.published ? 'warning' : 'success'" @click="handleTogglePublish(row)">
               {{ row.published ? '下架' : '发布' }}
             </el-button>
@@ -154,6 +155,25 @@
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmit" :loading="submitting">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 评分/热度设置 -->
+    <el-dialog v-model="ratingDialogVisible" title="评分/热度设置" width="420px">
+      <el-form ref="ratingFormRef" :model="ratingForm" :rules="ratingRules" label-width="110px">
+        <el-form-item label="评分" prop="avgRating">
+          <el-input-number v-model="ratingForm.avgRating" :min="0" :max="5" :precision="1" :step="0.1" />
+        </el-form-item>
+        <el-form-item label="评价数" prop="ratingCount">
+          <el-input-number v-model="ratingForm.ratingCount" :min="0" :precision="0" />
+        </el-form-item>
+        <el-form-item label="热度" prop="heatScore">
+          <el-input-number v-model="ratingForm.heatScore" :min="0" :precision="2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="ratingDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleRatingSubmit" :loading="ratingSubmitting">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -278,6 +298,10 @@ const dialogVisible = ref(false)
 const editId = ref(null)
 const submitting = ref(false)
 const formRef = ref()
+const ratingDialogVisible = ref(false)
+const ratingSubmitting = ref(false)
+const ratingFormRef = ref()
+const ratingEditId = ref(null)
 
 const form = reactive({
   name: '',
@@ -299,6 +323,18 @@ const rules = {
   parentCategoryId: [{ required: true, message: '请选择父分类', trigger: 'change' }],
   categoryId: [{ required: true, message: '请选择子分类', trigger: 'change' }],
   address: [{ required: true, message: '请输入地址', trigger: 'blur' }]
+}
+
+const ratingForm = reactive({
+  avgRating: 0,
+  ratingCount: 0,
+  heatScore: 0
+})
+
+const ratingRules = {
+  avgRating: [{ required: true, message: '请输入评分', trigger: 'blur' }],
+  ratingCount: [{ required: true, message: '请输入评价数', trigger: 'blur' }],
+  heatScore: [{ required: true, message: '请输入热度', trigger: 'blur' }]
 }
 
 onMounted(() => {
@@ -371,6 +407,17 @@ const handleEdit = async (row) => {
   } catch (e) {}
 }
 
+const handleRatingEdit = async (row) => {
+  ratingEditId.value = row.id
+  try {
+    const res = await getSpotDetail(row.id)
+    ratingForm.avgRating = res.data.avgRating ?? 0
+    ratingForm.ratingCount = res.data.ratingCount ?? 0
+    ratingForm.heatScore = res.data.heatScore ?? 0
+    ratingDialogVisible.value = true
+  } catch (e) {}
+}
+
 const handleParentCategoryChange = () => {
   form.categoryId = null
 }
@@ -390,6 +437,23 @@ const handleSubmit = async () => {
     loadData()
   } finally {
     submitting.value = false
+  }
+}
+
+const handleRatingSubmit = async () => {
+  await ratingFormRef.value.validate()
+  ratingSubmitting.value = true
+  try {
+    await updateSpot(ratingEditId.value, {
+      avgRating: ratingForm.avgRating,
+      ratingCount: ratingForm.ratingCount,
+      heatScore: ratingForm.heatScore
+    })
+    ElMessage.success('更新成功')
+    ratingDialogVisible.value = false
+    loadData()
+  } finally {
+    ratingSubmitting.value = false
   }
 }
 

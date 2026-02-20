@@ -285,6 +285,9 @@ public class SpotServiceImpl implements SpotService {
         response.setRegionId(spot.getRegionId());
         response.setCategoryId(spot.getCategoryId());
         response.setPublished(spot.getPublished() == 1);
+        response.setAvgRating(spot.getAvgRating());
+        response.setRatingCount(spot.getRatingCount());
+        response.setHeatScore(spot.getHeatScore());
 
         return response;
     }
@@ -313,13 +316,15 @@ public class SpotServiceImpl implements SpotService {
         copyProperties(request, spot);
         spotMapper.updateById(spot);
 
-        // 更新图片
-        SpotImage deletedImage = new SpotImage();
-        deletedImage.setIsDeleted(1);
-        spotImageMapper.update(
-                deletedImage,
-                new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId));
-        saveSpotImages(spotId, request.getImages());
+        if (request.getImages() != null) {
+            // 更新图片
+            SpotImage deletedImage = new SpotImage();
+            deletedImage.setIsDeleted(1);
+            spotImageMapper.update(
+                    deletedImage,
+                    new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId));
+            saveSpotImages(spotId, request.getImages());
+        }
     }
 
     @Override
@@ -370,6 +375,7 @@ public class SpotServiceImpl implements SpotService {
                 .regionName(getRegionName(spot.getRegionId()))
                 .categoryName(getCategoryName(spot.getCategoryId()))
                 .avgRating(spot.getAvgRating())
+                .ratingCount(spot.getRatingCount())
                 .heatScore(spot.getHeatScore())
                 .published(spot.getPublished() == 1)
                 .createdAt(spot.getCreatedAt())
@@ -423,17 +429,48 @@ public class SpotServiceImpl implements SpotService {
     }
 
     private void copyProperties(AdminSpotRequest request, Spot spot) {
-        spot.setName(request.getName());
-        spot.setDescription(request.getDescription());
-        spot.setPrice(request.getPrice());
-        spot.setOpenTime(request.getOpenTime());
-        spot.setAddress(request.getAddress());
-        spot.setLatitude(request.getLatitude());
-        spot.setLongitude(request.getLongitude());
-        spot.setCoverImage(request.getCoverImage());
-        spot.setRegionId(request.getRegionId());
-        spot.setCategoryId(request.getCategoryId());
-        spot.setPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
+        if (request.getName() != null) {
+            spot.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            spot.setDescription(request.getDescription());
+        }
+        if (request.getPrice() != null) {
+            spot.setPrice(request.getPrice());
+        }
+        if (request.getOpenTime() != null) {
+            spot.setOpenTime(request.getOpenTime());
+        }
+        if (request.getAddress() != null) {
+            spot.setAddress(request.getAddress());
+        }
+        if (request.getLatitude() != null) {
+            spot.setLatitude(request.getLatitude());
+        }
+        if (request.getLongitude() != null) {
+            spot.setLongitude(request.getLongitude());
+        }
+        if (request.getCoverImage() != null) {
+            spot.setCoverImage(request.getCoverImage());
+        }
+        if (request.getRegionId() != null) {
+            spot.setRegionId(request.getRegionId());
+        }
+        if (request.getCategoryId() != null) {
+            spot.setCategoryId(request.getCategoryId());
+        }
+        if (request.getPublished() != null) {
+            spot.setPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
+        }
+        if (request.getAvgRating() != null) {
+            spot.setAvgRating(request.getAvgRating());
+        }
+        if (request.getRatingCount() != null) {
+            spot.setRatingCount(request.getRatingCount());
+        }
+        if (request.getHeatScore() != null) {
+            spot.setHeatScore(request.getHeatScore());
+        }
     }
 
     private void saveSpotImages(Long spotId, List<String> images) {
