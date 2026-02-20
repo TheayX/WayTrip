@@ -22,4 +22,15 @@ public class AdminGuideRequest {
     private Boolean published = false;
     
     private List<Long> spotIds;
+
+    // 编辑回显用：包含已下架/已删除的景点信息
+    private List<SpotOption> spotOptions;
+
+    @Data
+    public static class SpotOption {
+        private Long id;
+        private String name;
+        private Integer published;
+        private Integer isDeleted;
+    }
 }

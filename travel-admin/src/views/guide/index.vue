@@ -121,7 +121,13 @@
         </el-form-item>
         <el-form-item label="关联景点">
           <el-select v-model="form.spotIds" multiple placeholder="请选择关联景点" style="width: 100%">
-            <el-option v-for="spot in spotList" :key="spot.id" :label="spot.name" :value="spot.id" />
+            <el-option
+              v-for="spot in mergedSpotOptions"
+              :key="spot.id"
+              :label="spot.isDeleted === 1 ? `${spot.name}（已删除）` : (spot.published ? spot.name : `${spot.name}（已下架）`)"
+              :value="spot.id"
+              :disabled="spot.isDeleted === 1"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="内容" prop="content">
@@ -199,6 +205,25 @@ const tableData = ref([])
 const total = ref(0)
 const categories = ref([])
 const spotList = ref([])
+const spotOptions = ref([])
+
+const mergedSpotOptions = computed(() => {
+  const map = new Map()
+  spotList.value.forEach(spot => {
+    map.set(spot.id, {
+      id: spot.id,
+      name: spot.name,
+      published: spot.published,
+      isDeleted: spot.isDeleted
+    })
+  })
+  spotOptions.value.forEach(spot => {
+    if (!map.has(spot.id)) {
+      map.set(spot.id, spot)
+    }
+  })
+  return Array.from(map.values())
+})
 
 const queryParams = reactive({
   page: 1,
@@ -245,7 +270,7 @@ const loadCategories = async () => {
 
 const loadSpots = async () => {
   try {
-    const res = await getSpotList({ page: 1, pageSize: 100, published: 1 })
+    const res = await getSpotList({ page: 1, pageSize: 100 })
     spotList.value = res.data.list || []
   } catch (e) {}
 }
@@ -297,6 +322,7 @@ const handleEdit = async (row) => {
   try {
     const res = await getGuideDetail(row.id)
     Object.assign(form, res.data)
+    spotOptions.value = res.data.spotOptions || []
     dialogVisible.value = true
   } catch (e) {}
 }
