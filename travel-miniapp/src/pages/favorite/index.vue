@@ -110,7 +110,9 @@ onShow(() => {
 
 .favorite-list {
   height: 100vh;
-  padding: 24rpx 32rpx;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24rpx calc(32rpx + env(safe-area-inset-right)) 24rpx calc(32rpx + env(safe-area-inset-left));
 }
 
 .favorite-card {
@@ -121,6 +123,8 @@ onShow(() => {
   overflow: hidden;
   margin-bottom: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .spot-image {

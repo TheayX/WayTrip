@@ -286,6 +286,27 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    public OrderDetailResponse cancelOrderByAdmin(Long orderId) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || order.getIsDeleted() == 1) {
+            throw new RuntimeException("璁㈠崟涓嶅瓨鍦?");
+        }
+        if (order.getStatus() == Order.STATUS_CANCELLED) {
+            fillSpotInfoSingle(order);
+            return buildOrderDetail(order);
+        }
+        if (order.getStatus() != Order.STATUS_PENDING) {
+            throw new RuntimeException("璁㈠崟鐘舵€佷笉鍏佽鍙栨秷");
+        }
+        order.setStatus(Order.STATUS_CANCELLED);
+        order.setCancelledAt(LocalDateTime.now());
+        orderMapper.updateById(order);
+        fillSpotInfoSingle(order);
+        return buildOrderDetail(order);
+    }
+
+    @Override
+    @Transactional
     public OrderDetailResponse reopenOrder(Long orderId) {
         Order order = orderMapper.selectById(orderId);
         if (order == null || order.getIsDeleted() == 1) {

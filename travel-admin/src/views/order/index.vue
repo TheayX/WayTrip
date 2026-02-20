@@ -83,11 +83,17 @@
               @click="handleRefund(row)"
             >退款</el-button>
             <el-button
+              v-if="row.status === 'pending'"
+              type="danger"
+              link
+              @click="handleCancel(row)"
+            >取消</el-button>
+            <el-button
               v-if="row.status === 'completed'"
               type="warning"
               link
               @click="handleReopen(row)"
-            >恢复为已支付</el-button>
+            >撤销完成</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -142,10 +148,15 @@
           @click="handleRefund(currentOrder)"
         >退款订单</el-button>
         <el-button
+          v-if="currentOrder?.status === 'pending'"
+          type="danger"
+          @click="handleCancel(currentOrder)"
+        >取消订单</el-button>
+        <el-button
           v-if="currentOrder?.status === 'completed'"
           type="warning"
           @click="handleReopen(currentOrder)"
-        >恢复为已支付</el-button>
+        >撤销完成</el-button>
       </template>
     </el-dialog>
   </div>
@@ -154,7 +165,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder } from '@/api/order'
+import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder, cancelOrder } from '@/api/order'
 
 // 搜索表单
 const searchForm = reactive({
@@ -272,14 +283,31 @@ const handleRefund = async (row) => {
   }
 }
 
+// 取消订单
+const handleCancel = async (row) => {
+  try {
+    await ElMessageBox.confirm('确认取消此未支付订单？', '提示', {
+      type: 'warning'
+    })
+    await cancelOrder(row.id)
+    ElMessage.success('订单已取消')
+    detailVisible.value = false
+    fetchOrderList()
+  } catch (e) {
+    if (e !== 'cancel') {
+      ElMessage.error('操作失败')
+    }
+  }
+}
+
 // 恢复为已支付
 const handleReopen = async (row) => {
   try {
-    await ElMessageBox.confirm('确认将此订单恢复为已支付？', '提示', {
+    await ElMessageBox.confirm('确认撤销此订单的完成状态？', '警示', {
       type: 'warning'
     })
     await reopenOrder(row.id)
-    ElMessage.success('订单已恢复为已支付')
+    ElMessage.success('订单已撤销完成')
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {

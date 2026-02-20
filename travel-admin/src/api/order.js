@@ -42,6 +42,16 @@ export function refundOrder(id) {
 }
 
 /**
+ * 取消未支付订单
+ */
+export function cancelOrder(id) {
+  return request({
+    url: `/orders/${id}/cancel`,
+    method: 'post'
+  })
+}
+
+/**
  * 恢复订单为已支付
  */
 export function reopenOrder(id) {

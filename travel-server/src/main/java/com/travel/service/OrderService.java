@@ -52,6 +52,8 @@ public interface OrderService {
      */
     OrderDetailResponse refundOrder(Long orderId);
 
+    OrderDetailResponse cancelOrderByAdmin(Long orderId);
+
     OrderDetailResponse reopenOrder(Long orderId);
 }
 
