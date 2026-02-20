@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
@@ -106,9 +107,12 @@ public class SpotServiceImpl implements SpotService {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
 
-        // 增加热度
-        spot.setHeatScore(spot.getHeatScore() + 1);
-        spotMapper.updateById(spot);
+        // 增加热度（不更新 updatedAt）
+        spotMapper.update(
+                null,
+                new UpdateWrapper<Spot>()
+                        .eq("id", spotId)
+                        .setSql("heat_score = COALESCE(heat_score, 0) + 1"));
 
         // 获取图片
         List<SpotImage> images = spotImageMapper.selectList(

@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
@@ -132,11 +133,14 @@ public class RatingServiceImpl implements RatingService {
         
         BigDecimal avgRating = BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP);
         
-        // 更新景点
-        Spot spot = spotMapper.selectById(spotId);
-        spot.setAvgRating(avgRating);
-        spot.setRatingCount(ratings.size());
-        spotMapper.updateById(spot);
+        // 更新景点评分统计（不更新 updatedAt）
+        spotMapper.update(
+            null,
+            new UpdateWrapper<Spot>()
+                .eq("id", spotId)
+                .set("avg_rating", avgRating)
+                .set("rating_count", ratings.size())
+        );
     }
 
     private RatingResponse convertToResponse(Rating rating) {
