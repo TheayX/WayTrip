@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.dto.order.*;
 import com.travel.entity.Order;
@@ -279,6 +280,27 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(Order.STATUS_REFUNDED);
         order.setRefundedAt(LocalDateTime.now());
         orderMapper.updateById(order);
+        fillSpotInfoSingle(order);
+        return buildOrderDetail(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderDetailResponse reopenOrder(Long orderId) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || order.getIsDeleted() == 1) {
+            throw new RuntimeException("璁㈠崟涓嶅瓨鍦?");
+        }
+        if (order.getStatus() != Order.STATUS_COMPLETED) {
+            throw new RuntimeException("璁㈠崟鐘舵€佷笉鍏佽鎭㈠");
+        }
+        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", orderId)
+                .set("status", Order.STATUS_PAID)
+                .set("completed_at", null);
+        orderMapper.update(null, updateWrapper);
+        order.setStatus(Order.STATUS_PAID);
+        order.setCompletedAt(null);
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
     }
