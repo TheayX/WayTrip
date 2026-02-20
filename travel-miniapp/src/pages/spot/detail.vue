@@ -1,11 +1,14 @@
 <template>
   <view class="ios-page" v-if="spot">
     <!-- 图片轮播 -->
-    <swiper class="image-swiper" indicator-dots indicator-active-color="#fff" circular>
+    <swiper class="image-swiper" indicator-dots indicator-active-color="#fff" circular v-if="spotImages.length">
       <swiper-item v-for="(img, index) in spotImages" :key="index">
         <image class="swiper-image" :src="img" mode="aspectFill" @click="previewImage(index)" />
       </swiper-item>
     </swiper>
+    <view class="image-swiper empty-swiper" v-else>
+      <text class="empty-swiper-text">暂无景点图片</text>
+    </view>
 
     <!-- 基本信息卡片 -->
     <view class="info-card">
@@ -125,8 +128,17 @@ const spot = ref(null)
 const spotId = ref(null)
 
 const spotImages = computed(() => {
-  if (!spot.value?.images) return []
-  return spot.value.images.map(img => getImageUrl(img))
+  if (!spot.value) return []
+
+  const source = []
+  if (Array.isArray(spot.value.images)) {
+    source.push(...spot.value.images)
+  }
+  if (spot.value.coverImage) {
+    source.unshift(spot.value.coverImage)
+  }
+
+  return Array.from(new Set(source.filter(Boolean))).map(img => getImageUrl(img))
 })
 
 const ratingVisible = ref(false)
@@ -145,6 +157,7 @@ const fetchSpotDetail = async () => {
 }
 
 const previewImage = (index) => {
+  if (!spotImages.value.length) return
   uni.previewImage({ current: index, urls: spotImages.value })
 }
 
@@ -230,6 +243,18 @@ onLoad((options) => {
 .swiper-image {
   width: 100%;
   height: 100%;
+}
+
+.empty-swiper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5e7eb;
+}
+
+.empty-swiper-text {
+  color: #6b7280;
+  font-size: 28rpx;
 }
 
 /* 信息卡片 */

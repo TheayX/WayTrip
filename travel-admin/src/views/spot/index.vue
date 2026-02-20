@@ -151,6 +151,29 @@
             <div class="upload-tip">支持 jpg、png 格式，大小不超过 5MB</div>
           </div>
         </el-form-item>
+        <el-form-item label="景点图片">
+          <div class="gallery-container">
+            <el-upload
+              class="gallery-uploader"
+              :action="uploadUrl"
+              :headers="uploadHeaders"
+              :show-file-list="false"
+              :on-success="handleGalleryUploadSuccess"
+              :on-error="handleUploadError"
+              :before-upload="beforeUpload"
+              accept="image/*"
+            >
+              <el-button type="primary" plain>上传图片</el-button>
+            </el-upload>
+            <div class="gallery-list" v-if="form.images?.length">
+              <div class="gallery-item" v-for="(img, index) in form.images" :key="`${img}-${index}`">
+                <el-image :src="getImageUrl(img)" fit="cover" class="gallery-image" />
+                <el-button link type="danger" @click="removeGalleryImage(index)">删除</el-button>
+              </div>
+            </div>
+            <div class="upload-tip">可上传多张详情图，按当前顺序保存</div>
+          </div>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -229,6 +252,23 @@ const handleUploadSuccess = (response) => {
   } else {
     ElMessage.error(response.message || '上传失败')
   }
+}
+
+const handleGalleryUploadSuccess = (response) => {
+  if (response.code === 0) {
+    if (!Array.isArray(form.images)) {
+      form.images = []
+    }
+    form.images.push(response.data.url)
+    ElMessage.success('上传成功')
+  } else {
+    ElMessage.error(response.message || '上传失败')
+  }
+}
+
+const removeGalleryImage = (index) => {
+  if (!Array.isArray(form.images)) return
+  form.images.splice(index, 1)
 }
 
 // 上传失败
@@ -314,7 +354,8 @@ const form = reactive({
   longitude: null,
   openTime: '',
   description: '',
-  coverImage: ''
+  coverImage: '',
+  images: []
 })
 
 const rules = {
@@ -393,7 +434,7 @@ const handleReset = () => {
 
 const handleAdd = () => {
   editId.value = null
-  Object.assign(form, { name: '', price: 0, regionId: null, parentCategoryId: null, categoryId: null, address: '', latitude: null, longitude: null, openTime: '', description: '', coverImage: '' })
+  Object.assign(form, { name: '', price: 0, regionId: null, parentCategoryId: null, categoryId: null, address: '', latitude: null, longitude: null, openTime: '', description: '', coverImage: '', images: [] })
   dialogVisible.value = true
 }
 
@@ -402,6 +443,7 @@ const handleEdit = async (row) => {
   try {
     const res = await getSpotDetail(row.id)
     Object.assign(form, res.data)
+    form.images = Array.isArray(res.data.images) ? [...res.data.images] : []
     form.parentCategoryId = categoryParentMap.value[form.categoryId] || null
     dialogVisible.value = true
   } catch (e) {}
@@ -550,5 +592,30 @@ const buildSubmitPayload = () => ({
     color: #909399;
     margin-top: 8px;
   }
+}
+
+.gallery-container {
+  width: 100%;
+}
+
+.gallery-list {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.gallery-item {
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gallery-image {
+  width: 100%;
+  height: 90px;
 }
 </style>
