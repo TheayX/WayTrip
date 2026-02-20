@@ -179,9 +179,12 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.ADMIN_LOGIN_FAILED);
         }
 
-        // 更新最后登录时间
-        admin.setLastLoginAt(LocalDateTime.now());
-        adminMapper.updateById(admin);
+        // 更新最后登录时间，不触发 updatedAt
+        adminMapper.update(
+                null,
+                new LambdaUpdateWrapper<Admin>()
+                        .eq(Admin::getId, admin.getId())
+                        .set(Admin::getLastLoginAt, LocalDateTime.now()));
 
         // 生成Token
         String token = jwtUtil.generateAdminToken(admin.getId());

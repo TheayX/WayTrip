@@ -318,7 +318,8 @@ public class OrderServiceImpl implements OrderService {
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id", orderId)
                 .set("status", Order.STATUS_PAID)
-                .set("completed_at", null);
+                .set("completed_at", null)
+                .set("updated_at", LocalDateTime.now());
         orderMapper.update(null, updateWrapper);
         order.setStatus(Order.STATUS_PAID);
         order.setCompletedAt(null);

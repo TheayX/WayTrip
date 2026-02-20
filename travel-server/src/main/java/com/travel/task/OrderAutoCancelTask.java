@@ -33,7 +33,8 @@ public class OrderAutoCancelTask {
                 .eq("is_deleted", 0)
                 .le("created_at", cutoff)
                 .set("status", Order.STATUS_CANCELLED)
-                .set("cancelled_at", LocalDateTime.now());
+                .set("cancelled_at", LocalDateTime.now())
+                .set("updated_at", LocalDateTime.now());
 
         int updated = orderMapper.update(null, updateWrapper);
         if (updated > 0) {
