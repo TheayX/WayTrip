@@ -17,6 +17,7 @@ public class AdminUserDetailResponse {
     private String phone;
     private String preferences;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     // 统计数据
     private Integer orderCount;
@@ -33,5 +34,6 @@ public class AdminUserDetailResponse {
         private String spotName;
         private String status;
         private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
     }
 }

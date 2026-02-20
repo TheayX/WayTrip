@@ -58,6 +58,11 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="updatedAt" label="修改时间" width="180">
+          <template #default="{ row }">
+            {{ formatDate(row.updatedAt) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
@@ -173,6 +178,11 @@ const getImageUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
   return BASE_URL + url
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return dateStr.replace('T', ' ').substring(0, 19)
 }
 
 // 上传前校验

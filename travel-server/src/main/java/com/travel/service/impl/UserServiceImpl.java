@@ -62,6 +62,7 @@ public class UserServiceImpl implements UserService {
         response.setPhone(user.getPhone());
         response.setPreferences(user.getPreferences());
         response.setCreatedAt(user.getCreatedAt());
+        response.setUpdatedAt(user.getUpdatedAt());
 
         // 统计数据
         response.setOrderCount(Math.toIntExact(orderMapper.selectCount(
@@ -107,6 +108,7 @@ public class UserServiceImpl implements UserService {
             ro.setSpotName(spotNameMap.get(order.getSpotId()));
             ro.setStatus(convertStatusToString(order.getStatus()));
             ro.setCreatedAt(order.getCreatedAt());
+            ro.setUpdatedAt(order.getUpdatedAt());
             return ro;
         }).collect(Collectors.toList()));
 
@@ -132,6 +134,7 @@ public class UserServiceImpl implements UserService {
         item.setAvatar(user.getAvatar());
         item.setPhone(user.getPhone());
         item.setCreatedAt(user.getCreatedAt());
+        item.setUpdatedAt(user.getUpdatedAt());
 
         // 统计数据
         item.setOrderCount(Math.toIntExact(orderMapper.selectCount(

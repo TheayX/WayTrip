@@ -27,5 +27,6 @@ public class AdminBannerListResponse {
         private Integer sortOrder;
         private Integer enabled;
         private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
     }
 }

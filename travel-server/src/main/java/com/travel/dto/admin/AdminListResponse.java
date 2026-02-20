@@ -21,5 +21,6 @@ public class AdminListResponse {
         private Integer status;
         private LocalDateTime lastLoginAt;
         private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
     }
 }

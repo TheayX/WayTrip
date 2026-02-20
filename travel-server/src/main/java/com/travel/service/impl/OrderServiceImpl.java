@@ -397,6 +397,7 @@ public class OrderServiceImpl implements OrderService {
         item.setCancelledAt(order.getCancelledAt());
         item.setRefundedAt(order.getRefundedAt());
         item.setCreatedAt(order.getCreatedAt());
+        item.setUpdatedAt(order.getUpdatedAt());
 
         User user = userMapper.selectById(order.getUserId());
         if (user != null) {
@@ -426,6 +427,7 @@ public class OrderServiceImpl implements OrderService {
         response.setCompletedAt(order.getCompletedAt());
         response.setRefundedAt(order.getRefundedAt());
         response.setCreatedAt(order.getCreatedAt());
+        response.setUpdatedAt(order.getUpdatedAt());
 
         response.setCanPay(order.getStatus() == Order.STATUS_PENDING);
         response.setCanCancel(order.getStatus() == Order.STATUS_PENDING);

@@ -253,6 +253,7 @@ public class GuideServiceImpl implements GuideService {
                 .viewCount(guide.getViewCount())
                 .published(guide.getPublished() == 1)
                 .createdAt(guide.getCreatedAt())
+                .updatedAt(guide.getUpdatedAt())
                 .build();
     }
 

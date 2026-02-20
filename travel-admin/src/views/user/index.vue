@@ -31,6 +31,7 @@
         <el-table-column prop="favoriteCount" label="收藏数" width="100" />
         <el-table-column prop="ratingCount" label="评价数" width="100" />
         <el-table-column prop="createdAt" label="注册时间" width="170" />
+        <el-table-column prop="updatedAt" label="修改时间" width="170" />
         <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
@@ -62,6 +63,7 @@
         <el-descriptions-item label="手机号">{{ currentUser.phone || '未绑定' }}</el-descriptions-item>
         <el-descriptions-item label="偏好标签" :span="2">{{ currentUser.preferences || '未设置' }}</el-descriptions-item>
         <el-descriptions-item label="注册时间" :span="2">{{ currentUser.createdAt }}</el-descriptions-item>
+        <el-descriptions-item label="修改时间" :span="2">{{ currentUser.updatedAt }}</el-descriptions-item>
         <el-descriptions-item label="订单数">{{ currentUser.orderCount }}</el-descriptions-item>
         <el-descriptions-item label="收藏数">{{ currentUser.favoriteCount }}</el-descriptions-item>
         <el-descriptions-item label="评价数" :span="2">{{ currentUser.ratingCount }}</el-descriptions-item>
@@ -74,6 +76,7 @@
           <el-table-column prop="spotName" label="景点" />
           <el-table-column prop="status" label="状态" width="80" />
           <el-table-column prop="createdAt" label="时间" width="150" />
+          <el-table-column prop="updatedAt" label="修改时间" width="150" />
         </el-table>
       </div>
 

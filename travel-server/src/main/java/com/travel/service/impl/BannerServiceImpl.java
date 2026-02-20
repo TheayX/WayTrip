@@ -59,6 +59,7 @@ public class BannerServiceImpl implements BannerService {
             item.setSortOrder(banner.getSortOrder());
             item.setEnabled(banner.getEnabled());
             item.setCreatedAt(banner.getCreatedAt());
+            item.setUpdatedAt(banner.getUpdatedAt());
             return item;
         }).collect(Collectors.toList()));
         response.setTotal((long) banners.size());

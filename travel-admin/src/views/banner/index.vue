@@ -34,7 +34,16 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="170" />
+        <el-table-column prop="createdAt" label="创建时间" width="170">
+          <template #default="{ row }">
+            {{ formatDate(row.createdAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="updatedAt" label="修改时间" width="170">
+          <template #default="{ row }">
+            {{ formatDate(row.updatedAt) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
@@ -128,6 +137,11 @@ const getImageUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
   return BASE_URL + url
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return dateStr.replace('T', ' ').substring(0, 19)
 }
 
 // 列表数据
