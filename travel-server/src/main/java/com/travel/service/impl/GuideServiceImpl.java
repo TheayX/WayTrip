@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -337,7 +338,8 @@ public class GuideServiceImpl implements GuideService {
             updateWrapper.eq("guide_id", guideId)
                     .eq("spot_id", spotId)
                     .set("is_deleted", 0)
-                    .set("sort_order", i + 1);
+                    .set("sort_order", i + 1)
+                    .set("updated_at", LocalDateTime.now());
             guideSpotMapper.update(null, updateWrapper);
         }
 
