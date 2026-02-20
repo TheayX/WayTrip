@@ -540,7 +540,7 @@ public class SpotServiceImpl implements SpotService {
             SpotImage image = new SpotImage();
             image.setSpotId(spotId);
             image.setImageUrl(images.get(i));
-            image.setSortOrder(i);
+            image.setSortOrder(i + 1);
             spotImageMapper.insert(image);
         }
     }

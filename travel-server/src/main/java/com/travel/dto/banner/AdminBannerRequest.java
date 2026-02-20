@@ -14,7 +14,7 @@ public class AdminBannerRequest {
 
     private Long spotId;
 
-    private Integer sortOrder = 0;
+    private Integer sortOrder = 1;
 
     private Integer enabled = 1;
 }
