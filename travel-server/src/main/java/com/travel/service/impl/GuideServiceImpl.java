@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
@@ -137,7 +138,9 @@ public class GuideServiceImpl implements GuideService {
         List<GuideSpot> guideSpots = guideSpotMapper.selectList(
                 new LambdaQueryWrapper<GuideSpot>()
                         .eq(GuideSpot::getGuideId, guideId)
-                        .eq(GuideSpot::getIsDeleted, 0));
+                        .eq(GuideSpot::getIsDeleted, 0)
+                        .orderByAsc(GuideSpot::getSortOrder)
+                        .orderByAsc(GuideSpot::getId));
         List<Long> spotIds = guideSpots.stream()
                 .map(GuideSpot::getSpotId)
                 .collect(Collectors.toList());
@@ -261,7 +264,9 @@ public class GuideServiceImpl implements GuideService {
         List<GuideSpot> guideSpots = guideSpotMapper.selectList(
                 new LambdaQueryWrapper<GuideSpot>()
                         .eq(GuideSpot::getGuideId, guideId)
-                        .eq(GuideSpot::getIsDeleted, 0));
+                        .eq(GuideSpot::getIsDeleted, 0)
+                        .orderByAsc(GuideSpot::getSortOrder)
+                        .orderByAsc(GuideSpot::getId));
 
         if (guideSpots.isEmpty()) {
             return new ArrayList<>();
@@ -301,25 +306,25 @@ public class GuideServiceImpl implements GuideService {
                 .map(GuideSpot::getSpotId)
                 .collect(Collectors.toCollection(HashSet::new));
 
-        for (GuideSpot existingSpot : existingSpots) {
-            if (existingSpot.getIsDeleted() != null && existingSpot.getIsDeleted() == 1) {
-                GuideSpot toUpdate = new GuideSpot();
-                toUpdate.setIsDeleted(0);
-                guideSpotMapper.update(
-                        toUpdate,
-                        new LambdaQueryWrapper<GuideSpot>()
-                                .eq(GuideSpot::getGuideId, guideId)
-                                .eq(GuideSpot::getSpotId, existingSpot.getSpotId()));
-            }
+        for (int i = 0; i < uniqueSpotIds.size(); i++) {
+            Long spotId = uniqueSpotIds.get(i);
+            UpdateWrapper<GuideSpot> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq("guide_id", guideId)
+                    .eq("spot_id", spotId)
+                    .set("is_deleted", 0)
+                    .set("sort_order", i + 1);
+            guideSpotMapper.update(null, updateWrapper);
         }
 
-        for (Long spotId : uniqueSpotIds) {
+        for (int i = 0; i < uniqueSpotIds.size(); i++) {
+            Long spotId = uniqueSpotIds.get(i);
             if (existingSpotIds.contains(spotId)) {
                 continue;
             }
             GuideSpot guideSpot = new GuideSpot();
             guideSpot.setGuideId(guideId);
             guideSpot.setSpotId(spotId);
+            guideSpot.setSortOrder(i + 1);
             guideSpot.setIsDeleted(0);
             guideSpotMapper.insert(guideSpot);
         }
