@@ -76,9 +76,14 @@ public class GuideServiceImpl implements GuideService {
             throw new BusinessException(ResultCode.GUIDE_OFFLINE);
         }
 
-        // 增加浏览量
-        guide.setViewCount(guide.getViewCount() + 1);
-        guideMapper.updateById(guide);
+        // 增加浏览量（不更新 updatedAt）
+        int nextViewCount = (guide.getViewCount() == null ? 0 : guide.getViewCount()) + 1;
+        guide.setViewCount(nextViewCount);
+        guideMapper.update(
+                null,
+                new UpdateWrapper<Guide>()
+                        .eq("id", guideId)
+                        .setSql("view_count = view_count + 1"));
 
         // 获取关联景点
         List<GuideDetailResponse.RelatedSpot> relatedSpots = getRelatedSpots(guideId);
