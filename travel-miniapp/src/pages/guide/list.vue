@@ -57,6 +57,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { getGuideList, getCategories } from '@/api/guide'
 import { getImageUrl } from '@/utils/request'
 
@@ -130,6 +131,19 @@ const goDetail = (id) => {
 onMounted(() => {
   fetchCategories()
   fetchGuideList(true)
+})
+
+onShow(() => {
+  const updated = uni.getStorageSync('guide_view_updated')
+  if (!updated || !updated.id) return
+  const idx = guideList.value.findIndex(item => item.id === updated.id)
+  if (idx !== -1) {
+    guideList.value[idx] = {
+      ...guideList.value[idx],
+      viewCount: updated.viewCount
+    }
+  }
+  uni.removeStorageSync('guide_view_updated')
 })
 </script>
 

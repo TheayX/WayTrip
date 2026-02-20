@@ -53,6 +53,12 @@ const fetchGuideDetail = async () => {
   try {
     const res = await getGuideDetail(guideId.value)
     guide.value = res.data
+    if (guide.value?.id && typeof guide.value.viewCount === 'number') {
+      uni.setStorageSync('guide_view_updated', {
+        id: guide.value.id,
+        viewCount: guide.value.viewCount
+      })
+    }
   } catch (e) {
     console.error('获取攻略详情失败', e)
     uni.showToast({ title: '加载失败', icon: 'none' })
