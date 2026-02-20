@@ -30,5 +30,6 @@ public class AdminUserListResponse {
         private Integer favoriteCount;
         private Integer ratingCount;
         private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
     }
 }

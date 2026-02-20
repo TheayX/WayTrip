@@ -373,6 +373,7 @@ public class SpotServiceImpl implements SpotService {
                 .heatScore(spot.getHeatScore())
                 .published(spot.getPublished() == 1)
                 .createdAt(spot.getCreatedAt())
+                .updatedAt(spot.getUpdatedAt())
                 .build();
     }
 

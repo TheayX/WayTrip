@@ -66,6 +66,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="下单时间" width="170" />
+        <el-table-column prop="updatedAt" label="修改时间" width="170" />
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
@@ -116,6 +117,7 @@
         <el-descriptions-item label="联系人">{{ currentOrder.contactName }}</el-descriptions-item>
         <el-descriptions-item label="联系电话">{{ currentOrder.contactPhone }}</el-descriptions-item>
         <el-descriptions-item label="下单时间" :span="2">{{ currentOrder.createdAt }}</el-descriptions-item>
+        <el-descriptions-item label="修改时间" :span="2">{{ currentOrder.updatedAt }}</el-descriptions-item>
         <el-descriptions-item label="支付时间" v-if="currentOrder.paidAt" :span="2">{{ currentOrder.paidAt }}</el-descriptions-item>
         <el-descriptions-item label="完成时间" v-if="currentOrder.completedAt" :span="2">{{ currentOrder.completedAt }}</el-descriptions-item>
         <el-descriptions-item label="取消时间" v-if="currentOrder.cancelledAt" :span="2">{{ currentOrder.cancelledAt }}</el-descriptions-item>

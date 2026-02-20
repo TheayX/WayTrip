@@ -43,7 +43,7 @@ public class AdminServiceImpl implements AdminService {
         if (request.getStatus() != null) {
             wrapper.eq(Admin::getStatus, request.getStatus());
         }
-        wrapper.orderByDesc(Admin::getCreatedAt);
+        wrapper.orderByAsc(Admin::getId);
 
         Page<Admin> result = adminMapper.selectPage(new Page<>(page, pageSize), wrapper);
 
@@ -131,6 +131,7 @@ public class AdminServiceImpl implements AdminService {
         item.setStatus(admin.getStatus());
         item.setLastLoginAt(admin.getLastLoginAt());
         item.setCreatedAt(admin.getCreatedAt());
+        item.setUpdatedAt(admin.getUpdatedAt());
         return item;
     }
 

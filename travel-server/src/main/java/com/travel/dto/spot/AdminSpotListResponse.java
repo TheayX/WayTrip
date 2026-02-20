@@ -21,4 +21,5 @@ public class AdminSpotListResponse {
     private Integer heatScore;
     private Boolean published;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

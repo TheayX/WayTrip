@@ -17,4 +17,5 @@ public class AdminGuideListResponse {
     private Integer viewCount;
     private Boolean published;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

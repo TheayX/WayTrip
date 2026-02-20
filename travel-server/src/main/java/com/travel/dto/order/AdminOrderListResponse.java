@@ -43,5 +43,6 @@ public class AdminOrderListResponse {
         private LocalDateTime cancelledAt;
         private LocalDateTime refundedAt;
         private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
     }
 }

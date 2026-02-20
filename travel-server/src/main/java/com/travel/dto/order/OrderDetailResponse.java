@@ -30,6 +30,7 @@ public class OrderDetailResponse {
     private LocalDateTime refundedAt;
     private LocalDateTime completedAt;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     /**
      * 是否可支付
