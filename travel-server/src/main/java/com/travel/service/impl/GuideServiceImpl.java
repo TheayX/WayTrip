@@ -145,13 +145,33 @@ public class GuideServiceImpl implements GuideService {
                 .map(GuideSpot::getSpotId)
                 .collect(Collectors.toList());
 
+        List<AdminGuideRequest.SpotOption> spotOptions = new ArrayList<>();
+        if (!spotIds.isEmpty()) {
+            spotOptions = spotMapper.selectBatchIds(spotIds).stream()
+                    .map(spot -> {
+                        AdminGuideRequest.SpotOption option = new AdminGuideRequest.SpotOption();
+                        option.setId(spot.getId());
+                        option.setName(spot.getName());
+                        option.setPublished(spot.getPublished());
+                        option.setIsDeleted(spot.getIsDeleted());
+                        return option;
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        List<Long> filteredSpotIds = spotOptions.stream()
+                .filter(option -> option.getIsDeleted() == null || option.getIsDeleted() != 1)
+                .map(AdminGuideRequest.SpotOption::getId)
+                .collect(Collectors.toList());
+
         AdminGuideRequest response = new AdminGuideRequest();
         response.setTitle(guide.getTitle());
         response.setCoverImage(guide.getCoverImage());
         response.setCategory(guide.getCategory());
         response.setContent(guide.getContent());
         response.setPublished(guide.getPublished() == 1);
-        response.setSpotIds(spotIds);
+        response.setSpotIds(filteredSpotIds);
+        response.setSpotOptions(spotOptions);
 
         return response;
     }
