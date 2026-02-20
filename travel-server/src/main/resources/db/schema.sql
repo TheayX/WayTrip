@@ -221,12 +221,14 @@ CREATE TABLE `spot_image` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `spot_region` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '地区ID',
+  `parent_id` bigint unsigned DEFAULT '0' COMMENT '父地区ID（0表示省级）',
   `name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '地区名称',
   `sort_order` int NOT NULL DEFAULT '0' COMMENT '排序序号',
   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_sort_order` (`sort_order`),
+  KEY `idx_parent_id` (`parent_id`),
   KEY `idx_is_deleted_sort_order` (`is_deleted`,`sort_order`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点地区表';
 /*!40101 SET character_set_client = @saved_cs_client */;

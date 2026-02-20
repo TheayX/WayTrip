@@ -12,6 +12,10 @@ import java.util.List;
 public class SpotFilterResponse {
     private List<FilterItem> regions;
     /**
+     * 地区树（parent_id 层级结构）
+     */
+    private List<FilterItem> regionTree;
+    /**
      * 扁平分类列表（兼容旧版客户端）
      */
     private List<FilterItem> categories;

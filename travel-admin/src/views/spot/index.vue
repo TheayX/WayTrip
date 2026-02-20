@@ -14,9 +14,15 @@
           <el-input v-model="queryParams.keyword" placeholder="景点名称" clearable />
         </el-form-item>
         <el-form-item label="地区">
-          <el-select v-model="uiFilters.regionId" placeholder="全部" clearable style="width: 180px" @change="handleFilterChange" @clear="handleFilterChange">
-            <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="String(item.id)" />
-          </el-select>
+          <el-cascader
+            v-model="uiFilters.regionPath"
+            :options="regionCascaderOptions"
+            :props="regionCascaderProps"
+            clearable
+            style="width: 220px"
+            placeholder="全部"
+            @change="handleFilterChange"
+          />
         </el-form-item>
         <el-form-item label="分类">
           <el-select v-model="uiFilters.categoryId" placeholder="全部" clearable style="width: 200px" @change="handleFilterChange" @clear="handleFilterChange">
@@ -97,10 +103,14 @@
         <el-form-item label="价格" prop="price">
           <el-input-number v-model="form.price" :min="0" :precision="2" />
         </el-form-item>
-        <el-form-item label="地区" prop="regionId">
-          <el-select v-model="form.regionId" placeholder="请选择地区">
-            <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
+        <el-form-item label="地区" prop="regionPath">
+          <el-cascader
+            v-model="form.regionPath"
+            :options="regionCascaderOptions"
+            :props="regionCascaderProps"
+            clearable
+            placeholder="请选择地区"
+          />
         </el-form-item>
         <el-form-item label="父分类" prop="parentCategoryId">
           <el-select v-model="form.parentCategoryId" placeholder="请选择父分类" @change="handleParentCategoryChange">
@@ -280,6 +290,7 @@ const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
 const regions = ref([])
+const regionTree = ref([])
 const categories = ref([])
 const categoryTree = ref([])
 
@@ -304,6 +315,19 @@ const flattenCategories = (nodes = [], level = 0) => {
 
 const categoryOptions = computed(() => flattenCategories(categoryTree.value))
 const leafCategoryOptions = computed(() => categoryOptions.value.filter(item => !item.hasChildren))
+const regionCascaderOptions = computed(() => {
+  if (regionTree.value.length) {
+    return regionTree.value
+  }
+  return regions.value.map(item => ({ ...item, children: [] }))
+})
+const regionCascaderProps = {
+  value: 'id',
+  label: 'name',
+  children: 'children',
+  checkStrictly: true,
+  emitPath: true
+}
 const parentCategoryOptions = computed(() => categoryTree.value.filter(item => item.children?.length))
 const childCategoryOptions = computed(() => {
   if (!form.parentCategoryId) {
@@ -328,7 +352,7 @@ const queryParams = reactive({
   published: null
 })
 const uiFilters = reactive({
-  regionId: '',
+  regionPath: [],
   categoryId: '',
   published: ''
 })
@@ -347,6 +371,7 @@ const form = reactive({
   name: '',
   price: 0,
   regionId: null,
+  regionPath: [],
   parentCategoryId: null,
   categoryId: null,
   address: '',
@@ -361,6 +386,7 @@ const form = reactive({
 const rules = {
   name: [{ required: true, message: '请输入景点名称', trigger: 'blur' }],
   price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
+  regionPath: [{ required: true, message: '请选择地区', trigger: 'change' }],
   parentCategoryId: [{ required: true, message: '请选择父分类', trigger: 'change' }],
   categoryId: [{ required: true, message: '请选择子分类', trigger: 'change' }],
   address: [{ required: true, message: '请输入地址', trigger: 'blur' }]
@@ -387,17 +413,41 @@ const loadFilters = async () => {
   try {
     const res = await getFilters()
     regions.value = res.data.regions || []
+    regionTree.value = res.data.regionTree?.length ? res.data.regionTree : []
     categories.value = res.data.categories || []
     categoryTree.value = res.data.categoryTree?.length ? res.data.categoryTree : categories.value
   } catch (e) {}
 }
 
 const syncFilters = () => {
-  queryParams.regionId = uiFilters.regionId ? Number(uiFilters.regionId) : null
+  const selectedRegionId = uiFilters.regionPath?.length
+    ? uiFilters.regionPath[uiFilters.regionPath.length - 1]
+    : null
+  queryParams.regionId = selectedRegionId ? Number(selectedRegionId) : null
   queryParams.categoryId = uiFilters.categoryId ? Number(uiFilters.categoryId) : null
   queryParams.published = uiFilters.published == null || uiFilters.published === ''
     ? null
     : Number(uiFilters.published)
+}
+
+const findRegionPathById = (targetId, tree) => {
+  if (!targetId || !Array.isArray(tree) || !tree.length) {
+    return []
+  }
+  const stack = tree.map(node => ({ node, path: [node.id] }))
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (current.node.id === targetId) {
+      return current.path
+    }
+    if (Array.isArray(current.node.children) && current.node.children.length) {
+      for (const child of current.node.children) {
+        stack.push({ node: child, path: [...current.path, child.id] })
+      }
+    }
+  }
+  return []
 }
 
 const loadData = async () => {
@@ -426,7 +476,7 @@ const handleReset = () => {
   queryParams.regionId = null
   queryParams.categoryId = null
   queryParams.published = null
-  uiFilters.regionId = ''
+  uiFilters.regionPath = []
   uiFilters.categoryId = ''
   uiFilters.published = ''
   handleSearch()
@@ -434,7 +484,7 @@ const handleReset = () => {
 
 const handleAdd = () => {
   editId.value = null
-  Object.assign(form, { name: '', price: 0, regionId: null, parentCategoryId: null, categoryId: null, address: '', latitude: null, longitude: null, openTime: '', description: '', coverImage: '', images: [] })
+  Object.assign(form, { name: '', price: 0, regionId: null, regionPath: [], parentCategoryId: null, categoryId: null, address: '', latitude: null, longitude: null, openTime: '', description: '', coverImage: '', images: [] })
   dialogVisible.value = true
 }
 
@@ -443,6 +493,7 @@ const handleEdit = async (row) => {
   try {
     const res = await getSpotDetail(row.id)
     Object.assign(form, res.data)
+    form.regionPath = findRegionPathById(form.regionId, regionCascaderOptions.value)
     form.images = Array.isArray(res.data.images) ? [...res.data.images] : []
     form.parentCategoryId = categoryParentMap.value[form.categoryId] || null
     dialogVisible.value = true
@@ -523,7 +574,9 @@ const buildSubmitPayload = () => ({
   latitude: form.latitude,
   longitude: form.longitude,
   coverImage: form.coverImage,
-  regionId: form.regionId,
+  regionId: form.regionPath?.length
+    ? form.regionPath[form.regionPath.length - 1]
+    : form.regionId,
   categoryId: form.categoryId,
   published: form.published,
   images: form.images

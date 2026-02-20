@@ -10,7 +10,7 @@
 
       <view class="filter-bar">
         <view class="filter-item" :class="{ active: activeTab === 'region' }" @click="toggleTab('region')">
-          <text class="text">{{ currentRegion?.name || '全地区' }}</text>
+          <text class="text">{{ currentRegionDisplay }}</text>
           <uni-icons :type="activeTab === 'region' ? 'top' : 'bottom'" size="12" :color="activeTab === 'region' ? '#007AFF' : '#333'"></uni-icons>
         </view>
 
@@ -28,23 +28,44 @@
       <view class="dropdown-mask" v-if="activeTab" @click="closeTab" @touchmove.stop.prevent></view>
       
       <view class="dropdown-content region-panel" v-if="activeTab === 'region'">
-        <view class="panel-body">
-          <view class="grid-container">
-            <view 
-              class="grid-item" 
-              :class="{ active: !currentRegion }"
-              @click="handleSelectRegion(null)"
-            >全部</view>
-            <view 
-              class="grid-item" 
-              v-for="item in regions" 
+        <view class="double-column">
+          <scroll-view scroll-y class="col-left">
+            <view
+              class="menu-item"
+              :class="{ active: tempProvinceId === null }"
+              @click="handleProvinceClick(null)"
+            >全部地区</view>
+            <view
+              class="menu-item"
+              v-for="item in regionTree"
               :key="item.id"
-              :class="{ active: currentRegion?.id === item.id }"
-              @click="handleSelectRegion(item)"
+              :class="{ active: tempProvinceId === item.id }"
+              @click="handleProvinceClick(item.id)"
             >
               {{ item.name }}
             </view>
-          </view>
+          </scroll-view>
+
+          <scroll-view scroll-y class="col-right">
+            <view
+              class="sub-item"
+              :class="{ active: !tempCityId && tempProvinceId === activeProvinceId }"
+              @click="handleRegionConfirm(null)"
+            >
+              <text>全部</text>
+              <uni-icons v-if="!tempCityId && tempProvinceId === activeProvinceId" type="checkmarkempty" color="#007AFF" size="16"></uni-icons>
+            </view>
+            <view
+              class="sub-item"
+              v-for="city in currentSubRegions"
+              :key="city.id"
+              :class="{ active: tempCityId === city.id }"
+              @click="handleRegionConfirm(city)"
+            >
+              <text>{{ city.name }}</text>
+              <uni-icons v-if="tempCityId === city.id" type="checkmarkempty" color="#007AFF" size="16"></uni-icons>
+            </view>
+          </scroll-view>
         </view>
       </view>
 
@@ -172,7 +193,7 @@ import { getImageUrl } from '@/utils/request'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // --- 基础数据 ---
-const regions = ref([])
+const regionTree = ref([])
 const categories = ref([])
 const categoryTree = ref([])
 const sortOptions = [
@@ -186,6 +207,10 @@ const sortOptions = [
 const activeTab = ref(null) // 当前展开的面板：'region' | 'category' | 'sort' | null
 const currentRegion = ref(null)
 const sortBy = ref('heat')
+const activeProvinceId = ref(null)
+const activeCityId = ref(null)
+const tempProvinceId = ref(null)
+const tempCityId = ref(null)
 
 // --- 分类双栏逻辑专用状态 ---
 const activeParentId = ref(null) // 实际选中的父类ID
@@ -207,6 +232,7 @@ const hasMore = computed(() => spotList.value.length < total.value)
 const currentSortLabel = computed(() => {
   return sortOptions.find(s => s.value === sortBy.value)?.label || '排序'
 })
+const currentRegionDisplay = computed(() => currentRegion.value?.name || '全地区')
 
 const currentCategoryDisplay = computed(() => {
   return activeCategoryName.value || '全部分类'
@@ -218,6 +244,11 @@ const currentSubCategories = computed(() => {
   const parent = categoryTree.value.find(item => item.id === tempParentId.value)
   return parent ? parent.children : []
 })
+const currentSubRegions = computed(() => {
+  if (!tempProvinceId.value) return []
+  const parent = regionTree.value.find(item => item.id === tempProvinceId.value)
+  return parent?.children || []
+})
 
 // --- 交互逻辑 ---
 const toggleTab = (tab) => {
@@ -225,6 +256,10 @@ const toggleTab = (tab) => {
     closeTab()
   } else {
     activeTab.value = tab
+    if (tab === 'region') {
+      tempProvinceId.value = activeProvinceId.value
+      tempCityId.value = activeCityId.value
+    }
     // 打开分类面板时，初始化临时状态
     if (tab === 'category') {
       tempParentId.value = activeParentId.value
@@ -237,8 +272,27 @@ const closeTab = () => {
   activeTab.value = null
 }
 
-const handleSelectRegion = (region) => {
-  currentRegion.value = region
+const handleProvinceClick = (provinceId) => {
+  tempProvinceId.value = provinceId
+  tempCityId.value = null
+  if (provinceId === null) {
+    handleRegionConfirm(null)
+  }
+}
+
+const handleRegionConfirm = (city) => {
+  activeProvinceId.value = tempProvinceId.value
+  if (tempProvinceId.value === null) {
+    activeCityId.value = null
+    currentRegion.value = null
+  } else if (city === null) {
+    activeCityId.value = null
+    const province = regionTree.value.find(item => item.id === tempProvinceId.value)
+    currentRegion.value = province ? { id: province.id, name: province.name } : null
+  } else {
+    activeCityId.value = city.id
+    currentRegion.value = { id: city.id, name: city.name }
+  }
   closeTab()
   refreshList()
 }
@@ -285,6 +339,10 @@ const handleCategoryConfirm = (subCategory) => {
 
 const resetAll = () => {
   currentRegion.value = null
+  activeProvinceId.value = null
+  activeCityId.value = null
+  tempProvinceId.value = null
+  tempCityId.value = null
   activeParentId.value = null
   activeCategoryId.value = null
   activeCategoryName.value = ''
@@ -296,7 +354,8 @@ const resetAll = () => {
 const fetchFilters = async () => {
   try {
     const res = await getFilters()
-    regions.value = res.data.regions || []
+    const fallbackRegions = (res.data.regions || []).map(item => ({ ...item, children: [] }))
+    regionTree.value = res.data.regionTree?.length ? res.data.regionTree : fallbackRegions
     categories.value = res.data.categories || []
     categoryTree.value = res.data.categoryTree?.length ? res.data.categoryTree : []
   } catch (e) {

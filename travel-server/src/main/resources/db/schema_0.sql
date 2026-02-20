@@ -1,3 +1,4 @@
+-- 已废弃，后续使用schema.sql
 -- 旅游推荐系统数据库初始化脚本
 -- 创建数据库
 CREATE DATABASE IF NOT EXISTS waytrip_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
