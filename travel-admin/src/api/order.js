@@ -40,3 +40,13 @@ export function refundOrder(id) {
     method: 'post'
   })
 }
+
+/**
+ * 恢复订单为已支付
+ */
+export function reopenOrder(id) {
+  return request({
+    url: `/orders/${id}/reopen`,
+    method: 'post'
+  })
+}

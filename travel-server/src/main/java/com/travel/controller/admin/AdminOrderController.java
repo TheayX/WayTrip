@@ -39,4 +39,10 @@ public class AdminOrderController {
     public ApiResponse<OrderDetailResponse> refundOrder(@PathVariable("id") Long id) {
         return ApiResponse.success(orderService.refundOrder(id));
     }
+
+    @Operation(summary = "恢复已完成订单为已支付")
+    @PostMapping("/{id}/reopen")
+    public ApiResponse<OrderDetailResponse> reopenOrder(@PathVariable("id") Long id) {
+        return ApiResponse.success(orderService.reopenOrder(id));
+    }
 }

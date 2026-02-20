@@ -82,6 +82,12 @@
               link
               @click="handleRefund(row)"
             >退款</el-button>
+            <el-button
+              v-if="row.status === 'completed'"
+              type="warning"
+              link
+              @click="handleReopen(row)"
+            >恢复为已支付</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -135,6 +141,11 @@
           type="danger"
           @click="handleRefund(currentOrder)"
         >退款订单</el-button>
+        <el-button
+          v-if="currentOrder?.status === 'completed'"
+          type="warning"
+          @click="handleReopen(currentOrder)"
+        >恢复为已支付</el-button>
       </template>
     </el-dialog>
   </div>
@@ -143,7 +154,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrderList, getOrderDetail, completeOrder, refundOrder } from '@/api/order'
+import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder } from '@/api/order'
 
 // 搜索表单
 const searchForm = reactive({
@@ -252,6 +263,23 @@ const handleRefund = async (row) => {
     })
     await refundOrder(row.id)
     ElMessage.success('订单已退款')
+    detailVisible.value = false
+    fetchOrderList()
+  } catch (e) {
+    if (e !== 'cancel') {
+      ElMessage.error('操作失败')
+    }
+  }
+}
+
+// 恢复为已支付
+const handleReopen = async (row) => {
+  try {
+    await ElMessageBox.confirm('确认将此订单恢复为已支付？', '提示', {
+      type: 'warning'
+    })
+    await reopenOrder(row.id)
+    ElMessage.success('订单已恢复为已支付')
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {

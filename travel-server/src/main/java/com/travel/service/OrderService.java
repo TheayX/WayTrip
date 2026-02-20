@@ -51,5 +51,7 @@ public interface OrderService {
      * 管理端退款订单
      */
     OrderDetailResponse refundOrder(Long orderId);
+
+    OrderDetailResponse reopenOrder(Long orderId);
 }
 
