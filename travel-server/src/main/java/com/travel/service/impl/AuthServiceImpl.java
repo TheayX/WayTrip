@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.auth.*;
@@ -55,18 +56,25 @@ public class AuthServiceImpl implements AuthService {
         );
 
         boolean isNewUser = false;
+        LocalDateTime now = LocalDateTime.now();
         if (user == null) {
             // 新用户，自动注册
             user = new User();
             user.setOpenid(openid);
             user.setNickname("微信用户");
             user.setAvatar("");
+            user.setLastLoginAt(now);
             userMapper.insert(user);
             isNewUser = true;
             log.info("新用户注册: userId={}", user.getId());
-        } else if (user.getIsDeleted() == 1) {
-            user.setIsDeleted(0);
-            userMapper.updateById(user);
+        } else {
+            LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<User>()
+                    .eq(User::getId, user.getId())
+                    .set(User::getLastLoginAt, now);
+            if (user.getIsDeleted() == 1) {
+                updateWrapper.set(User::getIsDeleted, 0);
+            }
+            userMapper.update(null, updateWrapper);
         }
 
         // 生成Token

@@ -24,6 +24,9 @@ public class User {
     @TableField("avatar_url")
     private String avatar;
 
+    @TableField("last_login_at")
+    private LocalDateTime lastLoginAt;
+
     @TableField("is_deleted")
     private Integer isDeleted;
 
