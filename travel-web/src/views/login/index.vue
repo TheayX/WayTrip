@@ -62,7 +62,14 @@ const handleLogin = async () => {
   try {
     const res = await login(form)
     userStore.login(res.data)
-    ElMessage.success('登录成功')
+
+    // 检查账户是否被恢复
+    if (res.data.user?.isReactivated) {
+      ElMessage.success('账户已恢复，欢迎回来！')
+    } else {
+      ElMessage.success('登录成功')
+    }
+
     const redirect = route.query.redirect || '/'
     router.push(redirect)
   } catch (e) {
@@ -134,4 +141,3 @@ const handleLogin = async () => {
   }
 }
 </style>
-

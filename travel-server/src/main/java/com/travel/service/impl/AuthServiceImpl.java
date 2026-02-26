@@ -283,11 +283,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse webLogin(WebLoginRequest request) {
-        // 根据手机号查找用户
+        // 根据手机号查找用户（包括已删除的账户）
         User user = userMapper.selectOne(
             new LambdaQueryWrapper<User>()
                 .eq(User::getPhone, request.getPhone())
-                .eq(User::getIsDeleted, 0)
         );
         if (user == null || !StringUtils.hasText(user.getPassword())) {
             throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
@@ -298,11 +297,21 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
         }
 
-        // 更新最后登录时间
+        // 检查账户是否被注销
+        boolean isReactivated = false;
+        if (user.getIsDeleted() == 1) {
+            // 自动恢复被注销的账户
+            user.setIsDeleted(0);
+            isReactivated = true;
+            log.info("账户已恢复: userId={}", user.getId());
+        }
+
+        // 更新最后登录时间和状态
         userMapper.update(null,
             new LambdaUpdateWrapper<User>()
                 .eq(User::getId, user.getId())
-                .set(User::getLastLoginAt, LocalDateTime.now()));
+                .set(User::getLastLoginAt, LocalDateTime.now())
+                .set(User::getIsDeleted, user.getIsDeleted()));
 
         // 生成Token
         String token = jwtUtil.generateUserToken(user.getId());
@@ -316,6 +325,7 @@ public class AuthServiceImpl implements AuthService {
                         .avatar(user.getAvatar())
                         .phone(user.getPhone())
                         .isNewUser(false)
+                        .isReactivated(isReactivated)
                         .build())
                 .build();
     }
