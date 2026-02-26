@@ -45,7 +45,9 @@ CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ### 2. 启动后端服务
 
-> **⚠️ 注意**：VS Code 默认可正常启动。若使用 **IntelliJ IDEA**，请务必在启动配置中将 **Working directory** 修改为 `travel-server` 子模块目录（或填入 `$MODULE_WORKING_DIR$`），否则会导致图片无法显示或上传路径错误。
+> **注意**：VS Code 默认可正常启动。若使用 **IntelliJ IDEA**，请务必在启动配置中将 **Working directory** 修改为 `travel-server` 子模块目录（或填入 `$MODULE_WORKING_DIR$`），否则会导致图片无法显示或上传路径错误。
+> 
+> **配置提示**：建议本地开发[active](travel-server/src/main/resources/application.yml)切换到 `dev` 配置，并在 `application-dev.yml` 中填写自己的数据库、Redis、JWT、微信小程序等参数；如果使用 `prod` 配置，请在环境变量中提供对应参数。
 
 ```bash
 cd travel-server
