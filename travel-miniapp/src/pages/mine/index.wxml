@@ -2,7 +2,7 @@
   <!-- 用户信息区域 -->
   <view class="user-section">
     <block wx:if="{{isLogin}}">
-      <image class="avatar" src="{{userInfo.avatar || '/images/default-avatar.png'}}" mode="aspectFill" />
+      <image class="avatar" src="{{userInfo.avatar || '/static/默认头像.png'}}" mode="aspectFill" />
       <view class="user-info">
         <text class="nickname">{{userInfo.nickname || '微信用户'}}</text>
         <view class="preferences" wx:if="{{preferences.length > 0}}">
@@ -11,7 +11,7 @@
       </view>
     </block>
     <block wx:else>
-      <image class="avatar" src="/images/default-avatar.png" mode="aspectFill" />
+      <image class="avatar" src="/static/默认头像.png" mode="aspectFill" />
       <view class="login-btn" bindtap="handleLogin">
         <text>点击登录</text>
       </view>

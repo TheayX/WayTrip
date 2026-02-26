@@ -13,7 +13,6 @@
           <text class="text">{{ currentRegionDisplay }}</text>
           <uni-icons :type="activeTab === 'region' ? 'top' : 'bottom'" size="12" :color="activeTab === 'region' ? '#007AFF' : '#333'"></uni-icons>
         </view>
-
         <view class="filter-item" :class="{ active: activeTab === 'category' }" @click="toggleTab('category')">
           <text class="text">{{ currentCategoryDisplay }}</text>
           <uni-icons :type="activeTab === 'category' ? 'top' : 'bottom'" size="12" :color="activeTab === 'category' ? '#007AFF' : '#333'"></uni-icons>
@@ -68,7 +67,6 @@
           </scroll-view>
         </view>
       </view>
-
       <view class="dropdown-content category-panel" v-if="activeTab === 'category'">
         <view class="double-column">
           <scroll-view scroll-y class="col-left">
@@ -174,7 +172,7 @@
           <text class="loading-text">正在加载精彩内容...</text>
         </view>
         <view class="empty-state" v-else-if="spotList.length === 0">
-          <image class="empty-img" src="/static/empty.png" mode="widthFix" />
+          <image class="empty-img" src="/static/空.png" mode="widthFix" />
           <text>暂无相关景点</text>
           <view class="reset-btn" @click="resetAll">清除筛选</view>
         </view>

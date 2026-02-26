@@ -59,7 +59,7 @@
       </view>
       <view class="comment-list" v-if="spot.latestComments?.length">
         <view class="comment-item" v-for="comment in spot.latestComments" :key="comment.id">
-          <image class="comment-avatar" :src="comment.avatar || '/static/default-avatar.png'" />
+          <image class="comment-avatar" :src="comment.avatar || '/static/默认头像.png'" />
           <view class="comment-content">
             <view class="comment-header">
               <text class="comment-name">{{ comment.nickname }}</text>

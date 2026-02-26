@@ -56,7 +56,7 @@
     <text class="section-title">用户评价</text>
     <view class="comment-list">
       <view class="comment-item" wx:for="{{spot.latestComments}}" wx:key="id">
-        <image class="comment-avatar" src="{{item.avatar || '/images/default-avatar.png'}}" />
+        <image class="comment-avatar" src="{{item.avatar || '/static/默认头像.png'}}" />
         <view class="comment-content">
           <view class="comment-header">
             <text class="comment-nickname">{{item.nickname}}</text>
