@@ -3,17 +3,19 @@ node_modules/
 
 # Build output
 dist/
-unpackage/
-
-# Logs
-*.log
-npm-debug.log*
 
 # IDE
 .idea/
 .vscode/
-*.swp
-*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+npm-debug.log*
 
 # OS
 .DS_Store
@@ -22,3 +24,4 @@ Thumbs.db
 # Local env files
 .env.local
 .env.*.local
+

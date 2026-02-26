@@ -2,7 +2,7 @@
 
 ## 概述
 
-本设计文档描述了基于协同过滤推荐算法的个性化旅游推荐系统的技术架构和实现方案。系统采用前后端分离架构，包含基于 Uni-app 的跨端小程序（用户端）和 Web 管理后台（管理端），后端使用 Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 构建 RESTful API，数据库使用 MySQL 8.0，推荐算法采用 ItemCF（基于物品的协同过滤）。
+本设计文档描述了基于协同过滤推荐算法的个性化旅游推荐系统的技术架构和实现方案。系统采用前后端分离架构，包含基于 Uni-app 的跨端小程序（小程序端）、基于 Vue.js 3 + Element Plus 的 Web 用户端，以及 Web 管理后台（管理端），后端使用 Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 构建 RESTful API，数据库使用 MySQL 8.0，推荐算法采用 ItemCF（基于物品的协同过滤）。
 
 ## 架构
 
@@ -10,8 +10,12 @@
 
 ```mermaid
 graph TB
-    subgraph 用户端
+    subgraph 小程序端
         MP["Uni-app 小程序&lt;br/&gt;Vue.js 3 + Pinia"]
+    end
+
+    subgraph Web 用户端
+        WEBUSER["Web 用户端&lt;br/&gt;Vue.js 3 + Element Plus + Pinia"]
     end
 
     subgraph 管理端
@@ -30,6 +34,7 @@ graph TB
         BANNER[轮播图服务]
         DASHBOARD[仪表板服务]
         USER[用户服务]
+        ADMIN_MGR[管理员管理服务]
     end
 
     subgraph 数据层
@@ -38,6 +43,7 @@ graph TB
     end
 
     MP --> INTERCEPTOR
+    WEBUSER --> INTERCEPTOR
     WEB --> INTERCEPTOR
     INTERCEPTOR --> AUTH
     INTERCEPTOR --> SPOT
@@ -49,6 +55,7 @@ graph TB
     INTERCEPTOR --> BANNER
     INTERCEPTOR --> DASHBOARD
     INTERCEPTOR --> USER
+    INTERCEPTOR --> ADMIN_MGR
 
     AUTH --> DB
     SPOT --> DB
@@ -61,19 +68,21 @@ graph TB
     BANNER --> DB
     DASHBOARD --> DB
     USER --> DB
+    ADMIN_MGR --> DB
 ```
 
 ### 技术栈
 
-| 层级     | 技术选型                                          |
-| -------- | ------------------------------------------------- |
-| 用户端   | Uni-app + Vue.js 3 + Pinia                        |
-| 管理端   | Vue.js 3 + Element Plus + Axios                   |
-| 后端     | Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 3.5.5 |
-| 数据库   | MySQL 8.0                                         |
-| 缓存     | Redis                                             |
-| 认证     | JWT Token                                         |
-| API 文档 | Knife4j 4.5.0 (OpenAPI 3)                         |
+| 层级       | 技术选型                                          |
+| ---------- | ------------------------------------------------- |
+| 小程序端   | Uni-app + Vue.js 3 + Pinia                        |
+| Web 用户端 | Vue.js 3 + Element Plus + Pinia + Axios           |
+| 管理端     | Vue.js 3 + Element Plus + ECharts + Axios         |
+| 后端       | Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 3.5.5 |
+| 数据库     | MySQL 8.0                                         |
+| 缓存       | Redis                                             |
+| 认证       | JWT Token                                         |
+| API 文档   | Knife4j 4.5.0 (OpenAPI 3)                         |
 
 ### 部署架构
 
@@ -86,6 +95,7 @@ graph LR
     subgraph 云服务器
         NGINX[Nginx]
         APP[Spring Boot 3.2.12 App]
+        WEBUSER[Vue Web 用户端]
         ADMIN[Vue Admin]
     end
 
@@ -96,6 +106,7 @@ graph LR
 
     MP --> NGINX
     NGINX --> APP
+    NGINX --> WEBUSER
     NGINX --> ADMIN
     APP --> MYSQL
     APP --> REDIS
@@ -109,14 +120,29 @@ graph LR
 
 ```java
 public interface AuthService {
-    /** 微信小程序登录 */
-    LoginResponse wxLogin(String code);
+    /** 微信小程序登录（老用户返回token，新用户只返回openid） */
+    WxLoginResponse wxLogin(String code);
+
+    /** 小程序端绑定手机号（新用户注册或匹配已有账户合并openid） */
+    LoginResponse wxBindPhone(WxBindPhoneRequest request);
+
+    /** Web端注册（手机号+密码） */
+    LoginResponse webRegister(WebRegisterRequest request);
+
+    /** Web端登录（手机号+密码） */
+    LoginResponse webLogin(WebLoginRequest request);
 
     /** 获取用户信息 */
     UserInfoResponse getUserInfo(Long userId);
 
     /** 更新用户信息 */
     void updateUserInfo(Long userId, UpdateUserInfoRequest request);
+
+    /** 修改密码 */
+    void changePassword(Long userId, ChangePasswordRequest request);
+
+    /** 注销账户（逻辑删除） */
+    void deactivateAccount(Long userId);
 
     /** 设置用户偏好标签 */
     void setPreferences(Long userId, List<String> tags);
@@ -354,6 +380,29 @@ public interface UserService {
 }
 ```
 
+### 11. 管理员管理服务 (AdminService)
+
+管理后台管理员账号的增删改查。
+
+```java
+public interface AdminService {
+    /** 获取管理员列表 */
+    AdminListResponse getAdminList(AdminListRequest request);
+
+    /** 创建管理员 */
+    Long createAdmin(AdminCreateRequest request);
+
+    /** 更新管理员信息 */
+    void updateAdmin(Long id, AdminUpdateRequest request, Long currentAdminId);
+
+    /** 重置管理员密码 */
+    void resetPassword(Long id, AdminResetPasswordRequest request);
+
+    /** 删除管理员（不允许删除自己） */
+    void deleteAdmin(Long id, Long currentAdminId);
+}
+```
+
 ## 数据模型
 
 ### 实体关系图
@@ -383,8 +432,10 @@ erDiagram
         bigint id PK
         varchar openid UK
         varchar nickname
-        varchar phone
+        varchar phone UK
+        varchar password
         varchar avatar_url
+        datetime last_login_at
         tinyint is_deleted
         datetime created_at
         datetime updated_at
@@ -443,6 +494,7 @@ erDiagram
 
     SPOT_REGION {
         bigint id PK
+        bigint parent_id
         varchar name
         int sort_order
         tinyint is_deleted

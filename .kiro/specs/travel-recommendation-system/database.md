@@ -48,29 +48,34 @@ erDiagram
 ```sql
 CREATE TABLE `user` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',
-    `openid` VARCHAR(64) NOT NULL COMMENT '微信OpenID',
+    `openid` VARCHAR(64) DEFAULT NULL COMMENT '微信OpenID（小程序用户）',
     `nickname` VARCHAR(64) DEFAULT '' COMMENT '用户昵称',
     `phone` VARCHAR(20) DEFAULT '' COMMENT '手机号',
+    `password` VARCHAR(128) DEFAULT NULL COMMENT '密码（Web端登录，BCrypt加密）',
     `avatar_url` VARCHAR(512) DEFAULT '' COMMENT '头像URL',
+    `last_login_at` DATETIME DEFAULT NULL COMMENT '最后登录时间',
     `is_deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_openid` (`openid`),
+    UNIQUE KEY `uk_phone` (`phone`),
     KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 ```
 
-| 字段       | 类型            | 约束                | 说明       |
-| ---------- | --------------- | ------------------- | ---------- |
-| id         | BIGINT UNSIGNED | PK, AUTO_INCREMENT  | 用户ID     |
-| openid     | VARCHAR(64)     | UNIQUE, NOT NULL    | 微信OpenID |
-| nickname   | VARCHAR(64)     | DEFAULT ''          | 用户昵称   |
-| phone      | VARCHAR(20)     | DEFAULT ''          | 手机号     |
-| avatar_url | VARCHAR(512)    | DEFAULT ''          | 头像URL    |
-| is_deleted | TINYINT         | NOT NULL, DEFAULT 0 | 逻辑删除   |
-| created_at | DATETIME        | NOT NULL            | 创建时间   |
-| updated_at | DATETIME        | NOT NULL            | 更新时间   |
+| 字段          | 类型            | 约束                | 说明                         |
+| ------------- | --------------- | ------------------- | ---------------------------- |
+| id            | BIGINT UNSIGNED | PK, AUTO_INCREMENT  | 用户ID                       |
+| openid        | VARCHAR(64)     | UNIQUE, NULL        | 微信OpenID（小程序用户）     |
+| nickname      | VARCHAR(64)     | DEFAULT ''          | 用户昵称                     |
+| phone         | VARCHAR(20)     | UNIQUE, DEFAULT ''  | 手机号                       |
+| password      | VARCHAR(128)    | NULL                | 密码（Web端，BCrypt加密）    |
+| avatar_url    | VARCHAR(512)    | DEFAULT ''          | 头像URL                      |
+| last_login_at | DATETIME        | NULL                | 最后登录时间                 |
+| is_deleted    | TINYINT         | NOT NULL, DEFAULT 0 | 逻辑删除                     |
+| created_at    | DATETIME        | NOT NULL            | 创建时间                     |
+| updated_at    | DATETIME        | NOT NULL            | 更新时间                     |
 
 ### 2. 用户偏好标签表 (user_preference)
 
@@ -83,6 +88,7 @@ CREATE TABLE `user_preference` (
     `tag` VARCHAR(32) NOT NULL COMMENT '偏好标签',
     `is_deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_tag` (`user_id`, `tag`),
     KEY `idx_user_id` (`user_id`),
@@ -97,6 +103,7 @@ CREATE TABLE `user_preference` (
 | tag        | VARCHAR(32)     | NOT NULL            | 偏好标签（如：自然风光、历史文化） |
 | is_deleted | TINYINT         | NOT NULL, DEFAULT 0 | 逻辑删除                           |
 | created_at | DATETIME        | NOT NULL            | 创建时间                           |
+| updated_at | DATETIME        | NOT NULL            | 更新时间                           |
 
 ### 3. 管理员表 (admin)
 
@@ -137,23 +144,28 @@ CREATE TABLE `admin` (
 ```sql
 CREATE TABLE `spot_region` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '地区ID',
+    `parent_id` BIGINT UNSIGNED DEFAULT 0 COMMENT '父地区ID（0表示省级）',
     `name` VARCHAR(32) NOT NULL COMMENT '地区名称',
     `sort_order` INT NOT NULL DEFAULT 0 COMMENT '排序序号',
     `is_deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY `idx_sort_order` (`sort_order`),
+    KEY `idx_parent_id` (`parent_id`),
     KEY `idx_is_deleted_sort_order` (`is_deleted`, `sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点地区表';
 ```
 
-| 字段       | 类型            | 约束                | 说明     |
-| ---------- | --------------- | ------------------- | -------- |
-| id         | BIGINT UNSIGNED | PK, AUTO_INCREMENT  | 地区ID   |
-| name       | VARCHAR(32)     | NOT NULL            | 地区名称 |
-| sort_order | INT             | NOT NULL, DEFAULT 0 | 排序序号 |
-| is_deleted | TINYINT         | NOT NULL, DEFAULT 0 | 逻辑删除 |
-| created_at | DATETIME        | NOT NULL            | 创建时间 |
+| 字段       | 类型            | 约束                | 说明                     |
+| ---------- | --------------- | ------------------- | ------------------------ |
+| id         | BIGINT UNSIGNED | PK, AUTO_INCREMENT  | 地区ID                   |
+| parent_id  | BIGINT UNSIGNED | DEFAULT 0           | 父地区ID（0=省级）       |
+| name       | VARCHAR(32)     | NOT NULL            | 地区名称                 |
+| sort_order | INT             | NOT NULL, DEFAULT 0 | 排序序号                 |
+| is_deleted | TINYINT         | NOT NULL, DEFAULT 0 | 逻辑删除                 |
+| created_at | DATETIME        | NOT NULL            | 创建时间                 |
+| updated_at | DATETIME        | NOT NULL            | 更新时间                 |
 
 ### 5. 景点分类表 (spot_category)
 
@@ -168,6 +180,7 @@ CREATE TABLE `spot_category` (
     `sort_order` INT NOT NULL DEFAULT 0 COMMENT '排序序号',
     `is_deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY `idx_sort_order` (`sort_order`),
     KEY `idx_parent_id` (`parent_id`)
@@ -183,6 +196,7 @@ CREATE TABLE `spot_category` (
 | sort_order | INT             | NOT NULL, DEFAULT 0 | 排序序号               |
 | is_deleted | TINYINT         | NOT NULL, DEFAULT 0 | 逻辑删除               |
 | created_at | DATETIME        | NOT NULL            | 创建时间               |
+| updated_at | DATETIME        | NOT NULL            | 更新时间               |
 
 ### 6. 景点表 (spot)
 
@@ -316,6 +330,7 @@ CREATE TABLE `guide_spot_relation` (
     `sort_order` INT NOT NULL DEFAULT 0 COMMENT '排序序号',
     `is_deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_guide_spot` (`guide_id`, `spot_id`),
     KEY `idx_guide_id` (`guide_id`),
@@ -333,6 +348,7 @@ CREATE TABLE `guide_spot_relation` (
 | sort_order | INT             | NOT NULL, DEFAULT 0 | 排序序号 |
 | is_deleted | TINYINT         | NOT NULL, DEFAULT 0 | 逻辑删除 |
 | created_at | DATETIME        | NOT NULL            | 创建时间 |
+| updated_at | DATETIME        | NOT NULL            | 更新时间 |
 
 ### 10. 订单表 (order)
 
@@ -437,6 +453,7 @@ CREATE TABLE `user_spot_favorite` (
     `spot_id` BIGINT UNSIGNED NOT NULL COMMENT '景点ID',
     `is_deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_spot` (`user_id`, `spot_id`),
     KEY `idx_user_id` (`user_id`),
@@ -453,6 +470,7 @@ CREATE TABLE `user_spot_favorite` (
 | spot_id    | BIGINT UNSIGNED | NOT NULL            | 景点ID   |
 | is_deleted | TINYINT         | NOT NULL, DEFAULT 0 | 逻辑删除 |
 | created_at | DATETIME        | NOT NULL            | 创建时间 |
+| updated_at | DATETIME        | NOT NULL            | 更新时间 |
 
 ### 13. 轮播图表 (spot_banner)
 
