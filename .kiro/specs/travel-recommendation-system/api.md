@@ -228,6 +228,182 @@ POST /api/v1/auth/preferences
 }
 ```
 
+#### 1.5 小程序绑定手机号
+
+小程序新用户绑定手机号，若该手机号已在 Web 端注册则合并 OpenID 到现有账户。
+
+**请求**
+
+```
+POST /api/v1/auth/wx-bind-phone
+```
+
+**请求体**
+
+```json
+{
+  "openid": "wx_openid_xxx",
+  "phone": "13800138000",
+  "password": "password123",
+  "nickname": "用户昵称"
+}
+```
+
+| 参数     | 类型   | 必填 | 说明                                 |
+| -------- | ------ | ---- | ------------------------------------ |
+| openid   | string | 是   | 微信 OpenID（wx-login 返回）         |
+| phone    | string | 是   | 手机号                               |
+| password | string | 是   | 密码                                 |
+| nickname | string | 否   | 用户昵称                             |
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expiresIn": 604800,
+    "user": {
+      "id": 1,
+      "nickname": "用户昵称",
+      "avatar": "",
+      "phone": "13800138000"
+    }
+  }
+}
+```
+
+#### 1.6 Web 端注册
+
+Web 端用户通过手机号和密码注册。
+
+**请求**
+
+```
+POST /api/v1/auth/web-register
+```
+
+**请求体**
+
+```json
+{
+  "phone": "13800138000",
+  "password": "password123",
+  "nickname": "用户昵称"
+}
+```
+
+| 参数     | 类型   | 必填 | 说明     |
+| -------- | ------ | ---- | -------- |
+| phone    | string | 是   | 手机号   |
+| password | string | 是   | 密码     |
+| nickname | string | 否   | 用户昵称 |
+
+**响应**
+
+同 1.5
+
+#### 1.7 Web 端登录
+
+Web 端用户通过手机号和密码登录。
+
+**请求**
+
+```
+POST /api/v1/auth/web-login
+```
+
+**请求体**
+
+```json
+{
+  "phone": "13800138000",
+  "password": "password123"
+}
+```
+
+**响应**
+
+同 1.5
+
+#### 1.8 修改密码
+
+修改当前用户密码。
+
+**请求**
+
+```
+PUT /api/v1/auth/password
+```
+
+**请求体**
+
+```json
+{
+  "oldPassword": "old_password",
+  "newPassword": "new_password"
+}
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+#### 1.9 注销账户
+
+逻辑删除当前用户账户。
+
+**请求**
+
+```
+DELETE /api/v1/auth/account
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+#### 1.10 上传头像
+
+上传用户头像图片。
+
+**请求**
+
+```
+POST /api/v1/upload/avatar
+Content-Type: multipart/form-data
+```
+
+| 参数 | 类型 | 必填 | 说明                                  |
+| ---- | ---- | ---- | ------------------------------------- |
+| file | file | 是   | 头像图片（支持 jpg/png/gif，最大 2MB）|
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "url": "/uploads/images/xxx.jpg"
+  }
+}
+```
+
 ---
 
 ### 2. 首页模块
@@ -1923,6 +2099,152 @@ GET /api/admin/v1/dashboard/hot-spots?limit=10
 
 ---
 
+### 8. 管理员管理
+
+#### 8.1 获取管理员列表
+
+**请求**
+
+```
+GET /api/admin/v1/admins?page=1&pageSize=10&keyword=admin
+```
+
+| 参数     | 类型   | 必填 | 说明             |
+| -------- | ------ | ---- | ---------------- |
+| page     | int    | 否   | 页码，默认1      |
+| pageSize | int    | 否   | 每页数量，默认10 |
+| keyword  | string | 否   | 用户名搜索       |
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "list": [
+      {
+        "id": 1,
+        "username": "admin",
+        "realName": "系统管理员",
+        "isEnabled": true,
+        "lastLoginAt": "2025-01-01 09:00:00",
+        "createdAt": "2024-01-01 00:00:00"
+      }
+    ],
+    "total": 3,
+    "page": 1,
+    "pageSize": 10,
+    "totalPages": 1
+  }
+}
+```
+
+#### 8.2 创建管理员
+
+**请求**
+
+```
+POST /api/admin/v1/admins
+```
+
+**请求体**
+
+```json
+{
+  "username": "newadmin",
+  "password": "password123",
+  "realName": "新管理员"
+}
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": 4
+  }
+}
+```
+
+#### 8.3 更新管理员信息
+
+**请求**
+
+```
+PUT /api/admin/v1/admins/{id}
+```
+
+**请求体**
+
+```json
+{
+  "realName": "更新后的姓名",
+  "isEnabled": true
+}
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+#### 8.4 重置管理员密码
+
+**请求**
+
+```
+PUT /api/admin/v1/admins/{id}/password
+```
+
+**请求体**
+
+```json
+{
+  "password": "new_password"
+}
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+#### 8.5 删除管理员
+
+不允许删除自己的账号。
+
+**请求**
+
+```
+DELETE /api/admin/v1/admins/{id}
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+---
+
 ## 文件上传
 
 ### 上传图片
@@ -1954,69 +2276,80 @@ Content-Type: multipart/form-data
 
 ## 接口汇总
 
-### 用户端接口（共 27 个）
+### 用户端接口（共 34 个）
 
-| 模块 | 接口           | 方法   | 路径                                   |
-| ---- | -------------- | ------ | -------------------------------------- |
-| 认证 | 微信登录       | POST   | /api/v1/auth/wx-login                  |
-| 认证 | 获取用户信息   | GET    | /api/v1/auth/user-info                 |
-| 认证 | 更新用户信息   | PUT    | /api/v1/auth/user-info                 |
-| 认证 | 设置偏好标签   | POST   | /api/v1/auth/preferences               |
-| 首页 | 获取轮播图     | GET    | /api/v1/home/banners                   |
-| 首页 | 获取热门推荐   | GET    | /api/v1/home/hot                       |
-| 推荐 | 获取个性化推荐 | GET    | /api/v1/recommendations                |
-| 推荐 | 刷新推荐       | POST   | /api/v1/recommendations/refresh        |
-| 景点 | 获取景点列表   | GET    | /api/v1/spots                          |
-| 景点 | 搜索景点       | GET    | /api/v1/spots/search                   |
-| 景点 | 获取景点详情   | GET    | /api/v1/spots/{spotId}                 |
-| 景点 | 获取筛选选项   | GET    | /api/v1/spots/filters                  |
-| 攻略 | 获取攻略列表   | GET    | /api/v1/guides                         |
-| 攻略 | 获取攻略详情   | GET    | /api/v1/guides/{guideId}               |
-| 攻略 | 获取攻略分类   | GET    | /api/v1/guides/categories              |
-| 评分 | 提交评分       | POST   | /api/v1/ratings                        |
-| 评分 | 获取用户评分   | GET    | /api/v1/ratings/spot/{spotId}          |
-| 评分 | 获取评论列表   | GET    | /api/v1/ratings/spot/{spotId}/comments |
-| 收藏 | 添加收藏       | POST   | /api/v1/favorites                      |
-| 收藏 | 取消收藏       | DELETE | /api/v1/favorites/{spotId}             |
-| 收藏 | 获取收藏列表   | GET    | /api/v1/favorites                      |
-| 收藏 | 检查收藏状态   | GET    | /api/v1/favorites/check/{spotId}       |
-| 订单 | 创建订单       | POST   | /api/v1/orders                         |
-| 订单 | 获取订单列表   | GET    | /api/v1/orders                         |
-| 订单 | 获取订单详情   | GET    | /api/v1/orders/{orderId}               |
-| 订单 | 模拟支付       | POST   | /api/v1/orders/{orderId}/pay           |
-| 订单 | 取消订单       | POST   | /api/v1/orders/{orderId}/cancel        |
+| 模块 | 接口               | 方法   | 路径                                   |
+| ---- | ------------------ | ------ | -------------------------------------- |
+| 认证 | 微信登录           | POST   | /api/v1/auth/wx-login                  |
+| 认证 | 小程序绑定手机号   | POST   | /api/v1/auth/wx-bind-phone             |
+| 认证 | Web端注册          | POST   | /api/v1/auth/web-register              |
+| 认证 | Web端登录          | POST   | /api/v1/auth/web-login                 |
+| 认证 | 获取用户信息       | GET    | /api/v1/auth/user-info                 |
+| 认证 | 更新用户信息       | PUT    | /api/v1/auth/user-info                 |
+| 认证 | 设置偏好标签       | POST   | /api/v1/auth/preferences               |
+| 认证 | 修改密码           | PUT    | /api/v1/auth/password                  |
+| 认证 | 注销账户           | DELETE | /api/v1/auth/account                   |
+| 上传 | 上传头像           | POST   | /api/v1/upload/avatar                  |
+| 首页 | 获取轮播图         | GET    | /api/v1/home/banners                   |
+| 首页 | 获取热门推荐       | GET    | /api/v1/home/hot                       |
+| 推荐 | 获取个性化推荐     | GET    | /api/v1/recommendations                |
+| 推荐 | 刷新推荐           | POST   | /api/v1/recommendations/refresh        |
+| 景点 | 获取景点列表       | GET    | /api/v1/spots                          |
+| 景点 | 搜索景点           | GET    | /api/v1/spots/search                   |
+| 景点 | 获取景点详情       | GET    | /api/v1/spots/{spotId}                 |
+| 景点 | 获取筛选选项       | GET    | /api/v1/spots/filters                  |
+| 攻略 | 获取攻略列表       | GET    | /api/v1/guides                         |
+| 攻略 | 获取攻略详情       | GET    | /api/v1/guides/{guideId}               |
+| 攻略 | 获取攻略分类       | GET    | /api/v1/guides/categories              |
+| 评分 | 提交评分           | POST   | /api/v1/ratings                        |
+| 评分 | 获取用户评分       | GET    | /api/v1/ratings/spot/{spotId}          |
+| 评分 | 获取评论列表       | GET    | /api/v1/ratings/spot/{spotId}/comments |
+| 收藏 | 添加收藏           | POST   | /api/v1/favorites                      |
+| 收藏 | 取消收藏           | DELETE | /api/v1/favorites/{spotId}             |
+| 收藏 | 获取收藏列表       | GET    | /api/v1/favorites                      |
+| 收藏 | 检查收藏状态       | GET    | /api/v1/favorites/check/{spotId}       |
+| 订单 | 创建订单           | POST   | /api/v1/orders                         |
+| 订单 | 获取订单列表       | GET    | /api/v1/orders                         |
+| 订单 | 获取订单详情       | GET    | /api/v1/orders/{orderId}               |
+| 订单 | 模拟支付           | POST   | /api/v1/orders/{orderId}/pay           |
+| 订单 | 取消订单           | POST   | /api/v1/orders/{orderId}/cancel        |
 
-### 管理端接口（共 30 个）
+### 管理端接口（共 35 个）
 
-| 模块   | 接口           | 方法   | 路径                                    |
-| ------ | -------------- | ------ | --------------------------------------- |
-| 认证   | 管理员登录     | POST   | /api/admin/v1/auth/login                |
-| 认证   | 获取管理员信息 | GET    | /api/admin/v1/auth/info                 |
-| 景点   | 获取景点列表   | GET    | /api/admin/v1/spots                     |
-| 景点   | 获取景点详情   | GET    | /api/admin/v1/spots/{spotId}            |
-| 景点   | 创建景点       | POST   | /api/admin/v1/spots                     |
-| 景点   | 更新景点       | PUT    | /api/admin/v1/spots/{spotId}            |
-| 景点   | 更新发布状态   | PUT    | /api/admin/v1/spots/{spotId}/publish    |
-| 景点   | 删除景点       | DELETE | /api/admin/v1/spots/{spotId}            |
-| 攻略   | 获取攻略列表   | GET    | /api/admin/v1/guides                    |
-| 攻略   | 获取攻略详情   | GET    | /api/admin/v1/guides/{guideId}          |
-| 攻略   | 获取攻略分类   | GET    | /api/admin/v1/guides/categories         |
-| 攻略   | 创建攻略       | POST   | /api/admin/v1/guides                    |
-| 攻略   | 更新攻略       | PUT    | /api/admin/v1/guides/{guideId}          |
-| 攻略   | 更新发布状态   | PUT    | /api/admin/v1/guides/{guideId}/publish  |
-| 攻略   | 删除攻略       | DELETE | /api/admin/v1/guides/{guideId}          |
-| 订单   | 获取订单列表   | GET    | /api/admin/v1/orders                    |
-| 订单   | 获取订单详情   | GET    | /api/admin/v1/orders/{orderId}          |
-| 订单   | 完成订单       | POST   | /api/admin/v1/orders/{orderId}/complete |
-| 订单   | 退款订单       | POST   | /api/admin/v1/orders/{orderId}/refund   |
-| 用户   | 获取用户列表   | GET    | /api/admin/v1/users                     |
-| 用户   | 获取用户详情   | GET    | /api/admin/v1/users/{userId}            |
-| 轮播图 | 获取轮播图列表 | GET    | /api/admin/v1/banners                   |
-| 轮播图 | 创建轮播图     | POST   | /api/admin/v1/banners                   |
-| 轮播图 | 更新轮播图     | PUT    | /api/admin/v1/banners/{bannerId}        |
-| 轮播图 | 删除轮播图     | DELETE | /api/admin/v1/banners/{bannerId}        |
-| 轮播图 | 切换启用状态   | POST   | /api/admin/v1/banners/{bannerId}/toggle |
-| 统计   | 获取概览数据   | GET    | /api/admin/v1/dashboard/overview        |
-| 统计   | 获取订单趋势   | GET    | /api/admin/v1/dashboard/order-trend     |
-| 统计   | 获取热门景点   | GET    | /api/admin/v1/dashboard/hot-spots       |
-| 上传   | 上传图片       | POST   | /api/admin/v1/upload/image              |
+| 模块     | 接口             | 方法   | 路径                                    |
+| -------- | ---------------- | ------ | --------------------------------------- |
+| 认证     | 管理员登录       | POST   | /api/admin/v1/auth/login                |
+| 认证     | 获取管理员信息   | GET    | /api/admin/v1/auth/info                 |
+| 景点     | 获取景点列表     | GET    | /api/admin/v1/spots                     |
+| 景点     | 获取景点详情     | GET    | /api/admin/v1/spots/{spotId}            |
+| 景点     | 创建景点         | POST   | /api/admin/v1/spots                     |
+| 景点     | 更新景点         | PUT    | /api/admin/v1/spots/{spotId}            |
+| 景点     | 更新发布状态     | PUT    | /api/admin/v1/spots/{spotId}/publish    |
+| 景点     | 删除景点         | DELETE | /api/admin/v1/spots/{spotId}            |
+| 攻略     | 获取攻略列表     | GET    | /api/admin/v1/guides                    |
+| 攻略     | 获取攻略详情     | GET    | /api/admin/v1/guides/{guideId}          |
+| 攻略     | 获取攻略分类     | GET    | /api/admin/v1/guides/categories         |
+| 攻略     | 创建攻略         | POST   | /api/admin/v1/guides                    |
+| 攻略     | 更新攻略         | PUT    | /api/admin/v1/guides/{guideId}          |
+| 攻略     | 更新发布状态     | PUT    | /api/admin/v1/guides/{guideId}/publish  |
+| 攻略     | 删除攻略         | DELETE | /api/admin/v1/guides/{guideId}          |
+| 订单     | 获取订单列表     | GET    | /api/admin/v1/orders                    |
+| 订单     | 获取订单详情     | GET    | /api/admin/v1/orders/{orderId}          |
+| 订单     | 完成订单         | POST   | /api/admin/v1/orders/{orderId}/complete |
+| 订单     | 退款订单         | POST   | /api/admin/v1/orders/{orderId}/refund   |
+| 用户     | 获取用户列表     | GET    | /api/admin/v1/users                     |
+| 用户     | 获取用户详情     | GET    | /api/admin/v1/users/{userId}            |
+| 管理员   | 获取管理员列表   | GET    | /api/admin/v1/admins                    |
+| 管理员   | 创建管理员       | POST   | /api/admin/v1/admins                    |
+| 管理员   | 更新管理员       | PUT    | /api/admin/v1/admins/{id}               |
+| 管理员   | 重置密码         | PUT    | /api/admin/v1/admins/{id}/password      |
+| 管理员   | 删除管理员       | DELETE | /api/admin/v1/admins/{id}               |
+| 轮播图   | 获取轮播图列表   | GET    | /api/admin/v1/banners                   |
+| 轮播图   | 创建轮播图       | POST   | /api/admin/v1/banners                   |
+| 轮播图   | 更新轮播图       | PUT    | /api/admin/v1/banners/{bannerId}        |
+| 轮播图   | 删除轮播图       | DELETE | /api/admin/v1/banners/{bannerId}        |
+| 轮播图   | 切换启用状态     | POST   | /api/admin/v1/banners/{bannerId}/toggle |
+| 统计     | 获取概览数据     | GET    | /api/admin/v1/dashboard/overview        |
+| 统计     | 获取订单趋势     | GET    | /api/admin/v1/dashboard/order-trend     |
+| 统计     | 获取热门景点     | GET    | /api/admin/v1/dashboard/hot-spots       |
+| 上传     | 上传图片         | POST   | /api/admin/v1/upload/image              |
