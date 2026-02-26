@@ -20,3 +20,15 @@ export function getUserDetail(id) {
     method: 'get'
   })
 }
+
+/**
+ * 重置用户密码
+ */
+export function resetUserPassword(id, data) {
+  return request({
+    url: `/users/${id}/password`,
+    method: 'put',
+    data
+  })
+}
+

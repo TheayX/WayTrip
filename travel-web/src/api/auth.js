@@ -15,3 +15,6 @@ export const updateUserInfo = (data) => request.put('/auth/user-info', data)
 // 设置偏好标签
 export const setPreferences = (tags) => request.post('/auth/preferences', { tags })
 
+// 修改密码
+export const changePassword = (data) => request.put('/auth/password', data)
+

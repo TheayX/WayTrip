@@ -22,6 +22,8 @@ public enum ResultCode {
     ADMIN_DISABLED(10008, "当前管理员已被禁用"),
     PHONE_ALREADY_REGISTERED(10009, "该手机号已注册"),
     WEB_LOGIN_FAILED(10010, "手机号或密码错误"),
+    OLD_PASSWORD_ERROR(10011, "旧密码错误"),
+    PASSWORD_NOT_SET(10012, "用户尚未设置密码"),
 
     // 景点相关 20xxx
     SPOT_NOT_FOUND(20001, "景点不存在"),

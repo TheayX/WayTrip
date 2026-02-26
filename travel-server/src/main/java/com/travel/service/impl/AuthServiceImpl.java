@@ -139,6 +139,28 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+
+        // 如果用户已设置过密码，需要验证旧密码
+        if (StringUtils.hasText(user.getPassword())) {
+            if (!StringUtils.hasText(request.getOldPassword())) {
+                throw new BusinessException(ResultCode.OLD_PASSWORD_ERROR);
+            }
+            if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+                throw new BusinessException(ResultCode.OLD_PASSWORD_ERROR);
+            }
+        }
+
+        // 更新密码
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userMapper.updateById(user);
+    }
+
+    @Override
     @Transactional
     public void setPreferences(Long userId, List<String> tags) {
         // 删除旧的偏好

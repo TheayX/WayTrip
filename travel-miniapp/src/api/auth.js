@@ -34,3 +34,11 @@ export const setPreferences = (tags) => {
 export const updatePreferences = (data) => {
   return post('/auth/preferences', data)
 }
+
+/**
+ * 修改密码
+ */
+export const changePassword = (data) => {
+  return put('/auth/password', data)
+}
+

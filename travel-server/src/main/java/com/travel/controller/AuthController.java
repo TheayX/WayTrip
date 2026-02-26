@@ -62,4 +62,12 @@ public class AuthController {
         authService.setPreferences(userId, request.getTags());
         return ApiResponse.success();
     }
+
+    @Operation(summary = "修改密码")
+    @PutMapping("/password")
+    public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        Long userId = UserContext.getUserId();
+        authService.changePassword(userId, request);
+        return ApiResponse.success();
+    }
 }

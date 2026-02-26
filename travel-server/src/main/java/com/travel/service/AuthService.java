@@ -32,7 +32,12 @@ public interface AuthService {
      * 更新用户信息
      */
     void updateUserInfo(Long userId, UpdateUserInfoRequest request);
-    
+
+    /**
+     * 修改密码
+     */
+    void changePassword(Long userId, ChangePasswordRequest request);
+
     /**
      * 设置用户偏好标签
      */

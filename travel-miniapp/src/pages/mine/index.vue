@@ -76,6 +76,10 @@
           <button class="edit-btn cancel" @click="editVisible = false">取消</button>
           <button class="edit-btn confirm" @click="submitProfile">保存</button>
         </view>
+        <view class="edit-password" @click="goPassword">
+          <text class="edit-password-text">修改密码</text>
+          <text class="cell-arrow">›</text>
+        </view>
       </view>
     </view>
   </view>
@@ -172,6 +176,12 @@ const goFavorites = () => {
 // 跳转偏好设置
 const goPreference = () => {
   uni.navigateTo({ url: '/pages/mine/preference' })
+}
+
+// 跳转修改密码
+const goPassword = () => {
+  editVisible.value = false
+  uni.navigateTo({ url: '/pages/mine/password' })
 }
 
 // 联系客服
@@ -385,5 +395,19 @@ const showAbout = () => {
 .edit-btn.confirm {
   color: #fff;
   background: #007AFF;
+}
+
+.edit-password {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28rpx;
+  padding-top: 24rpx;
+  border-top: 1px solid #E5E5EA;
+}
+
+.edit-password-text {
+  font-size: 30rpx;
+  color: #007AFF;
 }
 </style>

@@ -22,6 +22,10 @@
             <el-icon><Setting /></el-icon>
             <span>偏好设置</span>
           </el-menu-item>
+          <el-menu-item index="password">
+            <el-icon><Lock /></el-icon>
+            <span>修改密码</span>
+          </el-menu-item>
           <el-menu-item index="orders" @click="$router.push('/orders')">
             <el-icon><Tickets /></el-icon>
             <span>我的订单</span>
@@ -68,6 +72,25 @@
             保存偏好
           </el-button>
         </div>
+
+        <!-- 修改密码 -->
+        <div v-if="activeMenu === 'password'" class="section-card card">
+          <h3 class="card-title">修改密码</h3>
+          <el-form :model="passwordForm" :rules="passwordRules" ref="passwordFormRef" label-width="100px" size="large">
+            <el-form-item label="旧密码" prop="oldPassword">
+              <el-input v-model="passwordForm.oldPassword" type="password" show-password placeholder="请输入旧密码（首次设置可留空）" />
+            </el-form-item>
+            <el-form-item label="新密码" prop="newPassword">
+              <el-input v-model="passwordForm.newPassword" type="password" show-password placeholder="请输入新密码（至少6位）" />
+            </el-form-item>
+            <el-form-item label="确认密码" prop="confirmPassword">
+              <el-input v-model="passwordForm.confirmPassword" type="password" show-password placeholder="请再次输入新密码" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" :loading="savingPwd" @click="handleChangePassword">确认修改</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
       </div>
     </div>
   </div>
@@ -76,7 +99,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getUserInfo, updateUserInfo, setPreferences } from '@/api/auth'
+import { getUserInfo, updateUserInfo, setPreferences, changePassword } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import { ElMessage } from 'element-plus'
 
@@ -138,6 +161,52 @@ const toggleCategory = (name) => {
   } else {
     selectedCategories.value.push(name)
   }
+}
+
+// ======== 修改密码 ========
+const savingPwd = ref(false)
+const passwordFormRef = ref(null)
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+const passwordRules = {
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, max: 50, message: '密码长度为6-50个字符', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value !== passwordForm.newPassword) {
+          callback(new Error('两次输入的密码不一致'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+}
+
+const handleChangePassword = async () => {
+  if (!passwordFormRef.value) return
+  await passwordFormRef.value.validate()
+  savingPwd.value = true
+  try {
+    await changePassword({
+      oldPassword: passwordForm.oldPassword || undefined,
+      newPassword: passwordForm.newPassword
+    })
+    ElMessage.success('密码修改成功')
+    passwordForm.oldPassword = ''
+    passwordForm.newPassword = ''
+    passwordForm.confirmPassword = ''
+  } catch (e) { /* ignore */ }
+  savingPwd.value = false
 }
 
 const handleSavePreference = async () => {

@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+
 @Tag(name = "管理端用户接口", description = "管理端用户管理相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/users")
@@ -26,5 +28,13 @@ public class AdminUserController {
     @GetMapping("/{id}")
     public ApiResponse<AdminUserDetailResponse> getUserDetail(@PathVariable("id") Long id) {
         return ApiResponse.success(userService.getAdminUserDetail(id));
+    }
+
+    @Operation(summary = "重置用户密码")
+    @PutMapping("/{id}/password")
+    public ApiResponse<Void> resetUserPassword(@PathVariable("id") Long id,
+                                                @Valid @RequestBody ResetUserPasswordRequest request) {
+        userService.resetUserPassword(id, request);
+        return ApiResponse.success();
     }
 }

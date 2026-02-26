@@ -71,6 +71,12 @@
       "style": {
         "navigationBarTitleText": "偏好设置"
       }
+    },
+    {
+      "path": "pages/mine/password",
+      "style": {
+        "navigationBarTitleText": "修改密码"
+      }
     }
   ],
   "globalStyle": {

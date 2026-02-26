@@ -7,6 +7,7 @@ import com.travel.entity.*;
 import com.travel.mapper.*;
 import com.travel.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -22,6 +23,7 @@ public class UserServiceImpl implements UserService {
     private final FavoriteMapper favoriteMapper;
     private final RatingMapper ratingMapper;
     private final SpotMapper spotMapper;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public AdminUserListResponse getAdminUsers(AdminUserListRequest request) {
@@ -154,5 +156,15 @@ public class UserServiceImpl implements UserService {
         )));
 
         return item;
+    }
+
+    @Override
+    public void resetUserPassword(Long userId, ResetUserPasswordRequest request) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new RuntimeException("用户不存在");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userMapper.updateById(user);
     }
 }

@@ -16,4 +16,9 @@ public interface UserService {
      * 获取用户详情（管理端）
      */
     AdminUserDetailResponse getAdminUserDetail(Long userId);
+
+    /**
+     * 重置用户密码（管理端）
+     */
+    void resetUserPassword(Long userId, ResetUserPasswordRequest request);
 }

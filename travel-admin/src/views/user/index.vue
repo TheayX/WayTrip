@@ -32,9 +32,10 @@
         <el-table-column prop="ratingCount" label="评价数" width="100" />
         <el-table-column prop="createdAt" label="注册时间" width="170" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" />
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
+            <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -89,7 +90,8 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getUserList, getUserDetail } from '@/api/user'
+import { getUserList, getUserDetail, resetUserPassword } from '@/api/user'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 // 搜索表单
 const searchForm = reactive({
@@ -147,6 +149,30 @@ const handleDetail = async (row) => {
     detailVisible.value = true
   } catch (e) {
     console.error('获取用户详情失败', e)
+  }
+}
+
+// 重置密码
+const handleResetPassword = async (row) => {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      `请输入用户「${row.nickname}」的新密码（至少6位）`,
+      '重置密码',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputType: 'password',
+        inputPlaceholder: '请输入新密码',
+        inputValidator: (val) => {
+          if (!val || val.length < 6) return '密码长度至少6个字符'
+          return true
+        }
+      }
+    )
+    await resetUserPassword(row.id, { newPassword: value })
+    ElMessage.success('密码重置成功')
+  } catch (e) {
+    if (e !== 'cancel') console.error('重置密码失败', e)
   }
 }
 
