@@ -108,11 +108,49 @@ export const del = (url, data, options = {}) => {
   return request({ url, method: 'DELETE', data, ...options })
 }
 
+// 文件上传
+export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
+  return new Promise((resolve, reject) => {
+    const userStore = useUserStore()
+    uni.showLoading({ title: '上传中...', mask: true })
+    uni.uploadFile({
+      url: BASE_URL + url,
+      filePath,
+      name,
+      formData,
+      header: {
+        'Authorization': userStore.token ? `Bearer ${userStore.token}` : ''
+      },
+      success: (res) => {
+        uni.hideLoading()
+        if (res.statusCode === 200) {
+          const result = JSON.parse(res.data)
+          if (result.code === 0) {
+            resolve(result)
+          } else {
+            uni.showToast({ title: result.message || '上传失败', icon: 'none' })
+            reject(result)
+          }
+        } else {
+          uni.showToast({ title: '上传失败', icon: 'none' })
+          reject(res)
+        }
+      },
+      fail: (err) => {
+        uni.hideLoading()
+        uni.showToast({ title: '上传失败', icon: 'none' })
+        reject(err)
+      }
+    })
+  })
+}
+
 export default {
   request,
   get,
   post,
   put,
   del,
+  uploadFile,
   getImageUrl
 }

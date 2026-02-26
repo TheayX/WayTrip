@@ -3,7 +3,7 @@
     <!-- 个人信息头 -->
     <view class="profile-header" @click="isLoggedIn ? null : doLogin()">
       <view class="avatar-container">
-        <image class="avatar-lg" :src="userInfo?.avatar || '/static/default-avatar.png'" />
+        <image class="avatar-lg" :src="userInfo?.avatar ? getImageUrl(userInfo.avatar) : '/static/default-avatar.png'" />
       </view>
       <view class="profile-info">
         <text class="user-name">{{ isLoggedIn ? (userInfo?.nickname || '旅行家') : '点击登录' }}</text>
@@ -67,10 +67,84 @@
       </view>
     </view>
 
+    <!-- ========== 新用户授权弹窗 ========== -->
+    <view class="auth-mask" v-if="authVisible">
+      <view class="auth-panel">
+        <text class="auth-title">欢迎来到微旅 🎉</text>
+        <text class="auth-subtitle">设置你的头像和昵称，开启旅程</text>
+
+        <!-- 头像选择 -->
+        <view class="auth-avatar-wrap">
+          <!-- #ifdef MP-WEIXIN -->
+          <button class="auth-avatar-btn" open-type="chooseAvatar" @chooseavatar="onAuthChooseAvatar">
+            <image class="auth-avatar-img" :src="authForm.avatarPreview || '/static/default-avatar.png'" />
+            <view class="auth-avatar-edit">
+              <text class="auth-avatar-edit-text">点击选择头像</text>
+            </view>
+          </button>
+          <!-- #endif -->
+          <!-- #ifndef MP-WEIXIN -->
+          <view class="auth-avatar-btn" @click="chooseAvatarFromAlbum">
+            <image class="auth-avatar-img" :src="authForm.avatarPreview || '/static/default-avatar.png'" />
+            <view class="auth-avatar-edit">
+              <text class="auth-avatar-edit-text">点击选择头像</text>
+            </view>
+          </view>
+          <!-- #endif -->
+        </view>
+
+        <!-- 昵称输入 -->
+        <!-- #ifdef MP-WEIXIN -->
+        <input
+          class="auth-input"
+          type="nickname"
+          v-model="authForm.nickname"
+          placeholder="点击填入微信昵称"
+          @blur="onNicknameBlur"
+        />
+        <!-- #endif -->
+        <!-- #ifndef MP-WEIXIN -->
+        <input
+          class="auth-input"
+          v-model="authForm.nickname"
+          placeholder="请输入昵称"
+          maxlength="30"
+        />
+        <!-- #endif -->
+
+        <view class="auth-actions">
+          <button class="auth-btn skip" @click="skipAuth">跳过</button>
+          <button class="auth-btn confirm" @click="submitAuth">确认</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- ========== 编辑资料弹窗 ========== -->
     <view class="edit-mask" v-if="editVisible" @click="editVisible = false">
       <view class="edit-panel" @click.stop>
         <text class="edit-title">编辑资料</text>
+        <!-- 头像选择 -->
+        <view class="edit-avatar-row">
+          <text class="edit-avatar-label">头像</text>
+          <!-- #ifdef MP-WEIXIN -->
+          <button class="edit-avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
+            <image class="edit-avatar-img" :src="editForm.avatarPreview || editForm.avatar || '/static/default-avatar.png'" />
+            <text class="edit-avatar-tip">点击更换</text>
+          </button>
+          <!-- #endif -->
+          <!-- #ifndef MP-WEIXIN -->
+          <view class="edit-avatar-btn" @click="chooseAvatarFromAlbum">
+            <image class="edit-avatar-img" :src="editForm.avatarPreview || editForm.avatar || '/static/default-avatar.png'" />
+            <text class="edit-avatar-tip">点击更换</text>
+          </view>
+          <!-- #endif -->
+        </view>
+        <!-- #ifdef MP-WEIXIN -->
+        <input class="edit-input" type="nickname" v-model="editForm.nickname" placeholder="点击填入微信昵称" maxlength="30" />
+        <!-- #endif -->
+        <!-- #ifndef MP-WEIXIN -->
         <input class="edit-input" v-model="editForm.nickname" placeholder="请输入昵称" maxlength="30" />
+        <!-- #endif -->
         <input class="edit-input" v-model="editForm.phone" placeholder="请输入手机号（可选）" maxlength="20" />
         <view class="edit-actions">
           <button class="edit-btn cancel" @click="editVisible = false">取消</button>
@@ -88,16 +162,86 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { wxLogin, getUserInfo, updateUserInfo } from '@/api/auth'
+import { wxLogin, getUserInfo, updateUserInfo, uploadAvatar } from '@/api/auth'
+import { getImageUrl } from '@/utils/request'
 
 const userStore = useUserStore()
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
+
+// ========== 新用户授权弹窗 ==========
+const authVisible = ref(false)
+const authForm = reactive({
+  nickname: '',
+  avatarPreview: '',
+  avatarTempFile: ''
+})
+
+// 新用户授权 - 选择头像
+const onAuthChooseAvatar = (e) => {
+  const url = e.detail.avatarUrl
+  if (url) {
+    authForm.avatarPreview = url
+    authForm.avatarTempFile = url
+  }
+}
+
+// input type="nickname" blur 时，微信会把选中的昵称写入 v-model
+const onNicknameBlur = (e) => {
+  if (e.detail?.value) {
+    authForm.nickname = e.detail.value
+  }
+}
+
+// 跳过授权
+const skipAuth = () => {
+  authVisible.value = false
+}
+
+// 提交授权信息
+const submitAuth = async () => {
+  const hasAvatar = !!authForm.avatarTempFile
+  const hasNickname = !!authForm.nickname.trim()
+
+  if (!hasAvatar && !hasNickname) {
+    uni.showToast({ title: '请选择头像或填入昵称', icon: 'none' })
+    return
+  }
+
+  try {
+    uni.showLoading({ title: '保存中...', mask: true })
+
+    let avatarUrl = ''
+    if (hasAvatar) {
+      const uploadRes = await uploadAvatar(authForm.avatarTempFile)
+      avatarUrl = uploadRes.data.url
+    }
+
+    const updateData = {}
+    if (hasNickname) updateData.nickname = authForm.nickname.trim()
+    if (avatarUrl) updateData.avatar = avatarUrl
+
+    await updateUserInfo(updateData)
+    await syncUserInfo()
+
+    uni.hideLoading()
+    authVisible.value = false
+    uni.showToast({ title: '设置成功', icon: 'success' })
+  } catch (e) {
+    uni.hideLoading()
+    uni.showToast({ title: '保存失败', icon: 'none' })
+  }
+}
+
+// ========== 编辑资料弹窗 ==========
 const editVisible = ref(false)
 const editForm = reactive({
   nickname: '',
-  phone: ''
+  phone: '',
+  avatar: '',
+  avatarPreview: '',
+  avatarTempFile: ''
 })
 
 const syncUserInfo = async () => {
@@ -118,6 +262,16 @@ const doLogin = async () => {
     userStore.login(res.data)
     await syncUserInfo()
     uni.showToast({ title: '登录成功', icon: 'success' })
+
+    // 新用户弹出授权弹窗
+    if (res.data.user?.isNewUser) {
+      setTimeout(() => {
+        authForm.nickname = ''
+        authForm.avatarPreview = ''
+        authForm.avatarTempFile = ''
+        authVisible.value = true
+      }, 500)
+    }
     // #endif
 
     // #ifdef H5
@@ -132,21 +286,62 @@ const doLogin = async () => {
 const openEditPopup = () => {
   editForm.nickname = userInfo.value?.nickname || ''
   editForm.phone = userInfo.value?.phone || ''
+  editForm.avatar = userInfo.value?.avatar ? getImageUrl(userInfo.value.avatar) : ''
+  editForm.avatarPreview = ''
+  editForm.avatarTempFile = ''
   editVisible.value = true
 }
 
 const submitProfile = async () => {
   try {
-    await updateUserInfo({
+    let avatarUrl = ''
+    if (editForm.avatarTempFile) {
+      const uploadRes = await uploadAvatar(editForm.avatarTempFile)
+      avatarUrl = uploadRes.data.url
+    }
+    const updateData = {
       nickname: editForm.nickname.trim(),
       phone: editForm.phone.trim()
-    })
+    }
+    if (avatarUrl) {
+      updateData.avatar = avatarUrl
+    }
+    await updateUserInfo(updateData)
     await syncUserInfo()
     editVisible.value = false
     uni.showToast({ title: '保存成功', icon: 'success' })
   } catch (e) {
     uni.showToast({ title: '保存失败', icon: 'none' })
   }
+}
+
+// 编辑资料 - 选择头像
+const onChooseAvatar = (e) => {
+  const url = e.detail.avatarUrl
+  if (url) {
+    editForm.avatarPreview = url
+    editForm.avatarTempFile = url
+  }
+}
+
+// 非微信平台从相册选择头像
+const chooseAvatarFromAlbum = () => {
+  uni.chooseImage({
+    count: 1,
+    sizeType: ['compressed'],
+    sourceType: ['album', 'camera'],
+    success: (res) => {
+      const tempFilePath = res.tempFilePaths[0]
+      // 判断当前哪个弹窗打开
+      if (authVisible.value) {
+        authForm.avatarPreview = tempFilePath
+        authForm.avatarTempFile = tempFilePath
+      } else {
+        editForm.avatarPreview = tempFilePath
+        editForm.avatarTempFile = tempFilePath
+      }
+    }
+  })
 }
 
 // 退出登录
@@ -341,6 +536,115 @@ const showAbout = () => {
   font-weight: 600;
 }
 
+/* ========== 新用户授权弹窗 ========== */
+.auth-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.auth-panel {
+  width: 600rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 48rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 12rpx;
+}
+
+.auth-subtitle {
+  font-size: 26rpx;
+  color: #8E8E93;
+  margin-bottom: 40rpx;
+}
+
+.auth-avatar-wrap {
+  margin-bottom: 32rpx;
+}
+
+.auth-avatar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+}
+
+.auth-avatar-btn::after {
+  border: none;
+}
+
+.auth-avatar-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  border: 4rpx solid #E5E5EA;
+}
+
+.auth-avatar-edit {
+  margin-top: 12rpx;
+}
+
+.auth-avatar-edit-text {
+  font-size: 24rpx;
+  color: #007AFF;
+}
+
+.auth-input {
+  width: 100%;
+  height: 84rpx;
+  border-radius: 16rpx;
+  background: #F2F2F7;
+  padding: 0 24rpx;
+  margin-bottom: 32rpx;
+  font-size: 30rpx;
+  text-align: center;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 16rpx;
+  width: 100%;
+}
+
+.auth-btn {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  text-align: center;
+}
+
+.auth-btn.skip {
+  color: #666;
+  background: #F2F2F7;
+}
+
+.auth-btn.confirm {
+  color: #fff;
+  background: #007AFF;
+}
+
+/* ========== 编辑资料弹窗 ========== */
 .edit-mask {
   position: fixed;
   left: 0;
@@ -365,6 +669,47 @@ const showAbout = () => {
   font-size: 32rpx;
   font-weight: 600;
   margin-bottom: 24rpx;
+}
+
+.edit-avatar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+  padding: 0 8rpx;
+}
+
+.edit-avatar-label {
+  font-size: 30rpx;
+  color: #333;
+}
+
+.edit-avatar-btn {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+  font-size: inherit;
+}
+
+.edit-avatar-btn::after {
+  border: none;
+}
+
+.edit-avatar-img {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 2rpx solid #E5E5EA;
+}
+
+.edit-avatar-tip {
+  font-size: 24rpx;
+  color: #8E8E93;
+  margin-left: 16rpx;
 }
 
 .edit-input {

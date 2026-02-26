@@ -9,7 +9,7 @@
       <!-- 左侧导航 -->
       <div class="profile-sidebar card">
         <div class="user-header">
-          <el-avatar :size="64" :src="userStore.userInfo?.avatar || ''" icon="User" />
+          <el-avatar :size="64" :src="userStore.userInfo?.avatar ? getImageUrl(userStore.userInfo.avatar) : ''" icon="User" />
           <h3 class="user-name">{{ userStore.userInfo?.nickname || '用户' }}</h3>
           <p class="user-phone">{{ userStore.userInfo?.phone || '未绑定手机' }}</p>
         </div>
@@ -43,6 +43,20 @@
         <div v-if="activeMenu === 'info'" class="section-card card">
           <h3 class="card-title">基本信息</h3>
           <el-form :model="profileForm" label-width="80px" size="large">
+            <el-form-item label="头像">
+              <div class="avatar-uploader" @click="handleAvatarClick">
+                <el-avatar
+                  :size="80"
+                  :src="avatarPreview || (profileForm.avatar ? getImageUrl(profileForm.avatar) : '')"
+                  icon="User"
+                />
+                <div class="avatar-overlay">
+                  <el-icon :size="20"><Camera /></el-icon>
+                  <span>更换头像</span>
+                </div>
+              </div>
+              <input ref="avatarInputRef" type="file" accept="image/*" style="display:none" @change="handleAvatarChange" />
+            </el-form-item>
             <el-form-item label="昵称">
               <el-input v-model="profileForm.nickname" placeholder="请输入昵称" maxlength="30" />
             </el-form-item>
@@ -99,8 +113,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getUserInfo, updateUserInfo, setPreferences, changePassword } from '@/api/auth'
+import { getUserInfo, updateUserInfo, setPreferences, changePassword, uploadAvatar } from '@/api/auth'
 import { getFilters } from '@/api/spot'
+import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
 const userStore = useUserStore()
@@ -112,8 +127,14 @@ const selectedCategories = ref([])
 
 const profileForm = reactive({
   nickname: '',
-  phone: ''
+  phone: '',
+  avatar: ''
 })
+
+// 头像相关
+const avatarInputRef = ref(null)
+const avatarPreview = ref('')
+const avatarFile = ref(null)
 
 const handleMenuSelect = (index) => {
   activeMenu.value = index
@@ -126,6 +147,9 @@ const fetchUserInfo = async () => {
     userStore.setUserInfo(info)
     profileForm.nickname = info.nickname || ''
     profileForm.phone = info.phone || ''
+    profileForm.avatar = info.avatar || ''
+    avatarPreview.value = ''
+    avatarFile.value = null
     selectedCategories.value = info.preferences || []
   } catch (e) { /* ignore */ }
 }
@@ -137,18 +161,55 @@ const fetchCategories = async () => {
   } catch (e) { /* ignore */ }
 }
 
+// 点击头像触发文件选择
+const handleAvatarClick = () => {
+  avatarInputRef.value?.click()
+}
+
+// 选择头像文件后预览
+const handleAvatarChange = (e) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    ElMessage.warning('只能上传图片文件')
+    return
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    ElMessage.warning('头像图片大小不能超过2MB')
+    return
+  }
+  avatarFile.value = file
+  avatarPreview.value = URL.createObjectURL(file)
+}
+
 const saveProfile = async () => {
   saving.value = true
   try {
-    await updateUserInfo({
+    let newAvatarUrl = ''
+    // 如果有选择新头像，先上传
+    if (avatarFile.value) {
+      const uploadRes = await uploadAvatar(avatarFile.value)
+      newAvatarUrl = uploadRes.data.url
+    }
+    const updateData = {
       nickname: profileForm.nickname,
       phone: profileForm.phone
-    })
+    }
+    if (newAvatarUrl) {
+      updateData.avatar = newAvatarUrl
+    }
+    await updateUserInfo(updateData)
     userStore.setUserInfo({
       ...userStore.userInfo,
       nickname: profileForm.nickname,
-      phone: profileForm.phone
+      phone: profileForm.phone,
+      ...(newAvatarUrl ? { avatar: newAvatarUrl } : {})
     })
+    if (newAvatarUrl) {
+      profileForm.avatar = newAvatarUrl
+      avatarPreview.value = ''
+      avatarFile.value = null
+    }
     ElMessage.success('保存成功')
   } catch (e) { /* ignore */ }
   saving.value = false
@@ -295,6 +356,37 @@ onMounted(() => {
 .pref-tag {
   padding: 8px 20px;
   font-size: 14px;
+}
+
+.avatar-uploader {
+  position: relative;
+  cursor: pointer;
+  border-radius: 50%;
+  overflow: hidden;
+  width: 80px;
+  height: 80px;
+
+  &:hover .avatar-overlay {
+    opacity: 1;
+  }
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  gap: 2px;
 }
 </style>
 

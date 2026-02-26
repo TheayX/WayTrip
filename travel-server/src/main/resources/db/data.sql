@@ -70,3 +70,11 @@ VALUES
     ('杭州西湖一日游',
      '<h2>推荐路线</h2><p>断桥残雪 → 白堤 → 孤山 → 曲院风荷 → 苏堤春晓 → 雷峰塔...</p>',
      '', '行程规划', 1, 567, 1, 0);
+
+-- 轮播图数据（关联景点，使用景点封面图）
+INSERT INTO `spot_banner` (`image_url`, `spot_id`, `sort_order`, `is_enabled`, `is_deleted`)
+VALUES
+    ('/uploads/images/默认.jpg', 1, 1, 1, 0),
+    ('/uploads/images/默认.jpg', 3, 2, 1, 0),
+    ('/uploads/images/默认.jpg', 4, 3, 1, 0);
+

@@ -115,6 +115,7 @@ public class AuthServiceImpl implements AuthService {
                 .nickname(user.getNickname())
                 .avatar(user.getAvatar())
                 .phone(user.getPhone())
+                .hasPassword(StringUtils.hasText(user.getPassword()))
                 .preferences(tags)
                 .build();
     }

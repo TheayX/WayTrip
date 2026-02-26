@@ -14,5 +14,6 @@ public class UserInfoResponse {
     private String nickname;
     private String avatar;
     private String phone;
+    private Boolean hasPassword;
     private List<String> preferences;
 }

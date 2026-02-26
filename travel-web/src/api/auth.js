@@ -18,3 +18,12 @@ export const setPreferences = (tags) => request.post('/auth/preferences', { tags
 // 修改密码
 export const changePassword = (data) => request.put('/auth/password', data)
 
+// 上传头像
+export const uploadAvatar = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post('/upload/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+

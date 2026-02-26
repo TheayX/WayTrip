@@ -1,4 +1,4 @@
-import { post, get, put } from '@/utils/request'
+import { post, get, put, uploadFile } from '@/utils/request'
 
 /**
  * 微信登录
@@ -40,5 +40,12 @@ export const updatePreferences = (data) => {
  */
 export const changePassword = (data) => {
   return put('/auth/password', data)
+}
+
+/**
+ * 上传头像
+ */
+export const uploadAvatar = (filePath) => {
+  return uploadFile('/upload/avatar', filePath, 'file')
 }
 

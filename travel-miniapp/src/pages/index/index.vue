@@ -4,7 +4,7 @@
     <view class="ios-header">
       <view class="header-top">
         <text class="large-title">探索</text>
-        <image class="avatar-sm" :src="userInfo?.avatar || '/static/default-avatar.png'" @click="goMine"/>
+        <image class="avatar-sm" :src="userInfo?.avatar ? getImageUrl(userInfo.avatar) : '/static/default-avatar.png'" @click="goMine"/>
       </view>
       <view class="search-bar" @click="goSearch">
         <image class="search-icon" src="/static/搜索.png" />
