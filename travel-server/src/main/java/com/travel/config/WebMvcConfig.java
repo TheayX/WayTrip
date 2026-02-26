@@ -33,6 +33,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
                         "/api/v1/auth/wx-login",
+                        "/api/v1/auth/wx-bind-phone",
                         "/api/v1/auth/web-register",
                         "/api/v1/auth/web-login",
                         "/api/v1/spots",

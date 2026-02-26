@@ -6,27 +6,33 @@
         <input
           class="form-input"
           v-model="form.oldPassword"
-          type="password"
+          :type="oldPwdVisible ? 'text' : 'password'"
+          :password="!oldPwdVisible"
           placeholder="请输入旧密码（首次设置可留空）"
         />
+        <text class="pwd-eye" @click="oldPwdVisible = !oldPwdVisible">{{ oldPwdVisible ? '🙈' : '👁' }}</text>
       </view>
       <view class="form-item">
         <text class="form-label">新密码</text>
         <input
           class="form-input"
           v-model="form.newPassword"
-          type="password"
+          :type="newPwdVisible ? 'text' : 'password'"
+          :password="!newPwdVisible"
           placeholder="请输入新密码（至少6位）"
         />
+        <text class="pwd-eye" @click="newPwdVisible = !newPwdVisible">{{ newPwdVisible ? '🙈' : '👁' }}</text>
       </view>
       <view class="form-item">
         <text class="form-label">确认密码</text>
         <input
           class="form-input"
           v-model="form.confirmPassword"
-          type="password"
+          :type="confirmPwdVisible ? 'text' : 'password'"
+          :password="!confirmPwdVisible"
           placeholder="请再次输入新密码"
         />
+        <text class="pwd-eye" @click="confirmPwdVisible = !confirmPwdVisible">{{ confirmPwdVisible ? '🙈' : '👁' }}</text>
       </view>
     </view>
     <button class="submit-btn" :loading="loading" @click="handleSubmit">确认修改</button>
@@ -38,6 +44,9 @@ import { reactive, ref } from 'vue'
 import { changePassword } from '@/api/auth'
 
 const loading = ref(false)
+const oldPwdVisible = ref(false)
+const newPwdVisible = ref(false)
+const confirmPwdVisible = ref(false)
 const form = reactive({
   oldPassword: '',
   newPassword: '',
@@ -114,6 +123,12 @@ const handleSubmit = async () => {
   flex: 1;
   font-size: 30rpx;
   height: 60rpx;
+}
+
+.pwd-eye {
+  font-size: 36rpx;
+  padding: 0 8rpx;
+  flex-shrink: 0;
 }
 
 .submit-btn {

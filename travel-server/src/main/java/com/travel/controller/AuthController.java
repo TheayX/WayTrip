@@ -24,8 +24,14 @@ public class AuthController {
 
     @Operation(summary = "微信登录")
     @PostMapping("/wx-login")
-    public ApiResponse<LoginResponse> wxLogin(@Valid @RequestBody WxLoginRequest request) {
+    public ApiResponse<WxLoginResponse> wxLogin(@Valid @RequestBody WxLoginRequest request) {
         return ApiResponse.success(authService.wxLogin(request.getCode()));
+    }
+
+    @Operation(summary = "小程序端绑定手机号（新用户注册或匹配已有账户合并openid）")
+    @PostMapping("/wx-bind-phone")
+    public ApiResponse<LoginResponse> wxBindPhone(@Valid @RequestBody WxBindPhoneRequest request) {
+        return ApiResponse.success(authService.wxBindPhone(request));
     }
 
     @Operation(summary = "Web端注册")

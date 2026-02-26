@@ -42,58 +42,55 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public LoginResponse wxLogin(String code) {
+    public WxLoginResponse wxLogin(String code) {
         // 调用微信API获取openid
         String openid = wxApiUtil.getOpenid(code);
         if (!StringUtils.hasText(openid)) {
             throw new BusinessException(ResultCode.WX_LOGIN_FAILED);
         }
 
-        // 查询用户是否存在
+        // 查询用户是否存在（通过openid查找）
         User user = userMapper.selectOne(
             new LambdaQueryWrapper<User>()
                 .eq(User::getOpenid, openid)
         );
 
-        boolean isNewUser = false;
-        boolean isReactivated = false; // 账户是否已恢复
-        LocalDateTime now = LocalDateTime.now();
         if (user == null) {
-            // 新用户，自动注册
-            user = new User();
-            user.setOpenid(openid);
-            user.setNickname("微信用户");
-            user.setAvatar("");
-            user.setLastLoginAt(now);
-            userMapper.insert(user);
-            isNewUser = true;
-            log.info("新用户注册: userId={}", user.getId());
-        } else {
-            LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<User>()
-                    .eq(User::getId, user.getId())
-                    .set(User::getLastLoginAt, now);
-            if (user.getIsDeleted() == 1) {
-                // 恢复被注销的账户
-                updateWrapper.set(User::getIsDeleted, 0);
-                isReactivated = true;
-                log.info("账户已恢复: userId={}", user.getId());
-            }
-            userMapper.update(null, updateWrapper);
+            // 新用户，不自动创建，只返回openid让前端继续填写手机号密码
+            log.info("微信新用户，等待绑定手机号: openid={}", openid);
+            return WxLoginResponse.builder()
+                    .isNewUser(true)
+                    .openid(openid)
+                    .build();
         }
+
+        // 老用户，正常登录
+        boolean isReactivated = false;
+        LocalDateTime now = LocalDateTime.now();
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<User>()
+                .eq(User::getId, user.getId())
+                .set(User::getLastLoginAt, now);
+        if (user.getIsDeleted() == 1) {
+            updateWrapper.set(User::getIsDeleted, 0);
+            isReactivated = true;
+            log.info("账户已恢复: userId={}", user.getId());
+        }
+        userMapper.update(null, updateWrapper);
 
         // 生成Token
         String token = jwtUtil.generateUserToken(user.getId());
 
-        return LoginResponse.builder()
+        return WxLoginResponse.builder()
+                .isNewUser(false)
                 .token(token)
                 .expiresIn(jwtUtil.getExpirationSeconds())
+                .isReactivated(isReactivated)
                 .user(LoginResponse.UserInfo.builder()
                         .id(user.getId())
                         .nickname(user.getNickname())
                         .avatar(user.getAvatar())
                         .phone(user.getPhone())
-                        .isNewUser(isNewUser)
-                        .isReactivated(isReactivated)
+                        .isNewUser(false)
                         .build())
                 .build();
     }
@@ -257,7 +254,8 @@ public class AuthServiceImpl implements AuthService {
 
         // 创建新用户
         User user = new User();
-        user.setNickname(request.getNickname());
+        String nickname = StringUtils.hasText(request.getNickname()) ? request.getNickname() : "web用户";
+        user.setNickname(nickname);
         user.setPhone(request.getPhone());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setAvatar("");
@@ -342,5 +340,101 @@ public class AuthServiceImpl implements AuthService {
                 .username(admin.getUsername())
                 .realName(admin.getRealName())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public LoginResponse wxBindPhone(WxBindPhoneRequest request) {
+        String openid = request.getOpenid();
+
+        // 确认该openid尚未绑定用户（防止重复调用）
+        User existByOpenid = userMapper.selectOne(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getOpenid, openid)
+                .eq(User::getIsDeleted, 0)
+        );
+        if (existByOpenid != null) {
+            // openid已绑定用户，直接返回登录信息
+            String token = jwtUtil.generateUserToken(existByOpenid.getId());
+            return LoginResponse.builder()
+                    .token(token)
+                    .expiresIn(jwtUtil.getExpirationSeconds())
+                    .user(LoginResponse.UserInfo.builder()
+                            .id(existByOpenid.getId())
+                            .nickname(existByOpenid.getNickname())
+                            .avatar(existByOpenid.getAvatar())
+                            .phone(existByOpenid.getPhone())
+                            .isNewUser(false)
+                            .isMerged(false)
+                            .build())
+                    .build();
+        }
+
+        // 查找手机号对应的已有用户
+        User existUser = userMapper.selectOne(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getPhone, request.getPhone())
+                .eq(User::getIsDeleted, 0)
+        );
+
+        if (existUser != null) {
+            // 手机号已存在，验证密码
+            if (!StringUtils.hasText(existUser.getPassword())) {
+                throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
+            }
+            if (!passwordEncoder.matches(request.getPassword(), existUser.getPassword())) {
+                throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
+            }
+
+            // 密码匹配！把openid合并到已有账户
+            if (StringUtils.hasText(existUser.getOpenid()) && !existUser.getOpenid().equals(openid)) {
+                throw new BusinessException(ResultCode.PHONE_ALREADY_REGISTERED);
+            }
+            existUser.setOpenid(openid);
+            existUser.setLastLoginAt(LocalDateTime.now());
+            userMapper.updateById(existUser);
+            log.info("微信openid合并到已有账户: userId={}, phone={}", existUser.getId(), request.getPhone());
+
+            String token = jwtUtil.generateUserToken(existUser.getId());
+
+            return LoginResponse.builder()
+                    .token(token)
+                    .expiresIn(jwtUtil.getExpirationSeconds())
+                    .user(LoginResponse.UserInfo.builder()
+                            .id(existUser.getId())
+                            .nickname(existUser.getNickname())
+                            .avatar(existUser.getAvatar())
+                            .phone(existUser.getPhone())
+                            .isNewUser(false)
+                            .isMerged(true)
+                            .build())
+                    .build();
+        } else {
+            // 手机号不存在，创建新用户
+            User newUser = new User();
+            newUser.setOpenid(openid);
+            newUser.setPhone(request.getPhone());
+            newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+            newUser.setNickname("微信用户");
+            newUser.setAvatar("");
+            newUser.setLastLoginAt(LocalDateTime.now());
+            userMapper.insert(newUser);
+            log.info("微信新用户注册: userId={}, phone={}", newUser.getId(), request.getPhone());
+
+            String token = jwtUtil.generateUserToken(newUser.getId());
+
+            return LoginResponse.builder()
+                    .token(token)
+                    .expiresIn(jwtUtil.getExpirationSeconds())
+                    .user(LoginResponse.UserInfo.builder()
+                            .id(newUser.getId())
+                            .nickname(newUser.getNickname())
+                            .avatar(newUser.getAvatar())
+                            .phone(newUser.getPhone())
+                            .isNewUser(true)
+                            .isMerged(false)
+                            .build())
+                    .build();
+        }
     }
 }

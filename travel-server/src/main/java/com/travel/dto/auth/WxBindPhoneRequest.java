@@ -6,13 +6,13 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * Web端注册请求
+ * 小程序端通过手机号+密码注册/绑定已有账户请求
  */
 @Data
-public class WebRegisterRequest {
+public class WxBindPhoneRequest {
 
-    @Size(max = 30, message = "昵称最长30个字符")
-    private String nickname;
+    @NotBlank(message = "openid不能为空")
+    private String openid;
 
     @NotBlank(message = "手机号不能为空")
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")

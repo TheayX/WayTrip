@@ -74,10 +74,58 @@
       </view>
     </view>
 
-    <!-- ========== 第一步：新用户头像昵称授权弹窗 ========== -->
+    <!-- ========== 第一步：强制设置手机号和密码 ========== -->
     <view class="auth-mask" v-if="authStep === 1">
       <view class="auth-panel">
         <text class="auth-title">欢迎来到微旅 🎉</text>
+        <text class="auth-subtitle">设置手机号和密码保护账户</text>
+
+        <!-- 手机号 -->
+        <input
+          class="auth-input"
+          type="tel"
+          v-model="step1Form.phone"
+          placeholder="请输入手机号"
+          maxlength="11"
+        />
+
+        <!-- 密码 -->
+        <view class="auth-input-wrap">
+          <input
+            class="auth-input-field"
+            :type="step1PwdVisible ? 'text' : 'password'"
+            :password="!step1PwdVisible"
+            v-model="step1Form.password"
+            placeholder="设置密码（至少6位）"
+            maxlength="50"
+          />
+          <text class="pwd-eye" @click="step1PwdVisible = !step1PwdVisible">{{ step1PwdVisible ? '🙈' : '👁' }}</text>
+        </view>
+
+        <!-- 确认密码 -->
+        <view class="auth-input-wrap">
+          <input
+            class="auth-input-field"
+            :type="step1ConfirmPwdVisible ? 'text' : 'password'"
+            :password="!step1ConfirmPwdVisible"
+            v-model="step1Form.confirmPassword"
+            placeholder="确认密码"
+            maxlength="50"
+          />
+          <text class="pwd-eye" @click="step1ConfirmPwdVisible = !step1ConfirmPwdVisible">{{ step1ConfirmPwdVisible ? '🙈' : '👁' }}</text>
+        </view>
+
+        <view class="auth-actions">
+          <button class="auth-btn confirm full" @click="submitStep1">下一步</button>
+        </view>
+        <text class="auth-tip">如果手机号已在Web端注册，输入正确密码即可直接绑定</text>
+      </view>
+    </view>
+
+    <!-- ========== 第二步：可选设置头像和昵称 ========== -->
+    <view class="auth-mask" v-if="authStep === 2">
+      <view class="auth-panel">
+        <text class="auth-title">完善个人资料 ✨</text>
         <text class="auth-subtitle">设置你的头像和昵称，开启旅程</text>
 
         <!-- 头像选择 -->
@@ -120,49 +168,9 @@
         <!-- #endif -->
 
         <view class="auth-actions">
-          <button class="auth-btn skip" @click="skipStep1">跳过</button>
-          <button class="auth-btn confirm" @click="submitStep1">下一步</button>
+          <button class="auth-btn skip" @click="skipStep2">跳过</button>
+          <button class="auth-btn confirm" @click="submitStep2">完成设置</button>
         </view>
-      </view>
-    </view>
-
-    <!-- ========== 第二步：强制设置手机号和密码 ========== -->
-    <view class="auth-mask" v-if="authStep === 2">
-      <view class="auth-panel">
-        <text class="auth-title">完成账户设置 🔐</text>
-        <text class="auth-subtitle">设置手机号和密码保护账户</text>
-
-        <!-- 手机号 -->
-        <input
-          class="auth-input"
-          type="tel"
-          v-model="step2Form.phone"
-          placeholder="请输入手机号"
-          maxlength="11"
-        />
-
-        <!-- 密码 -->
-        <input
-          class="auth-input"
-          type="password"
-          v-model="step2Form.password"
-          placeholder="设置密码（至少6位）"
-          maxlength="50"
-        />
-
-        <!-- 确认密码 -->
-        <input
-          class="auth-input"
-          type="password"
-          v-model="step2Form.confirmPassword"
-          placeholder="确认密码"
-          maxlength="50"
-        />
-
-        <view class="auth-actions">
-          <button class="auth-btn confirm full" @click="submitStep2">完成设置</button>
-        </view>
-        <text class="auth-tip">设置完成后即可开启探索之旅 →</text>
       </view>
     </view>
 
@@ -209,7 +217,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { wxLogin, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount } from '@/api/auth'
+import { wxLogin, wxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount } from '@/api/auth'
 import { getImageUrl } from '@/utils/request'
 
 const userStore = useUserStore()
@@ -218,20 +226,24 @@ const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
 
 // ========== 新用户两步授权流程 ==========
-const authStep = ref(0) // 0: 未开始, 1: 设置头像昵称, 2: 设置手机号密码
+const authStep = ref(0) // 0: 未开始, 1: 设置手机号密码, 2: 设置头像昵称（可跳过）
+const pendingOpenid = ref('') // 临时存储新用户的openid（尚未创建用户）
+const step1Form = reactive({
+  phone: '',
+  password: '',
+  confirmPassword: ''
+})
+const step1PwdVisible = ref(false)
+const step1ConfirmPwdVisible = ref(false)
+
 const authForm = reactive({
   nickname: '',
   avatarPreview: '',
   avatarTempFile: ''
 })
 
-const step2Form = reactive({
-  phone: '',
-  password: '',
-  confirmPassword: ''
-})
 
-// 第一步：选择头像
+// 第二步：选择头像
 const onAuthChooseAvatar = (e) => {
   const url = e.detail.avatarUrl
   if (url) {
@@ -240,20 +252,79 @@ const onAuthChooseAvatar = (e) => {
   }
 }
 
-// 第一步：昵称输入
+// 昵称输入
 const onNicknameBlur = (e) => {
   if (e.detail?.value) {
     authForm.nickname = e.detail.value
   }
 }
 
-// 第一步：跳过（直接进入第二步）
-const skipStep1 = () => {
-  authStep.value = 2
+// 第一步：提交手机号和密码（核心绑定/注册逻辑）
+const submitStep1 = async () => {
+  const phone = step1Form.phone.trim()
+  const password = step1Form.password.trim()
+  const confirmPassword = step1Form.confirmPassword.trim()
+
+  // 验证手机号
+  if (!phone) {
+    uni.showToast({ title: '请输入手机号', icon: 'none' })
+    return
+  }
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    uni.showToast({ title: '请输入有效的手机号', icon: 'none' })
+    return
+  }
+
+  // 验证密码
+  if (!password) {
+    uni.showToast({ title: '请设置密码', icon: 'none' })
+    return
+  }
+  if (password.length < 6) {
+    uni.showToast({ title: '密码长度至少6个字符', icon: 'none' })
+    return
+  }
+  if (password !== confirmPassword) {
+    uni.showToast({ title: '两次输入的密码不一致', icon: 'none' })
+    return
+  }
+
+  try {
+    uni.showLoading({ title: '设置中...', mask: true })
+
+    // 调用绑定接口：传入openid + 手机号 + 密码，后端创建用户或合并已有账户
+    const res = await wxBindPhone({ openid: pendingOpenid.value, phone, password })
+
+    // 绑定/注册成功，现在才真正登录
+    userStore.login(res.data)
+    await syncUserInfo()
+    pendingOpenid.value = ''
+
+    uni.hideLoading()
+
+    if (res.data.user?.isMerged) {
+      // 已有账户合并成功，无需设置头像昵称，直接完成
+      authStep.value = 0
+      uni.showToast({ title: '账户绑定成功，欢迎回来！', icon: 'success' })
+    } else {
+      // 全新用户，进入第二步设置头像昵称（可跳过）
+      authStep.value = 2
+      uni.showToast({ title: '设置成功，可以完善资料', icon: 'none' })
+    }
+  } catch (e) {
+    uni.hideLoading()
+    uni.showToast({ title: e?.data?.message || '设置失败', icon: 'none' })
+  }
 }
 
-// 第一步：提交（保存头像昵称，进入第二步）
-const submitStep1 = async () => {
+// 第二步：跳过头像昵称设置
+const skipStep2 = () => {
+  authStep.value = 0
+  uni.showToast({ title: '欢迎使用微旅！', icon: 'success' })
+}
+
+// 第二步：提交头像昵称
+const submitStep2 = async () => {
   const hasAvatar = !!authForm.avatarTempFile
   const hasNickname = !!authForm.nickname.trim()
 
@@ -279,65 +350,11 @@ const submitStep1 = async () => {
     await syncUserInfo()
 
     uni.hideLoading()
-    // 进入第二步
-    authStep.value = 2
-  } catch (e) {
-    uni.hideLoading()
-    uni.showToast({ title: '保存失败', icon: 'none' })
-  }
-}
-
-// 第二步：验证并提交
-const submitStep2 = async () => {
-  const phone = step2Form.phone.trim()
-  const password = step2Form.password.trim()
-  const confirmPassword = step2Form.confirmPassword.trim()
-
-  // 验证手机号（简单验证）
-  if (!phone) {
-    uni.showToast({ title: '请输入手机号', icon: 'none' })
-    return
-  }
-  if (!/^1[3-9]\d{9}$/.test(phone)) {
-    uni.showToast({ title: '请输入有效的手机号', icon: 'none' })
-    return
-  }
-
-  // 验证密码
-  if (!password) {
-    uni.showToast({ title: '请设置密码', icon: 'none' })
-    return
-  }
-  if (password.length < 6) {
-    uni.showToast({ title: '密码长度至少6个字符', icon: 'none' })
-    return
-  }
-  if (password !== confirmPassword) {
-    uni.showToast({ title: '两次输入的密码不一致', icon: 'none' })
-    return
-  }
-
-  try {
-    uni.showLoading({ title: '完成设置...', mask: true })
-
-    // 更新手机号和密码
-    await updateUserInfo({
-      phone: phone
-    })
-
-    // 修改密码（新用户首次设置，无需旧密码）
-    await changePassword({
-      newPassword: password
-    })
-
-    await syncUserInfo()
-
-    uni.hideLoading()
-    authStep.value = 0 // 关闭授权流程
+    authStep.value = 0
     uni.showToast({ title: '设置成功，欢迎使用微旅！', icon: 'success' })
   } catch (e) {
     uni.hideLoading()
-    uni.showToast({ title: '设置失败', icon: 'none' })
+    uni.showToast({ title: '保存失败', icon: 'none' })
   }
 }
 
@@ -366,32 +383,35 @@ const doLogin = async () => {
     // #ifdef MP-WEIXIN
     const loginRes = await uni.login({ provider: 'weixin' })
     const res = await wxLogin(loginRes.code)
-    userStore.login(res.data)
-    await syncUserInfo()
 
-    // 检查账户是否已恢复
-    if (res.data.user?.isReactivated) {
-      uni.showModal({
-        title: '账户已恢复',
-        content: '欢迎回来！你的账户已恢复，可以继续使用微旅了。',
-        showCancel: false,
-        confirmText: '确认'
-      })
+    if (res.data.isNewUser) {
+      // 新用户：后端没有创建用户，只返回了openid
+      // 临时存储openid，弹出手机号密码表单
+      pendingOpenid.value = res.data.openid
+      step1Form.phone = ''
+      step1Form.password = ''
+      step1Form.confirmPassword = ''
+      step1PwdVisible.value = false
+      step1ConfirmPwdVisible.value = false
+      authForm.nickname = ''
+      authForm.avatarPreview = ''
+      authForm.avatarTempFile = ''
+      authStep.value = 1 // 弹出第一步：手机号密码
     } else {
-      uni.showToast({ title: '登录成功', icon: 'success' })
-    }
+      // 老用户：直接登录
+      userStore.login(res.data)
+      await syncUserInfo()
 
-    // 新用户启动两步设置流程
-    if (res.data.user?.isNewUser) {
-      setTimeout(() => {
-        authForm.nickname = ''
-        authForm.avatarPreview = ''
-        authForm.avatarTempFile = ''
-        step2Form.phone = ''
-        step2Form.password = ''
-        step2Form.confirmPassword = ''
-        authStep.value = 1 // 进入第一步：头像昵称
-      }, 500)
+      if (res.data.isReactivated) {
+        uni.showModal({
+          title: '账户已恢复',
+          content: '欢迎回来！你的账户已恢复，可以继续使用微旅了。',
+          showCancel: false,
+          confirmText: '确认'
+        })
+      } else {
+        uni.showToast({ title: '登录成功', icon: 'success' })
+      }
     }
     // #endif
 
@@ -454,7 +474,7 @@ const chooseAvatarFromAlbum = () => {
     success: (res) => {
       const tempFilePath = res.tempFilePaths[0]
       // 判断当前哪个弹窗打开
-      if (authVisible.value) {
+      if (authStep.value === 2) {
         authForm.avatarPreview = tempFilePath
         authForm.avatarTempFile = tempFilePath
       } else {
@@ -740,9 +760,33 @@ const goDeactivate = () => {
   border-radius: 16rpx;
   background: #F2F2F7;
   padding: 0 24rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: 16rpx;
   font-size: 30rpx;
   text-align: center;
+}
+
+.auth-input-wrap {
+  width: 100%;
+  height: 84rpx;
+  border-radius: 16rpx;
+  background: #F2F2F7;
+  display: flex;
+  align-items: center;
+  padding: 0 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.auth-input-field {
+  flex: 1;
+  height: 84rpx;
+  font-size: 30rpx;
+  text-align: center;
+}
+
+.pwd-eye {
+  font-size: 40rpx;
+  padding: 0 8rpx;
+  flex-shrink: 0;
 }
 
 .auth-actions {
