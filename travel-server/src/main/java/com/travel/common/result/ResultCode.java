@@ -20,6 +20,8 @@ public enum ResultCode {
     ADMIN_USERNAME_EXISTS(10006, "管理员账号已存在"),
     ADMIN_SELF_OPERATION_FORBIDDEN(10007, "不能对当前登录的管理员执行该操作"),
     ADMIN_DISABLED(10008, "当前管理员已被禁用"),
+    PHONE_ALREADY_REGISTERED(10009, "该手机号已注册"),
+    WEB_LOGIN_FAILED(10010, "手机号或密码错误"),
 
     // 景点相关 20xxx
     SPOT_NOT_FOUND(20001, "景点不存在"),

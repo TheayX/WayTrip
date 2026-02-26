@@ -201,6 +201,84 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
+    public LoginResponse webRegister(WebRegisterRequest request) {
+        // 检查手机号是否已注册
+        User existUser = userMapper.selectOne(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getPhone, request.getPhone())
+                .eq(User::getIsDeleted, 0)
+        );
+        if (existUser != null) {
+            throw new BusinessException(ResultCode.PHONE_ALREADY_REGISTERED);
+        }
+
+        // 创建新用户
+        User user = new User();
+        user.setNickname(request.getNickname());
+        user.setPhone(request.getPhone());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setAvatar("");
+        user.setLastLoginAt(LocalDateTime.now());
+        userMapper.insert(user);
+        log.info("Web新用户注册: userId={}, phone={}", user.getId(), request.getPhone());
+
+        // 生成Token
+        String token = jwtUtil.generateUserToken(user.getId());
+
+        return LoginResponse.builder()
+                .token(token)
+                .expiresIn(jwtUtil.getExpirationSeconds())
+                .user(LoginResponse.UserInfo.builder()
+                        .id(user.getId())
+                        .nickname(user.getNickname())
+                        .avatar(user.getAvatar())
+                        .phone(user.getPhone())
+                        .isNewUser(true)
+                        .build())
+                .build();
+    }
+
+    @Override
+    public LoginResponse webLogin(WebLoginRequest request) {
+        // 根据手机号查找用户
+        User user = userMapper.selectOne(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getPhone, request.getPhone())
+                .eq(User::getIsDeleted, 0)
+        );
+        if (user == null || !StringUtils.hasText(user.getPassword())) {
+            throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
+        }
+
+        // 验证密码
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
+        }
+
+        // 更新最后登录时间
+        userMapper.update(null,
+            new LambdaUpdateWrapper<User>()
+                .eq(User::getId, user.getId())
+                .set(User::getLastLoginAt, LocalDateTime.now()));
+
+        // 生成Token
+        String token = jwtUtil.generateUserToken(user.getId());
+
+        return LoginResponse.builder()
+                .token(token)
+                .expiresIn(jwtUtil.getExpirationSeconds())
+                .user(LoginResponse.UserInfo.builder()
+                        .id(user.getId())
+                        .nickname(user.getNickname())
+                        .avatar(user.getAvatar())
+                        .phone(user.getPhone())
+                        .isNewUser(false)
+                        .build())
+                .build();
+    }
+
+    @Override
     public AdminLoginResponse.AdminInfo getAdminInfo(Long adminId) {
         Admin admin = adminMapper.selectById(adminId);
         if (admin == null || admin.getIsDeleted() == 1) {

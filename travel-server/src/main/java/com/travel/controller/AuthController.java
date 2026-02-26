@@ -28,6 +28,18 @@ public class AuthController {
         return ApiResponse.success(authService.wxLogin(request.getCode()));
     }
 
+    @Operation(summary = "Web端注册")
+    @PostMapping("/web-register")
+    public ApiResponse<LoginResponse> webRegister(@Valid @RequestBody WebRegisterRequest request) {
+        return ApiResponse.success(authService.webRegister(request));
+    }
+
+    @Operation(summary = "Web端登录")
+    @PostMapping("/web-login")
+    public ApiResponse<LoginResponse> webLogin(@Valid @RequestBody WebLoginRequest request) {
+        return ApiResponse.success(authService.webLogin(request));
+    }
+
     @Operation(summary = "获取用户信息")
     @GetMapping("/user-info")
     public ApiResponse<UserInfoResponse> getUserInfo() {

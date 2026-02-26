@@ -244,9 +244,10 @@ CREATE TABLE `spot_region` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '用户ID',
-  `openid` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '微信OpenID',
+  `openid` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '微信OpenID（小程序用户）',
   `nickname` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '用户昵称',
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '手机号',
+  `password` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '密码（Web端登录）',
   `avatar_url` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '头像URL',
   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   `last_login_at` datetime DEFAULT NULL COMMENT '最后登录时间',
@@ -254,6 +255,7 @@ CREATE TABLE `user` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_openid` (`openid`),
+  UNIQUE KEY `uk_phone` (`phone`),
   KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 /*!40101 SET character_set_client = @saved_cs_client */;

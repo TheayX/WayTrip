@@ -12,7 +12,17 @@ public interface AuthService {
      * 微信登录
      */
     LoginResponse wxLogin(String code);
-    
+
+    /**
+     * Web端注册（手机号+密码）
+     */
+    LoginResponse webRegister(WebRegisterRequest request);
+
+    /**
+     * Web端登录（手机号+密码）
+     */
+    LoginResponse webLogin(WebLoginRequest request);
+
     /**
      * 获取用户信息
      */

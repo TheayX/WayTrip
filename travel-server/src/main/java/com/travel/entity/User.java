@@ -21,6 +21,8 @@ public class User {
 
     private String phone;
 
+    private String password;
+
     @TableField("avatar_url")
     private String avatar;
 
