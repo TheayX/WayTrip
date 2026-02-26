@@ -20,8 +20,8 @@ jwt:
 
 # 微信小程序配置
 wx:
-  appid: # 输入你的微信小程序的appid # 在https://mp.weixin.qq.com/注册获取
-  secret: # 输入你的微信小程序的secret
+  appid: # 输入你的微信小程序的appid ## 记得在 travel-miniapp/src/manifest.json 中修改appid
+  secret: # 输入你的微信小程序的secret # 在https://mp.weixin.qq.com/注册获取
 
 # 文件上传配置
 upload:

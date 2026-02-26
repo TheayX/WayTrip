@@ -50,7 +50,7 @@ request.interceptors.response.use(
  * 生产环境可配置为实际服务器地址
  */
 export const getImageUrl = (url) => {
-  if (!url) return ''
+  if (!url) return '/空.jpg'
   if (/^https?:\/\//i.test(url)) return url
   // 确保以 / 开头
   return url.startsWith('/') ? url : `/${url}`
