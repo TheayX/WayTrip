@@ -9,7 +9,7 @@
             <span class="logo-text">WayTrip</span>
           </router-link>
           <nav class="nav-links">
-            <router-link to="/" class="nav-link" active-class="active" :class="{ active: $route.path === '/' }">首页</router-link>
+            <router-link to="/" class="nav-link" :class="{ active: isHomeActive }">首页</router-link>
             <router-link to="/spots" class="nav-link" active-class="active">景点</router-link>
             <router-link to="/guides" class="nav-link" active-class="active">攻略</router-link>
           </nav>
@@ -76,11 +76,16 @@
 
 <script setup>
 import { useUserStore } from '@/stores/user'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { computed } from 'vue'
 import { ElMessageBox } from 'element-plus'
 
 const userStore = useUserStore()
 const router = useRouter()
+const route = useRoute()
+
+// 检查是否是首页
+const isHomeActive = computed(() => route.name === 'Home')
 
 const handleCommand = (command) => {
   switch (command) {
