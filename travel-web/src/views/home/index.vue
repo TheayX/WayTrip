@@ -136,7 +136,7 @@ const recommendType = computed(() =>
 const fetchBanners = async () => {
   try {
     const res = await getBanners()
-    banners.value = res.data || []
+    banners.value = res.data?.list || []
   } catch (e) { /* ignore */ }
 }
 
