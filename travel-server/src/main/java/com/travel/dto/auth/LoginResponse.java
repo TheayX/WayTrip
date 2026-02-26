@@ -22,5 +22,6 @@ public class LoginResponse {
         private String phone;
         private Boolean isNewUser;
         private Boolean isReactivated; // 账户是否已恢复（从注销状态）
+        private Boolean isMerged; // 账户是否通过手机号密码合并（小程序绑定已有账户）
     }
 }

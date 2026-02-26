@@ -8,6 +8,13 @@ export const wxLogin = (code) => {
 }
 
 /**
+ * 小程序端绑定手机号（匹配已有账户则合并openid）
+ */
+export const wxBindPhone = (data) => {
+  return post('/auth/wx-bind-phone', data)
+}
+
+/**
  * 获取用户信息
  */
 export const getUserInfo = () => {

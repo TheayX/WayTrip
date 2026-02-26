@@ -9,9 +9,9 @@ import java.util.List;
 public interface AuthService {
     
     /**
-     * 微信登录
+     * 微信登录（老用户返回token，新用户只返回openid）
      */
-    LoginResponse wxLogin(String code);
+    WxLoginResponse wxLogin(String code);
 
     /**
      * Web端注册（手机号+密码）
@@ -47,7 +47,12 @@ public interface AuthService {
      * 设置用户偏好标签
      */
     void setPreferences(Long userId, List<String> tags);
-    
+
+    /**
+     * 小程序端绑定手机号（新用户注册或匹配已有账户合并openid）
+     */
+    LoginResponse wxBindPhone(WxBindPhoneRequest request);
+
     /**
      * 管理员登录
      */
