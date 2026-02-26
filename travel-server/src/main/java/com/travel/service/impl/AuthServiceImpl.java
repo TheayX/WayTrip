@@ -56,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         boolean isNewUser = false;
+        boolean isReactivated = false; // 账户是否已恢复
         LocalDateTime now = LocalDateTime.now();
         if (user == null) {
             // 新用户，自动注册
@@ -72,7 +73,10 @@ public class AuthServiceImpl implements AuthService {
                     .eq(User::getId, user.getId())
                     .set(User::getLastLoginAt, now);
             if (user.getIsDeleted() == 1) {
+                // 恢复被注销的账户
                 updateWrapper.set(User::getIsDeleted, 0);
+                isReactivated = true;
+                log.info("账户已恢复: userId={}", user.getId());
             }
             userMapper.update(null, updateWrapper);
         }
@@ -89,6 +93,7 @@ public class AuthServiceImpl implements AuthService {
                         .avatar(user.getAvatar())
                         .phone(user.getPhone())
                         .isNewUser(isNewUser)
+                        .isReactivated(isReactivated)
                         .build())
                 .build();
     }
@@ -159,6 +164,20 @@ public class AuthServiceImpl implements AuthService {
         // 更新密码
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userMapper.updateById(user);
+    }
+
+    @Override
+    public void deactivateAccount(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+
+        // 标记账户为已删除
+        user.setIsDeleted(1);
+        userMapper.updateById(user);
+
+        log.info("用户账户已注销: userId={}", userId);
     }
 
     @Override
