@@ -67,8 +67,8 @@
       </view>
     </view>
 
-    <!-- ========== 新用户授权弹窗 ========== -->
-    <view class="auth-mask" v-if="authVisible">
+    <!-- ========== 第一步：新用户头像昵称授权弹窗 ========== -->
+    <view class="auth-mask" v-if="authStep === 1">
       <view class="auth-panel">
         <text class="auth-title">欢迎来到微旅 🎉</text>
         <text class="auth-subtitle">设置你的头像和昵称，开启旅程</text>
@@ -113,9 +113,49 @@
         <!-- #endif -->
 
         <view class="auth-actions">
-          <button class="auth-btn skip" @click="skipAuth">跳过</button>
-          <button class="auth-btn confirm" @click="submitAuth">确认</button>
+          <button class="auth-btn skip" @click="skipStep1">跳过</button>
+          <button class="auth-btn confirm" @click="submitStep1">下一步</button>
         </view>
+      </view>
+    </view>
+
+    <!-- ========== 第二步：强制设置手机号和密码 ========== -->
+    <view class="auth-mask" v-if="authStep === 2">
+      <view class="auth-panel">
+        <text class="auth-title">完成账户设置 🔐</text>
+        <text class="auth-subtitle">设置手机号和密码保护账户</text>
+
+        <!-- 手机号 -->
+        <input
+          class="auth-input"
+          type="tel"
+          v-model="step2Form.phone"
+          placeholder="请输入手机号"
+          maxlength="11"
+        />
+
+        <!-- 密码 -->
+        <input
+          class="auth-input"
+          type="password"
+          v-model="step2Form.password"
+          placeholder="设置密码（至少6位）"
+          maxlength="50"
+        />
+
+        <!-- 确认密码 -->
+        <input
+          class="auth-input"
+          type="password"
+          v-model="step2Form.confirmPassword"
+          placeholder="确认密码"
+          maxlength="50"
+        />
+
+        <view class="auth-actions">
+          <button class="auth-btn confirm full" @click="submitStep2">完成设置</button>
+        </view>
+        <text class="auth-tip">设置完成后即可开启探索之旅 →</text>
       </view>
     </view>
 
@@ -162,7 +202,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { wxLogin, getUserInfo, updateUserInfo, uploadAvatar } from '@/api/auth'
+import { wxLogin, getUserInfo, updateUserInfo, uploadAvatar, changePassword } from '@/api/auth'
 import { getImageUrl } from '@/utils/request'
 
 const userStore = useUserStore()
@@ -170,15 +210,21 @@ const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
 
-// ========== 新用户授权弹窗 ==========
-const authVisible = ref(false)
+// ========== 新用户两步授权流程 ==========
+const authStep = ref(0) // 0: 未开始, 1: 设置头像昵称, 2: 设置手机号密码
 const authForm = reactive({
   nickname: '',
   avatarPreview: '',
   avatarTempFile: ''
 })
 
-// 新用户授权 - 选择头像
+const step2Form = reactive({
+  phone: '',
+  password: '',
+  confirmPassword: ''
+})
+
+// 第一步：选择头像
 const onAuthChooseAvatar = (e) => {
   const url = e.detail.avatarUrl
   if (url) {
@@ -187,20 +233,20 @@ const onAuthChooseAvatar = (e) => {
   }
 }
 
-// input type="nickname" blur 时，微信会把选中的昵称写入 v-model
+// 第一步：昵称输入
 const onNicknameBlur = (e) => {
   if (e.detail?.value) {
     authForm.nickname = e.detail.value
   }
 }
 
-// 跳过授权
-const skipAuth = () => {
-  authVisible.value = false
+// 第一步：跳过（直接进入第二步）
+const skipStep1 = () => {
+  authStep.value = 2
 }
 
-// 提交授权信息
-const submitAuth = async () => {
+// 第一步：提交（保存头像昵称，进入第二步）
+const submitStep1 = async () => {
   const hasAvatar = !!authForm.avatarTempFile
   const hasNickname = !!authForm.nickname.trim()
 
@@ -226,11 +272,65 @@ const submitAuth = async () => {
     await syncUserInfo()
 
     uni.hideLoading()
-    authVisible.value = false
-    uni.showToast({ title: '设置成功', icon: 'success' })
+    // 进入第二步
+    authStep.value = 2
   } catch (e) {
     uni.hideLoading()
     uni.showToast({ title: '保存失败', icon: 'none' })
+  }
+}
+
+// 第二步：验证并提交
+const submitStep2 = async () => {
+  const phone = step2Form.phone.trim()
+  const password = step2Form.password.trim()
+  const confirmPassword = step2Form.confirmPassword.trim()
+
+  // 验证手机号（简单验证）
+  if (!phone) {
+    uni.showToast({ title: '请输入手机号', icon: 'none' })
+    return
+  }
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    uni.showToast({ title: '请输入有效的手机号', icon: 'none' })
+    return
+  }
+
+  // 验证密码
+  if (!password) {
+    uni.showToast({ title: '请设置密码', icon: 'none' })
+    return
+  }
+  if (password.length < 6) {
+    uni.showToast({ title: '密码长度至少6个字符', icon: 'none' })
+    return
+  }
+  if (password !== confirmPassword) {
+    uni.showToast({ title: '两次输入的密码不一致', icon: 'none' })
+    return
+  }
+
+  try {
+    uni.showLoading({ title: '完成设置...', mask: true })
+
+    // 更新手机号和密码
+    await updateUserInfo({
+      phone: phone
+    })
+
+    // 修改密码（新用户首次设置，无需旧密码）
+    await changePassword({
+      newPassword: password
+    })
+
+    await syncUserInfo()
+
+    uni.hideLoading()
+    authStep.value = 0 // 关闭授权流程
+    uni.showToast({ title: '设置成功，欢迎使用微旅！', icon: 'success' })
+  } catch (e) {
+    uni.hideLoading()
+    uni.showToast({ title: '设置失败', icon: 'none' })
   }
 }
 
@@ -263,13 +363,16 @@ const doLogin = async () => {
     await syncUserInfo()
     uni.showToast({ title: '登录成功', icon: 'success' })
 
-    // 新用户弹出授权弹窗
+    // 新用户启动两步设置流程
     if (res.data.user?.isNewUser) {
       setTimeout(() => {
         authForm.nickname = ''
         authForm.avatarPreview = ''
         authForm.avatarTempFile = ''
-        authVisible.value = true
+        step2Form.phone = ''
+        step2Form.password = ''
+        step2Form.confirmPassword = ''
+        authStep.value = 1 // 进入第一步：头像昵称
       }, 500)
     }
     // #endif
@@ -642,6 +745,19 @@ const showAbout = () => {
 .auth-btn.confirm {
   color: #fff;
   background: #007AFF;
+}
+
+.auth-btn.confirm.full {
+  flex: 1;
+  width: 100%;
+}
+
+.auth-tip {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #8E8E93;
+  text-align: center;
 }
 
 /* ========== 编辑资料弹窗 ========== */
