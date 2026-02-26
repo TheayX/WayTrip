@@ -77,6 +77,12 @@
       "style": {
         "navigationBarTitleText": "修改密码"
       }
+    },
+    {
+      "path": "pages/mine/deactivate",
+      "style": {
+        "navigationBarTitleText": "注销账户"
+      }
     }
   ],
   "globalStyle": {

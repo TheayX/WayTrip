@@ -1,4 +1,4 @@
-import { post, get, put, uploadFile } from '@/utils/request'
+import { post, get, put, del, uploadFile } from '@/utils/request'
 
 /**
  * 微信登录
@@ -47,5 +47,12 @@ export const changePassword = (data) => {
  */
 export const uploadAvatar = (filePath) => {
   return uploadFile('/upload/avatar', filePath, 'file')
+}
+
+/**
+ * 注销账户
+ */
+export const deactivateAccount = () => {
+  return del('/auth/account')
 }
 

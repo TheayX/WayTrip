@@ -39,6 +39,11 @@ public interface AuthService {
     void changePassword(Long userId, ChangePasswordRequest request);
 
     /**
+     * 注销账户
+     */
+    void deactivateAccount(Long userId);
+
+    /**
      * 设置用户偏好标签
      */
     void setPreferences(Long userId, List<String> tags);

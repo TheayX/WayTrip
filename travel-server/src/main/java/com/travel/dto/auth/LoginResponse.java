@@ -21,5 +21,6 @@ public class LoginResponse {
         private String avatar;
         private String phone;
         private Boolean isNewUser;
+        private Boolean isReactivated; // 账户是否已恢复（从注销状态）
     }
 }

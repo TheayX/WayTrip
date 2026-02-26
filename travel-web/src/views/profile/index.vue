@@ -34,6 +34,10 @@
             <el-icon><Star /></el-icon>
             <span>我的收藏</span>
           </el-menu-item>
+          <el-menu-item index="deactivate">
+            <el-icon><Delete /></el-icon>
+            <span>注销账户</span>
+          </el-menu-item>
         </el-menu>
       </div>
 
@@ -105,6 +109,40 @@
             </el-form-item>
           </el-form>
         </div>
+
+        <!-- 注销账户 -->
+        <div v-if="activeMenu === 'deactivate'" class="section-card card danger-section">
+          <h3 class="card-title danger-title">注销账户</h3>
+          <div class="danger-warning">
+            <el-alert
+              title="注销说明"
+              type="warning"
+              :closable="false"
+              description="注销后你将无法使用此账户登录，所有数据将被保留。使用同一微信号重新登录可恢复账户。"
+            />
+          </div>
+          <div class="danger-info">
+            <div class="info-item">
+              <span class="info-icon">•</span>
+              <span>注销后无法立即使用此账户</span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">•</span>
+              <span>你的订单记录、收藏等数据将被保留</span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">•</span>
+              <span>使用同一微信号重新登录可恢复账户</span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">•</span>
+              <span>此操作无法撤销，请谨慎考虑</span>
+            </div>
+          </div>
+          <el-button type="danger" @click="handleDeactivate" style="margin-top: 24px">
+            确认注销账户
+          </el-button>
+        </div>
       </div>
     </div>
   </div>
@@ -112,11 +150,14 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { getUserInfo, updateUserInfo, setPreferences, changePassword, uploadAvatar } from '@/api/auth'
+import { getUserInfo, updateUserInfo, setPreferences, changePassword, uploadAvatar, deactivateAccount } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import { getImageUrl } from '@/utils/request'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+
+const router = useRouter()
 
 const userStore = useUserStore()
 const activeMenu = ref('info')
@@ -270,6 +311,30 @@ const handleChangePassword = async () => {
   savingPwd.value = false
 }
 
+// ======== 注销账户 ========
+const handleDeactivate = () => {
+  ElMessageBox.confirm(
+    '注销后你将无法使用此账户登录，确定要继续吗？',
+    '确认注销账户',
+    {
+      confirmButtonText: '确认注销',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  )
+    .then(async () => {
+      try {
+        await deactivateAccount()
+        ElMessage.success('账户已注销，已为您登出')
+        setTimeout(() => {
+          userStore.logout()
+          router.push('/login')
+        }, 1500)
+      } catch (e) { /* ignore */ }
+    })
+    .catch(() => {})
+}
+
 const handleSavePreference = async () => {
   if (!selectedCategories.value.length) {
     ElMessage.warning('请至少选择一个标签')
@@ -387,6 +452,45 @@ onMounted(() => {
   opacity: 0;
   transition: opacity 0.3s;
   gap: 2px;
+}
+
+.danger-section {
+  background: #fef0f0;
+  border: 1px solid #fde2e4;
+}
+
+.danger-title {
+  color: #f56c6c;
+}
+
+.danger-warning {
+  margin: 20px 0;
+}
+
+.danger-info {
+  margin: 20px 0;
+  padding: 16px;
+  background: #fff;
+  border-radius: 4px;
+  border-left: 3px solid #f56c6c;
+}
+
+.info-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-icon {
+  color: #f56c6c;
+  flex-shrink: 0;
 }
 </style>
 

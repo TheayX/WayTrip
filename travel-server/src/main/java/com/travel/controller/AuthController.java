@@ -70,4 +70,12 @@ public class AuthController {
         authService.changePassword(userId, request);
         return ApiResponse.success();
     }
+
+    @Operation(summary = "注销账户")
+    @DeleteMapping("/account")
+    public ApiResponse<Void> deactivateAccount() {
+        Long userId = UserContext.getUserId();
+        authService.deactivateAccount(userId);
+        return ApiResponse.success();
+    }
 }

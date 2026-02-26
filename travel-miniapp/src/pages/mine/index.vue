@@ -58,6 +58,13 @@
         <text class="cell-title">关于我们</text>
         <text class="cell-arrow">›</text>
       </view>
+      <view class="ios-cell" @click="goDeactivate">
+        <view class="cell-icon">
+          <image class="cell-icon-img" src="/static/icons/删除.png" />
+        </view>
+        <text class="cell-title">注销账户</text>
+        <text class="cell-arrow">›</text>
+      </view>
     </view>
 
     <!-- 退出登录 -->
@@ -202,7 +209,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { wxLogin, getUserInfo, updateUserInfo, uploadAvatar, changePassword } from '@/api/auth'
+import { wxLogin, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount } from '@/api/auth'
 import { getImageUrl } from '@/utils/request'
 
 const userStore = useUserStore()
@@ -361,7 +368,18 @@ const doLogin = async () => {
     const res = await wxLogin(loginRes.code)
     userStore.login(res.data)
     await syncUserInfo()
-    uni.showToast({ title: '登录成功', icon: 'success' })
+
+    // 检查账户是否已恢复
+    if (res.data.user?.isReactivated) {
+      uni.showModal({
+        title: '账户已恢复',
+        content: '欢迎回来！你的账户已恢复，可以继续使用微旅了。',
+        showCancel: false,
+        confirmText: '确认'
+      })
+    } else {
+      uni.showToast({ title: '登录成功', icon: 'success' })
+    }
 
     // 新用户启动两步设置流程
     if (res.data.user?.isNewUser) {
@@ -498,6 +516,11 @@ const showAbout = () => {
     content: 'WayTrip·微旅 v1.0.0\n基于协同过滤的个性化旅游推荐',
     showCancel: false
   })
+}
+
+// 跳转注销账户
+const goDeactivate = () => {
+  uni.navigateTo({ url: '/pages/mine/deactivate' })
 }
 </script>
 
