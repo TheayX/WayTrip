@@ -22,6 +22,8 @@ Thumbs.db
 
 # Application
 application-local.yml
+.env
+.env.local
 
 # Uploads
 uploads/images/
