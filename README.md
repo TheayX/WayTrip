@@ -50,13 +50,15 @@ CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 > **注意**：VS Code 默认可正常启动。若使用 **IntelliJ IDEA**，请务必在启动配置中将 **Working directory** 修改为 `travel-server` 子模块目录（或填入 `$MODULE_WORKING_DIR$`），否则会导致图片无法显示或上传路径错误。
 >
-> **配置提示**：建议本地开发将 [active](travel-server/src/main/resources/application.yml) 切换到 `dev` 配置，并在 `application-dev.yml` 中填写自己的数据库、Redis、JWT、微信小程序等参数；如果使用 `prod` 配置，请在环境变量中提供对应参数。
+> **配置提示**：建议本地开发将 [active](travel-server/src/main/resources/application.yml) 切换到 `dev` 配置，并在 `application-dev.yml` 中填写自己的数据库、Redis、JWT、微信小程序等参数；如果使用 `prod` 配置，请在 `travel-server` 根目录创建 `.env` 文件并填写对应参数（参考 `.env.example`）。
 
 ```bash
 cd travel-server
 
-# 修改配置文件 (数据库连接、Redis、微信小程序配置等)
-# 文件: src/main/resources/application-dev.yml
+# 方式一：dev 环境 — 直接修改 application-dev.yml
+# 方式二：prod 环境 — 复制 .env.example 为 .env 并填写配置
+cp .env.example .env
+# 编辑 .env 填入数据库密码、Redis密码、JWT密钥、微信配置等
 
 # 启动服务
 mvn spring-boot:run

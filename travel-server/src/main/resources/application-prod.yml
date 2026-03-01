@@ -1,34 +1,35 @@
-# 生产环境配置（所有敏感值通过环境变量注入） # 若使用prod，请确保在系统环境变量中设置所需变量
+# 生产环境配置
+# 敏感值通过 .env 文件注入（travel-server 根目录），参考 .env.example
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:waytrip_db}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:} # 数据库密码
+    password: ${DB_PASSWORD:}
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:} # Redis 密码
+      password: ${REDIS_PASSWORD:}
       database: 0
 
 # JWT 配置
 jwt:
-  secret: ${JWT_SECRET:} # JWT 密钥
+  secret: ${JWT_SECRET:}
   expiration: 604800000  # 7天（毫秒）
   admin-expiration: 86400000  # 1天（毫秒）
 
 # 微信小程序配置
 wx:
-  appid: ${WECHAT_APPID:} # 小程序 AppID
-  secret: ${WECHAT_SECRET:} # 小程序 AppSecret
+  appid: ${WECHAT_APPID:}
+  secret: ${WECHAT_SECRET:}
 
 # 文件上传配置
 upload:
   path: ${UPLOAD_PATH:./uploads}
   max-size: 5242880  # 5MB
 
-# 关闭 SQL 日志
+# 生产环境关闭 SQL 日志（取消注释即可）
 #mybatis-plus:
 #  configuration:
 #    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
