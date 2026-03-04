@@ -67,10 +67,4 @@ public class Order {
     @TableField(exist = false)
     private BigDecimal unitPrice;
 
-    // 状态常量
-    public static final int STATUS_PENDING = 0;
-    public static final int STATUS_PAID = 1;
-    public static final int STATUS_CANCELLED = 2;
-    public static final int STATUS_REFUNDED = 3;
-    public static final int STATUS_COMPLETED = 4;
 }

@@ -23,8 +23,7 @@ public class User {
 
     private String password;
 
-    @TableField("avatar_url")
-    private String avatar;
+    private String avatarUrl;
 
     @TableField("last_login_at")
     private LocalDateTime lastLoginAt;

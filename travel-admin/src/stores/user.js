@@ -3,18 +3,16 @@ import { ref } from 'vue'
 import { login, getAdminInfo } from '@/api/auth'
 
 export const useUserStore = defineStore('user', () => {
-  const token = ref(localStorage.getItem('admin_token') || '')
+  const token = ref('')
   const adminInfo = ref(null)
 
   const setToken = (newToken) => {
     token.value = newToken
-    localStorage.setItem('admin_token', newToken)
   }
 
   const clearToken = () => {
     token.value = ''
     adminInfo.value = null
-    localStorage.removeItem('admin_token')
   }
 
   const loginAction = async (username, password) => {
@@ -43,4 +41,6 @@ export const useUserStore = defineStore('user', () => {
     getInfo,
     logout
   }
+}, {
+  persist: true
 })

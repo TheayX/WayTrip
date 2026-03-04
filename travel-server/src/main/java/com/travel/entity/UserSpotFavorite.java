@@ -6,20 +6,18 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 地区实体
+ * 用户景点收藏实体（对应 user_spot_favorite 表）
  */
 @Data
-@TableName("spot_region")
-public class Region {
+@TableName("user_spot_favorite")
+public class UserSpotFavorite {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long parentId;
+    private Long userId;
 
-    private String name;
-
-    private Integer sortOrder;
+    private Long spotId;
 
     @TableField("is_deleted")
     private Integer isDeleted;
@@ -30,3 +28,4 @@ public class Region {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
+

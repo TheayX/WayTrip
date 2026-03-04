@@ -8,13 +8,13 @@ import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.rating.RatingRequest;
 import com.travel.dto.rating.RatingResponse;
-import com.travel.entity.Rating;
+import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.entity.User;
-import com.travel.mapper.RatingMapper;
+import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
-import com.travel.service.RatingService;
+import com.travel.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,16 +26,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 评分服务实现
+ * 评价服务实现
  */
 @Service
 @RequiredArgsConstructor
-public class RatingServiceImpl implements RatingService {
+public class ReviewServiceImpl implements ReviewService {
 
-    private final RatingMapper ratingMapper;
+    private final ReviewMapper reviewMapper;
     private final SpotMapper spotMapper;
     private final UserMapper userMapper;
-    
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Override
@@ -46,115 +46,116 @@ public class RatingServiceImpl implements RatingService {
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
-        if (spot.getPublished() != 1) {
+        if (spot.getIsPublished() != 1) {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
-        
-        // 查找是否已有评分
-        Rating existingRating = ratingMapper.selectOne(
-            new LambdaQueryWrapper<Rating>()
-                .eq(Rating::getUserId, userId)
-                .eq(Rating::getSpotId, request.getSpotId())
+
+        // 查找是否已有评价
+        Review existingReview = reviewMapper.selectOne(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getSpotId, request.getSpotId())
         );
-        
-        if (existingRating != null) {
-            // 更新评分
-            existingRating.setScore(request.getScore());
-            existingRating.setComment(request.getComment());
-            existingRating.setIsDeleted(0);
-            ratingMapper.updateById(existingRating);
+
+        if (existingReview != null) {
+            // 更新评价
+            existingReview.setScore(request.getScore());
+            existingReview.setComment(request.getComment());
+            existingReview.setIsDeleted(0);
+            reviewMapper.updateById(existingReview);
         } else {
-            // 新增评分
-            Rating rating = new Rating();
-            rating.setUserId(userId);
-            rating.setSpotId(request.getSpotId());
-            rating.setScore(request.getScore());
-            rating.setComment(request.getComment());
-            ratingMapper.insert(rating);
+            // 新增评价
+            Review review = new Review();
+            review.setUserId(userId);
+            review.setSpotId(request.getSpotId());
+            review.setScore(request.getScore());
+            review.setComment(request.getComment());
+            reviewMapper.insert(review);
         }
-        
+
         // 更新景点平均评分
         updateSpotAvgRating(request.getSpotId());
     }
 
     @Override
     public RatingResponse getUserRating(Long userId, Long spotId) {
-        Rating rating = ratingMapper.selectOne(
-            new LambdaQueryWrapper<Rating>()
-                .eq(Rating::getUserId, userId)
-                .eq(Rating::getSpotId, spotId)
-                .eq(Rating::getIsDeleted, 0)
+        Review review = reviewMapper.selectOne(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getSpotId, spotId)
+                .eq(Review::getIsDeleted, 0)
         );
-        
-        if (rating == null) {
+
+        if (review == null) {
             return null;
         }
-        
-        return convertToResponse(rating);
+
+        return convertToResponse(review);
     }
 
     @Override
     public PageResult<RatingResponse> getSpotRatings(Long spotId, Integer page, Integer pageSize) {
-        Page<Rating> pageObj = new Page<>(page, pageSize);
-        
-        pageObj = (Page<Rating>) ratingMapper.selectRatingPage(pageObj, spotId);
-        
+        Page<Review> pageObj = new Page<>(page, pageSize);
+
+        pageObj = (Page<Review>) reviewMapper.selectRatingPage(pageObj, spotId);
+
         List<RatingResponse> list = pageObj.getRecords().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
-        
+
         return PageResult.of(list, pageObj.getTotal(), page, pageSize);
     }
 
     @Override
     public int getUserRatingCount(Long userId) {
-        return Math.toIntExact(ratingMapper.selectCount(
-            new LambdaQueryWrapper<Rating>()
-                .eq(Rating::getUserId, userId)
-                .eq(Rating::getIsDeleted, 0)
+        return Math.toIntExact(reviewMapper.selectCount(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getIsDeleted, 0)
         ));
     }
 
     private void updateSpotAvgRating(Long spotId) {
         // 计算平均评分
-        LambdaQueryWrapper<Rating> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Rating::getSpotId, spotId);
-        wrapper.eq(Rating::getIsDeleted, 0);
-        List<Rating> ratings = ratingMapper.selectList(wrapper);
-        
-        if (ratings.isEmpty()) {
+        LambdaQueryWrapper<Review> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Review::getSpotId, spotId);
+        wrapper.eq(Review::getIsDeleted, 0);
+        List<Review> reviews = reviewMapper.selectList(wrapper);
+
+        if (reviews.isEmpty()) {
             return;
         }
-        
-        double avg = ratings.stream()
-                .mapToInt(Rating::getScore)
+
+        double avg = reviews.stream()
+                .mapToInt(Review::getScore)
                 .average()
                 .orElse(0);
-        
+
         BigDecimal avgRating = BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP);
-        
+
         // 更新景点评分统计（不更新 updatedAt）
         spotMapper.update(
             null,
             new UpdateWrapper<Spot>()
                 .eq("id", spotId)
                 .set("avg_rating", avgRating)
-                .set("rating_count", ratings.size())
+                .set("rating_count", reviews.size())
         );
     }
 
-    private RatingResponse convertToResponse(Rating rating) {
-        User user = userMapper.selectById(rating.getUserId());
-        
+    private RatingResponse convertToResponse(Review review) {
+        User user = userMapper.selectById(review.getUserId());
+
         return RatingResponse.builder()
-                .id(rating.getId())
-                .userId(rating.getUserId())
-                .spotId(rating.getSpotId())
-                .score(rating.getScore())
-                .comment(rating.getComment())
+                .id(review.getId())
+                .userId(review.getUserId())
+                .spotId(review.getSpotId())
+                .score(review.getScore())
+                .comment(review.getComment())
                 .nickname(user != null ? user.getNickname() : "匿名用户")
-                .avatar(user != null ? user.getAvatar() : null)
-                .createdAt(rating.getCreatedAt() != null ? rating.getCreatedAt().format(DATE_FORMATTER) : null)
+                .avatar(user != null ? user.getAvatarUrl() : null)
+                .createdAt(review.getCreatedAt() != null ? review.getCreatedAt().format(DATE_FORMATTER) : null)
                 .build();
     }
 }
+

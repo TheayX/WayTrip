@@ -19,8 +19,7 @@ public class SpotCategory {
 
     private String name;
 
-    @TableField("icon_url")
-    private String icon;
+    private String iconUrl;
 
     private Integer sortOrder;
 

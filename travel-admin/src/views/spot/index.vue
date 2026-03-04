@@ -217,13 +217,15 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getSpotList, getSpotDetail, createSpot, updateSpot, updatePublishStatus, deleteSpot, getFilters } from '@/api/spot'
+import { useUserStore } from '@/stores/user'
 
 const BASE_URL = 'http://localhost:8080'
+const userStore = useUserStore()
 
 // 上传配置
 const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/image`)
 const uploadHeaders = computed(() => ({
-  'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+  'Authorization': `Bearer ${userStore.token}`
 }))
 
 // 获取完整图片URL

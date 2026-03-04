@@ -6,22 +6,23 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 评分评论实体
+ * 景点轮播图实体（对应 spot_banner 表）
  */
 @Data
-@TableName("user_spot_review")
-public class Rating {
+@TableName("spot_banner")
+public class SpotBanner {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long userId;
+    private String imageUrl;
 
     private Long spotId;
 
-    private Integer score;
+    private Integer sortOrder;
 
-    private String comment;
+    @TableField("is_enabled")
+    private Integer isEnabled;
 
     @TableField("is_deleted")
     private Integer isDeleted;
@@ -34,8 +35,6 @@ public class Rating {
 
     // 非数据库字段
     @TableField(exist = false)
-    private String nickname;
-
-    @TableField(exist = false)
-    private String avatar;
+    private String spotName;
 }
+

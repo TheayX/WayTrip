@@ -2,7 +2,7 @@ package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.banner.*;
-import com.travel.service.BannerService;
+import com.travel.service.SpotBannerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,18 +15,18 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminBannerController {
 
-    private final BannerService bannerService;
+    private final SpotBannerService spotBannerService;
 
     @Operation(summary = "获取轮播图列表")
     @GetMapping
     public ApiResponse<AdminBannerListResponse> getBanners() {
-        return ApiResponse.success(bannerService.getAdminBanners());
+        return ApiResponse.success(spotBannerService.getAdminBanners());
     }
 
     @Operation(summary = "创建轮播图")
     @PostMapping
     public ApiResponse<Void> createBanner(@Valid @RequestBody AdminBannerRequest request) {
-        bannerService.createBanner(request);
+        spotBannerService.createBanner(request);
         return ApiResponse.success(null);
     }
 
@@ -35,21 +35,21 @@ public class AdminBannerController {
     public ApiResponse<Void> updateBanner(
             @PathVariable("id") Long id,
             @Valid @RequestBody AdminBannerRequest request) {
-        bannerService.updateBanner(id, request);
+        spotBannerService.updateBanner(id, request);
         return ApiResponse.success(null);
     }
 
     @Operation(summary = "删除轮播图")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteBanner(@PathVariable("id") Long id) {
-        bannerService.deleteBanner(id);
+        spotBannerService.deleteBanner(id);
         return ApiResponse.success(null);
     }
 
     @Operation(summary = "切换启用状态")
     @PostMapping("/{id}/toggle")
     public ApiResponse<Void> toggleEnabled(@PathVariable("id") Long id) {
-        bannerService.toggleEnabled(id);
+        spotBannerService.toggleEnabled(id);
         return ApiResponse.success(null);
     }
 }

@@ -7,6 +7,7 @@ import com.travel.dto.order.*;
 import com.travel.entity.Order;
 import com.travel.entity.Spot;
 import com.travel.entity.User;
+import com.travel.enums.OrderStatus;
 import com.travel.mapper.OrderMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
@@ -39,7 +40,7 @@ public class OrderServiceImpl implements OrderService {
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new RuntimeException("景点不存在");
         }
-        if (spot.getPublished() != 1) {
+        if (spot.getIsPublished() != 1) {
             throw new RuntimeException("景点已下架");
         }
 
@@ -52,12 +53,12 @@ public class OrderServiceImpl implements OrderService {
         order.setVisitDate(request.getVisitDate());
         order.setContactName(request.getContactName());
         order.setContactPhone(request.getContactPhone());
-        order.setStatus(Order.STATUS_PENDING);
+        order.setStatus(OrderStatus.PENDING.getCode());
 
         orderMapper.insert(order);
 
         order.setSpotName(spot.getName());
-        order.setSpotImage(spot.getCoverImage());
+        order.setSpotImage(spot.getCoverImageUrl());
         order.setUnitPrice(spot.getPrice());
 
         return buildOrderDetail(order);
@@ -70,9 +71,9 @@ public class OrderServiceImpl implements OrderService {
         wrapper.eq(Order::getIsDeleted, 0);
 
         if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-            Integer statusCode = convertStatusToCode(request.getStatus());
-            if (statusCode != null) {
-                wrapper.eq(Order::getStatus, statusCode);
+            OrderStatus statusEnum = OrderStatus.fromKey(request.getStatus());
+            if (statusEnum != null) {
+                wrapper.eq(Order::getStatus, statusEnum.getCode());
             }
         }
 
@@ -125,16 +126,16 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("订单不存在");
         }
 
-        if (order.getStatus() == Order.STATUS_PAID) {
+        if (order.getStatus() == OrderStatus.PAID.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
         }
 
-        if (order.getStatus() != Order.STATUS_PENDING) {
+        if (order.getStatus() != OrderStatus.PENDING.getCode()) {
             throw new RuntimeException("订单状态不允许支付");
         }
 
-        order.setStatus(Order.STATUS_PAID);
+        order.setStatus(OrderStatus.PAID.getCode());
         order.setPaidAt(LocalDateTime.now());
         orderMapper.updateById(order);
 
@@ -156,16 +157,16 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("订单不存在");
         }
 
-        if (order.getStatus() == Order.STATUS_CANCELLED) {
+        if (order.getStatus() == OrderStatus.CANCELLED.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
         }
 
-        if (order.getStatus() != Order.STATUS_PENDING) {
+        if (order.getStatus() != OrderStatus.PENDING.getCode()) {
             throw new RuntimeException("订单状态不允许取消");
         }
 
-        order.setStatus(Order.STATUS_CANCELLED);
+        order.setStatus(OrderStatus.CANCELLED.getCode());
         order.setCancelledAt(LocalDateTime.now());
         orderMapper.updateById(order);
 
@@ -202,9 +203,9 @@ public class OrderServiceImpl implements OrderService {
         }
         
         if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-            Integer statusCode = convertStatusToCode(request.getStatus());
-            if (statusCode != null) {
-                wrapper.eq(Order::getStatus, statusCode);
+            OrderStatus statusEnum = OrderStatus.fromKey(request.getStatus());
+            if (statusEnum != null) {
+                wrapper.eq(Order::getStatus, statusEnum.getCode());
             }
         }
         if (request.getStartDate() != null) {
@@ -249,14 +250,14 @@ public class OrderServiceImpl implements OrderService {
         if (order == null || order.getIsDeleted() == 1) {
             throw new RuntimeException("订单不存在");
         }
-        if (order.getStatus() == Order.STATUS_COMPLETED) {
+        if (order.getStatus() == OrderStatus.COMPLETED.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
         }
-        if (order.getStatus() != Order.STATUS_PAID) {
+        if (order.getStatus() != OrderStatus.PAID.getCode()) {
             throw new RuntimeException("订单状态不允许完成");
         }
-        order.setStatus(Order.STATUS_COMPLETED);
+        order.setStatus(OrderStatus.COMPLETED.getCode());
         order.setCompletedAt(LocalDateTime.now());
         orderMapper.updateById(order);
         fillSpotInfoSingle(order);
@@ -270,14 +271,14 @@ public class OrderServiceImpl implements OrderService {
         if (order == null || order.getIsDeleted() == 1) {
             throw new RuntimeException("订单不存在");
         }
-        if (order.getStatus() == Order.STATUS_REFUNDED) {
+        if (order.getStatus() == OrderStatus.REFUNDED.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
         }
-        if (order.getStatus() != Order.STATUS_PAID) {
+        if (order.getStatus() != OrderStatus.PAID.getCode()) {
             throw new RuntimeException("订单状态不允许退款");
         }
-        order.setStatus(Order.STATUS_REFUNDED);
+        order.setStatus(OrderStatus.REFUNDED.getCode());
         order.setRefundedAt(LocalDateTime.now());
         orderMapper.updateById(order);
         fillSpotInfoSingle(order);
@@ -289,16 +290,16 @@ public class OrderServiceImpl implements OrderService {
     public OrderDetailResponse cancelOrderByAdmin(Long orderId) {
         Order order = orderMapper.selectById(orderId);
         if (order == null || order.getIsDeleted() == 1) {
-            throw new RuntimeException("璁㈠崟涓嶅瓨鍦?");
+            throw new RuntimeException("订单不存在");
         }
-        if (order.getStatus() == Order.STATUS_CANCELLED) {
+        if (order.getStatus() == OrderStatus.CANCELLED.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
         }
-        if (order.getStatus() != Order.STATUS_PENDING) {
-            throw new RuntimeException("璁㈠崟鐘舵€佷笉鍏佽鍙栨秷");
+        if (order.getStatus() != OrderStatus.PENDING.getCode()) {
+            throw new RuntimeException("订单状态不允许取消");
         }
-        order.setStatus(Order.STATUS_CANCELLED);
+        order.setStatus(OrderStatus.CANCELLED.getCode());
         order.setCancelledAt(LocalDateTime.now());
         orderMapper.updateById(order);
         fillSpotInfoSingle(order);
@@ -310,18 +311,18 @@ public class OrderServiceImpl implements OrderService {
     public OrderDetailResponse reopenOrder(Long orderId) {
         Order order = orderMapper.selectById(orderId);
         if (order == null || order.getIsDeleted() == 1) {
-            throw new RuntimeException("璁㈠崟涓嶅瓨鍦?");
+            throw new RuntimeException("订单不存在");
         }
-        if (order.getStatus() != Order.STATUS_COMPLETED) {
-            throw new RuntimeException("璁㈠崟鐘舵€佷笉鍏佽鎭㈠");
+        if (order.getStatus() != OrderStatus.COMPLETED.getCode()) {
+            throw new RuntimeException("订单状态不允许恢复");
         }
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id", orderId)
-                .set("status", Order.STATUS_PAID)
+                .set("status", OrderStatus.PAID.getCode())
                 .set("completed_at", null)
                 .set("updated_at", LocalDateTime.now());
         orderMapper.update(null, updateWrapper);
-        order.setStatus(Order.STATUS_PAID);
+        order.setStatus(OrderStatus.PAID.getCode());
         order.setCompletedAt(null);
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
@@ -333,40 +334,14 @@ public class OrderServiceImpl implements OrderService {
         return "T" + timestamp + random;
     }
 
-    private Integer convertStatusToCode(String status) {
-        if (status == null) return null;
-        return switch (status.toLowerCase()) {
-            case "pending" -> Order.STATUS_PENDING;
-            case "paid" -> Order.STATUS_PAID;
-            case "cancelled" -> Order.STATUS_CANCELLED;
-            case "refunded" -> Order.STATUS_REFUNDED;
-            case "completed" -> Order.STATUS_COMPLETED;
-            default -> null;
-        };
-    }
-
     private String convertStatusToString(Integer status) {
-        if (status == null) return "unknown";
-        return switch (status) {
-            case Order.STATUS_PENDING -> "pending";
-            case Order.STATUS_PAID -> "paid";
-            case Order.STATUS_CANCELLED -> "cancelled";
-            case Order.STATUS_REFUNDED -> "refunded";
-            case Order.STATUS_COMPLETED -> "completed";
-            default -> "unknown";
-        };
+        OrderStatus orderStatus = OrderStatus.fromCode(status);
+        return orderStatus != null ? orderStatus.getKey() : "unknown";
     }
 
     private String getStatusText(Integer status) {
-        if (status == null) return "未知";
-        return switch (status) {
-            case Order.STATUS_PENDING -> "待支付";
-            case Order.STATUS_PAID -> "已支付";
-            case Order.STATUS_CANCELLED -> "已取消";
-            case Order.STATUS_REFUNDED -> "已退款";
-            case Order.STATUS_COMPLETED -> "已完成";
-            default -> "未知";
-        };
+        OrderStatus orderStatus = OrderStatus.fromCode(status);
+        return orderStatus != null ? orderStatus.getDescription() : "未知";
     }
 
 
@@ -388,7 +363,7 @@ public class OrderServiceImpl implements OrderService {
             Spot spot = spotMap.get(order.getSpotId());
             if (spot != null) {
                 order.setSpotName(spot.getName());
-                order.setSpotImage(spot.getCoverImage());
+                order.setSpotImage(spot.getCoverImageUrl());
                 order.setUnitPrice(spot.getPrice());
             }
         }
@@ -399,7 +374,7 @@ public class OrderServiceImpl implements OrderService {
         Spot spot = spotMapper.selectById(order.getSpotId());
         if (spot != null && spot.getIsDeleted() == 0) {
             order.setSpotName(spot.getName());
-            order.setSpotImage(spot.getCoverImage());
+            order.setSpotImage(spot.getCoverImageUrl());
             order.setUnitPrice(spot.getPrice());
         }
     }
@@ -473,12 +448,14 @@ public class OrderServiceImpl implements OrderService {
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
 
-        response.setCanPay(order.getStatus() == Order.STATUS_PENDING);
-        response.setCanCancel(order.getStatus() == Order.STATUS_PENDING);
+        OrderStatus orderStatus = OrderStatus.fromCode(order.getStatus());
+        response.setCanPay(orderStatus != null && orderStatus.canPay());
+        response.setCanCancel(orderStatus != null && orderStatus.canCancel());
 
         return response;
     }
 }
+
 
 
 

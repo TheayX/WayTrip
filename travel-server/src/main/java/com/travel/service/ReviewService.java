@@ -5,27 +5,28 @@ import com.travel.dto.rating.RatingRequest;
 import com.travel.dto.rating.RatingResponse;
 
 /**
- * 评分服务接口
+ * 评价服务接口
  */
-public interface RatingService {
-    
+public interface ReviewService {
+
     /**
-     * 提交评分
+     * 提交评价
      */
     void submitRating(Long userId, RatingRequest request);
-    
+
     /**
-     * 获取用户对景点的评分
+     * 获取用户对景点的评价
      */
     RatingResponse getUserRating(Long userId, Long spotId);
-    
+
     /**
      * 获取景点评论列表
      */
     PageResult<RatingResponse> getSpotRatings(Long spotId, Integer page, Integer pageSize);
-    
+
     /**
-     * 获取用户评分数量
+     * 获取用户评价数量
      */
     int getUserRatingCount(Long userId);
 }
+

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.dto.user.*;
 import com.travel.entity.*;
+import com.travel.enums.OrderStatus;
 import com.travel.mapper.*;
 import com.travel.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +21,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final OrderMapper orderMapper;
-    private final FavoriteMapper favoriteMapper;
-    private final RatingMapper ratingMapper;
+    private final UserSpotFavoriteMapper userSpotFavoriteMapper;
+    private final ReviewMapper reviewMapper;
     private final SpotMapper spotMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -60,7 +61,7 @@ public class UserServiceImpl implements UserService {
         AdminUserDetailResponse response = new AdminUserDetailResponse();
         response.setId(user.getId());
         response.setNickname(user.getNickname());
-        response.setAvatar(user.getAvatar());
+        response.setAvatar(user.getAvatarUrl());
         response.setPhone(user.getPhone());
         response.setPreferences(user.getPreferences());
         response.setCreatedAt(user.getCreatedAt());
@@ -72,15 +73,15 @@ public class UserServiceImpl implements UserService {
                 .eq(Order::getUserId, userId)
                 .eq(Order::getIsDeleted, 0)
         )));
-        response.setFavoriteCount(Math.toIntExact(favoriteMapper.selectCount(
-            new LambdaQueryWrapper<Favorite>()
-                .eq(Favorite::getUserId, userId)
-                .eq(Favorite::getIsDeleted, 0)
+        response.setFavoriteCount(Math.toIntExact(userSpotFavoriteMapper.selectCount(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
         )));
-        response.setRatingCount(Math.toIntExact(ratingMapper.selectCount(
-            new LambdaQueryWrapper<Rating>()
-                .eq(Rating::getUserId, userId)
-                .eq(Rating::getIsDeleted, 0)
+        response.setRatingCount(Math.toIntExact(reviewMapper.selectCount(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getIsDeleted, 0)
         )));
 
         // 最近订单
@@ -118,22 +119,15 @@ public class UserServiceImpl implements UserService {
     }
 
     private String convertStatusToString(Integer status) {
-        if (status == null) return "unknown";
-        return switch (status) {
-            case Order.STATUS_PENDING -> "pending";
-            case Order.STATUS_PAID -> "paid";
-            case Order.STATUS_CANCELLED -> "cancelled";
-            case Order.STATUS_REFUNDED -> "refunded";
-            case Order.STATUS_COMPLETED -> "completed";
-            default -> "unknown";
-        };
+        OrderStatus orderStatus = OrderStatus.fromCode(status);
+        return orderStatus != null ? orderStatus.getKey() : "unknown";
     }
 
     private AdminUserListResponse.UserItem buildUserItem(User user) {
         AdminUserListResponse.UserItem item = new AdminUserListResponse.UserItem();
         item.setId(user.getId());
         item.setNickname(user.getNickname());
-        item.setAvatar(user.getAvatar());
+        item.setAvatar(user.getAvatarUrl());
         item.setPhone(user.getPhone());
         item.setCreatedAt(user.getCreatedAt());
         item.setUpdatedAt(user.getUpdatedAt());
@@ -144,15 +138,15 @@ public class UserServiceImpl implements UserService {
                 .eq(Order::getUserId, user.getId())
                 .eq(Order::getIsDeleted, 0)
         )));
-        item.setFavoriteCount(Math.toIntExact(favoriteMapper.selectCount(
-            new LambdaQueryWrapper<Favorite>()
-                .eq(Favorite::getUserId, user.getId())
-                .eq(Favorite::getIsDeleted, 0)
+        item.setFavoriteCount(Math.toIntExact(userSpotFavoriteMapper.selectCount(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, user.getId())
+                .eq(UserSpotFavorite::getIsDeleted, 0)
         )));
-        item.setRatingCount(Math.toIntExact(ratingMapper.selectCount(
-            new LambdaQueryWrapper<Rating>()
-                .eq(Rating::getUserId, user.getId())
-                .eq(Rating::getIsDeleted, 0)
+        item.setRatingCount(Math.toIntExact(reviewMapper.selectCount(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, user.getId())
+                .eq(Review::getIsDeleted, 0)
         )));
 
         return item;

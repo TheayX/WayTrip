@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.travel.mapper.BannerMapper">
+<mapper namespace="com.travel.mapper.SpotBannerMapper">
 
-    <resultMap id="BannerResultMap" type="com.travel.entity.Banner">
+    <resultMap id="SpotBannerResultMap" type="com.travel.entity.SpotBanner">
         <id column="id" property="id"/>
         <result column="image_url" property="imageUrl"/>
         <result column="spot_id" property="spotId"/>
         <result column="sort_order" property="sortOrder"/>
-        <result column="is_enabled" property="enabled"/>
+        <result column="is_enabled" property="isEnabled"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
         <result column="spot_name" property="spotName"/>
         <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
-    <select id="selectEnabledBanners" resultMap="BannerResultMap">
+    <select id="selectEnabledBanners" resultMap="SpotBannerResultMap">
         SELECT b.*,
                s.name AS spot_name
         FROM spot_banner b
@@ -25,3 +25,4 @@
     </select>
 
 </mapper>
+

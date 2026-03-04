@@ -41,7 +41,7 @@ public class AdminServiceImpl implements AdminService {
                     .like(Admin::getRealName, request.getKeyword()));
         }
         if (request.getStatus() != null) {
-            wrapper.eq(Admin::getStatus, request.getStatus());
+            wrapper.eq(Admin::getIsEnabled, request.getStatus());
         }
         wrapper.orderByAsc(Admin::getId);
 
@@ -74,7 +74,7 @@ public class AdminServiceImpl implements AdminService {
         admin.setUsername(request.getUsername().trim());
         admin.setPassword(passwordEncoder.encode(request.getPassword()));
         admin.setRealName(request.getRealName().trim());
-        admin.setStatus(request.getStatus());
+        admin.setIsEnabled(request.getStatus());
         admin.setIsDeleted(0);
         adminMapper.insert(admin);
         return admin.getId();
@@ -91,7 +91,7 @@ public class AdminServiceImpl implements AdminService {
         }
 
         admin.setRealName(request.getRealName().trim());
-        admin.setStatus(request.getStatus());
+        admin.setIsEnabled(request.getStatus());
         adminMapper.updateById(admin);
     }
 
@@ -128,7 +128,7 @@ public class AdminServiceImpl implements AdminService {
         item.setId(admin.getId());
         item.setUsername(admin.getUsername());
         item.setRealName(admin.getRealName());
-        item.setStatus(admin.getStatus());
+        item.setStatus(admin.getIsEnabled());
         item.setLastLoginAt(admin.getLastLoginAt());
         item.setCreatedAt(admin.getCreatedAt());
         item.setUpdatedAt(admin.getUpdatedAt());

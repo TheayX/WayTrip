@@ -6,12 +6,12 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.spot.SpotListResponse;
-import com.travel.entity.Favorite;
-import com.travel.entity.Region;
+import com.travel.entity.UserSpotFavorite;
+import com.travel.entity.SpotRegion;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotCategory;
-import com.travel.mapper.FavoriteMapper;
-import com.travel.mapper.RegionMapper;
+import com.travel.mapper.UserSpotFavoriteMapper;
+import com.travel.mapper.SpotRegionMapper;
 import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.FavoriteService;
@@ -29,9 +29,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FavoriteServiceImpl implements FavoriteService {
 
-    private final FavoriteMapper favoriteMapper;
+    private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final SpotMapper spotMapper;
-    private final RegionMapper regionMapper;
+    private final SpotRegionMapper spotRegionMapper;
     private final SpotCategoryMapper spotCategoryMapper;
 
     @Override
@@ -41,62 +41,62 @@ public class FavoriteServiceImpl implements FavoriteService {
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
-        if (spot.getPublished() != 1) {
+        if (spot.getIsPublished() != 1) {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
         
         // 检查是否已收藏
-        Favorite existingFavorite = favoriteMapper.selectOne(
-            new LambdaQueryWrapper<Favorite>()
-                .eq(Favorite::getUserId, userId)
-                .eq(Favorite::getSpotId, spotId)
+        UserSpotFavorite existingFavorite = userSpotFavoriteMapper.selectOne(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getSpotId, spotId)
         );
         if (existingFavorite != null) {
             if (existingFavorite.getIsDeleted() == 0) {
                 return; // 幂等处理
             }
             existingFavorite.setIsDeleted(0);
-            favoriteMapper.updateById(existingFavorite);
+            userSpotFavoriteMapper.updateById(existingFavorite);
             return;
         }
         
-        Favorite favorite = new Favorite();
+        UserSpotFavorite favorite = new UserSpotFavorite();
         favorite.setUserId(userId);
         favorite.setSpotId(spotId);
-        favoriteMapper.insert(favorite);
+        userSpotFavoriteMapper.insert(favorite);
     }
 
     @Override
     public void removeFavorite(Long userId, Long spotId) {
-        Favorite deletedFavorite = new Favorite();
+        UserSpotFavorite deletedFavorite = new UserSpotFavorite();
         deletedFavorite.setIsDeleted(1);
-        favoriteMapper.update(
+        userSpotFavoriteMapper.update(
             deletedFavorite,
-            new LambdaQueryWrapper<Favorite>()
-                .eq(Favorite::getUserId, userId)
-                .eq(Favorite::getSpotId, spotId)
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getSpotId, spotId)
         );
     }
 
     @Override
     public boolean isFavorite(Long userId, Long spotId) {
-        return favoriteMapper.selectCount(
-            new LambdaQueryWrapper<Favorite>()
-                .eq(Favorite::getUserId, userId)
-                .eq(Favorite::getSpotId, spotId)
-                .eq(Favorite::getIsDeleted, 0)
+        return userSpotFavoriteMapper.selectCount(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getSpotId, spotId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
         ) > 0;
     }
 
     @Override
     public PageResult<SpotListResponse> getFavoriteList(Long userId, Integer page, Integer pageSize) {
         // 分页查询收藏记录
-        Page<Favorite> pageObj = new Page<>(page, pageSize);
-        Page<Favorite> favoriteResult = favoriteMapper.selectPage(pageObj,
-            new LambdaQueryWrapper<Favorite>()
-                .eq(Favorite::getUserId, userId)
-                .eq(Favorite::getIsDeleted, 0)
-                .orderByDesc(Favorite::getCreatedAt)
+        Page<UserSpotFavorite> pageObj = new Page<>(page, pageSize);
+        Page<UserSpotFavorite> favoriteResult = userSpotFavoriteMapper.selectPage(pageObj,
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+                .orderByDesc(UserSpotFavorite::getCreatedAt)
         );
         
         if (favoriteResult.getRecords().isEmpty()) {
@@ -105,7 +105,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         
         // 获取景点ID列表
         List<Long> spotIds = favoriteResult.getRecords().stream()
-                .map(Favorite::getSpotId)
+                .map(UserSpotFavorite::getSpotId)
                 .collect(Collectors.toList());
         
         // 批量查询景点
@@ -113,7 +113,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         
         // 转换为响应
         List<SpotListResponse> list = spots.stream()
-                .filter(spot -> spot.getIsDeleted() == 0 && spot.getPublished() == 1)
+                .filter(spot -> spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
                 .map(this::convertToListResponse)
                 .collect(Collectors.toList());
         
@@ -124,7 +124,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         return SpotListResponse.builder()
                 .id(spot.getId())
                 .name(spot.getName())
-                .coverImage(spot.getCoverImage())
+                .coverImage(spot.getCoverImageUrl())
                 .price(spot.getPrice())
                 .avgRating(spot.getAvgRating())
                 .ratingCount(spot.getRatingCount())
@@ -135,7 +135,7 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     private String getRegionName(Long regionId) {
         if (regionId == null) return null;
-        Region region = regionMapper.selectById(regionId);
+        SpotRegion region = spotRegionMapper.selectById(regionId);
         return region != null && region.getIsDeleted() == 0 ? region.getName() : null;
     }
 

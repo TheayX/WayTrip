@@ -2,6 +2,7 @@ package com.travel.task;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.travel.entity.Order;
+import com.travel.enums.OrderStatus;
 import com.travel.mapper.OrderMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +30,10 @@ public class OrderAutoCancelTask {
     public void cancelTimeoutOrders() {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(TIMEOUT_MINUTES);
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("status", Order.STATUS_PENDING)
+        updateWrapper.eq("status", OrderStatus.PENDING.getCode())
                 .eq("is_deleted", 0)
                 .le("created_at", cutoff)
-                .set("status", Order.STATUS_CANCELLED)
+                .set("status", OrderStatus.CANCELLED.getCode())
                 .set("cancelled_at", LocalDateTime.now())
                 .set("updated_at", LocalDateTime.now());
 

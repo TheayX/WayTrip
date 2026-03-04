@@ -88,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
                 .user(LoginResponse.UserInfo.builder()
                         .id(user.getId())
                         .nickname(user.getNickname())
-                        .avatar(user.getAvatar())
+                        .avatar(user.getAvatarUrl())
                         .phone(user.getPhone())
                         .isNewUser(false)
                         .build())
@@ -115,7 +115,7 @@ public class AuthServiceImpl implements AuthService {
         return UserInfoResponse.builder()
                 .id(user.getId())
                 .nickname(user.getNickname())
-                .avatar(user.getAvatar())
+                .avatar(user.getAvatarUrl())
                 .phone(user.getPhone())
                 .hasPassword(StringUtils.hasText(user.getPassword()))
                 .preferences(tags)
@@ -133,7 +133,7 @@ public class AuthServiceImpl implements AuthService {
             user.setNickname(request.getNickname());
         }
         if (StringUtils.hasText(request.getAvatar())) {
-            user.setAvatar(request.getAvatar());
+            user.setAvatarUrl(request.getAvatar());
         }
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone().trim());
@@ -209,7 +209,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.ADMIN_LOGIN_FAILED);
         }
 
-        if (admin.getStatus() == null || admin.getStatus() == 0) {
+        if (admin.getIsEnabled() == null || admin.getIsEnabled() == 0) {
             throw new BusinessException(ResultCode.ADMIN_DISABLED);
         }
 
@@ -258,7 +258,7 @@ public class AuthServiceImpl implements AuthService {
         user.setNickname(nickname);
         user.setPhone(request.getPhone());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setAvatar("");
+        user.setAvatarUrl("");
         user.setLastLoginAt(LocalDateTime.now());
         userMapper.insert(user);
         log.info("Web新用户注册: userId={}, phone={}", user.getId(), request.getPhone());
@@ -272,7 +272,7 @@ public class AuthServiceImpl implements AuthService {
                 .user(LoginResponse.UserInfo.builder()
                         .id(user.getId())
                         .nickname(user.getNickname())
-                        .avatar(user.getAvatar())
+                        .avatar(user.getAvatarUrl())
                         .phone(user.getPhone())
                         .isNewUser(true)
                         .build())
@@ -320,7 +320,7 @@ public class AuthServiceImpl implements AuthService {
                 .user(LoginResponse.UserInfo.builder()
                         .id(user.getId())
                         .nickname(user.getNickname())
-                        .avatar(user.getAvatar())
+                        .avatar(user.getAvatarUrl())
                         .phone(user.getPhone())
                         .isNewUser(false)
                         .isReactivated(isReactivated)
@@ -362,7 +362,7 @@ public class AuthServiceImpl implements AuthService {
                     .user(LoginResponse.UserInfo.builder()
                             .id(existByOpenid.getId())
                             .nickname(existByOpenid.getNickname())
-                            .avatar(existByOpenid.getAvatar())
+                            .avatar(existByOpenid.getAvatarUrl())
                             .phone(existByOpenid.getPhone())
                             .isNewUser(false)
                             .isMerged(false)
@@ -403,7 +403,7 @@ public class AuthServiceImpl implements AuthService {
                     .user(LoginResponse.UserInfo.builder()
                             .id(existUser.getId())
                             .nickname(existUser.getNickname())
-                            .avatar(existUser.getAvatar())
+                            .avatar(existUser.getAvatarUrl())
                             .phone(existUser.getPhone())
                             .isNewUser(false)
                             .isMerged(true)
@@ -416,7 +416,7 @@ public class AuthServiceImpl implements AuthService {
             newUser.setPhone(request.getPhone());
             newUser.setPassword(passwordEncoder.encode(request.getPassword()));
             newUser.setNickname("微信用户");
-            newUser.setAvatar("");
+            newUser.setAvatarUrl("");
             newUser.setLastLoginAt(LocalDateTime.now());
             userMapper.insert(newUser);
             log.info("微信新用户注册: userId={}, phone={}", newUser.getId(), request.getPhone());
@@ -429,7 +429,7 @@ public class AuthServiceImpl implements AuthService {
                     .user(LoginResponse.UserInfo.builder()
                             .id(newUser.getId())
                             .nickname(newUser.getNickname())
-                            .avatar(newUser.getAvatar())
+                            .avatar(newUser.getAvatarUrl())
                             .phone(newUser.getPhone())
                             .isNewUser(true)
                             .isMerged(false)

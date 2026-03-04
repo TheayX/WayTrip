@@ -32,17 +32,17 @@ public class SpotServiceImpl implements SpotService {
 
     private final SpotMapper spotMapper;
     private final SpotImageMapper spotImageMapper;
-    private final RegionMapper regionMapper;
+    private final SpotRegionMapper spotRegionMapper;
     private final SpotCategoryMapper spotCategoryMapper;
-    private final FavoriteMapper favoriteMapper;
-    private final RatingMapper ratingMapper;
+    private final UserSpotFavoriteMapper userSpotFavoriteMapper;
+    private final ReviewMapper reviewMapper;
 
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
         Page<Spot> page = new Page<>(request.getPage(), request.getPageSize());
 
         LambdaQueryWrapper<Spot> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Spot::getPublished, 1);
+        wrapper.eq(Spot::getIsPublished, 1);
         wrapper.eq(Spot::getIsDeleted, 0);
 
         if (request.getRegionId() != null) {
@@ -88,7 +88,7 @@ public class SpotServiceImpl implements SpotService {
         Page<Spot> pageObj = new Page<>(page, pageSize);
 
         LambdaQueryWrapper<Spot> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Spot::getPublished, 1);
+        wrapper.eq(Spot::getIsPublished, 1);
         wrapper.eq(Spot::getIsDeleted, 0);
         wrapper.and(w -> w.like(Spot::getName, keyword).or().like(Spot::getDescription, keyword));
         wrapper.orderByDesc(Spot::getHeatScore);
@@ -108,7 +108,7 @@ public class SpotServiceImpl implements SpotService {
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
-        if (spot.getPublished() != 1) {
+        if (spot.getIsPublished() != 1) {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
 
@@ -126,8 +126,8 @@ public class SpotServiceImpl implements SpotService {
                         .eq(SpotImage::getIsDeleted, 0)
                         .orderByAsc(SpotImage::getSortOrder));
         List<String> imageUrls = images.stream().map(SpotImage::getImageUrl).collect(Collectors.toList());
-        if (StringUtils.hasText(spot.getCoverImage())) {
-            imageUrls.add(0, spot.getCoverImage());
+        if (StringUtils.hasText(spot.getCoverImageUrl())) {
+            imageUrls.add(0, spot.getCoverImageUrl());
         }
 
         // 获取地区和分类名称
@@ -138,25 +138,25 @@ public class SpotServiceImpl implements SpotService {
         Boolean isFavorite = false;
         Integer userRating = null;
         if (userId != null) {
-            Long favoriteCount = favoriteMapper.selectCount(
-                    new LambdaQueryWrapper<Favorite>()
-                            .eq(Favorite::getUserId, userId)
-                            .eq(Favorite::getSpotId, spotId)
-                            .eq(Favorite::getIsDeleted, 0));
+            Long favoriteCount = userSpotFavoriteMapper.selectCount(
+                    new LambdaQueryWrapper<UserSpotFavorite>()
+                            .eq(UserSpotFavorite::getUserId, userId)
+                            .eq(UserSpotFavorite::getSpotId, spotId)
+                            .eq(UserSpotFavorite::getIsDeleted, 0));
             isFavorite = favoriteCount > 0;
 
-            Rating rating = ratingMapper.selectOne(
-                    new LambdaQueryWrapper<Rating>()
-                            .eq(Rating::getUserId, userId)
-                            .eq(Rating::getSpotId, spotId)
-                            .eq(Rating::getIsDeleted, 0));
-            if (rating != null) {
-                userRating = rating.getScore();
+            Review review = reviewMapper.selectOne(
+                    new LambdaQueryWrapper<Review>()
+                            .eq(Review::getUserId, userId)
+                            .eq(Review::getSpotId, spotId)
+                            .eq(Review::getIsDeleted, 0));
+            if (review != null) {
+                userRating = review.getScore();
             }
         }
 
         // 获取最新评论
-        List<SpotDetailResponse.CommentItem> comments = ratingMapper.selectLatestComments(spotId, 5);
+        List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5);
 
         return SpotDetailResponse.builder()
                 .id(spot.getId())
@@ -180,10 +180,10 @@ public class SpotServiceImpl implements SpotService {
 
     @Override
     public SpotFilterResponse getFilters() {
-        List<Region> regions = regionMapper.selectList(
-                new LambdaQueryWrapper<Region>()
-                        .eq(Region::getIsDeleted, 0)
-                        .orderByAsc(Region::getSortOrder));
+        List<SpotRegion> regions = spotRegionMapper.selectList(
+                new LambdaQueryWrapper<SpotRegion>()
+                        .eq(SpotRegion::getIsDeleted, 0)
+                        .orderByAsc(SpotRegion::getSortOrder));
         List<SpotCategory> categories = spotCategoryMapper.selectList(
                 new LambdaQueryWrapper<SpotCategory>()
                         .eq(SpotCategory::getIsDeleted, 0)
@@ -223,7 +223,7 @@ public class SpotServiceImpl implements SpotService {
                 .id(category.getId())
                 .name(category.getName())
                 .parentId(category.getParentId())
-                .iconUrl(category.getIcon())
+                .iconUrl(category.getIconUrl())
                 .children(new ArrayList<>())
                 .build();
     }
@@ -276,7 +276,7 @@ public class SpotServiceImpl implements SpotService {
             }
         }
         if (request.getPublished() != null) {
-            wrapper.eq(Spot::getPublished, request.getPublished());
+            wrapper.eq(Spot::getIsPublished, request.getPublished());
         }
         wrapper.orderByAsc(Spot::getId);
 
@@ -309,11 +309,11 @@ public class SpotServiceImpl implements SpotService {
         response.setAddress(spot.getAddress());
         response.setLatitude(spot.getLatitude());
         response.setLongitude(spot.getLongitude());
-        response.setCoverImage(spot.getCoverImage());
+        response.setCoverImage(spot.getCoverImageUrl());
         response.setImages(images.stream().map(SpotImage::getImageUrl).collect(Collectors.toList()));
         response.setRegionId(spot.getRegionId());
         response.setCategoryId(spot.getCategoryId());
-        response.setPublished(spot.getPublished() == 1);
+        response.setPublished(spot.getIsPublished() == 1);
         response.setAvgRating(spot.getAvgRating());
         response.setRatingCount(spot.getRatingCount());
         response.setHeatScore(spot.getHeatScore());
@@ -362,7 +362,7 @@ public class SpotServiceImpl implements SpotService {
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
-        spot.setPublished(published ? 1 : 0);
+        spot.setIsPublished(published ? 1 : 0);
         spotMapper.updateById(spot);
     }
 
@@ -386,7 +386,7 @@ public class SpotServiceImpl implements SpotService {
         return SpotListResponse.builder()
                 .id(spot.getId())
                 .name(spot.getName())
-                .coverImage(spot.getCoverImage())
+                .coverImage(spot.getCoverImageUrl())
                 .price(spot.getPrice())
                 .avgRating(spot.getAvgRating())
                 .ratingCount(spot.getRatingCount())
@@ -399,14 +399,14 @@ public class SpotServiceImpl implements SpotService {
         return AdminSpotListResponse.builder()
                 .id(spot.getId())
                 .name(spot.getName())
-                .coverImage(spot.getCoverImage())
+                .coverImage(spot.getCoverImageUrl())
                 .price(spot.getPrice())
                 .regionName(getRegionName(spot.getRegionId()))
                 .categoryName(getCategoryName(spot.getCategoryId()))
                 .avgRating(spot.getAvgRating())
                 .ratingCount(spot.getRatingCount())
                 .heatScore(spot.getHeatScore())
-                .published(spot.getPublished() == 1)
+                .published(spot.getIsPublished() == 1)
                 .createdAt(spot.getCreatedAt())
                 .updatedAt(spot.getUpdatedAt())
                 .build();
@@ -415,7 +415,7 @@ public class SpotServiceImpl implements SpotService {
     private String getRegionName(Long regionId) {
         if (regionId == null)
             return null;
-        Region region = regionMapper.selectById(regionId);
+        SpotRegion region = spotRegionMapper.selectById(regionId);
         return region != null && region.getIsDeleted() == 0 ? region.getName() : null;
     }
 
@@ -458,13 +458,13 @@ public class SpotServiceImpl implements SpotService {
     }
 
     private Set<Long> findRegionAndChildrenIds(Long regionId) {
-        List<Region> regions = regionMapper.selectList(
-                new LambdaQueryWrapper<Region>()
-                        .eq(Region::getIsDeleted, 0)
-                        .select(Region::getId, Region::getParentId));
+        List<SpotRegion> regions = spotRegionMapper.selectList(
+                new LambdaQueryWrapper<SpotRegion>()
+                        .eq(SpotRegion::getIsDeleted, 0)
+                        .select(SpotRegion::getId, SpotRegion::getParentId));
 
         Map<Long, List<Long>> childrenMap = new HashMap<>();
-        for (Region region : regions) {
+        for (SpotRegion region : regions) {
             Long parentId = region.getParentId();
             if (parentId != null && parentId > 0) {
                 childrenMap.computeIfAbsent(parentId, key -> new ArrayList<>()).add(region.getId());
@@ -511,7 +511,7 @@ public class SpotServiceImpl implements SpotService {
             spot.setLongitude(request.getLongitude());
         }
         if (request.getCoverImage() != null) {
-            spot.setCoverImage(request.getCoverImage());
+            spot.setCoverImageUrl(request.getCoverImage());
         }
         if (request.getRegionId() != null) {
             spot.setRegionId(request.getRegionId());
@@ -520,7 +520,7 @@ public class SpotServiceImpl implements SpotService {
             spot.setCategoryId(request.getCategoryId());
         }
         if (request.getPublished() != null) {
-            spot.setPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
+            spot.setIsPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
         }
         if (request.getAvgRating() != null) {
             spot.setAvgRating(request.getAvgRating());

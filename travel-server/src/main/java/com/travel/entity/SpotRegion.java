@@ -6,20 +6,19 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 攻略关联景点实体
+ * 景点地区实体（对应 spot_region 表）
  */
 @Data
-@TableName("guide_spot_relation")
-public class GuideSpot {
+@TableName("spot_region")
+public class SpotRegion {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long guideId;
+    private Long parentId;
 
-    private Long spotId;
+    private String name;
 
-    @TableField("sort_order")
     private Integer sortOrder;
 
     @TableField("is_deleted")
@@ -31,3 +30,4 @@ public class GuideSpot {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
+

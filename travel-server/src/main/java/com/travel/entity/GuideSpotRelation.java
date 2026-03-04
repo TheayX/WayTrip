@@ -6,23 +6,20 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 轮播图实体
+ * 攻略景点关联实体（对应 guide_spot_relation 表）
  */
 @Data
-@TableName("spot_banner")
-public class Banner {
+@TableName("guide_spot_relation")
+public class GuideSpotRelation {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private String imageUrl;
+    private Long guideId;
 
     private Long spotId;
 
     private Integer sortOrder;
-
-    @TableField("is_enabled")
-    private Integer enabled;
 
     @TableField("is_deleted")
     private Integer isDeleted;
@@ -32,8 +29,5 @@ public class Banner {
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
-
-    // 非数据库字段
-    @TableField(exist = false)
-    private String spotName;
 }
+

@@ -21,8 +21,7 @@ public class Admin {
 
     private String realName;
 
-    @TableField("is_enabled")
-    private Integer status;
+    private Integer isEnabled;
 
     @TableField("is_deleted")
     private Integer isDeleted;

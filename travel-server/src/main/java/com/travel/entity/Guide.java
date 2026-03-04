@@ -19,8 +19,7 @@ public class Guide {
 
     private String content;
 
-    @TableField("cover_image_url")
-    private String coverImage;
+    private String coverImageUrl;
 
     private String category;
 
@@ -28,8 +27,7 @@ public class Guide {
 
     private Integer viewCount;
 
-    @TableField("is_published")
-    private Integer published;
+    private Integer isPublished;
 
     @TableField("is_deleted")
     private Integer isDeleted;

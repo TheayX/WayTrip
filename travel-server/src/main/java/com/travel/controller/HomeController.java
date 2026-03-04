@@ -3,7 +3,7 @@ package com.travel.controller;
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.banner.BannerResponse;
 import com.travel.dto.home.HotSpotResponse;
-import com.travel.service.BannerService;
+import com.travel.service.SpotBannerService;
 import com.travel.service.RecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.*;
 public class HomeController {
 
     private final RecommendationService recommendationService;
-    private final BannerService bannerService;
+    private final SpotBannerService spotBannerService;
 
     @Operation(summary = "获取轮播图")
     @GetMapping("/banners")
     public ApiResponse<BannerResponse> getBanners() {
-        return ApiResponse.success(bannerService.getBanners());
+        return ApiResponse.success(spotBannerService.getBanners());
     }
 
     @Operation(summary = "获取热门景点")

@@ -3,9 +3,9 @@ package com.travel.service;
 import com.travel.dto.banner.*;
 
 /**
- * 轮播图服务接口
+ * 景点轮播图服务接口
  */
-public interface BannerService {
+public interface SpotBannerService {
 
     /**
      * 获取轮播图列表（用户端）
@@ -37,3 +37,4 @@ public interface BannerService {
      */
     void toggleEnabled(Long id);
 }
+

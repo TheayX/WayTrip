@@ -30,8 +30,7 @@ public class Spot {
 
     private BigDecimal longitude;
 
-    @TableField("cover_image_url")
-    private String coverImage;
+    private String coverImageUrl;
 
     private Long categoryId;
 
@@ -43,8 +42,7 @@ public class Spot {
 
     private Integer ratingCount;
 
-    @TableField("is_published")
-    private Integer published;
+    private Integer isPublished;
 
     @TableField("is_deleted")
     private Integer isDeleted;

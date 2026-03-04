@@ -2,11 +2,11 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.banner.*;
-import com.travel.entity.Banner;
+import com.travel.entity.SpotBanner;
 import com.travel.entity.Spot;
-import com.travel.mapper.BannerMapper;
+import com.travel.mapper.SpotBannerMapper;
 import com.travel.mapper.SpotMapper;
-import com.travel.service.BannerService;
+import com.travel.service.SpotBannerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +16,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class BannerServiceImpl implements BannerService {
+public class SpotBannerServiceImpl implements SpotBannerService {
 
-    private final BannerMapper bannerMapper;
+    private final SpotBannerMapper spotBannerMapper;
     private final SpotMapper spotMapper;
 
     @Override
     public BannerResponse getBanners() {
-        List<Banner> banners = bannerMapper.selectEnabledBanners();
+        List<SpotBanner> banners = spotBannerMapper.selectEnabledBanners();
 
         BannerResponse response = new BannerResponse();
         response.setList(banners.stream().map(banner -> {
@@ -41,10 +41,10 @@ public class BannerServiceImpl implements BannerService {
 
     @Override
     public AdminBannerListResponse getAdminBanners() {
-        List<Banner> banners = bannerMapper.selectList(
-            new LambdaQueryWrapper<Banner>()
-                .eq(Banner::getIsDeleted, 0)
-                .orderByAsc(Banner::getSortOrder)
+        List<SpotBanner> banners = spotBannerMapper.selectList(
+            new LambdaQueryWrapper<SpotBanner>()
+                .eq(SpotBanner::getIsDeleted, 0)
+                .orderByAsc(SpotBanner::getSortOrder)
         );
 
         Map<Long, String> spotNameMap = getSpotNameMap(banners);
@@ -57,7 +57,7 @@ public class BannerServiceImpl implements BannerService {
             item.setSpotId(banner.getSpotId());
             item.setSpotName(spotNameMap.get(banner.getSpotId()));
             item.setSortOrder(banner.getSortOrder());
-            item.setEnabled(banner.getEnabled());
+            item.setEnabled(banner.getIsEnabled());
             item.setCreatedAt(banner.getCreatedAt());
             item.setUpdatedAt(banner.getUpdatedAt());
             return item;
@@ -69,17 +69,17 @@ public class BannerServiceImpl implements BannerService {
 
     @Override
     public void createBanner(AdminBannerRequest request) {
-        Banner banner = new Banner();
+        SpotBanner banner = new SpotBanner();
         banner.setImageUrl(request.getImageUrl());
         banner.setSpotId(request.getSpotId());
         banner.setSortOrder(request.getSortOrder());
-        banner.setEnabled(request.getEnabled());
-        bannerMapper.insert(banner);
+        banner.setIsEnabled(request.getEnabled());
+        spotBannerMapper.insert(banner);
     }
 
     @Override
     public void updateBanner(Long id, AdminBannerRequest request) {
-        Banner banner = bannerMapper.selectById(id);
+        SpotBanner banner = spotBannerMapper.selectById(id);
         if (banner == null || banner.getIsDeleted() == 1) {
             throw new RuntimeException("轮播图不存在");
         }
@@ -87,34 +87,34 @@ public class BannerServiceImpl implements BannerService {
         banner.setImageUrl(request.getImageUrl());
         banner.setSpotId(request.getSpotId());
         banner.setSortOrder(request.getSortOrder());
-        banner.setEnabled(request.getEnabled());
-        bannerMapper.updateById(banner);
+        banner.setIsEnabled(request.getEnabled());
+        spotBannerMapper.updateById(banner);
     }
 
     @Override
     public void deleteBanner(Long id) {
-        Banner banner = bannerMapper.selectById(id);
+        SpotBanner banner = spotBannerMapper.selectById(id);
         if (banner == null || banner.getIsDeleted() == 1) {
             throw new RuntimeException("轮播图不存在");
         }
         banner.setIsDeleted(1);
-        bannerMapper.updateById(banner);
+        spotBannerMapper.updateById(banner);
     }
 
     @Override
     public void toggleEnabled(Long id) {
-        Banner banner = bannerMapper.selectById(id);
+        SpotBanner banner = spotBannerMapper.selectById(id);
         if (banner == null || banner.getIsDeleted() == 1) {
             throw new RuntimeException("轮播图不存在");
         }
 
-        banner.setEnabled(banner.getEnabled() == 1 ? 0 : 1);
-        bannerMapper.updateById(banner);
+        banner.setIsEnabled(banner.getIsEnabled() == 1 ? 0 : 1);
+        spotBannerMapper.updateById(banner);
     }
 
-    private Map<Long, String> getSpotNameMap(List<Banner> banners) {
+    private Map<Long, String> getSpotNameMap(List<SpotBanner> banners) {
         List<Long> spotIds = banners.stream()
-            .map(Banner::getSpotId)
+            .map(SpotBanner::getSpotId)
             .filter(id -> id != null)
             .distinct()
             .collect(Collectors.toList());
@@ -128,3 +128,4 @@ public class BannerServiceImpl implements BannerService {
             .collect(Collectors.toMap(Spot::getId, Spot::getName));
     }
 }
+

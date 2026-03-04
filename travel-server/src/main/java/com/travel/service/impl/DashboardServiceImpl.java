@@ -3,6 +3,7 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.dashboard.*;
 import com.travel.entity.*;
+import com.travel.enums.OrderStatus;
 import com.travel.mapper.*;
 import com.travel.service.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class DashboardServiceImpl implements DashboardService {
         // 总景点数
         response.setTotalSpots(spotMapper.selectCount(
             new LambdaQueryWrapper<Spot>()
-                .eq(Spot::getPublished, 1)
+                .eq(Spot::getIsPublished, 1)
                 .eq(Spot::getIsDeleted, 0)
         ));
 
@@ -43,11 +44,14 @@ public class DashboardServiceImpl implements DashboardService {
         List<Order> allOrders = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getIsDeleted, 0)
-                .ne(Order::getStatus, Order.STATUS_CANCELLED)
+                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
         );
         response.setTotalOrders((long) allOrders.size());
         response.setTotalRevenue(allOrders.stream()
-            .filter(o -> o.getStatus() == Order.STATUS_PAID || o.getStatus() == Order.STATUS_REFUNDED)
+            .filter(o -> {
+                OrderStatus s = OrderStatus.fromCode(o.getStatus());
+                return s != null && s.hasRevenue();
+            })
             .map(Order::getTotalAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add));
 
@@ -58,11 +62,14 @@ public class DashboardServiceImpl implements DashboardService {
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getIsDeleted, 0)
                 .ge(Order::getCreatedAt, todayStart)
-                .ne(Order::getStatus, Order.STATUS_CANCELLED)
+                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
         );
         response.setTodayOrders((long) todayOrders.size());
         response.setTodayRevenue(todayOrders.stream()
-            .filter(o -> o.getStatus() == Order.STATUS_PAID || o.getStatus() == Order.STATUS_REFUNDED)
+            .filter(o -> {
+                OrderStatus s = OrderStatus.fromCode(o.getStatus());
+                return s != null && s.hasRevenue();
+            })
             .map(Order::getTotalAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add));
 
@@ -86,7 +93,7 @@ public class DashboardServiceImpl implements DashboardService {
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getIsDeleted, 0)
                 .ge(Order::getCreatedAt, startDate.atStartOfDay())
-                .ne(Order::getStatus, Order.STATUS_CANCELLED)
+                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
         );
 
         // 按日期分组
@@ -106,7 +113,10 @@ public class DashboardServiceImpl implements DashboardService {
             item.setDate(dateStr);
             item.setOrderCount((long) dayOrders.size());
             item.setRevenue(dayOrders.stream()
-                .filter(o -> o.getStatus() == Order.STATUS_PAID || o.getStatus() == Order.STATUS_REFUNDED)
+                .filter(o -> {
+                    OrderStatus s = OrderStatus.fromCode(o.getStatus());
+                    return s != null && s.hasRevenue();
+                })
                 .map(Order::getTotalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
             list.add(item);
@@ -125,7 +135,7 @@ public class DashboardServiceImpl implements DashboardService {
         List<Order> orders = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getIsDeleted, 0)
-                .ne(Order::getStatus, Order.STATUS_CANCELLED)
+                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
         );
 
         Map<Long, List<Order>> ordersBySpot = orders.stream()
@@ -134,7 +144,7 @@ public class DashboardServiceImpl implements DashboardService {
         // 获取景点信息
         List<Spot> spots = spotMapper.selectList(
             new LambdaQueryWrapper<Spot>()
-                .eq(Spot::getPublished, 1)
+                .eq(Spot::getIsPublished, 1)
                 .eq(Spot::getIsDeleted, 0)
         );
 
@@ -153,7 +163,10 @@ public class DashboardServiceImpl implements DashboardService {
                 item.setName(spot != null ? spot.getName() : "未知景点");
                 item.setOrderCount((long) spotOrders.size());
                 item.setRevenue(spotOrders.stream()
-                    .filter(o -> o.getStatus() == Order.STATUS_PAID || o.getStatus() == Order.STATUS_REFUNDED)
+                    .filter(o -> {
+                        OrderStatus s = OrderStatus.fromCode(o.getStatus());
+                        return s != null && s.hasRevenue();
+                    })
                     .map(Order::getTotalAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add));
                 item.setAvgRating(spot != null ? spot.getAvgRating() : BigDecimal.ZERO);

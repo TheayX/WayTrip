@@ -11,13 +11,13 @@
         <result column="address" property="address"/>
         <result column="latitude" property="latitude"/>
         <result column="longitude" property="longitude"/>
-        <result column="cover_image_url" property="coverImage"/>
+        <result column="cover_image_url" property="coverImageUrl"/>
         <result column="category_id" property="categoryId"/>
         <result column="region_id" property="regionId"/>
         <result column="heat_score" property="heatScore"/>
         <result column="avg_rating" property="avgRating"/>
         <result column="rating_count" property="ratingCount"/>
-        <result column="is_published" property="published"/>
+        <result column="is_published" property="isPublished"/>
         <result column="is_deleted" property="isDeleted"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
