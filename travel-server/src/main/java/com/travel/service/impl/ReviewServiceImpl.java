@@ -6,8 +6,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
-import com.travel.dto.rating.RatingRequest;
-import com.travel.dto.rating.RatingResponse;
+import com.travel.dto.review.ReviewRequest;
+import com.travel.dto.review.ReviewResponse;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.entity.User;
@@ -40,7 +40,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public void submitRating(Long userId, RatingRequest request) {
+    public void submitReview(Long userId, ReviewRequest request) {
         // 检查景点是否存在
         Spot spot = spotMapper.selectById(request.getSpotId());
         if (spot == null || spot.getIsDeleted() == 1) {
@@ -78,7 +78,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public RatingResponse getUserRating(Long userId, Long spotId) {
+    public ReviewResponse getUserReview(Long userId, Long spotId) {
         Review review = reviewMapper.selectOne(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -94,12 +94,12 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public PageResult<RatingResponse> getSpotRatings(Long spotId, Integer page, Integer pageSize) {
+    public PageResult<ReviewResponse> getSpotReviews(Long spotId, Integer page, Integer pageSize) {
         Page<Review> pageObj = new Page<>(page, pageSize);
 
-        pageObj = (Page<Review>) reviewMapper.selectRatingPage(pageObj, spotId);
+        pageObj = (Page<Review>) reviewMapper.selectReviewPage(pageObj, spotId);
 
-        List<RatingResponse> list = pageObj.getRecords().stream()
+        List<ReviewResponse> list = pageObj.getRecords().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
 
@@ -107,7 +107,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public int getUserRatingCount(Long userId) {
+    public int getUserReviewCount(Long userId) {
         return Math.toIntExact(reviewMapper.selectCount(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -143,10 +143,10 @@ public class ReviewServiceImpl implements ReviewService {
         );
     }
 
-    private RatingResponse convertToResponse(Review review) {
+    private ReviewResponse convertToResponse(Review review) {
         User user = userMapper.selectById(review.getUserId());
 
-        return RatingResponse.builder()
+        return ReviewResponse.builder()
                 .id(review.getId())
                 .userId(review.getUserId())
                 .spotId(review.getSpotId())

@@ -28,18 +28,20 @@ export const updateUserInfo = (data) => {
   return put('/auth/user-info', data)
 }
 
-/**
- * 设置偏好标签
- */
-export const setPreferences = (tags) => {
-  return post('/auth/preferences', { tags })
-}
 
 /**
- * 更新偏好标签（分类ID列表）
+ * 更新偏好标签
  */
 export const updatePreferences = (data) => {
   return post('/auth/preferences', data)
+}
+
+
+/**
+ * 上传头像
+ */
+export const uploadAvatar = (filePath) => {
+  return uploadFile('/upload/avatar', filePath, 'file')
 }
 
 /**
@@ -47,13 +49,6 @@ export const updatePreferences = (data) => {
  */
 export const changePassword = (data) => {
   return put('/auth/password', data)
-}
-
-/**
- * 上传头像
- */
-export const uploadAvatar = (filePath) => {
-  return uploadFile('/upload/avatar', filePath, 'file')
 }
 
 /**

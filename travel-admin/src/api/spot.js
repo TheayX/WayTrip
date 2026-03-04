@@ -1,11 +1,4 @@
 import request from '@/utils/request'
-import axios from 'axios'
-
-// 用户端请求（用于获取公共数据）
-const publicRequest = axios.create({
-  baseURL: '/api/v1',
-  timeout: 10000
-})
 
 // 获取景点列表
 export function getSpotList(params) {
@@ -37,7 +30,7 @@ export function deleteSpot(id) {
   return request.delete(`/spots/${id}`)
 }
 
-// 获取筛选选项（地区、分类）- 使用用户端接口
+// 获取筛选选项（地区、分类）
 export function getFilters() {
-  return publicRequest.get('/spots/filters').then(res => res.data)
+  return request.get('/spots/filters')
 }

@@ -3,7 +3,7 @@
     <!-- 个人信息头 -->
     <view class="profile-header" @click="isLoggedIn ? null : doLogin()">
       <view class="avatar-container">
-        <image class="avatar-lg" :src="userInfo?.avatar ? getImageUrl(userInfo.avatar) : '/static/默认头像.png'" />
+<image class="avatar-lg" :src="userInfo?.avatar ? getImageUrl(userInfo.avatar) : '/static/default-avatar.png'" />
       </view>
       <view class="profile-info">
         <text class="user-name">{{ isLoggedIn ? (userInfo?.nickname || '旅行家') : '点击登录' }}</text>
@@ -21,14 +21,14 @@
     <view class="ios-group">
       <view class="ios-cell" @click="goOrders">
         <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/订单.png" />
+          <image class="cell-icon-img" src="/static/icons/order.png" />
         </view>
         <text class="cell-title">我的订单</text>
         <text class="cell-arrow">›</text>
       </view>
       <view class="ios-cell" @click="goFavorites">
         <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/收藏.png" />
+          <image class="cell-icon-img" src="/static/icons/favorite.png" />
         </view>
         <text class="cell-title">我的收藏</text>
         <text class="cell-arrow">›</text>
@@ -39,28 +39,28 @@
     <view class="ios-group">
       <view class="ios-cell" @click="goPreference">
         <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/偏好.png" />
+          <image class="cell-icon-img" src="/static/icons/preference.png" />
         </view>
         <text class="cell-title">偏好设置</text>
         <text class="cell-arrow">›</text>
       </view>
       <view class="ios-cell" @click="contactService">
         <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/客服.png" />
+          <image class="cell-icon-img" src="/static/icons/service.png" />
         </view>
         <text class="cell-title">联系客服</text>
         <text class="cell-arrow">›</text>
       </view>
       <view class="ios-cell" @click="showAbout">
         <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/关于.png" />
+          <image class="cell-icon-img" src="/static/icons/about.png" />
         </view>
         <text class="cell-title">关于我们</text>
         <text class="cell-arrow">›</text>
       </view>
       <view class="ios-cell" @click="goDeactivate">
         <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/注销.png" />
+          <image class="cell-icon-img" src="/static/icons/deactivate.png" />
         </view>
         <text class="cell-title">注销账户</text>
         <text class="cell-arrow">›</text>
@@ -132,7 +132,7 @@
         <view class="auth-avatar-wrap">
           <!-- #ifdef MP-WEIXIN -->
           <button class="auth-avatar-btn" open-type="chooseAvatar" @chooseavatar="onAuthChooseAvatar">
-            <image class="auth-avatar-img" :src="authForm.avatarPreview || '/static/默认头像.png'" />
+            <image class="auth-avatar-img" :src="authForm.avatarPreview || '/static/default-avatar.png'" />
             <view class="auth-avatar-edit">
               <text class="auth-avatar-edit-text">点击选择头像</text>
             </view>
@@ -140,7 +140,7 @@
           <!-- #endif -->
           <!-- #ifndef MP-WEIXIN -->
           <view class="auth-avatar-btn" @click="chooseAvatarFromAlbum">
-            <image class="auth-avatar-img" :src="authForm.avatarPreview || '/static/默认头像.png'" />
+            <image class="auth-avatar-img" :src="authForm.avatarPreview || '/static/default-avatar.png'" />
             <view class="auth-avatar-edit">
               <text class="auth-avatar-edit-text">点击选择头像</text>
             </view>
@@ -183,13 +183,13 @@
           <text class="edit-avatar-label">头像</text>
           <!-- #ifdef MP-WEIXIN -->
           <button class="edit-avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
-            <image class="edit-avatar-img" :src="editForm.avatarPreview || editForm.avatar || '/static/默认头像.png'" />
+            <image class="edit-avatar-img" :src="editForm.avatarPreview || editForm.avatar || '/static/default-avatar.png'" />
             <text class="edit-avatar-tip">点击更换</text>
           </button>
           <!-- #endif -->
           <!-- #ifndef MP-WEIXIN -->
           <view class="edit-avatar-btn" @click="chooseAvatarFromAlbum">
-            <image class="edit-avatar-img" :src="editForm.avatarPreview || editForm.avatar || '/static/默认头像.png'" />
+            <image class="edit-avatar-img" :src="editForm.avatarPreview || editForm.avatar || '/static/default-avatar.png'" />
             <text class="edit-avatar-tip">点击更换</text>
           </view>
           <!-- #endif -->

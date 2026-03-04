@@ -46,7 +46,7 @@ const getOrderStatusText = (status) => {
   return orderStatusText[status] || status
 }
 
-module.exports = {
+export {
   formatDate,
   formatPrice,
   getOrderStatusText

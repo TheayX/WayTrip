@@ -16,7 +16,7 @@ public interface ReviewMapper extends BaseMapper<Review> {
     /**
      * 分页查询景点评论（带用户信息）
      */
-    IPage<Review> selectRatingPage(Page<Review> page, @Param("spotId") Long spotId);
+    IPage<Review> selectReviewPage(Page<Review> page, @Param("spotId") Long spotId);
 
     /**
      * 查询景点最新评论

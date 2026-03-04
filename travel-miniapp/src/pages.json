@@ -100,26 +100,26 @@
       {
         "pagePath": "pages/index/index",
         "text": "首页",
-        "iconPath": "static/tabbar/shouye.png",
-        "selectedIconPath": "static/tabbar/shouye-active.png"
+        "iconPath": "static/tabbar/home.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
       },
       {
         "pagePath": "pages/spot/list",
         "text": "景点",
-        "iconPath": "static/tabbar/jingdian.png",
-        "selectedIconPath": "static/tabbar/jingdian-active.png"
+        "iconPath": "static/tabbar/spot.png",
+        "selectedIconPath": "static/tabbar/spot-active.png"
       },
       {
         "pagePath": "pages/guide/list",
         "text": "攻略",
-        "iconPath": "static/tabbar/gonglve.png",
-        "selectedIconPath": "static/tabbar/gonglve-active.png"
+        "iconPath": "static/tabbar/guide.png",
+        "selectedIconPath": "static/tabbar/guide-active.png"
       },
       {
         "pagePath": "pages/mine/index",
         "text": "我的",
-        "iconPath": "static/tabbar/wode.png",
-        "selectedIconPath": "static/tabbar/wode-active.png"
+        "iconPath": "static/tabbar/mine.png",
+        "selectedIconPath": "static/tabbar/mine-active.png"
       }
     ]
   },

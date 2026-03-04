@@ -3,8 +3,8 @@
     <!-- 搜索头部 -->
     <view class="search-header">
       <view class="search-input-wrap">
-        <image class="search-icon" src="/static/搜索.png" />
-        <input 
+        <image class="search-icon" src="/static/search.png" />
+        <input
           class="search-input" 
           v-model="keyword" 
           placeholder="搜索景点名称"
