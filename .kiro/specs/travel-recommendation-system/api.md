@@ -1817,6 +1817,69 @@ POST /api/admin/v1/orders/{orderId}/refund
 }
 ```
 
+#### 4.5 取消未支付订单
+
+管理员取消待支付状态的订单。
+
+**请求**
+
+```
+POST /api/admin/v1/orders/{orderId}/cancel
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "orderId": 1,
+    "orderNo": "ORD20250101100000001",
+    "status": "CANCELLED",
+    "statusText": "已取消",
+    "cancelledAt": "2025-01-01 10:10:00"
+  }
+}
+```
+
+**错误响应**
+
+- 订单不存在: 返回错误 `订单不存在`
+- 订单已取消: 幂等返回成功
+- 订单不是待支付状态: 返回错误 `订单状态不允许取消`
+
+#### 4.6 恢复已完成订单
+
+将已完成订单恢复为已支付状态，清除完成时间。
+
+**请求**
+
+```
+POST /api/admin/v1/orders/{orderId}/reopen
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "orderId": 1,
+    "orderNo": "ORD20250101100000001",
+    "status": "PAID",
+    "statusText": "已支付",
+    "completedAt": null
+  }
+}
+```
+
+**错误响应**
+
+- 订单不存在: 返回错误 `订单不存在`
+- 订单不是已完成状态: 返回错误 `订单状态不允许恢复`
+
 ---
 
 ### 5. 用户管理
@@ -1890,6 +1953,38 @@ GET /api/admin/v1/users/{userId}
     "createdAt": "2025-01-01 10:00:00",
     "updatedAt": "2025-01-05 15:00:00"
   }
+}
+```
+
+#### 5.3 重置用户密码
+
+管理员重置指定用户的密码。
+
+**请求**
+
+```
+PUT /api/admin/v1/users/{userId}/password
+```
+
+**请求体**
+
+```json
+{
+  "newPassword": "new_password123"
+}
+```
+
+| 参数        | 类型   | 必填 | 说明                       |
+| ----------- | ------ | ---- | -------------------------- |
+| newPassword | string | 是   | 新密码（6-50个字符）       |
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
 }
 ```
 
@@ -2314,7 +2409,7 @@ Content-Type: multipart/form-data
 | 订单 | 模拟支付           | POST   | /api/v1/orders/{orderId}/pay           |
 | 订单 | 取消订单           | POST   | /api/v1/orders/{orderId}/cancel        |
 
-### 管理端接口（共 35 个）
+### 管理端接口（共 38 个）
 
 | 模块     | 接口             | 方法   | 路径                                    |
 | -------- | ---------------- | ------ | --------------------------------------- |
@@ -2337,8 +2432,11 @@ Content-Type: multipart/form-data
 | 订单     | 获取订单详情     | GET    | /api/admin/v1/orders/{orderId}          |
 | 订单     | 完成订单         | POST   | /api/admin/v1/orders/{orderId}/complete |
 | 订单     | 退款订单         | POST   | /api/admin/v1/orders/{orderId}/refund   |
+| 订单     | 取消未支付订单   | POST   | /api/admin/v1/orders/{orderId}/cancel   |
+| 订单     | 恢复已完成订单   | POST   | /api/admin/v1/orders/{orderId}/reopen   |
 | 用户     | 获取用户列表     | GET    | /api/admin/v1/users                     |
 | 用户     | 获取用户详情     | GET    | /api/admin/v1/users/{userId}            |
+| 用户     | 重置用户密码     | PUT    | /api/admin/v1/users/{userId}/password   |
 | 管理员   | 获取管理员列表   | GET    | /api/admin/v1/admins                    |
 | 管理员   | 创建管理员       | POST   | /api/admin/v1/admins                    |
 | 管理员   | 更新管理员       | PUT    | /api/admin/v1/admins/{id}               |
