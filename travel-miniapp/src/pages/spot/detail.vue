@@ -59,7 +59,7 @@
       </view>
       <view class="comment-list" v-if="spot.latestComments?.length">
         <view class="comment-item" v-for="comment in spot.latestComments" :key="comment.id">
-          <image class="comment-avatar" :src="comment.avatar || '/static/默认头像.png'" />
+          <image class="comment-avatar" :src="comment.avatar || '/static/default-avatar.png'" />
           <view class="comment-content">
             <view class="comment-header">
               <text class="comment-name">{{ comment.nickname }}</text>
@@ -121,7 +121,7 @@ import { ref, reactive, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getSpotDetail } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
-import { submitRating } from '@/api/rating'
+import { submitReview } from '@/api/review'
 import { getImageUrl } from '@/utils/request'
 
 const spot = ref(null)
@@ -204,7 +204,7 @@ const submitRatingHandler = async () => {
     return
   }
   try {
-    await submitRating({
+    await submitReview({
       spotId: spotId.value,
       score: ratingForm.score,
       comment: ratingForm.comment

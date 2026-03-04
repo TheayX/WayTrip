@@ -129,7 +129,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getSpotDetail } from '@/api/spot'
 import { addFavorite, removeFavorite, checkFavorite } from '@/api/favorite'
-import { submitRating, getSpotRatings } from '@/api/rating'
+import { submitReview, getSpotReviews } from '@/api/review'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
@@ -188,7 +188,7 @@ const fetchComments = async (refresh = false) => {
       commentPage.value = 1
       comments.value = []
     }
-    const res = await getSpotRatings(route.params.id, commentPage.value, 5)
+    const res = await getSpotReviews(route.params.id, commentPage.value, 5)
     const list = res.data?.list || res.data || []
     comments.value = refresh ? list : [...comments.value, ...list]
     commentTotal.value = res.data?.total || 0
@@ -234,7 +234,7 @@ const handleSubmitRating = async () => {
   }
   submittingRating.value = true
   try {
-    await submitRating({
+    await submitReview({
       spotId: Number(route.params.id),
       score: ratingForm.score,
       comment: ratingForm.comment

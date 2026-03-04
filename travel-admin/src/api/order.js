@@ -1,62 +1,31 @@
 ﻿import request from '@/utils/request'
 
-/**
- * 获取订单列表
- */
+// 获取订单列表
 export function getOrderList(params) {
-  return request({
-    url: '/orders',
-    method: 'get',
-    params
-  })
+  return request.get('/orders', { params })
 }
 
-/**
- * 获取订单详情
- */
+// 获取订单详情
 export function getOrderDetail(id) {
-  return request({
-    url: `/orders/${id}`,
-    method: 'get'
-  })
+  return request.get(`/orders/${id}`)
 }
 
-/**
- * 完成订单
- */
+// 完成订单
 export function completeOrder(id) {
-  return request({
-    url: `/orders/${id}/complete`,
-    method: 'post'
-  })
+  return request.post(`/orders/${id}/complete`)
 }
 
-/**
- * 退款订单
- */
+// 退款订单
 export function refundOrder(id) {
-  return request({
-    url: `/orders/${id}/refund`,
-    method: 'post'
-  })
+  return request.post(`/orders/${id}/refund`)
 }
 
-/**
- * 取消未支付订单
- */
+// 取消未支付订单
 export function cancelOrder(id) {
-  return request({
-    url: `/orders/${id}/cancel`,
-    method: 'post'
-  })
+  return request.post(`/orders/${id}/cancel`)
 }
 
-/**
- * 恢复订单为已支付
- */
+// 恢复订单为已支付
 export function reopenOrder(id) {
-  return request({
-    url: `/orders/${id}/reopen`,
-    method: 'post'
-  })
+  return request.post(`/orders/${id}/reopen`)
 }

@@ -24,7 +24,7 @@
         <result column="created_at" property="createdAt"/>
     </resultMap>
 
-    <select id="selectRatingPage" resultMap="ReviewResultMap">
+    <select id="selectReviewPage" resultMap="ReviewResultMap">
         SELECT r.*,
                u.nickname,
                u.avatar_url

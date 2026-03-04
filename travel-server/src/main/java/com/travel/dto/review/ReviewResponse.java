@@ -1,14 +1,14 @@
-package com.travel.dto.rating;
+package com.travel.dto.review;
 
 import lombok.Builder;
 import lombok.Data;
 
 /**
- * 评分响应
+ * 评价响应
  */
 @Data
 @Builder
-public class RatingResponse {
+public class ReviewResponse {
     private Long id;
     private Long userId;
     private Long spotId;
@@ -18,3 +18,4 @@ public class RatingResponse {
     private String avatar;
     private String createdAt;
 }
+

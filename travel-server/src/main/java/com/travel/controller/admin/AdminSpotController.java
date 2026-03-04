@@ -62,4 +62,10 @@ public class AdminSpotController {
         spotService.deleteSpot(spotId);
         return ApiResponse.success();
     }
+
+    @Operation(summary = "获取筛选选项（地区、分类）")
+    @GetMapping("/filters")
+    public ApiResponse<SpotFilterResponse> getFilters() {
+        return ApiResponse.success(spotService.getFilters());
+    }
 }

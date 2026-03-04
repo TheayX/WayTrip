@@ -1,11 +1,9 @@
-package com.travel.controller;
+package com.travel.service;
 
 import com.travel.common.result.ApiResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -15,20 +13,24 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 用户端文件上传接口（头像等）
+ * 文件上传公共服务
  */
 @Slf4j
-@Tag(name = "用户端文件上传")
-@RestController
-@RequestMapping("/api/v1/upload")
-public class UserUploadController {
+@Service
+public class FileUploadService {
 
     @Value("${upload.path:./uploads}")
     private String uploadPath;
 
-    @Operation(summary = "上传头像")
-    @PostMapping("/avatar")
-    public ApiResponse<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) {
+    /**
+     * 上传图片文件
+     *
+     * @param file       上传的文件
+     * @param maxSizeMB  最大文件大小（MB）
+     * @param logPrefix  日志前缀（如 "文件" / "头像"）
+     * @return 上传结果
+     */
+    public ApiResponse<Map<String, String>> uploadImage(MultipartFile file, int maxSizeMB, String logPrefix) {
         if (file.isEmpty()) {
             return ApiResponse.error(60001, "请选择要上传的文件");
         }
@@ -39,9 +41,9 @@ public class UserUploadController {
             return ApiResponse.error(60001, "只能上传图片文件");
         }
 
-        // 检查文件大小 (2MB)
-        if (file.getSize() > 2 * 1024 * 1024) {
-            return ApiResponse.error(60001, "头像图片大小不能超过2MB");
+        // 检查文件大小
+        if (file.getSize() > (long) maxSizeMB * 1024 * 1024) {
+            return ApiResponse.error(60001, "图片大小不能超过" + maxSizeMB + "MB");
         }
 
         try {
@@ -70,12 +72,12 @@ public class UserUploadController {
             result.put("url", url);
             result.put("filename", newFilename);
 
-            log.info("头像上传成功: {}, 保存路径: {}", url, destFile.getAbsolutePath());
+            log.info("{}上传成功: {}, 保存路径: {}", logPrefix, url, destFile.getAbsolutePath());
             return ApiResponse.success(result);
 
         } catch (IOException e) {
-            log.error("头像上传失败", e);
-            return ApiResponse.error(60002, "头像上传失败");
+            log.error("{}上传失败", logPrefix, e);
+            return ApiResponse.error(60002, logPrefix + "上传失败");
         }
     }
 }

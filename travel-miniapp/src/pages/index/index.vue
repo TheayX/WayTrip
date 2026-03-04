@@ -4,10 +4,10 @@
     <view class="ios-header">
       <view class="header-top">
         <text class="large-title">探索</text>
-        <image class="avatar-sm" :src="userInfo?.avatar ? getImageUrl(userInfo.avatar) : '/static/默认头像.png'" @click="goMine"/>
+<image class="avatar-sm" :src="userInfo?.avatar ? getImageUrl(userInfo.avatar) : '/static/default-avatar.png'" @click="goMine"/>
       </view>
       <view class="search-bar" @click="goSearch">
-        <image class="search-icon" src="/static/搜索.png" />
+        <image class="search-icon" src="/static/search.png" />
         <text class="search-placeholder">搜索景点、攻略...</text>
       </view>
     </view>
@@ -104,7 +104,7 @@ import { ref, computed } from 'vue'
 import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { getHotSpots, getRecommendations, refreshRecommendations, getBanners } from '@/api/home'
 import { getFilters } from '@/api/spot'
-import { setPreferences } from '@/api/auth'
+import { updatePreferences } from '@/api/auth'
 import { getImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -222,7 +222,7 @@ const savePreferences = async () => {
   }
   
   try {
-    await setPreferences(selectedCategories.value)
+    await updatePreferences({ tags: selectedCategories.value })
     uni.showToast({ title: '设置成功', icon: 'success' })
     preferenceVisible.value = false
     handleRefresh()
