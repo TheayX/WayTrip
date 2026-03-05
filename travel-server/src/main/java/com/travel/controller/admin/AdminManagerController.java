@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@Tag(name = "管理员管理")
+/**
+ * 管理端管理员管理接口
+ */
+@Tag(name = "管理端-管理员", description = "管理员账户管理相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/admins")
 @RequiredArgsConstructor

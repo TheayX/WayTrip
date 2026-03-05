@@ -13,11 +13,11 @@ import java.util.Map;
 /**
  * 用户端文件上传接口（头像等）
  */
-@Tag(name = "用户端文件上传")
+@Tag(name = "用户端-文件上传", description = "用户端头像等文件上传接口")
 @RestController
 @RequestMapping("/api/v1/upload")
 @RequiredArgsConstructor
-public class UserUploadController {
+public class UploadController {
 
     private final FileUploadService fileUploadService;
 

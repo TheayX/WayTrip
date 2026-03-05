@@ -9,7 +9,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "推荐接口", description = "个性化推荐相关接口")
+/**
+ * 用户端推荐接口
+ */
+@Tag(name = "用户端-推荐", description = "个性化推荐相关接口")
 @RestController
 @RequestMapping("/api/v1/recommendations")
 @RequiredArgsConstructor

@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * 用户端攻略接口
  */
-@Tag(name = "攻略")
+@Tag(name = "用户端-攻略", description = "用户端攻略浏览相关接口")
 @RestController
 @RequestMapping("/api/v1/guides")
 @RequiredArgsConstructor

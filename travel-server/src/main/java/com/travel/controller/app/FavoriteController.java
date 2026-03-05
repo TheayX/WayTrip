@@ -15,9 +15,9 @@ import jakarta.validation.Valid;
 import java.util.Map;
 
 /**
- * 收藏接口
+ * 用户端收藏接口
  */
-@Tag(name = "收藏")
+@Tag(name = "用户端-收藏", description = "用户收藏管理相关接口")
 @RestController
 @RequestMapping("/api/v1/favorites")
 @RequiredArgsConstructor

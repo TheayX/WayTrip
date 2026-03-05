@@ -9,7 +9,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "管理端轮播图接口", description = "管理端轮播图管理相关接口")
+/**
+ * 管理端轮播图接口
+ */
+@Tag(name = "管理端-轮播图", description = "管理端轮播图管理相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/banners")
 @RequiredArgsConstructor
@@ -27,7 +30,7 @@ public class AdminBannerController {
     @PostMapping
     public ApiResponse<Void> createBanner(@Valid @RequestBody AdminBannerRequest request) {
         spotBannerService.createBanner(request);
-        return ApiResponse.success(null);
+        return ApiResponse.success();
     }
 
     @Operation(summary = "更新轮播图")
@@ -36,20 +39,20 @@ public class AdminBannerController {
             @PathVariable("id") Long id,
             @Valid @RequestBody AdminBannerRequest request) {
         spotBannerService.updateBanner(id, request);
-        return ApiResponse.success(null);
+        return ApiResponse.success();
     }
 
     @Operation(summary = "删除轮播图")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteBanner(@PathVariable("id") Long id) {
         spotBannerService.deleteBanner(id);
-        return ApiResponse.success(null);
+        return ApiResponse.success();
     }
 
     @Operation(summary = "切换启用状态")
     @PostMapping("/{id}/toggle")
     public ApiResponse<Void> toggleEnabled(@PathVariable("id") Long id) {
         spotBannerService.toggleEnabled(id);
-        return ApiResponse.success(null);
+        return ApiResponse.success();
     }
 }

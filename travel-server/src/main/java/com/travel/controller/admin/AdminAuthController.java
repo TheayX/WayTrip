@@ -15,7 +15,7 @@ import jakarta.validation.Valid;
 /**
  * 管理端认证接口
  */
-@Tag(name = "管理员认证")
+@Tag(name = "管理端-认证", description = "管理员登录、信息获取相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/auth")
 @RequiredArgsConstructor

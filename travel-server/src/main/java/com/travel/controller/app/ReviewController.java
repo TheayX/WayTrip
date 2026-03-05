@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 /**
- * 评价接口
+ * 用户端评价接口
  */
-@Tag(name = "评价")
+@Tag(name = "用户端-评价", description = "用户评价提交与查看相关接口")
 @RestController
 @RequestMapping("/api/v1/reviews")
 @RequiredArgsConstructor

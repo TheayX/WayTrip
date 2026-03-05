@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
-@Tag(name = "管理端用户接口", description = "管理端用户管理相关接口")
+/**
+ * 管理端用户管理接口
+ */
+@Tag(name = "管理端-用户", description = "管理端用户管理相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/users")
 @RequiredArgsConstructor

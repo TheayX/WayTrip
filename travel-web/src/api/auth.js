@@ -28,5 +28,5 @@ export const uploadAvatar = (file) => {
 }
 
 // 注销账户
-export const deactivateAccount = () => request.delete('/auth/account')
+export const deactivateAccount = () => request.delete('/user/account')
 

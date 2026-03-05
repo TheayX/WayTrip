@@ -8,7 +8,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "管理端仪表板接口", description = "管理端仪表板统计相关接口")
+/**
+ * 管理端仪表板接口
+ */
+@Tag(name = "管理端-仪表板", description = "管理端仪表板统计相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/dashboard")
 @RequiredArgsConstructor

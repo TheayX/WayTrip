@@ -10,7 +10,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "首页接口", description = "首页相关接口")
+/**
+ * 用户端首页接口
+ */
+@Tag(name = "用户端-首页", description = "首页轮播图、热门景点相关接口")
 @RestController
 @RequestMapping("/api/v1/home")
 @RequiredArgsConstructor

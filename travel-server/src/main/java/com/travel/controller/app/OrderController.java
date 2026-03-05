@@ -10,7 +10,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "订单接口", description = "用户端订单相关接口")
+/**
+ * 用户端订单接口
+ */
+@Tag(name = "用户端-订单", description = "用户端订单相关接口")
 @RestController
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor

@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * 管理端景点接口
  */
-@Tag(name = "景点管理")
+@Tag(name = "管理端-景点", description = "管理端景点管理相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/spots")
 @RequiredArgsConstructor

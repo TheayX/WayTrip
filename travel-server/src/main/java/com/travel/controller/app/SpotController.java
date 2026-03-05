@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 用户端景点接口
  */
-@Tag(name = "景点")
+@Tag(name = "用户端-景点", description = "用户端景点浏览与搜索相关接口")
 @RestController
 @RequestMapping("/api/v1/spots")
 @RequiredArgsConstructor

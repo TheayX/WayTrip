@@ -18,14 +18,14 @@ export const wxBindPhone = (data) => {
  * 获取用户信息
  */
 export const getUserInfo = () => {
-  return get('/auth/user-info')
+  return get('/user/info')
 }
 
 /**
  * 更新用户信息
  */
 export const updateUserInfo = (data) => {
-  return put('/auth/user-info', data)
+  return put('/user/info', data)
 }
 
 
@@ -33,7 +33,7 @@ export const updateUserInfo = (data) => {
  * 更新偏好标签
  */
 export const updatePreferences = (data) => {
-  return post('/auth/preferences', data)
+  return post('/user/preferences', data)
 }
 
 
@@ -48,13 +48,13 @@ export const uploadAvatar = (filePath) => {
  * 修改密码
  */
 export const changePassword = (data) => {
-  return put('/auth/password', data)
+  return put('/user/password', data)
 }
 
 /**
  * 注销账户
  */
 export const deactivateAccount = () => {
-  return del('/auth/account')
+  return del('/user/account')
 }
 
