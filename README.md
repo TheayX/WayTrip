@@ -19,10 +19,10 @@
 ```
 WayTrip/
 ├── .kiro/              # 项目文档（需求、设计、API、数据库、任务）
-├── travel-server/      # 后端服务 (Spring Boot)
-├── travel-web/         # Web 用户端 (Vue 3 + Element Plus)
 ├── travel-admin/       # 管理后台 (Vue 3 + Element Plus)
-└── travel-miniapp/     # 小程序端 (Uni-app)
+├── travel-miniapp/     # 小程序端 (Uni-app)
+├── travel-server/      # 后端服务 (Spring Boot)
+└── travel-web/         # Web 用户端 (Vue 3 + Element Plus)
 ```
 
 ## 快速开始

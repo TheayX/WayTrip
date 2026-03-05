@@ -98,7 +98,7 @@
 
 #### 1.1 微信登录
 
-用户通过微信小程序登录。
+用户通过微信小程序登录。新用户返回 `openid` 用于后续绑定手机号，老用户直接返回 `token`。
 
 **请求**
 
@@ -125,6 +125,8 @@ POST /api/v1/auth/wx-login
   "code": 0,
   "message": "success",
   "data": {
+    "isNewUser": false,
+    "openid": null,
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "expiresIn": 604800,
     "user": {
@@ -133,10 +135,17 @@ POST /api/v1/auth/wx-login
       "avatar": "https://example.com/avatar.jpg",
       "phone": "13800000000",
       "isNewUser": false
-    }
+    },
+    "isReactivated": false
   }
 }
 ```
+
+| 字段          | 说明                                                        |
+| ------------- | ----------------------------------------------------------- |
+| isNewUser     | 是否新用户；true 时 token 为空，openid 有值需要绑定手机号   |
+| openid        | 新用户时返回，用于后续调用 wx-bind-phone                     |
+| isReactivated | 是否从注销状态恢复的账户                                     |
 
 #### 1.2 获取用户信息
 
@@ -145,7 +154,7 @@ POST /api/v1/auth/wx-login
 **请求**
 
 ```
-GET /api/v1/auth/user-info
+GET /api/v1/user/info
 ```
 
 **响应**
@@ -159,10 +168,15 @@ GET /api/v1/auth/user-info
     "nickname": "用户昵称",
     "avatar": "https://example.com/avatar.jpg",
     "phone": "13800000000",
+    "hasPassword": true,
     "preferences": ["自然风光", "历史文化"]
   }
 }
 ```
+
+| 字段        | 说明                                   |
+| ----------- | -------------------------------------- |
+| hasPassword | 是否已设置密码（微信用户可能未设置）   |
 
 #### 1.3 更新用户信息
 
@@ -171,7 +185,7 @@ GET /api/v1/auth/user-info
 **请求**
 
 ```
-PUT /api/v1/auth/user-info
+PUT /api/v1/user/info
 ```
 
 **请求体**
@@ -207,7 +221,7 @@ PUT /api/v1/auth/user-info
 **请求**
 
 ```
-POST /api/v1/auth/preferences
+POST /api/v1/user/preferences
 ```
 
 **请求体**
@@ -269,11 +283,19 @@ POST /api/v1/auth/wx-bind-phone
       "id": 1,
       "nickname": "用户昵称",
       "avatar": "",
-      "phone": "13800138000"
+      "phone": "13800138000",
+      "isNewUser": false,
+      "isReactivated": false,
+      "isMerged": false
     }
   }
 }
 ```
+
+| 字段          | 说明                                                |
+| ------------- | --------------------------------------------------- |
+| isReactivated | 是否从注销状态恢复的账户                             |
+| isMerged      | 是否通过手机号密码合并了已有 Web 端账户              |
 
 #### 1.6 Web 端注册
 
@@ -335,7 +357,7 @@ POST /api/v1/auth/web-login
 **请求**
 
 ```
-PUT /api/v1/auth/password
+PUT /api/v1/user/password
 ```
 
 **请求体**
@@ -346,6 +368,11 @@ PUT /api/v1/auth/password
   "newPassword": "new_password"
 }
 ```
+
+| 参数        | 类型   | 必填 | 说明                                   |
+| ----------- | ------ | ---- | -------------------------------------- |
+| oldPassword | string | 否   | 旧密码（微信用户首次设置密码时可为空） |
+| newPassword | string | 是   | 新密码（6-50个字符）                   |
 
 **响应**
 
@@ -364,7 +391,7 @@ PUT /api/v1/auth/password
 **请求**
 
 ```
-DELETE /api/v1/auth/account
+DELETE /api/v1/user/account
 ```
 
 **响应**
@@ -424,14 +451,17 @@ GET /api/v1/home/banners
 {
   "code": 0,
   "message": "success",
-  "data": [
-    {
-      "id": 1,
-      "imageUrl": "https://example.com/banner1.jpg",
-      "spotId": 101,
-      "spotName": "故宫博物院"
-    }
-  ]
+  "data": {
+    "list": [
+      {
+        "id": 1,
+        "imageUrl": "https://example.com/banner1.jpg",
+        "spotId": 101,
+        "spotName": "故宫博物院",
+        "sortOrder": 1
+      }
+    ]
+  }
 }
 ```
 
@@ -455,16 +485,19 @@ GET /api/v1/home/hot?limit=10
 {
   "code": 0,
   "message": "success",
-  "data": [
-    {
-      "id": 101,
-      "name": "故宫博物院",
-      "coverImage": "https://example.com/spot1.jpg",
-      "price": 60.0,
-      "avgRating": 4.8,
-      "heatScore": 9999
-    }
-  ]
+  "data": {
+    "list": [
+      {
+        "id": 101,
+        "name": "故宫博物院",
+        "coverImage": "https://example.com/spot1.jpg",
+        "price": 60.0,
+        "avgRating": 4.8,
+        "heatScore": 9999,
+        "categoryName": "历史文化"
+      }
+    ]
+  }
 }
 ```
 
@@ -494,27 +527,29 @@ GET /api/v1/recommendations?limit=10
   "message": "success",
   "data": {
     "type": "personalized",
-    "hasEnoughInteractions": true,
-    "spots": [
+    "needPreference": false,
+    "list": [
       {
         "id": 102,
         "name": "颐和园",
         "coverImage": "https://example.com/spot2.jpg",
         "price": 30.0,
         "avgRating": 4.7,
-        "recommendScore": 0.85
+        "ratingCount": 856,
+        "categoryName": "历史文化",
+        "regionName": "北京",
+        "score": 0.85
       }
-    ],
-    "showPreferenceGuide": false
+    ]
   }
 }
 ```
 
-| 字段                  | 说明                                                                |
-| --------------------- | ------------------------------------------------------------------- |
-| type                  | 推荐类型：personalized（个性化）/ hot（热门）/ cold_start（冷启动） |
-| hasEnoughInteractions | 是否有足够交互记录                                                  |
-| showPreferenceGuide   | 是否显示偏好标签引导                                                |
+| 字段           | 说明                                                       |
+| -------------- | ---------------------------------------------------------- |
+| type           | 推荐类型：personalized（个性化）/ hot（热门）/ preference（偏好） |
+| needPreference | 是否需要设置偏好标签（冷启动提示）                          |
+| score          | 推荐分数                                                    |
 
 #### 3.2 刷新推荐
 
@@ -650,7 +685,7 @@ GET /api/v1/spots/{spotId}
 
 #### 4.4 获取筛选选项
 
-获取地区、扁平分类列表和分类树（parent_id 层级结构）。
+获取地区列表、地区树、扁平分类列表和分类树（parent_id 层级结构）。
 
 **请求**
 
@@ -668,6 +703,16 @@ GET /api/v1/spots/filters
     "regions": [
       { "id": 1, "name": "北京" },
       { "id": 2, "name": "上海" }
+    ],
+    "regionTree": [
+      {
+        "id": 1,
+        "name": "华北",
+        "parentId": 0,
+        "children": [
+          { "id": 2, "name": "北京", "parentId": 1, "children": [] }
+        ]
+      }
     ],
     "categories": [
       {
@@ -740,6 +785,7 @@ GET /api/v1/guides?page=1&pageSize=10&category=美食&sortBy=time
         "title": "北京三日游攻略",
         "coverImage": "https://example.com/guide1.jpg",
         "category": "行程规划",
+        "summary": "北京是中国的首都，拥有丰富的历史文化...",
         "viewCount": 1234,
         "createdAt": "2025-01-01 10:00:00"
       }
@@ -810,16 +856,16 @@ GET /api/v1/guides/categories
 
 ---
 
-### 6. 评分模块
+### 6. 评价模块
 
-#### 6.1 提交评分
+#### 6.1 提交评价
 
 为景点提交评分和评论。
 
 **请求**
 
 ```
-POST /api/v1/ratings
+POST /api/v1/reviews
 ```
 
 **请求体**
@@ -844,24 +890,18 @@ POST /api/v1/ratings
 {
   "code": 0,
   "message": "success",
-  "data": {
-    "id": 1,
-    "spotId": 101,
-    "score": 5,
-    "comment": "非常值得一去！",
-    "createdAt": "2025-01-01 10:00:00"
-  }
+  "data": null
 }
 ```
 
-#### 6.2 获取用户对景点的评分
+#### 6.2 获取用户对景点的评价
 
-获取当前用户对指定景点的评分。
+获取当前用户对指定景点的评价。
 
 **请求**
 
 ```
-GET /api/v1/ratings/spot/{spotId}
+GET /api/v1/reviews/spot/{spotId}
 ```
 
 **响应**
@@ -872,14 +912,18 @@ GET /api/v1/ratings/spot/{spotId}
   "message": "success",
   "data": {
     "id": 1,
+    "userId": 1,
+    "spotId": 101,
     "score": 5,
     "comment": "非常值得一去！",
+    "nickname": "游客A",
+    "avatar": "https://example.com/avatar1.jpg",
     "createdAt": "2025-01-01 10:00:00"
   }
 }
 ```
 
-如果用户未评分，data 为 null
+如果用户未评价，data 为 null
 
 #### 6.3 获取景点评论列表
 
@@ -888,7 +932,7 @@ GET /api/v1/ratings/spot/{spotId}
 **请求**
 
 ```
-GET /api/v1/ratings/spot/{spotId}/comments?page=1&pageSize=10
+GET /api/v1/reviews/spot/{spotId}/comments?page=1&pageSize=10
 ```
 
 **响应**
@@ -902,6 +946,7 @@ GET /api/v1/ratings/spot/{spotId}/comments?page=1&pageSize=10
       {
         "id": 1,
         "userId": 1,
+        "spotId": 101,
         "nickname": "游客A",
         "avatar": "https://example.com/avatar1.jpg",
         "score": 5,
@@ -1094,14 +1139,14 @@ POST /api/v1/orders
 **请求**
 
 ```
-GET /api/v1/orders?page=1&pageSize=10&status=0
+GET /api/v1/orders?page=1&pageSize=10&status=pending
 ```
 
-| 参数     | 类型 | 必填 | 说明                                                   |
-| -------- | ---- | ---- | ------------------------------------------------------ |
-| page     | int  | 否   | 页码，默认1                                            |
-| pageSize | int  | 否   | 每页数量，默认10                                       |
-| status   | int  | 否   | 状态筛选：0-待支付/1-已支付/2-已取消/3-已退款/4-已完成 |
+| 参数     | 类型   | 必填 | 说明                                                         |
+| -------- | ------ | ---- | ------------------------------------------------------------ |
+| page     | int    | 否   | 页码，默认1                                                  |
+| pageSize | int    | 否   | 每页数量，默认10                                             |
+| status   | string | 否   | 状态筛选：pending/paid/completed/cancelled/refunded          |
 
 **响应**
 
@@ -1114,10 +1159,12 @@ GET /api/v1/orders?page=1&pageSize=10&status=0
       {
         "id": 1,
         "orderNo": "ORD20250101100000001",
+        "spotId": 101,
         "spotName": "故宫博物院",
         "spotImage": "https://example.com/spot1.jpg",
-        "totalPrice": 120.0,
+        "unitPrice": 60.0,
         "quantity": 2,
+        "totalPrice": 120.0,
         "visitDate": "2025-02-01",
         "status": "PENDING_PAYMENT",
         "statusText": "待支付",
@@ -1126,8 +1173,7 @@ GET /api/v1/orders?page=1&pageSize=10&status=0
     ],
     "total": 10,
     "page": 1,
-    "pageSize": 10,
-    "totalPages": 1
+    "pageSize": 10
   }
 }
 ```
@@ -1166,7 +1212,10 @@ GET /api/v1/orders/{orderId}
     "paidAt": null,
     "cancelledAt": null,
     "refundedAt": null,
-    "completedAt": null
+    "completedAt": null,
+    "updatedAt": "2025-01-01 10:00:00",
+    "canPay": true,
+    "canCancel": true
   }
 }
 ```
@@ -1178,8 +1227,12 @@ GET /api/v1/orders/{orderId}
 **请求**
 
 ```
-POST /api/v1/orders/{orderId}/pay
+POST /api/v1/orders/{orderId}/pay?idempotentKey=uuid-xxx
 ```
+
+| 参数          | 类型   | 必填 | 说明                 |
+| ------------- | ------ | ---- | -------------------- |
+| idempotentKey | string | 否   | 幂等键（防重复支付） |
 
 **响应**
 
@@ -1325,8 +1378,10 @@ GET /api/admin/v1/spots?page=1&pageSize=10&keyword=故宫&published=1
         "categoryName": "历史文化",
         "avgRating": 4.8,
         "heatScore": 9999,
+        "ratingCount": 1234,
         "published": true,
-        "createdAt": "2025-01-01 10:00:00"
+        "createdAt": "2025-01-01 10:00:00",
+        "updatedAt": "2025-01-02 14:00:00"
       }
     ],
     "total": 100,
@@ -1494,6 +1549,18 @@ DELETE /api/admin/v1/spots/{spotId}
 }
 ```
 
+#### 2.7 获取筛选选项（地区、分类）
+
+**请求**
+
+```
+GET /api/admin/v1/spots/filters
+```
+
+**响应**
+
+同用户端 4.4 获取筛选选项
+
 ---
 
 ### 3. 攻略管理
@@ -1521,7 +1588,8 @@ GET /api/admin/v1/guides?page=1&pageSize=10&keyword=北京&published=1
         "category": "行程规划",
         "viewCount": 1234,
         "published": true,
-        "createdAt": "2025-01-01 10:00:00"
+        "createdAt": "2025-01-01 10:00:00",
+        "updatedAt": "2025-01-02 14:00:00"
       }
     ],
     "total": 50,
@@ -1553,6 +1621,11 @@ GET /api/admin/v1/guides/{guideId}
     "coverImage": "https://example.com/guide1.jpg",
     "category": "行程规划",
     "relatedSpotIds": [101, 102],
+    "spotIds": [101, 102],
+    "spotOptions": [
+      { "id": 101, "name": "故宫博物院", "published": 1, "isDeleted": 0 },
+      { "id": 102, "name": "颐和园", "published": 1, "isDeleted": 0 }
+    ],
     "published": true,
     "createdAt": "2025-01-01 10:00:00",
     "updatedAt": "2025-01-01 10:00:00"
@@ -1576,7 +1649,7 @@ POST /api/admin/v1/guides
   "content": "<p>北京是中国的首都...</p>",
   "coverImage": "https://example.com/guide1.jpg",
   "category": "行程规划",
-  "relatedSpotIds": [101, 102],
+  "spotIds": [101, 102],
   "published": false
 }
 ```
@@ -1686,17 +1759,18 @@ GET /api/admin/v1/guides/categories
 **请求**
 
 ```
-GET /api/admin/v1/orders?page=1&pageSize=10&status=1&startDate=2025-01-01&endDate=2025-01-31
+GET /api/admin/v1/orders?page=1&pageSize=10&status=paid&startDate=2025-01-01&endDate=2025-01-31
 ```
 
-| 参数      | 类型   | 必填 | 说明                                                   |
-| --------- | ------ | ---- | ------------------------------------------------------ |
-| page      | int    | 否   | 页码，默认1                                            |
-| pageSize  | int    | 否   | 每页数量，默认10                                       |
-| status    | int    | 否   | 状态筛选：0-待支付/1-已支付/2-已取消/3-已退款/4-已完成 |
-| startDate | string | 否   | 开始日期                                               |
-| endDate   | string | 否   | 结束日期                                               |
-| orderNo   | string | 否   | 订单号搜索                                             |
+| 参数      | 类型   | 必填 | 说明                                                         |
+| --------- | ------ | ---- | ------------------------------------------------------------ |
+| page      | int    | 否   | 页码，默认1                                                  |
+| pageSize  | int    | 否   | 每页数量，默认10                                             |
+| status    | string | 否   | 状态筛选：pending/paid/completed/cancelled/refunded          |
+| startDate | string | 否   | 开始日期                                                     |
+| endDate   | string | 否   | 结束日期                                                     |
+| orderNo   | string | 否   | 订单号搜索                                                   |
+| spotName  | string | 否   | 景点名称搜索                                                 |
 
 **响应**
 
@@ -1711,19 +1785,27 @@ GET /api/admin/v1/orders?page=1&pageSize=10&status=1&startDate=2025-01-01&endDat
         "orderNo": "ORD20250101100000001",
         "userId": 1,
         "userNickname": "用户A",
+        "spotId": 101,
         "spotName": "故宫博物院",
-        "totalPrice": 120.0,
+        "unitPrice": 60.0,
         "quantity": 2,
+        "totalPrice": 120.0,
         "visitDate": "2025-02-01",
+        "contactName": "张三",
+        "contactPhone": "13800138000",
         "status": "PAID",
         "statusText": "已支付",
-        "createdAt": "2025-01-01 10:00:00"
+        "paidAt": "2025-01-01 10:05:00",
+        "completedAt": null,
+        "cancelledAt": null,
+        "refundedAt": null,
+        "createdAt": "2025-01-01 10:00:00",
+        "updatedAt": "2025-01-01 10:05:00"
       }
     ],
     "total": 100,
     "page": 1,
-    "pageSize": 10,
-    "totalPages": 10
+    "pageSize": 10
   }
 }
 ```
@@ -1889,16 +1971,14 @@ POST /api/admin/v1/orders/{orderId}/reopen
 **请求**
 
 ```
-GET /api/admin/v1/users?page=1&pageSize=10&keyword=用户
+GET /api/admin/v1/users?page=1&pageSize=10&nickname=用户
 ```
 
 | 参数      | 类型   | 必填 | 说明             |
 | --------- | ------ | ---- | ---------------- |
 | page      | int    | 否   | 页码，默认1      |
 | pageSize  | int    | 否   | 每页数量，默认10 |
-| keyword   | string | 否   | 昵称搜索         |
-| startDate | string | 否   | 注册开始日期     |
-| endDate   | string | 否   | 注册结束日期     |
+| nickname  | string | 否   | 昵称搜索         |
 
 **响应**
 
@@ -1912,16 +1992,17 @@ GET /api/admin/v1/users?page=1&pageSize=10&keyword=用户
         "id": 1,
         "nickname": "用户A",
         "avatar": "https://example.com/avatar1.jpg",
+        "phone": "138****0000",
         "orderCount": 5,
         "ratingCount": 10,
         "favoriteCount": 20,
-        "createdAt": "2025-01-01 10:00:00"
+        "createdAt": "2025-01-01 10:00:00",
+        "updatedAt": "2025-01-05 15:00:00"
       }
     ],
     "total": 1000,
     "page": 1,
-    "pageSize": 10,
-    "totalPages": 100
+    "pageSize": 10
   }
 }
 ```
@@ -1946,12 +2027,23 @@ GET /api/admin/v1/users/{userId}
     "id": 1,
     "nickname": "用户A",
     "avatar": "https://example.com/avatar1.jpg",
-    "preferences": ["自然风光", "历史文化"],
+    "phone": "138****0000",
+    "preferences": "自然风光,历史文化",
     "orderCount": 5,
     "ratingCount": 10,
     "favoriteCount": 20,
     "createdAt": "2025-01-01 10:00:00",
-    "updatedAt": "2025-01-05 15:00:00"
+    "updatedAt": "2025-01-05 15:00:00",
+    "recentOrders": [
+      {
+        "id": 1,
+        "orderNo": "ORD20250101100000001",
+        "spotName": "故宫博物院",
+        "status": "PAID",
+        "createdAt": "2025-01-01 10:00:00",
+        "updatedAt": "2025-01-01 10:05:00"
+      }
+    ]
   }
 }
 ```
@@ -2006,17 +2098,21 @@ GET /api/admin/v1/banners
 {
   "code": 0,
   "message": "success",
-  "data": [
-    {
-      "id": 1,
-      "imageUrl": "https://example.com/banner1.jpg",
-      "spotId": 101,
-      "spotName": "故宫博物院",
-      "sortOrder": 1,
-      "enabled": true,
-      "createdAt": "2025-01-01 10:00:00"
-    }
-  ]
+  "data": {
+    "list": [
+      {
+        "id": 1,
+        "imageUrl": "https://example.com/banner1.jpg",
+        "spotId": 101,
+        "spotName": "故宫博物院",
+        "sortOrder": 1,
+        "enabled": 1,
+        "createdAt": "2025-01-01 10:00:00",
+        "updatedAt": "2025-01-01 10:00:00"
+      }
+    ],
+    "total": 5
+  }
 }
 ```
 
@@ -2035,9 +2131,16 @@ POST /api/admin/v1/banners
   "imageUrl": "https://example.com/banner1.jpg",
   "spotId": 101,
   "sortOrder": 1,
-  "enabled": true
+  "enabled": 1
 }
 ```
+
+| 参数      | 类型   | 必填 | 说明                   |
+| --------- | ------ | ---- | ---------------------- |
+| imageUrl  | string | 是   | 图片URL                |
+| spotId    | long   | 否   | 关联景点ID             |
+| sortOrder | int    | 否   | 排序顺序，默认1        |
+| enabled   | int    | 否   | 是否启用（0/1），默认1 |
 
 **响应**
 
@@ -2045,9 +2148,7 @@ POST /api/admin/v1/banners
 {
   "code": 0,
   "message": "success",
-  "data": {
-    "id": 1
-  }
+  "data": null
 }
 ```
 
@@ -2066,7 +2167,7 @@ PUT /api/admin/v1/banners/{bannerId}
   "imageUrl": "https://example.com/banner1-new.jpg",
   "spotId": 102,
   "sortOrder": 2,
-  "enabled": true
+  "enabled": 1
 }
 ```
 
@@ -2160,10 +2261,12 @@ GET /api/admin/v1/dashboard/order-trend?days=7
 {
   "code": 0,
   "message": "success",
-  "data": [
-    { "date": "2025-01-01", "orderCount": 150, "revenue": 9000.0 },
-    { "date": "2025-01-02", "orderCount": 180, "revenue": 10800.0 }
-  ]
+  "data": {
+    "list": [
+      { "date": "2025-01-01", "orderCount": 150, "revenue": 9000.0 },
+      { "date": "2025-01-02", "orderCount": 180, "revenue": 10800.0 }
+    ]
+  }
 }
 ```
 
@@ -2181,14 +2284,17 @@ GET /api/admin/v1/dashboard/hot-spots?limit=10
 {
   "code": 0,
   "message": "success",
-  "data": [
-    {
-      "spotId": 101,
-      "spotName": "故宫博物院",
-      "orderCount": 500,
-      "revenue": 30000.0
-    }
-  ]
+  "data": {
+    "list": [
+      {
+        "id": 101,
+        "name": "故宫博物院",
+        "orderCount": 500,
+        "revenue": 30000.0,
+        "avgRating": 4.8
+      }
+    ]
+  }
 }
 ```
 
@@ -2204,11 +2310,12 @@ GET /api/admin/v1/dashboard/hot-spots?limit=10
 GET /api/admin/v1/admins?page=1&pageSize=10&keyword=admin
 ```
 
-| 参数     | 类型   | 必填 | 说明             |
-| -------- | ------ | ---- | ---------------- |
-| page     | int    | 否   | 页码，默认1      |
-| pageSize | int    | 否   | 每页数量，默认10 |
-| keyword  | string | 否   | 用户名搜索       |
+| 参数     | 类型   | 必填 | 说明                        |
+| -------- | ------ | ---- | --------------------------- |
+| page     | int    | 否   | 页码，默认1                 |
+| pageSize | int    | 否   | 每页数量，默认10            |
+| keyword  | string | 否   | 用户名搜索                  |
+| status   | int    | 否   | 状态筛选（0-禁用，1-启用）  |
 
 **响应**
 
@@ -2222,15 +2329,15 @@ GET /api/admin/v1/admins?page=1&pageSize=10&keyword=admin
         "id": 1,
         "username": "admin",
         "realName": "系统管理员",
-        "isEnabled": true,
+        "status": 1,
         "lastLoginAt": "2025-01-01 09:00:00",
-        "createdAt": "2024-01-01 00:00:00"
+        "createdAt": "2024-01-01 00:00:00",
+        "updatedAt": "2025-01-01 09:00:00"
       }
     ],
     "total": 3,
     "page": 1,
-    "pageSize": 10,
-    "totalPages": 1
+    "pageSize": 10
   }
 }
 ```
@@ -2249,7 +2356,8 @@ POST /api/admin/v1/admins
 {
   "username": "newadmin",
   "password": "password123",
-  "realName": "新管理员"
+  "realName": "新管理员",
+  "status": 1
 }
 ```
 
@@ -2278,7 +2386,7 @@ PUT /api/admin/v1/admins/{id}
 ```json
 {
   "realName": "更新后的姓名",
-  "isEnabled": true
+  "status": 1
 }
 ```
 
@@ -2371,45 +2479,45 @@ Content-Type: multipart/form-data
 
 ## 接口汇总
 
-### 用户端接口（共 34 个）
+### 用户端接口（共 33 个）
 
-| 模块 | 接口               | 方法   | 路径                                   |
-| ---- | ------------------ | ------ | -------------------------------------- |
-| 认证 | 微信登录           | POST   | /api/v1/auth/wx-login                  |
-| 认证 | 小程序绑定手机号   | POST   | /api/v1/auth/wx-bind-phone             |
-| 认证 | Web端注册          | POST   | /api/v1/auth/web-register              |
-| 认证 | Web端登录          | POST   | /api/v1/auth/web-login                 |
-| 认证 | 获取用户信息       | GET    | /api/v1/auth/user-info                 |
-| 认证 | 更新用户信息       | PUT    | /api/v1/auth/user-info                 |
-| 认证 | 设置偏好标签       | POST   | /api/v1/auth/preferences               |
-| 认证 | 修改密码           | PUT    | /api/v1/auth/password                  |
-| 认证 | 注销账户           | DELETE | /api/v1/auth/account                   |
-| 上传 | 上传头像           | POST   | /api/v1/upload/avatar                  |
-| 首页 | 获取轮播图         | GET    | /api/v1/home/banners                   |
-| 首页 | 获取热门推荐       | GET    | /api/v1/home/hot                       |
-| 推荐 | 获取个性化推荐     | GET    | /api/v1/recommendations                |
-| 推荐 | 刷新推荐           | POST   | /api/v1/recommendations/refresh        |
-| 景点 | 获取景点列表       | GET    | /api/v1/spots                          |
-| 景点 | 搜索景点           | GET    | /api/v1/spots/search                   |
-| 景点 | 获取景点详情       | GET    | /api/v1/spots/{spotId}                 |
-| 景点 | 获取筛选选项       | GET    | /api/v1/spots/filters                  |
-| 攻略 | 获取攻略列表       | GET    | /api/v1/guides                         |
-| 攻略 | 获取攻略详情       | GET    | /api/v1/guides/{guideId}               |
-| 攻略 | 获取攻略分类       | GET    | /api/v1/guides/categories              |
-| 评分 | 提交评分           | POST   | /api/v1/ratings                        |
-| 评分 | 获取用户评分       | GET    | /api/v1/ratings/spot/{spotId}          |
-| 评分 | 获取评论列表       | GET    | /api/v1/ratings/spot/{spotId}/comments |
-| 收藏 | 添加收藏           | POST   | /api/v1/favorites                      |
-| 收藏 | 取消收藏           | DELETE | /api/v1/favorites/{spotId}             |
-| 收藏 | 获取收藏列表       | GET    | /api/v1/favorites                      |
-| 收藏 | 检查收藏状态       | GET    | /api/v1/favorites/check/{spotId}       |
-| 订单 | 创建订单           | POST   | /api/v1/orders                         |
-| 订单 | 获取订单列表       | GET    | /api/v1/orders                         |
-| 订单 | 获取订单详情       | GET    | /api/v1/orders/{orderId}               |
-| 订单 | 模拟支付           | POST   | /api/v1/orders/{orderId}/pay           |
-| 订单 | 取消订单           | POST   | /api/v1/orders/{orderId}/cancel        |
+| 模块 | 接口               | 方法   | 路径                                    |
+| ---- | ------------------ | ------ | --------------------------------------- |
+| 认证 | 微信登录           | POST   | /api/v1/auth/wx-login                   |
+| 认证 | 小程序绑定手机号   | POST   | /api/v1/auth/wx-bind-phone              |
+| 认证 | Web端注册          | POST   | /api/v1/auth/web-register               |
+| 认证 | Web端登录          | POST   | /api/v1/auth/web-login                  |
+| 资料 | 获取用户信息       | GET    | /api/v1/user/info                       |
+| 资料 | 更新用户信息       | PUT    | /api/v1/user/info                       |
+| 资料 | 设置偏好标签       | POST   | /api/v1/user/preferences                |
+| 资料 | 修改密码           | PUT    | /api/v1/user/password                   |
+| 资料 | 注销账户           | DELETE | /api/v1/user/account                    |
+| 上传 | 上传头像           | POST   | /api/v1/upload/avatar                   |
+| 首页 | 获取轮播图         | GET    | /api/v1/home/banners                    |
+| 首页 | 获取热门推荐       | GET    | /api/v1/home/hot                        |
+| 推荐 | 获取个性化推荐     | GET    | /api/v1/recommendations                 |
+| 推荐 | 刷新推荐           | POST   | /api/v1/recommendations/refresh         |
+| 景点 | 获取景点列表       | GET    | /api/v1/spots                           |
+| 景点 | 搜索景点           | GET    | /api/v1/spots/search                    |
+| 景点 | 获取景点详情       | GET    | /api/v1/spots/{spotId}                  |
+| 景点 | 获取筛选选项       | GET    | /api/v1/spots/filters                   |
+| 攻略 | 获取攻略列表       | GET    | /api/v1/guides                          |
+| 攻略 | 获取攻略详情       | GET    | /api/v1/guides/{guideId}                |
+| 攻略 | 获取攻略分类       | GET    | /api/v1/guides/categories               |
+| 评价 | 提交评价           | POST   | /api/v1/reviews                         |
+| 评价 | 获取用户评价       | GET    | /api/v1/reviews/spot/{spotId}           |
+| 评价 | 获取评论列表       | GET    | /api/v1/reviews/spot/{spotId}/comments  |
+| 收藏 | 添加收藏           | POST   | /api/v1/favorites                       |
+| 收藏 | 取消收藏           | DELETE | /api/v1/favorites/{spotId}              |
+| 收藏 | 获取收藏列表       | GET    | /api/v1/favorites                       |
+| 收藏 | 检查收藏状态       | GET    | /api/v1/favorites/check/{spotId}        |
+| 订单 | 创建订单           | POST   | /api/v1/orders                          |
+| 订单 | 获取订单列表       | GET    | /api/v1/orders                          |
+| 订单 | 获取订单详情       | GET    | /api/v1/orders/{orderId}                |
+| 订单 | 模拟支付           | POST   | /api/v1/orders/{orderId}/pay            |
+| 订单 | 取消订单           | POST   | /api/v1/orders/{orderId}/cancel         |
 
-### 管理端接口（共 38 个）
+### 管理端接口（共 39 个）
 
 | 模块     | 接口             | 方法   | 路径                                    |
 | -------- | ---------------- | ------ | --------------------------------------- |
@@ -2421,6 +2529,7 @@ Content-Type: multipart/form-data
 | 景点     | 更新景点         | PUT    | /api/admin/v1/spots/{spotId}            |
 | 景点     | 更新发布状态     | PUT    | /api/admin/v1/spots/{spotId}/publish    |
 | 景点     | 删除景点         | DELETE | /api/admin/v1/spots/{spotId}            |
+| 景点     | 获取筛选选项     | GET    | /api/admin/v1/spots/filters             |
 | 攻略     | 获取攻略列表     | GET    | /api/admin/v1/guides                    |
 | 攻略     | 获取攻略详情     | GET    | /api/admin/v1/guides/{guideId}          |
 | 攻略     | 获取攻略分类     | GET    | /api/admin/v1/guides/categories         |
