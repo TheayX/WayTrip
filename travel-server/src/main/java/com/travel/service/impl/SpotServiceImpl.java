@@ -11,6 +11,7 @@ import com.travel.entity.*;
 import com.travel.mapper.*;
 import com.travel.service.SpotService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 /**
  * 景点服务实现
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SpotServiceImpl implements SpotService {
@@ -331,6 +333,8 @@ public class SpotServiceImpl implements SpotService {
         // 保存图片
         saveSpotImages(spot.getId(), request.getImages());
 
+        log.info("景点创建成功: spotId={}, name={}", spot.getId(), spot.getName());
+
         return spot.getId();
     }
 
@@ -354,6 +358,8 @@ public class SpotServiceImpl implements SpotService {
                     new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId));
             saveSpotImages(spotId, request.getImages());
         }
+
+        log.info("景点更新成功: spotId={}, name={}", spotId, request.getName());
     }
 
     @Override
@@ -364,6 +370,7 @@ public class SpotServiceImpl implements SpotService {
         }
         spot.setIsPublished(published ? 1 : 0);
         spotMapper.updateById(spot);
+        log.info("景点发布状态变更: spotId={}, published={}", spotId, published);
     }
 
     @Override
@@ -380,6 +387,8 @@ public class SpotServiceImpl implements SpotService {
         spotImageMapper.update(
                 deletedImage,
                 new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId));
+
+        log.info("景点已删除: spotId={}, name={}", spotId, spot.getName());
     }
 
     private SpotListResponse convertToListResponse(Spot spot) {

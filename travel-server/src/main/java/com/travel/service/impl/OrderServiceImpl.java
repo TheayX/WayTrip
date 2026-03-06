@@ -13,6 +13,7 @@ import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import java.util.Set;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -57,7 +59,8 @@ public class OrderServiceImpl implements OrderService {
 
         orderMapper.insert(order);
 
-        order.setSpotName(spot.getName());
+        log.info("订单创建成功: orderNo={}, userId={}, spotId={}, quantity={}, totalAmount={}",
+                order.getOrderNo(), userId, spot.getId(), request.getQuantity(), order.getTotalAmount());
         order.setSpotImage(spot.getCoverImageUrl());
         order.setUnitPrice(spot.getPrice());
 
@@ -139,6 +142,8 @@ public class OrderServiceImpl implements OrderService {
         order.setPaidAt(LocalDateTime.now());
         orderMapper.updateById(order);
 
+        log.info("订单支付成功: orderId={}, userId={}, orderNo={}", orderId, userId, order.getOrderNo());
+
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
     }
@@ -169,6 +174,8 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.CANCELLED.getCode());
         order.setCancelledAt(LocalDateTime.now());
         orderMapper.updateById(order);
+
+        log.info("订单已取消: orderId={}, userId={}, orderNo={}", orderId, userId, order.getOrderNo());
 
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
@@ -260,6 +267,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.COMPLETED.getCode());
         order.setCompletedAt(LocalDateTime.now());
         orderMapper.updateById(order);
+        log.info("订单已完成: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
     }
@@ -281,6 +289,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.REFUNDED.getCode());
         order.setRefundedAt(LocalDateTime.now());
         orderMapper.updateById(order);
+        log.info("订单已退款: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
     }
@@ -302,6 +311,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.CANCELLED.getCode());
         order.setCancelledAt(LocalDateTime.now());
         orderMapper.updateById(order);
+        log.info("管理员取消订单: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
     }
@@ -324,6 +334,7 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.update(null, updateWrapper);
         order.setStatus(OrderStatus.PAID.getCode());
         order.setCompletedAt(null);
+        log.info("管理员恢复订单: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
     }

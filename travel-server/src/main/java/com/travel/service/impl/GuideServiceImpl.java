@@ -15,6 +15,7 @@ import com.travel.mapper.GuideSpotRelationMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.GuideService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 /**
  * 攻略服务实现
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GuideServiceImpl implements GuideService {
@@ -198,6 +200,8 @@ public class GuideServiceImpl implements GuideService {
         // 保存关联景点
         saveGuideSpots(guide.getId(), request.getSpotIds());
 
+        log.info("攻略创建成功: guideId={}, title={}, adminId={}", guide.getId(), guide.getTitle(), adminId);
+
         return guide.getId();
     }
 
@@ -223,6 +227,8 @@ public class GuideServiceImpl implements GuideService {
                 deletedSpot,
                 new LambdaQueryWrapper<GuideSpotRelation>().eq(GuideSpotRelation::getGuideId, guideId));
         saveGuideSpots(guideId, request.getSpotIds());
+
+        log.info("攻略更新成功: guideId={}, title={}", guideId, request.getTitle());
     }
 
     @Override
@@ -233,6 +239,7 @@ public class GuideServiceImpl implements GuideService {
         }
         guide.setIsPublished(published ? 1 : 0);
         guideMapper.updateById(guide);
+        log.info("攻略发布状态变更: guideId={}, published={}", guideId, published);
     }
 
     @Override
@@ -250,6 +257,8 @@ public class GuideServiceImpl implements GuideService {
         guideSpotRelationMapper.update(
                 deletedSpot,
                 new LambdaQueryWrapper<GuideSpotRelation>().eq(GuideSpotRelation::getGuideId, guideId));
+
+        log.info("攻略已删除: guideId={}, title={}", guideId, guide.getTitle());
     }
 
     private GuideListResponse convertToListResponse(Guide guide) {

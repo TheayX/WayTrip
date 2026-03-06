@@ -16,6 +16,7 @@ import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 /**
  * 收藏服务实现
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FavoriteServiceImpl implements FavoriteService {
@@ -64,6 +66,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         favorite.setUserId(userId);
         favorite.setSpotId(spotId);
         userSpotFavoriteMapper.insert(favorite);
+        log.info("用户添加收藏: userId={}, spotId={}", userId, spotId);
     }
 
     @Override
@@ -76,6 +79,7 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .eq(UserSpotFavorite::getUserId, userId)
                 .eq(UserSpotFavorite::getSpotId, spotId)
         );
+        log.info("用户取消收藏: userId={}, spotId={}", userId, spotId);
     }
 
     @Override

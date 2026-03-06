@@ -13,6 +13,7 @@ import com.travel.entity.Admin;
 import com.travel.mapper.AdminMapper;
 import com.travel.service.AdminService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
@@ -77,6 +79,7 @@ public class AdminServiceImpl implements AdminService {
         admin.setIsEnabled(request.getStatus());
         admin.setIsDeleted(0);
         adminMapper.insert(admin);
+        log.info("管理员创建成功: adminId={}, username={}", admin.getId(), admin.getUsername());
         return admin.getId();
     }
 
@@ -93,6 +96,7 @@ public class AdminServiceImpl implements AdminService {
         admin.setRealName(request.getRealName().trim());
         admin.setIsEnabled(request.getStatus());
         adminMapper.updateById(admin);
+        log.info("管理员信息更新: adminId={}, realName={}, status={}", id, request.getRealName(), request.getStatus());
     }
 
     @Override
@@ -101,6 +105,7 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = getActiveAdmin(id);
         admin.setPassword(passwordEncoder.encode(request.getPassword()));
         adminMapper.updateById(admin);
+        log.info("管理员密码已重置: adminId={}", id);
     }
 
     @Override
@@ -113,6 +118,7 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = getActiveAdmin(id);
         admin.setIsDeleted(1);
         adminMapper.updateById(admin);
+        log.info("管理员已删除: adminId={}, username={}", id, admin.getUsername());
     }
 
     private Admin getActiveAdmin(Long id) {

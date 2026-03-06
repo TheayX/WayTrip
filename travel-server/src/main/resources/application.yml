@@ -30,3 +30,11 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+
+# 日志配置
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    root: INFO
+    com.travel: DEBUG
+

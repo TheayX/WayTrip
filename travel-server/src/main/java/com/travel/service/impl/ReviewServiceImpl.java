@@ -16,6 +16,7 @@ import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 /**
  * 评价服务实现
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
@@ -75,6 +77,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         // 更新景点平均评分
         updateSpotAvgRating(request.getSpotId());
+        log.info("用户提交评价: userId={}, spotId={}, score={}", userId, request.getSpotId(), request.getScore());
     }
 
     @Override

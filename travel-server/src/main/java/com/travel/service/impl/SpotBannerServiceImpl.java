@@ -8,12 +8,14 @@ import com.travel.mapper.SpotBannerMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.SpotBannerService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SpotBannerServiceImpl implements SpotBannerService {
@@ -75,6 +77,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         banner.setSortOrder(request.getSortOrder());
         banner.setIsEnabled(request.getEnabled());
         spotBannerMapper.insert(banner);
+        log.info("轮播图创建成功: bannerId={}, spotId={}", banner.getId(), banner.getSpotId());
     }
 
     @Override
@@ -89,6 +92,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         banner.setSortOrder(request.getSortOrder());
         banner.setIsEnabled(request.getEnabled());
         spotBannerMapper.updateById(banner);
+        log.info("轮播图更新成功: bannerId={}", id);
     }
 
     @Override
@@ -99,6 +103,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         }
         banner.setIsDeleted(1);
         spotBannerMapper.updateById(banner);
+        log.info("轮播图已删除: bannerId={}", id);
     }
 
     @Override
@@ -110,6 +115,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
 
         banner.setIsEnabled(banner.getIsEnabled() == 1 ? 0 : 1);
         spotBannerMapper.updateById(banner);
+        log.info("轮播图启用状态切换: bannerId={}, enabled={}", id, banner.getIsEnabled());
     }
 
     private Map<Long, String> getSpotNameMap(List<SpotBanner> banners) {
