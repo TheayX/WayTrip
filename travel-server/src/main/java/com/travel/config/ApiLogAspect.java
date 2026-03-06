@@ -1,8 +1,15 @@
 package com.travel.config;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.PropertyWriter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -16,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * API请求日志切面
@@ -24,10 +32,41 @@ import java.util.Map;
 @Slf4j
 @Aspect
 @Component
-@RequiredArgsConstructor
 public class ApiLogAspect {
 
-    private final ObjectMapper objectMapper;
+    /**
+     * 敏感字段关键词（全小写匹配）
+     */
+    private static final Set<String> SENSITIVE_KEYWORDS = Set.of(
+            "password", "secret", "token", "key", "authorization",
+            "credential", "code", "openid"
+    );
+
+    private static final String MASK = "******";
+
+    /**
+     * 专用于日志输出的 ObjectMapper，会自动脱敏敏感字段
+     */
+    private ObjectMapper logObjectMapper;
+
+    @PostConstruct
+    public void init() {
+        logObjectMapper = new ObjectMapper();
+        logObjectMapper.findAndRegisterModules();
+        // 注册敏感字段过滤序列化模块
+        SimpleModule module = new SimpleModule("SensitiveMaskModule");
+        logObjectMapper.registerModule(module);
+        // 使用自定义过滤器：对所有 Bean 属性做脱敏
+        FilterProvider filters = new SimpleFilterProvider()
+                .setDefaultFilter(new SensitiveFieldFilter())
+                .setFailOnUnknownId(false);
+        logObjectMapper.setFilterProvider(filters);
+        // 让所有类都使用默认过滤器
+        logObjectMapper.setConfig(
+                logObjectMapper.getSerializationConfig()
+                        .withAttribute("SENSITIVE_FILTER", true)
+        );
+    }
 
     /**
      * 切入点：所有Controller层的方法
@@ -83,7 +122,7 @@ public class ApiLogAspect {
     }
 
     /**
-     * 获取请求参数（过滤敏感字段和文件类型）
+     * 获取请求参数（深度过滤敏感字段和文件类型）
      */
     private String getParams(ProceedingJoinPoint joinPoint, MethodSignature signature) {
         try {
@@ -98,40 +137,62 @@ public class ApiLogAspect {
                 String name = paramNames[i];
                 Object value = args[i];
 
+                // 跳过null
+                if (value == null) {
+                    paramMap.put(name, null);
+                    continue;
+                }
+
                 // 跳过文件参数
-                if (value instanceof MultipartFile) {
-                    MultipartFile file = (MultipartFile) value;
+                if (value instanceof MultipartFile file) {
                     paramMap.put(name, "文件[" + file.getOriginalFilename() + ", " + file.getSize() + "字节]");
                     continue;
                 }
 
-                // 过滤敏感字段
-                if (isSensitiveParam(name)) {
-                    paramMap.put(name, "******");
+                // 跳过HttpServletRequest/Response等特殊类型
+                if (isSkipType(value)) {
                     continue;
                 }
 
-                // 跳过HttpServletRequest/Response等特殊类型
-                if (value != null && isSkipType(value)) {
+                // 对参数名本身做脱敏（如方法参数叫password）
+                if (isSensitiveParam(name)) {
+                    paramMap.put(name, MASK);
                     continue;
                 }
 
                 paramMap.put(name, value);
             }
 
-            return objectMapper.writeValueAsString(paramMap);
+            // 用脱敏 ObjectMapper 序列化，自动过滤 DTO 内部的敏感字段
+            return maskSensitiveFields(logObjectMapper.writeValueAsString(paramMap));
         } catch (Exception e) {
             return "参数解析失败";
         }
     }
 
     /**
-     * 判断是否为敏感参数
+     * 基于正则对序列化后的 JSON 字符串做二次兜底脱敏
+     * 匹配 "password":"xxx" / "secret":"xxx" / "code":"xxx" 等
+     */
+    private String maskSensitiveFields(String json) {
+        if (json == null) return "无";
+        // 匹配 JSON 中的敏感字段值
+        for (String keyword : SENSITIVE_KEYWORDS) {
+            // 不区分大小写替换，兼容各种命名风格（password、Password、newPassword等）
+            json = json.replaceAll(
+                    "(?i)(\"[^\"]*" + keyword + "[^\"]*\"\\s*:\\s*)\"[^\"]*\"",
+                    "$1\"" + MASK + "\""
+            );
+        }
+        return json;
+    }
+
+    /**
+     * 判断参数名是否包含敏感关键词
      */
     private boolean isSensitiveParam(String paramName) {
         String lower = paramName.toLowerCase();
-        return lower.contains("password") || lower.contains("secret")
-                || lower.contains("token") || lower.contains("key");
+        return SENSITIVE_KEYWORDS.stream().anyMatch(lower::contains);
     }
 
     /**
@@ -165,6 +226,25 @@ public class ApiLogAspect {
             ip = ip.split(",")[0].trim();
         }
         return ip;
+    }
+
+    /**
+     * Jackson 属性过滤器：序列化时自动将敏感字段值替换为 ******
+     */
+    private static class SensitiveFieldFilter extends SimpleBeanPropertyFilter {
+
+        @Override
+        public void serializeAsField(Object pojo, JsonGenerator jgen,
+                                     SerializerProvider provider, PropertyWriter writer) throws Exception {
+            String fieldName = writer.getName().toLowerCase();
+            boolean isSensitive = SENSITIVE_KEYWORDS.stream().anyMatch(fieldName::contains);
+
+            if (isSensitive) {
+                jgen.writeStringField(writer.getName(), MASK);
+            } else {
+                writer.serializeAsField(pojo, jgen, provider);
+            }
+        }
     }
 }
 
