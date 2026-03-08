@@ -2448,6 +2448,261 @@ DELETE /api/admin/v1/admins/{id}
 
 ---
 
+### 9. 景点地区管理
+
+#### 9.1 获取地区列表
+
+根据父级 ID 获取地区列表。不传 parentId 时返回所有顶级地区（parentId=0）。
+
+**请求**
+
+```
+GET /api/admin/v1/regions?parentId=0
+```
+
+| 参数     | 类型 | 必填 | 说明                         |
+| -------- | ---- | ---- | ---------------------------- |
+| parentId | long | 否   | 父地区ID，不传则返回顶级地区 |
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "parentId": 0,
+      "name": "华北",
+      "sortOrder": 1,
+      "createdAt": "2025-01-01 10:00:00"
+    },
+    {
+      "id": 2,
+      "parentId": 0,
+      "name": "华东",
+      "sortOrder": 2,
+      "createdAt": "2025-01-01 10:00:00"
+    }
+  ]
+}
+```
+
+#### 9.2 创建地区
+
+**请求**
+
+```
+POST /api/admin/v1/regions
+```
+
+**请求体**
+
+```json
+{
+  "parentId": 0,
+  "name": "华北",
+  "sortOrder": 1
+}
+```
+
+| 参数      | 类型   | 必填 | 说明                       |
+| --------- | ------ | ---- | -------------------------- |
+| parentId  | long   | 是   | 父地区ID（0表示顶级地区）  |
+| name      | string | 是   | 地区名称                   |
+| sortOrder | int    | 否   | 排序序号，默认0            |
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+#### 9.3 更新地区
+
+**请求**
+
+```
+PUT /api/admin/v1/regions/{id}
+```
+
+**请求体**
+
+```json
+{
+  "parentId": 0,
+  "name": "华北地区",
+  "sortOrder": 1
+}
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+#### 9.4 删除地区
+
+逻辑删除地区。
+
+**请求**
+
+```
+DELETE /api/admin/v1/regions/{id}
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+---
+
+### 10. 景点分类管理
+
+#### 10.1 获取分类列表
+
+根据父级 ID 获取分类列表。不传 parentId 时返回所有顶级分类（parentId=0）。
+
+**请求**
+
+```
+GET /api/admin/v1/categories?parentId=0
+```
+
+| 参数     | 类型 | 必填 | 说明                         |
+| -------- | ---- | ---- | ---------------------------- |
+| parentId | long | 否   | 父分类ID，不传则返回顶级分类 |
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "parentId": 0,
+      "name": "自然风光",
+      "iconUrl": "https://example.com/icon-nature.png",
+      "sortOrder": 1,
+      "createdAt": "2025-01-01 10:00:00"
+    },
+    {
+      "id": 2,
+      "parentId": 0,
+      "name": "历史文化",
+      "iconUrl": "https://example.com/icon-history.png",
+      "sortOrder": 2,
+      "createdAt": "2025-01-01 10:00:00"
+    }
+  ]
+}
+```
+
+#### 10.2 创建分类
+
+**请求**
+
+```
+POST /api/admin/v1/categories
+```
+
+**请求体**
+
+```json
+{
+  "parentId": 0,
+  "name": "自然风光",
+  "iconUrl": "https://example.com/icon-nature.png",
+  "sortOrder": 1
+}
+```
+
+| 参数      | 类型   | 必填 | 说明                       |
+| --------- | ------ | ---- | -------------------------- |
+| parentId  | long   | 是   | 父分类ID（0表示顶级分类）  |
+| name      | string | 是   | 分类名称                   |
+| iconUrl   | string | 否   | 分类图标URL                |
+| sortOrder | int    | 否   | 排序序号，默认0            |
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+#### 10.3 更新分类
+
+**请求**
+
+```
+PUT /api/admin/v1/categories/{id}
+```
+
+**请求体**
+
+```json
+{
+  "parentId": 0,
+  "name": "自然风光",
+  "iconUrl": "https://example.com/icon-nature-new.png",
+  "sortOrder": 1
+}
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+#### 10.4 删除分类
+
+逻辑删除分类。
+
+**请求**
+
+```
+DELETE /api/admin/v1/categories/{id}
+```
+
+**响应**
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": null
+}
+```
+
+---
+
 ## 文件上传
 
 ### 上传图片
@@ -2517,7 +2772,7 @@ Content-Type: multipart/form-data
 | 订单 | 模拟支付           | POST   | /api/v1/orders/{orderId}/pay            |
 | 订单 | 取消订单           | POST   | /api/v1/orders/{orderId}/cancel         |
 
-### 管理端接口（共 39 个）
+### 管理端接口（共 47 个）
 
 | 模块     | 接口             | 方法   | 路径                                    |
 | -------- | ---------------- | ------ | --------------------------------------- |
@@ -2530,6 +2785,14 @@ Content-Type: multipart/form-data
 | 景点     | 更新发布状态     | PUT    | /api/admin/v1/spots/{spotId}/publish    |
 | 景点     | 删除景点         | DELETE | /api/admin/v1/spots/{spotId}            |
 | 景点     | 获取筛选选项     | GET    | /api/admin/v1/spots/filters             |
+| 地区     | 获取地区列表     | GET    | /api/admin/v1/regions                   |
+| 地区     | 创建地区         | POST   | /api/admin/v1/regions                   |
+| 地区     | 更新地区         | PUT    | /api/admin/v1/regions/{id}              |
+| 地区     | 删除地区         | DELETE | /api/admin/v1/regions/{id}              |
+| 分类     | 获取分类列表     | GET    | /api/admin/v1/categories                |
+| 分类     | 创建分类         | POST   | /api/admin/v1/categories                |
+| 分类     | 更新分类         | PUT    | /api/admin/v1/categories/{id}           |
+| 分类     | 删除分类         | DELETE | /api/admin/v1/categories/{id}           |
 | 攻略     | 获取攻略列表     | GET    | /api/admin/v1/guides                    |
 | 攻略     | 获取攻略详情     | GET    | /api/admin/v1/guides/{guideId}          |
 | 攻略     | 获取攻略分类     | GET    | /api/admin/v1/guides/categories         |
