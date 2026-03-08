@@ -412,6 +412,46 @@ public interface AdminService {
 }
 ```
 
+### 12. 景点地区管理服务 (SpotRegionService)
+
+管理端景点地区的增删改查。
+
+```java
+public interface SpotRegionService {
+    /** 获取地区列表（按父级ID查询） */
+    List<AdminRegionResponse> getAdminRegions(Long parentId);
+
+    /** 创建地区 */
+    void createRegion(AdminRegionRequest request);
+
+    /** 更新地区 */
+    void updateRegion(Long id, AdminRegionRequest request);
+
+    /** 删除地区（逻辑删除） */
+    void deleteRegion(Long id);
+}
+```
+
+### 13. 景点分类管理服务 (SpotCategoryService)
+
+管理端景点分类的增删改查。
+
+```java
+public interface SpotCategoryService {
+    /** 获取分类列表（按父级ID查询） */
+    List<AdminCategoryResponse> getAdminCategories(Long parentId);
+
+    /** 创建分类 */
+    void createCategory(AdminCategoryRequest request);
+
+    /** 更新分类 */
+    void updateCategory(Long id, AdminCategoryRequest request);
+
+    /** 删除分类（逻辑删除） */
+    void deleteCategory(Long id);
+}
+```
+
 ## 数据模型
 
 ### 实体关系图
