@@ -63,7 +63,7 @@ public class FileUploadService {
 
             // 保存文件
             File destFile = new File(uploadDir, newFilename);
-            file.transferTo(destFile.getAbsoluteFile());
+            file.transferTo(java.util.Objects.requireNonNull(destFile.getAbsoluteFile()));
 
             // 返回访问URL
             String url = "/uploads/images/" + newFilename;

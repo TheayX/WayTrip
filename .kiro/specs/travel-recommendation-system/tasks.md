@@ -6,7 +6,7 @@
 
 ## 技术栈
 
-- **后端**: Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 3.5.5 + MySQL 8.0 + Redis
+- **后端**: Java 17 + Spring Boot 3.5.11 + MyBatis-Plus 3.5.5 + MySQL 8.0 + Redis
 - **管理端**: Vue 3 + Element Plus + ECharts + Axios + Vite
 - **Web 用户端**: Vue 3 + Element Plus + Pinia + Axios + Vite
 - **小程序端**: Uni-app + Vue.js 3 + Pinia

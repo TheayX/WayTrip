@@ -7,7 +7,7 @@
 
 | 模块       | 技术                                              |
 | ---------- | ------------------------------------------------- |
-| 后端       | Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 3.5.5 |
+| 后端       | Java 17 + Spring Boot 3.5.11 + MyBatis-Plus 3.5.5 |
 | 数据库     | MySQL 8.0 + Redis                                 |
 | 小程序端   | Uni-app + Vue.js 3 + Pinia                        |
 | Web 用户端 | Vue.js 3 + Element Plus + Pinia + Vite            |

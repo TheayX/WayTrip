@@ -2,7 +2,7 @@
 
 ## 概述
 
-本设计文档描述了基于协同过滤推荐算法的个性化旅游推荐系统的技术架构和实现方案。系统采用前后端分离架构，包含基于 Uni-app 的跨端小程序（小程序端）、基于 Vue.js 3 + Element Plus 的 Web 用户端，以及 Web 管理后台（管理端），后端使用 Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 构建 RESTful API，数据库使用 MySQL 8.0，推荐算法采用 ItemCF（基于物品的协同过滤）。
+本设计文档描述了基于协同过滤推荐算法的个性化旅游推荐系统的技术架构和实现方案。系统采用前后端分离架构，包含基于 Uni-app 的跨端小程序（小程序端）、基于 Vue.js 3 + Element Plus 的 Web 用户端，以及 Web 管理后台（管理端），后端使用 Java 17 + Spring Boot 3.5.11 + MyBatis-Plus 构建 RESTful API，数据库使用 MySQL 8.0，推荐算法采用 ItemCF（基于物品的协同过滤）。
 
 ## 架构
 
@@ -78,7 +78,7 @@ graph TB
 | 小程序端   | Uni-app + Vue.js 3 + Pinia                        |
 | Web 用户端 | Vue.js 3 + Element Plus + Pinia + Axios           |
 | 管理端     | Vue.js 3 + Element Plus + ECharts + Axios         |
-| 后端       | Java 17 + Spring Boot 3.2.12 + MyBatis-Plus 3.5.5 |
+| 后端       | Java 17 + Spring Boot 3.5.11 + MyBatis-Plus 3.5.5 |
 | 数据库     | MySQL 8.0                                         |
 | 缓存       | Redis                                             |
 | 认证       | JWT Token                                         |
@@ -94,7 +94,7 @@ graph LR
 
     subgraph 云服务器
         NGINX[Nginx]
-        APP[Spring Boot 3.2.12 App]
+        APP[Spring Boot 3.5.11 App]
         WEBUSER[Vue Web 用户端]
         ADMIN[Vue Admin]
     end
@@ -1002,7 +1002,7 @@ pyramid
 
 ### 集成测试
 
-- **框架**: Spring Boot Test + Testcontainers (Spring Boot 3.2.12)
+- **框架**: Spring Boot Test + Testcontainers (Spring Boot 3.5.11)
 - **数据库**: 使用 Testcontainers 启动 MySQL 容器
 - **ORM**: MyBatis-Plus 集成测试
 - **重点场景**:

@@ -176,7 +176,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 }
                 
                 // 累加推荐分数 = 相似度 * 用户评分
-                scores.merge(similarSpotId, similarity * rating, Double::sum);
+                scores.merge(similarSpotId, similarity * rating, (v1, v2) -> Double.sum(v1, v2));
             }
         }
 
@@ -324,7 +324,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
             // 存入 Redis
             String key = SIMILARITY_KEY + spotI;
-            redisTemplate.opsForValue().set(key, topSimilarities, 24, TimeUnit.HOURS);
+            redisTemplate.opsForValue().set(key, java.util.Objects.requireNonNull(topSimilarities), 24, TimeUnit.HOURS);
         }
 
         log.info("物品相似度矩阵更新完成，共处理 {} 个景点", allSpotIds.size());
