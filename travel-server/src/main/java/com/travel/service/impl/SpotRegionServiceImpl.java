@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +32,7 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
         List<SpotRegion> regions = list(wrapper);
         return regions.stream().map(region -> {
             AdminRegionResponse response = new AdminRegionResponse();
-            BeanUtils.copyProperties(region, response);
+            BeanUtils.copyProperties(Objects.requireNonNull(region), response);
             return response;
         }).collect(Collectors.toList());
     }
@@ -40,7 +41,7 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
     @Transactional(rollbackFor = Exception.class)
     public void createRegion(AdminRegionRequest request) {
         SpotRegion region = new SpotRegion();
-        BeanUtils.copyProperties(request, region);
+        BeanUtils.copyProperties(Objects.requireNonNull(request), region);
         region.setIsDeleted(0);
         save(region);
     }
@@ -52,7 +53,7 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
         if (region == null || region.getIsDeleted() == 1) {
             throw new BusinessException(404, "地区不存在");
         }
-        BeanUtils.copyProperties(request, region);
+        BeanUtils.copyProperties(Objects.requireNonNull(request), region);
         region.setId(id);
         updateById(region);
     }

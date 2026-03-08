@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +32,7 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
         List<SpotCategory> categories = list(wrapper);
         return categories.stream().map(category -> {
             AdminCategoryResponse response = new AdminCategoryResponse();
-            BeanUtils.copyProperties(category, response);
+            BeanUtils.copyProperties(Objects.requireNonNull(category), response);
             return response;
         }).collect(Collectors.toList());
     }
@@ -40,7 +41,7 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
     @Transactional(rollbackFor = Exception.class)
     public void createCategory(AdminCategoryRequest request) {
         SpotCategory category = new SpotCategory();
-        BeanUtils.copyProperties(request, category);
+        BeanUtils.copyProperties(Objects.requireNonNull(request), category);
         category.setIsDeleted(0);
         save(category);
     }
@@ -52,7 +53,7 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
         if (category == null || category.getIsDeleted() == 1) {
             throw new BusinessException(404, "分类不存在");
         }
-        BeanUtils.copyProperties(request, category);
+        BeanUtils.copyProperties(Objects.requireNonNull(request), category);
         category.setId(id);
         updateById(category);
     }
