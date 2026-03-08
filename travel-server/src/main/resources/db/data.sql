@@ -1,8 +1,29 @@
 -- ============================================================
 -- WayTrip 基础数据初始化脚本
--- 每张表 3~10 条，图片统一使用 /uploads/images/default.jpg
+-- 可重复执行：先清空再插入
 -- ============================================================
 USE waytrip_db;
+
+-- 关闭外键检查，方便清空
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 按依赖顺序清空所有表（先子表后父表）
+TRUNCATE TABLE `user_spot_review`;
+TRUNCATE TABLE `user_spot_favorite`;
+TRUNCATE TABLE `user_preference`;
+TRUNCATE TABLE `guide_spot_relation`;
+TRUNCATE TABLE `spot_image`;
+TRUNCATE TABLE `spot_banner`;
+TRUNCATE TABLE `order`;
+TRUNCATE TABLE `spot`;
+TRUNCATE TABLE `spot_category`;
+TRUNCATE TABLE `spot_region`;
+TRUNCATE TABLE `guide`;
+TRUNCATE TABLE `user`;
+TRUNCATE TABLE `admin`;
+
+-- 恢复外键检查
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
 -- 1. admin 管理员（3条）
@@ -10,28 +31,58 @@ USE waytrip_db;
 -- ============================================================
 INSERT INTO `admin` (`username`, `password`, `real_name`, `is_enabled`, `is_deleted`, `last_login_at`, `created_at`, `updated_at`)
 VALUES
-  ('admin',   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.rsQ0fEnxRiT1QXqAAK', '超级管理员', 1, 0, '2026-03-03 10:00:00', '2025-01-01 00:00:00', '2026-03-03 10:00:00'),
-  ('editor',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.rsQ0fEnxRiT1QXqAAK', '编辑张三',  1, 0, '2026-03-02 14:30:00', '2025-06-01 09:00:00', '2026-03-02 14:30:00'),
-  ('operator','$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.rsQ0fEnxRiT1QXqAAK', '运营李四',  1, 0, '2026-02-28 16:00:00', '2025-09-01 09:00:00', '2026-02-28 16:00:00')
+  ('admin',   '$2a$10$72UGLb5e/zcaJYQwn.bdPu4c6j/HVujWM5slBk3H0AIH.iLxjmrpS', '超级管理员', 1, 0, '2026-03-03 10:00:00', '2025-01-01 00:00:00', '2026-03-03 10:00:00'),
+  ('editor',  '$2a$10$72UGLb5e/zcaJYQwn.bdPu4c6j/HVujWM5slBk3H0AIH.iLxjmrpS', '编辑张三',  1, 0, '2026-03-02 14:30:00', '2025-06-01 09:00:00', '2026-03-02 14:30:00'),
+  ('operator','$2a$10$72UGLb5e/zcaJYQwn.bdPu4c6j/HVujWM5slBk3H0AIH.iLxjmrpS', '运营李四',  1, 0, '2026-02-28 16:00:00', '2025-09-01 09:00:00', '2026-02-28 16:00:00')
 ON DUPLICATE KEY UPDATE `password` = VALUES(`password`), `real_name` = VALUES(`real_name`);
 
 -- ============================================================
--- 2. spot_region 景点地区（10条）
+-- 2. spot_region 景点地区（省/直辖市 → 城市，两级结构）
 -- ============================================================
-INSERT INTO `spot_region` (`name`, `sort_order`) VALUES
-  ('北京', 1), ('上海', 2), ('广州', 3), ('深圳', 4), ('杭州', 5),
-  ('成都', 6), ('西安', 7), ('重庆', 8), ('南京', 9), ('苏州', 10);
+INSERT INTO `spot_region` (`parent_id`, `name`, `sort_order`) VALUES
+  (0, '北京', 1),
+  (0, '上海', 2),
+  (0, '广东', 3),
+  (0, '浙江', 4),
+  (0, '四川', 5),
+  (0, '陕西', 6),
+  (0, '重庆', 7),
+  (0, '江苏', 8),
+  (1, '北京市',  1),
+  (2, '上海市',  1),
+  (3, '广州市',  1),
+  (3, '深圳市',  2),
+  (4, '杭州市',  1),
+  (5, '成都市',  1),
+  (6, '西安市',  1),
+  (7, '重庆市',  1),
+  (8, '南京市',  1),
+  (8, '苏州市',  2);
 
 -- ============================================================
--- 3. spot_category 景点分类（6条）
+-- 3. spot_category 景点分类（大类 → 子分类，两级结构）
 -- ============================================================
 INSERT INTO `spot_category` (`parent_id`, `name`, `icon_url`, `sort_order`) VALUES
-  (0, '自然风光', '/uploads/images/default.jpg', 1),
-  (0, '历史文化', '/uploads/images/default.jpg', 2),
-  (0, '主题乐园', '/uploads/images/default.jpg', 3),
-  (0, '城市观光', '/uploads/images/default.jpg', 4),
-  (0, '休闲度假', '/uploads/images/default.jpg', 5),
-  (0, '户外探险', '/uploads/images/default.jpg', 6);
+  (0, '自然风光', '/uploads/icons/default.png', 1),
+  (0, '历史文化', '/uploads/icons/default.png', 2),
+  (0, '主题乐园', '/uploads/icons/default.png', 3),
+  (0, '城市观光', '/uploads/icons/default.png', 4),
+  (0, '休闲度假', '/uploads/icons/default.png', 5),
+  (0, '户外探险', '/uploads/icons/default.png', 6),
+  (1, '湖泊',         '/uploads/icons/default.png', 1),
+  (1, '山岳',         '/uploads/icons/default.png', 2),
+  (1, '森林公园',     '/uploads/icons/default.png', 3),
+  (2, '古建筑/宫殿',  '/uploads/icons/default.png', 1),
+  (2, '博物馆',       '/uploads/icons/default.png', 2),
+  (2, '古镇古村',     '/uploads/icons/default.png', 3),
+  (3, '游乐园',       '/uploads/icons/default.png', 1),
+  (3, '水上乐园',     '/uploads/icons/default.png', 2),
+  (4, '地标建筑',     '/uploads/icons/default.png', 1),
+  (4, '特色街区',     '/uploads/icons/default.png', 2),
+  (5, '温泉度假',     '/uploads/icons/default.png', 1),
+  (5, '海滨沙滩',     '/uploads/icons/default.png', 2),
+  (6, '徒步登山',     '/uploads/icons/default.png', 1),
+  (6, '漂流攀岩',     '/uploads/icons/default.png', 2);
 
 -- ============================================================
 -- 4. spot 景点（8条）
@@ -46,49 +97,49 @@ VALUES
    '中国最大的古代文化艺术博物馆，明清两代皇宫，世界文化遗产。',
    60.00, '08:30-17:00（16:00停止入场）', '北京市东城区景山前街4号',
    39.9163450, 116.3971550, '/uploads/images/default.jpg',
-   2, 1, 9800, 4.8, 5, 1),
+   10, 9, 9800, 4.8, 5, 1),
 
   ('颐和园',
    '中国清朝皇家园林，前身清漪园，占地约290公顷，世界文化遗产。',
    30.00, '06:30-18:00', '北京市海淀区新建宫门路19号',
    39.9993670, 116.2756250, '/uploads/images/default.jpg',
-   2, 1, 8800, 4.7, 3, 1),
+   10, 9, 8800, 4.7, 3, 1),
 
   ('西湖',
    '杭州西湖，湖面面积6.38平方千米，"人间天堂"，世界文化遗产。',
    0.00, '全天开放', '浙江省杭州市西湖区龙井路1号',
    30.2428650, 120.1486810, '/uploads/images/default.jpg',
-   1, 5, 9500, 4.9, 4, 1),
+   7, 13, 9500, 4.9, 4, 1),
 
   ('上海迪士尼乐园',
    '中国内地首座迪士尼主题乐园，位于浦东新区川沙新镇。',
    475.00, '08:30-20:30', '上海市浦东新区川沙镇黄赵路310号',
    31.1439040, 121.6694720, '/uploads/images/default.jpg',
-   3, 2, 9200, 4.6, 3, 1),
+   13, 10, 9200, 4.6, 3, 1),
 
   ('兵马俑',
    '秦始皇兵马俑博物馆，世界第八大奇迹，世界文化遗产。',
    120.00, '08:30-18:00', '陕西省西安市临潼区秦陵北路',
    34.3844310, 109.2783570, '/uploads/images/default.jpg',
-   2, 7, 8500, 4.8, 3, 1),
+   11, 15, 8500, 4.8, 3, 1),
 
   ('成都大熊猫繁育研究基地',
    '世界著名的大熊猫迁地保护基地、科研繁育基地和公众教育基地。',
    55.00, '07:30-18:00', '四川省成都市成华区外北熊猫大道1375号',
    30.7340000, 104.1458000, '/uploads/images/default.jpg',
-   1, 6, 7800, 4.7, 3, 1),
+   7, 14, 7800, 4.7, 3, 1),
 
   ('外滩',
    '上海外滩，黄浦江畔万国建筑群，可远眺陆家嘴天际线。',
    0.00, '全天开放', '上海市黄浦区中山东一路',
    31.2400400, 121.4907900, '/uploads/images/default.jpg',
-   4, 2, 7500, 4.5, 3, 1),
+   15, 10, 7500, 4.5, 3, 1),
 
   ('洪崖洞',
    '重庆洪崖洞民俗风貌区，巴渝传统吊脚楼风格，网红夜景打卡地。',
    0.00, '全天开放', '重庆市渝中区嘉陵江滨江路88号',
    29.5630000, 106.5780000, '/uploads/images/default.jpg',
-   4, 8, 7200, 4.4, 3, 1);
+   16, 16, 7200, 4.4, 3, 1);
 
 -- ============================================================
 -- 5. spot_image 景点图片（10条，每景点1~2张）
@@ -122,24 +173,24 @@ INSERT INTO `user`
   (`openid`, `nickname`, `phone`, `password`, `avatar_url`, `last_login_at`, `created_at`, `updated_at`)
 VALUES
   (NULL,           '旅行者小明', '13800000001',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.rsQ0fEnxRiT1QXqAAK',
-   '/uploads/images/default.jpg', '2026-03-03 08:00:00', '2025-06-15 10:00:00', '2026-03-03 08:00:00'),
+   '$2a$10$kNs.tGrq9fm.h/4yF51JUe9DGyC1Jb8nTt9KYsFHBybPvmqBqfoOm',
+   '/uploads/images/avatar.jpg', '2026-03-03 08:00:00', '2025-06-15 10:00:00', '2026-03-03 08:00:00'),
 
   (NULL,           '背包客小红', '13800000002',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.rsQ0fEnxRiT1QXqAAK',
-   '/uploads/images/default.jpg', '2026-03-02 20:00:00', '2025-08-10 14:00:00', '2026-03-02 20:00:00'),
+   '$2a$10$kNs.tGrq9fm.h/4yF51JUe9DGyC1Jb8nTt9KYsFHBybPvmqBqfoOm',
+   '/uploads/images/avatar.jpg', '2026-03-02 20:00:00', '2025-08-10 14:00:00', '2026-03-02 20:00:00'),
 
   (NULL,           '文艺青年阿杰', '13800000003',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.rsQ0fEnxRiT1QXqAAK',
-   '/uploads/images/default.jpg', '2026-03-01 18:00:00', '2025-09-20 09:00:00', '2026-03-01 18:00:00'),
+   '$2a$10$kNs.tGrq9fm.h/4yF51JUe9DGyC1Jb8nTt9KYsFHBybPvmqBqfoOm',
+   '/uploads/images/avatar.jpg', '2026-03-01 18:00:00', '2025-09-20 09:00:00', '2026-03-01 18:00:00'),
 
   ('wx_openid_04', '小程序用户A', '13800000004',
    NULL,
-   '/uploads/images/default.jpg', '2026-02-28 12:00:00', '2025-10-05 16:00:00', '2026-02-28 12:00:00'),
+   '/uploads/images/avatar.jpg', '2026-02-28 12:00:00', '2025-10-05 16:00:00', '2026-02-28 12:00:00'),
 
   ('wx_openid_05', '小程序用户B', '13800000005',
    NULL,
-   '/uploads/images/default.jpg', '2026-02-25 10:00:00', '2025-11-01 08:00:00', '2026-02-25 10:00:00');
+   '/uploads/images/avatar.jpg', '2026-02-25 10:00:00', '2025-11-01 08:00:00', '2026-02-25 10:00:00');
 
 -- ============================================================
 -- 8. user_preference 用户偏好标签（8条）
