@@ -140,7 +140,7 @@ const BASE_URL = 'http://localhost:8080'
 const userStore = useUserStore()
 
 // 上传配置
-const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/image`)
+const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/icon`)
 const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
 }))

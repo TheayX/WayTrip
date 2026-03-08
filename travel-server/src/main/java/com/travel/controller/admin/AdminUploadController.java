@@ -26,4 +26,10 @@ public class AdminUploadController {
     public ApiResponse<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         return fileUploadService.uploadImage(file, 5, "文件");
     }
+
+    @Operation(summary = "上传图标")
+    @PostMapping("/icon")
+    public ApiResponse<Map<String, String>> uploadIcon(@RequestParam("file") MultipartFile file) {
+        return fileUploadService.uploadIcon(file, 2, "图标");
+    }
 }
