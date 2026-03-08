@@ -33,6 +33,7 @@ public class WxApiUtil {
             String url = String.format(WX_LOGIN_URL, appid, secret, code);
             log.info("调用微信登录API, code={}", code);
             
+            @SuppressWarnings("null")
             String response = restTemplate.getForObject(url, String.class);
             log.info("微信API响应: {}", response);
             
