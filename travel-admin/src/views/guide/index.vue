@@ -99,6 +99,7 @@
               class="image-uploader"
               :action="uploadUrl"
               :headers="uploadHeaders"
+              :data="uploadData"
               :show-file-list="false"
               :on-success="handleUploadSuccess"
               :on-error="handleUploadError"
@@ -162,6 +163,9 @@ const userStore = useUserStore()
 const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/image`)
 const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
+}))
+const uploadData = computed(() => ({
+  tag: form.title || ''
 }))
 
 // 获取完整图片URL

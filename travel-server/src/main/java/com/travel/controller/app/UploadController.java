@@ -24,6 +24,6 @@ public class UploadController {
     @Operation(summary = "上传头像")
     @PostMapping("/avatar")
     public ApiResponse<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) {
-        return fileUploadService.uploadImage(file, 2, "头像");
+        return fileUploadService.uploadImage(file, 2, "头像", "avatar");
     }
 }

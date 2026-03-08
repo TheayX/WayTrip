@@ -98,6 +98,13 @@
             <version>${hutool.version}</version>
         </dependency>
 
+        <!-- Pinyin4j（Hutool PinyinUtil 底层引擎，用于中文转拼音） -->
+        <dependency>
+            <groupId>com.belerweb</groupId>
+            <artifactId>pinyin4j</artifactId>
+            <version>2.5.1</version>
+        </dependency>
+
         <!-- Spring Security Crypto (仅密码加密) -->
         <dependency>
             <groupId>org.springframework.security</groupId>
