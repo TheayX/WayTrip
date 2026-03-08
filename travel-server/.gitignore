@@ -27,4 +27,6 @@ application-local.yml
 
 # Uploads
 uploads/images/
+uploads/icons/
 !uploads/images/.keep
+!uploads/icons/.keep

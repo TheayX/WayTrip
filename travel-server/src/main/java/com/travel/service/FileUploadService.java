@@ -80,5 +80,64 @@ public class FileUploadService {
             return ApiResponse.error(60002, logPrefix + "上传失败");
         }
     }
+
+    /**
+     * 上传图标文件
+     *
+     * @param file       上传的文件
+     * @param maxSizeMB  最大文件大小（MB）
+     * @param logPrefix  日志前缀（如 "图标"）
+     * @return 上传结果
+     */
+    public ApiResponse<Map<String, String>> uploadIcon(MultipartFile file, int maxSizeMB, String logPrefix) {
+        if (file.isEmpty()) {
+            return ApiResponse.error(60001, "请选择要上传的文件");
+        }
+
+        // 检查文件类型
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return ApiResponse.error(60001, "只能上传图片文件");
+        }
+
+        // 检查文件大小
+        if (file.getSize() > (long) maxSizeMB * 1024 * 1024) {
+            return ApiResponse.error(60001, "图片大小不能超过" + maxSizeMB + "MB");
+        }
+
+        try {
+            // 生成文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String newFilename = UUID.randomUUID().toString().replace("-", "") + extension;
+
+            // 创建上传目录 (使用 icons)
+            File uploadDir = new File(uploadPath, "icons");
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            // 保存文件
+            File destFile = new File(uploadDir, newFilename);
+            file.transferTo(java.util.Objects.requireNonNull(destFile.getAbsoluteFile()));
+
+            // 返回访问URL
+            String url = "/uploads/icons/" + newFilename;
+
+            Map<String, String> result = new HashMap<>();
+            result.put("url", url);
+            result.put("filename", newFilename);
+
+            log.info("{}上传成功: {}, 保存路径: {}", logPrefix, url, destFile.getAbsolutePath());
+            return ApiResponse.success(result);
+
+        } catch (IOException e) {
+            log.error("{}上传失败", logPrefix, e);
+            return ApiResponse.error(60002, logPrefix + "上传失败");
+        }
+    }
 }
 
