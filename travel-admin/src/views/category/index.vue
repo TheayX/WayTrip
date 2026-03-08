@@ -103,6 +103,7 @@
               class="avatar-uploader"
               :action="uploadUrl"
               :headers="uploadHeaders"
+              :data="uploadData"
               :show-file-list="false"
               :on-success="handleUploadSuccess"
               :before-upload="beforeUpload"
@@ -143,6 +144,9 @@ const userStore = useUserStore()
 const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/icon`)
 const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
+}))
+const uploadData = computed(() => ({
+  tag: form.name || ''
 }))
 
 // 获取完整图片URL
