@@ -26,6 +26,18 @@ const routes = [
         meta: { title: '景点管理', icon: 'Location' }
       },
       {
+        path: 'category',
+        name: 'Category',
+        component: () => import('@/views/category/index.vue'),
+        meta: { title: '分类管理', icon: 'Menu' }
+      },
+      {
+        path: 'region',
+        name: 'Region',
+        component: () => import('@/views/region/index.vue'),
+        meta: { title: '地区管理', icon: 'MapLocation' }
+      },
+      {
         path: 'guide',
         name: 'Guide',
         component: () => import('@/views/guide/index.vue'),
