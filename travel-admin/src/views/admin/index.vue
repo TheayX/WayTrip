@@ -65,16 +65,18 @@
         </el-table-column>
         <el-table-column label="操作" width="250" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="warning" @click="handleOpenPasswordDialog(row)">重置密码</el-button>
-            <el-button
-              link
-              type="danger"
-              :disabled="isCurrentAdmin(row)"
-              @click="handleDelete(row)"
-            >
-              删除
-            </el-button>
+            <div style="white-space: nowrap;">
+              <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
+              <el-button link type="warning" @click="handleOpenPasswordDialog(row)">重置密码</el-button>
+              <el-button
+                link
+                type="danger"
+                :disabled="isCurrentAdmin(row)"
+                @click="handleDelete(row)"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>

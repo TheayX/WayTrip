@@ -69,14 +69,16 @@
             {{ formatDate(row.updatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="primary" @click="handleRatingEdit(row)">评分/热度</el-button>
-            <el-button link :type="row.published ? 'warning' : 'success'" @click="handleTogglePublish(row)">
-              {{ row.published ? '下架' : '发布' }}
-            </el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <div style="white-space: nowrap;">
+              <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
+              <el-button link type="primary" @click="handleRatingEdit(row)">评分/热度</el-button>
+              <el-button link :type="row.published ? 'warning' : 'success'" @click="handleTogglePublish(row)">
+                {{ row.published ? '下架' : '发布' }}
+              </el-button>
+              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>

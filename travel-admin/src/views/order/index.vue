@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="order-page">
     <el-card shadow="never">
       <template #header>
@@ -67,33 +67,35 @@
         </el-table-column>
         <el-table-column prop="createdAt" label="下单时间" width="170" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" />
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
-            <el-button
-              v-if="row.status === 'paid'"
-              type="success"
-              link
-              @click="handleComplete(row)"
-            >完成</el-button>
-            <el-button
-              v-if="row.status === 'paid'"
-              type="danger"
-              link
-              @click="handleRefund(row)"
-            >退款</el-button>
-            <el-button
-              v-if="row.status === 'pending'"
-              type="danger"
-              link
-              @click="handleCancel(row)"
-            >取消</el-button>
-            <el-button
-              v-if="row.status === 'completed'"
-              type="warning"
-              link
-              @click="handleReopen(row)"
-            >撤销完成</el-button>
+            <div style="white-space: nowrap;">
+              <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
+              <el-button
+                v-if="row.status === 'paid'"
+                type="success"
+                link
+                @click="handleComplete(row)"
+              >完成</el-button>
+              <el-button
+                v-if="row.status === 'paid'"
+                type="danger"
+                link
+                @click="handleRefund(row)"
+              >退款</el-button>
+              <el-button
+                v-if="row.status === 'pending'"
+                type="danger"
+                link
+                @click="handleCancel(row)"
+              >取消</el-button>
+              <el-button
+                v-if="row.status === 'completed'"
+                type="warning"
+                link
+                @click="handleReopen(row)"
+              >撤销完成</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
