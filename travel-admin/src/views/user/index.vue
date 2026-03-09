@@ -32,10 +32,12 @@
         <el-table-column prop="ratingCount" label="评价数" width="100" />
         <el-table-column prop="createdAt" label="注册时间" width="170" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" />
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
-            <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
+            <div style="white-space: nowrap;">
+              <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
+              <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>

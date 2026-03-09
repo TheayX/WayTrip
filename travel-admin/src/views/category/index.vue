@@ -74,8 +74,10 @@
             </el-table-column>
             <el-table-column label="操作" width="150" fixed="right">
               <template #default="{ row }">
-                <el-button type="primary" link @click="handleEditLevel2(row)">编辑</el-button>
-                <el-button type="danger" link @click="handleDeleteLevel2(row)">删除</el-button>
+                <div style="white-space: nowrap;">
+                  <el-button type="primary" link @click="handleEditLevel2(row)">编辑</el-button>
+                  <el-button type="danger" link @click="handleDeleteLevel2(row)">删除</el-button>
+                </div>
               </template>
             </el-table-column>
             <template #empty>
