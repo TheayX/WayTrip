@@ -45,13 +45,36 @@
 import { nextTick, ref } from 'vue'
 import { chatWithAi } from '@/api/ai'
 
+const SESSION_STORAGE_KEY = 'waytrip_ai_session_id'
+
 const isOpen = ref(false)
 const loading = ref(false)
 const inputText = ref('')
 const messageListRef = ref(null)
-const messages = ref([
-  { role: 'assistant', content: '你好，我是 WayTrip AI 客服。你可以问我景点、攻略、订单相关问题。' }
-])
+const sessionId = ref(getOrCreateSessionId())
+const messages = ref([buildWelcomeMessage()])
+
+function buildWelcomeMessage() {
+  return { role: 'assistant', content: '你好，我是 WayTrip AI 客服。你可以问我景点、攻略、订单相关问题。' }
+}
+
+function getOrCreateSessionId() {
+  const cached = localStorage.getItem(SESSION_STORAGE_KEY)
+  if (cached) return cached
+  const created = createSessionId()
+  localStorage.setItem(SESSION_STORAGE_KEY, created)
+  return created
+}
+
+function createSessionId() {
+  return `web_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+}
+
+function resetSessionId() {
+  const created = createSessionId()
+  localStorage.setItem(SESSION_STORAGE_KEY, created)
+  sessionId.value = created
+}
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -70,9 +93,8 @@ const closeChat = () => {
 }
 
 const clearMessages = () => {
-  messages.value = [
-    { role: 'assistant', content: '你好，我是 WayTrip AI 客服。你可以问我景点、攻略、订单相关问题。' }
-  ]
+  resetSessionId()
+  messages.value = [buildWelcomeMessage()]
   scrollToBottom()
 }
 
@@ -86,7 +108,7 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    const res = await chatWithAi(content)
+    const res = await chatWithAi(sessionId.value, content)
     const reply = res?.data?.reply || '抱歉，暂时没有可用回复。'
     messages.value.push({ role: 'assistant', content: reply })
   } catch {
@@ -223,3 +245,4 @@ const sendMessage = async () => {
   }
 }
 </style>
+
