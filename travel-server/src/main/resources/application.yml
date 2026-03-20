@@ -38,3 +38,8 @@ logging:
     root: INFO
     com.travel: DEBUG
 
+ollama:
+  base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
+  model: ${OLLAMA_MODEL:qwen2.5:1.5b}
+  system-prompt: ${OLLAMA_SYSTEM_PROMPT:}
+

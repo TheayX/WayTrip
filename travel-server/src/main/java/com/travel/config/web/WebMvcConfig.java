@@ -63,6 +63,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/v1/home/**",
                         "/api/v1/guides",
                         "/api/v1/guides/categories",
+                        "/api/v1/ai/chat",
                         "/api/admin/v1/auth/login",
                         "/swagger-ui/**",
                         "/swagger-resources/**",
