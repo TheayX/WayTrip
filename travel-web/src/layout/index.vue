@@ -71,6 +71,8 @@
         </div>
       </div>
     </footer>
+
+    <AiChatWidget />
   </div>
 </template>
 
@@ -79,6 +81,7 @@ import { useUserStore } from '@/stores/user'
 import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { ElMessageBox } from 'element-plus'
+import AiChatWidget from '@/components/AiChatWidget.vue'
 
 const userStore = useUserStore()
 const router = useRouter()
