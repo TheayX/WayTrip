@@ -1,12 +1,12 @@
 package com.travel.service;
 
 /**
- * AI 服务接口
+ * AI service interface.
  */
 public interface AiService {
 
     /**
-     * 对话
+     * Chat with assistant.
      */
-    String chat(String sessionId, String userMessage);
+    String chat(String sessionId, String userMessage, Long userId, String clientIp);
 }

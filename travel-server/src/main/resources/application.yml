@@ -45,4 +45,12 @@ ollama:
   chat:
     max-history-rounds: ${OLLAMA_CHAT_MAX_HISTORY_ROUNDS:6}
     history-ttl-minutes: ${OLLAMA_CHAT_HISTORY_TTL_MINUTES:30}
+    response-cache-minutes: ${OLLAMA_CHAT_RESPONSE_CACHE_MINUTES:2}
+    hot-spot-summary-limit: ${OLLAMA_CHAT_HOT_SPOT_SUMMARY_LIMIT:6}
+    personalization:
+      recent-order-limit: ${OLLAMA_CHAT_PERSONALIZATION_RECENT_ORDER_LIMIT:3}
+      recent-favorite-limit: ${OLLAMA_CHAT_PERSONALIZATION_RECENT_FAVORITE_LIMIT:5}
+    rate-limit:
+      ip-per-minute: ${OLLAMA_CHAT_RATE_LIMIT_IP_PER_MINUTE:24}
+      session-per-minute: ${OLLAMA_CHAT_RATE_LIMIT_SESSION_PER_MINUTE:12}
 
