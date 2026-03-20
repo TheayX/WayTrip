@@ -8,6 +8,5 @@ public interface AiService {
     /**
      * 对话
      */
-    String chat(String userMessage);
+    String chat(String sessionId, String userMessage);
 }
-

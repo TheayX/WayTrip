@@ -42,4 +42,7 @@ ollama:
   base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
   model: ${OLLAMA_MODEL:qwen2.5:1.5b}
   system-prompt: ${OLLAMA_SYSTEM_PROMPT:}
+  chat:
+    max-history-rounds: ${OLLAMA_CHAT_MAX_HISTORY_ROUNDS:6}
+    history-ttl-minutes: ${OLLAMA_CHAT_HISTORY_TTL_MINUTES:30}
 
