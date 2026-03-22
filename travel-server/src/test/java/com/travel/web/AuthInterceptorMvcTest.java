@@ -3,8 +3,10 @@ package com.travel.web;
 import com.travel.common.exception.GlobalExceptionHandler;
 import com.travel.dto.auth.AdminLoginResponse;
 import com.travel.dto.auth.UserInfoResponse;
+import com.travel.dto.user.AdminUserListResponse;
 import com.travel.interceptor.AuthInterceptor;
 import com.travel.service.AuthService;
+import com.travel.service.UserService;
 import com.travel.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,7 @@ class AuthInterceptorMvcTest {
     private MockMvc mockMvc;
     private JwtUtil jwtUtil;
     private AuthService authService;
+    private UserService userService;
 
     @BeforeEach
     void setUp() {
@@ -38,6 +41,7 @@ class AuthInterceptorMvcTest {
         ReflectionTestUtils.setField(authInterceptor, "jwtUtil", jwtUtil);
 
         authService = Mockito.mock(AuthService.class);
+        userService = Mockito.mock(UserService.class);
         Mockito.when(authService.getUserInfo(1L)).thenReturn(
                 UserInfoResponse.builder()
                         .id(1L)
@@ -55,10 +59,30 @@ class AuthInterceptorMvcTest {
                         .realName("系统管理员")
                         .build()
         );
+        AdminUserListResponse listResponse = new AdminUserListResponse();
+        listResponse.setList(java.util.List.of(
+                new AdminUserListResponse.UserItem(
+                        1L,
+                        "用户A",
+                        "/uploads/images/avatar.jpg",
+                        "13800138000",
+                        1,
+                        2,
+                        3,
+                        java.time.LocalDateTime.now(),
+                        java.time.LocalDateTime.now()
+                )
+        ));
+        listResponse.setTotal(1L);
+        listResponse.setPage(1);
+        listResponse.setPageSize(10);
+        Mockito.when(userService.getAdminUsers(Mockito.any())).thenReturn(listResponse);
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(
                         new com.travel.controller.app.ProfileController(authService),
+                        new com.travel.controller.app.AuthController(authService),
+                        new com.travel.controller.admin.AdminUserController(userService),
                         new com.travel.controller.admin.AdminAuthController(authService)
                 )
                 .addInterceptors(authInterceptor)
@@ -109,5 +133,36 @@ class AuthInterceptorMvcTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.id").value(99))
                 .andExpect(jsonPath("$.data.username").value("admin"));
+    }
+
+    @Test
+    void protectedAuthUserInfo_rejectsRequestWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/user-info").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(10002));
+    }
+
+    @Test
+    void adminUsers_rejectsUserToken() throws Exception {
+        String token = jwtUtil.generateUserToken(1L);
+
+        mockMvc.perform(get("/api/admin/v1/users")
+                        .header("Authorization", "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(10002));
+    }
+
+    @Test
+    void adminUsers_acceptsAdminToken_andDoesNotExposeOpenid() throws Exception {
+        String token = jwtUtil.generateAdminToken(99L);
+
+        mockMvc.perform(get("/api/admin/v1/users")
+                        .header("Authorization", "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.list[0].id").value(1))
+                .andExpect(jsonPath("$.data.list[0].openid").doesNotExist());
     }
 }
