@@ -130,26 +130,15 @@
 
         <!-- 头像选择 -->
         <view class="auth-avatar-wrap">
-          <!-- #ifdef MP-WEIXIN -->
           <button class="auth-avatar-btn" open-type="chooseAvatar" @chooseavatar="onAuthChooseAvatar">
             <image class="auth-avatar-img" :src="authForm.avatarPreview || '/static/default-avatar.png'" />
             <view class="auth-avatar-edit">
               <text class="auth-avatar-edit-text">点击选择头像</text>
             </view>
           </button>
-          <!-- #endif -->
-          <!-- #ifndef MP-WEIXIN -->
-          <view class="auth-avatar-btn" @click="chooseAvatarFromAlbum">
-            <image class="auth-avatar-img" :src="authForm.avatarPreview || '/static/default-avatar.png'" />
-            <view class="auth-avatar-edit">
-              <text class="auth-avatar-edit-text">点击选择头像</text>
-            </view>
-          </view>
-          <!-- #endif -->
         </view>
 
         <!-- 昵称输入 -->
-        <!-- #ifdef MP-WEIXIN -->
         <input
           class="auth-input"
           type="nickname"
@@ -157,15 +146,6 @@
           placeholder="点击填入微信昵称"
           @blur="onNicknameBlur"
         />
-        <!-- #endif -->
-        <!-- #ifndef MP-WEIXIN -->
-        <input
-          class="auth-input"
-          v-model="authForm.nickname"
-          placeholder="请输入昵称"
-          maxlength="30"
-        />
-        <!-- #endif -->
 
         <view class="auth-actions">
           <button class="auth-btn skip" @click="skipStep2">跳过</button>
@@ -181,25 +161,12 @@
         <!-- 头像选择 -->
         <view class="edit-avatar-row">
           <text class="edit-avatar-label">头像</text>
-          <!-- #ifdef MP-WEIXIN -->
           <button class="edit-avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
             <image class="edit-avatar-img" :src="editForm.avatarPreview || editForm.avatar || '/static/default-avatar.png'" />
             <text class="edit-avatar-tip">点击更换</text>
           </button>
-          <!-- #endif -->
-          <!-- #ifndef MP-WEIXIN -->
-          <view class="edit-avatar-btn" @click="chooseAvatarFromAlbum">
-            <image class="edit-avatar-img" :src="editForm.avatarPreview || editForm.avatar || '/static/default-avatar.png'" />
-            <text class="edit-avatar-tip">点击更换</text>
-          </view>
-          <!-- #endif -->
         </view>
-        <!-- #ifdef MP-WEIXIN -->
         <input class="edit-input" type="nickname" v-model="editForm.nickname" placeholder="点击填入微信昵称" maxlength="30" />
-        <!-- #endif -->
-        <!-- #ifndef MP-WEIXIN -->
-        <input class="edit-input" v-model="editForm.nickname" placeholder="请输入昵称" maxlength="30" />
-        <!-- #endif -->
         <input class="edit-input" v-model="editForm.phone" placeholder="请输入手机号（可选）" maxlength="20" />
         <view class="edit-actions">
           <button class="edit-btn cancel" @click="editVisible = false">取消</button>
@@ -392,7 +359,6 @@ const syncUserInfo = async () => {
 // 登录
 const doLogin = async () => {
   try {
-    // #ifdef MP-WEIXIN
     const loginRes = await uni.login({ provider: 'weixin' })
     const res = await wxLogin(loginRes.code)
 
@@ -425,11 +391,7 @@ const doLogin = async () => {
         uni.showToast({ title: '登录成功', icon: 'success' })
       }
     }
-    // #endif
 
-    // #ifdef H5
-    uni.showToast({ title: 'H5端暂不支持微信登录', icon: 'none' })
-    // #endif
   } catch (e) {
     console.error('登录失败', e)
     uni.showToast({ title: '登录失败', icon: 'none' })
@@ -475,26 +437,6 @@ const onChooseAvatar = (e) => {
     editForm.avatarPreview = url
     editForm.avatarTempFile = url
   }
-}
-
-// 非微信平台从相册选择头像
-const chooseAvatarFromAlbum = () => {
-  uni.chooseImage({
-    count: 1,
-    sizeType: ['compressed'],
-    sourceType: ['album', 'camera'],
-    success: (res) => {
-      const tempFilePath = res.tempFilePaths[0]
-      // 判断当前哪个弹窗打开
-      if (authStep.value === 2) {
-        authForm.avatarPreview = tempFilePath
-        authForm.avatarTempFile = tempFilePath
-      } else {
-        editForm.avatarPreview = tempFilePath
-        editForm.avatarTempFile = tempFilePath
-      }
-    }
-  })
 }
 
 // 退出登录
