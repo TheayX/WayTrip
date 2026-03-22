@@ -26,7 +26,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="nickname" label="昵称" min-width="120" />
-        <el-table-column prop="phone" label="手机号" width="140" />
+        <el-table-column label="手机号" width="140">
+          <template #default="{ row }">
+            {{ formatPhone(row.phone) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="orderCount" label="订单数" width="100" />
         <el-table-column prop="favoriteCount" label="收藏数" width="100" />
         <el-table-column prop="ratingCount" label="评价数" width="100" />
@@ -63,7 +67,7 @@
           <el-avatar :src="currentUser.avatar" :size="60">{{ currentUser.nickname?.charAt(0) }}</el-avatar>
         </el-descriptions-item>
         <el-descriptions-item label="昵称">{{ currentUser.nickname }}</el-descriptions-item>
-        <el-descriptions-item label="手机号">{{ currentUser.phone || '未绑定' }}</el-descriptions-item>
+        <el-descriptions-item label="手机号">{{ formatPhone(currentUser.phone) }}</el-descriptions-item>
         <el-descriptions-item label="偏好标签" :span="2">{{ currentUser.preferences || '未设置' }}</el-descriptions-item>
         <el-descriptions-item label="注册时间" :span="2">{{ currentUser.createdAt }}</el-descriptions-item>
         <el-descriptions-item label="修改时间" :span="2">{{ currentUser.updatedAt }}</el-descriptions-item>
@@ -112,6 +116,18 @@ const pagination = reactive({
 // 详情弹窗
 const detailVisible = ref(false)
 const currentUser = ref(null)
+
+const formatPhone = (phone) => {
+  if (!phone || !phone.trim()) return '未绑定'
+  const normalized = phone.trim()
+  if (/^1\d{10}$/.test(normalized)) {
+    return `${normalized.slice(0, 3)}****${normalized.slice(7)}`
+  }
+  if (/^1\d{2}\*{4}\d{4}$/.test(normalized)) {
+    return normalized
+  }
+  return '已隐藏'
+}
 
 // 获取用户列表
 const fetchUserList = async () => {
