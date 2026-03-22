@@ -7,6 +7,7 @@ import com.travel.entity.*;
 import com.travel.enums.OrderStatus;
 import com.travel.mapper.*;
 import com.travel.service.UserService;
+import com.travel.util.MaskUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
         response.setId(user.getId());
         response.setNickname(user.getNickname());
         response.setAvatar(user.getAvatarUrl());
-        response.setPhone(maskPhone(user.getPhone()));
+        response.setPhone(MaskUtil.maskPhone(user.getPhone()));
         response.setPreferences(user.getPreferences());
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
@@ -130,7 +131,7 @@ public class UserServiceImpl implements UserService {
         item.setId(user.getId());
         item.setNickname(user.getNickname());
         item.setAvatar(user.getAvatarUrl());
-        item.setPhone(maskPhone(user.getPhone()));
+        item.setPhone(MaskUtil.maskPhone(user.getPhone()));
         item.setCreatedAt(user.getCreatedAt());
         item.setUpdatedAt(user.getUpdatedAt());
 
@@ -163,16 +164,5 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userMapper.updateById(user);
         log.info("用户密码已重置: userId={}", userId);
-    }
-
-    private String maskPhone(String phone) {
-        if (!StringUtils.hasText(phone)) {
-            return phone;
-        }
-        String normalized = phone.trim();
-        if (!normalized.matches("^1\\d{10}$")) {
-            return normalized;
-        }
-        return normalized.substring(0, 3) + "****" + normalized.substring(7);
     }
 }
