@@ -97,14 +97,21 @@ graph TB
 ### 用户端路由前缀
 
 - 主业务接口：`/api/v1/*`
-- 当前资料接口存在两套入口：
-  - `AuthController`：`/api/v1/auth/user-info`、`/api/v1/auth/password`、`/api/v1/auth/preferences`
-  - `ProfileController`：`/api/v1/user/info`、`/api/v1/user/password`、`/api/v1/user/preferences`、`/api/v1/user/account`
+- 资料接口主入口：`ProfileController`
+  - `/api/v1/user/info`
+  - `/api/v1/user/preferences`
+  - `/api/v1/user/password`
+  - `/api/v1/user/account`
+- 资料接口兼容层：`AuthController`
+  - `/api/v1/auth/user-info`
+  - `/api/v1/auth/preferences`
+  - `/api/v1/auth/password`
 
 设计结论：
 
-- 资料相关接口当前为“新旧并存”的兼容状态。
-- 后续如果清理接口，应保留一套主入口并做版本说明。
+- ` /api/v1/user/* ` 是当前收口后的资料主路径。
+- ` /api/v1/auth/* ` 中与资料相关的接口仅保留兼容能力。
+- 新前端调用和后续文档都应统一围绕 ` /api/v1/user/* ` 展开。
 
 ### 管理端路由前缀
 
