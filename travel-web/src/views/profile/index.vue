@@ -11,7 +11,7 @@
         <div class="user-header">
           <el-avatar :size="64" :src="userStore.userInfo?.avatar ? getImageUrl(userStore.userInfo.avatar) : ''" icon="User" />
           <h3 class="user-name">{{ userStore.userInfo?.nickname || '用户' }}</h3>
-          <p class="user-phone">{{ userStore.userInfo?.phone || '未绑定手机' }}</p>
+          <p class="user-phone">{{ formatPhone(userStore.userInfo?.phone) }}</p>
         </div>
         <el-menu :default-active="activeMenu" @select="handleMenuSelect">
           <el-menu-item index="info">
@@ -176,6 +176,18 @@ const profileForm = reactive({
 const avatarInputRef = ref(null)
 const avatarPreview = ref('')
 const avatarFile = ref(null)
+
+const formatPhone = (phone) => {
+  if (!phone || !phone.trim()) return '未绑定手机'
+  const normalized = phone.trim()
+  if (/^1\d{10}$/.test(normalized)) {
+    return `${normalized.slice(0, 3)}****${normalized.slice(7)}`
+  }
+  if (/^1\d{2}\*{4}\d{4}$/.test(normalized)) {
+    return normalized
+  }
+  return '已隐藏'
+}
 
 const handleMenuSelect = (index) => {
   activeMenu.value = index
