@@ -58,7 +58,7 @@ public enum OrderStatus {
      * 判断是否可以取消
      */
     public boolean canCancel() {
-        return this == PENDING;
+        return this == PENDING || this == PAID;
     }
 
     /**
