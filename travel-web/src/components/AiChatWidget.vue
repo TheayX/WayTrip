@@ -24,7 +24,7 @@
         </div>
 
         <div v-if="loading" class="message-item assistant">
-          <div class="message-bubble">正在思考...</div>
+          <div class="message-bubble">正在输入...</div>
         </div>
       </div>
 
