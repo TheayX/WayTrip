@@ -1,5 +1,7 @@
 import request from '@/utils/request'
 
+// 用户资料接口统一走 /user/*，/auth/* 仅用于登录注册和历史兼容层。
+
 // 手机号 + 密码注册
 export const register = (data) => request.post('/auth/web-register', data)
 
