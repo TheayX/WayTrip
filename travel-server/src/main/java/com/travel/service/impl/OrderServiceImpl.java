@@ -167,7 +167,8 @@ public class OrderServiceImpl implements OrderService {
             return buildOrderDetail(order);
         }
 
-        if (order.getStatus() != OrderStatus.PENDING.getCode()) {
+        if (order.getStatus() != OrderStatus.PENDING.getCode()
+                && order.getStatus() != OrderStatus.PAID.getCode()) {
             throw new RuntimeException("订单状态不允许取消");
         }
 
