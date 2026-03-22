@@ -138,6 +138,12 @@ npm run dev:mp-weixin
 | 用户端       | `/api/v1/*`       | 小程序 & Web 共用 |
 | 管理端       | `/api/admin/v1/*` | 管理后台专用   |
 
+用户端资料接口约定：
+
+- 主入口统一使用 `/api/v1/user/*`
+- `/api/v1/auth/*` 仅保留登录注册和历史兼容能力
+- 新增前端调用不要再混用两套资料路径
+
 详细接口文档请查看: http://localhost:8080/doc.html
 
 ## 推荐算法

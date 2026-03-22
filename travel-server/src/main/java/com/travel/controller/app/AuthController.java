@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 
 /**
  * 用户端认证接口
+ * 用户资料相关路由仅保留兼容能力，主入口为 /api/v1/user/*
  */
 @Tag(name = "用户端-认证", description = "用户登录、注册相关接口")
 @RestController
@@ -46,14 +47,16 @@ public class AuthController {
         return ApiResponse.success(authService.webLogin(request));
     }
 
-    @Operation(summary = "获取当前用户信息")
+    @Deprecated
+    @Operation(summary = "获取当前用户信息（兼容路由，主入口请使用 /api/v1/user/info）")
     @GetMapping("/user-info")
     public ApiResponse<UserInfoResponse> getUserInfo() {
         Long userId = UserContext.getUserId();
         return ApiResponse.success(authService.getUserInfo(userId));
     }
 
-    @Operation(summary = "更新用户信息")
+    @Deprecated
+    @Operation(summary = "更新用户信息（兼容路由，主入口请使用 /api/v1/user/info）")
     @PutMapping("/user-info")
     public ApiResponse<Void> updateUserInfo(@Valid @RequestBody UpdateUserInfoRequest request) {
         Long userId = UserContext.getUserId();
@@ -61,7 +64,8 @@ public class AuthController {
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "修改密码")
+    @Deprecated
+    @Operation(summary = "修改密码（兼容路由，主入口请使用 /api/v1/user/password）")
     @PutMapping("/password")
     public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         Long userId = UserContext.getUserId();
@@ -69,7 +73,8 @@ public class AuthController {
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "设置偏好标签")
+    @Deprecated
+    @Operation(summary = "设置偏好标签（兼容路由，主入口请使用 /api/v1/user/preferences）")
     @PostMapping("/preferences")
     public ApiResponse<Void> setPreferences(@Valid @RequestBody PreferencesRequest request) {
         Long userId = UserContext.getUserId();
