@@ -56,14 +56,10 @@
 | POST | `/api/v1/auth/wx-bind-phone` | 小程序绑定手机号 |
 | POST | `/api/v1/auth/web-register` | Web 注册 |
 | POST | `/api/v1/auth/web-login` | Web 登录 |
-| GET | `/api/v1/auth/user-info` | 获取用户信息 |
-| PUT | `/api/v1/auth/user-info` | 更新用户信息 |
-| PUT | `/api/v1/auth/password` | 修改密码 |
-| POST | `/api/v1/auth/preferences` | 设置偏好标签 |
 
-### 2. 个人资料兼容路由
+### 2. 个人资料主路由
 
-当前后端还保留了一组资料兼容接口：
+主入口统一为：
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -73,12 +69,24 @@
 | PUT | `/api/v1/user/password` | 修改密码 |
 | DELETE | `/api/v1/user/account` | 注销账户 |
 
+### 3. 个人资料兼容路由
+
+当前后端还保留了一组资料兼容接口：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/v1/auth/user-info` | 获取用户信息 |
+| PUT | `/api/v1/auth/user-info` | 更新用户信息 |
+| POST | `/api/v1/auth/preferences` | 设置偏好标签 |
+| PUT | `/api/v1/auth/password` | 修改密码 |
+
 说明：
 
-- `/api/v1/auth/*` 与 `/api/v1/user/*` 资料接口当前并存。
-- 前端新接入建议优先使用一套固定路径，不要混用。
+- `/api/v1/user/*` 是主入口。
+- `/api/v1/auth/*` 资料接口仅作为兼容层保留。
+- 新接入与现有前端统一使用 `/api/v1/user/*`，不要再混用。
 
-### 3. 上传
+### 4. 上传
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -88,7 +96,7 @@
 
 - `multipart/form-data`
 
-### 4. 首页与推荐
+### 5. 首页与推荐
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -97,7 +105,7 @@
 | GET | `/api/v1/recommendations` | 获取个性化推荐 |
 | POST | `/api/v1/recommendations/refresh` | 刷新推荐 |
 
-### 5. 景点
+### 6. 景点
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -106,7 +114,7 @@
 | GET | `/api/v1/spots/{spotId}` | 景点详情 |
 | GET | `/api/v1/spots/filters` | 获取景点筛选项 |
 
-### 6. 攻略
+### 7. 攻略
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -114,7 +122,7 @@
 | GET | `/api/v1/guides/{guideId}` | 攻略详情 |
 | GET | `/api/v1/guides/categories` | 攻略分类 |
 
-### 7. 评分评论
+### 8. 评分评论
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -122,7 +130,7 @@
 | GET | `/api/v1/reviews/spot/{spotId}` | 获取当前用户对景点评分 |
 | GET | `/api/v1/reviews/spot/{spotId}/comments` | 获取景点评论列表 |
 
-### 8. 收藏
+### 9. 收藏
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -131,7 +139,7 @@
 | GET | `/api/v1/favorites/check/{spotId}` | 检查收藏状态 |
 | GET | `/api/v1/favorites` | 收藏列表 |
 
-### 9. 订单
+### 10. 订单
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -267,6 +275,6 @@
 
 ## 当前文档化结论
 
-- 资料接口存在双路径兼容，这是当前 API 文档最需要说明的点。
+- 资料接口现在已完成收口：`/api/v1/user/*` 为主入口，`/api/v1/auth/*` 为兼容层。
 - 管理端图片上传接口和图标上传接口已实际存在，不应再标记为待实现。
 - 如果后续继续演进接口，建议直接以 Knife4j 导出结果为准同步更新该文档。
