@@ -101,6 +101,7 @@ class UserServiceImplTest {
         AdminUserListResponse.UserItem item = response.getList().get(0);
         assertEquals(1L, item.getId());
         assertEquals("用户A", item.getNickname());
+        assertEquals("138****8000", item.getPhone());
         assertEquals(3, item.getOrderCount());
         assertEquals(2, item.getFavoriteCount());
         assertEquals(1, item.getRatingCount());
@@ -137,6 +138,7 @@ class UserServiceImplTest {
 
         assertEquals(1L, response.getId());
         assertEquals("用户A", response.getNickname());
+        assertEquals("138****8000", response.getPhone());
         assertEquals("自然风光,历史文化", response.getPreferences());
         assertEquals(5, response.getOrderCount());
         assertEquals(4, response.getFavoriteCount());
@@ -198,4 +200,3 @@ class UserServiceImplTest {
         return user;
     }
 }
-
