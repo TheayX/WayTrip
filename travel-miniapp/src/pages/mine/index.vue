@@ -13,7 +13,7 @@
     </view>
 
     <view class="profile-extra" v-if="isLoggedIn">
-      <text class="profile-line">手机号：{{ userInfo?.phone || '未绑定' }}</text>
+      <text class="profile-line">手机号：{{ formatPhone(userInfo?.phone) }}</text>
       <text class="profile-edit" @click="openEditPopup">编辑资料</text>
     </view>
 
@@ -224,6 +224,18 @@ const userStore = useUserStore()
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
+
+const formatPhone = (phone) => {
+  if (!phone || !phone.trim()) return '未绑定'
+  const normalized = phone.trim()
+  if (/^1\d{10}$/.test(normalized)) {
+    return `${normalized.slice(0, 3)}****${normalized.slice(7)}`
+  }
+  if (/^1\d{2}\*{4}\d{4}$/.test(normalized)) {
+    return normalized
+  }
+  return '已隐藏'
+}
 
 // ========== 新用户两步授权流程 ==========
 const authStep = ref(0) // 0: 未开始, 1: 设置手机号密码, 2: 设置头像昵称（可跳过）
