@@ -1,9 +1,8 @@
 <template>
   <view class="ios-page">
-    <!-- 状态筛选 -->
     <view class="tabs">
-      <view 
-        v-for="tab in tabs" 
+      <view
+        v-for="tab in tabs"
         :key="tab.value"
         class="tab-item"
         :class="{ active: currentTab === tab.value }"
@@ -13,15 +12,9 @@
       </view>
     </view>
 
-    <!-- 订单列表 -->
     <scroll-view scroll-y class="order-list" @scrolltolower="loadMore">
       <view v-if="orderList.length">
-        <view 
-          class="order-card" 
-          v-for="order in orderList" 
-          :key="order.id"
-          @click="goDetail(order.id)"
-        >
+        <view class="order-card" v-for="order in orderList" :key="order.id" @click="goDetail(order.id)">
           <view class="order-header">
             <text class="order-no">订单号：{{ order.orderNo }}</text>
             <text class="order-status" :class="order.status">{{ order.statusText }}</text>
@@ -39,27 +32,22 @@
             </view>
           </view>
 
-          <view class="order-actions" v-if="order.status === 'pending' || order.status === 'paid'">
-            <button 
-              v-if="order.canCancel" 
-              class="action-btn cancel" 
-              @click.stop="handleCancel(order)"
-            >{{ order.status === 'paid' ? '申请退款' : '取消订单' }}</button>
-            <button 
-              v-if="order.status === 'pending'" 
-              class="action-btn pay" 
-              @click.stop="handlePay(order)"
-            >去支付</button>
+          <view class="order-actions" v-if="showActions(order)">
+            <button v-if="order.canCancel" class="action-btn cancel" @click.stop="handleCancel(order)">
+              {{ order.status === 'paid' ? '申请退款' : '取消订单' }}
+            </button>
+            <button v-if="order.status === 'pending'" class="action-btn pay" @click.stop="handlePay(order)">去支付</button>
+            <button v-if="order.status === 'completed'" class="action-btn review" @click.stop="handleReview(order)">
+              去评价
+            </button>
           </view>
         </view>
       </view>
 
-      <!-- 空状态 -->
       <view class="empty" v-else-if="!loading">
         <text class="empty-text">暂无订单</text>
       </view>
 
-      <!-- 加载状态 -->
       <view class="loading-more" v-if="loading">
         <text>加载中...</text>
       </view>
@@ -73,7 +61,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { getOrderList, cancelOrder, payOrder } from '@/api/order'
+import { getOrderList, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 
 const tabs = [
@@ -89,6 +77,10 @@ const orderList = ref([])
 const loading = ref(false)
 const noMore = ref(false)
 const pagination = reactive({ page: 1, pageSize: 10 })
+
+const showActions = (order) => {
+  return order.status === 'pending' || order.status === 'paid' || order.status === 'completed'
+}
 
 const fetchOrders = async (refresh = false) => {
   if (loading.value) return
@@ -148,10 +140,10 @@ const handleCancel = async (order) => {
       if (res.confirm) {
         try {
           await cancelOrder(order.id)
-          uni.showToast({ title: '订单已取消', icon: 'success' })
+          uni.showToast({ title: '操作成功', icon: 'success' })
           fetchOrders(true)
         } catch (e) {
-          uni.showToast({ title: e.message || '取消失败', icon: 'none' })
+          uni.showToast({ title: e.message || '操作失败', icon: 'none' })
         }
       }
     }
@@ -160,6 +152,10 @@ const handleCancel = async (order) => {
 
 const handlePay = (order) => {
   uni.navigateTo({ url: `/pages/order/detail?id=${order.id}` })
+}
+
+const handleReview = (order) => {
+  uni.navigateTo({ url: `/pages/spot/detail?id=${order.spotId}&openReview=1` })
 }
 
 onShow(() => {
@@ -175,7 +171,6 @@ onShow(() => {
   flex-direction: column;
 }
 
-/* 标签栏 */
 .tabs {
   display: flex;
   background: #fff;
@@ -211,7 +206,6 @@ onShow(() => {
   border-radius: 2rpx;
 }
 
-/* 订单列表 */
 .order-list {
   flex: 1;
   width: 100%;
@@ -326,7 +320,11 @@ onShow(() => {
   color: #fff;
 }
 
-/* 空状态 */
+.action-btn.review {
+  background: #10B981;
+  color: #fff;
+}
+
 .empty {
   display: flex;
   flex-direction: column;
@@ -339,7 +337,6 @@ onShow(() => {
   color: #8E8E93;
 }
 
-/* 加载状态 */
 .loading-more,
 .no-more {
   text-align: center;

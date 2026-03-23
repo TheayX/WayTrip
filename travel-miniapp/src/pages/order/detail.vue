@@ -1,6 +1,5 @@
 <template>
   <view class="ios-page" v-if="order">
-    <!-- 订单状态 -->
     <view class="status-card" :class="order.status">
       <text class="status-icon">{{ getStatusIcon(order.status) }}</text>
       <text class="status-text">{{ order.statusText }}</text>
@@ -10,7 +9,6 @@
       </text>
     </view>
 
-    <!-- 景点信息 -->
     <view class="spot-card" @click="goSpot">
       <image class="spot-image" :src="getImageUrl(order.spotImage)" mode="aspectFill" />
       <view class="spot-info">
@@ -20,7 +18,6 @@
       <text class="arrow">›</text>
     </view>
 
-    <!-- 订单信息 -->
     <view class="info-card">
       <view class="info-title">订单信息</view>
       <view class="info-item">
@@ -37,7 +34,6 @@
       </view>
     </view>
 
-    <!-- 联系人信息 -->
     <view class="info-card">
       <view class="info-title">联系人信息</view>
       <view class="info-item">
@@ -50,7 +46,6 @@
       </view>
     </view>
 
-    <!-- 价格明细 -->
     <view class="info-card">
       <view class="info-title">价格明细</view>
       <view class="price-item">
@@ -67,18 +62,18 @@
       </view>
     </view>
 
-    <!-- 底部操作 -->
-    <view class="bottom-bar" v-if="order.canPay || order.canCancel">
+    <view class="bottom-bar" v-if="showActions">
       <button v-if="order.canCancel" class="action-btn cancel" @click="handleCancel">
         {{ order.status === 'paid' ? '申请退款' : '取消订单' }}
       </button>
       <button v-if="order.canPay" class="action-btn pay" @click="handlePay">立即支付</button>
+      <button v-if="order.status === 'completed'" class="action-btn review" @click="handleReview">去评价</button>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
 import { getOrderDetail, payOrder, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
@@ -88,6 +83,11 @@ const orderId = ref(null)
 const countdownText = ref('')
 let countdownTimer = null
 let countdownTargetMs = null
+
+const showActions = computed(() => {
+  if (!order.value) return false
+  return order.value.canPay || order.value.canCancel || order.value.status === 'completed'
+})
 
 const fetchOrderDetail = async () => {
   try {
@@ -105,16 +105,16 @@ const getStatusIcon = (status) => {
     paid: '✅',
     completed: '🎉',
     cancelled: '❌',
-    refunded: '💸'
+    refunded: '💰'
   }
-  return icons[status] || '📋'
+  return icons[status] || '🧾'
 }
 
 const getStatusDesc = (status) => {
   const descs = {
     pending: '请在5分钟内完成支付',
     paid: '订单已支付，请按时前往游玩',
-    completed: '感谢您的使用，期待再次光临',
+    completed: '订单已完成，可去评价',
     cancelled: '订单已取消',
     refunded: '订单已退款'
   }
@@ -188,14 +188,18 @@ const handleCancel = () => {
       if (res.confirm) {
         try {
           await cancelOrder(orderId.value)
-          uni.showToast({ title: '订单已取消', icon: 'success' })
+          uni.showToast({ title: '操作成功', icon: 'success' })
           fetchOrderDetail()
         } catch (e) {
-          uni.showToast({ title: e.message || '取消失败', icon: 'none' })
+          uni.showToast({ title: e.message || '操作失败', icon: 'none' })
         }
       }
     }
   })
+}
+
+const handleReview = () => {
+  uni.navigateTo({ url: `/pages/spot/detail?id=${order.value.spotId}&openReview=1` })
 }
 
 onLoad((options) => {
@@ -221,7 +225,6 @@ onUnload(() => {
   padding-bottom: 160rpx;
 }
 
-/* 状态卡片 */
 .status-card {
   padding: 48rpx 32rpx;
   display: flex;
@@ -252,6 +255,7 @@ onUnload(() => {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.85);
 }
+
 .countdown-text {
   margin-top: 8rpx;
   font-size: 26rpx;
@@ -259,7 +263,6 @@ onUnload(() => {
   font-weight: 600;
 }
 
-/* 景点卡片 */
 .spot-card {
   display: flex;
   align-items: center;
@@ -299,7 +302,6 @@ onUnload(() => {
   color: #C7C7CC;
 }
 
-/* 信息卡片 */
 .info-card {
   margin: 0 32rpx 24rpx;
   padding: 24rpx;
@@ -333,7 +335,6 @@ onUnload(() => {
   color: #1C1C1E;
 }
 
-/* 价格明细 */
 .price-item {
   display: flex;
   justify-content: space-between;
@@ -356,7 +357,6 @@ onUnload(() => {
   font-weight: 700;
 }
 
-/* 底部操作 */
 .bottom-bar {
   position: fixed;
   bottom: 0;
@@ -388,6 +388,11 @@ onUnload(() => {
 
 .action-btn.pay {
   background: #007AFF;
+  color: #fff;
+}
+
+.action-btn.review {
+  background: #10B981;
   color: #fff;
 }
 </style>
