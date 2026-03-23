@@ -40,7 +40,7 @@
             v-for="spot in hotSpots"
             :key="spot.id"
             class="hot-card card"
-            @click="$router.push(`/spots/${spot.id}`)"
+            @click="$router.push(`/spots/${spot.id}?source=home`)"
           >
             <div class="hot-img-wrapper">
               <img :src="getImageUrl(spot.coverImage)" class="hot-img" alt="" />
@@ -78,7 +78,7 @@
             v-for="spot in recommendations"
             :key="spot.id"
             class="recommend-card card"
-            @click="$router.push(`/spots/${spot.id}`)"
+            @click="$router.push(`/spots/${spot.id}?source=home`)"
           >
             <img :src="getImageUrl(spot.coverImage)" class="rec-img" alt="" />
             <div class="rec-content">
@@ -214,7 +214,7 @@ const savePreferences = async () => {
 
 const handleBannerClick = (banner) => {
   if (!banner?.spotId) return
-  router.push(`/spots/${banner.spotId}`)
+  router.push(`/spots/${banner.spotId}?source=home`)
 }
 
 onMounted(() => {

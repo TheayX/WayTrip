@@ -167,7 +167,7 @@ const setupCountdown = () => {
 }
 
 const goSpot = () => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${order.value.spotId}` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${order.value.spotId}&source=order` })
 }
 
 const handlePay = async () => {
@@ -199,7 +199,7 @@ const handleCancel = () => {
 }
 
 const handleReview = () => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${order.value.spotId}&openReview=1` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${order.value.spotId}&openReview=1&source=order` })
 }
 
 onLoad((options) => {

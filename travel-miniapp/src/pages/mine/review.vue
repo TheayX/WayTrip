@@ -147,7 +147,7 @@ const handleDelete = (item) => {
 }
 
 const goSpot = (spotId) => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=review` })
 }
 
 onShow(() => {

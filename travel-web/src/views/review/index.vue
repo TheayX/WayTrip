@@ -33,7 +33,7 @@
                 </div>
               </div>
               <p class="comment">{{ item.comment || '这条评价没有填写文字内容。' }}</p>
-              <el-button text type="primary" @click="$router.push(`/spots/${item.spotId}`)">查看景点</el-button>
+              <el-button text type="primary" @click="$router.push(`/spots/${item.spotId}?source=review`)">查看景点</el-button>
             </div>
           </article>
         </div>

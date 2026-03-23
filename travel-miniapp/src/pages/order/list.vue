@@ -155,7 +155,7 @@ const handlePay = (order) => {
 }
 
 const handleReview = (order) => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${order.spotId}&openReview=1` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${order.spotId}&openReview=1&source=order` })
 }
 
 onShow(() => {

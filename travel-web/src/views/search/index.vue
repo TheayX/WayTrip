@@ -35,7 +35,7 @@
           v-for="spot in results"
           :key="spot.id"
           class="result-card card"
-          @click="$router.push(`/spots/${spot.id}`)"
+          @click="$router.push(`/spots/${spot.id}?source=search`)"
         >
           <img :src="getImageUrl(spot.coverImage)" class="result-img" alt="" />
           <div class="result-info">

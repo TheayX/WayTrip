@@ -18,7 +18,7 @@
           </div>
         </div>
 
-        <div class="info-card card" @click="$router.push(`/spots/${order.spotId}`)">
+        <div class="info-card card" @click="$router.push(`/spots/${order.spotId}?source=order`)">
           <h3 class="card-title">景点信息</h3>
           <div class="spot-row">
             <img :src="getImageUrl(order.spotImage)" class="spot-thumb" alt="" />
@@ -162,7 +162,7 @@ const handleCancel = async () => {
 }
 
 const handleReview = () => {
-  router.push(`/spots/${order.value.spotId}?openReview=1`)
+  router.push(`/spots/${order.value.spotId}?openReview=1&source=order`)
 }
 
 onMounted(() => {

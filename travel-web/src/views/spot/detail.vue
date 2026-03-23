@@ -148,6 +148,7 @@ const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 let enterTime = 0
+let viewSource = 'detail'
 
 const spot = ref(null)
 const comments = ref([])
@@ -278,6 +279,7 @@ const handleDeleteComment = async (comment) => {
 
 onMounted(() => {
   enterTime = Date.now()
+  viewSource = route.query.source || 'detail'
   fetchDetail()
   fetchComments(true)
 }) 
@@ -285,7 +287,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (spot.value && userStore.isLoggedIn && enterTime > 0) {
     const duration = Math.floor((Date.now() - enterTime) / 1000)
-    recordSpotView(spot.value.id, 'detail', duration).catch(() => {})
+    recordSpotView(spot.value.id, viewSource, duration).catch(() => {})
   }
 })
 </script>

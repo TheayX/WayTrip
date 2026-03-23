@@ -112,7 +112,7 @@
         v-for="spot in spotList"
         :key="spot.id"
         class="spot-card card"
-        @click="$router.push(`/spots/${spot.id}`)"
+        @click="$router.push(`/spots/${spot.id}?source=list`)"
       >
         <div class="spot-img-wrapper">
           <img :src="getImageUrl(spot.coverImage)" class="spot-img" alt="" />

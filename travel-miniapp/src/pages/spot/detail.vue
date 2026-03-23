@@ -137,6 +137,7 @@ const spot = ref(null)
 const spotId = ref(null)
 const userStore = useUserStore()
 let enterTime = 0
+let viewSource = 'detail'
 
 const spotImages = computed(() => {
   if (!spot.value) return []
@@ -261,6 +262,7 @@ const goBuy = () => {
 
 onLoad((options) => {
   spotId.value = options.id
+  viewSource = options.source || 'detail'
   openReviewByQuery.value = options.openReview === '1'
   reviewPopupOpened.value = false
   fetchSpotDetail()
@@ -273,7 +275,7 @@ onShow(() => {
 const reportView = () => {
   if (spotId.value && userStore.isLoggedIn && enterTime > 0) {
     const duration = Math.floor((Date.now() - enterTime) / 1000)
-    recordSpotView(spotId.value, 'detail', duration).catch(() => {})
+    recordSpotView(spotId.value, viewSource, duration).catch(() => {})
   }
 }
 

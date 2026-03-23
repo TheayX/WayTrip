@@ -33,7 +33,7 @@
             v-for="spot in guide.relatedSpots"
             :key="spot.id"
             class="related-spot"
-            @click="$router.push(`/spots/${spot.id}`)"
+            @click="$router.push(`/spots/${spot.id}?source=guide`)"
           >
             <img :src="getImageUrl(spot.coverImage)" class="related-img" alt="" />
             <div class="related-info">
