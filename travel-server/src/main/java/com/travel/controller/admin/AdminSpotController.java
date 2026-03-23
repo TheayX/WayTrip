@@ -3,6 +3,7 @@ package com.travel.controller.admin;
 import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
 import com.travel.dto.spot.*;
+import com.travel.service.ReviewService;
 import com.travel.service.SpotService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class AdminSpotController {
 
     private final SpotService spotService;
+    private final ReviewService reviewService;
 
     @Operation(summary = "获取景点列表")
     @GetMapping
@@ -60,6 +62,20 @@ public class AdminSpotController {
     @DeleteMapping("/{spotId}")
     public ApiResponse<Void> deleteSpot(@PathVariable("spotId") Long spotId) {
         spotService.deleteSpot(spotId);
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "按评价表重算单个景点评分")
+    @PostMapping("/{spotId}/rating/refresh")
+    public ApiResponse<Void> refreshSpotRating(@PathVariable("spotId") Long spotId) {
+        reviewService.refreshSpotRating(spotId);
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "按评价表重算全部景点评分")
+    @PostMapping("/rating/refresh")
+    public ApiResponse<Void> refreshAllSpotRatings() {
+        reviewService.refreshAllSpotRatings();
         return ApiResponse.success();
     }
 

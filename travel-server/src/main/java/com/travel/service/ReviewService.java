@@ -20,4 +20,8 @@ public interface ReviewService {
     PageResult<ReviewResponse> getAdminReviews(AdminReviewListRequest request);
 
     int getUserReviewCount(Long userId);
+
+    void refreshSpotRating(Long spotId);
+
+    void refreshAllSpotRatings();
 }

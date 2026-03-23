@@ -31,6 +31,14 @@ export function deleteSpot(id) {
 }
 
 // 获取筛选选项（地区、分类）
+export function refreshSpotRating(id) {
+  return request.post(`/spots/${id}/rating/refresh`)
+}
+
+export function refreshAllSpotRatings() {
+  return request.post('/spots/rating/refresh')
+}
+
 export function getFilters() {
   return request.get('/spots/filters')
 }
