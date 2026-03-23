@@ -8,7 +8,7 @@
         </div>
       </template>
 
-      <el-form :model="queryParams" inline class="search-form">
+      <el-form :model="queryParams" inline class="search-form" @submit.prevent>
         <el-form-item label="关键字">
           <el-input
             v-model="queryParams.keyword"
@@ -16,6 +16,7 @@
             clearable
             style="width: 220px"
             @keyup.enter="handleSearch"
+            @clear="handleSearch"
           />
         </el-form-item>
         <el-form-item label="状态">

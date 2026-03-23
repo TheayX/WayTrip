@@ -9,9 +9,15 @@
       </template>
       
       <!-- 搜索筛选 -->
-      <el-form :inline="true" :model="queryParams" class="search-form">
+      <el-form :inline="true" :model="queryParams" class="search-form" @submit.prevent>
         <el-form-item label="关键词">
-          <el-input v-model="queryParams.keyword" placeholder="景点名称" clearable />
+          <el-input
+            v-model="queryParams.keyword"
+            placeholder="景点名称"
+            clearable
+            @keyup.enter="handleSearch"
+            @clear="handleSearch"
+          />
         </el-form-item>
         <el-form-item label="地区">
           <el-cascader
@@ -25,9 +31,16 @@
           />
         </el-form-item>
         <el-form-item label="分类">
-          <el-select v-model="uiFilters.categoryId" placeholder="全部" clearable style="width: 200px" @change="handleFilterChange" @clear="handleFilterChange">
-            <el-option v-for="item in categoryOptions" :key="item.id" :label="item.label" :value="String(item.id)" />
-          </el-select>
+          <el-cascader
+            v-model="uiFilters.categoryPath"
+            :options="categoryCascaderOptions"
+            :props="categoryCascaderProps"
+            clearable
+            style="width: 220px"
+            placeholder="全部"
+            @change="handleFilterChange"
+            @clear="handleFilterChange"
+          />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="uiFilters.published" placeholder="全部" clearable style="width: 140px" @change="handleFilterChange" @clear="handleFilterChange">
@@ -324,6 +337,7 @@ const flattenCategories = (nodes = [], level = 0) => {
 
 const categoryOptions = computed(() => flattenCategories(categoryTree.value))
 const leafCategoryOptions = computed(() => categoryOptions.value.filter(item => !item.hasChildren))
+const categoryCascaderOptions = computed(() => categoryTree.value)
 const regionCascaderOptions = computed(() => {
   if (regionTree.value.length) {
     return regionTree.value
@@ -331,6 +345,13 @@ const regionCascaderOptions = computed(() => {
   return regions.value.map(item => ({ ...item, children: [] }))
 })
 const regionCascaderProps = {
+  value: 'id',
+  label: 'name',
+  children: 'children',
+  checkStrictly: true,
+  emitPath: true
+}
+const categoryCascaderProps = {
   value: 'id',
   label: 'name',
   children: 'children',
@@ -362,7 +383,7 @@ const queryParams = reactive({
 })
 const uiFilters = reactive({
   regionPath: [],
-  categoryId: '',
+  categoryPath: [],
   published: ''
 })
 
@@ -432,14 +453,37 @@ const syncFilters = () => {
   const selectedRegionId = uiFilters.regionPath?.length
     ? uiFilters.regionPath[uiFilters.regionPath.length - 1]
     : null
+  const selectedCategoryId = uiFilters.categoryPath?.length
+    ? uiFilters.categoryPath[uiFilters.categoryPath.length - 1]
+    : null
   queryParams.regionId = selectedRegionId ? Number(selectedRegionId) : null
-  queryParams.categoryId = uiFilters.categoryId ? Number(uiFilters.categoryId) : null
+  queryParams.categoryId = selectedCategoryId ? Number(selectedCategoryId) : null
   queryParams.published = uiFilters.published == null || uiFilters.published === ''
     ? null
     : Number(uiFilters.published)
 }
 
 const findRegionPathById = (targetId, tree) => {
+  if (!targetId || !Array.isArray(tree) || !tree.length) {
+    return []
+  }
+  const stack = tree.map(node => ({ node, path: [node.id] }))
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (current.node.id === targetId) {
+      return current.path
+    }
+    if (Array.isArray(current.node.children) && current.node.children.length) {
+      for (const child of current.node.children) {
+        stack.push({ node: child, path: [...current.path, child.id] })
+      }
+    }
+  }
+  return []
+}
+
+const findCategoryPathById = (targetId, tree) => {
   if (!targetId || !Array.isArray(tree) || !tree.length) {
     return []
   }
@@ -486,7 +530,7 @@ const handleReset = () => {
   queryParams.categoryId = null
   queryParams.published = null
   uiFilters.regionPath = []
-  uiFilters.categoryId = ''
+  uiFilters.categoryPath = []
   uiFilters.published = ''
   handleSearch()
 }

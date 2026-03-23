@@ -9,9 +9,15 @@
       </template>
       
       <!-- 搜索筛选 -->
-      <el-form :inline="true" :model="queryParams" class="search-form">
+      <el-form :inline="true" :model="queryParams" class="search-form" @submit.prevent>
         <el-form-item label="关键词">
-          <el-input v-model="queryParams.keyword" placeholder="攻略标题" clearable />
+          <el-input
+            v-model="queryParams.keyword"
+            placeholder="攻略标题"
+            clearable
+            @keyup.enter="handleSearch"
+            @clear="handleSearch"
+          />
         </el-form-item>
         <el-form-item label="分类">
           <el-select v-model="queryParams.category" placeholder="全部" clearable style="width: 200px" @change="handleSearch" @clear="handleSearch">

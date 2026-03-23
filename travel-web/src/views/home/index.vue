@@ -5,7 +5,7 @@
       <div class="hero-content">
         <h1 class="hero-title">发现旅途之美</h1>
         <p class="hero-subtitle">探索精选目的地，开启你的梦幻旅程</p>
-        <div class="hero-search" @click="$router.push('/search')">
+        <div class="hero-search" @click="router.push('/search')">
           <el-icon><Search /></el-icon>
           <span>搜索景点、目的地...</span>
         </div>
@@ -13,7 +13,9 @@
       <!-- 轮播背景 -->
       <el-carousel class="hero-carousel" height="480px" :interval="5000" arrow="never" indicator-position="none">
         <el-carousel-item v-for="banner in banners" :key="banner.id">
-          <img :src="getImageUrl(banner.imageUrl)" class="hero-bg" alt="" />
+          <div class="hero-slide" :class="{ clickable: !!banner.spotId }" @click="handleBannerClick(banner)">
+            <img :src="getImageUrl(banner.imageUrl)" class="hero-bg" alt="" />
+          </div>
         </el-carousel-item>
       </el-carousel>
     </section>
@@ -110,6 +112,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getBanners, getHotSpots, getRecommendations, refreshRecommendations } from '@/api/home'
 import { getFilters } from '@/api/spot'
@@ -118,6 +121,7 @@ import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
 const userStore = useUserStore()
+const router = useRouter()
 
 const banners = ref([])
 const hotSpots = ref([])
@@ -200,6 +204,11 @@ const savePreferences = async () => {
   savingPref.value = false
 }
 
+const handleBannerClick = (banner) => {
+  if (!banner?.spotId) return
+  router.push(`/spots/${banner.spotId}`)
+}
+
 onMounted(() => {
   fetchBanners()
   fetchHotSpots()
@@ -242,6 +251,7 @@ onMounted(() => {
   justify-content: center;
   color: #fff;
   text-align: center;
+  pointer-events: none;
 }
 
 .hero-title {
@@ -269,11 +279,21 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.3s;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  pointer-events: auto;
 
   &:hover {
     background: #fff;
     transform: scale(1.02);
   }
+}
+
+.hero-slide {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-slide.clickable {
+  cursor: pointer;
 }
 
 /* ===== Section ===== */

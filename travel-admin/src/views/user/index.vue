@@ -8,9 +8,16 @@
       </template>
 
       <!-- 搜索 -->
-      <el-form :model="searchForm" inline class="search-form">
+      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="昵称">
-          <el-input v-model="searchForm.nickname" placeholder="请输入昵称" clearable style="width: 200px" />
+          <el-input
+            v-model="searchForm.nickname"
+            placeholder="请输入昵称"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleSearch"
+            @clear="handleSearch"
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>

@@ -26,3 +26,6 @@ Thumbs.db
 # Uploads (keep structure, ignore content)
 uploads/*
 !uploads/.gitkeep
+
+# Documentation
+/docs/

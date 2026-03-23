@@ -10,21 +10,89 @@
       <div class="filter-row">
         <div class="filter-group">
           <span class="filter-label">地区：</span>
-          <el-select v-model="filters.regionId" placeholder="全部地区" clearable @change="handleFilter">
-            <el-option-group v-for="province in regionTree" :key="province.id" :label="province.name">
-              <el-option :label="province.name + ' (全部)'" :value="province.id" />
-              <el-option v-for="city in province.children" :key="city.id" :label="city.name" :value="city.id" />
-            </el-option-group>
-          </el-select>
+          <el-popover
+            v-model:visible="regionPopoverVisible"
+            placement="bottom-start"
+            :width="420"
+            trigger="click"
+            @show="initRegionPanel"
+          >
+            <template #reference>
+              <button class="filter-trigger" type="button">
+                <span>{{ selectedRegionLabel }}</span>
+                <span class="filter-trigger-arrow">▼</span>
+              </button>
+            </template>
+            <div class="dual-panel">
+              <div class="panel-left">
+                <button
+                  v-for="region in regionTree"
+                  :key="region.id"
+                  class="panel-item"
+                  :class="{ active: activeRegionParentId === region.id }"
+                  type="button"
+                  @click="selectRegionParent(region.id)"
+                >
+                  {{ region.name }}
+                </button>
+              </div>
+              <div class="panel-right">
+                <button
+                  v-for="child in activeRegionChildren"
+                  :key="child.id"
+                  class="panel-item"
+                  type="button"
+                  @click="selectRegion(child.id)"
+                >
+                  {{ child.name }}
+                </button>
+                <div v-if="!activeRegionChildren.length" class="panel-empty">暂无子地区</div>
+              </div>
+            </div>
+          </el-popover>
         </div>
         <div class="filter-group">
           <span class="filter-label">分类：</span>
-          <el-select v-model="filters.categoryId" placeholder="全部分类" clearable @change="handleFilter">
-            <el-option-group v-for="parent in categoryTree" :key="parent.id" :label="parent.name">
-              <el-option :label="parent.name + ' (全部)'" :value="parent.id" />
-              <el-option v-for="child in parent.children" :key="child.id" :label="child.name" :value="child.id" />
-            </el-option-group>
-          </el-select>
+          <el-popover
+            v-model:visible="categoryPopoverVisible"
+            placement="bottom-start"
+            :width="420"
+            trigger="click"
+            @show="initCategoryPanel"
+          >
+            <template #reference>
+              <button class="filter-trigger" type="button">
+                <span>{{ selectedCategoryLabel }}</span>
+                <span class="filter-trigger-arrow">▼</span>
+              </button>
+            </template>
+            <div class="dual-panel">
+              <div class="panel-left">
+                <button
+                  v-for="category in categoryTree"
+                  :key="category.id"
+                  class="panel-item"
+                  :class="{ active: activeCategoryParentId === category.id }"
+                  type="button"
+                  @click="selectCategoryParent(category.id)"
+                >
+                  {{ category.name }}
+                </button>
+              </div>
+              <div class="panel-right">
+                <button
+                  v-for="child in activeCategoryChildren"
+                  :key="child.id"
+                  class="panel-item"
+                  type="button"
+                  @click="selectCategory(child.id)"
+                >
+                  {{ child.name }}
+                </button>
+                <div v-if="!activeCategoryChildren.length" class="panel-empty">暂无子分类</div>
+              </div>
+            </div>
+          </el-popover>
         </div>
         <div class="filter-group">
           <span class="filter-label">排序：</span>
@@ -77,7 +145,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import { getSpotList, getFilters } from '@/api/spot'
 import { getImageUrl } from '@/utils/request'
 
@@ -89,6 +157,10 @@ const total = ref(0)
 
 const regionTree = ref([])
 const categoryTree = ref([])
+const activeRegionParentId = ref(null)
+const activeCategoryParentId = ref(null)
+const regionPopoverVisible = ref(false)
+const categoryPopoverVisible = ref(false)
 
 const filters = reactive({
   regionId: '',
@@ -96,11 +168,25 @@ const filters = reactive({
   sortBy: ''
 })
 
+const activeRegionParent = computed(() =>
+  regionTree.value.find(item => item.id === activeRegionParentId.value) || null
+)
+
+const activeCategoryParent = computed(() =>
+  categoryTree.value.find(item => item.id === activeCategoryParentId.value) || null
+)
+
+const activeRegionChildren = computed(() => activeRegionParent.value?.children || [])
+const activeCategoryChildren = computed(() => activeCategoryParent.value?.children || [])
+
+const selectedRegionLabel = computed(() => findNodeName(filters.regionId, regionTree.value, '全部地区'))
+const selectedCategoryLabel = computed(() => findNodeName(filters.categoryId, categoryTree.value, '全部分类'))
+
 const fetchFilters = async () => {
   try {
     const res = await getFilters()
-    regionTree.value = res.data?.regions || []
-    categoryTree.value = res.data?.categories || []
+    regionTree.value = res.data?.regionTree || res.data?.regions || []
+    categoryTree.value = res.data?.categoryTree || res.data?.categories || []
   } catch (e) { /* ignore */ }
 }
 
@@ -128,6 +214,76 @@ const handleFilter = () => {
   fetchSpotList()
 }
 
+const findNodeName = (id, tree, fallback) => {
+  if (!id) return fallback
+  const stack = [...tree]
+  while (stack.length) {
+    const node = stack.pop()
+    if (!node) continue
+    if (node.id === id) return node.name
+    if (Array.isArray(node.children) && node.children.length) {
+      stack.push(...node.children)
+    }
+  }
+  return fallback
+}
+
+const initRegionPanel = () => {
+  activeRegionParentId.value = filters.regionId
+    ? findParentId(filters.regionId, regionTree.value)
+    : regionTree.value[0]?.id || null
+}
+
+const initCategoryPanel = () => {
+  activeCategoryParentId.value = filters.categoryId
+    ? findParentId(filters.categoryId, categoryTree.value)
+    : categoryTree.value[0]?.id || null
+}
+
+const findParentId = (id, tree) => {
+  for (const node of tree) {
+    if (node.id === id) return node.id
+    if (Array.isArray(node.children) && node.children.some(child => child.id === id)) {
+      return node.id
+    }
+  }
+  return tree[0]?.id || null
+}
+
+const selectRegion = (id) => {
+  filters.regionId = id
+  regionPopoverVisible.value = false
+  handleFilter()
+}
+
+const selectRegionParent = (id) => {
+  activeRegionParentId.value = id
+  selectRegion(id)
+}
+
+const selectCategory = (id) => {
+  filters.categoryId = id
+  categoryPopoverVisible.value = false
+  handleFilter()
+}
+
+const selectCategoryParent = (id) => {
+  activeCategoryParentId.value = id
+  selectCategory(id)
+}
+
+const clearRegionFilter = () => {
+  filters.regionId = ''
+  regionPopoverVisible.value = false
+  handleFilter()
+}
+
+const clearCategoryFilter = () => {
+  filters.categoryId = ''
+  categoryPopoverVisible.value = false
+  handleFilter()
+}
+
 onMounted(() => {
   fetchFilters()
   fetchSpotList()
@@ -143,7 +299,7 @@ onMounted(() => {
 
 .filter-row {
   display: flex;
-  gap: 24px;
+  gap: 20px;
   flex-wrap: wrap;
 }
 
@@ -151,12 +307,87 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1 1 260px;
+  min-width: 260px;
+}
+
+.filter-group :deep(.el-select) {
+  width: 100%;
 }
 
 .filter-label {
   font-size: 14px;
   color: #606266;
   white-space: nowrap;
+}
+
+.filter-trigger {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  background: #fff;
+  color: #606266;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.filter-trigger:hover {
+  border-color: #409eff;
+}
+
+.filter-trigger-arrow {
+  color: #909399;
+  font-size: 12px;
+}
+
+.dual-panel {
+  display: flex;
+  min-height: 260px;
+}
+
+.panel-left {
+  width: 160px;
+  border-right: 1px solid #ebeef5;
+  padding-right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-right {
+  flex: 1;
+  padding-left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-item {
+  border: 0;
+  background: #fff;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #303133;
+  font-size: 14px;
+}
+
+.panel-item:hover,
+.panel-item.active {
+  background: #f5f7fa;
+}
+
+.panel-empty {
+  padding: 10px 12px;
+  color: #909399;
+  font-size: 13px;
 }
 
 .spot-grid {
@@ -238,6 +469,10 @@ onMounted(() => {
 }
 
 @media (max-width: 576px) {
+  .filter-group {
+    min-width: 100%;
+  }
+
   .spot-grid {
     grid-template-columns: 1fr;
   }

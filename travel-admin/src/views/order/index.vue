@@ -8,12 +8,26 @@
       </template>
 
       <!-- 搜索筛选 -->
-      <el-form :model="searchForm" inline class="search-form">
+      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="订单号">
-          <el-input v-model="searchForm.orderNo" placeholder="请输入订单号" clearable style="width: 180px" />
+          <el-input
+            v-model="searchForm.orderNo"
+            placeholder="请输入订单号"
+            clearable
+            style="width: 180px"
+            @keyup.enter="handleSearch"
+            @clear="handleSearch"
+          />
         </el-form-item>
         <el-form-item label="景点名称">
-          <el-input v-model="searchForm.spotName" placeholder="请输入景点名称" clearable style="width: 180px" />
+          <el-input
+            v-model="searchForm.spotName"
+            placeholder="请输入景点名称"
+            clearable
+            style="width: 180px"
+            @keyup.enter="handleSearch"
+            @clear="handleSearch"
+          />
         </el-form-item>
         <el-form-item label="订单状态">
           <el-select v-model="searchForm.status" placeholder="全部状态" clearable style="width: 120px" @change="handleSearch" @clear="handleSearch">
