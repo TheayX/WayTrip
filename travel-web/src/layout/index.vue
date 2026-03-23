@@ -52,6 +52,14 @@
 
     <!-- 主内容区 -->
     <main class="main-content">
+      <div v-if="showBackBar" class="back-bar">
+        <div class="back-bar-inner">
+          <button type="button" class="back-button" @click="handleBack">
+            <el-icon><ArrowLeft /></el-icon>
+            <span>返回上一页</span>
+          </button>
+        </div>
+      </div>
       <router-view />
     </main>
 
@@ -86,6 +94,17 @@ const route = useRoute()
 
 // 检查是否是首页
 const isHomeActive = computed(() => route.name === 'Home')
+const hiddenBackRoutes = ['Home', 'Login', 'Register']
+const showBackBar = computed(() => !hiddenBackRoutes.includes(route.name))
+
+const handleBack = () => {
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
+
+  router.push('/')
+}
 
 const handleCommand = (command) => {
   switch (command) {
@@ -235,6 +254,42 @@ const handleCommand = (command) => {
 /* ===== 主内容 ===== */
 .main-content {
   flex: 1;
+}
+
+.back-bar {
+  position: sticky;
+  top: 64px;
+  z-index: 90;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #ebeef5;
+}
+
+.back-bar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 24px;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #dcdfe6;
+  border-radius: 999px;
+  background: #fff;
+  color: #303133;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #409eff;
+    color: #409eff;
+    background: #ecf5ff;
+  }
 }
 
 /* ===== 底部 ===== */
