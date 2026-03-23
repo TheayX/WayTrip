@@ -33,6 +33,13 @@
         <text class="cell-title">我的收藏</text>
         <text class="cell-arrow">›</text>
       </view>
+      <view class="ios-cell" @click="goReviews">
+        <view class="cell-icon">
+          <image class="cell-icon-img" src="/static/icons/review.png" />
+        </view>
+        <text class="cell-title">我的评价</text>
+        <text class="cell-arrow">›</text>
+      </view>
     </view>
 
     <!-- 菜单组2 -->
