@@ -13,14 +13,13 @@ import java.util.List;
 @Mapper
 public interface ReviewMapper extends BaseMapper<Review> {
 
-    /**
-     * 分页查询景点评论（带用户信息）
-     */
     IPage<Review> selectReviewPage(Page<Review> page, @Param("spotId") Long spotId);
 
-    /**
-     * 查询景点最新评论
-     */
+    IPage<Review> selectUserReviewPage(Page<Review> page, @Param("userId") Long userId);
+
+    IPage<Review> selectAdminReviewPage(Page<Review> page,
+                                        @Param("nickname") String nickname,
+                                        @Param("spotName") String spotName);
+
     List<SpotDetailResponse.CommentItem> selectLatestComments(@Param("spotId") Long spotId, @Param("limit") int limit);
 }
-

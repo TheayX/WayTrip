@@ -15,6 +15,7 @@ const routes = [
       { path: 'orders/:id', name: 'OrderDetail', component: () => import('@/views/order/detail.vue'), meta: { title: '订单详情', requiresAuth: true } },
       { path: 'order/create/:spotId', name: 'OrderCreate', component: () => import('@/views/order/create.vue'), meta: { title: '创建订单', requiresAuth: true } },
       { path: 'favorites', name: 'Favorites', component: () => import('@/views/favorite/index.vue'), meta: { title: '我的收藏', requiresAuth: true } },
+      { path: 'reviews', name: 'ReviewList', component: () => import('@/views/review/index.vue'), meta: { title: '我的评价', requiresAuth: true } },
       { path: 'profile', name: 'Profile', component: () => import('@/views/profile/index.vue'), meta: { title: '个人中心', requiresAuth: true } },
       { path: 'search', name: 'Search', component: () => import('@/views/search/index.vue'), meta: { title: '搜索' } }
     ]
@@ -31,7 +32,6 @@ const router = createRouter({
   }
 })
 
-// 路由守卫
 router.beforeEach((to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - WayTrip` : 'WayTrip'
 
@@ -44,4 +44,3 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
-

@@ -463,6 +463,10 @@ const goFavorites = () => {
   uni.navigateTo({ url: '/pages/favorite/index' })
 }
 
+const goReviews = () => {
+  uni.navigateTo({ url: '/pages/mine/review' })
+}
+
 // 跳转偏好设置
 const goPreference = () => {
   uni.navigateTo({ url: '/pages/mine/preference' })

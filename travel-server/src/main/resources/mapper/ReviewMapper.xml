@@ -12,6 +12,8 @@
         <result column="updated_at" property="updatedAt"/>
         <result column="nickname" property="nickname"/>
         <result column="avatar_url" property="avatarUrl"/>
+        <result column="spot_name" property="spotName"/>
+        <result column="cover_image_url" property="coverImageUrl"/>
         <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
@@ -34,6 +36,39 @@
         WHERE r.spot_id = #{spotId}
           AND r.is_deleted = 0
         ORDER BY r.created_at DESC
+    </select>
+
+    <select id="selectUserReviewPage" resultMap="ReviewResultMap">
+        SELECT r.*,
+               u.nickname,
+               u.avatar_url,
+               s.name AS spot_name,
+               s.cover_image_url
+        FROM user_spot_review r
+        LEFT JOIN user u ON r.user_id = u.id AND u.is_deleted = 0
+        LEFT JOIN spot s ON r.spot_id = s.id AND s.is_deleted = 0
+        WHERE r.user_id = #{userId}
+          AND r.is_deleted = 0
+        ORDER BY r.updated_at DESC, r.created_at DESC
+    </select>
+
+    <select id="selectAdminReviewPage" resultMap="ReviewResultMap">
+        SELECT r.*,
+               u.nickname,
+               u.avatar_url,
+               s.name AS spot_name,
+               s.cover_image_url
+        FROM user_spot_review r
+        LEFT JOIN user u ON r.user_id = u.id AND u.is_deleted = 0
+        LEFT JOIN spot s ON r.spot_id = s.id AND s.is_deleted = 0
+        WHERE r.is_deleted = 0
+        <if test="nickname != null and nickname != ''">
+            AND u.nickname LIKE CONCAT('%', #{nickname}, '%')
+        </if>
+        <if test="spotName != null and spotName != ''">
+            AND s.name LIKE CONCAT('%', #{spotName}, '%')
+        </if>
+        ORDER BY r.updated_at DESC, r.created_at DESC
     </select>
 
     <select id="selectLatestComments" resultMap="CommentItemResultMap">
