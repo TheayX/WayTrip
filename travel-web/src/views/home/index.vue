@@ -35,12 +35,12 @@
           <h2 class="section-title">🔥 热门目的地</h2>
           <el-button text type="primary" @click="$router.push('/spots')">查看全部 →</el-button>
         </div>
-        <div class="hot-grid">
+        <div v-if="hotSpots.length" class="hot-grid">
           <div
             v-for="spot in hotSpots"
             :key="spot.id"
             class="hot-card card"
-            @click="$router.push(`/spots/${spot.id}?source=home`)"
+            @click="handleHotSpotClick(spot)"
           >
             <div class="hot-img-wrapper">
               <img :src="getImageUrl(spot.coverImage)" class="hot-img" alt="" />
@@ -57,6 +57,7 @@
             </div>
           </div>
         </div>
+        <el-empty v-else description="暂无热门目的地" />
       </section>
 
       <!-- 个性化推荐 -->
@@ -155,7 +156,7 @@ const fetchBanners = async () => {
 const fetchHotSpots = async () => {
   try {
     const res = await getHotSpots(8)
-    hotSpots.value = res.data || []
+    hotSpots.value = (res.data?.list || []).filter(spot => spot?.id)
   } catch (e) { /* ignore */ }
 }
 
@@ -215,6 +216,14 @@ const savePreferences = async () => {
 const handleBannerClick = (banner) => {
   if (!banner?.spotId) return
   router.push(`/spots/${banner.spotId}?source=home`)
+}
+
+const handleHotSpotClick = (spot) => {
+  if (!spot?.id) {
+    ElMessage.warning('该热门目的地数据不完整，暂时无法查看详情')
+    return
+  }
+  router.push(`/spots/${spot.id}?source=home`)
 }
 
 onMounted(() => {
