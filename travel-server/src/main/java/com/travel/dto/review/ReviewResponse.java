@@ -12,10 +12,13 @@ public class ReviewResponse {
     private Long id;
     private Long userId;
     private Long spotId;
+    private String spotName;
+    private String coverImageUrl;
     private Integer score;
     private String comment;
     private String nickname;
     private String avatar;
     private String createdAt;
+    private String updatedAt;
 }
 

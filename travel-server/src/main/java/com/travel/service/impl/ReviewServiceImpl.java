@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
+import com.travel.dto.review.AdminReviewListRequest;
 import com.travel.dto.review.ReviewRequest;
 import com.travel.dto.review.ReviewResponse;
 import com.travel.entity.Review;
@@ -26,9 +27,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 评价服务实现
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,7 +41,6 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void submitReview(Long userId, ReviewRequest request) {
-        // 检查景点是否存在
         Spot spot = spotMapper.selectById(request.getSpotId());
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
@@ -52,7 +49,6 @@ public class ReviewServiceImpl implements ReviewService {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
 
-        // 查找是否已有评价
         Review existingReview = reviewMapper.selectOne(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -60,13 +56,11 @@ public class ReviewServiceImpl implements ReviewService {
         );
 
         if (existingReview != null) {
-            // 更新评价
             existingReview.setScore(request.getScore());
             existingReview.setComment(request.getComment());
             existingReview.setIsDeleted(0);
             reviewMapper.updateById(existingReview);
         } else {
-            // 新增评价
             Review review = new Review();
             review.setUserId(userId);
             review.setSpotId(request.getSpotId());
@@ -75,7 +69,6 @@ public class ReviewServiceImpl implements ReviewService {
             reviewMapper.insert(review);
         }
 
-        // 更新景点平均评分
         updateSpotAvgRating(request.getSpotId());
         log.info("用户提交评价: userId={}, spotId={}, score={}", userId, request.getSpotId(), request.getScore());
     }
@@ -99,12 +92,23 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public PageResult<ReviewResponse> getSpotReviews(Long spotId, Integer page, Integer pageSize) {
         Page<Review> pageObj = new Page<>(page, pageSize);
-
         pageObj = (Page<Review>) reviewMapper.selectReviewPage(pageObj, spotId);
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+            .map(this::convertToResponse)
+            .collect(Collectors.toList());
+
+        return PageResult.of(list, pageObj.getTotal(), page, pageSize);
+    }
+
+    @Override
+    public PageResult<ReviewResponse> getUserReviews(Long userId, Integer page, Integer pageSize) {
+        Page<Review> pageObj = new Page<>(page, pageSize);
+        pageObj = (Page<Review>) reviewMapper.selectUserReviewPage(pageObj, userId);
+
+        List<ReviewResponse> list = pageObj.getRecords().stream()
+            .map(this::convertToResponse)
+            .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), page, pageSize);
     }
@@ -127,6 +131,18 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public PageResult<ReviewResponse> getAdminReviews(AdminReviewListRequest request) {
+        Page<Review> pageObj = new Page<>(request.getPage(), request.getPageSize());
+        pageObj = (Page<Review>) reviewMapper.selectAdminReviewPage(pageObj, request.getNickname(), request.getSpotName());
+
+        List<ReviewResponse> list = pageObj.getRecords().stream()
+            .map(this::convertToResponse)
+            .collect(Collectors.toList());
+
+        return PageResult.of(list, pageObj.getTotal(), request.getPage(), request.getPageSize());
+    }
+
+    @Override
     public int getUserReviewCount(Long userId) {
         return Math.toIntExact(reviewMapper.selectCount(
             new LambdaQueryWrapper<Review>()
@@ -136,7 +152,6 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     private void updateSpotAvgRating(Long spotId) {
-        // 计算平均评分
         LambdaQueryWrapper<Review> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Review::getSpotId, spotId);
         wrapper.eq(Review::getIsDeleted, 0);
@@ -154,13 +169,12 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         double avg = reviews.stream()
-                .mapToInt(Review::getScore)
-                .average()
-                .orElse(0);
+            .mapToInt(Review::getScore)
+            .average()
+            .orElse(0);
 
         BigDecimal avgRating = BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP);
 
-        // 更新景点评分统计（不更新 updatedAt）
         spotMapper.update(
             null,
             new UpdateWrapper<Spot>()
@@ -171,18 +185,30 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     private ReviewResponse convertToResponse(Review review) {
-        User user = userMapper.selectById(review.getUserId());
+        User user = null;
+        if (review.getNickname() == null || review.getAvatarUrl() == null) {
+            user = userMapper.selectById(review.getUserId());
+        }
+
+        String nickname = review.getNickname() != null
+            ? review.getNickname()
+            : (user != null ? user.getNickname() : "匿名用户");
+        String avatar = review.getAvatarUrl() != null
+            ? review.getAvatarUrl()
+            : (user != null ? user.getAvatarUrl() : null);
 
         return ReviewResponse.builder()
-                .id(review.getId())
-                .userId(review.getUserId())
-                .spotId(review.getSpotId())
-                .score(review.getScore())
-                .comment(review.getComment())
-                .nickname(user != null ? user.getNickname() : "匿名用户")
-                .avatar(user != null ? user.getAvatarUrl() : null)
-                .createdAt(review.getCreatedAt() != null ? review.getCreatedAt().format(DATE_FORMATTER) : null)
-                .build();
+            .id(review.getId())
+            .userId(review.getUserId())
+            .spotId(review.getSpotId())
+            .spotName(review.getSpotName())
+            .coverImageUrl(review.getCoverImageUrl())
+            .score(review.getScore())
+            .comment(review.getComment())
+            .nickname(nickname)
+            .avatar(avatar)
+            .createdAt(review.getCreatedAt() != null ? review.getCreatedAt().format(DATE_FORMATTER) : null)
+            .updatedAt(review.getUpdatedAt() != null ? review.getUpdatedAt().format(DATE_FORMATTER) : null)
+            .build();
     }
 }
-

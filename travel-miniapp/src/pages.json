@@ -79,6 +79,12 @@
       }
     },
     {
+      "path": "pages/mine/review",
+      "style": {
+        "navigationBarTitleText": "我的评价"
+      }
+    },
+    {
       "path": "pages/mine/deactivate",
       "style": {
         "navigationBarTitleText": "注销账户"

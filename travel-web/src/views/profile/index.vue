@@ -38,6 +38,10 @@
             <el-icon><Delete /></el-icon>
             <span>注销账户</span>
           </el-menu-item>
+          <el-menu-item index="reviews" @click="$router.push('/reviews')">
+            <el-icon><ChatDotRound /></el-icon>
+            <span>我的评价</span>
+          </el-menu-item>
         </el-menu>
       </div>
 

@@ -17,7 +17,7 @@ const routes = [
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('@/views/dashboard/index.vue'),
-        meta: { title: '仪表板', icon: 'Odometer' }
+        meta: { title: '仪表盘', icon: 'Odometer' }
       },
       {
         path: 'spot',
@@ -56,6 +56,12 @@ const routes = [
         meta: { title: '用户管理', icon: 'User' }
       },
       {
+        path: 'review',
+        name: 'Review',
+        component: () => import('@/views/review/index.vue'),
+        meta: { title: '评价管理', icon: 'ChatDotRound' }
+      },
+      {
         path: 'admin',
         name: 'Admin',
         component: () => import('@/views/admin/index.vue'),
@@ -76,13 +82,12 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫
 router.beforeEach((to, from, next) => {
-  document.title = to.meta.title ? `${to.meta.title} - 微旅` : '微旅'
-  
+  document.title = to.meta.title ? `${to.meta.title} - WayTrip 管理端` : 'WayTrip 管理端'
+
   const userStore = useUserStore()
   const requiresAuth = to.meta.requiresAuth !== false
-  
+
   if (requiresAuth && !userStore.token) {
     next('/login')
   } else if (to.path === '/login' && userStore.token) {

@@ -38,5 +38,11 @@ public class Review {
 
     @TableField(exist = false)
     private String avatarUrl;
+
+    @TableField(exist = false)
+    private String spotName;
+
+    @TableField(exist = false)
+    private String coverImageUrl;
 }
 
