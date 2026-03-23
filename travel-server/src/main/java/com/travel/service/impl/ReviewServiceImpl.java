@@ -151,6 +151,30 @@ public class ReviewServiceImpl implements ReviewService {
         ));
     }
 
+    @Override
+    @Transactional
+    public void refreshSpotRating(Long spotId) {
+        Spot spot = spotMapper.selectById(spotId);
+        if (spot == null || spot.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
+        }
+        updateSpotAvgRating(spotId);
+    }
+
+    @Override
+    @Transactional
+    public void refreshAllSpotRatings() {
+        List<Spot> spots = spotMapper.selectList(
+            new LambdaQueryWrapper<Spot>()
+                .eq(Spot::getIsDeleted, 0)
+                .select(Spot::getId)
+        );
+
+        for (Spot spot : spots) {
+            updateSpotAvgRating(spot.getId());
+        }
+    }
+
     private void updateSpotAvgRating(Long spotId) {
         LambdaQueryWrapper<Review> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Review::getSpotId, spotId);

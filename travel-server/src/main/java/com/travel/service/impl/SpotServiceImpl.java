@@ -548,12 +548,6 @@ public class SpotServiceImpl implements SpotService {
         if (request.getPublished() != null) {
             spot.setIsPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
         }
-        if (request.getAvgRating() != null) {
-            spot.setAvgRating(request.getAvgRating());
-        }
-        if (request.getRatingCount() != null) {
-            spot.setRatingCount(request.getRatingCount());
-        }
         if (request.getHeatScore() != null) {
             spot.setHeatScore(request.getHeatScore());
         }
