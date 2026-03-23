@@ -1,9 +1,9 @@
 <template>
   <el-container class="layout-container">
     <!-- 侧边栏 -->
-    <el-aside :width="isCollapse ? '64px' : '200px'" class="aside">
+    <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
       <div class="logo">
-        <span v-if="!isCollapse">WayTrip</span>
+        <span v-if="!isCollapse">WayTrip 运营中心</span>
         <span v-else>旅</span>
       </div>
       <el-menu
@@ -11,9 +11,10 @@
         :collapse="isCollapse"
         :collapse-transition="false"
         router
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
+        class="aside-menu"
+        background-color="#001529"
+        text-color="#a6adb4"
+        active-text-color="#ffffff"
       >
         <el-menu-item v-for="item in menuList" :key="item.path" :index="item.fullPath">
           <el-icon><component :is="item.meta.icon" /></el-icon>
@@ -30,7 +31,7 @@
             <Fold v-if="!isCollapse" />
             <Expand v-else />
           </el-icon>
-          <el-breadcrumb separator="/">
+          <el-breadcrumb separator="/" class="breadcrumb">
             <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
             <el-breadcrumb-item>{{ $route.meta.title }}</el-breadcrumb-item>
           </el-breadcrumb>
@@ -38,7 +39,8 @@
         <div class="header-right">
           <el-dropdown @command="handleCommand">
             <span class="user-info">
-              {{ userStore.adminInfo?.realName || userStore.adminInfo?.username || '管理员' }}
+              <el-avatar :size="28" class="user-avatar">{{ userStore.adminInfo?.realName?.charAt(0) || '管' }}</el-avatar>
+              <span class="user-name">{{ userStore.adminInfo?.realName || userStore.adminInfo?.username || '管理员' }}</span>
               <el-icon><ArrowDown /></el-icon>
             </span>
             <template #dropdown>
@@ -52,7 +54,9 @@
 
       <!-- 内容区 -->
       <el-main class="main">
-        <router-view />
+        <div class="main-content-wrapper">
+          <router-view />
+        </div>
       </el-main>
     </el-container>
   </el-container>
@@ -97,13 +101,18 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .layout-container {
-  height: 100%;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
 .aside {
-  background-color: #304156;
-  transition: width 0.3s;
-  overflow: hidden;
+  background-color: #001529;
+  transition: width 0.3s cubic-bezier(0.2, 0, 0, 1) 0s;
+  box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
 
   .logo {
     height: 60px;
@@ -111,12 +120,40 @@ onMounted(async () => {
     text-align: center;
     color: #fff;
     font-size: 18px;
-    font-weight: bold;
-    background-color: #263445;
+    font-weight: 600;
+    background-color: #002140;
+    letter-spacing: 1px;
+    flex-shrink: 0;
   }
 
-  .el-menu {
+  .aside-menu {
     border-right: none;
+    flex: 1;
+    overflow-y: auto;
+    
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    :deep(.el-menu-item) {
+      margin: 4px 8px;
+      border-radius: 4px;
+      height: 40px;
+      line-height: 40px;
+
+      &.is-active {
+        background-color: #1890ff;
+        color: #fff;
+      }
+
+      &:hover:not(.is-active) {
+        color: #fff;
+      }
+    }
   }
 }
 
@@ -126,6 +163,9 @@ onMounted(async () => {
   align-items: center;
   background-color: #fff;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  z-index: 9;
+  padding: 0 24px;
+  height: 60px;
 
   .header-left {
     display: flex;
@@ -134,7 +174,24 @@ onMounted(async () => {
     .collapse-btn {
       font-size: 20px;
       cursor: pointer;
-      margin-right: 15px;
+      margin-right: 20px;
+      color: #5c6b77;
+      transition: color 0.3s;
+      
+      &:hover {
+        color: #1890ff;
+      }
+    }
+    
+    .breadcrumb {
+      :deep(.el-breadcrumb__inner) {
+        font-weight: 500;
+        color: #666;
+      }
+      :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+        color: #333;
+        font-weight: 600;
+      }
     }
   }
 
@@ -143,12 +200,44 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       cursor: pointer;
+      padding: 0 12px;
+      height: 40px;
+      border-radius: 4px;
+      transition: background 0.3s;
+      
+      &:hover {
+        background: #f6f6f6;
+      }
+
+      .user-avatar {
+        background: #1890ff;
+        color: #fff;
+        margin-right: 8px;
+      }
+      
+      .user-name {
+        color: #333;
+        font-weight: 500;
+        margin-right: 4px;
+      }
+      
+      .el-icon {
+        color: #999;
+      }
     }
   }
 }
 
 .main {
   background-color: #f0f2f5;
-  padding: 20px;
+  padding: 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  position: relative;
+
+  .main-content-wrapper {
+    min-height: calc(100vh - 108px);
+    border-radius: 8px;
+  }
 }
 </style>
