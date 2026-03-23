@@ -43,6 +43,17 @@ public class SpotController {
         return ApiResponse.success(spotService.getSpotDetail(spotId, userId));
     }
 
+    @Operation(summary = "上报浏览行为")
+    @PostMapping("/{spotId}/view")
+    public ApiResponse<Void> recordView(
+            @PathVariable("spotId") Long spotId,
+            @RequestParam(defaultValue = "detail") String source,
+            @RequestParam(defaultValue = "0") Integer duration) {
+        Long userId = UserContext.getUserId();
+        spotService.recordView(spotId, userId, source, duration);
+        return ApiResponse.success(null);
+    }
+
     @Operation(summary = "获取筛选选项")
     @GetMapping("/filters")
     public ApiResponse<SpotFilterResponse> getFilters() {

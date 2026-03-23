@@ -1,4 +1,4 @@
-import { get } from '@/utils/request'
+import { get, post } from '@/utils/request'
 
 /**
  * 获取景点列表
@@ -19,6 +19,14 @@ export const searchSpots = (keyword, page = 1, pageSize = 10) => {
  */
 export const getSpotDetail = (spotId) => {
   return get(`/spots/${spotId}`)
+}
+
+/**
+ * 上报景点浏览行为
+ */
+export const recordSpotView = (spotId, source, duration) => {
+  // Query parameters
+  return post(`/spots/${spotId}/view?source=${source}&duration=${duration}`)
 }
 
 /**
