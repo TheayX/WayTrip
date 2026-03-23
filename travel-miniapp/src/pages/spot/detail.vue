@@ -89,8 +89,8 @@
     </view>
 
     <!-- 评分弹窗 -->
-    <view class="rating-popup" v-if="ratingVisible" @click.self="ratingVisible = false">
-      <view class="rating-content">
+    <view class="rating-popup" v-if="ratingVisible" @tap.self="ratingVisible = false" @touchmove.stop.prevent>
+      <view class="rating-content" @tap.stop>
         <text class="rating-title">评价景点</text>
         <view class="star-row">
           <text 
@@ -98,7 +98,7 @@
             :key="i" 
             class="star" 
             :class="{ active: i <= ratingForm.score }"
-            @click="ratingForm.score = i"
+            @tap.stop="ratingForm.score = i"
           >★</text>
         </view>
         <textarea 
@@ -106,10 +106,11 @@
           v-model="ratingForm.comment" 
           placeholder="分享你的游玩体验..."
           maxlength="500"
+          @tap.stop
         />
         <view class="rating-actions">
-          <button class="cancel-btn" @click="ratingVisible = false">取消</button>
-          <button class="submit-btn" @click="submitRatingHandler">提交</button>
+          <button class="cancel-btn" @tap.stop="ratingVisible = false">取消</button>
+          <button class="submit-btn" @tap.stop="submitRatingHandler">提交</button>
         </view>
       </view>
     </view>
