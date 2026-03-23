@@ -25,6 +25,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final ReviewMapper reviewMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final OrderMapper orderMapper;
+    private final UserSpotViewMapper userSpotViewMapper;
     private final SpotCategoryMapper categoryMapper;
     private final SpotRegionMapper spotRegionMapper;
     private final UserMapper userMapper;
@@ -32,7 +33,15 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private static final String SIMILARITY_KEY = "recommendation:similarity:";
     private static final String USER_REC_KEY = "recommendation:user:";
-    private static final int MIN_RATINGS_FOR_CF = 3; // 协同过滤最少评分数
+    private static final int MIN_INTERACTIONS_FOR_CF = 3; // 协同过滤最少交互数
+    private static final int TOP_K_NEIGHBORS = 20; // 相似度矩阵保留的近邻数量
+
+    // ==================== 交互权重常量（论文 rui） ====================
+    private static final double WEIGHT_VIEW = 0.5;
+    private static final double WEIGHT_FAVORITE = 1.0;
+    private static final double WEIGHT_REVIEW_FACTOR = 2.0 / 5.0; // score/5 * 2
+    private static final double WEIGHT_ORDER_PAID = 3.0;
+    private static final double WEIGHT_ORDER_COMPLETED = 4.0;
 
     @Override
     public RecommendationResponse getRecommendations(Long userId, Integer limit) {
@@ -62,20 +71,15 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
-        // 获取用户评分数量
-        Long ratingCount = reviewMapper.selectCount(
-            new LambdaQueryWrapper<Review>()
-                .eq(Review::getUserId, userId)
-                .eq(Review::getIsDeleted, 0)
-        );
+        // ============ 改进：基于总交互景点数判断冷启动（而非仅评分数） ============
+        Map<Long, Double> userInteractions = buildUserInteractionWeights(userId);
 
-        // 冷启动：评分不足
-        if (ratingCount < MIN_RATINGS_FOR_CF) {
+        if (userInteractions.size() < MIN_INTERACTIONS_FOR_CF) {
             return handleColdStart(userId, limit);
         }
 
         // 基于 ItemCF 计算推荐
-        List<Long> recommendedIds = computeItemCFRecommendations(userId, limit * 2);
+        List<Long> recommendedIds = computeItemCFRecommendations(userId, userInteractions, limit * 2);
         
         // 过滤已交互的景点
         List<Long> filteredIds = filterInteractedSpots(userId, recommendedIds);
@@ -89,6 +93,62 @@ public class RecommendationServiceImpl implements RecommendationService {
         redisTemplate.opsForValue().set(cacheKey, filteredIds, 1, TimeUnit.HOURS);
 
         return buildRecommendationResponse(filteredIds, limit, "personalized", false);
+    }
+
+    /**
+     * 构建单个用户的交互权重 Map<spotId, weight>
+     * 融合浏览、收藏、评分、订单四种行为，同一景点取最大权重
+     */
+    private Map<Long, Double> buildUserInteractionWeights(Long userId) {
+        Map<Long, Double> weights = new HashMap<>();
+
+        // 浏览（去重，取不同景点）
+        List<UserSpotView> views = userSpotViewMapper.selectList(
+            new LambdaQueryWrapper<UserSpotView>()
+                .eq(UserSpotView::getUserId, userId)
+                .select(UserSpotView::getSpotId)
+        );
+        for (UserSpotView v : views) {
+            weights.merge(v.getSpotId(), WEIGHT_VIEW, Math::max);
+        }
+
+        // 收藏
+        List<UserSpotFavorite> favorites = userSpotFavoriteMapper.selectList(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+                .select(UserSpotFavorite::getSpotId)
+        );
+        for (UserSpotFavorite f : favorites) {
+            weights.merge(f.getSpotId(), WEIGHT_FAVORITE, Math::max);
+        }
+
+        // 评分
+        List<Review> reviews = reviewMapper.selectList(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getIsDeleted, 0)
+                .select(Review::getSpotId, Review::getScore)
+        );
+        for (Review r : reviews) {
+            double w = r.getScore() * WEIGHT_REVIEW_FACTOR;
+            weights.merge(r.getSpotId(), w, Math::max);
+        }
+
+        // 订单（已支付 & 已完成）
+        List<Order> orders = orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
+                .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
+                .select(Order::getSpotId, Order::getStatus)
+        );
+        for (Order o : orders) {
+            double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? WEIGHT_ORDER_COMPLETED : WEIGHT_ORDER_PAID;
+            weights.merge(o.getSpotId(), w, Math::max);
+        }
+
+        return weights;
     }
 
 
@@ -139,44 +199,37 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     /**
-     * 基于 ItemCF 计算推荐
+     * 基于 ItemCF 计算推荐（论文公式 2-3）
+     * P_uj = Σ_{i ∈ N(u) ∩ S(j,K)} w_ji × r_ui
+     *
+     * @param userInteractions 当前用户的交互权重 Map<spotId, weight>
      */
-    private List<Long> computeItemCFRecommendations(Long userId, Integer limit) {
-        // 获取用户评分过的景点
-        List<Review> userRatings = reviewMapper.selectList(
-            new LambdaQueryWrapper<Review>()
-                .eq(Review::getUserId, userId)
-                .eq(Review::getIsDeleted, 0)
-        );
-
-        if (userRatings.isEmpty()) {
+    private List<Long> computeItemCFRecommendations(Long userId, Map<Long, Double> userInteractions, Integer limit) {
+        if (userInteractions.isEmpty()) {
             return Collections.emptyList();
         }
-
-        Map<Long, Integer> userRatingMap = userRatings.stream()
-            .collect(Collectors.toMap(Review::getSpotId, Review::getScore));
 
         // 计算推荐分数
         Map<Long, Double> scores = new HashMap<>();
         
-        for (Map.Entry<Long, Integer> entry : userRatingMap.entrySet()) {
+        for (Map.Entry<Long, Double> entry : userInteractions.entrySet()) {
             Long spotId = entry.getKey();
-            Integer rating = entry.getValue();
-            
-            // 获取相似景点
+            Double rui = entry.getValue(); // 综合交互权重
+
+            // 获取相似景点（已是 Top-K）
             Map<Long, Double> similarities = getSimilarSpots(spotId);
             
             for (Map.Entry<Long, Double> simEntry : similarities.entrySet()) {
                 Long similarSpotId = simEntry.getKey();
-                Double similarity = simEntry.getValue();
-                
-                // 跳过用户已评分的景点
-                if (userRatingMap.containsKey(similarSpotId)) {
+                Double wji = simEntry.getValue(); // 相似度
+
+                // 跳过用户已交互的景点
+                if (userInteractions.containsKey(similarSpotId)) {
                     continue;
                 }
                 
-                // 累加推荐分数 = 相似度 * 用户评分
-                scores.merge(similarSpotId, similarity * rating, (v1, v2) -> Double.sum(v1, v2));
+                // 论文公式 (2-3)：P_uj += w_ji × r_ui
+                scores.merge(similarSpotId, wji * rui, Double::sum);
             }
         }
 
@@ -268,53 +321,124 @@ public class RecommendationServiceImpl implements RecommendationService {
         return response;
     }
 
+    /**
+     * 更新物品相似度矩阵（离线计算）
+     * 
+     * 改进点：
+     * 1. 融合浏览、收藏、评分、订单四种行为构建交互矩阵
+     * 2. 使用 IUF 加权余弦相似度（论文公式 2-2）
+     */
     @Override
     public void updateSimilarityMatrix() {
         log.info("开始更新物品相似度矩阵...");
 
-        // 获取所有评分数据
-        List<Review> allRatings = reviewMapper.selectList(
-            new LambdaQueryWrapper<Review>().eq(Review::getIsDeleted, 0)
+        // ============ 步骤1：构建全局用户-景点交互矩阵 ============
+        // Map<userId, Map<spotId, weight>>
+        Map<Long, Map<Long, Double>> userItemMatrix = new HashMap<>();
+        Set<Long> allSpotIds = new HashSet<>();
+
+        // 1a. 浏览数据
+        List<UserSpotView> allViews = userSpotViewMapper.selectList(
+            new LambdaQueryWrapper<UserSpotView>()
+                .select(UserSpotView::getUserId, UserSpotView::getSpotId)
         );
-        
-        if (allRatings.isEmpty()) {
-            log.info("无评分数据，跳过相似度计算");
+        for (UserSpotView v : allViews) {
+            userItemMatrix.computeIfAbsent(v.getUserId(), k -> new HashMap<>())
+                .merge(v.getSpotId(), WEIGHT_VIEW, Math::max);
+            allSpotIds.add(v.getSpotId());
+        }
+
+        // 1b. 收藏数据
+        List<UserSpotFavorite> allFavorites = userSpotFavoriteMapper.selectList(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+                .select(UserSpotFavorite::getUserId, UserSpotFavorite::getSpotId)
+        );
+        for (UserSpotFavorite f : allFavorites) {
+            userItemMatrix.computeIfAbsent(f.getUserId(), k -> new HashMap<>())
+                .merge(f.getSpotId(), WEIGHT_FAVORITE, Math::max);
+            allSpotIds.add(f.getSpotId());
+        }
+
+        // 1c. 评分数据
+        List<Review> allRatings = reviewMapper.selectList(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getIsDeleted, 0)
+                .select(Review::getUserId, Review::getSpotId, Review::getScore)
+        );
+        for (Review r : allRatings) {
+            double w = r.getScore() * WEIGHT_REVIEW_FACTOR;
+            userItemMatrix.computeIfAbsent(r.getUserId(), k -> new HashMap<>())
+                .merge(r.getSpotId(), w, Math::max);
+            allSpotIds.add(r.getSpotId());
+        }
+
+        // 1d. 订单数据（已支付 + 已完成）
+        List<Order> allOrders = orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getIsDeleted, 0)
+                .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
+                .select(Order::getUserId, Order::getSpotId, Order::getStatus)
+        );
+        for (Order o : allOrders) {
+            double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? WEIGHT_ORDER_COMPLETED : WEIGHT_ORDER_PAID;
+            userItemMatrix.computeIfAbsent(o.getUserId(), k -> new HashMap<>())
+                .merge(o.getSpotId(), w, Math::max);
+            allSpotIds.add(o.getSpotId());
+        }
+
+        if (userItemMatrix.isEmpty()) {
+            log.info("无交互数据，跳过相似度计算");
             return;
         }
 
-        // 构建用户-物品评分矩阵
-        Map<Long, Map<Long, Integer>> userItemMatrix = new HashMap<>();
-        Set<Long> allSpotIds = new HashSet<>();
-        
-        for (Review rating : allRatings) {
-            userItemMatrix
-                .computeIfAbsent(rating.getUserId(), k -> new HashMap<>())
-                .put(rating.getSpotId(), rating.getScore());
-            allSpotIds.add(rating.getSpotId());
+        log.info("交互矩阵构建完成：{} 个用户，{} 个景点", userItemMatrix.size(), allSpotIds.size());
+
+        // ============ 步骤2：预计算每个用户的交互景点数 |N(u)|（用于 IUF） ============
+        Map<Long, Integer> userActivityCount = new HashMap<>();
+        for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
+            userActivityCount.put(entry.getKey(), entry.getValue().size());
         }
 
-        // 计算物品相似度（余弦相似度）
+        // ============ 步骤3：构建物品到用户的倒排索引 ============
+        // Map<spotId, Set<userId>>  即 N(i)
+        Map<Long, Set<Long>> spotUserSets = new HashMap<>();
+        for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
+            Long userId = entry.getKey();
+            for (Long spotId : entry.getValue().keySet()) {
+                spotUserSets.computeIfAbsent(spotId, k -> new HashSet<>()).add(userId);
+            }
+        }
+
+        // ============ 步骤4：计算 IUF 加权相似度（论文公式 2-2） ============
         List<Long> spotIdList = new ArrayList<>(allSpotIds);
-        
+
         for (int i = 0; i < spotIdList.size(); i++) {
             Long spotI = spotIdList.get(i);
+            Set<Long> usersI = spotUserSets.getOrDefault(spotI, Collections.emptySet());
+            if (usersI.isEmpty()) continue;
+
             Map<Long, Double> similarities = new HashMap<>();
-            
+
             for (int j = 0; j < spotIdList.size(); j++) {
                 if (i == j) continue;
-                
+
                 Long spotJ = spotIdList.get(j);
-                double similarity = computeCosineSimilarity(spotI, spotJ, userItemMatrix);
-                
+                Set<Long> usersJ = spotUserSets.getOrDefault(spotJ, Collections.emptySet());
+                if (usersJ.isEmpty()) continue;
+
+                // 计算 IUF 加权相似度
+                double similarity = computeIUFSimilarity(usersI, usersJ, userActivityCount);
+
                 if (similarity > 0) {
                     similarities.put(spotJ, similarity);
                 }
             }
 
-            // 只保留 Top-N 相似物品
+            // 只保留 Top-K 相似物品
             Map<Long, Double> topSimilarities = similarities.entrySet().stream()
                 .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
-                .limit(20)
+                .limit(TOP_K_NEIGHBORS)
                 .collect(Collectors.toMap(
                     Map.Entry::getKey,
                     Map.Entry::getValue,
@@ -331,30 +455,32 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     /**
-     * 计算余弦相似度
+     * IUF 加权余弦相似度（论文公式 2-2）
+     *
+     * w_ij = Σ_{u ∈ N(i)∩N(j)} 1/log(1+|N(u)|) / (√|N(i)| × √|N(j)|)
+     *
+     * @param usersI 交互过景点 i 的用户集合 N(i)
+     * @param usersJ 交互过景点 j 的用户集合 N(j)
+     * @param userActivityCount 每个用户的交互景点总数 |N(u)|
      */
-    private double computeCosineSimilarity(Long spotI, Long spotJ, Map<Long, Map<Long, Integer>> userItemMatrix) {
-        double dotProduct = 0;
-        double normI = 0;
-        double normJ = 0;
+    private double computeIUFSimilarity(Set<Long> usersI, Set<Long> usersJ,
+                                         Map<Long, Integer> userActivityCount) {
+        // 找较小的集合来遍历（优化性能）
+        Set<Long> smaller = usersI.size() < usersJ.size() ? usersI : usersJ;
+        Set<Long> larger = smaller == usersI ? usersJ : usersI;
 
-        for (Map<Long, Integer> userRatings : userItemMatrix.values()) {
-            Integer ratingI = userRatings.get(spotI);
-            Integer ratingJ = userRatings.get(spotJ);
-
-            if (ratingI != null) {
-                normI += ratingI * ratingI;
-                if (ratingJ != null) {
-                    dotProduct += ratingI * ratingJ;
-                }
-            }
-            if (ratingJ != null) {
-                normJ += ratingJ * ratingJ;
+        double iufSum = 0.0;
+        for (Long userId : smaller) {
+            if (larger.contains(userId)) {
+                int nu = userActivityCount.getOrDefault(userId, 1);
+                iufSum += 1.0 / Math.log(1 + nu);
             }
         }
 
-        if (normI == 0 || normJ == 0) return 0;
-        return dotProduct / (Math.sqrt(normI) * Math.sqrt(normJ));
+        if (iufSum == 0) return 0;
+
+        double denominator = Math.sqrt(usersI.size()) * Math.sqrt(usersJ.size());
+        return iufSum / denominator;
     }
 
     private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Integer limit, String type, Boolean needPreference) {
