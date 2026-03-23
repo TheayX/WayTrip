@@ -50,6 +50,10 @@
           <template #header>
             <div class="card-header">
               <span>订单趋势（近7天）</span>
+              <el-button type="primary" size="small" @click="handleUpdateMatrix" :loading="updatingMatrix">
+                <el-icon><Refresh /></el-icon>
+                更新推荐引擎矩阵
+              </el-button>
             </div>
           </template>
           <div class="chart-container">
@@ -91,11 +95,27 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { getOverview, getOrderTrend, getHotSpots } from '@/api/dashboard'
+import { getOverview, getOrderTrend, getHotSpots, updateRecommendationMatrix } from '@/api/dashboard'
+import { ElMessage } from 'element-plus'
+import { Refresh } from '@element-plus/icons-vue'
 
 const overview = ref({})
 const orderTrend = ref([])
 const hotSpots = ref([])
+const updatingMatrix = ref(false)
+
+// 触发更新推荐矩阵
+const handleUpdateMatrix = async () => {
+  try {
+    updatingMatrix.value = true
+    await updateRecommendationMatrix()
+    ElMessage.success('推荐引擎矩阵更新计算完成！')
+  } catch (e) {
+    ElMessage.error('触发推荐矩阵更新失败')
+  } finally {
+    updatingMatrix.value = false
+  }
+}
 
 // 格式化金额
 const formatMoney = (value) => {
@@ -138,6 +158,12 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .dashboard {
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
   .stat-card {
     :deep(.el-card__body) {
       display: flex;
