@@ -135,10 +135,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { getSpotDetail } from '@/api/spot'
+import { getSpotDetail, recordSpotView } from '@/api/spot'
 import { addFavorite, removeFavorite, checkFavorite } from '@/api/favorite'
 import { deleteReview, submitReview, getSpotReviews } from '@/api/review'
 import { getImageUrl } from '@/utils/request'
@@ -147,6 +147,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+let enterTime = 0
 
 const spot = ref(null)
 const comments = ref([])
@@ -276,8 +277,16 @@ const handleDeleteComment = async (comment) => {
 }
 
 onMounted(() => {
+  enterTime = Date.now()
   fetchDetail()
   fetchComments(true)
+}) 
+
+onUnmounted(() => {
+  if (spot.value && userStore.isLoggedIn && enterTime > 0) {
+    const duration = Math.floor((Date.now() - enterTime) / 1000)
+    recordSpotView(spot.value.id, 'detail', duration).catch(() => {})
+  }
 })
 </script>
 

@@ -106,6 +106,21 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
+    public void recordView(Long spotId, Long userId, String source, Integer duration) {
+        if (userId == null) return;
+        try {
+            UserSpotView view = new UserSpotView();
+            view.setUserId(userId);
+            view.setSpotId(spotId);
+            view.setViewSource(source);
+            view.setViewDuration(duration != null ? duration : 0);
+            userSpotViewMapper.insert(view);
+        } catch (Exception e) {
+            log.warn("记录浏览行为失败: userId={}, spotId={}", userId, spotId, e);
+        }
+    }
+
+    @Override
     public SpotDetailResponse getSpotDetail(Long spotId, Long userId) {
         Spot spot = spotMapper.selectById(spotId);
         if (spot == null || spot.getIsDeleted() == 1) {
@@ -122,18 +137,6 @@ public class SpotServiceImpl implements SpotService {
                         .eq("id", spotId)
                         .setSql("heat_score = COALESCE(heat_score, 0) + 1"));
 
-        // 记录浏览行为（用于推荐算法）
-        if (userId != null) {
-            try {
-                UserSpotView view = new UserSpotView();
-                view.setUserId(userId);
-                view.setSpotId(spotId);
-                view.setViewSource("detail");
-                userSpotViewMapper.insert(view);
-            } catch (Exception e) {
-                log.warn("记录浏览行为失败: userId={}, spotId={}", userId, spotId, e);
-            }
-        }
 
         // 获取图片
         List<SpotImage> images = spotImageMapper.selectList(

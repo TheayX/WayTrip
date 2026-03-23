@@ -126,8 +126,8 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
-import { getSpotDetail } from '@/api/spot'
+import { onLoad, onShow, onHide, onUnload } from '@dcloudio/uni-app'
+import { getSpotDetail, recordSpotView } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, submitReview } from '@/api/review'
 import { getImageUrl } from '@/utils/request'
@@ -136,6 +136,7 @@ import { useUserStore } from '@/stores/user'
 const spot = ref(null)
 const spotId = ref(null)
 const userStore = useUserStore()
+let enterTime = 0
 
 const spotImages = computed(() => {
   if (!spot.value) return []
@@ -263,6 +264,26 @@ onLoad((options) => {
   openReviewByQuery.value = options.openReview === '1'
   reviewPopupOpened.value = false
   fetchSpotDetail()
+}) 
+
+onShow(() => {
+  enterTime = Date.now()
+})
+
+const reportView = () => {
+  if (spotId.value && userStore.isLoggedIn && enterTime > 0) {
+    const duration = Math.floor((Date.now() - enterTime) / 1000)
+    recordSpotView(spotId.value, 'detail', duration).catch(() => {})
+  }
+}
+
+onHide(() => {
+  reportView()
+  enterTime = 0
+})
+
+onUnload(() => {
+  reportView()
 })
 </script>
 

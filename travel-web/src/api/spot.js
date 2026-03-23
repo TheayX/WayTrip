@@ -10,6 +10,9 @@ export const searchSpots = (keyword, page = 1, pageSize = 10) =>
 // 获取景点详情
 export const getSpotDetail = (spotId) => request.get(`/spots/${spotId}`)
 
+// 上报浏览行为
+export const recordSpotView = (spotId, source, duration) =>
+  request.post(`/spots/${spotId}/view`, null, { params: { source, duration } })
+
 // 获取筛选选项
 export const getFilters = () => request.get('/spots/filters')
-

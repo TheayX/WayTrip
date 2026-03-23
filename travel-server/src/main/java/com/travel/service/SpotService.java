@@ -22,6 +22,11 @@ public interface SpotService {
      * 获取景点详情
      */
     SpotDetailResponse getSpotDetail(Long spotId, Long userId);
+
+    /**
+     * 记录浏览行为
+     */
+    void recordView(Long spotId, Long userId, String source, Integer duration);
     
     /**
      * 获取筛选选项
