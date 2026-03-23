@@ -56,7 +56,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             return buildRecommendationResponse(cachedIds, limit, "personalized", false);
         }
 
-        return computeRecommendations(userId, limit);
+        return computeRecommendations(userId, limit, false);
     }
 
     @Override
@@ -67,15 +67,19 @@ public class RecommendationServiceImpl implements RecommendationService {
         String cacheKey = USER_REC_KEY + userId;
         redisTemplate.delete(cacheKey);
         
-        return computeRecommendations(userId, limit);
+        return computeRecommendations(userId, limit, true);
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
+        return computeRecommendations(userId, limit, false);
+    }
+
+    private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean refresh) {
         // ============ 改进：基于总交互景点数判断冷启动（而非仅评分数） ============
         Map<Long, Double> userInteractions = buildUserInteractionWeights(userId);
 
         if (userInteractions.size() < MIN_INTERACTIONS_FOR_CF) {
-            return handleColdStart(userId, limit);
+            return handleColdStart(userId, limit, refresh);
         }
 
         // 基于 ItemCF 计算推荐
@@ -85,10 +89,14 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<Long> filteredIds = filterInteractedSpots(userId, recommendedIds);
         
         if (filteredIds.isEmpty()) {
-            return handleColdStart(userId, limit);
+            return handleColdStart(userId, limit, refresh);
         }
 
         // 缓存结果
+        if (refresh) {
+            filteredIds = rotateRecommendations(filteredIds, limit);
+        }
+
         String cacheKey = USER_REC_KEY + userId;
         redisTemplate.opsForValue().set(cacheKey, filteredIds, 1, TimeUnit.HOURS);
 
@@ -156,6 +164,12 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 冷启动处理：基于用户偏好或热门推荐
      */
     private RecommendationResponse handleColdStart(Long userId, Integer limit) {
+        return handleColdStart(userId, limit, false);
+    }
+
+    /**
+     * 鍐峰惎鍔ㄥ鐞嗭細鍒锋柊鏃跺硅繑鍥炵粨鏋滃仛杞崲锛岄伩鍏嶆瘡娆￠兘鏄悓涓€鎵?     */
+    private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh) {
         User user = userMapper.selectById(userId);
         String preferences = user != null ? user.getPreferences() : null;
 
@@ -171,19 +185,27 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .in(Spot::getCategoryId, categoryIds)
                     .eq(Spot::getIsDeleted, 0)
                     .orderByDesc(Spot::getHeatScore)
-                    .last("LIMIT " + limit)
+                    .last("LIMIT " + (refresh ? Math.max(limit * 3, limit) : limit))
             );
 
             List<Long> spotIds = spots.stream().map(Spot::getId).collect(Collectors.toList());
+            if (refresh) {
+                spotIds = rotateRecommendations(spotIds, limit);
+            }
             return buildRecommendationResponse(spotIds, limit, "preference", false);
         }
 
         // 无偏好，返回热门并提示设置偏好
-        HotSpotResponse hotSpots = getHotSpots(limit);
+        HotSpotResponse hotSpots = getHotSpots(refresh ? Math.max(limit * 3, limit) : limit);
+        List<HotSpotResponse.SpotItem> hotSpotList = new ArrayList<>(hotSpots.getList());
+        if (refresh) {
+            rotateSpotItems(hotSpotList, limit);
+        }
         RecommendationResponse response = new RecommendationResponse();
         response.setType("hot");
         response.setNeedPreference(true);
-        response.setList(hotSpots.getList().stream()
+        response.setList(hotSpotList.stream()
+            .limit(limit)
             .map(item -> {
                 RecommendationResponse.SpotItem spotItem = new RecommendationResponse.SpotItem();
                 spotItem.setId(item.getId());
@@ -204,6 +226,40 @@ public class RecommendationServiceImpl implements RecommendationService {
      *
      * @param userInteractions 当前用户的交互权重 Map<spotId, weight>
      */
+    /**
+     * 鍒锋柊鎺ㄨ崘鏃跺皾璇曡烦杩囧綋鍓嶉《閮ㄥ嚑涓粨鏋滐紝璁╃敤鎴风湅鍒版柊鐨勪竴鎵?     */
+    private List<Long> rotateRecommendations(List<Long> recommendationIds, Integer limit) {
+        if (recommendationIds == null || recommendationIds.size() <= 1) {
+            return recommendationIds;
+        }
+
+        List<Long> rotatedIds = new ArrayList<>(recommendationIds);
+        int rotationBase = Math.min(limit, rotatedIds.size() - 1);
+        if (rotationBase <= 0) {
+            return rotatedIds;
+        }
+
+        int offset = 1 + Math.abs(Objects.hash(System.nanoTime(), recommendationIds.get(0))) % rotationBase;
+        Collections.rotate(rotatedIds, -offset);
+        return rotatedIds;
+    }
+
+    /**
+     * 鐑棬/鍋忓ソ鍐峰惎鍔ㄧ粨鏋滄病鏈夌壒鍒殑涓€у寲鎺掑簭锛屽埛鏂版椂鍋氫竴娆¤疆鎹?     */
+    private void rotateSpotItems(List<HotSpotResponse.SpotItem> spotItems, Integer limit) {
+        if (spotItems == null || spotItems.size() <= 1) {
+            return;
+        }
+
+        int rotationBase = Math.min(limit, spotItems.size() - 1);
+        if (rotationBase <= 0) {
+            return;
+        }
+
+        int offset = 1 + Math.abs(Objects.hash(System.nanoTime(), spotItems.get(0).getId())) % rotationBase;
+        Collections.rotate(spotItems, -offset);
+    }
+
     private List<Long> computeItemCFRecommendations(Long userId, Map<Long, Double> userInteractions, Integer limit) {
         if (userInteractions.isEmpty()) {
             return Collections.emptyList();
