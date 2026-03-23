@@ -1,5 +1,5 @@
 <template>
-  <div class="spot-detail" v-if="spot">
+  <div v-if="spot" class="spot-detail">
     <div class="page-container">
       <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
@@ -8,32 +8,29 @@
       </el-breadcrumb>
 
       <div class="detail-layout">
-        <!-- 左侧：图片+详情 -->
         <div class="detail-main">
-          <!-- 图片轮播 -->
-          <el-carousel height="420px" v-if="spotImages.length" class="image-carousel">
+          <el-carousel v-if="spotImages.length" height="420px" class="image-carousel">
             <el-carousel-item v-for="(img, idx) in spotImages" :key="idx">
               <img :src="img" class="carousel-img" alt="" @click="previewImage(idx)" />
             </el-carousel-item>
           </el-carousel>
-          <div class="no-image" v-else>
+          <div v-else class="no-image">
             <el-empty description="暂无景点图片" />
           </div>
 
-          <!-- 景点简介 -->
           <div class="info-section card">
             <h2 class="section-label">景点简介</h2>
             <p class="desc-text">{{ spot.description || '暂无简介' }}</p>
           </div>
 
-          <!-- 最新评论 -->
           <div class="info-section card">
             <div class="section-header-row">
               <h2 class="section-label">最新评论</h2>
-              <el-button text type="primary" @click="loadMoreComments" v-if="hasMoreComments">查看更多</el-button>
+              <el-button v-if="hasMoreComments" text type="primary" @click="loadMoreComments">查看更多</el-button>
             </div>
+
             <div v-if="comments.length" class="comment-list">
-              <div class="comment-item" v-for="comment in comments" :key="comment.id">
+              <div v-for="comment in comments" :key="comment.id" class="comment-item">
                 <el-avatar :size="40" :src="comment.avatar" icon="User" />
                 <div class="comment-body">
                   <div class="comment-top">
@@ -56,20 +53,18 @@
                 </div>
               </div>
             </div>
-            <el-empty v-else description="暂无评论，快来抢沙发吧~" :image-size="80" />
+            <el-empty v-else description="暂无评论，快来抢沙发" :image-size="80" />
           </div>
         </div>
 
-        <!-- 右侧：购票+信息 -->
         <div class="detail-sidebar">
-          <!-- 基本信息卡 -->
           <div class="sidebar-card card">
             <h1 class="spot-name">{{ spot.name }}</h1>
             <div class="spot-meta">
               <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
               <span class="meta-count">({{ spot.ratingCount || 0 }}条评价)</span>
               <el-divider direction="vertical" />
-              <span>{{ spot.regionName }} · {{ spot.categoryName }}</span>
+              <span>{{ spot.regionName }} / {{ spot.categoryName }}</span>
             </div>
             <div class="spot-price-row">
               <span class="big-price">¥{{ spot.price }}</span>
@@ -82,11 +77,10 @@
               class="fav-btn"
               @click="toggleFavorite"
             >
-              {{ spot.isFavorite ? '❤️ 已收藏' : '🤍 收藏' }}
+              {{ spot.isFavorite ? '已收藏' : '收藏' }}
             </el-button>
           </div>
 
-          <!-- 详细信息 -->
           <div class="sidebar-card card">
             <div class="detail-item">
               <span class="detail-label">开放时间</span>
@@ -98,7 +92,6 @@
             </div>
           </div>
 
-          <!-- 写评价 -->
           <div class="sidebar-card card">
             <h3 class="sidebar-title">写评价</h3>
             <div class="rating-input">
@@ -121,7 +114,6 @@
       </div>
     </div>
 
-    <!-- 图片预览 -->
     <el-image-viewer
       v-if="previewVisible"
       :url-list="spotImages"
@@ -129,33 +121,45 @@
       @close="previewVisible = false"
     />
   </div>
-  <div v-else class="page-container">
+
+  <div v-else-if="loading" class="page-container">
     <el-skeleton :rows="10" animated />
+  </div>
+
+  <div v-else class="page-container invalid-state">
+    <el-empty description="景点信息不存在或参数无效">
+      <el-button type="primary" @click="router.push('/spots')">返回景点列表</el-button>
+    </el-empty>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { getSpotDetail, recordSpotView } from '@/api/spot'
-import { addFavorite, removeFavorite, checkFavorite } from '@/api/favorite'
-import { deleteReview, submitReview, getSpotReviews } from '@/api/review'
+import { addFavorite, removeFavorite } from '@/api/favorite'
+import { deleteReview, getSpotReviews, submitReview } from '@/api/review'
 import { getImageUrl } from '@/utils/request'
-import { ElMessage, ElMessageBox } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+
 let enterTime = 0
 let viewSource = 'detail'
 
+const spotId = computed(() => {
+  const id = Number(route.params.id)
+  return Number.isInteger(id) && id > 0 ? id : null
+})
+
+const loading = ref(true)
 const spot = ref(null)
 const comments = ref([])
 const commentPage = ref(1)
 const commentTotal = ref(0)
-const hasMoreComments = computed(() => comments.value.length < commentTotal.value)
-
 const previewVisible = ref(false)
 const previewIndex = ref(0)
 const submittingRating = ref(false)
@@ -165,20 +169,33 @@ const ratingForm = reactive({
   comment: ''
 })
 
+const hasMoreComments = computed(() => comments.value.length < commentTotal.value)
+
 const spotImages = computed(() => {
   if (!spot.value) return []
-  const imgs = []
-  if (spot.value.coverImage) imgs.push(getImageUrl(spot.value.coverImage))
+
+  const images = []
+
+  if (spot.value.coverImage) {
+    images.push(getImageUrl(spot.value.coverImage))
+  }
+
   if (spot.value.images) {
     const list = typeof spot.value.images === 'string'
       ? spot.value.images.split(',')
       : spot.value.images
-    list.forEach(img => {
-      const url = getImageUrl(img.trim())
-      if (url && !imgs.includes(url)) imgs.push(url)
+
+    list.forEach((img) => {
+      const raw = typeof img === 'string' ? img.trim() : ''
+      if (!raw) return
+      const url = getImageUrl(raw)
+      if (url && !images.includes(url)) {
+        images.push(url)
+      }
     })
   }
-  return imgs
+
+  return images
 })
 
 const previewImage = (idx) => {
@@ -187,47 +204,82 @@ const previewImage = (idx) => {
 }
 
 const fetchDetail = async () => {
+  if (!spotId.value) {
+    spot.value = null
+    loading.value = false
+    return
+  }
+
   try {
-    const res = await getSpotDetail(route.params.id)
-    spot.value = res.data
+    const res = await getSpotDetail(spotId.value)
+    spot.value = res.data || null
   } catch (e) {
+    spot.value = null
     ElMessage.error('获取景点详情失败')
+  } finally {
+    loading.value = false
   }
 }
 
 const fetchComments = async (refresh = false) => {
+  if (!spotId.value) {
+    comments.value = []
+    commentTotal.value = 0
+    return
+  }
+
   try {
     if (refresh) {
       commentPage.value = 1
       comments.value = []
     }
-    const res = await getSpotReviews(route.params.id, commentPage.value, 5)
-    const list = res.data?.list || res.data || []
+
+    const res = await getSpotReviews(spotId.value, commentPage.value, 5)
+    const list = Array.isArray(res.data?.list) ? res.data.list : Array.isArray(res.data) ? res.data : []
     comments.value = refresh ? list : [...comments.value, ...list]
-    commentTotal.value = res.data?.total || 0
-    commentPage.value++
-  } catch (e) { /* ignore */ }
+    commentTotal.value = res.data?.total || list.length
+    commentPage.value += 1
+  } catch (e) {
+    if (refresh) {
+      comments.value = []
+      commentTotal.value = 0
+    }
+  }
 }
 
 const loadMoreComments = () => {
-  if (hasMoreComments.value) fetchComments()
+  if (hasMoreComments.value) {
+    fetchComments()
+  }
 }
 
-const canDeleteComment = (comment) => {
-  return userStore.isLoggedIn && comment.userId === userStore.userInfo?.id
-}
+const canDeleteComment = (comment) => userStore.isLoggedIn && comment.userId === userStore.userInfo?.id
 
 const handleBuy = () => {
-  if (!userStore.isLoggedIn) {
-    return router.push({ path: '/login', query: { redirect: route.fullPath } })
+  if (!spot.value?.id) {
+    ElMessage.warning('当前景点信息无效')
+    return
   }
+
+  if (!userStore.isLoggedIn) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+
   router.push(`/order/create/${spot.value.id}`)
 }
 
 const toggleFavorite = async () => {
-  if (!userStore.isLoggedIn) {
-    return router.push({ path: '/login', query: { redirect: route.fullPath } })
+  if (!spot.value?.id) {
+    ElMessage.warning('当前景点信息无效')
+    return
   }
+
+  if (!userStore.isLoggedIn) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+
   try {
     if (spot.value.isFavorite) {
       await removeFavorite(spot.value.id)
@@ -238,31 +290,44 @@ const toggleFavorite = async () => {
       spot.value.isFavorite = true
       ElMessage.success('收藏成功')
     }
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    ElMessage.error('收藏操作失败')
+  }
 }
 
 const handleSubmitRating = async () => {
-  if (!userStore.isLoggedIn) {
-    return router.push({ path: '/login', query: { redirect: route.fullPath } })
+  if (!spotId.value) {
+    ElMessage.warning('当前景点信息无效')
+    return
   }
+
+  if (!userStore.isLoggedIn) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+
   if (!ratingForm.score) {
     ElMessage.warning('请选择评分')
     return
   }
+
   submittingRating.value = true
   try {
     await submitReview({
-      spotId: Number(route.params.id),
+      spotId: spotId.value,
       score: ratingForm.score,
       comment: ratingForm.comment
     })
     ElMessage.success('评价成功')
     ratingForm.score = 5
     ratingForm.comment = ''
-    fetchComments(true)
-    fetchDetail()
-  } catch (e) { /* ignore */ }
-  submittingRating.value = false
+    await fetchComments(true)
+    await fetchDetail()
+  } catch (e) {
+    ElMessage.error('提交评价失败')
+  } finally {
+    submittingRating.value = false
+  }
 }
 
 const handleDeleteComment = async (comment) => {
@@ -274,18 +339,27 @@ const handleDeleteComment = async (comment) => {
     ElMessage.success('评价已删除')
     await fetchComments(true)
     await fetchDetail()
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    // user cancelled or request failed
+  }
 }
 
 onMounted(() => {
   enterTime = Date.now()
   viewSource = route.query.source || 'detail'
+
+  if (!spotId.value) {
+    loading.value = false
+    ElMessage.warning('景点参数无效，无法加载详情')
+    return
+  }
+
   fetchDetail()
   fetchComments(true)
-}) 
+})
 
 onUnmounted(() => {
-  if (spot.value && userStore.isLoggedIn && enterTime > 0) {
+  if (spot.value?.id && userStore.isLoggedIn && enterTime > 0) {
     const duration = Math.floor((Date.now() - enterTime) / 1000)
     recordSpotView(spot.value.id, viewSource, duration).catch(() => {})
   }
@@ -312,7 +386,6 @@ onUnmounted(() => {
   gap: 16px;
 }
 
-/* Carousel */
 .image-carousel {
   border-radius: 12px;
   overflow: hidden;
@@ -334,7 +407,6 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-/* Info sections */
 .info-section {
   margin-top: 16px;
   padding: 24px;
@@ -361,7 +433,6 @@ onUnmounted(() => {
   white-space: pre-wrap;
 }
 
-/* Comments */
 .comment-list {
   display: flex;
   flex-direction: column;
@@ -412,7 +483,6 @@ onUnmounted(() => {
   color: #c0c4cc;
 }
 
-/* Sidebar */
 .sidebar-card {
   padding: 20px;
   border-radius: 12px;
@@ -515,6 +585,10 @@ onUnmounted(() => {
   border-radius: 8px;
 }
 
+.invalid-state {
+  padding: 48px 0;
+}
+
 @media (max-width: 992px) {
   .detail-layout {
     flex-direction: column;
@@ -525,4 +599,3 @@ onUnmounted(() => {
   }
 }
 </style>
-
