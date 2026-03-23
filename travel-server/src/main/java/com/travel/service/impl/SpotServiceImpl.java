@@ -38,6 +38,7 @@ public class SpotServiceImpl implements SpotService {
     private final SpotCategoryMapper spotCategoryMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final ReviewMapper reviewMapper;
+    private final UserSpotViewMapper userSpotViewMapper;
 
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
@@ -120,6 +121,19 @@ public class SpotServiceImpl implements SpotService {
                 new UpdateWrapper<Spot>()
                         .eq("id", spotId)
                         .setSql("heat_score = COALESCE(heat_score, 0) + 1"));
+
+        // 记录浏览行为（用于推荐算法）
+        if (userId != null) {
+            try {
+                UserSpotView view = new UserSpotView();
+                view.setUserId(userId);
+                view.setSpotId(spotId);
+                view.setViewSource("detail");
+                userSpotViewMapper.insert(view);
+            } catch (Exception e) {
+                log.warn("记录浏览行为失败: userId={}, spotId={}", userId, spotId, e);
+            }
+        }
 
         // 获取图片
         List<SpotImage> images = spotImageMapper.selectList(

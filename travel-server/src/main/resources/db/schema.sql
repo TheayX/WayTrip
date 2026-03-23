@@ -323,6 +323,27 @@ CREATE TABLE `user_spot_review` (
   KEY `idx_spot_list` (`spot_id`,`is_deleted`,`created_at`)
 ) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评价表';
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `user_spot_view`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_spot_view` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
+  `spot_id` bigint unsigned NOT NULL COMMENT '景点ID',
+  `view_source` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT 'home' COMMENT '来源：home/search/recommend/guide',
+  `view_duration` int DEFAULT '0' COMMENT '停留时长(秒)',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_spot` (`user_id`,`spot_id`),
+  KEY `idx_spot_id` (`spot_id`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户景点浏览记录表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
