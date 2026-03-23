@@ -1,6 +1,6 @@
 <template>
   <div class="spot-page">
-    <el-card class="page-container" shadow="hover">
+    <el-card  shadow="hover">
       <template #header>
         <div class="card-header">
           <span>景点列表</span>
@@ -658,66 +658,6 @@ const handleDelete = async (row) => {
 </script>
 
 <style lang="scss" scoped>
-
-.page-container {
-  border: none !important;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
-  
-  :deep(.el-card__header) {
-    border-bottom: 1px solid #f0f2f5;
-    padding: 20px 24px;
-    
-    .card-header {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1f2f3d;
-      position: relative;
-      padding-left: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      
-      &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 4px;
-        height: 16px;
-        background: #1890ff;
-        border-radius: 2px;
-      }
-    }
-  }
-
-  :deep(.el-card__body) {
-    padding: 24px;
-  }
-}
-
-.search-form {
-  background: #f8f9fa;
-  padding: 18px 24px 2px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  border: 1px solid #f0f2f5;
-  transition: all 0.3s;
-
-  &:hover {
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.02);
-  }
-}
-
-.pagination-wrapper, .pagination {
-  margin-top: 24px;
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 16px;
-  border-top: 1px dashed #ebeef5;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
