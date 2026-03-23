@@ -38,7 +38,18 @@
                 <div class="comment-body">
                   <div class="comment-top">
                     <span class="comment-name">{{ comment.nickname }}</span>
-                    <span class="star-text">★ {{ comment.score }}</span>
+                    <div class="comment-actions">
+                      <span class="star-text">★ {{ comment.score }}</span>
+                      <el-button
+                        v-if="canDeleteComment(comment)"
+                        text
+                        type="danger"
+                        class="delete-comment-btn"
+                        @click="handleDeleteComment(comment)"
+                      >
+                        删除
+                      </el-button>
+                    </div>
                   </div>
                   <p class="comment-text">{{ comment.comment }}</p>
                   <span class="comment-time">{{ comment.createdAt }}</span>
@@ -129,9 +140,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getSpotDetail } from '@/api/spot'
 import { addFavorite, removeFavorite, checkFavorite } from '@/api/favorite'
-import { submitReview, getSpotReviews } from '@/api/review'
+import { deleteReview, submitReview, getSpotReviews } from '@/api/review'
 import { getImageUrl } from '@/utils/request'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
@@ -200,6 +211,10 @@ const loadMoreComments = () => {
   if (hasMoreComments.value) fetchComments()
 }
 
+const canDeleteComment = (comment) => {
+  return userStore.isLoggedIn && comment.userId === userStore.userInfo?.id
+}
+
 const handleBuy = () => {
   if (!userStore.isLoggedIn) {
     return router.push({ path: '/login', query: { redirect: route.fullPath } })
@@ -246,6 +261,18 @@ const handleSubmitRating = async () => {
     fetchDetail()
   } catch (e) { /* ignore */ }
   submittingRating.value = false
+}
+
+const handleDeleteComment = async (comment) => {
+  try {
+    await ElMessageBox.confirm('确认删除这条评价吗？删除后评分会一并撤销。', '提示', {
+      type: 'warning'
+    })
+    await deleteReview(comment.id)
+    ElMessage.success('评价已删除')
+    await fetchComments(true)
+    await fetchDetail()
+  } catch (e) { /* ignore */ }
 }
 
 onMounted(() => {
@@ -342,7 +369,18 @@ onMounted(() => {
 .comment-top {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 4px;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-comment-btn {
+  padding: 0;
 }
 
 .comment-name {

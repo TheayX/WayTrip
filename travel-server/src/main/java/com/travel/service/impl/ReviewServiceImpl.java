@@ -110,6 +110,23 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    @Transactional
+    public void deleteReview(Long userId, Long reviewId) {
+        Review review = reviewMapper.selectById(reviewId);
+        if (review == null || review.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.REVIEW_NOT_FOUND);
+        }
+        if (!review.getUserId().equals(userId)) {
+            throw new BusinessException(ResultCode.REVIEW_DELETE_FORBIDDEN);
+        }
+
+        review.setIsDeleted(1);
+        reviewMapper.updateById(review);
+        updateSpotAvgRating(review.getSpotId());
+        log.info("用户删除评价: userId={}, reviewId={}, spotId={}", userId, reviewId, review.getSpotId());
+    }
+
+    @Override
     public int getUserReviewCount(Long userId) {
         return Math.toIntExact(reviewMapper.selectCount(
             new LambdaQueryWrapper<Review>()
@@ -126,6 +143,13 @@ public class ReviewServiceImpl implements ReviewService {
         List<Review> reviews = reviewMapper.selectList(wrapper);
 
         if (reviews.isEmpty()) {
+            spotMapper.update(
+                null,
+                new UpdateWrapper<Spot>()
+                    .eq("id", spotId)
+                    .set("avg_rating", BigDecimal.ZERO.setScale(1, RoundingMode.HALF_UP))
+                    .set("rating_count", 0)
+            );
             return;
         }
 

@@ -1,4 +1,4 @@
-import { get, post } from '@/utils/request'
+import { del, get, post } from '@/utils/request'
 
 /**
  * 提交评价
@@ -19,5 +19,12 @@ export const getUserReview = (spotId) => {
  */
 export const getSpotReviews = (spotId, page = 1, pageSize = 10) => {
   return get(`/reviews/spot/${spotId}/comments`, { page, pageSize })
+}
+
+/**
+ * 删除评价
+ */
+export const deleteReview = (reviewId) => {
+  return del(`/reviews/${reviewId}`)
 }
 

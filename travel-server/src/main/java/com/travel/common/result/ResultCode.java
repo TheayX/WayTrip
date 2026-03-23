@@ -41,6 +41,8 @@ public enum ResultCode {
 
     // 评分相关 50xxx
     RATING_INVALID(50001, "评分值无效（需1-5）"),
+    REVIEW_NOT_FOUND(50002, "评价不存在"),
+    REVIEW_DELETE_FORBIDDEN(50003, "只能删除自己的评价"),
 
     // 通用错误 60xxx
     PARAM_ERROR(60001, "参数校验失败"),

@@ -10,3 +10,6 @@ export const getUserReview = (spotId) => request.get(`/reviews/spot/${spotId}`)
 export const getSpotReviews = (spotId, page = 1, pageSize = 10) =>
   request.get(`/reviews/spot/${spotId}/comments`, { params: { page, pageSize } })
 
+// 删除评价
+export const deleteReview = (reviewId) => request.delete(`/reviews/${reviewId}`)
+

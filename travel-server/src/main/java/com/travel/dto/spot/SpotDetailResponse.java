@@ -34,6 +34,7 @@ public class SpotDetailResponse {
     @lombok.AllArgsConstructor
     public static class CommentItem {
         private Long id;
+        private Long userId;
         private String nickname;
         private String avatar;
         private Integer score;

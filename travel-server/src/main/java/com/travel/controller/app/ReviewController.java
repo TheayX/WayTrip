@@ -47,5 +47,13 @@ public class ReviewController {
             @RequestParam(defaultValue = "10") Integer pageSize) {
         return ApiResponse.success(reviewService.getSpotReviews(spotId, page, pageSize));
     }
+
+    @Operation(summary = "删除自己的评价")
+    @DeleteMapping("/{reviewId}")
+    public ApiResponse<Void> deleteReview(@PathVariable("reviewId") Long reviewId) {
+        Long userId = UserContext.getUserId();
+        reviewService.deleteReview(userId, reviewId);
+        return ApiResponse.success();
+    }
 }
 
