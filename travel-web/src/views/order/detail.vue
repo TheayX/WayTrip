@@ -8,7 +8,6 @@
 
     <div class="detail-layout">
       <div class="detail-main">
-        <!-- 订单状态 -->
         <div class="status-card card" :class="order.status">
           <div class="status-info">
             <span class="status-icon">{{ getStatusIcon(order.status) }}</span>
@@ -19,7 +18,6 @@
           </div>
         </div>
 
-        <!-- 景点信息 -->
         <div class="info-card card" @click="$router.push(`/spots/${order.spotId}`)">
           <h3 class="card-title">景点信息</h3>
           <div class="spot-row">
@@ -32,7 +30,6 @@
           </div>
         </div>
 
-        <!-- 订单信息 -->
         <div class="info-card card">
           <h3 class="card-title">订单信息</h3>
           <div class="info-row">
@@ -49,7 +46,6 @@
           </div>
         </div>
 
-        <!-- 联系人信息 -->
         <div class="info-card card">
           <h3 class="card-title">联系人信息</h3>
           <div class="info-row">
@@ -62,7 +58,6 @@
           </div>
         </div>
 
-        <!-- 价格明细 -->
         <div class="info-card card">
           <h3 class="card-title">价格明细</h3>
           <div class="info-row">
@@ -81,23 +76,18 @@
         </div>
       </div>
 
-      <!-- 侧边操作 -->
       <div class="detail-sidebar">
-        <div class="sidebar-card card" v-if="order.canPay || order.canCancel">
+        <div class="sidebar-card card" v-if="showActions">
           <h3 class="card-title">操作</h3>
-          <el-button
-            v-if="order.canPay"
-            type="primary"
-            size="large"
-            class="action-btn"
-            @click="handlePay"
-          >立即支付</el-button>
-          <el-button
-            v-if="order.canCancel"
-            size="large"
-            class="action-btn"
-            @click="handleCancel"
-          >{{ order.status === 'paid' ? '申请退款' : '取消订单' }}</el-button>
+          <el-button v-if="order.canPay" type="primary" size="large" class="action-btn" @click="handlePay">
+            立即支付
+          </el-button>
+          <el-button v-if="order.canCancel" size="large" class="action-btn" @click="handleCancel">
+            {{ order.status === 'paid' ? '申请退款' : '取消订单' }}
+          </el-button>
+          <el-button v-if="order.status === 'completed'" type="primary" size="large" class="action-btn" @click="handleReview">
+            去评价
+          </el-button>
         </div>
       </div>
     </div>
@@ -108,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getOrderDetail, payOrder, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
@@ -118,16 +108,21 @@ const route = useRoute()
 const router = useRouter()
 const order = ref(null)
 
+const showActions = computed(() => {
+  if (!order.value) return false
+  return order.value.canPay || order.value.canCancel || order.value.status === 'completed'
+})
+
 const getStatusIcon = (status) => {
   const map = { pending: '⏳', paid: '✅', completed: '🎉', cancelled: '❌' }
-  return map[status] || '📋'
+  return map[status] || '🧾'
 }
 
 const getStatusDesc = (status) => {
   const map = {
     pending: '请尽快完成支付',
     paid: '已支付成功，祝您旅途愉快',
-    completed: '订单已完成，期待再次相遇',
+    completed: '订单已完成，可前往评价',
     cancelled: '订单已取消'
   }
   return map[status] || ''
@@ -149,7 +144,9 @@ const handlePay = async () => {
     await payOrder(order.value.id, idempotentKey)
     ElMessage.success('支付成功')
     fetchDetail()
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    // ignore
+  }
 }
 
 const handleCancel = async () => {
@@ -159,7 +156,13 @@ const handleCancel = async () => {
     await cancelOrder(order.value.id)
     ElMessage.success('操作成功')
     fetchDetail()
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    // ignore
+  }
+}
+
+const handleReview = () => {
+  router.push(`/spots/${order.value.spotId}?openReview=1`)
 }
 
 onMounted(() => {
@@ -307,4 +310,3 @@ onMounted(() => {
   }
 }
 </style>
-

@@ -5,12 +5,10 @@
       <el-breadcrumb-item>我的订单</el-breadcrumb-item>
     </el-breadcrumb>
 
-    <!-- 状态筛选 -->
     <el-tabs v-model="currentTab" @tab-change="handleTabChange" class="order-tabs">
       <el-tab-pane v-for="tab in tabs" :key="tab.value" :label="tab.label" :name="tab.value" />
     </el-tabs>
 
-    <!-- 订单列表 -->
     <div v-loading="loading" class="order-list">
       <div v-for="order in orderList" :key="order.id" class="order-card card" @click="$router.push(`/orders/${order.id}`)">
         <div class="order-header">
@@ -28,18 +26,16 @@
             </div>
           </div>
         </div>
-        <div class="order-actions" v-if="order.status === 'pending' || order.status === 'paid'">
-          <el-button
-            v-if="order.canCancel"
-            size="small"
-            @click.stop="handleCancel(order)"
-          >{{ order.status === 'paid' ? '申请退款' : '取消订单' }}</el-button>
-          <el-button
-            v-if="order.status === 'pending'"
-            type="primary"
-            size="small"
-            @click.stop="handlePay(order)"
-          >去支付</el-button>
+        <div class="order-actions" v-if="showActions(order)">
+          <el-button v-if="order.canCancel" size="small" @click.stop="handleCancel(order)">
+            {{ order.status === 'paid' ? '申请退款' : '取消订单' }}
+          </el-button>
+          <el-button v-if="order.status === 'pending'" type="primary" size="small" @click.stop="handlePay(order)">
+            去支付
+          </el-button>
+          <el-button v-if="order.status === 'completed'" type="primary" size="small" @click.stop="handleReview(order)">
+            去评价
+          </el-button>
         </div>
       </div>
     </div>
@@ -60,6 +56,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { getOrderList, cancelOrder, payOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -72,6 +69,7 @@ const tabs = [
   { label: '已取消', value: 'cancelled' }
 ]
 
+const router = useRouter()
 const currentTab = ref('')
 const orderList = ref([])
 const loading = ref(false)
@@ -84,6 +82,10 @@ const statusType = (status) => {
   return map[status] || 'info'
 }
 
+const showActions = (order) => {
+  return order.status === 'pending' || order.status === 'paid' || order.status === 'completed'
+}
+
 const fetchOrders = async () => {
   loading.value = true
   try {
@@ -92,7 +94,9 @@ const fetchOrders = async () => {
     const res = await getOrderList(params)
     orderList.value = res.data?.list || res.data || []
     total.value = res.data?.total || 0
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    // ignore
+  }
   loading.value = false
 }
 
@@ -111,7 +115,9 @@ const handleCancel = async (order) => {
     await cancelOrder(order.id)
     ElMessage.success('操作成功')
     fetchOrders()
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    // ignore
+  }
 }
 
 const handlePay = async (order) => {
@@ -121,7 +127,13 @@ const handlePay = async (order) => {
     await payOrder(order.id, idempotentKey)
     ElMessage.success('支付成功')
     fetchOrders()
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    // ignore
+  }
+}
+
+const handleReview = (order) => {
+  router.push(`/spots/${order.spotId}?openReview=1`)
 }
 
 onMounted(() => {
@@ -220,4 +232,3 @@ onMounted(() => {
   margin-top: 32px;
 }
 </style>
-

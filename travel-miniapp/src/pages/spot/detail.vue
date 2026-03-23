@@ -153,6 +153,8 @@ const spotImages = computed(() => {
 
 const ratingVisible = ref(false)
 const ratingForm = reactive({ score: 5, comment: '' })
+const openReviewByQuery = ref(false)
+const reviewPopupOpened = ref(false)
 
 const fetchSpotDetail = async () => {
   try {
@@ -160,6 +162,10 @@ const fetchSpotDetail = async () => {
     spot.value = res.data
     if (spot.value.userRating) {
       ratingForm.score = spot.value.userRating
+    }
+    if (openReviewByQuery.value && !reviewPopupOpened.value) {
+      ratingVisible.value = true
+      reviewPopupOpened.value = true
     }
   } catch (e) {
     uni.showToast({ title: '加载失败', icon: 'none' })
@@ -254,6 +260,8 @@ const goBuy = () => {
 
 onLoad((options) => {
   spotId.value = options.id
+  openReviewByQuery.value = options.openReview === '1'
+  reviewPopupOpened.value = false
   fetchSpotDetail()
 })
 </script>
