@@ -15,7 +15,7 @@
         text-color="#bfcbd9"
         active-text-color="#409EFF"
       >
-        <el-menu-item v-for="item in menuList" :key="item.path" :index="item.path">
+        <el-menu-item v-for="item in menuList" :key="item.path" :index="item.fullPath">
           <el-icon><component :is="item.meta.icon" /></el-icon>
           <template #title>{{ item.meta.title }}</template>
         </el-menu-item>
@@ -70,7 +70,10 @@ const isCollapse = ref(false)
 
 const menuList = computed(() => {
   const mainRoute = router.options.routes.find(r => r.path === '/')
-  return mainRoute?.children || []
+  return (mainRoute?.children || []).map(item => ({
+    ...item,
+    fullPath: item.path.startsWith('/') ? item.path : `/${item.path}`
+  }))
 })
 
 const handleCommand = (command) => {

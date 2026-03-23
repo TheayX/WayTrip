@@ -11,7 +11,15 @@
         </div>
       </div>
       <!-- 轮播背景 -->
-      <el-carousel class="hero-carousel" height="480px" :interval="5000" arrow="never" indicator-position="none">
+      <el-carousel
+        class="hero-carousel"
+        height="480px"
+        :interval="5000"
+        :autoplay="true"
+        :pause-on-hover="false"
+        arrow="never"
+        indicator-position="none"
+      >
         <el-carousel-item v-for="banner in banners" :key="banner.id">
           <div class="hero-slide" :class="{ clickable: !!banner.spotId }" @click="handleBannerClick(banner)">
             <img :src="getImageUrl(banner.imageUrl)" class="hero-bg" alt="" />
