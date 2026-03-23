@@ -247,8 +247,60 @@ public class RecommendationServiceImpl implements RecommendationService {
     @SuppressWarnings("unchecked")
     private Map<Long, Double> getSimilarSpots(Long spotId) {
         String key = SIMILARITY_KEY + spotId;
-        Map<Long, Double> similarities = (Map<Long, Double>) redisTemplate.opsForValue().get(key);
-        return similarities != null ? similarities : Collections.emptyMap();
+        Object cached = redisTemplate.opsForValue().get(key);
+        if (!(cached instanceof Map<?, ?> rawMap) || rawMap.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<Long, Double> similarities = new HashMap<>();
+        for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
+            Long similarSpotId = castToLong(entry.getKey());
+            Double similarity = castToDouble(entry.getValue());
+            if (similarSpotId != null && similarity != null) {
+                similarities.put(similarSpotId, similarity);
+            }
+        }
+        return similarities;
+    }
+
+    private Long castToLong(Object value) {
+        if (value instanceof Long longValue) {
+            return longValue;
+        }
+        if (value instanceof Integer intValue) {
+            return intValue.longValue();
+        }
+        if (value instanceof Number numberValue) {
+            return numberValue.longValue();
+        }
+        if (value instanceof String stringValue && !stringValue.isBlank()) {
+            try {
+                return Long.parseLong(stringValue);
+            } catch (NumberFormatException e) {
+                log.warn("Failed to parse Redis key to Long: {}", stringValue);
+            }
+        }
+        return null;
+    }
+
+    private Double castToDouble(Object value) {
+        if (value instanceof Double doubleValue) {
+            return doubleValue;
+        }
+        if (value instanceof Float floatValue) {
+            return floatValue.doubleValue();
+        }
+        if (value instanceof Number numberValue) {
+            return numberValue.doubleValue();
+        }
+        if (value instanceof String stringValue && !stringValue.isBlank()) {
+            try {
+                return Double.parseDouble(stringValue);
+            } catch (NumberFormatException e) {
+                log.warn("Failed to parse Redis value to Double: {}", stringValue);
+            }
+        }
+        return null;
     }
 
     /**
