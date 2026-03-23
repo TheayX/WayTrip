@@ -25,6 +25,11 @@ public interface ReviewService {
     PageResult<ReviewResponse> getSpotReviews(Long spotId, Integer page, Integer pageSize);
 
     /**
+     * 删除自己的评价
+     */
+    void deleteReview(Long userId, Long reviewId);
+
+    /**
      * 获取用户评价数量
      */
     int getUserReviewCount(Long userId);

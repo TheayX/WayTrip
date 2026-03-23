@@ -63,7 +63,14 @@
           <view class="comment-content">
             <view class="comment-header">
               <text class="comment-name">{{ comment.nickname }}</text>
-              <text class="comment-score">★ {{ comment.score }}</text>
+              <view class="comment-meta">
+                <text class="comment-score">★ {{ comment.score }}</text>
+                <text
+                  v-if="canDeleteComment(comment)"
+                  class="comment-delete"
+                  @tap.stop="handleDeleteComment(comment)"
+                >删除</text>
+              </view>
             </view>
             <text class="comment-text">{{ comment.comment }}</text>
             <text class="comment-time">{{ comment.createdAt }}</text>
@@ -122,11 +129,13 @@ import { ref, reactive, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getSpotDetail } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
-import { submitReview } from '@/api/review'
+import { deleteReview, submitReview } from '@/api/review'
 import { getImageUrl } from '@/utils/request'
+import { useUserStore } from '@/stores/user'
 
 const spot = ref(null)
 const spotId = ref(null)
+const userStore = useUserStore()
 
 const spotImages = computed(() => {
   if (!spot.value) return []
@@ -195,6 +204,10 @@ const goComments = () => {
   uni.showToast({ title: '功能开发中', icon: 'none' })
 }
 
+const canDeleteComment = (comment) => {
+  return userStore.isLoggedIn && comment.userId === userStore.userInfo?.id
+}
+
 const showRatingPopup = () => {
   ratingVisible.value = true
 }
@@ -216,6 +229,23 @@ const submitRatingHandler = async () => {
   } catch (e) {
     uni.showToast({ title: '评价失败', icon: 'none' })
   }
+}
+
+const handleDeleteComment = (comment) => {
+  uni.showModal({
+    title: '删除评价',
+    content: '删除后评分会一并撤销，确认删除吗？',
+    success: async (res) => {
+      if (!res.confirm) return
+      try {
+        await deleteReview(comment.id)
+        uni.showToast({ title: '评价已删除', icon: 'success' })
+        fetchSpotDetail()
+      } catch (e) {
+        uni.showToast({ title: '删除失败', icon: 'none' })
+      }
+    }
+  })
 }
 
 const goBuy = () => {
@@ -454,6 +484,12 @@ onLoad((options) => {
   align-items: center;
 }
 
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
 .comment-name {
   font-size: 28rpx;
   color: #1C1C1E;
@@ -464,6 +500,11 @@ onLoad((options) => {
   font-size: 24rpx;
   color: #FF9500;
   font-weight: 600;
+}
+
+.comment-delete {
+  font-size: 24rpx;
+  color: #FF3B30;
 }
 
 .comment-text {

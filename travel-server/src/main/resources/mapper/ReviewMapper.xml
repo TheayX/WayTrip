@@ -17,6 +17,7 @@
 
     <resultMap id="CommentItemResultMap" type="com.travel.dto.spot.SpotDetailResponse$CommentItem">
         <result column="id" property="id"/>
+        <result column="user_id" property="userId"/>
         <result column="nickname" property="nickname"/>
         <result column="avatar_url" property="avatar"/>
         <result column="score" property="score"/>
@@ -37,6 +38,7 @@
 
     <select id="selectLatestComments" resultMap="CommentItemResultMap">
         SELECT r.id,
+               r.user_id,
                u.nickname,
                u.avatar_url,
                r.score,
