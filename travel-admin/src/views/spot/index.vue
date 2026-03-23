@@ -4,11 +4,13 @@
       <template #header>
         <div class="card-header">
           <span>景点列表</span>
-          <el-button type="primary" @click="handleAdd">新增景点</el-button>
+          <div class="header-actions">
+            <el-button @click="handleRefreshAllRatings" :loading="refreshingAllRatings">同步全部评分</el-button>
+            <el-button type="primary" @click="handleAdd">新增景点</el-button>
+          </div>
         </div>
       </template>
-      
-      <!-- 搜索筛选 -->
+
       <el-form :inline="true" :model="queryParams" class="search-form" @submit.prevent>
         <el-form-item label="关键词">
           <el-input
@@ -43,7 +45,14 @@
           />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="uiFilters.published" placeholder="全部" clearable style="width: 140px" @change="handleFilterChange" @clear="handleFilterChange">
+          <el-select
+            v-model="uiFilters.published"
+            placeholder="全部"
+            clearable
+            style="width: 140px"
+            @change="handleFilterChange"
+            @clear="handleFilterChange"
+          >
             <el-option label="已发布" value="1" />
             <el-option label="未发布" value="0" />
           </el-select>
@@ -54,7 +63,6 @@
         </el-form-item>
       </el-form>
 
-      <!-- 表格 -->
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column label="封面" width="100">
@@ -69,7 +77,8 @@
           <template #default="{ row }">¥{{ row.price }}</template>
         </el-table-column>
         <el-table-column prop="avgRating" label="评分" width="80" />
-        <el-table-column prop="heatScore" label="热度" width="80" />
+        <el-table-column prop="ratingCount" label="评价数" width="90" />
+        <el-table-column prop="heatScore" label="热度" width="90" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.published ? 'success' : 'info'">
@@ -82,11 +91,12 @@
             {{ formatDate(row.updatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="320" fixed="right">
           <template #default="{ row }">
-            <div style="white-space: nowrap;">
+            <div class="table-actions">
               <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-              <el-button link type="primary" @click="handleRatingEdit(row)">评分/热度</el-button>
+              <el-button link type="primary" @click="handleHeatEdit(row)">热度</el-button>
+              <el-button link type="primary" @click="handleRefreshSpotRating(row)">同步评分</el-button>
               <el-button link :type="row.published ? 'warning' : 'success'" @click="handleTogglePublish(row)">
                 {{ row.published ? '下架' : '发布' }}
               </el-button>
@@ -96,7 +106,6 @@
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
       <el-pagination
         v-model:current-page="queryParams.page"
         v-model:page-size="queryParams.pageSize"
@@ -109,7 +118,6 @@
       />
     </el-card>
 
-    <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editId ? '编辑景点' : '新增景点'" width="700px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="名称" prop="name">
@@ -163,9 +171,9 @@
               :before-upload="beforeUpload"
               accept="image/*"
             >
-              <el-image 
-                v-if="form.coverImage" 
-                :src="getImageUrl(form.coverImage)" 
+              <el-image
+                v-if="form.coverImage"
+                :src="getImageUrl(form.coverImage)"
                 fit="cover"
                 class="uploaded-image"
               />
@@ -208,47 +216,54 @@
       </template>
     </el-dialog>
 
-    <!-- 评分/热度设置 -->
-    <el-dialog v-model="ratingDialogVisible" title="评分/热度设置" width="420px">
-      <el-form ref="ratingFormRef" :model="ratingForm" :rules="ratingRules" label-width="110px">
-        <el-form-item label="评分" prop="avgRating">
-          <el-input-number v-model="ratingForm.avgRating" :min="0" :max="5" :precision="1" :step="0.1" />
+    <el-dialog v-model="heatDialogVisible" title="热度设置" width="420px">
+      <el-form ref="heatFormRef" :model="heatForm" :rules="heatRules" label-width="110px">
+        <el-form-item label="当前评分">
+          <span>{{ heatForm.avgRating ?? 0 }}</span>
         </el-form-item>
-        <el-form-item label="评价数" prop="ratingCount">
-          <el-input-number v-model="ratingForm.ratingCount" :min="0" :precision="0" />
+        <el-form-item label="评价数">
+          <span>{{ heatForm.ratingCount ?? 0 }}</span>
         </el-form-item>
         <el-form-item label="热度" prop="heatScore">
-          <el-input-number v-model="ratingForm.heatScore" :min="0" :precision="2" />
+          <el-input-number v-model="heatForm.heatScore" :min="0" :precision="2" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="ratingDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleRatingSubmit" :loading="ratingSubmitting">确定</el-button>
+        <el-button @click="heatDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleHeatSubmit" :loading="heatSubmitting">确定</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { getSpotList, getSpotDetail, createSpot, updateSpot, updatePublishStatus, deleteSpot, getFilters } from '@/api/spot'
+import {
+  createSpot,
+  deleteSpot,
+  getFilters,
+  getSpotDetail,
+  getSpotList,
+  refreshAllSpotRatings,
+  refreshSpotRating,
+  updatePublishStatus,
+  updateSpot
+} from '@/api/spot'
 import { useUserStore } from '@/stores/user'
 
 const BASE_URL = 'http://localhost:8080'
 const userStore = useUserStore()
 
-// 上传配置
 const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/image`)
 const uploadHeaders = computed(() => ({
-  'Authorization': `Bearer ${userStore.token}`
+  Authorization: `Bearer ${userStore.token}`
 }))
 const uploadData = computed(() => ({
   tag: form.name || ''
 }))
 
-// 获取完整图片URL
 const getImageUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
@@ -260,30 +275,28 @@ const formatDate = (dateStr) => {
   return dateStr.replace('T', ' ').substring(0, 19)
 }
 
-// 上传前校验
 const beforeUpload = (file) => {
   const isImage = file.type.startsWith('image/')
   const isLt5M = file.size / 1024 / 1024 < 5
 
   if (!isImage) {
-    ElMessage.error('只能上传图片文件!')
+    ElMessage.error('只能上传图片文件')
     return false
   }
   if (!isLt5M) {
-    ElMessage.error('图片大小不能超过 5MB!')
+    ElMessage.error('图片大小不能超过 5MB')
     return false
   }
   return true
 }
 
-// 上传成功
 const handleUploadSuccess = (response) => {
   if (response.code === 0) {
     form.coverImage = response.data.url
     ElMessage.success('上传成功')
-  } else {
-    ElMessage.error(response.message || '上传失败')
+    return
   }
+  ElMessage.error(response.message || '上传失败')
 }
 
 const handleGalleryUploadSuccess = (response) => {
@@ -293,9 +306,9 @@ const handleGalleryUploadSuccess = (response) => {
     }
     form.images.push(response.data.url)
     ElMessage.success('上传成功')
-  } else {
-    ElMessage.error(response.message || '上传失败')
+    return
   }
+  ElMessage.error(response.message || '上传失败')
 }
 
 const removeGalleryImage = (index) => {
@@ -303,12 +316,12 @@ const removeGalleryImage = (index) => {
   form.images.splice(index, 1)
 }
 
-// 上传失败
 const handleUploadError = () => {
   ElMessage.error('上传失败，请重试')
 }
 
 const loading = ref(false)
+const refreshingAllRatings = ref(false)
 const tableData = ref([])
 const total = ref(0)
 const regions = ref([])
@@ -323,26 +336,24 @@ const flattenCategories = (nodes = [], level = 0) => {
       id: node.id,
       name: node.name,
       parentId: node.parentId,
-      label: `${'　'.repeat(level)}${level > 0 ? '└ ' : ''}${node.name}`,
+      label: `${'  '.repeat(level)}${level > 0 ? '└ ' : ''}${node.name}`,
       hasChildren
     })
-
     if (hasChildren) {
       acc.push(...flattenCategories(node.children, level + 1))
     }
-
     return acc
   }, [])
 }
 
 const categoryOptions = computed(() => flattenCategories(categoryTree.value))
-const leafCategoryOptions = computed(() => categoryOptions.value.filter(item => !item.hasChildren))
+const leafCategoryOptions = computed(() => categoryOptions.value.filter((item) => !item.hasChildren))
 const categoryCascaderOptions = computed(() => categoryTree.value)
 const regionCascaderOptions = computed(() => {
   if (regionTree.value.length) {
     return regionTree.value
   }
-  return regions.value.map(item => ({ ...item, children: [] }))
+  return regions.value.map((item) => ({ ...item, children: [] }))
 })
 const regionCascaderProps = {
   value: 'id',
@@ -358,12 +369,12 @@ const categoryCascaderProps = {
   checkStrictly: true,
   emitPath: true
 }
-const parentCategoryOptions = computed(() => categoryTree.value.filter(item => item.children?.length))
+const parentCategoryOptions = computed(() => categoryTree.value.filter((item) => item.children?.length))
 const childCategoryOptions = computed(() => {
   if (!form.parentCategoryId) {
     return []
   }
-  const parent = categoryTree.value.find(item => item.id === form.parentCategoryId)
+  const parent = categoryTree.value.find((item) => item.id === form.parentCategoryId)
   return parent?.children || []
 })
 const categoryParentMap = computed(() => {
@@ -387,15 +398,14 @@ const uiFilters = reactive({
   published: ''
 })
 
-// 弹窗相关
 const dialogVisible = ref(false)
 const editId = ref(null)
 const submitting = ref(false)
 const formRef = ref()
-const ratingDialogVisible = ref(false)
-const ratingSubmitting = ref(false)
-const ratingFormRef = ref()
-const ratingEditId = ref(null)
+const heatDialogVisible = ref(false)
+const heatSubmitting = ref(false)
+const heatFormRef = ref()
+const heatEditId = ref(null)
 
 const form = reactive({
   name: '',
@@ -410,7 +420,8 @@ const form = reactive({
   openTime: '',
   description: '',
   coverImage: '',
-  images: []
+  images: [],
+  published: false
 })
 
 const rules = {
@@ -422,15 +433,13 @@ const rules = {
   address: [{ required: true, message: '请输入地址', trigger: 'blur' }]
 }
 
-const ratingForm = reactive({
+const heatForm = reactive({
   avgRating: 0,
   ratingCount: 0,
   heatScore: 0
 })
 
-const ratingRules = {
-  avgRating: [{ required: true, message: '请输入评分', trigger: 'blur' }],
-  ratingCount: [{ required: true, message: '请输入评价数', trigger: 'blur' }],
+const heatRules = {
   heatScore: [{ required: true, message: '请输入热度', trigger: 'blur' }]
 }
 
@@ -458,36 +467,16 @@ const syncFilters = () => {
     : null
   queryParams.regionId = selectedRegionId ? Number(selectedRegionId) : null
   queryParams.categoryId = selectedCategoryId ? Number(selectedCategoryId) : null
-  queryParams.published = uiFilters.published == null || uiFilters.published === ''
+  queryParams.published = uiFilters.published === '' || uiFilters.published == null
     ? null
     : Number(uiFilters.published)
 }
 
-const findRegionPathById = (targetId, tree) => {
+const findPathById = (targetId, tree) => {
   if (!targetId || !Array.isArray(tree) || !tree.length) {
     return []
   }
-  const stack = tree.map(node => ({ node, path: [node.id] }))
-  while (stack.length) {
-    const current = stack.pop()
-    if (!current) continue
-    if (current.node.id === targetId) {
-      return current.path
-    }
-    if (Array.isArray(current.node.children) && current.node.children.length) {
-      for (const child of current.node.children) {
-        stack.push({ node: child, path: [...current.path, child.id] })
-      }
-    }
-  }
-  return []
-}
-
-const findCategoryPathById = (targetId, tree) => {
-  if (!targetId || !Array.isArray(tree) || !tree.length) {
-    return []
-  }
-  const stack = tree.map(node => ({ node, path: [node.id] }))
+  const stack = tree.map((node) => ({ node, path: [node.id] }))
   while (stack.length) {
     const current = stack.pop()
     if (!current) continue
@@ -507,8 +496,8 @@ const loadData = async () => {
   loading.value = true
   try {
     const res = await getSpotList(queryParams)
-    tableData.value = res.data.list
-    total.value = res.data.total
+    tableData.value = res.data.list || []
+    total.value = res.data.total || 0
   } finally {
     loading.value = false
   }
@@ -535,9 +524,28 @@ const handleReset = () => {
   handleSearch()
 }
 
+const resetForm = () => {
+  Object.assign(form, {
+    name: '',
+    price: 0,
+    regionId: null,
+    regionPath: [],
+    parentCategoryId: null,
+    categoryId: null,
+    address: '',
+    latitude: null,
+    longitude: null,
+    openTime: '',
+    description: '',
+    coverImage: '',
+    images: [],
+    published: false
+  })
+}
+
 const handleAdd = () => {
   editId.value = null
-  Object.assign(form, { name: '', price: 0, regionId: null, regionPath: [], parentCategoryId: null, categoryId: null, address: '', latitude: null, longitude: null, openTime: '', description: '', coverImage: '', images: [] })
+  resetForm()
   dialogVisible.value = true
 }
 
@@ -546,27 +554,59 @@ const handleEdit = async (row) => {
   try {
     const res = await getSpotDetail(row.id)
     Object.assign(form, res.data)
-    form.regionPath = findRegionPathById(form.regionId, regionCascaderOptions.value)
+    form.regionPath = findPathById(form.regionId, regionCascaderOptions.value)
     form.images = Array.isArray(res.data.images) ? [...res.data.images] : []
     form.parentCategoryId = categoryParentMap.value[form.categoryId] || null
     dialogVisible.value = true
   } catch (e) {}
 }
 
-const handleRatingEdit = async (row) => {
-  ratingEditId.value = row.id
+const handleHeatEdit = async (row) => {
+  heatEditId.value = row.id
   try {
     const res = await getSpotDetail(row.id)
-    ratingForm.avgRating = res.data.avgRating ?? 0
-    ratingForm.ratingCount = res.data.ratingCount ?? 0
-    ratingForm.heatScore = res.data.heatScore ?? 0
-    ratingDialogVisible.value = true
+    heatForm.avgRating = res.data.avgRating ?? 0
+    heatForm.ratingCount = res.data.ratingCount ?? 0
+    heatForm.heatScore = res.data.heatScore ?? 0
+    heatDialogVisible.value = true
   } catch (e) {}
+}
+
+const handleRefreshSpotRating = async (row) => {
+  await refreshSpotRating(row.id)
+  ElMessage.success('评分已按评价表同步')
+  loadData()
+}
+
+const handleRefreshAllRatings = async () => {
+  refreshingAllRatings.value = true
+  try {
+    await refreshAllSpotRatings()
+    ElMessage.success('全部景点评分已按评价表同步')
+    loadData()
+  } finally {
+    refreshingAllRatings.value = false
+  }
 }
 
 const handleParentCategoryChange = () => {
   form.categoryId = null
 }
+
+const buildSubmitPayload = () => ({
+  name: form.name,
+  description: form.description,
+  price: form.price,
+  openTime: form.openTime,
+  address: form.address,
+  latitude: form.latitude,
+  longitude: form.longitude,
+  coverImage: form.coverImage,
+  regionId: form.regionPath?.length ? form.regionPath[form.regionPath.length - 1] : form.regionId,
+  categoryId: form.categoryId,
+  published: form.published,
+  images: form.images
+})
 
 const handleSubmit = async () => {
   await formRef.value.validate()
@@ -586,20 +626,18 @@ const handleSubmit = async () => {
   }
 }
 
-const handleRatingSubmit = async () => {
-  await ratingFormRef.value.validate()
-  ratingSubmitting.value = true
+const handleHeatSubmit = async () => {
+  await heatFormRef.value.validate()
+  heatSubmitting.value = true
   try {
-    await updateSpot(ratingEditId.value, {
-      avgRating: ratingForm.avgRating,
-      ratingCount: ratingForm.ratingCount,
-      heatScore: ratingForm.heatScore
+    await updateSpot(heatEditId.value, {
+      heatScore: heatForm.heatScore
     })
     ElMessage.success('更新成功')
-    ratingDialogVisible.value = false
+    heatDialogVisible.value = false
     loadData()
   } finally {
-    ratingSubmitting.value = false
+    heatSubmitting.value = false
   }
 }
 
@@ -617,23 +655,6 @@ const handleDelete = async (row) => {
   ElMessage.success('删除成功')
   loadData()
 }
-
-const buildSubmitPayload = () => ({
-  name: form.name,
-  description: form.description,
-  price: form.price,
-  openTime: form.openTime,
-  address: form.address,
-  latitude: form.latitude,
-  longitude: form.longitude,
-  coverImage: form.coverImage,
-  regionId: form.regionPath?.length
-    ? form.regionPath[form.regionPath.length - 1]
-    : form.regionId,
-  categoryId: form.categoryId,
-  published: form.published,
-  images: form.images
-})
 </script>
 
 <style lang="scss" scoped>
@@ -643,8 +664,17 @@ const buildSubmitPayload = () => ({
   align-items: center;
 }
 
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
 .search-form {
   margin-bottom: 20px;
+}
+
+.table-actions {
+  white-space: nowrap;
 }
 
 .pagination {
@@ -682,7 +712,7 @@ const buildSubmitPayload = () => ({
     align-items: center;
     justify-content: center;
     color: #8c939d;
-    
+
     .el-icon {
       font-size: 28px;
       margin-bottom: 8px;
