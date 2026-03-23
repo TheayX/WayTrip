@@ -241,7 +241,7 @@ const handleBannerClick = (banner) => {
 
 // 跳转
 const goSpotDetail = (spotId) => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=home` })
 }
 
 const goSpotList = () => {

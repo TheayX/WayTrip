@@ -133,7 +133,7 @@ const handlePay = async (order) => {
 }
 
 const handleReview = (order) => {
-  router.push(`/spots/${order.spotId}?openReview=1`)
+  router.push(`/spots/${order.spotId}?openReview=1&source=order`)
 }
 
 onMounted(() => {

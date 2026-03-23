@@ -94,7 +94,7 @@ const loadMore = () => {
 }
 
 const goDetail = (id) => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${id}` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=favorite` })
 }
 
 onShow(() => {

@@ -12,7 +12,7 @@
         v-for="spot in favoriteList"
         :key="spot.id"
         class="fav-card card"
-        @click="$router.push(`/spots/${spot.id}`)"
+        @click="$router.push(`/spots/${spot.id}?source=favorite`)"
       >
         <div class="fav-img-wrapper">
           <img :src="getImageUrl(spot.coverImage)" class="fav-img" alt="" />

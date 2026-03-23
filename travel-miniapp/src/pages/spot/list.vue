@@ -415,7 +415,7 @@ const loadMore = () => {
 }
 
 const goSearch = () => uni.navigateTo({ url: '/pages/spot/search' })
-const goDetail = (id) => uni.navigateTo({ url: `/pages/spot/detail?id=${id}` })
+const goDetail = (id) => uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=list` })
 
 onMounted(() => {
   fetchFilters()

@@ -69,7 +69,7 @@ const fetchGuideDetail = async () => {
 // 跳转景点详情
 const goSpotDetail = (id) => {
   uni.navigateTo({
-    url: `/pages/spot/detail?id=${id}`
+    url: `/pages/spot/detail?id=${id}&source=guide`
   })
 }
 
