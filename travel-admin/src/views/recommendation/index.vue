@@ -201,13 +201,86 @@
             <p>本系统基于 <strong>ItemCF（基于物品的协同过滤）</strong> 算法，核心公式如下：</p>
             <div class="formula-block">
               <div class="formula-title">公式 1：IUF 加权余弦相似度</div>
-              <div class="formula">w<sub>ij</sub> = Σ<sub>u∈N(i)∩N(j)</sub> 1/log(1+|N(u)|) / (√|N(i)| × √|N(j)|)</div>
-              <p>其中 N(i) 为交互过景点 i 的用户集合，|N(u)| 为用户 u 交互的总景点数。<br/>IUF 机制抑制高活跃用户（如旅游博主）的影响力，避免热门景点的同质化推荐。</p>
+              <div class="formula-surface formula-surface--left">
+                <math display="block" xmlns="http://www.w3.org/1998/Math/MathML">
+                  <mrow>
+                    <msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub>
+                    <mo>=</mo>
+                    <mfrac>
+                      <mrow>
+                        <munderover>
+                          <mo>&#x2211;</mo>
+                          <mrow>
+                            <mi>u</mi>
+                            <mo>&#x2208;</mo>
+                            <mi>N</mi><mo>(</mo><mi>i</mi><mo>)</mo>
+                            <mo>&#x2229;</mo>
+                            <mi>N</mi><mo>(</mo><mi>j</mi><mo>)</mo>
+                          </mrow>
+                          <mrow />
+                        </munderover>
+                        <mfrac>
+                          <mn>1</mn>
+                          <mrow>
+                            <mi>log</mi>
+                            <mo>(</mo>
+                            <mn>1</mn>
+                            <mo>+</mo>
+                            <mo>|</mo><mi>N</mi><mo>(</mo><mi>u</mi><mo>)</mo><mo>|</mo>
+                            <mo>)</mo>
+                          </mrow>
+                        </mfrac>
+                      </mrow>
+                      <msqrt>
+                        <mrow>
+                          <mo>|</mo><mi>N</mi><mo>(</mo><mi>i</mi><mo>)</mo><mo>|</mo>
+                          <mo>&#x22C5;</mo>
+                          <mo>|</mo><mi>N</mi><mo>(</mo><mi>j</mi><mo>)</mo><mo>|</mo>
+                        </mrow>
+                      </msqrt>
+                    </mfrac>
+                  </mrow>
+                </math>
+              </div>
+              <div class="formula-symbols">
+                <p><code>w<sub>ij</sub></code>：景点 <code>i</code> 与景点 <code>j</code> 的相似度</p>
+                <p><code>N(i)</code>：与景点 <code>i</code> 发生过交互的用户集合</p>
+                <p><code>N(j)</code>：与景点 <code>j</code> 发生过交互的用户集合</p>
+                <p><code>N(u)</code>：用户 <code>u</code> 历史交互过的景点集合，<code>|N(u)|</code> 为交互景点总数</p>
+              </div>
             </div>
             <div class="formula-block">
               <div class="formula-title">公式 2：预测评分</div>
-              <div class="formula">P<sub>uj</sub> = Σ<sub>i∈N(u)∩S(j,K)</sub> w<sub>ji</sub> × r<sub>ui</sub></div>
-              <p>其中 r<sub>ui</sub> 为用户 u 与景点 i 的交互权重（由行为权重参数决定），S(j,K) 为与景点 j 最相似的 K 个景点。</p>
+              <div class="formula-surface formula-surface--left">
+                <math display="block" xmlns="http://www.w3.org/1998/Math/MathML">
+                  <mrow>
+                    <msub><mi>P</mi><mrow><mi>u</mi><mi>j</mi></mrow></msub>
+                    <mo>=</mo>
+                    <mrow>
+                      <munderover>
+                        <mo>&#x2211;</mo>
+                        <mrow>
+                          <mi>i</mi>
+                          <mo>&#x2208;</mo>
+                          <mi>N</mi><mo>(</mo><mi>u</mi><mo>)</mo>
+                          <mo>&#x2229;</mo>
+                          <mi>S</mi><mo>(</mo><mi>j</mi><mo>,</mo><mi>K</mi><mo>)</mo>
+                        </mrow>
+                        <mrow />
+                      </munderover>
+                      <msub><mi>w</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub>
+                      <mo>&#x22C5;</mo>
+                      <msub><mi>r</mi><mrow><mi>u</mi><mi>i</mi></mrow></msub>
+                    </mrow>
+                  </mrow>
+                </math>
+              </div>
+              <div class="formula-symbols">
+                <p><code>P<sub>uj</sub></code>：用户 <code>u</code> 对景点 <code>j</code> 的预测兴趣分数</p>
+                <p><code>w<sub>ji</sub></code>：景点 <code>j</code> 与景点 <code>i</code> 的相似度</p>
+                <p><code>r<sub>ui</sub></code>：用户 <code>u</code> 对景点 <code>i</code> 的历史交互权重</p>
+                <p><code>S(j, K)</code>：与景点 <code>j</code> 最相似的前 <code>K</code> 个景点集合</p>
+              </div>
             </div>
           </div>
         </el-collapse-item>
@@ -664,6 +737,49 @@ onMounted(() => {
       color: #1f2f3d;
       padding: 8px 0;
       letter-spacing: 0.5px;
+    }
+  }
+
+  .formula-intro {
+    margin-top: 0;
+  }
+
+  .formula-surface {
+    overflow-x: auto;
+    margin: 12px 0;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid #e6eef8;
+    border-radius: 10px;
+
+    math {
+      min-width: 560px;
+      font-size: 1.08rem;
+      color: #1f2f3d;
+    }
+  }
+
+  .formula-surface--left {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .formula-surface--left math {
+    display: block;
+    margin: 0;
+    text-align: left;
+  }
+
+  .formula-symbols {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0;
+
+    p {
+      margin: 0;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
     }
   }
 
