@@ -70,6 +70,12 @@ public class RecommendationServiceImpl implements RecommendationService {
             if (map.containsKey("weightReviewFactor")) config.setWeightReviewFactor(toDouble(map.get("weightReviewFactor")));
             if (map.containsKey("weightOrderPaid")) config.setWeightOrderPaid(toDouble(map.get("weightOrderPaid")));
             if (map.containsKey("weightOrderCompleted")) config.setWeightOrderCompleted(toDouble(map.get("weightOrderCompleted")));
+            if (map.containsKey("heatViewIncrement")) config.setHeatViewIncrement(toInt(map.get("heatViewIncrement")));
+            if (map.containsKey("heatFavoriteIncrement")) config.setHeatFavoriteIncrement(toInt(map.get("heatFavoriteIncrement")));
+            if (map.containsKey("heatReviewIncrement")) config.setHeatReviewIncrement(toInt(map.get("heatReviewIncrement")));
+            if (map.containsKey("heatOrderPaidIncrement")) config.setHeatOrderPaidIncrement(toInt(map.get("heatOrderPaidIncrement")));
+            if (map.containsKey("heatViewDedupeWindowMinutes")) config.setHeatViewDedupeWindowMinutes(toInt(map.get("heatViewDedupeWindowMinutes")));
+            if (map.containsKey("heatRerankFactor")) config.setHeatRerankFactor(toDouble(map.get("heatRerankFactor")));
             if (map.containsKey("minInteractionsForCF")) config.setMinInteractionsForCF(toInt(map.get("minInteractionsForCF")));
             if (map.containsKey("topKNeighbors")) config.setTopKNeighbors(toInt(map.get("topKNeighbors")));
             if (map.containsKey("similarityTTLHours")) config.setSimilarityTTLHours(toInt(map.get("similarityTTLHours")));
@@ -170,6 +176,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         // 过滤已交互的景点
         List<Long> filteredIds = filterInteractedSpots(userId, recommendedIds);
         Map<Long, Double> filteredScores = orderScoresByIds(filteredIds, recommendedScores);
+        filteredScores = applyHeatRerank(filteredScores, config);
+        filteredIds = new ArrayList<>(filteredScores.keySet());
         
         if (filteredIds.isEmpty()) {
             return handleColdStart(userId, limit, refresh);
@@ -401,6 +409,43 @@ public class RecommendationServiceImpl implements RecommendationService {
         return scores.entrySet().stream()
             .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
             .limit(limit)
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (left, right) -> left,
+                LinkedHashMap::new
+            ));
+    }
+
+    private Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, RecommendationConfigDTO config) {
+        if (scoreMap == null || scoreMap.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        double rerankFactor = config.getHeatRerankFactor() == null ? 0.0 : config.getHeatRerankFactor();
+        if (rerankFactor <= 0) {
+            return new LinkedHashMap<>(scoreMap);
+        }
+
+        List<Spot> spots = spotMapper.selectBatchIds(scoreMap.keySet());
+        Map<Long, Integer> heatMap = spots.stream()
+            .filter(spot -> spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
+            .collect(Collectors.toMap(Spot::getId, spot -> Optional.ofNullable(spot.getHeatScore()).orElse(0)));
+
+        int maxHeat = heatMap.values().stream().max(Integer::compareTo).orElse(0);
+        if (maxHeat <= 0) {
+            return new LinkedHashMap<>(scoreMap);
+        }
+
+        return scoreMap.entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue() + rerankFactor * (heatMap.getOrDefault(entry.getKey(), 0) / (double) maxHeat),
+                (left, right) -> left,
+                LinkedHashMap::new
+            ))
+            .entrySet().stream()
+            .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 Map.Entry::getValue,
