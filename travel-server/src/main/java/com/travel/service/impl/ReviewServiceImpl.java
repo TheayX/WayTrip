@@ -15,6 +15,7 @@ import com.travel.entity.User;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
+import com.travel.service.RecommendationService;
 import com.travel.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final SpotMapper spotMapper;
     private final UserMapper userMapper;
+    private final RecommendationService recommendationService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -70,6 +72,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         updateSpotAvgRating(request.getSpotId());
+        recommendationService.invalidateUserRecommendationCache(userId);
         log.info("用户提交评价: userId={}, spotId={}, score={}", userId, request.getSpotId(), request.getScore());
     }
 
@@ -127,6 +130,7 @@ public class ReviewServiceImpl implements ReviewService {
         review.setIsDeleted(1);
         reviewMapper.updateById(review);
         updateSpotAvgRating(review.getSpotId());
+        recommendationService.invalidateUserRecommendationCache(userId);
         log.info("用户删除评价: userId={}, reviewId={}, spotId={}", userId, reviewId, review.getSpotId());
     }
 

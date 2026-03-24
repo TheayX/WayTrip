@@ -50,10 +50,7 @@ const fetchCategories = async () => {
 const fetchUserPreferences = async () => {
   try {
     const res = await getUserInfo()
-    const preferences = res.data?.preferences
-    if (preferences) {
-      selectedIds.value = preferences.split(',').map(Number).filter(Boolean)
-    }
+    selectedIds.value = res.data?.preferenceCategoryIds || []
   } catch (e) {
     console.error('获取用户偏好失败', e)
   }
@@ -81,8 +78,15 @@ const savePreferences = async () => {
   saving.value = true
   try {
     await updatePreferences({ categoryIds: selectedIds.value })
+    const categoryNames = selectedIds.value
+      .map(id => categories.value.find(cat => cat.id === id)?.name)
+      .filter(Boolean)
     uni.showToast({ title: '保存成功', icon: 'success' })
-    userStore.updatePreferences(selectedIds.value.join(','))
+    userStore.updatePreferences({
+      preferences: categoryNames,
+      preferenceCategoryIds: [...selectedIds.value],
+      preferenceCategoryNames: categoryNames
+    })
     setTimeout(() => {
       uni.navigateBack()
     }, 1500)

@@ -27,7 +27,7 @@ export const useUserStore = defineStore('user', () => {
 
   function updatePreferences(preferences) {
     if (userInfo.value) {
-      userInfo.value = { ...userInfo.value, preferences }
+      userInfo.value = { ...userInfo.value, ...preferences }
     }
   }
 

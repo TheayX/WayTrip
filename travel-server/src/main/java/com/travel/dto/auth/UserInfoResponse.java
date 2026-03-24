@@ -1,7 +1,8 @@
 package com.travel.dto.auth;
 
-import lombok.Data;
 import lombok.Builder;
+import lombok.Data;
+
 import java.util.List;
 
 /**
@@ -16,4 +17,6 @@ public class UserInfoResponse {
     private String phone;
     private Boolean hasPassword;
     private List<String> preferences;
+    private List<Long> preferenceCategoryIds;
+    private List<String> preferenceCategoryNames;
 }

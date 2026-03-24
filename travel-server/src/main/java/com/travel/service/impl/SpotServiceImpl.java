@@ -9,6 +9,7 @@ import com.travel.common.result.ResultCode;
 import com.travel.dto.spot.*;
 import com.travel.entity.*;
 import com.travel.mapper.*;
+import com.travel.service.RecommendationService;
 import com.travel.service.SpotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ public class SpotServiceImpl implements SpotService {
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final ReviewMapper reviewMapper;
     private final UserSpotViewMapper userSpotViewMapper;
+    private final RecommendationService recommendationService;
 
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
@@ -115,6 +117,7 @@ public class SpotServiceImpl implements SpotService {
             view.setViewSource(source);
             view.setViewDuration(duration != null ? duration : 0);
             userSpotViewMapper.insert(view);
+            recommendationService.invalidateUserRecommendationCache(userId);
         } catch (Exception e) {
             log.warn("记录浏览行为失败: userId={}, spotId={}", userId, spotId, e);
         }

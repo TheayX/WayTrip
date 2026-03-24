@@ -46,7 +46,7 @@ public interface AuthService {
     /**
      * 设置用户偏好标签
      */
-    void setPreferences(Long userId, List<String> tags);
+    void setPreferences(Long userId, List<Long> categoryIds);
 
     /**
      * 小程序端绑定手机号（新用户注册或匹配已有账户合并openid）

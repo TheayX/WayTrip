@@ -1,15 +1,17 @@
 package com.travel.dto.auth;
 
-import lombok.Data;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
 import java.util.List;
 
 /**
- * 设置偏好标签请求
+ * 设置偏好分类请求
  */
 @Data
 public class PreferencesRequest {
-    
-    @NotEmpty(message = "偏好标签不能为空")
-    private List<String> tags;
+
+    @NotEmpty(message = "偏好分类不能为空")
+    private List<@NotNull(message = "分类ID不能为空") Long> categoryIds;
 }

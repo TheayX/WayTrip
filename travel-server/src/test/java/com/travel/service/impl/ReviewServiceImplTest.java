@@ -9,6 +9,7 @@ import com.travel.entity.Spot;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
+import com.travel.service.RecommendationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,9 @@ class ReviewServiceImplTest {
 
     @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private RecommendationService recommendationService;
 
     @InjectMocks
     private ReviewServiceImpl reviewService;
