@@ -181,6 +181,12 @@
                 <span class="form-tip">订单从待支付变为已支付时增加的热度分数</span>
               </el-form-item>
             </el-col>
+            <el-col :span="12">
+              <el-form-item label="热度重排系数">
+                <el-input-number v-model="config.heatRerankFactor" :min="0" :max="1" :step="0.01" :precision="2" />
+                <span class="form-tip">最终排序按 CF 分数 + 系数 × 归一化热度 轻量重排，建议保持较小值</span>
+              </el-form-item>
+            </el-col>
           </el-row>
         </div>
 
@@ -456,6 +462,7 @@
               <el-descriptions-item label="评价热度加分">2</el-descriptions-item>
               <el-descriptions-item label="支付热度加分">5</el-descriptions-item>
               <el-descriptions-item label="浏览去重窗口">30 分钟</el-descriptions-item>
+              <el-descriptions-item label="热度重排系数">0.05</el-descriptions-item>
               <el-descriptions-item label="最少交互数">3</el-descriptions-item>
               <el-descriptions-item label="近邻数量 K">20</el-descriptions-item>
               <el-descriptions-item label="矩阵 TTL">24 小时</el-descriptions-item>
@@ -494,6 +501,7 @@ const config = reactive({
   heatReviewIncrement: 2,
   heatOrderPaidIncrement: 5,
   heatViewDedupeWindowMinutes: 30,
+  heatRerankFactor: 0.05,
   minInteractionsForCF: 3,
   topKNeighbors: 20,
   similarityTTLHours: 24,
@@ -559,6 +567,7 @@ const defaultConfig = {
   heatReviewIncrement: 2,
   heatOrderPaidIncrement: 5,
   heatViewDedupeWindowMinutes: 30,
+  heatRerankFactor: 0.05,
   minInteractionsForCF: 3,
   topKNeighbors: 20,
   similarityTTLHours: 24,
