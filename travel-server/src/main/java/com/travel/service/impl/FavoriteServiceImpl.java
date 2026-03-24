@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FavoriteServiceImpl implements FavoriteService {
 
+    private static final int FAVORITE_HEAT_INCREMENT = 3;
+
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final SpotMapper spotMapper;
     private final SpotRegionMapper spotRegionMapper;
@@ -61,6 +64,7 @@ public class FavoriteServiceImpl implements FavoriteService {
             }
             existingFavorite.setIsDeleted(0);
             userSpotFavoriteMapper.updateById(existingFavorite);
+            incrementHeatScore(spotId, FAVORITE_HEAT_INCREMENT);
             recommendationService.invalidateUserRecommendationCache(userId);
             return;
         }
@@ -69,6 +73,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         favorite.setUserId(userId);
         favorite.setSpotId(spotId);
         userSpotFavoriteMapper.insert(favorite);
+        incrementHeatScore(spotId, FAVORITE_HEAT_INCREMENT);
         recommendationService.invalidateUserRecommendationCache(userId);
         log.info("用户添加收藏: userId={}, spotId={}", userId, spotId);
     }
@@ -152,5 +157,14 @@ public class FavoriteServiceImpl implements FavoriteService {
         if (categoryId == null) return null;
         SpotCategory category = spotCategoryMapper.selectById(categoryId);
         return category != null && category.getIsDeleted() == 0 ? category.getName() : null;
+    }
+
+    private void incrementHeatScore(Long spotId, int delta) {
+        spotMapper.update(
+            null,
+            new UpdateWrapper<Spot>()
+                .eq("id", spotId)
+                .setSql("heat_score = COALESCE(heat_score, 0) + " + delta)
+        );
     }
 }
