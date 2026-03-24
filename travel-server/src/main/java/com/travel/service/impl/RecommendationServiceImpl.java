@@ -206,10 +206,10 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<UserSpotView> views = userSpotViewMapper.selectList(
             new LambdaQueryWrapper<UserSpotView>()
                 .eq(UserSpotView::getUserId, userId)
-                .select(UserSpotView::getSpotId)
+                .select(UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
         );
         for (UserSpotView v : views) {
-            weights.merge(v.getSpotId(), config.getWeightView(), Math::max);
+            weights.merge(v.getSpotId(), calculateViewWeight(v, config), Math::max);
         }
 
         // 收藏
@@ -617,12 +617,12 @@ public class RecommendationServiceImpl implements RecommendationService {
             // 1a. 浏览数据
             List<UserSpotView> allViews = userSpotViewMapper.selectList(
                 new LambdaQueryWrapper<UserSpotView>()
-                    .select(UserSpotView::getUserId, UserSpotView::getSpotId)
+                    .select(UserSpotView::getUserId, UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
             );
             for (UserSpotView v : allViews) {
                 if (!activeSpotIds.contains(v.getSpotId())) continue;
                 userItemMatrix.computeIfAbsent(v.getUserId(), k -> new HashMap<>())
-                    .merge(v.getSpotId(), config.getWeightView(), Math::max);
+                    .merge(v.getSpotId(), calculateViewWeight(v, config), Math::max);
                 allSpotIds.add(v.getSpotId());
             }
 
@@ -785,6 +785,39 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         double denominator = Math.sqrt(usersI.size()) * Math.sqrt(usersJ.size());
         return iufSum / denominator;
+    }
+
+    private double calculateViewWeight(UserSpotView view, RecommendationConfigDTO config) {
+        double baseWeight = config.getWeightView() == null ? 0.5 : config.getWeightView();
+        return baseWeight * getViewSourceFactor(view.getViewSource()) * getViewDurationFactor(view.getViewDuration());
+    }
+
+    private double getViewSourceFactor(String source) {
+        if (source == null || source.isBlank()) {
+            return 1.0;
+        }
+        return switch (source.trim().toLowerCase(Locale.ROOT)) {
+            case "search" -> 1.2;
+            case "recommend" -> 1.1;
+            case "home" -> 0.9;
+            case "guide" -> 1.0;
+            case "detail" -> 1.0;
+            default -> 1.0;
+        };
+    }
+
+    private double getViewDurationFactor(Integer duration) {
+        int seconds = duration == null ? 0 : Math.max(duration, 0);
+        if (seconds < 10) {
+            return 0.6;
+        }
+        if (seconds < 60) {
+            return 1.0;
+        }
+        if (seconds < 180) {
+            return 1.2;
+        }
+        return 1.35;
     }
 
     private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Integer limit, String type, Boolean needPreference) {

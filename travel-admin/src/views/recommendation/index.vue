@@ -101,7 +101,7 @@
             <el-col :span="12">
               <el-form-item label="浏览行为权重">
                 <el-input-number v-model="config.weightView" :min="0" :max="10" :step="0.1" :precision="1" />
-                <span class="form-tip">用户浏览景点详情页的权重</span>
+                <span class="form-tip">浏览基础权重，实际会再乘以来源因子和停留时长因子</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -575,7 +575,7 @@ const defaultConfig = {
 }
 
 const weightExplanations = [
-  { behavior: '浏览', param: 'weightView', default: '0.5', description: '用户浏览景点详情页产生的隐式反馈，权重最低' },
+  { behavior: '浏览', param: 'weightView', default: '0.5', description: '浏览基础权重；实际按 来源因子 × 停留时长因子 细化，例如搜索进入、停留更久会更高' },
   { behavior: '收藏', param: 'weightFavorite', default: '1.0', description: '用户主动收藏景点，表示明确兴趣' },
   { behavior: '评分', param: 'weightReviewFactor', default: '0.4', description: '实际权重 = 评分(1~5) × 因子，如5分评价 = 5×0.4 = 2.0' },
   { behavior: '已付款', param: 'weightOrderPaid', default: '3.0', description: '用户已下单付款但未完成行程，表示强烈意向' },
