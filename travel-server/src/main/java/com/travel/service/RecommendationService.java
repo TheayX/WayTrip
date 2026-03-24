@@ -21,6 +21,11 @@ public interface RecommendationService {
     RecommendationResponse refreshRecommendations(Long userId, Integer limit);
 
     /**
+     * 管理端调试预览推荐结果
+     */
+    RecommendationResponse previewRecommendations(Long userId, Integer limit, Boolean refresh, Boolean debug);
+
+    /**
      * 获取热门景点
      */
     HotSpotResponse getHotSpots(Integer limit);

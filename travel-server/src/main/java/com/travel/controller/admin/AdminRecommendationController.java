@@ -2,6 +2,7 @@ package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.recommendation.RecommendationConfigDTO;
+import com.travel.dto.recommendation.RecommendationResponse;
 import com.travel.dto.recommendation.RecommendationStatusDTO;
 import com.travel.service.RecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,5 +43,14 @@ public class AdminRecommendationController {
     public ApiResponse<RecommendationStatusDTO> getStatus() {
         return ApiResponse.success(recommendationService.getStatus());
     }
-}
 
+    @Operation(summary = "调试预览指定用户的推荐结果")
+    @GetMapping("/preview")
+    public ApiResponse<RecommendationResponse> previewRecommendations(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "10") Integer limit,
+            @RequestParam(defaultValue = "false") Boolean refresh,
+            @RequestParam(defaultValue = "false") Boolean debug) {
+        return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, refresh, debug));
+    }
+}
