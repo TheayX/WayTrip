@@ -78,7 +78,7 @@ public class AuthController {
     @PostMapping("/preferences")
     public ApiResponse<Void> setPreferences(@Valid @RequestBody PreferencesRequest request) {
         Long userId = UserContext.getUserId();
-        authService.setPreferences(userId, request.getTags());
+        authService.setPreferences(userId, request.getCategoryIds());
         return ApiResponse.success(null);
     }
 }

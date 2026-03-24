@@ -200,12 +200,15 @@ const savePreferences = async () => {
   }
   savingPref.value = true
   try {
-    const tagNames = selectedCategories.value.map(id => {
-      const cat = categories.value.find(c => c.id === id)
-      return cat ? cat.name : id
+    const categoryNames = selectedCategories.value
+      .map(id => categories.value.find(c => c.id === id)?.name)
+      .filter(Boolean)
+    await setPreferences(selectedCategories.value)
+    userStore.updatePreferences({
+      preferences: categoryNames,
+      preferenceCategoryIds: [...selectedCategories.value],
+      preferenceCategoryNames: categoryNames
     })
-    await setPreferences(tagNames)
-    userStore.updatePreferences(tagNames)
     showPreferenceDialog.value = false
     ElMessage.success('偏好设置成功')
     await fetchRecommendations()

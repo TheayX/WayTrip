@@ -15,6 +15,7 @@ import com.travel.mapper.SpotRegionMapper;
 import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.FavoriteService;
+import com.travel.service.RecommendationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final SpotMapper spotMapper;
     private final SpotRegionMapper spotRegionMapper;
     private final SpotCategoryMapper spotCategoryMapper;
+    private final RecommendationService recommendationService;
 
     @Override
     public void addFavorite(Long userId, Long spotId) {
@@ -59,6 +61,7 @@ public class FavoriteServiceImpl implements FavoriteService {
             }
             existingFavorite.setIsDeleted(0);
             userSpotFavoriteMapper.updateById(existingFavorite);
+            recommendationService.invalidateUserRecommendationCache(userId);
             return;
         }
         
@@ -66,6 +69,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         favorite.setUserId(userId);
         favorite.setSpotId(spotId);
         userSpotFavoriteMapper.insert(favorite);
+        recommendationService.invalidateUserRecommendationCache(userId);
         log.info("用户添加收藏: userId={}, spotId={}", userId, spotId);
     }
 
@@ -79,6 +83,7 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .eq(UserSpotFavorite::getUserId, userId)
                 .eq(UserSpotFavorite::getSpotId, spotId)
         );
+        recommendationService.invalidateUserRecommendationCache(userId);
         log.info("用户取消收藏: userId={}, spotId={}", userId, spotId);
     }
 

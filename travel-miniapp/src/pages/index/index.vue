@@ -222,7 +222,15 @@ const savePreferences = async () => {
   }
   
   try {
-    await updatePreferences({ tags: selectedCategories.value })
+    const categoryNames = selectedCategories.value
+      .map(id => categories.value.find(cat => cat.id === id)?.name)
+      .filter(Boolean)
+    await updatePreferences({ categoryIds: selectedCategories.value })
+    userStore.updatePreferences({
+      preferences: categoryNames,
+      preferenceCategoryIds: [...selectedCategories.value],
+      preferenceCategoryNames: categoryNames
+    })
     uni.showToast({ title: '设置成功', icon: 'success' })
     preferenceVisible.value = false
     handleRefresh()

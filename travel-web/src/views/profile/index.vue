@@ -85,8 +85,8 @@
             <el-check-tag
               v-for="cat in categories"
               :key="cat.id"
-              :checked="selectedCategories.includes(cat.name)"
-              @change="toggleCategory(cat.name)"
+              :checked="selectedCategories.includes(cat.id)"
+              @change="toggleCategory(cat.id)"
               class="pref-tag"
             >{{ cat.name }}</el-check-tag>
           </div>
@@ -207,7 +207,7 @@ const fetchUserInfo = async () => {
     profileForm.avatar = info.avatar || ''
     avatarPreview.value = ''
     avatarFile.value = null
-    selectedCategories.value = info.preferences || []
+    selectedCategories.value = info.preferenceCategoryIds || []
   } catch (e) { /* ignore */ }
 }
 
@@ -272,12 +272,12 @@ const saveProfile = async () => {
   saving.value = false
 }
 
-const toggleCategory = (name) => {
-  const idx = selectedCategories.value.indexOf(name)
+const toggleCategory = (categoryId) => {
+  const idx = selectedCategories.value.indexOf(categoryId)
   if (idx > -1) {
     selectedCategories.value.splice(idx, 1)
   } else {
-    selectedCategories.value.push(name)
+    selectedCategories.value.push(categoryId)
   }
 }
 
@@ -358,8 +358,15 @@ const handleSavePreference = async () => {
   }
   savingPref.value = true
   try {
+    const categoryNames = selectedCategories.value
+      .map(id => categories.value.find(cat => cat.id === id)?.name)
+      .filter(Boolean)
     await setPreferences(selectedCategories.value)
-    userStore.updatePreferences(selectedCategories.value)
+    userStore.updatePreferences({
+      preferences: categoryNames,
+      preferenceCategoryIds: [...selectedCategories.value],
+      preferenceCategoryNames: categoryNames
+    })
     ElMessage.success('偏好保存成功')
   } catch (e) { /* ignore */ }
   savingPref.value = false

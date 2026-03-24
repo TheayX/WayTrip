@@ -33,7 +33,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final UserSpotViewMapper userSpotViewMapper;
     private final SpotCategoryMapper categoryMapper;
     private final SpotRegionMapper spotRegionMapper;
-    private final UserMapper userMapper;
+    private final UserPreferenceMapper userPreferenceMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String SIMILARITY_KEY = "recommendation:similarity:";
@@ -114,6 +114,14 @@ public class RecommendationServiceImpl implements RecommendationService {
         redisTemplate.delete(cacheKey);
         
         return computeRecommendations(userId, limit, true);
+    }
+
+    @Override
+    public void invalidateUserRecommendationCache(Long userId) {
+        if (userId == null) {
+            return;
+        }
+        redisTemplate.delete(USER_REC_KEY + userId);
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
@@ -218,15 +226,10 @@ public class RecommendationServiceImpl implements RecommendationService {
     /**
      * 鍐峰惎鍔ㄥ鐞嗭細鍒锋柊鏃跺硅繑鍥炵粨鏋滃仛杞崲锛岄伩鍏嶆瘡娆￠兘鏄悓涓€鎵?     */
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh) {
-        User user = userMapper.selectById(userId);
-        String preferences = user != null ? user.getPreferences() : null;
+        List<Long> categoryIds = getUserPreferenceCategoryIds(userId);
 
         // 如果用户设置了偏好标签，基于偏好推荐
-        if (preferences != null && !preferences.isEmpty()) {
-            List<Long> categoryIds = Arrays.stream(preferences.split(","))
-                .map(Long::parseLong)
-                .collect(Collectors.toList());
-            
+        if (!categoryIds.isEmpty()) {
             List<Spot> spots = spotMapper.selectList(
                 new LambdaQueryWrapper<Spot>()
                     .eq(Spot::getIsPublished, 1)
@@ -266,6 +269,39 @@ public class RecommendationServiceImpl implements RecommendationService {
             })
             .collect(Collectors.toList()));
         return response;
+    }
+
+    private List<Long> getUserPreferenceCategoryIds(Long userId) {
+        List<UserPreference> preferences = userPreferenceMapper.selectList(
+            new LambdaQueryWrapper<UserPreference>()
+                .eq(UserPreference::getUserId, userId)
+                .eq(UserPreference::getIsDeleted, 0)
+        );
+        if (preferences.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, String> categoryMap = getCategoryMap();
+        Map<String, Long> nameToIdMap = categoryMap.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (left, right) -> left));
+
+        return preferences.stream()
+            .map(UserPreference::getTag)
+            .map(tag -> parsePreferenceCategoryId(tag, nameToIdMap))
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+    }
+
+    private Long parsePreferenceCategoryId(String tag, Map<String, Long> nameToIdMap) {
+        if (tag == null || tag.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(tag.trim());
+        } catch (NumberFormatException ignored) {
+            return nameToIdMap.get(tag.trim());
+        }
     }
 
     /**

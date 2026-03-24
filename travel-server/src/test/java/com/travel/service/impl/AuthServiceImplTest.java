@@ -3,13 +3,23 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
-import com.travel.dto.auth.*;
+import com.travel.dto.auth.AdminLoginRequest;
+import com.travel.dto.auth.ChangePasswordRequest;
+import com.travel.dto.auth.LoginResponse;
+import com.travel.dto.auth.UpdateUserInfoRequest;
+import com.travel.dto.auth.UserInfoResponse;
+import com.travel.dto.auth.WebLoginRequest;
+import com.travel.dto.auth.WebRegisterRequest;
+import com.travel.dto.auth.WxLoginResponse;
 import com.travel.entity.Admin;
+import com.travel.entity.SpotCategory;
 import com.travel.entity.User;
 import com.travel.entity.UserPreference;
 import com.travel.mapper.AdminMapper;
+import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserPreferenceMapper;
+import com.travel.service.RecommendationService;
 import com.travel.util.JwtUtil;
 import com.travel.util.WxApiUtil;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
@@ -34,8 +44,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,13 +53,13 @@ class AuthServiceImplTest {
 
     @BeforeAll
     static void initMybatisPlusLambdaCache() {
-        // MyBatis-Plus 的 LambdaWrapper 需要实体元信息缓存；在不启动 Spring 的纯单元测试里需手动初始化。
         Configuration configuration = new Configuration();
         MapperBuilderAssistant assistant = new MapperBuilderAssistant(configuration, "test");
         assistant.setCurrentNamespace("test");
         TableInfoHelper.initTableInfo(assistant, User.class);
         TableInfoHelper.initTableInfo(assistant, Admin.class);
         TableInfoHelper.initTableInfo(assistant, UserPreference.class);
+        TableInfoHelper.initTableInfo(assistant, SpotCategory.class);
     }
 
     @Mock
@@ -60,6 +70,12 @@ class AuthServiceImplTest {
 
     @Mock
     private UserPreferenceMapper userPreferenceMapper;
+
+    @Mock
+    private SpotCategoryMapper spotCategoryMapper;
+
+    @Mock
+    private RecommendationService recommendationService;
 
     @Mock
     private JwtUtil jwtUtil;
@@ -154,19 +170,27 @@ class AuthServiceImplTest {
         user.setPassword("bcrypt");
         user.setIsDeleted(0);
 
-        UserPreference p1 = new UserPreference();
-        p1.setUserId(1L);
-        p1.setTag("自然风光");
-        p1.setIsDeleted(0);
+        UserPreference preference = new UserPreference();
+        preference.setUserId(1L);
+        preference.setTag("1");
+        preference.setIsDeleted(0);
+
+        SpotCategory category = new SpotCategory();
+        category.setId(1L);
+        category.setName("自然风光");
+        category.setIsDeleted(0);
 
         when(userMapper.selectById(1L)).thenReturn(user);
-        when(userPreferenceMapper.selectList(any())).thenReturn(List.of(p1));
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of(preference));
+        when(spotCategoryMapper.selectList(any())).thenReturn(List.of(category));
 
         UserInfoResponse res = authService.getUserInfo(1L);
 
         assertEquals(1L, res.getId());
         assertEquals("n", res.getNickname());
         assertEquals(List.of("自然风光"), res.getPreferences());
+        assertEquals(List.of(1L), res.getPreferenceCategoryIds());
+        assertEquals(List.of("自然风光"), res.getPreferenceCategoryNames());
         assertTrue(res.getHasPassword());
     }
 
@@ -248,10 +272,17 @@ class AuthServiceImplTest {
 
     @Test
     void setPreferences_replacesOldAndInsertsNew() {
-        authService.setPreferences(1L, List.of("A", "B"));
+        SpotCategory c1 = new SpotCategory();
+        c1.setId(1L);
+        SpotCategory c2 = new SpotCategory();
+        c2.setId(2L);
+        when(spotCategoryMapper.selectBatchIds(any())).thenReturn(List.of(c1, c2));
+
+        authService.setPreferences(1L, List.of(1L, 2L));
 
         verify(userPreferenceMapper).update(any(UserPreference.class), any());
         verify(userPreferenceMapper, times(2)).insert(any(UserPreference.class));
+        verify(recommendationService).invalidateUserRecommendationCache(1L);
     }
 
     @Test

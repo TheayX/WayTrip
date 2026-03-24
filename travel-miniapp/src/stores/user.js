@@ -56,7 +56,10 @@ export const useUserStore = defineStore('user', () => {
   // 更新偏好设置
   function updatePreferences(preferences) {
     if (userInfo.value) {
-      userInfo.value.preferences = preferences
+      userInfo.value = {
+        ...userInfo.value,
+        ...preferences
+      }
       uni.setStorageSync('userInfo', userInfo.value)
     }
   }

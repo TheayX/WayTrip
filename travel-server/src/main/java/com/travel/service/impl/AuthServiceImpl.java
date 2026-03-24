@@ -4,14 +4,26 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
-import com.travel.dto.auth.*;
+import com.travel.dto.auth.AdminLoginRequest;
+import com.travel.dto.auth.AdminLoginResponse;
+import com.travel.dto.auth.ChangePasswordRequest;
+import com.travel.dto.auth.LoginResponse;
+import com.travel.dto.auth.UpdateUserInfoRequest;
+import com.travel.dto.auth.UserInfoResponse;
+import com.travel.dto.auth.WebLoginRequest;
+import com.travel.dto.auth.WebRegisterRequest;
+import com.travel.dto.auth.WxBindPhoneRequest;
+import com.travel.dto.auth.WxLoginResponse;
 import com.travel.entity.Admin;
+import com.travel.entity.SpotCategory;
 import com.travel.entity.User;
 import com.travel.entity.UserPreference;
 import com.travel.mapper.AdminMapper;
+import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserPreferenceMapper;
 import com.travel.service.AuthService;
+import com.travel.service.RecommendationService;
 import com.travel.util.JwtUtil;
 import com.travel.util.WxApiUtil;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +34,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +52,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
     private final AdminMapper adminMapper;
     private final UserPreferenceMapper userPreferenceMapper;
+    private final SpotCategoryMapper spotCategoryMapper;
+    private final RecommendationService recommendationService;
     private final JwtUtil jwtUtil;
     private final WxApiUtil wxApiUtil;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -43,20 +61,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public WxLoginResponse wxLogin(String code) {
-        // 调用微信API获取openid
         String openid = wxApiUtil.getOpenid(code);
         if (!StringUtils.hasText(openid)) {
             throw new BusinessException(ResultCode.WX_LOGIN_FAILED);
         }
 
-        // 查询用户是否存在（通过openid查找）
         User user = userMapper.selectOne(
-            new LambdaQueryWrapper<User>()
-                .eq(User::getOpenid, openid)
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getOpenid, openid)
         );
 
         if (user == null) {
-            // 新用户，不自动创建，只返回openid让前端继续填写手机号密码
             log.info("微信新用户，等待绑定手机号: openid={}", openid);
             return WxLoginResponse.builder()
                     .isNewUser(true)
@@ -64,7 +79,6 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
 
-        // 老用户，正常登录
         boolean isReactivated = false;
         LocalDateTime now = LocalDateTime.now();
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<User>()
@@ -77,7 +91,6 @@ public class AuthServiceImpl implements AuthService {
         }
         userMapper.update(null, updateWrapper);
 
-        // 生成Token
         String token = jwtUtil.generateUserToken(user.getId());
 
         return WxLoginResponse.builder()
@@ -102,14 +115,16 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.TOKEN_INVALID);
         }
 
-        // 获取用户偏好标签
         List<UserPreference> preferences = userPreferenceMapper.selectList(
-            new LambdaQueryWrapper<UserPreference>()
-                .eq(UserPreference::getUserId, userId)
-                .eq(UserPreference::getIsDeleted, 0)
+                new LambdaQueryWrapper<UserPreference>()
+                        .eq(UserPreference::getUserId, userId)
+                        .eq(UserPreference::getIsDeleted, 0)
         );
-        List<String> tags = preferences.stream()
-                .map(UserPreference::getTag)
+        Map<Long, String> categoryMap = getCategoryMap();
+        List<Long> categoryIds = resolvePreferenceCategoryIds(preferences, categoryMap);
+        List<String> categoryNames = categoryIds.stream()
+                .map(categoryMap::get)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         return UserInfoResponse.builder()
@@ -118,7 +133,9 @@ public class AuthServiceImpl implements AuthService {
                 .avatar(user.getAvatarUrl())
                 .phone(user.getPhone())
                 .hasPassword(StringUtils.hasText(user.getPassword()))
-                .preferences(tags)
+                .preferences(categoryNames)
+                .preferenceCategoryIds(categoryIds)
+                .preferenceCategoryNames(categoryNames)
                 .build();
     }
 
@@ -148,7 +165,6 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.TOKEN_INVALID);
         }
 
-        // 如果用户已设置过密码，需要验证旧密码
         if (StringUtils.hasText(user.getPassword())) {
             if (!StringUtils.hasText(request.getOldPassword())) {
                 throw new BusinessException(ResultCode.OLD_PASSWORD_ERROR);
@@ -158,7 +174,6 @@ public class AuthServiceImpl implements AuthService {
             }
         }
 
-        // 更新密码
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userMapper.updateById(user);
     }
@@ -170,7 +185,6 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.TOKEN_INVALID);
         }
 
-        // 标记账户为已删除
         user.setIsDeleted(1);
         userMapper.updateById(user);
 
@@ -179,30 +193,32 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void setPreferences(Long userId, List<String> tags) {
-        // 删除旧的偏好
+    public void setPreferences(Long userId, List<Long> categoryIds) {
+        validateCategoryIds(categoryIds);
+
         UserPreference deletedPreference = new UserPreference();
         deletedPreference.setIsDeleted(1);
         userPreferenceMapper.update(
-            deletedPreference,
-            new LambdaQueryWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
+                deletedPreference,
+                new LambdaQueryWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
         );
 
-        // 插入新的偏好
-        for (String tag : tags) {
+        for (Long categoryId : new LinkedHashSet<>(categoryIds)) {
             UserPreference preference = new UserPreference();
             preference.setUserId(userId);
-            preference.setTag(tag);
+            preference.setTag(String.valueOf(categoryId));
             userPreferenceMapper.insert(preference);
         }
+
+        recommendationService.invalidateUserRecommendationCache(userId);
     }
 
     @Override
     public AdminLoginResponse adminLogin(AdminLoginRequest request) {
         Admin admin = adminMapper.selectOne(
-            new LambdaQueryWrapper<Admin>()
-                .eq(Admin::getUsername, request.getUsername())
-                .eq(Admin::getIsDeleted, 0)
+                new LambdaQueryWrapper<Admin>()
+                        .eq(Admin::getUsername, request.getUsername())
+                        .eq(Admin::getIsDeleted, 0)
         );
 
         if (admin == null) {
@@ -213,19 +229,16 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.ADMIN_DISABLED);
         }
 
-        // 验证密码
         if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
             throw new BusinessException(ResultCode.ADMIN_LOGIN_FAILED);
         }
 
-        // 更新最后登录时间，不触发 updatedAt
         adminMapper.update(
                 null,
                 new LambdaUpdateWrapper<Admin>()
                         .eq(Admin::getId, admin.getId())
                         .set(Admin::getLastLoginAt, LocalDateTime.now()));
 
-        // 生成Token
         String token = jwtUtil.generateAdminToken(admin.getId());
 
         return AdminLoginResponse.builder()
@@ -242,17 +255,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResponse webRegister(WebRegisterRequest request) {
-        // 检查手机号是否已注册
         User existUser = userMapper.selectOne(
-            new LambdaQueryWrapper<User>()
-                .eq(User::getPhone, request.getPhone())
-                .eq(User::getIsDeleted, 0)
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getPhone, request.getPhone())
+                        .eq(User::getIsDeleted, 0)
         );
         if (existUser != null) {
             throw new BusinessException(ResultCode.PHONE_ALREADY_REGISTERED);
         }
 
-        // 创建新用户
         User user = new User();
         String nickname = StringUtils.hasText(request.getNickname()) ? request.getNickname() : "web用户";
         user.setNickname(nickname);
@@ -263,7 +274,6 @@ public class AuthServiceImpl implements AuthService {
         userMapper.insert(user);
         log.info("Web新用户注册: userId={}, phone={}", user.getId(), request.getPhone());
 
-        // 生成Token
         String token = jwtUtil.generateUserToken(user.getId());
 
         return LoginResponse.builder()
@@ -281,37 +291,31 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse webLogin(WebLoginRequest request) {
-        // 根据手机号查找用户（包括已删除的账户）
         User user = userMapper.selectOne(
-            new LambdaQueryWrapper<User>()
-                .eq(User::getPhone, request.getPhone())
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getPhone, request.getPhone())
         );
         if (user == null || !StringUtils.hasText(user.getPassword())) {
             throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
         }
 
-        // 验证密码
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
         }
 
-        // 检查账户是否被注销
         boolean isReactivated = false;
         if (user.getIsDeleted() == 1) {
-            // 自动恢复被注销的账户
             user.setIsDeleted(0);
             isReactivated = true;
             log.info("账户已恢复: userId={}", user.getId());
         }
 
-        // 更新最后登录时间和状态
         userMapper.update(null,
-            new LambdaUpdateWrapper<User>()
-                .eq(User::getId, user.getId())
-                .set(User::getLastLoginAt, LocalDateTime.now())
-                .set(User::getIsDeleted, user.getIsDeleted()));
+                new LambdaUpdateWrapper<User>()
+                        .eq(User::getId, user.getId())
+                        .set(User::getLastLoginAt, LocalDateTime.now())
+                        .set(User::getIsDeleted, user.getIsDeleted()));
 
-        // 生成Token
         String token = jwtUtil.generateUserToken(user.getId());
 
         return LoginResponse.builder()
@@ -347,14 +351,12 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse wxBindPhone(WxBindPhoneRequest request) {
         String openid = request.getOpenid();
 
-        // 确认该openid尚未绑定用户（防止重复调用）
         User existByOpenid = userMapper.selectOne(
-            new LambdaQueryWrapper<User>()
-                .eq(User::getOpenid, openid)
-                .eq(User::getIsDeleted, 0)
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getOpenid, openid)
+                        .eq(User::getIsDeleted, 0)
         );
         if (existByOpenid != null) {
-            // openid已绑定用户，直接返回登录信息
             String token = jwtUtil.generateUserToken(existByOpenid.getId());
             return LoginResponse.builder()
                     .token(token)
@@ -370,15 +372,13 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
 
-        // 查找手机号对应的已有用户
         User existUser = userMapper.selectOne(
-            new LambdaQueryWrapper<User>()
-                .eq(User::getPhone, request.getPhone())
-                .eq(User::getIsDeleted, 0)
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getPhone, request.getPhone())
+                        .eq(User::getIsDeleted, 0)
         );
 
         if (existUser != null) {
-            // 手机号已存在，验证密码
             if (!StringUtils.hasText(existUser.getPassword())) {
                 throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
             }
@@ -386,7 +386,6 @@ public class AuthServiceImpl implements AuthService {
                 throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
             }
 
-            // 密码匹配！把openid合并到已有账户
             if (StringUtils.hasText(existUser.getOpenid()) && !existUser.getOpenid().equals(openid)) {
                 throw new BusinessException(ResultCode.PHONE_ALREADY_REGISTERED);
             }
@@ -409,32 +408,75 @@ public class AuthServiceImpl implements AuthService {
                             .isMerged(true)
                             .build())
                     .build();
-        } else {
-            // 手机号不存在，创建新用户
-            User newUser = new User();
-            newUser.setOpenid(openid);
-            newUser.setPhone(request.getPhone());
-            newUser.setPassword(passwordEncoder.encode(request.getPassword()));
-            newUser.setNickname("微信用户");
-            newUser.setAvatarUrl("");
-            newUser.setLastLoginAt(LocalDateTime.now());
-            userMapper.insert(newUser);
-            log.info("微信新用户注册: userId={}, phone={}", newUser.getId(), request.getPhone());
+        }
 
-            String token = jwtUtil.generateUserToken(newUser.getId());
+        User newUser = new User();
+        newUser.setOpenid(openid);
+        newUser.setPhone(request.getPhone());
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        newUser.setNickname("微信用户");
+        newUser.setAvatarUrl("");
+        newUser.setLastLoginAt(LocalDateTime.now());
+        userMapper.insert(newUser);
+        log.info("微信新用户注册: userId={}, phone={}", newUser.getId(), request.getPhone());
 
-            return LoginResponse.builder()
-                    .token(token)
-                    .expiresIn(jwtUtil.getExpirationSeconds())
-                    .user(LoginResponse.UserInfo.builder()
-                            .id(newUser.getId())
-                            .nickname(newUser.getNickname())
-                            .avatar(newUser.getAvatarUrl())
-                            .phone(newUser.getPhone())
-                            .isNewUser(true)
-                            .isMerged(false)
-                            .build())
-                    .build();
+        String token = jwtUtil.generateUserToken(newUser.getId());
+
+        return LoginResponse.builder()
+                .token(token)
+                .expiresIn(jwtUtil.getExpirationSeconds())
+                .user(LoginResponse.UserInfo.builder()
+                        .id(newUser.getId())
+                        .nickname(newUser.getNickname())
+                        .avatar(newUser.getAvatarUrl())
+                        .phone(newUser.getPhone())
+                        .isNewUser(true)
+                        .isMerged(false)
+                        .build())
+                .build();
+    }
+
+    private void validateCategoryIds(List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "偏好分类不能为空");
+        }
+
+        Set<Long> distinctIds = new LinkedHashSet<>(categoryIds);
+        List<SpotCategory> categories = spotCategoryMapper.selectBatchIds(distinctIds);
+        Set<Long> validIds = categories.stream().map(SpotCategory::getId).collect(Collectors.toSet());
+
+        if (validIds.size() != distinctIds.size()) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "存在无效的分类ID");
+        }
+    }
+
+    private Map<Long, String> getCategoryMap() {
+        return spotCategoryMapper.selectList(
+                new LambdaQueryWrapper<SpotCategory>().eq(SpotCategory::getIsDeleted, 0)
+        ).stream().collect(Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
+    }
+
+    private List<Long> resolvePreferenceCategoryIds(List<UserPreference> preferences, Map<Long, String> categoryMap) {
+        Map<String, Long> nameToIdMap = categoryMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (left, right) -> left));
+
+        return preferences.stream()
+                .map(UserPreference::getTag)
+                .map(tag -> parsePreferenceCategoryId(tag, nameToIdMap))
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private Long parsePreferenceCategoryId(String tag, Map<String, Long> nameToIdMap) {
+        if (!StringUtils.hasText(tag)) {
+            return null;
+        }
+
+        try {
+            return Long.parseLong(tag.trim());
+        } catch (NumberFormatException ignored) {
+            return nameToIdMap.get(tag.trim());
         }
     }
 }

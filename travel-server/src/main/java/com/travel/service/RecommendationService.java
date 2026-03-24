@@ -41,6 +41,11 @@ public interface RecommendationService {
     void updateConfig(RecommendationConfigDTO config);
 
     /**
+     * 清理单个用户的推荐缓存
+     */
+    void invalidateUserRecommendationCache(Long userId);
+
+    /**
      * 获取推荐引擎运行状态
      */
     RecommendationStatusDTO getStatus();
