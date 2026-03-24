@@ -187,6 +187,49 @@
       </el-form>
     </el-card>
 
+    <el-card shadow="hover" class="debug-card">
+      <template #header>
+        <div class="card-header">
+          <div class="title-section">
+            <span class="title">推荐调试预览</span>
+            <el-tag effect="plain" type="warning" round>仅管理端可见</el-tag>
+          </div>
+        </div>
+      </template>
+
+      <div class="debug-toolbar">
+        <el-input-number v-model="debugForm.userId" :min="1" :step="1" controls-position="right" />
+        <el-input-number v-model="debugForm.limit" :min="1" :max="20" :step="1" controls-position="right" />
+        <el-switch v-model="debugForm.refresh" inline-prompt active-text="刷新" inactive-text="缓存" />
+        <el-switch v-model="debugForm.debug" inline-prompt active-text="控制台日志" inactive-text="静默" />
+        <el-button type="primary" :loading="previewing" @click="handlePreviewRecommendations">
+          调试预览
+        </el-button>
+      </div>
+
+      <div class="debug-meta" v-if="debugResult">
+        <el-tag size="small" type="info">type: {{ debugResult.type }}</el-tag>
+        <el-tag size="small" :type="debugResult.needPreference ? 'warning' : 'success'">
+          needPreference: {{ debugResult.needPreference ? 'true' : 'false' }}
+        </el-tag>
+      </div>
+
+      <el-table v-if="debugResult?.list?.length" :data="debugResult.list" stripe class="debug-table">
+        <el-table-column prop="id" label="景点ID" width="100" />
+        <el-table-column prop="name" label="景点名称" min-width="180" />
+        <el-table-column prop="categoryName" label="分类" width="140" />
+        <el-table-column prop="regionName" label="地区" width="140" />
+        <el-table-column label="推荐分数" width="160">
+          <template #default="{ row }">
+            <span v-if="debugForm.debug && row.score != null" class="score-text">{{ Number(row.score).toFixed(4) }}</span>
+            <span v-else-if="row.score != null">{{ Number(row.score).toFixed(4) }}</span>
+            <span v-else class="score-empty">-</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-empty v-else description="暂无调试结果" />
+    </el-card>
+
     <!-- 使用说明 -->
     <el-card shadow="hover" class="help-card">
       <template #header>
@@ -361,7 +404,8 @@ import {
   getRecommendationConfig,
   updateRecommendationConfig,
   getRecommendationStatus,
-  updateRecommendationMatrix
+  updateRecommendationMatrix,
+  previewRecommendations
 } from '@/api/recommendation'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -390,7 +434,15 @@ const status = reactive({
 
 const saving = ref(false)
 const updatingMatrix = ref(false)
+const previewing = ref(false)
 const activeCollapse = ref([])
+const debugResult = ref(null)
+const debugForm = reactive({
+  userId: 1,
+  limit: 6,
+  refresh: false,
+  debug: true
+})
 
 const defaultConfig = {
   weightView: 0.5,
@@ -487,6 +539,23 @@ const handleUpdateMatrix = async () => {
   } finally {
     updatingMatrix.value = false
     status.computing = false
+  }
+}
+
+const handlePreviewRecommendations = async () => {
+  if (!debugForm.userId) {
+    ElMessage.warning('请输入用户 ID')
+    return
+  }
+  try {
+    previewing.value = true
+    const res = await previewRecommendations({ ...debugForm })
+    debugResult.value = res.data || null
+    ElMessage.success('调试预览完成')
+  } catch (e) {
+    ElMessage.error('调试预览失败')
+  } finally {
+    previewing.value = false
   }
 }
 
@@ -616,6 +685,40 @@ onMounted(() => {
         gap: 8px;
       }
     }
+  }
+
+  .debug-card {
+    border-radius: 12px;
+    border: none;
+    margin-bottom: 24px;
+  }
+
+  .debug-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .debug-meta {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .debug-table {
+    margin-top: 8px;
+  }
+
+  .score-text {
+    font-family: 'Consolas', 'Menlo', monospace;
+    color: #1677ff;
+    font-weight: 600;
+  }
+
+  .score-empty {
+    color: #bfbfbf;
   }
 
   .config-form {

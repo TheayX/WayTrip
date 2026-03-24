@@ -19,3 +19,8 @@ export function getRecommendationStatus() {
 export function updateRecommendationMatrix() {
   return request.post('/recommendation/update-matrix')
 }
+
+// 调试预览推荐结果
+export function previewRecommendations(params) {
+  return request.get('/recommendation/preview', { params })
+}

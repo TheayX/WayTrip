@@ -95,11 +95,23 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         // 检查缓存
         String cacheKey = USER_REC_KEY + userId;
-        @SuppressWarnings("unchecked")
-        List<Long> cachedIds = (List<Long>) redisTemplate.opsForValue().get(cacheKey);
-        
-        if (cachedIds != null && !cachedIds.isEmpty()) {
-            return buildRecommendationResponse(cachedIds, limit, "personalized", false);
+        Object cached = redisTemplate.opsForValue().get(cacheKey);
+
+        if (cached instanceof Map<?, ?> cachedMap && !cachedMap.isEmpty()) {
+            Map<Long, Double> cachedScores = castScoreMap(cachedMap);
+            if (!cachedScores.isEmpty()) {
+                return buildRecommendationResponse(new ArrayList<>(cachedScores.keySet()), cachedScores, limit, "personalized", false);
+            }
+        }
+
+        if (cached instanceof List<?> cachedIds && !cachedIds.isEmpty()) {
+            List<Long> recommendationIds = cachedIds.stream()
+                .map(this::castToLong)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+            if (!recommendationIds.isEmpty()) {
+                return buildRecommendationResponse(recommendationIds, null, limit, "personalized", false);
+            }
         }
 
         return computeRecommendations(userId, limit, false);
@@ -114,6 +126,19 @@ public class RecommendationServiceImpl implements RecommendationService {
         redisTemplate.delete(cacheKey);
         
         return computeRecommendations(userId, limit, true);
+    }
+
+    @Override
+    public RecommendationResponse previewRecommendations(Long userId, Integer limit, Boolean refresh, Boolean debug) {
+        if (limit == null || limit <= 0) limit = 10;
+        boolean refreshMode = Boolean.TRUE.equals(refresh);
+        RecommendationResponse response = refreshMode
+            ? refreshRecommendations(userId, limit)
+            : getRecommendations(userId, limit);
+        if (Boolean.TRUE.equals(debug)) {
+            logRecommendationPreview(userId, response, refreshMode);
+        }
+        return response;
     }
 
     @Override
@@ -139,10 +164,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         // 基于 ItemCF 计算推荐
-        List<Long> recommendedIds = computeItemCFRecommendations(userId, userInteractions, limit * 2);
+        Map<Long, Double> recommendedScores = computeItemCFRecommendationScores(userInteractions, limit * 2);
+        List<Long> recommendedIds = new ArrayList<>(recommendedScores.keySet());
         
         // 过滤已交互的景点
         List<Long> filteredIds = filterInteractedSpots(userId, recommendedIds);
+        Map<Long, Double> filteredScores = orderScoresByIds(filteredIds, recommendedScores);
         
         if (filteredIds.isEmpty()) {
             return handleColdStart(userId, limit, refresh);
@@ -151,12 +178,13 @@ public class RecommendationServiceImpl implements RecommendationService {
         // 缓存结果
         if (refresh) {
             filteredIds = rotateRecommendations(filteredIds, limit);
+            filteredScores = orderScoresByIds(filteredIds, filteredScores);
         }
 
         String cacheKey = USER_REC_KEY + userId;
-        redisTemplate.opsForValue().set(cacheKey, filteredIds, config.getUserRecTTLMinutes(), TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(cacheKey, filteredScores, config.getUserRecTTLMinutes(), TimeUnit.MINUTES);
 
-        return buildRecommendationResponse(filteredIds, limit, "personalized", false);
+        return buildRecommendationResponse(filteredIds, filteredScores, limit, "personalized", false);
     }
 
     /**
@@ -340,9 +368,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         Collections.rotate(spotItems, -offset);
     }
 
-    private List<Long> computeItemCFRecommendations(Long userId, Map<Long, Double> userInteractions, Integer limit) {
+    private Map<Long, Double> computeItemCFRecommendationScores(Map<Long, Double> userInteractions, Integer limit) {
         if (userInteractions.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
         // 计算推荐分数
@@ -373,8 +401,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         return scores.entrySet().stream()
             .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
             .limit(limit)
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toList());
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (left, right) -> left,
+                LinkedHashMap::new
+            ));
     }
 
     /**
@@ -691,6 +723,10 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Integer limit, String type, Boolean needPreference) {
+        return buildRecommendationResponse(spotIds, null, limit, type, needPreference);
+    }
+
+    private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Map<Long, Double> scoreMap, Integer limit, String type, Boolean needPreference) {
         List<Long> limitedIds = spotIds.stream().limit(limit).collect(Collectors.toList());
         
         if (limitedIds.isEmpty()) {
@@ -724,6 +760,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 item.setRatingCount(spot.getRatingCount());
                 item.setCategoryName(categoryMap.get(spot.getCategoryId()));
                 item.setRegionName(regionMap.get(spot.getRegionId()));
+                item.setScore(scoreMap == null ? null : scoreMap.get(spot.getId()));
                 return item;
             })
             .collect(Collectors.toList()));
@@ -739,6 +776,61 @@ public class RecommendationServiceImpl implements RecommendationService {
     private Map<Long, String> getRegionMap() {
         return spotRegionMapper.selectList(new LambdaQueryWrapper<SpotRegion>().eq(SpotRegion::getIsDeleted, 0)).stream()
             .collect(Collectors.toMap(SpotRegion::getId, SpotRegion::getName));
+    }
+
+    private void logRecommendationPreview(Long userId, RecommendationResponse response, boolean refresh) {
+        if (response == null) {
+            log.info("Recommendation preview | userId={} | refresh={} | empty response", userId, refresh);
+            return;
+        }
+
+        String items = Optional.ofNullable(response.getList())
+            .orElseGet(Collections::emptyList)
+            .stream()
+            .map(item -> String.format(
+                "{id=%d,name=%s,score=%s,category=%s,region=%s}",
+                item.getId(),
+                item.getName(),
+                item.getScore() == null ? "null" : String.format("%.4f", item.getScore()),
+                item.getCategoryName(),
+                item.getRegionName()
+            ))
+            .collect(Collectors.joining(", "));
+
+        log.info(
+            "Recommendation preview | userId={} | refresh={} | type={} | needPreference={} | items=[{}]",
+            userId,
+            refresh,
+            response.getType(),
+            response.getNeedPreference(),
+            items
+        );
+    }
+
+    private Map<Long, Double> orderScoresByIds(List<Long> orderedIds, Map<Long, Double> scoreMap) {
+        if (orderedIds == null || orderedIds.isEmpty() || scoreMap == null || scoreMap.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<Long, Double> orderedScores = new LinkedHashMap<>();
+        for (Long spotId : orderedIds) {
+            Double score = scoreMap.get(spotId);
+            if (score != null) {
+                orderedScores.put(spotId, score);
+            }
+        }
+        return orderedScores;
+    }
+
+    private Map<Long, Double> castScoreMap(Map<?, ?> rawMap) {
+        Map<Long, Double> scoreMap = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
+            Long spotId = castToLong(entry.getKey());
+            Double score = castToDouble(entry.getValue());
+            if (spotId != null && score != null) {
+                scoreMap.put(spotId, score);
+            }
+        }
+        return scoreMap;
     }
 
     // ==================== 配置管理与状态查询 ====================
