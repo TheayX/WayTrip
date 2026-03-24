@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
+    private static final int REVIEW_HEAT_INCREMENT = 2;
+
     private final ReviewMapper reviewMapper;
     private final SpotMapper spotMapper;
     private final UserMapper userMapper;
@@ -57,7 +59,9 @@ public class ReviewServiceImpl implements ReviewService {
                 .eq(Review::getSpotId, request.getSpotId())
         );
 
+        boolean shouldIncreaseHeat = false;
         if (existingReview != null) {
+            shouldIncreaseHeat = existingReview.getIsDeleted() != null && existingReview.getIsDeleted() == 1;
             existingReview.setScore(request.getScore());
             existingReview.setComment(request.getComment());
             existingReview.setIsDeleted(0);
@@ -69,6 +73,11 @@ public class ReviewServiceImpl implements ReviewService {
             review.setScore(request.getScore());
             review.setComment(request.getComment());
             reviewMapper.insert(review);
+            shouldIncreaseHeat = true;
+        }
+
+        if (shouldIncreaseHeat) {
+            incrementHeatScore(request.getSpotId(), REVIEW_HEAT_INCREMENT);
         }
 
         updateSpotAvgRating(request.getSpotId());
@@ -238,5 +247,14 @@ public class ReviewServiceImpl implements ReviewService {
             .createdAt(review.getCreatedAt() != null ? review.getCreatedAt().format(DATE_FORMATTER) : null)
             .updatedAt(review.getUpdatedAt() != null ? review.getUpdatedAt().format(DATE_FORMATTER) : null)
             .build();
+    }
+
+    private void incrementHeatScore(Long spotId, int delta) {
+        spotMapper.update(
+            null,
+            new UpdateWrapper<Spot>()
+                .eq("id", spotId)
+                .setSql("heat_score = COALESCE(heat_score, 0) + " + delta)
+        );
     }
 }

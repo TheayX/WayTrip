@@ -13,6 +13,7 @@ import com.travel.service.RecommendationService;
 import com.travel.service.SpotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -23,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +43,11 @@ public class SpotServiceImpl implements SpotService {
     private final ReviewMapper reviewMapper;
     private final UserSpotViewMapper userSpotViewMapper;
     private final RecommendationService recommendationService;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private static final String DETAIL_HEAT_KEY_PREFIX = "spot:heat:view:";
+    private static final long DETAIL_HEAT_WINDOW_MINUTES = 30L;
+    private static final int VIEW_HEAT_INCREMENT = 1;
 
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
@@ -133,12 +140,7 @@ public class SpotServiceImpl implements SpotService {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
 
-        // 增加热度（不更新 updatedAt）
-        spotMapper.update(
-                null,
-                new UpdateWrapper<Spot>()
-                        .eq("id", spotId)
-                        .setSql("heat_score = COALESCE(heat_score, 0) + 1"));
+        increaseViewHeatScore(spotId, userId);
 
 
         // 获取图片
@@ -566,5 +568,30 @@ public class SpotServiceImpl implements SpotService {
             image.setSortOrder(i + 1);
             spotImageMapper.insert(image);
         }
+    }
+
+    private void increaseViewHeatScore(Long spotId, Long userId) {
+        if (userId == null) {
+            incrementHeatScore(spotId, VIEW_HEAT_INCREMENT);
+            return;
+        }
+
+        String key = DETAIL_HEAT_KEY_PREFIX + spotId + ":" + userId;
+        Boolean firstViewInWindow = redisTemplate.opsForValue().setIfAbsent(
+                key,
+                1,
+                DETAIL_HEAT_WINDOW_MINUTES,
+                TimeUnit.MINUTES);
+        if (Boolean.TRUE.equals(firstViewInWindow)) {
+            incrementHeatScore(spotId, VIEW_HEAT_INCREMENT);
+        }
+    }
+
+    private void incrementHeatScore(Long spotId, int delta) {
+        spotMapper.update(
+                null,
+                new UpdateWrapper<Spot>()
+                        .eq("id", spotId)
+                        .setSql("heat_score = COALESCE(heat_score, 0) + " + delta));
     }
 }
