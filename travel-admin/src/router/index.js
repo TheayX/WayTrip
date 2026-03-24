@@ -72,6 +72,12 @@ const routes = [
         name: 'Banner',
         component: () => import('@/views/banner/index.vue'),
         meta: { title: '轮播图管理', icon: 'Picture' }
+      },
+      {
+        path: 'recommendation',
+        name: 'Recommendation',
+        component: () => import('@/views/recommendation/index.vue'),
+        meta: { title: '推荐算法', icon: 'MagicStick' }
       }
     ]
   }

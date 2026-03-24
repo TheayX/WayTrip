@@ -1,7 +1,9 @@
 package com.travel.service;
 
 import com.travel.dto.home.HotSpotResponse;
+import com.travel.dto.recommendation.RecommendationConfigDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
+import com.travel.dto.recommendation.RecommendationStatusDTO;
 
 /**
  * 推荐服务接口
@@ -27,4 +29,19 @@ public interface RecommendationService {
      * 计算并更新物品相似度矩阵
      */
     void updateSimilarityMatrix();
+
+    /**
+     * 获取当前算法配置
+     */
+    RecommendationConfigDTO getConfig();
+
+    /**
+     * 更新算法配置
+     */
+    void updateConfig(RecommendationConfigDTO config);
+
+    /**
+     * 获取推荐引擎运行状态
+     */
+    RecommendationStatusDTO getStatus();
 }
