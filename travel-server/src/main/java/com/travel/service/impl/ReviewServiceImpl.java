@@ -33,8 +33,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
-    private static final int REVIEW_HEAT_INCREMENT = 2;
-
     private final ReviewMapper reviewMapper;
     private final SpotMapper spotMapper;
     private final UserMapper userMapper;
@@ -77,7 +75,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         if (shouldIncreaseHeat) {
-            incrementHeatScore(request.getSpotId(), REVIEW_HEAT_INCREMENT);
+            incrementHeatScore(request.getSpotId(), getReviewHeatIncrement());
         }
 
         updateSpotAvgRating(request.getSpotId());
@@ -256,5 +254,10 @@ public class ReviewServiceImpl implements ReviewService {
                 .eq("id", spotId)
                 .setSql("heat_score = COALESCE(heat_score, 0) + " + delta)
         );
+    }
+
+    private int getReviewHeatIncrement() {
+        Integer value = recommendationService.getConfig().getHeatReviewIncrement();
+        return value != null && value > 0 ? value : 2;
     }
 }

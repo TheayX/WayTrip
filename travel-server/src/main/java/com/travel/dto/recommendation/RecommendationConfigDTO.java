@@ -25,6 +25,23 @@ public class RecommendationConfigDTO {
     /** 已完成订单权重 */
     private Double weightOrderCompleted = 4.0;
 
+    // ==================== 景点热度参数 ====================
+
+    /** 浏览详情增加的热度分数 */
+    private Integer heatViewIncrement = 1;
+
+    /** 收藏增加的热度分数 */
+    private Integer heatFavoriteIncrement = 3;
+
+    /** 评价增加的热度分数 */
+    private Integer heatReviewIncrement = 2;
+
+    /** 支付订单增加的热度分数 */
+    private Integer heatOrderPaidIncrement = 5;
+
+    /** 同一用户同一景点浏览去重窗口（分钟） */
+    private Integer heatViewDedupeWindowMinutes = 30;
+
     // ==================== 算法参数 ====================
 
     /** 触发协同过滤的最少交互数（低于此值走冷启动） */
