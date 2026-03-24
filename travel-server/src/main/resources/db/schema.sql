@@ -116,7 +116,10 @@ CREATE TABLE `order` (
   KEY `idx_spot_id` (`spot_id`),
   KEY `idx_status` (`status`),
   KEY `idx_created_at` (`created_at`),
-  KEY `idx_user_id_status` (`user_id`,`is_deleted`,`created_at`)
+  KEY `idx_user_id_status` (`user_id`,`is_deleted`,`created_at`),
+  KEY `idx_user_id_status_is_deleted` (`user_id`,`status`,`is_deleted`),
+  KEY `idx_spot_id_status_is_deleted` (`spot_id`,`status`,`is_deleted`),
+  KEY `idx_user_id_spot_id` (`user_id`,`spot_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
