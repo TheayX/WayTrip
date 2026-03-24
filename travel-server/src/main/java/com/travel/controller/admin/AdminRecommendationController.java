@@ -1,13 +1,13 @@
 package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
+import com.travel.dto.recommendation.RecommendationConfigDTO;
+import com.travel.dto.recommendation.RecommendationStatusDTO;
 import com.travel.service.RecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "管理端-推荐系统", description = "管理端推荐系统控制接口")
 @RestController
@@ -20,8 +20,27 @@ public class AdminRecommendationController {
     @Operation(summary = "手动更新物品相似度矩阵")
     @PostMapping("/update-matrix")
     public ApiResponse<Void> updateSimilarityMatrix() {
-        // 直接在当前请求线程中调用，前端会等待响应，直到计算完成
         recommendationService.updateSimilarityMatrix();
         return ApiResponse.success(null);
     }
+
+    @Operation(summary = "获取推荐算法配置")
+    @GetMapping("/config")
+    public ApiResponse<RecommendationConfigDTO> getConfig() {
+        return ApiResponse.success(recommendationService.getConfig());
+    }
+
+    @Operation(summary = "更新推荐算法配置")
+    @PutMapping("/config")
+    public ApiResponse<Void> updateConfig(@RequestBody RecommendationConfigDTO config) {
+        recommendationService.updateConfig(config);
+        return ApiResponse.success(null);
+    }
+
+    @Operation(summary = "获取推荐引擎运行状态")
+    @GetMapping("/status")
+    public ApiResponse<RecommendationStatusDTO> getStatus() {
+        return ApiResponse.success(recommendationService.getStatus());
+    }
 }
+

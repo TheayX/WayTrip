@@ -2,7 +2,9 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.home.HotSpotResponse;
+import com.travel.dto.recommendation.RecommendationConfigDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
+import com.travel.dto.recommendation.RecommendationStatusDTO;
 import com.travel.entity.*;
 import com.travel.enums.OrderStatus;
 import com.travel.mapper.*;
@@ -12,8 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,15 +38,56 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private static final String SIMILARITY_KEY = "recommendation:similarity:";
     private static final String USER_REC_KEY = "recommendation:user:";
-    private static final int MIN_INTERACTIONS_FOR_CF = 3; // 协同过滤最少交互数
-    private static final int TOP_K_NEIGHBORS = 20; // 相似度矩阵保留的近邻数量
+    private static final String CONFIG_KEY = "recommendation:config";
+    private static final String STATUS_KEY = "recommendation:status";
 
-    // ==================== 交互权重常量（论文 rui） ====================
-    private static final double WEIGHT_VIEW = 0.5;
-    private static final double WEIGHT_FAVORITE = 1.0;
-    private static final double WEIGHT_REVIEW_FACTOR = 2.0 / 5.0; // score/5 * 2
-    private static final double WEIGHT_ORDER_PAID = 3.0;
-    private static final double WEIGHT_ORDER_COMPLETED = 4.0;
+    private final AtomicBoolean computing = new AtomicBoolean(false);
+
+    // ==================== 动态配置读取 ====================
+
+    /**
+     * 从 Redis 获取算法配置，不存在时返回默认配置
+     */
+    private RecommendationConfigDTO loadConfig() {
+        Object cached = redisTemplate.opsForValue().get(CONFIG_KEY);
+        if (cached instanceof RecommendationConfigDTO config) {
+            return config;
+        }
+        if (cached instanceof Map) {
+            // Jackson 反序列化可能生成 LinkedHashMap，手动转换
+            return mapToConfig(cached);
+        }
+        return RecommendationConfigDTO.defaultConfig();
+    }
+
+    @SuppressWarnings("unchecked")
+    private RecommendationConfigDTO mapToConfig(Object obj) {
+        try {
+            Map<String, Object> map = (Map<String, Object>) obj;
+            RecommendationConfigDTO config = new RecommendationConfigDTO();
+            if (map.containsKey("weightView")) config.setWeightView(toDouble(map.get("weightView")));
+            if (map.containsKey("weightFavorite")) config.setWeightFavorite(toDouble(map.get("weightFavorite")));
+            if (map.containsKey("weightReviewFactor")) config.setWeightReviewFactor(toDouble(map.get("weightReviewFactor")));
+            if (map.containsKey("weightOrderPaid")) config.setWeightOrderPaid(toDouble(map.get("weightOrderPaid")));
+            if (map.containsKey("weightOrderCompleted")) config.setWeightOrderCompleted(toDouble(map.get("weightOrderCompleted")));
+            if (map.containsKey("minInteractionsForCF")) config.setMinInteractionsForCF(toInt(map.get("minInteractionsForCF")));
+            if (map.containsKey("topKNeighbors")) config.setTopKNeighbors(toInt(map.get("topKNeighbors")));
+            if (map.containsKey("similarityTTLHours")) config.setSimilarityTTLHours(toInt(map.get("similarityTTLHours")));
+            if (map.containsKey("userRecTTLMinutes")) config.setUserRecTTLMinutes(toInt(map.get("userRecTTLMinutes")));
+            return config;
+        } catch (Exception e) {
+            log.warn("Failed to parse config from Redis, using default", e);
+            return RecommendationConfigDTO.defaultConfig();
+        }
+    }
+
+    private double toDouble(Object v) {
+        return v instanceof Number n ? n.doubleValue() : Double.parseDouble(v.toString());
+    }
+
+    private int toInt(Object v) {
+        return v instanceof Number n ? n.intValue() : Integer.parseInt(v.toString());
+    }
 
     @Override
     public RecommendationResponse getRecommendations(Long userId, Integer limit) {
@@ -75,10 +121,12 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean refresh) {
-        // ============ 改进：基于总交互景点数判断冷启动（而非仅评分数） ============
-        Map<Long, Double> userInteractions = buildUserInteractionWeights(userId);
+        RecommendationConfigDTO config = loadConfig();
 
-        if (userInteractions.size() < MIN_INTERACTIONS_FOR_CF) {
+        // ============ 改进：基于总交互景点数判断冷启动（而非仅评分数） ============
+        Map<Long, Double> userInteractions = buildUserInteractionWeights(userId, config);
+
+        if (userInteractions.size() < config.getMinInteractionsForCF()) {
             return handleColdStart(userId, limit, refresh);
         }
 
@@ -98,7 +146,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         String cacheKey = USER_REC_KEY + userId;
-        redisTemplate.opsForValue().set(cacheKey, filteredIds, 1, TimeUnit.HOURS);
+        redisTemplate.opsForValue().set(cacheKey, filteredIds, config.getUserRecTTLMinutes(), TimeUnit.MINUTES);
 
         return buildRecommendationResponse(filteredIds, limit, "personalized", false);
     }
@@ -107,7 +155,7 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 构建单个用户的交互权重 Map<spotId, weight>
      * 融合浏览、收藏、评分、订单四种行为，同一景点取最大权重
      */
-    private Map<Long, Double> buildUserInteractionWeights(Long userId) {
+    private Map<Long, Double> buildUserInteractionWeights(Long userId, RecommendationConfigDTO config) {
         Map<Long, Double> weights = new HashMap<>();
 
         // 浏览（去重，取不同景点）
@@ -117,7 +165,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .select(UserSpotView::getSpotId)
         );
         for (UserSpotView v : views) {
-            weights.merge(v.getSpotId(), WEIGHT_VIEW, Math::max);
+            weights.merge(v.getSpotId(), config.getWeightView(), Math::max);
         }
 
         // 收藏
@@ -128,7 +176,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .select(UserSpotFavorite::getSpotId)
         );
         for (UserSpotFavorite f : favorites) {
-            weights.merge(f.getSpotId(), WEIGHT_FAVORITE, Math::max);
+            weights.merge(f.getSpotId(), config.getWeightFavorite(), Math::max);
         }
 
         // 评分
@@ -139,7 +187,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .select(Review::getSpotId, Review::getScore)
         );
         for (Review r : reviews) {
-            double w = r.getScore() * WEIGHT_REVIEW_FACTOR;
+            double w = r.getScore() * config.getWeightReviewFactor();
             weights.merge(r.getSpotId(), w, Math::max);
         }
 
@@ -152,7 +200,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .select(Order::getSpotId, Order::getStatus)
         );
         for (Order o : orders) {
-            double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? WEIGHT_ORDER_COMPLETED : WEIGHT_ORDER_PAID;
+            double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? config.getWeightOrderCompleted() : config.getWeightOrderPaid();
             weights.merge(o.getSpotId(), w, Math::max);
         }
 
@@ -438,128 +486,147 @@ public class RecommendationServiceImpl implements RecommendationService {
      */
     @Override
     public void updateSimilarityMatrix() {
-        log.info("开始更新物品相似度矩阵...");
-
-        // ============ 步骤1：构建全局用户-景点交互矩阵 ============
-        // Map<userId, Map<spotId, weight>>
-        Map<Long, Map<Long, Double>> userItemMatrix = new HashMap<>();
-        Set<Long> allSpotIds = new HashSet<>();
-
-        // 1a. 浏览数据
-        List<UserSpotView> allViews = userSpotViewMapper.selectList(
-            new LambdaQueryWrapper<UserSpotView>()
-                .select(UserSpotView::getUserId, UserSpotView::getSpotId)
-        );
-        for (UserSpotView v : allViews) {
-            userItemMatrix.computeIfAbsent(v.getUserId(), k -> new HashMap<>())
-                .merge(v.getSpotId(), WEIGHT_VIEW, Math::max);
-            allSpotIds.add(v.getSpotId());
-        }
-
-        // 1b. 收藏数据
-        List<UserSpotFavorite> allFavorites = userSpotFavoriteMapper.selectList(
-            new LambdaQueryWrapper<UserSpotFavorite>()
-                .eq(UserSpotFavorite::getIsDeleted, 0)
-                .select(UserSpotFavorite::getUserId, UserSpotFavorite::getSpotId)
-        );
-        for (UserSpotFavorite f : allFavorites) {
-            userItemMatrix.computeIfAbsent(f.getUserId(), k -> new HashMap<>())
-                .merge(f.getSpotId(), WEIGHT_FAVORITE, Math::max);
-            allSpotIds.add(f.getSpotId());
-        }
-
-        // 1c. 评分数据
-        List<Review> allRatings = reviewMapper.selectList(
-            new LambdaQueryWrapper<Review>()
-                .eq(Review::getIsDeleted, 0)
-                .select(Review::getUserId, Review::getSpotId, Review::getScore)
-        );
-        for (Review r : allRatings) {
-            double w = r.getScore() * WEIGHT_REVIEW_FACTOR;
-            userItemMatrix.computeIfAbsent(r.getUserId(), k -> new HashMap<>())
-                .merge(r.getSpotId(), w, Math::max);
-            allSpotIds.add(r.getSpotId());
-        }
-
-        // 1d. 订单数据（已支付 + 已完成）
-        List<Order> allOrders = orderMapper.selectList(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getIsDeleted, 0)
-                .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
-                .select(Order::getUserId, Order::getSpotId, Order::getStatus)
-        );
-        for (Order o : allOrders) {
-            double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? WEIGHT_ORDER_COMPLETED : WEIGHT_ORDER_PAID;
-            userItemMatrix.computeIfAbsent(o.getUserId(), k -> new HashMap<>())
-                .merge(o.getSpotId(), w, Math::max);
-            allSpotIds.add(o.getSpotId());
-        }
-
-        if (userItemMatrix.isEmpty()) {
-            log.info("无交互数据，跳过相似度计算");
+        if (!computing.compareAndSet(false, true)) {
+            log.warn("相似度矩阵正在计算中，跳过本次请求");
             return;
         }
 
-        log.info("交互矩阵构建完成：{} 个用户，{} 个景点", userItemMatrix.size(), allSpotIds.size());
+        try {
+            RecommendationConfigDTO config = loadConfig();
+            log.info("开始更新物品相似度矩阵...");
 
-        // ============ 步骤2：预计算每个用户的交互景点数 |N(u)|（用于 IUF） ============
-        Map<Long, Integer> userActivityCount = new HashMap<>();
-        for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
-            userActivityCount.put(entry.getKey(), entry.getValue().size());
-        }
+            // ============ 步骤1：构建全局用户-景点交互矩阵 ============
+            // Map<userId, Map<spotId, weight>>
+            Map<Long, Map<Long, Double>> userItemMatrix = new HashMap<>();
+            Set<Long> allSpotIds = new HashSet<>();
 
-        // ============ 步骤3：构建物品到用户的倒排索引 ============
-        // Map<spotId, Set<userId>>  即 N(i)
-        Map<Long, Set<Long>> spotUserSets = new HashMap<>();
-        for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
-            Long userId = entry.getKey();
-            for (Long spotId : entry.getValue().keySet()) {
-                spotUserSets.computeIfAbsent(spotId, k -> new HashSet<>()).add(userId);
+            // 1a. 浏览数据
+            List<UserSpotView> allViews = userSpotViewMapper.selectList(
+                new LambdaQueryWrapper<UserSpotView>()
+                    .select(UserSpotView::getUserId, UserSpotView::getSpotId)
+            );
+            for (UserSpotView v : allViews) {
+                userItemMatrix.computeIfAbsent(v.getUserId(), k -> new HashMap<>())
+                    .merge(v.getSpotId(), config.getWeightView(), Math::max);
+                allSpotIds.add(v.getSpotId());
             }
-        }
 
-        // ============ 步骤4：计算 IUF 加权相似度（论文公式 2-2） ============
-        List<Long> spotIdList = new ArrayList<>(allSpotIds);
+            // 1b. 收藏数据
+            List<UserSpotFavorite> allFavorites = userSpotFavoriteMapper.selectList(
+                new LambdaQueryWrapper<UserSpotFavorite>()
+                    .eq(UserSpotFavorite::getIsDeleted, 0)
+                    .select(UserSpotFavorite::getUserId, UserSpotFavorite::getSpotId)
+            );
+            for (UserSpotFavorite f : allFavorites) {
+                userItemMatrix.computeIfAbsent(f.getUserId(), k -> new HashMap<>())
+                    .merge(f.getSpotId(), config.getWeightFavorite(), Math::max);
+                allSpotIds.add(f.getSpotId());
+            }
 
-        for (int i = 0; i < spotIdList.size(); i++) {
-            Long spotI = spotIdList.get(i);
-            Set<Long> usersI = spotUserSets.getOrDefault(spotI, Collections.emptySet());
-            if (usersI.isEmpty()) continue;
+            // 1c. 评分数据
+            List<Review> allRatings = reviewMapper.selectList(
+                new LambdaQueryWrapper<Review>()
+                    .eq(Review::getIsDeleted, 0)
+                    .select(Review::getUserId, Review::getSpotId, Review::getScore)
+            );
+            for (Review r : allRatings) {
+                double w = r.getScore() * config.getWeightReviewFactor();
+                userItemMatrix.computeIfAbsent(r.getUserId(), k -> new HashMap<>())
+                    .merge(r.getSpotId(), w, Math::max);
+                allSpotIds.add(r.getSpotId());
+            }
 
-            Map<Long, Double> similarities = new HashMap<>();
+            // 1d. 订单数据（已支付 + 已完成）
+            List<Order> allOrders = orderMapper.selectList(
+                new LambdaQueryWrapper<Order>()
+                    .eq(Order::getIsDeleted, 0)
+                    .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
+                    .select(Order::getUserId, Order::getSpotId, Order::getStatus)
+            );
+            for (Order o : allOrders) {
+                double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? config.getWeightOrderCompleted() : config.getWeightOrderPaid();
+                userItemMatrix.computeIfAbsent(o.getUserId(), k -> new HashMap<>())
+                    .merge(o.getSpotId(), w, Math::max);
+                allSpotIds.add(o.getSpotId());
+            }
 
-            for (int j = 0; j < spotIdList.size(); j++) {
-                if (i == j) continue;
+            if (userItemMatrix.isEmpty()) {
+                log.info("无交互数据，跳过相似度计算");
+                return;
+            }
 
-                Long spotJ = spotIdList.get(j);
-                Set<Long> usersJ = spotUserSets.getOrDefault(spotJ, Collections.emptySet());
-                if (usersJ.isEmpty()) continue;
+            log.info("交互矩阵构建完成：{} 个用户，{} 个景点", userItemMatrix.size(), allSpotIds.size());
 
-                // 计算 IUF 加权相似度
-                double similarity = computeIUFSimilarity(usersI, usersJ, userActivityCount);
+            // ============ 步骤2：预计算每个用户的交互景点数 |N(u)|（用于 IUF） ============
+            Map<Long, Integer> userActivityCount = new HashMap<>();
+            for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
+                userActivityCount.put(entry.getKey(), entry.getValue().size());
+            }
 
-                if (similarity > 0) {
-                    similarities.put(spotJ, similarity);
+            // ============ 步骤3：构建物品到用户的倒排索引 ============
+            // Map<spotId, Set<userId>>  即 N(i)
+            Map<Long, Set<Long>> spotUserSets = new HashMap<>();
+            for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
+                Long userId = entry.getKey();
+                for (Long spotId : entry.getValue().keySet()) {
+                    spotUserSets.computeIfAbsent(spotId, k -> new HashSet<>()).add(userId);
                 }
             }
 
-            // 只保留 Top-K 相似物品
-            Map<Long, Double> topSimilarities = similarities.entrySet().stream()
-                .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
-                .limit(TOP_K_NEIGHBORS)
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    Map.Entry::getValue,
-                    (e1, e2) -> e1,
-                    LinkedHashMap::new
-                ));
+            // ============ 步骤4：计算 IUF 加权相似度（论文公式 2-2） ============
+            List<Long> spotIdList = new ArrayList<>(allSpotIds);
+            int topK = config.getTopKNeighbors();
+            int simTTL = config.getSimilarityTTLHours();
 
-            // 存入 Redis
-            String key = SIMILARITY_KEY + spotI;
-            redisTemplate.opsForValue().set(key, java.util.Objects.requireNonNull(topSimilarities), 24, TimeUnit.HOURS);
+            for (int i = 0; i < spotIdList.size(); i++) {
+                Long spotI = spotIdList.get(i);
+                Set<Long> usersI = spotUserSets.getOrDefault(spotI, Collections.emptySet());
+                if (usersI.isEmpty()) continue;
+
+                Map<Long, Double> similarities = new HashMap<>();
+
+                for (int j = 0; j < spotIdList.size(); j++) {
+                    if (i == j) continue;
+
+                    Long spotJ = spotIdList.get(j);
+                    Set<Long> usersJ = spotUserSets.getOrDefault(spotJ, Collections.emptySet());
+                    if (usersJ.isEmpty()) continue;
+
+                    // 计算 IUF 加权相似度
+                    double similarity = computeIUFSimilarity(usersI, usersJ, userActivityCount);
+
+                    if (similarity > 0) {
+                        similarities.put(spotJ, similarity);
+                    }
+                }
+
+                // 只保留 Top-K 相似物品
+                Map<Long, Double> topSimilarities = similarities.entrySet().stream()
+                    .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+                    .limit(topK)
+                    .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                    ));
+
+                // 存入 Redis
+                String key = SIMILARITY_KEY + spotI;
+                redisTemplate.opsForValue().set(key, java.util.Objects.requireNonNull(topSimilarities), simTTL, TimeUnit.HOURS);
+            }
+
+            // ============ 保存状态信息 ============
+            Map<String, Object> statusMap = new HashMap<>();
+            statusMap.put("lastUpdateTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            statusMap.put("totalUsers", userItemMatrix.size());
+            statusMap.put("totalSpots", allSpotIds.size());
+            redisTemplate.opsForValue().set(STATUS_KEY, statusMap);
+
+            log.info("物品相似度矩阵更新完成，共处理 {} 个景点", allSpotIds.size());
+        } finally {
+            computing.set(false);
         }
-
-        log.info("物品相似度矩阵更新完成，共处理 {} 个景点", allSpotIds.size());
     }
 
     /**
@@ -640,5 +707,34 @@ public class RecommendationServiceImpl implements RecommendationService {
     private Map<Long, String> getRegionMap() {
         return spotRegionMapper.selectList(new LambdaQueryWrapper<SpotRegion>().eq(SpotRegion::getIsDeleted, 0)).stream()
             .collect(Collectors.toMap(SpotRegion::getId, SpotRegion::getName));
+    }
+
+    // ==================== 配置管理与状态查询 ====================
+
+    @Override
+    public RecommendationConfigDTO getConfig() {
+        return loadConfig();
+    }
+
+    @Override
+    public void updateConfig(RecommendationConfigDTO config) {
+        redisTemplate.opsForValue().set(CONFIG_KEY, config);
+        log.info("推荐算法配置已更新: {}", config);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public RecommendationStatusDTO getStatus() {
+        RecommendationStatusDTO status = new RecommendationStatusDTO();
+        status.setComputing(computing.get());
+
+        Object cached = redisTemplate.opsForValue().get(STATUS_KEY);
+        if (cached instanceof Map<?, ?> map) {
+            status.setLastUpdateTime(map.get("lastUpdateTime") != null ? map.get("lastUpdateTime").toString() : null);
+            status.setTotalUsers(map.get("totalUsers") instanceof Number n ? n.intValue() : null);
+            status.setTotalSpots(map.get("totalSpots") instanceof Number n ? n.intValue() : null);
+        }
+
+        return status;
     }
 }
