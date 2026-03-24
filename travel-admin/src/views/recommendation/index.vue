@@ -93,7 +93,7 @@
         <div class="form-section">
           <div class="section-title">
             <el-icon><DataLine /></el-icon>
-            <span>行为交互权重（论文 r<sub>ui</sub>）</span>
+            <span>行为交互权重（公式 r<sub>ui</sub>）</span>
           </div>
           <div class="section-desc">定义不同用户行为对推荐结果的影响力。数值越大，该行为在相似度计算中的贡献越高。</div>
 
@@ -198,10 +198,22 @@
       </template>
 
       <div class="debug-toolbar">
-        <el-input-number v-model="debugForm.userId" :min="1" :step="1" controls-position="right" />
-        <el-input-number v-model="debugForm.limit" :min="1" :max="20" :step="1" controls-position="right" />
-        <el-switch v-model="debugForm.refresh" inline-prompt active-text="刷新" inactive-text="缓存" />
-        <el-switch v-model="debugForm.debug" inline-prompt active-text="控制台日志" inactive-text="静默" />
+        <div class="debug-field">
+          <span class="debug-label">用户 ID</span>
+          <el-input-number v-model="debugForm.userId" :min="1" :step="1" controls-position="right" />
+        </div>
+        <div class="debug-field">
+          <span class="debug-label">返回数量</span>
+          <el-input-number v-model="debugForm.limit" :min="1" :max="20" :step="1" controls-position="right" />
+        </div>
+        <div class="debug-field">
+          <span class="debug-label">结果来源</span>
+          <el-switch v-model="debugForm.refresh" inline-prompt active-text="刷新" inactive-text="缓存" />
+        </div>
+        <div class="debug-field">
+          <span class="debug-label">后端日志</span>
+          <el-switch v-model="debugForm.debug" inline-prompt active-text="控制台日志" inactive-text="静默" />
+        </div>
         <el-button type="primary" :loading="previewing" @click="handlePreviewRecommendations">
           调试预览
         </el-button>
@@ -212,6 +224,12 @@
         <el-tag size="small" :type="debugResult.needPreference ? 'warning' : 'success'">
           needPreference: {{ debugResult.needPreference ? 'true' : 'false' }}
         </el-tag>
+        <el-tag size="small" type="primary">count: {{ debugResult.list?.length || 0 }}</el-tag>
+      </div>
+
+      <div v-if="debugResult" class="debug-output">
+        <div class="debug-output-title">调试输出</div>
+        <pre>{{ debugOutput }}</pre>
       </div>
 
       <el-table v-if="debugResult?.list?.length" :data="debugResult.list" stripe class="debug-table">
@@ -227,7 +245,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-empty v-else description="暂无调试结果" />
+      <el-empty v-else :description="debugResult ? '本次请求已返回空列表，请结合上方调试输出查看原因' : '暂无调试结果'" />
     </el-card>
 
     <!-- 使用说明 -->
@@ -399,7 +417,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import {
   getRecommendationConfig,
   updateRecommendationConfig,
@@ -442,6 +460,35 @@ const debugForm = reactive({
   limit: 6,
   refresh: false,
   debug: true
+})
+const debugOutput = computed(() => {
+  if (!debugResult.value) return ''
+
+  const lines = [
+    `request.userId = ${debugForm.userId}`,
+    `request.limit = ${debugForm.limit}`,
+    `request.refresh = ${debugForm.refresh}`,
+    `request.debug = ${debugForm.debug}`,
+    `response.type = ${debugResult.value.type}`,
+    `response.needPreference = ${debugResult.value.needPreference}`,
+    `response.count = ${debugResult.value.list?.length || 0}`
+  ]
+
+  if (!debugResult.value.list?.length) {
+    lines.push('response.items = []')
+    lines.push('说明：当前请求已返回空推荐列表。若 type=preference，通常表示用户命中了偏好冷启动，但对应分类下没有可用景点。')
+    return lines.join('\n')
+  }
+
+  debugResult.value.list.forEach((item, index) => {
+    lines.push(
+      `item[${index}] = { id: ${item.id}, name: ${item.name}, score: ${
+        item.score == null ? 'null' : Number(item.score).toFixed(4)
+      }, category: ${item.categoryName || '-'}, region: ${item.regionName || '-'} }`
+    )
+  })
+
+  return lines.join('\n')
 })
 
 const defaultConfig = {
@@ -701,10 +748,47 @@ onMounted(() => {
     margin-bottom: 16px;
   }
 
+  .debug-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .debug-label {
+    font-size: 13px;
+    color: #606266;
+    white-space: nowrap;
+  }
+
   .debug-meta {
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
+  }
+
+  .debug-output {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    background: #fafbfc;
+    border: 1px solid #e5eaf3;
+    border-radius: 10px;
+  }
+
+  .debug-output-title {
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .debug-output pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #4b5563;
+    font-family: 'Consolas', 'Menlo', monospace;
   }
 
   .debug-table {
