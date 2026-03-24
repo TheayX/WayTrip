@@ -558,6 +558,11 @@ public class RecommendationServiceImpl implements RecommendationService {
         try {
             RecommendationConfigDTO config = loadConfig();
             log.info("开始更新物品相似度矩阵...");
+            Set<Long> activeSpotIds = getActiveSpotIds();
+            if (activeSpotIds.isEmpty()) {
+                log.info("无有效上架景点，跳过相似度计算");
+                return;
+            }
 
             // ============ 步骤1：构建全局用户-景点交互矩阵 ============
             // Map<userId, Map<spotId, weight>>
@@ -570,6 +575,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .select(UserSpotView::getUserId, UserSpotView::getSpotId)
             );
             for (UserSpotView v : allViews) {
+                if (!activeSpotIds.contains(v.getSpotId())) continue;
                 userItemMatrix.computeIfAbsent(v.getUserId(), k -> new HashMap<>())
                     .merge(v.getSpotId(), config.getWeightView(), Math::max);
                 allSpotIds.add(v.getSpotId());
@@ -582,6 +588,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .select(UserSpotFavorite::getUserId, UserSpotFavorite::getSpotId)
             );
             for (UserSpotFavorite f : allFavorites) {
+                if (!activeSpotIds.contains(f.getSpotId())) continue;
                 userItemMatrix.computeIfAbsent(f.getUserId(), k -> new HashMap<>())
                     .merge(f.getSpotId(), config.getWeightFavorite(), Math::max);
                 allSpotIds.add(f.getSpotId());
@@ -594,6 +601,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .select(Review::getUserId, Review::getSpotId, Review::getScore)
             );
             for (Review r : allRatings) {
+                if (!activeSpotIds.contains(r.getSpotId())) continue;
                 double w = r.getScore() * config.getWeightReviewFactor();
                 userItemMatrix.computeIfAbsent(r.getUserId(), k -> new HashMap<>())
                     .merge(r.getSpotId(), w, Math::max);
@@ -608,6 +616,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .select(Order::getUserId, Order::getSpotId, Order::getStatus)
             );
             for (Order o : allOrders) {
+                if (!activeSpotIds.contains(o.getSpotId())) continue;
                 double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? config.getWeightOrderCompleted() : config.getWeightOrderPaid();
                 userItemMatrix.computeIfAbsent(o.getUserId(), k -> new HashMap<>())
                     .merge(o.getSpotId(), w, Math::max);
@@ -691,6 +700,17 @@ public class RecommendationServiceImpl implements RecommendationService {
         } finally {
             computing.set(false);
         }
+    }
+
+    private Set<Long> getActiveSpotIds() {
+        return spotMapper.selectList(
+                new LambdaQueryWrapper<Spot>()
+                        .eq(Spot::getIsPublished, 1)
+                        .eq(Spot::getIsDeleted, 0)
+                        .select(Spot::getId)
+        ).stream()
+                .map(Spot::getId)
+                .collect(Collectors.toSet());
     }
 
     /**
