@@ -281,26 +281,22 @@ public class RecommendationServiceImpl implements RecommendationService {
             return Collections.emptyList();
         }
 
-        Map<Long, String> categoryMap = getCategoryMap();
-        Map<String, Long> nameToIdMap = categoryMap.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (left, right) -> left));
-
         return preferences.stream()
             .map(UserPreference::getTag)
-            .map(tag -> parsePreferenceCategoryId(tag, nameToIdMap))
+            .map(this::parsePreferenceCategoryId)
             .filter(Objects::nonNull)
             .distinct()
             .collect(Collectors.toList());
     }
 
-    private Long parsePreferenceCategoryId(String tag, Map<String, Long> nameToIdMap) {
+    private Long parsePreferenceCategoryId(String tag) {
         if (tag == null || tag.isBlank()) {
             return null;
         }
         try {
             return Long.parseLong(tag.trim());
         } catch (NumberFormatException ignored) {
-            return nameToIdMap.get(tag.trim());
+            return null;
         }
     }
 
