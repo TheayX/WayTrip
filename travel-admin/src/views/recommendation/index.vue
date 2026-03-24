@@ -137,6 +137,53 @@
           </el-row>
         </div>
 
+        <div class="form-section">
+          <div class="section-title">
+            <el-icon><DataLine /></el-icon>
+            <span>景点热度分数</span>
+          </div>
+          <div class="section-desc">控制每种行为对 <code>spot.heat_score</code> 的贡献。热度用于热门排序和冷启动，不直接参与协同过滤公式。</div>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="浏览详情加分">
+                <el-input-number v-model="config.heatViewIncrement" :min="1" :max="20" :step="1" />
+                <span class="form-tip">用户打开景点详情页时增加的热度分数</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="浏览去重窗口">
+                <el-input-number v-model="config.heatViewDedupeWindowMinutes" :min="1" :max="1440" :step="1" />
+                <span class="form-tip">同一用户同一景点在该时间窗口内重复浏览不重复加热，单位：分钟</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="收藏加分">
+                <el-input-number v-model="config.heatFavoriteIncrement" :min="1" :max="20" :step="1" />
+                <span class="form-tip">新增收藏或恢复收藏时增加的热度分数</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="评价加分">
+                <el-input-number v-model="config.heatReviewIncrement" :min="1" :max="20" :step="1" />
+                <span class="form-tip">首次评价或恢复评价时增加的热度分数</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="支付订单加分">
+                <el-input-number v-model="config.heatOrderPaidIncrement" :min="1" :max="30" :step="1" />
+                <span class="form-tip">订单从待支付变为已支付时增加的热度分数</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
+
         <!-- 算法参数 -->
         <div class="form-section">
           <div class="section-title">
@@ -404,6 +451,11 @@
               <el-descriptions-item label="评分因子">0.4</el-descriptions-item>
               <el-descriptions-item label="已付款权重">3.0</el-descriptions-item>
               <el-descriptions-item label="已完成权重">4.0</el-descriptions-item>
+              <el-descriptions-item label="浏览热度加分">1</el-descriptions-item>
+              <el-descriptions-item label="收藏热度加分">3</el-descriptions-item>
+              <el-descriptions-item label="评价热度加分">2</el-descriptions-item>
+              <el-descriptions-item label="支付热度加分">5</el-descriptions-item>
+              <el-descriptions-item label="浏览去重窗口">30 分钟</el-descriptions-item>
               <el-descriptions-item label="最少交互数">3</el-descriptions-item>
               <el-descriptions-item label="近邻数量 K">20</el-descriptions-item>
               <el-descriptions-item label="矩阵 TTL">24 小时</el-descriptions-item>
@@ -437,6 +489,11 @@ const config = reactive({
   weightReviewFactor: 0.4,
   weightOrderPaid: 3.0,
   weightOrderCompleted: 4.0,
+  heatViewIncrement: 1,
+  heatFavoriteIncrement: 3,
+  heatReviewIncrement: 2,
+  heatOrderPaidIncrement: 5,
+  heatViewDedupeWindowMinutes: 30,
   minInteractionsForCF: 3,
   topKNeighbors: 20,
   similarityTTLHours: 24,
@@ -497,6 +554,11 @@ const defaultConfig = {
   weightReviewFactor: 0.4,
   weightOrderPaid: 3.0,
   weightOrderCompleted: 4.0,
+  heatViewIncrement: 1,
+  heatFavoriteIncrement: 3,
+  heatReviewIncrement: 2,
+  heatOrderPaidIncrement: 5,
+  heatViewDedupeWindowMinutes: 30,
   minInteractionsForCF: 3,
   topKNeighbors: 20,
   similarityTTLHours: 24,

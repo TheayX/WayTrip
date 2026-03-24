@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
+import com.travel.dto.recommendation.RecommendationConfigDTO;
 import com.travel.dto.spot.*;
 import com.travel.entity.*;
 import com.travel.mapper.*;
@@ -46,8 +47,6 @@ public class SpotServiceImpl implements SpotService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String DETAIL_HEAT_KEY_PREFIX = "spot:heat:view:";
-    private static final long DETAIL_HEAT_WINDOW_MINUTES = 30L;
-    private static final int VIEW_HEAT_INCREMENT = 1;
 
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
@@ -571,19 +570,22 @@ public class SpotServiceImpl implements SpotService {
     }
 
     private void increaseViewHeatScore(Long spotId, Long userId) {
+        RecommendationConfigDTO config = recommendationService.getConfig();
+        int increment = positiveOrDefault(config.getHeatViewIncrement(), 1);
         if (userId == null) {
-            incrementHeatScore(spotId, VIEW_HEAT_INCREMENT);
+            incrementHeatScore(spotId, increment);
             return;
         }
 
+        long dedupeWindowMinutes = positiveOrDefault(config.getHeatViewDedupeWindowMinutes(), 30);
         String key = DETAIL_HEAT_KEY_PREFIX + spotId + ":" + userId;
         Boolean firstViewInWindow = redisTemplate.opsForValue().setIfAbsent(
                 key,
                 1,
-                DETAIL_HEAT_WINDOW_MINUTES,
+                dedupeWindowMinutes,
                 TimeUnit.MINUTES);
         if (Boolean.TRUE.equals(firstViewInWindow)) {
-            incrementHeatScore(spotId, VIEW_HEAT_INCREMENT);
+            incrementHeatScore(spotId, increment);
         }
     }
 
@@ -593,5 +595,9 @@ public class SpotServiceImpl implements SpotService {
                 new UpdateWrapper<Spot>()
                         .eq("id", spotId)
                         .setSql("heat_score = COALESCE(heat_score, 0) + " + delta));
+    }
+
+    private int positiveOrDefault(Integer value, int fallback) {
+        return value != null && value > 0 ? value : fallback;
     }
 }

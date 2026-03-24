@@ -33,8 +33,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FavoriteServiceImpl implements FavoriteService {
 
-    private static final int FAVORITE_HEAT_INCREMENT = 3;
-
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final SpotMapper spotMapper;
     private final SpotRegionMapper spotRegionMapper;
@@ -64,7 +62,7 @@ public class FavoriteServiceImpl implements FavoriteService {
             }
             existingFavorite.setIsDeleted(0);
             userSpotFavoriteMapper.updateById(existingFavorite);
-            incrementHeatScore(spotId, FAVORITE_HEAT_INCREMENT);
+            incrementHeatScore(spotId, getFavoriteHeatIncrement());
             recommendationService.invalidateUserRecommendationCache(userId);
             return;
         }
@@ -73,7 +71,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         favorite.setUserId(userId);
         favorite.setSpotId(spotId);
         userSpotFavoriteMapper.insert(favorite);
-        incrementHeatScore(spotId, FAVORITE_HEAT_INCREMENT);
+        incrementHeatScore(spotId, getFavoriteHeatIncrement());
         recommendationService.invalidateUserRecommendationCache(userId);
         log.info("用户添加收藏: userId={}, spotId={}", userId, spotId);
     }
@@ -166,5 +164,10 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .eq("id", spotId)
                 .setSql("heat_score = COALESCE(heat_score, 0) + " + delta)
         );
+    }
+
+    private int getFavoriteHeatIncrement() {
+        Integer value = recommendationService.getConfig().getHeatFavoriteIncrement();
+        return value != null && value > 0 ? value : 3;
     }
 }

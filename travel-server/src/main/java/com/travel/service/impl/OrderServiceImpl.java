@@ -32,8 +32,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    private static final int ORDER_HEAT_INCREMENT = 5;
-
     private final OrderMapper orderMapper;
     private final SpotMapper spotMapper;
     private final UserMapper userMapper;
@@ -146,7 +144,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.PAID.getCode());
         order.setPaidAt(LocalDateTime.now());
         orderMapper.updateById(order);
-        incrementHeatScore(order.getSpotId(), ORDER_HEAT_INCREMENT);
+        incrementHeatScore(order.getSpotId(), getPaidOrderHeatIncrement());
         recommendationService.invalidateUserRecommendationCache(userId);
 
         log.info("订单支付成功: orderId={}, userId={}, orderNo={}", orderId, userId, order.getOrderNo());
@@ -486,6 +484,11 @@ public class OrderServiceImpl implements OrderService {
                 .eq("id", spotId)
                 .setSql("heat_score = COALESCE(heat_score, 0) + " + delta)
         );
+    }
+
+    private int getPaidOrderHeatIncrement() {
+        Integer value = recommendationService.getConfig().getHeatOrderPaidIncrement();
+        return value != null && value > 0 ? value : 5;
     }
 }
 
