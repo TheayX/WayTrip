@@ -121,7 +121,7 @@ public class AuthServiceImpl implements AuthService {
                         .eq(UserPreference::getIsDeleted, 0)
         );
         Map<Long, String> categoryMap = getCategoryMap();
-        List<Long> categoryIds = resolvePreferenceCategoryIds(preferences, categoryMap);
+        List<Long> categoryIds = resolvePreferenceCategoryIds(preferences);
         List<String> categoryNames = categoryIds.stream()
                 .map(categoryMap::get)
                 .filter(Objects::nonNull)
@@ -195,18 +195,36 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void setPreferences(Long userId, List<Long> categoryIds) {
         validateCategoryIds(categoryIds);
+        Set<Long> distinctCategoryIds = new LinkedHashSet<>(categoryIds);
 
         UserPreference deletedPreference = new UserPreference();
         deletedPreference.setIsDeleted(1);
         userPreferenceMapper.update(
                 deletedPreference,
-                new LambdaQueryWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
+                new LambdaUpdateWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
         );
 
-        for (Long categoryId : new LinkedHashSet<>(categoryIds)) {
+        Map<String, UserPreference> existingPreferenceMap = userPreferenceMapper.selectList(
+                new LambdaQueryWrapper<UserPreference>()
+                        .eq(UserPreference::getUserId, userId)
+                        .in(UserPreference::getTag, distinctCategoryIds.stream().map(String::valueOf).collect(Collectors.toSet()))
+        ).stream().collect(Collectors.toMap(UserPreference::getTag, preference -> preference, (left, right) -> left));
+
+        for (Long categoryId : distinctCategoryIds) {
+            String tag = String.valueOf(categoryId);
+            UserPreference existingPreference = existingPreferenceMap.get(tag);
+            if (existingPreference != null) {
+                UserPreference restoredPreference = new UserPreference();
+                restoredPreference.setId(existingPreference.getId());
+                restoredPreference.setIsDeleted(0);
+                userPreferenceMapper.updateById(restoredPreference);
+                continue;
+            }
+
             UserPreference preference = new UserPreference();
             preference.setUserId(userId);
-            preference.setTag(String.valueOf(categoryId));
+            preference.setTag(tag);
+            preference.setIsDeleted(0);
             userPreferenceMapper.insert(preference);
         }
 
@@ -456,19 +474,16 @@ public class AuthServiceImpl implements AuthService {
         ).stream().collect(Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
     }
 
-    private List<Long> resolvePreferenceCategoryIds(List<UserPreference> preferences, Map<Long, String> categoryMap) {
-        Map<String, Long> nameToIdMap = categoryMap.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (left, right) -> left));
-
+    private List<Long> resolvePreferenceCategoryIds(List<UserPreference> preferences) {
         return preferences.stream()
                 .map(UserPreference::getTag)
-                .map(tag -> parsePreferenceCategoryId(tag, nameToIdMap))
+                .map(this::parsePreferenceCategoryId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
     }
 
-    private Long parsePreferenceCategoryId(String tag, Map<String, Long> nameToIdMap) {
+    private Long parsePreferenceCategoryId(String tag) {
         if (!StringUtils.hasText(tag)) {
             return null;
         }
@@ -476,7 +491,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             return Long.parseLong(tag.trim());
         } catch (NumberFormatException ignored) {
-            return nameToIdMap.get(tag.trim());
+            return null;
         }
     }
 }

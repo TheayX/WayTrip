@@ -277,11 +277,35 @@ class AuthServiceImplTest {
         SpotCategory c2 = new SpotCategory();
         c2.setId(2L);
         when(spotCategoryMapper.selectBatchIds(any())).thenReturn(List.of(c1, c2));
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
 
         authService.setPreferences(1L, List.of(1L, 2L));
 
         verify(userPreferenceMapper).update(any(UserPreference.class), any());
         verify(userPreferenceMapper, times(2)).insert(any(UserPreference.class));
+        verify(recommendationService).invalidateUserRecommendationCache(1L);
+    }
+
+    @Test
+    void setPreferences_restoresExistingPreferenceWithoutDuplicateInsert() {
+        SpotCategory c1 = new SpotCategory();
+        c1.setId(1L);
+        SpotCategory c2 = new SpotCategory();
+        c2.setId(2L);
+        when(spotCategoryMapper.selectBatchIds(any())).thenReturn(List.of(c1, c2));
+
+        UserPreference existing = new UserPreference();
+        existing.setId(10L);
+        existing.setUserId(1L);
+        existing.setTag("1");
+        existing.setIsDeleted(1);
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of(existing));
+
+        authService.setPreferences(1L, List.of(1L, 2L));
+
+        verify(userPreferenceMapper).update(any(UserPreference.class), any());
+        verify(userPreferenceMapper).updateById(any(UserPreference.class));
+        verify(userPreferenceMapper, times(1)).insert(any(UserPreference.class));
         verify(recommendationService).invalidateUserRecommendationCache(1L);
     }
 
