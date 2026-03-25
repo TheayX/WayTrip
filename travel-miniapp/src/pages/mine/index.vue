@@ -132,8 +132,8 @@
     <!-- ========== 第二步：可选设置头像和昵称 ========== -->
     <view class="auth-mask" v-if="authStep === 2">
       <view class="auth-panel">
-        <text class="auth-title">完善个人资料 ✨</text>
-        <text class="auth-subtitle">设置你的头像和昵称，开启旅程</text>
+        <text class="auth-title">完成注册 ✨</text>
+        <text class="auth-subtitle">设置头像和昵称，或直接跳过完成注册</text>
 
         <!-- 头像选择 -->
         <view class="auth-avatar-wrap">
@@ -156,7 +156,7 @@
 
         <view class="auth-actions">
           <button class="auth-btn skip" @click="skipStep2">跳过</button>
-          <button class="auth-btn confirm" @click="submitStep2">完成设置</button>
+          <button class="auth-btn confirm" @click="submitStep2">完成注册</button>
         </view>
       </view>
     </view>
