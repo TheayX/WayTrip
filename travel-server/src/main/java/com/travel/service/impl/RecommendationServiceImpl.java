@@ -181,6 +181,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean refresh, boolean debug) {
         RecommendationConfigDTO config = loadConfig();
+        RecommendationResponse.DebugInfo debugInfo = debug ? initDebugInfo(userId, limit, refresh) : null;
 
         log.info(
             "开始计算推荐结果：用户ID={}，请求数量={}，是否刷新={}，是否调试={}，协同过滤最少交互数={}，候选扩容倍数={}",
@@ -194,6 +195,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         // ============ 改进：基于总交互景点数判断冷启动（而非仅评分数） ============
         Map<Long, Double> userInteractions = buildUserInteractionWeights(userId, config);
+        populateInteractionDebugInfo(debugInfo, userInteractions);
         logUserInteractionWeights(userId, userInteractions, debug);
 
         if (userInteractions.size() < config.getMinInteractionsForCF()) {
@@ -203,26 +205,40 @@ public class RecommendationServiceImpl implements RecommendationService {
                 userInteractions.size(),
                 config.getMinInteractionsForCF()
             );
-            return handleColdStart(userId, limit, refresh, debug);
+            if (debugInfo != null) {
+                debugInfo.setTriggerReason("交互景点数不足，触发冷启动");
+                debugInfo.setNotes(List.of(
+                    "用户交互景点数少于协同过滤阈值，已降级为冷启动链路。",
+                    "请优先检查用户历史行为是否足够，或适当调低 minInteractionsForCF。"
+                ));
+            }
+            return handleColdStart(userId, limit, refresh, debug, debugInfo);
         }
 
         // 基于 ItemCF 计算推荐
         int candidateLimit = limit * getCandidateExpandFactor(config);
         Map<Long, Double> recommendedScores = computeItemCFRecommendationScores(userInteractions, candidateLimit);
+        populateScoreDebugEntries(debugInfo, recommendedScores, "ItemCF 原始候选分数");
         logScoreMap("ItemCF 原始候选分数", recommendedScores, debug);
         List<Long> recommendedIds = new ArrayList<>(recommendedScores.keySet());
         
         // 过滤已交互的景点
         List<Long> filteredIds = filterInteractedSpots(userId, recommendedIds);
+        populateFilteredOutDebugEntries(debugInfo, recommendedIds, filteredIds, "候选景点已与当前用户发生过交互，已被过滤");
         logFilteredRecommendations(userId, recommendedIds, filteredIds, debug);
         Map<Long, Double> filteredScores = orderScoresByIds(filteredIds, recommendedScores);
+        populateFilteredScoresDebugEntries(debugInfo, filteredScores, "过滤已交互景点后的候选分数");
         logScoreMap("过滤已交互景点后的候选分数", filteredScores, debug);
         filteredScores = applyHeatRerank(filteredScores, config, debug);
+        populateRerankedScoreDebugEntries(debugInfo, filteredScores, "热度轻量重排后的候选分数");
         filteredIds = new ArrayList<>(filteredScores.keySet());
         
         if (filteredIds.isEmpty()) {
             log.info("个性化推荐结果为空，降级为冷启动：用户ID={}", userId);
-            return handleColdStart(userId, limit, refresh, debug);
+            if (debugInfo != null) {
+                debugInfo.setTriggerReason("协同过滤候选在过滤后为空，降级为冷启动");
+            }
+            return handleColdStart(userId, limit, refresh, debug, debugInfo);
         }
 
         // 缓存结果
@@ -242,7 +258,14 @@ public class RecommendationServiceImpl implements RecommendationService {
             config.getUserRecTTLMinutes()
         );
 
-        return buildRecommendationResponse(filteredIds, filteredScores, limit, "personalized", false);
+        if (debugInfo != null) {
+            debugInfo.setTriggerReason("已命中协同过滤主链路");
+            debugInfo.setNotes(List.of(
+                "当前结果来自个性化推荐链路。",
+                "可重点关注用户交互权重、候选分数和热度重排后的排序变化。"
+            ));
+        }
+        return buildRecommendationResponse(filteredIds, filteredScores, limit, "personalized", false, debugInfo);
     }
 
     /**
@@ -317,6 +340,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh, boolean debug) {
+        return handleColdStart(userId, limit, refresh, debug, debug ? initDebugInfo(userId, limit, refresh) : null);
+    }
+
+    private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh, boolean debug,
+                                                   RecommendationResponse.DebugInfo debugInfo) {
         RecommendationConfigDTO config = loadConfig();
         List<Long> categoryIds = getUserPreferenceCategoryIds(userId);
 
@@ -335,8 +363,17 @@ public class RecommendationServiceImpl implements RecommendationService {
             if (refresh) {
                 spotIds = rotateRecommendations(spotIds, limit);
             }
+            if (debugInfo != null) {
+                debugInfo.setTriggerReason("用户交互不足，但存在偏好标签，走偏好冷启动");
+                debugInfo.setFinalCount(Math.min(spotIds.size(), limit));
+                debugInfo.setNotes(List.of(
+                    "当前结果来自偏好冷启动。",
+                    "请重点核对用户偏好标签与返回景点分类是否匹配。"
+                ));
+                debugInfo.setExtra(Map.of("categoryIds", categoryIds));
+            }
             logColdStartResult(userId, "preference", categoryIds, spotIds, debug);
-            return buildRecommendationResponse(spotIds, limit, "preference", false);
+            return buildRecommendationResponse(spotIds, limit, "preference", false, debugInfo);
         }
 
         // 无偏好，返回热门并提示设置偏好
@@ -344,6 +381,14 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<HotSpotResponse.SpotItem> hotSpotList = new ArrayList<>(hotSpots.getList());
         if (refresh) {
             rotateSpotItems(hotSpotList, limit);
+        }
+        if (debugInfo != null) {
+            debugInfo.setTriggerReason("用户交互不足且无偏好标签，走热门兜底");
+            debugInfo.setFinalCount(Math.min(hotSpotList.size(), limit));
+            debugInfo.setNotes(List.of(
+                "当前结果来自热门兜底。",
+                "请重点检查热度分数、景点上架状态和冷启动策略是否符合预期。"
+            ));
         }
         logColdStartResult(
             userId,
@@ -355,6 +400,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         RecommendationResponse response = new RecommendationResponse();
         response.setType("hot");
         response.setNeedPreference(true);
+        response.setDebugInfo(debugInfo);
         response.setList(hotSpotList.stream()
             .limit(limit)
             .map(item -> {
@@ -952,10 +998,16 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Integer limit, String type, Boolean needPreference) {
-        return buildRecommendationResponse(spotIds, null, limit, type, needPreference);
+        return buildRecommendationResponse(spotIds, null, limit, type, needPreference, null);
     }
 
     private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Map<Long, Double> scoreMap, Integer limit, String type, Boolean needPreference) {
+        return buildRecommendationResponse(spotIds, scoreMap, limit, type, needPreference, null);
+    }
+
+    private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Map<Long, Double> scoreMap,
+                                                               Integer limit, String type, Boolean needPreference,
+                                                               RecommendationResponse.DebugInfo debugInfo) {
         List<Long> limitedIds = spotIds.stream().limit(limit).collect(Collectors.toList());
         
         if (limitedIds.isEmpty()) {
@@ -963,6 +1015,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             response.setType(type);
             response.setList(Collections.emptyList());
             response.setNeedPreference(needPreference);
+            response.setDebugInfo(debugInfo);
             return response;
         }
 
@@ -976,6 +1029,10 @@ public class RecommendationServiceImpl implements RecommendationService {
         RecommendationResponse response = new RecommendationResponse();
         response.setType(type);
         response.setNeedPreference(needPreference);
+        if (debugInfo != null) {
+            debugInfo.setFinalCount(limitedIds.size());
+        }
+        response.setDebugInfo(debugInfo);
         response.setList(limitedIds.stream()
             .map(spotMap::get)
             .filter(spot -> spot != null && spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
@@ -995,6 +1052,11 @@ public class RecommendationServiceImpl implements RecommendationService {
             .collect(Collectors.toList()));
 
         return response;
+    }
+
+    private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Integer limit, String type, Boolean needPreference,
+                                                               RecommendationResponse.DebugInfo debugInfo) {
+        return buildRecommendationResponse(spotIds, null, limit, type, needPreference, debugInfo);
     }
 
     private Map<Long, String> getCategoryMap() {
@@ -1034,6 +1096,75 @@ public class RecommendationServiceImpl implements RecommendationService {
             response.getNeedPreference(),
             items
         );
+    }
+
+    private RecommendationResponse.DebugInfo initDebugInfo(Long userId, Integer limit, boolean refresh) {
+        RecommendationResponse.DebugInfo debugInfo = new RecommendationResponse.DebugInfo();
+        debugInfo.setUserId(userId);
+        debugInfo.setRequestLimit(limit);
+        debugInfo.setRefresh(refresh);
+        debugInfo.setDebugEnabled(true);
+        return debugInfo;
+    }
+
+    private void populateInteractionDebugInfo(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> userInteractions) {
+        if (debugInfo == null) {
+            return;
+        }
+        debugInfo.setInteractionCount(userInteractions.size());
+        debugInfo.setUserInteractions(toDebugEntries(userInteractions, "用户对该景点的综合交互权重"));
+    }
+
+    private void populateScoreDebugEntries(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> scores, String description) {
+        if (debugInfo == null) {
+            return;
+        }
+        debugInfo.setCandidateCount(scores.size());
+        debugInfo.setCandidateScores(toDebugEntries(scores, description));
+    }
+
+    private void populateFilteredScoresDebugEntries(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> scores, String description) {
+        if (debugInfo == null) {
+            return;
+        }
+        debugInfo.setFilteredCount(scores.size());
+        debugInfo.setFilteredScores(toDebugEntries(scores, description));
+    }
+
+    private void populateRerankedScoreDebugEntries(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> scores, String description) {
+        if (debugInfo == null) {
+            return;
+        }
+        debugInfo.setRerankedScores(toDebugEntries(scores, description));
+    }
+
+    private void populateFilteredOutDebugEntries(RecommendationResponse.DebugInfo debugInfo, List<Long> originalIds,
+                                                 List<Long> filteredIds, String description) {
+        if (debugInfo == null) {
+            return;
+        }
+        Set<Long> filteredSet = new HashSet<>(filteredIds);
+        List<RecommendationResponse.DebugEntry> removedItems = originalIds.stream()
+            .filter(id -> !filteredSet.contains(id))
+            .map(id -> new RecommendationResponse.DebugEntry(id, getSpotName(id), null, description))
+            .collect(Collectors.toList());
+        debugInfo.setFilteredOutItems(removedItems);
+    }
+
+    private List<RecommendationResponse.DebugEntry> toDebugEntries(Map<Long, Double> scoreMap, String description) {
+        if (scoreMap == null || scoreMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return scoreMap.entrySet().stream()
+            .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+            .limit(30)
+            .map(entry -> new RecommendationResponse.DebugEntry(
+                entry.getKey(),
+                getSpotName(entry.getKey()),
+                entry.getValue(),
+                description
+            ))
+            .collect(Collectors.toList());
     }
 
     private void logUserInteractionWeights(Long userId, Map<Long, Double> userInteractions, boolean debug) {
