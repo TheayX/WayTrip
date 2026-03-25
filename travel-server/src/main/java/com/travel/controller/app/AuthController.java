@@ -35,6 +35,12 @@ public class AuthController {
         return ApiResponse.success(authService.wxBindPhone(request));
     }
 
+    @Operation(summary = "小程序端第一步校验手机号密码")
+    @PostMapping("/wx-prepare-bind-phone")
+    public ApiResponse<WxPrepareBindPhoneResponse> prepareWxBindPhone(@Valid @RequestBody WxPrepareBindPhoneRequest request) {
+        return ApiResponse.success(authService.prepareWxBindPhone(request));
+    }
+
     @Operation(summary = "Web端注册")
     @PostMapping("/web-register")
     public ApiResponse<LoginResponse> webRegister(@Valid @RequestBody WebRegisterRequest request) {
