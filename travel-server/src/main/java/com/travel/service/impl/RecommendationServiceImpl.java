@@ -196,6 +196,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         // ============ 改进：基于总交互景点数判断冷启动（而非仅评分数） ============
         Map<Long, Double> userInteractions = buildUserInteractionWeights(userId, config);
+        populateBehaviorStats(debugInfo, userId);
         populateInteractionDebugInfo(debugInfo, userInteractions);
         logUserInteractionWeights(userId, userInteractions, debug);
 
@@ -1131,6 +1132,60 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
         debugInfo.setInteractionCount(userInteractions.size());
         debugInfo.setUserInteractions(toDebugEntries(userInteractions, "用户对该景点的综合交互权重"));
+    }
+
+    private void populateBehaviorStats(RecommendationResponse.DebugInfo debugInfo, Long userId) {
+        if (debugInfo == null || userId == null) {
+            return;
+        }
+
+        List<UserSpotView> views = userSpotViewMapper.selectList(
+            new LambdaQueryWrapper<UserSpotView>()
+                .eq(UserSpotView::getUserId, userId)
+                .select(UserSpotView::getSpotId)
+        );
+        List<UserSpotFavorite> favorites = userSpotFavoriteMapper.selectList(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+                .select(UserSpotFavorite::getSpotId)
+        );
+        List<Review> reviews = reviewMapper.selectList(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getIsDeleted, 0)
+                .select(Review::getSpotId)
+        );
+        List<Order> orders = orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
+                .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
+                .select(Order::getSpotId)
+        );
+
+        debugInfo.setBehaviorStats(List.of(
+            buildBehaviorStat("浏览", views.stream().map(UserSpotView::getSpotId).collect(Collectors.toList()), "来源表 user_spot_view，统计所有浏览记录"),
+            buildBehaviorStat("收藏", favorites.stream().map(UserSpotFavorite::getSpotId).collect(Collectors.toList()), "仅统计 is_deleted = 0 的有效收藏"),
+            buildBehaviorStat("评分", reviews.stream().map(Review::getSpotId).collect(Collectors.toList()), "仅统计 is_deleted = 0 的有效评分"),
+            buildBehaviorStat("订单", orders.stream().map(Order::getSpotId).collect(Collectors.toList()), "仅统计 PAID / COMPLETED 的有效订单"),
+            new RecommendationResponse.BehaviorStat(
+                "最终参与推荐",
+                null,
+                debugInfo.getInteractionCount(),
+                "四类行为按景点合并并加权求和后，最终进入 r_ui 计算的唯一景点数"
+            )
+        ));
+    }
+
+    private RecommendationResponse.BehaviorStat buildBehaviorStat(String behavior, List<Long> spotIds, String description) {
+        Set<Long> uniqueSpotIds = spotIds == null ? Collections.emptySet() : new HashSet<>(spotIds);
+        return new RecommendationResponse.BehaviorStat(
+            behavior,
+            spotIds == null ? 0 : spotIds.size(),
+            uniqueSpotIds.size(),
+            description
+        );
     }
 
     private void populateScoreDebugEntries(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> scores, String description) {

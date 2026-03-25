@@ -22,10 +22,20 @@ export function updateRecommendationMatrix() {
 
 // 调试预览推荐结果
 export function previewRecommendations(params) {
-  return request.get('/recommendation/preview', { params })
+  return request.get('/recommendation/preview', {
+    params: {
+      ...params,
+      _ts: Date.now()
+    }
+  })
 }
 
 // 预览景点相似邻居
 export function previewSimilarityNeighbors(params) {
-  return request.get('/recommendation/similarity-preview', { params })
+  return request.get('/recommendation/similarity-preview', {
+    params: {
+      ...params,
+      _ts: Date.now()
+    }
+  })
 }
