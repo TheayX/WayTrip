@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 用户端认证接口
@@ -37,8 +39,15 @@ public class AuthController {
 
     @Operation(summary = "小程序端第一步校验手机号密码")
     @PostMapping("/wx-prepare-bind-phone")
-    public ApiResponse<WxPrepareBindPhoneResponse> prepareWxBindPhone(@Valid @RequestBody WxPrepareBindPhoneRequest request) {
-        return ApiResponse.success(authService.prepareWxBindPhone(request));
+    public ApiResponse<Map<String, Object>> prepareWxBindPhone(@Valid @RequestBody WxBindPhoneRequest request) {
+        // login == null 表示当前手机号未匹配到已有账户，前端应进入第二步补充资料，
+        // 后续再调用 /wx-bind-phone 正式创建账户。
+        LoginResponse login = authService.prepareWxBindPhone(request);
+        Map<String, Object> data = new HashMap<>();
+        data.put("completed", login != null);
+        data.put("requireProfile", login == null);
+        data.put("login", login);
+        return ApiResponse.success(data);
     }
 
     @Operation(summary = "Web端注册")

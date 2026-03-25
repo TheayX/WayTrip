@@ -14,8 +14,6 @@ import com.travel.dto.auth.WebLoginRequest;
 import com.travel.dto.auth.WebRegisterRequest;
 import com.travel.dto.auth.WxBindPhoneRequest;
 import com.travel.dto.auth.WxLoginResponse;
-import com.travel.dto.auth.WxPrepareBindPhoneRequest;
-import com.travel.dto.auth.WxPrepareBindPhoneResponse;
 import com.travel.entity.Admin;
 import com.travel.entity.SpotCategory;
 import com.travel.entity.User;
@@ -432,7 +430,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public WxPrepareBindPhoneResponse prepareWxBindPhone(WxPrepareBindPhoneRequest request) {
+    public LoginResponse prepareWxBindPhone(WxBindPhoneRequest request) {
         User existByOpenid = userMapper.selectOne(
                 new LambdaQueryWrapper<User>()
                         .eq(User::getOpenid, request.getOpenid())
@@ -452,11 +450,7 @@ public class AuthServiceImpl implements AuthService {
                             .isMerged(false)
                             .build())
                     .build();
-            return WxPrepareBindPhoneResponse.builder()
-                    .completed(true)
-                    .requireProfile(false)
-                    .login(login)
-                    .build();
+            return login;
         }
 
         User existUser = userMapper.selectOne(
@@ -465,19 +459,10 @@ public class AuthServiceImpl implements AuthService {
                         .eq(User::getIsDeleted, 0)
         );
         if (existUser != null) {
-            LoginResponse login = mergeExistingWxUser(existUser, request.getOpenid(), request.getPassword(), request.getPhone());
-            return WxPrepareBindPhoneResponse.builder()
-                    .completed(true)
-                    .requireProfile(false)
-                    .login(login)
-                    .build();
+            return mergeExistingWxUser(existUser, request.getOpenid(), request.getPassword(), request.getPhone());
         }
 
-        return WxPrepareBindPhoneResponse.builder()
-                .completed(false)
-                .requireProfile(true)
-                .login(null)
-                .build();
+        return null;
     }
 
     private LoginResponse mergeExistingWxUser(User existUser, String openid, String password, String phone) {
