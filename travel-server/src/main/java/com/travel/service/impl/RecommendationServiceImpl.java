@@ -355,8 +355,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     /**
-     * 基于 ItemCF 计算推荐（论文公式 2-3）
-     * P_uj = Σ_{i ∈ N(u) ∩ S(j,K)} w_ji × r_ui
+     * 基于 ItemCF 计算推荐
+     * 公式 P_uj = Σ_{i ∈ N(u) ∩ S(j,K)} w_ji × r_ui
      *
      * @param userInteractions 当前用户的交互权重 Map<spotId, weight>
      */
@@ -420,7 +420,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     continue;
                 }
                 
-                // 论文公式 (2-3)：P_uj += w_ji × r_ui
+                // 公式：P_uj += w_ji × r_ui
                 scores.merge(similarSpotId, wji * rui, Double::sum);
             }
         }
@@ -609,9 +609,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     /**
      * 更新物品相似度矩阵（离线计算）
      * 
-     * 改进点：
      * 1. 融合浏览、收藏、评分、订单四种行为构建交互矩阵
-     * 2. 使用 IUF 加权余弦相似度（论文公式 2-2）
+     * 2. 使用 IUF 加权余弦相似度  公式 w_ij = Σ_{u ∈ N(i)∩N(j)} 1/log(1+|N(u)|) / (√|N(i)| × √|N(j)|)
      */
     @Override
     public void updateSimilarityMatrix() {
@@ -711,7 +710,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 }
             }
 
-            // ============ 步骤4：计算 IUF 加权相似度（论文公式 2-2） ============
+            // ============ 步骤4：计算 IUF 加权相似度 ============
             List<Long> spotIdList = new ArrayList<>(allSpotIds);
             int topK = config.getTopKNeighbors();
             int simTTL = config.getSimilarityTTLHours();
@@ -779,9 +778,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     /**
-     * IUF 加权余弦相似度（论文公式 2-2）
-     *
-     * w_ij = Σ_{u ∈ N(i)∩N(j)} 1/log(1+|N(u)|) / (√|N(i)| × √|N(j)|)
+     * IUF 加权余弦相似度
+     * 公式 w_ij = Σ_{u ∈ N(i)∩N(j)} 1/log(1+|N(u)|) / (√|N(i)| × √|N(j)|)
      *
      * @param usersI 交互过景点 i 的用户集合 N(i)
      * @param usersJ 交互过景点 j 的用户集合 N(j)
