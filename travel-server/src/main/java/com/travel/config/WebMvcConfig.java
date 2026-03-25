@@ -36,6 +36,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/v1/auth/wx-login",
                         "/api/v1/auth/wx-prepare-bind-phone",
                         "/api/v1/auth/wx-bind-phone",
+                        "/api/v1/auth/web-prepare-register",
                         "/api/v1/auth/web-register",
                         "/api/v1/auth/web-login",
                         "/api/v1/spots",

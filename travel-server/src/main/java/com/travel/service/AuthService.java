@@ -19,6 +19,11 @@ public interface AuthService {
     LoginResponse webRegister(WebRegisterRequest request);
 
     /**
+     * Web端第一步校验手机号是否可注册。
+     */
+    void prepareWebRegister(WebRegisterRequest request);
+
+    /**
      * Web端登录（手机号+密码）
      */
     LoginResponse webLogin(WebLoginRequest request);
