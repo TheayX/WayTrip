@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class RecommendationConfigDTO {
 
-    // ==================== 交互权重（论文 rui） ====================
+    // ==================== 交互权重 ====================
 
     /** 浏览行为权重 */
     private Double weightView = 0.5;
@@ -89,7 +89,7 @@ public class RecommendationConfigDTO {
     /** 触发协同过滤的最少交互数（低于此值走冷启动） */
     private Integer minInteractionsForCF = 3;
 
-    /** 相似度矩阵保留的近邻数量 K（论文 S(j,K)） */
+    /** 相似度矩阵保留的近邻数量 K */
     private Integer topKNeighbors = 20;
 
     /** 个性化推荐计算时的候选扩容倍数 */

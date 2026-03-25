@@ -540,6 +540,47 @@
           </div>
         </el-collapse-item>
 
+        <el-collapse-item title="🗄️ 数据库字段说明" name="data-fields">
+          <div class="help-content">
+            <div class="data-field-group">
+              <div class="data-field-title">协同过滤主体字段</div>
+              <el-table :data="cfDataFieldReferences" stripe style="width: 100%">
+                <el-table-column prop="table" label="表" width="180" />
+                <el-table-column label="涉及字段" min-width="260">
+                  <template #default="{ row }">
+                    <div class="field-pill-list">
+                      <span v-for="field in row.fields" :key="field" class="field-pill">{{ field }}</span>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="usage" label="用途" min-width="220" />
+                <el-table-column prop="phase" label="算法阶段" width="180" />
+              </el-table>
+            </div>
+
+            <div class="data-field-group">
+              <div class="data-field-title">冷启动字段</div>
+              <el-table :data="coldStartDataFieldReferences" stripe style="width: 100%">
+                <el-table-column prop="table" label="表" width="180" />
+                <el-table-column label="涉及字段" min-width="260">
+                  <template #default="{ row }">
+                    <div class="field-pill-list">
+                      <span v-for="field in row.fields" :key="field" class="field-pill">{{ field }}</span>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="usage" label="用途" min-width="220" />
+                <el-table-column prop="phase" label="算法阶段" width="180" />
+              </el-table>
+            </div>
+            <el-alert type="info" :closable="false" style="margin-top: 16px">
+              <template #title>
+                协同过滤主体只读取这些业务表字段；管理端调参改的是算法参数，不会改动原始业务数据。
+              </template>
+            </el-alert>
+          </div>
+        </el-collapse-item>
+
         <el-collapse-item title="🎯 调参策略建议" name="strategy">
           <div class="help-content">
             <div class="strategy-grid">
@@ -750,6 +791,48 @@ const weightExplanations = [
   { behavior: '评分', param: 'weightReviewFactor', default: '0.4', description: '实际权重 = 评分(1~5) × 因子，如5分评价 = 5×0.4 = 2.0' },
   { behavior: '已付款', param: 'weightOrderPaid', default: '3.0', description: '用户已下单付款但未完成行程，表示强烈意向' },
   { behavior: '已完成', param: 'weightOrderCompleted', default: '4.0', description: '用户已完成行程，最强信号' }
+]
+
+const cfDataFieldReferences = [
+  {
+    table: 'user_spot_view',
+    fields: ['user_id', 'spot_id', 'view_source', 'view_duration'],
+    usage: '浏览行为权重、来源因子、停留时长因子',
+    phase: '交互权重构建'
+  },
+  {
+    table: 'user_spot_favorite',
+    fields: ['user_id', 'spot_id', 'is_deleted'],
+    usage: '收藏行为权重与已交互过滤',
+    phase: '交互权重构建'
+  },
+  {
+    table: 'user_spot_review',
+    fields: ['user_id', 'spot_id', 'score', 'is_deleted'],
+    usage: '评分权重、评论分值信号',
+    phase: '交互权重构建'
+  },
+  {
+    table: 'order',
+    fields: ['user_id', 'spot_id', 'status', 'is_deleted'],
+    usage: '提取已支付/已完成订单行为权重',
+    phase: '交互权重构建'
+  }
+]
+
+const coldStartDataFieldReferences = [
+  {
+    table: 'user_preference',
+    fields: ['user_id', 'tag', 'is_deleted'],
+    usage: '冷启动偏好分类召回',
+    phase: '冷启动'
+  },
+  {
+    table: 'spot',
+    fields: ['id', 'category_id', 'heat_score', 'is_published', 'is_deleted'],
+    usage: '上架过滤、冷启动热门排序、热度重排',
+    phase: '候选生成与重排'
+  }
 ]
 
 // 获取配置
@@ -1238,6 +1321,38 @@ onMounted(() => {
       font-size: 13px;
       color: #606266;
     }
+  }
+
+  .field-pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .data-field-group + .data-field-group {
+    margin-top: 20px;
+  }
+
+  .data-field-title {
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2f3d;
+  }
+
+  .field-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #eef6ff 0%, #f6faff 100%);
+    border: 1px solid #cfe3ff;
+    color: #245bdb;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 }
 </style>
