@@ -86,10 +86,13 @@ public class RecommendationServiceImpl implements RecommendationService {
             if (map.containsKey("heatFavoriteIncrement")) config.setHeatFavoriteIncrement(toInt(map.get("heatFavoriteIncrement")));
             if (map.containsKey("heatReviewIncrement")) config.setHeatReviewIncrement(toInt(map.get("heatReviewIncrement")));
             if (map.containsKey("heatOrderPaidIncrement")) config.setHeatOrderPaidIncrement(toInt(map.get("heatOrderPaidIncrement")));
+            if (map.containsKey("heatOrderCompletedIncrement")) config.setHeatOrderCompletedIncrement(toInt(map.get("heatOrderCompletedIncrement")));
             if (map.containsKey("heatViewDedupeWindowMinutes")) config.setHeatViewDedupeWindowMinutes(toInt(map.get("heatViewDedupeWindowMinutes")));
             if (map.containsKey("heatRerankFactor")) config.setHeatRerankFactor(toDouble(map.get("heatRerankFactor")));
             if (map.containsKey("minInteractionsForCF")) config.setMinInteractionsForCF(toInt(map.get("minInteractionsForCF")));
             if (map.containsKey("topKNeighbors")) config.setTopKNeighbors(toInt(map.get("topKNeighbors")));
+            if (map.containsKey("candidateExpandFactor")) config.setCandidateExpandFactor(toInt(map.get("candidateExpandFactor")));
+            if (map.containsKey("coldStartExpandFactor")) config.setColdStartExpandFactor(toInt(map.get("coldStartExpandFactor")));
             if (map.containsKey("similarityTTLHours")) config.setSimilarityTTLHours(toInt(map.get("similarityTTLHours")));
             if (map.containsKey("userRecTTLMinutes")) config.setUserRecTTLMinutes(toInt(map.get("userRecTTLMinutes")));
             return config;
@@ -182,7 +185,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         // 基于 ItemCF 计算推荐
-        Map<Long, Double> recommendedScores = computeItemCFRecommendationScores(userInteractions, limit * 2);
+        int candidateLimit = limit * getCandidateExpandFactor(config);
+        Map<Long, Double> recommendedScores = computeItemCFRecommendationScores(userInteractions, candidateLimit);
         List<Long> recommendedIds = new ArrayList<>(recommendedScores.keySet());
         
         // 过滤已交互的景点
@@ -272,8 +276,10 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     /**
-     * 鍐峰惎鍔ㄥ鐞嗭細鍒锋柊鏃跺硅繑鍥炵粨鏋滃仛杞崲锛岄伩鍏嶆瘡娆￠兘鏄悓涓€鎵?     */
+     * 冷启动处理：刷新时对返回结果做轮换，避免每次都是同一批
+     */
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh) {
+        RecommendationConfigDTO config = loadConfig();
         List<Long> categoryIds = getUserPreferenceCategoryIds(userId);
 
         // 如果用户设置了偏好标签，基于偏好推荐
@@ -284,7 +290,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .in(Spot::getCategoryId, categoryIds)
                     .eq(Spot::getIsDeleted, 0)
                     .orderByDesc(Spot::getHeatScore)
-                    .last("LIMIT " + (refresh ? Math.max(limit * 3, limit) : limit))
+                    .last("LIMIT " + (refresh ? Math.max(limit * getColdStartExpandFactor(config), limit) : limit))
             );
 
             List<Long> spotIds = spots.stream().map(Spot::getId).collect(Collectors.toList());
@@ -295,7 +301,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         // 无偏好，返回热门并提示设置偏好
-        HotSpotResponse hotSpots = getHotSpots(refresh ? Math.max(limit * 3, limit) : limit);
+        HotSpotResponse hotSpots = getHotSpots(refresh ? Math.max(limit * getColdStartExpandFactor(config), limit) : limit);
         List<HotSpotResponse.SpotItem> hotSpotList = new ArrayList<>(hotSpots.getList());
         if (refresh) {
             rotateSpotItems(hotSpotList, limit);
@@ -355,7 +361,8 @@ public class RecommendationServiceImpl implements RecommendationService {
      * @param userInteractions 当前用户的交互权重 Map<spotId, weight>
      */
     /**
-     * 鍒锋柊鎺ㄨ崘鏃跺皾璇曡烦杩囧綋鍓嶉《閮ㄥ嚑涓粨鏋滐紝璁╃敤鎴风湅鍒版柊鐨勪竴鎵?     */
+     * 刷新推荐时尝试跳过当前头部几个结果，让用户看到新的一批
+     */
     private List<Long> rotateRecommendations(List<Long> recommendationIds, Integer limit) {
         if (recommendationIds == null || recommendationIds.size() <= 1) {
             return recommendationIds;
@@ -373,7 +380,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     /**
-     * 鐑棬/鍋忓ソ鍐峰惎鍔ㄧ粨鏋滄病鏈夌壒鍒殑涓€у寲鎺掑簭锛屽埛鏂版椂鍋氫竴娆¤疆鎹?     */
+     * 热门/偏好冷启动结果没有个性化排序，刷新时做一次轮换
+     */
     private void rotateSpotItems(List<HotSpotResponse.SpotItem> spotItems, Integer limit) {
         if (spotItems == null || spotItems.size() <= 1) {
             return;
@@ -842,6 +850,14 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private int defaultInt(Integer value, int fallback) {
         return value == null ? fallback : value;
+    }
+
+    private int getCandidateExpandFactor(RecommendationConfigDTO config) {
+        return Math.max(defaultInt(config.getCandidateExpandFactor(), 2), 1);
+    }
+
+    private int getColdStartExpandFactor(RecommendationConfigDTO config) {
+        return Math.max(defaultInt(config.getColdStartExpandFactor(), 3), 1);
     }
 
     private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Integer limit, String type, Boolean needPreference) {

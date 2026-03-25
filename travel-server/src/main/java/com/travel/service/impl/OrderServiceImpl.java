@@ -274,6 +274,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.COMPLETED.getCode());
         order.setCompletedAt(LocalDateTime.now());
         orderMapper.updateById(order);
+        incrementHeatScore(order.getSpotId(), getCompletedOrderHeatIncrement());
         recommendationService.invalidateUserRecommendationCache(order.getUserId());
         log.info("订单已完成: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
@@ -489,6 +490,11 @@ public class OrderServiceImpl implements OrderService {
     private int getPaidOrderHeatIncrement() {
         Integer value = recommendationService.getConfig().getHeatOrderPaidIncrement();
         return value != null && value > 0 ? value : 5;
+    }
+
+    private int getCompletedOrderHeatIncrement() {
+        Integer value = recommendationService.getConfig().getHeatOrderCompletedIncrement();
+        return value != null && value > 0 ? value : 8;
     }
 }
 
