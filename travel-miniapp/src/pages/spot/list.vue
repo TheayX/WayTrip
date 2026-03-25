@@ -187,6 +187,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getSpotList, getFilters } from '@/api/spot'
+import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
@@ -415,7 +416,12 @@ const loadMore = () => {
 }
 
 const goSearch = () => uni.navigateTo({ url: '/pages/spot/search' })
-const goDetail = (id) => uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=list` })
+const goDetail = (id) => {
+  if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
+    return
+  }
+  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=list` })
+}
 
 onMounted(() => {
   fetchFilters()

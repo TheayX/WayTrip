@@ -59,6 +59,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getGuideList, getCategories } from '@/api/guide'
+import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 
 
@@ -125,6 +126,9 @@ const loadMore = () => {
 }
 
 const goDetail = (id) => {
+  if (!promptLogin('登录后可查看攻略详情，是否现在去登录？')) {
+    return
+  }
   uni.navigateTo({ url: `/pages/guide/detail?id=${id}` })
 }
 

@@ -28,6 +28,13 @@
       </swiper>
     </view>
 
+    <view v-if="!isLoggedIn" class="guest-banner" @click="goMine">
+      <view class="guest-copy">
+        <text class="guest-title">现在去登录或注册，体验完整微旅</text>
+      </view>
+      <text class="guest-action">去登录</text>
+    </view>
+
     <!-- 热门目的地 -->
     <view class="section">
       <view class="section-header">
@@ -112,12 +119,14 @@ import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { getHotSpots, getRecommendations, refreshRecommendations, getBanners } from '@/api/home'
 import { getFilters } from '@/api/spot'
 import { updatePreferences } from '@/api/auth'
+import { promptLogin } from '@/utils/auth'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
 // 用户信息
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)
+const isLoggedIn = computed(() => userStore.isLoggedIn)
 
 // 数据
 const banners = ref([])
@@ -256,6 +265,9 @@ const handleBannerClick = (banner) => {
 
 // 跳转
 const goSpotDetail = (spotId) => {
+  if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
+    return
+  }
   uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=home` })
 }
 
@@ -359,6 +371,42 @@ onShow(() => {
   width: 100%;
   height: 360rpx;
   border-radius: 32rpx;
+}
+
+.guest-banner {
+  margin: 0 32rpx 40rpx;
+  padding: 26rpx 28rpx;
+  border-radius: 28rpx;
+  background: #fff;
+  border: 1rpx solid #E5E5EA;
+  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.guest-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.guest-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1C1C1E;
+  line-height: 1.5;
+}
+
+.guest-action {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #007AFF;
+  background: rgba(0, 122, 255, 0.08);
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
 }
 
 /* 板块通用 */
