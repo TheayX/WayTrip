@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 推荐响应
@@ -28,6 +29,11 @@ public class RecommendationResponse {
      */
     private Boolean needPreference;
 
+    /**
+     * 管理端调试信息，仅调试预览时返回
+     */
+    private DebugInfo debugInfo;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -41,5 +47,35 @@ public class RecommendationResponse {
         private String categoryName;
         private String regionName;
         private Double score; // 推荐分数
+    }
+
+    @Data
+    public static class DebugInfo {
+        private Long userId;
+        private Integer requestLimit;
+        private Boolean refresh;
+        private Boolean debugEnabled;
+        private String triggerReason;
+        private Integer interactionCount;
+        private Integer candidateCount;
+        private Integer filteredCount;
+        private Integer finalCount;
+        private List<DebugEntry> userInteractions;
+        private List<DebugEntry> candidateScores;
+        private List<DebugEntry> filteredScores;
+        private List<DebugEntry> rerankedScores;
+        private List<DebugEntry> filteredOutItems;
+        private List<String> notes;
+        private Map<String, Object> extra;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DebugEntry {
+        private Long spotId;
+        private String spotName;
+        private Double score;
+        private String description;
     }
 }

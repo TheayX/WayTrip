@@ -427,6 +427,28 @@
         {{ recommendationTypeMeta.description }}
       </el-alert>
 
+      <div v-if="debugInfo" class="debug-pipeline">
+        <div class="debug-block-title">后端调试链路</div>
+        <div class="pipeline-grid">
+          <div class="pipeline-card">
+            <div class="pipeline-label">触发原因</div>
+            <div class="pipeline-value">{{ debugInfo.triggerReason || '未返回' }}</div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipeline-label">交互景点数</div>
+            <div class="pipeline-value">{{ debugInfo.interactionCount ?? 0 }}</div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipeline-label">原始候选数</div>
+            <div class="pipeline-value">{{ debugInfo.candidateCount ?? 0 }}</div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipeline-label">过滤后候选数</div>
+            <div class="pipeline-value">{{ debugInfo.filteredCount ?? 0 }}</div>
+          </div>
+        </div>
+      </div>
+
       <div v-if="debugInsights.length" class="debug-insights">
         <div class="debug-block-title">结果解读</div>
         <div class="insight-list">
@@ -434,6 +456,39 @@
             {{ insight }}
           </div>
         </div>
+      </div>
+
+      <div v-if="debugNotes.length" class="debug-insights">
+        <div class="debug-block-title">后端备注</div>
+        <div class="insight-list insight-list--plain">
+          <div v-for="(note, index) in debugNotes" :key="`${index}-${note}`" class="insight-item insight-item--blue">
+            {{ note }}
+          </div>
+        </div>
+      </div>
+
+      <div v-if="debugSections.length" class="debug-sections">
+        <div class="debug-block-title">关键中间结果</div>
+        <el-collapse>
+          <el-collapse-item
+            v-for="section in debugSections"
+            :key="section.key"
+            :name="section.key"
+            :title="`${section.title}（${section.items.length}）`"
+          >
+            <el-table :data="section.items" stripe size="small">
+              <el-table-column prop="spotId" label="景点ID" width="100" />
+              <el-table-column prop="spotName" label="景点名称" min-width="180" />
+              <el-table-column label="分数/权重" width="140">
+                <template #default="{ row }">
+                  <span v-if="row.score != null" class="score-text">{{ Number(row.score).toFixed(4) }}</span>
+                  <span v-else class="score-empty">-</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="description" label="说明" min-width="260" />
+            </el-table>
+          </el-collapse-item>
+        </el-collapse>
       </div>
 
       <div v-if="debugItems.length" class="debug-top-results">
@@ -821,6 +876,20 @@ const debugOutput = computed(() => {
 })
 
 const debugItems = computed(() => debugResult.value?.list || [])
+const debugInfo = computed(() => debugResult.value?.debugInfo || null)
+const debugNotes = computed(() => debugInfo.value?.notes || [])
+
+const debugSections = computed(() => {
+  if (!debugInfo.value) return []
+  const sections = [
+    { key: 'interactions', title: '用户交互权重', items: debugInfo.value.userInteractions || [] },
+    { key: 'candidates', title: '原始候选分数', items: debugInfo.value.candidateScores || [] },
+    { key: 'filtered', title: '过滤后候选分数', items: debugInfo.value.filteredScores || [] },
+    { key: 'reranked', title: '重排后候选分数', items: debugInfo.value.rerankedScores || [] },
+    { key: 'removed', title: '被过滤景点', items: debugInfo.value.filteredOutItems || [] }
+  ]
+  return sections.filter(section => section.items.length)
+})
 
 const recommendationTypeMeta = computed(() => {
   const type = debugResult.value?.type
@@ -885,7 +954,7 @@ const debugSummaryCards = computed(() => {
     {
       label: '推荐来源',
       value: recommendationTypeMeta.value.label,
-      desc: debugResult.value?.needPreference ? '当前链路仍建议补充偏好' : '当前链路无需额外偏好引导'
+      desc: debugInfo.value?.triggerReason || (debugResult.value?.needPreference ? '当前链路仍建议补充偏好' : '当前链路无需额外偏好引导')
     },
     {
       label: '返回结果数',
@@ -919,6 +988,9 @@ const debugInsights = computed(() => {
   }
   if (debugResult.value.needPreference) {
     insights.push('接口提示需要偏好引导，说明用户侧可以进一步补充偏好标签以改善冷启动效果。')
+  }
+  if (debugInfo.value?.filteredOutItems?.length) {
+    insights.push(`后端共过滤掉 ${debugInfo.value.filteredOutItems.length} 个已交互景点，避免把用户已经看过/买过的景点继续推荐回来。`)
   }
   if (!debugItems.value.length) {
     insights.push('本次返回空列表。优先检查用户偏好命中的分类下是否有已上架且未删除的景点。')
@@ -1349,8 +1421,36 @@ onMounted(() => {
   }
 
   .debug-insights,
-  .debug-top-results {
+  .debug-top-results,
+  .debug-pipeline,
+  .debug-sections {
     margin-bottom: 16px;
+  }
+
+  .pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .pipeline-card {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fffdf6 0%, #fff7e8 100%);
+    border: 1px solid #ffe2b7;
+  }
+
+  .pipeline-label {
+    font-size: 12px;
+    color: #8a6b30;
+  }
+
+  .pipeline-value {
+    margin-top: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #7a4e00;
   }
 
   .debug-block-title {
@@ -1365,6 +1465,10 @@ onMounted(() => {
     gap: 10px;
   }
 
+  .insight-list--plain {
+    gap: 8px;
+  }
+
   .insight-item {
     padding: 12px 14px;
     border-radius: 10px;
@@ -1373,6 +1477,12 @@ onMounted(() => {
     color: #8a5a00;
     line-height: 1.7;
     font-size: 13px;
+  }
+
+  .insight-item--blue {
+    background: #eef6ff;
+    border-color: #cfe3ff;
+    color: #245bdb;
   }
 
   .top-result-list {
@@ -1709,10 +1819,18 @@ onMounted(() => {
     .debug-summary-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .pipeline-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 768px) {
     .debug-summary-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .pipeline-grid {
       grid-template-columns: 1fr;
     }
 
