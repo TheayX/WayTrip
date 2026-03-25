@@ -452,7 +452,7 @@
       <div v-if="debugInsights.length" class="debug-insights">
         <div class="debug-block-title">结果解读</div>
         <div class="insight-list">
-          <div v-for="(insight, index) in debugInsights" :key="`${index}-${insight}`" class="insight-item">
+          <div v-for="(insight, index) in compactDebugInsights" :key="`${index}-${insight}`" class="insight-item">
             {{ insight }}
           </div>
         </div>
@@ -491,6 +491,30 @@
         </el-collapse>
       </div>
 
+      <div v-if="resultContributions.length" class="debug-sections">
+        <div class="debug-block-title">结果贡献来源</div>
+        <el-collapse>
+          <el-collapse-item
+            v-for="item in resultContributions.slice(0, 8)"
+            :key="`contrib-${item.targetSpotId}`"
+            :title="`${item.targetSpotName}（最终分数 ${item.finalScore == null ? '-' : Number(item.finalScore).toFixed(4)}）`"
+            :name="`contrib-${item.targetSpotId}`"
+          >
+            <el-table :data="item.contributors" stripe size="small">
+              <el-table-column prop="spotId" label="历史景点ID" width="120" />
+              <el-table-column prop="spotName" label="历史景点名称" min-width="180" />
+              <el-table-column label="贡献分值" width="140">
+                <template #default="{ row }">
+                  <span v-if="row.score != null" class="score-text">{{ Number(row.score).toFixed(4) }}</span>
+                  <span v-else class="score-empty">-</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="description" label="贡献说明" min-width="260" />
+            </el-table>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+
       <div v-if="debugItems.length" class="debug-top-results">
         <div class="debug-block-title">Top 结果速览</div>
         <div class="top-result-list">
@@ -513,9 +537,15 @@
         </div>
       </div>
 
-      <div v-if="debugResult" class="debug-output">
-        <div class="debug-output-title">请求与响应摘要</div>
-        <pre>{{ debugOutput }}</pre>
+      <div v-if="debugResult" class="debug-sections">
+        <div class="debug-block-title">原始摘要</div>
+        <el-collapse>
+          <el-collapse-item name="raw-debug" title="查看请求与响应摘要">
+            <div class="debug-output debug-output--compact">
+              <pre>{{ debugOutput }}</pre>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
       </div>
 
       <el-table v-if="debugItems.length" :data="debugTableRows" stripe class="debug-table">
@@ -547,6 +577,64 @@
         </el-table-column>
       </el-table>
       <el-empty v-else :description="debugResult ? '本次请求已返回空列表，请结合上方调试输出查看原因' : '暂无调试结果'" />
+    </el-card>
+
+    <el-card shadow="hover" class="debug-card">
+      <template #header>
+        <div class="card-header">
+          <div class="title-section">
+            <span class="title">相似邻居预览</span>
+            <el-tag effect="plain" type="info" round>离线矩阵视角</el-tag>
+          </div>
+        </div>
+      </template>
+
+      <div class="debug-toolbar">
+        <div class="debug-field">
+          <span class="debug-label">景点 ID</span>
+          <el-input-number v-model="similarityForm.spotId" :min="1" :step="1" controls-position="right" />
+        </div>
+        <div class="debug-field">
+          <span class="debug-label">邻居数量</span>
+          <el-input-number v-model="similarityForm.limit" :min="1" :max="20" :step="1" controls-position="right" />
+        </div>
+        <el-button type="primary" :loading="similarityPreviewing" @click="handlePreviewSimilarity">
+          查看相似邻居
+        </el-button>
+      </div>
+
+      <div v-if="similarityResult" class="debug-summary">
+        <div class="debug-summary-grid debug-summary-grid--triple">
+          <div class="summary-card">
+            <div class="summary-label">目标景点</div>
+            <div class="summary-value summary-value--sm">{{ similarityResult.spotName || '-' }}</div>
+            <div class="summary-desc">景点 ID：{{ similarityResult.spotId }}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">可用邻居数</div>
+            <div class="summary-value">{{ similarityResult.totalNeighbors ?? 0 }}</div>
+            <div class="summary-desc">当前从 Redis 相似度矩阵读取</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">矩阵更新时间</div>
+            <div class="summary-value summary-value--sm">{{ similarityResult.lastUpdateTime || '暂无记录' }}</div>
+            <div class="summary-desc">用于确认预览的矩阵版本</div>
+          </div>
+        </div>
+      </div>
+
+      <el-table v-if="similarityResult?.neighbors?.length" :data="similarityResult.neighbors" stripe class="debug-table">
+        <el-table-column prop="spotId" label="相似景点ID" width="120" />
+        <el-table-column prop="spotName" label="相似景点名称" min-width="180" />
+        <el-table-column prop="categoryName" label="分类" width="140" />
+        <el-table-column prop="regionName" label="地区" width="140" />
+        <el-table-column label="相似度" width="160">
+          <template #default="{ row }">
+            <span class="score-text">{{ Number(row.similarity).toFixed(6) }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-empty v-else :description="similarityResult ? '当前景点暂无可预览的相似邻居' : '请输入景点 ID 查看相似邻居'" />
     </el-card>
 
     <!-- 使用说明 -->
@@ -786,7 +874,8 @@ import {
   updateRecommendationConfig,
   getRecommendationStatus,
   updateRecommendationMatrix,
-  previewRecommendations
+  previewRecommendations,
+  previewSimilarityNeighbors
 } from '@/api/recommendation'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -837,13 +926,19 @@ const status = reactive({
 const saving = ref(false)
 const updatingMatrix = ref(false)
 const previewing = ref(false)
+const similarityPreviewing = ref(false)
 const activeCollapse = ref([])
 const debugResult = ref(null)
+const similarityResult = ref(null)
 const debugForm = reactive({
   userId: 1,
   limit: 6,
   refresh: false,
   debug: true
+})
+const similarityForm = reactive({
+  spotId: 1,
+  limit: 8
 })
 const debugOutput = computed(() => {
   if (!debugResult.value) return ''
@@ -878,6 +973,7 @@ const debugOutput = computed(() => {
 const debugItems = computed(() => debugResult.value?.list || [])
 const debugInfo = computed(() => debugResult.value?.debugInfo || null)
 const debugNotes = computed(() => debugInfo.value?.notes || [])
+const resultContributions = computed(() => debugInfo.value?.resultContributions || [])
 
 const debugSections = computed(() => {
   if (!debugInfo.value) return []
@@ -890,6 +986,8 @@ const debugSections = computed(() => {
   ]
   return sections.filter(section => section.items.length)
 })
+
+const compactDebugInsights = computed(() => debugInsights.value.slice(0, 3))
 
 const recommendationTypeMeta = computed(() => {
   const type = debugResult.value?.type
@@ -1218,6 +1316,23 @@ const handlePreviewRecommendations = async () => {
   }
 }
 
+const handlePreviewSimilarity = async () => {
+  if (!similarityForm.spotId) {
+    ElMessage.warning('请输入景点 ID')
+    return
+  }
+  try {
+    similarityPreviewing.value = true
+    const res = await previewSimilarityNeighbors({ ...similarityForm })
+    similarityResult.value = res.data || null
+    ElMessage.success('相似邻居预览完成')
+  } catch (e) {
+    ElMessage.error('相似邻居预览失败')
+  } finally {
+    similarityPreviewing.value = false
+  }
+}
+
 onMounted(() => {
   fetchConfig()
   fetchStatus()
@@ -1389,6 +1504,10 @@ onMounted(() => {
     gap: 12px;
   }
 
+  .debug-summary-grid--triple {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .summary-card {
     padding: 16px;
     border-radius: 12px;
@@ -1407,6 +1526,11 @@ onMounted(() => {
     font-weight: 700;
     color: #1d4ed8;
     line-height: 1.2;
+  }
+
+  .summary-value--sm {
+    font-size: 18px;
+    line-height: 1.4;
   }
 
   .summary-desc {
@@ -1556,6 +1680,10 @@ onMounted(() => {
     background: #fafbfc;
     border: 1px solid #e5eaf3;
     border-radius: 10px;
+  }
+
+  .debug-output--compact {
+    margin-bottom: 0;
   }
 
   .debug-output-title {
@@ -1823,6 +1951,10 @@ onMounted(() => {
     .pipeline-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .debug-summary-grid--triple {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 768px) {
@@ -1831,6 +1963,10 @@ onMounted(() => {
     }
 
     .pipeline-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .debug-summary-grid--triple {
       grid-template-columns: 1fr;
     }
 

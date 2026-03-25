@@ -65,6 +65,7 @@ public class RecommendationResponse {
         private List<DebugEntry> filteredScores;
         private List<DebugEntry> rerankedScores;
         private List<DebugEntry> filteredOutItems;
+        private List<ResultContribution> resultContributions;
         private List<String> notes;
         private Map<String, Object> extra;
     }
@@ -77,5 +78,15 @@ public class RecommendationResponse {
         private String spotName;
         private Double score;
         private String description;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResultContribution {
+        private Long targetSpotId;
+        private String targetSpotName;
+        private Double finalScore;
+        private List<DebugEntry> contributors;
     }
 }
