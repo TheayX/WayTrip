@@ -9,6 +9,39 @@ const request = axios.create({
   timeout: 10000
 })
 
+let authRedirectInProgress = false
+
+const redirectToLogin = async (message) => {
+  const userStore = useUserStore()
+  const hadToken = Boolean(userStore.token)
+  const currentRoute = router.currentRoute.value
+  const redirect = currentRoute?.path && currentRoute.path !== '/login'
+    ? currentRoute.fullPath
+    : undefined
+
+  userStore.logout()
+
+  if (authRedirectInProgress) {
+    return
+  }
+
+  authRedirectInProgress = true
+
+  if (message && hadToken) {
+    ElMessage.warning(message)
+  }
+
+  try {
+    await router.replace(
+      redirect
+        ? { path: '/login', query: { redirect } }
+        : { path: '/login' }
+    )
+  } finally {
+    authRedirectInProgress = false
+  }
+}
+
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
@@ -26,12 +59,10 @@ request.interceptors.response.use(
   (response) => {
     const res = response.data
     if (res.code !== 0) {
-      ElMessage.error(res.message || '请求失败')
-
       if (res.code === 10002) {
-        const userStore = useUserStore()
-        userStore.logout()
-        router.push('/login')
+        redirectToLogin(res.message || '登录状态已失效，请重新登录')
+      } else {
+        ElMessage.error(res.message || '请求失败')
       }
 
       return Promise.reject(new Error(res.message || '请求失败'))
@@ -39,6 +70,11 @@ request.interceptors.response.use(
     return res
   },
   (error) => {
+    if (error?.response?.status === 401) {
+      redirectToLogin('登录状态已失效，请重新登录')
+      return Promise.reject(error)
+    }
+
     ElMessage.error(error.message || '网络错误')
     return Promise.reject(error)
   }

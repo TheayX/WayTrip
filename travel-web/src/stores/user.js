@@ -23,6 +23,11 @@ export const useUserStore = defineStore('user', () => {
   function logout() {
     token.value = ''
     userInfo.value = null
+
+    // Ensure persisted auth state is removed immediately to avoid
+    // restoring a stale token after a page refresh.
+    localStorage.removeItem('user')
+    sessionStorage.removeItem('user')
   }
 
   function updatePreferences(preferences) {

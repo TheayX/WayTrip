@@ -86,7 +86,7 @@
 import { useUserStore } from '@/stores/user'
 import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -124,7 +124,8 @@ const handleCommand = (command) => {
         type: 'warning'
       }).then(() => {
         userStore.logout()
-        router.push('/')
+        ElMessage.success('已退出登录')
+        router.replace('/login')
       }).catch(() => {})
       break
   }
