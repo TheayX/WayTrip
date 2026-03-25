@@ -45,6 +45,7 @@
 <script setup>
 import { ref } from 'vue'
 import { searchSpots } from '@/api/spot'
+import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 
 const keyword = ref('')
@@ -98,6 +99,9 @@ const goBack = () => {
 
 // 跳转详情
 const goDetail = (id) => {
+  if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
+    return
+  }
   uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=search` })
 }
 </script>
