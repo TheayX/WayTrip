@@ -125,6 +125,7 @@
         <view class="auth-actions">
           <button class="auth-btn confirm full" @click="submitStep1">下一步</button>
         </view>
+        <text v-if="step1Error" class="auth-error">{{ step1Error }}</text>
         <text class="auth-tip">如果手机号已在Web端注册，输入正确密码即可直接绑定</text>
       </view>
     </view>
@@ -138,7 +139,7 @@
         <!-- 头像选择 -->
         <view class="auth-avatar-wrap">
           <button class="auth-avatar-btn" open-type="chooseAvatar" @chooseavatar="onAuthChooseAvatar">
-            <image class="auth-avatar-img" :src="authForm.avatarPreview || '/static/default-avatar.png'" />
+            <image class="auth-avatar-img" :src="authForm.avatarPreview || defaultRegisterAvatar" />
             <view class="auth-avatar-edit">
               <text class="auth-avatar-edit-text">点击选择头像</text>
             </view>
@@ -195,6 +196,8 @@ import { wxLogin, wxBindPhone, prepareWxBindPhone, getUserInfo, updateUserInfo, 
 import { getAvatarUrl } from '@/utils/request'
 
 const userStore = useUserStore()
+const defaultRegisterAvatar = getAvatarUrl('/uploads/images/avatar.jpg')
+const defaultRegisterNickname = '微信用户'
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
@@ -221,9 +224,10 @@ const step1Form = reactive({
 })
 const step1PwdVisible = ref(false)
 const step1ConfirmPwdVisible = ref(false)
+const step1Error = ref('')
 
 const authForm = reactive({
-  nickname: '',
+  nickname: defaultRegisterNickname,
   avatarPreview: '',
   avatarTempFile: ''
 })
@@ -255,28 +259,29 @@ const submitStep1 = async () => {
   const phone = step1Form.phone.trim()
   const password = step1Form.password.trim()
   const confirmPassword = step1Form.confirmPassword.trim()
+  step1Error.value = ''
 
   // 验证手机号
   if (!phone) {
-    uni.showToast({ title: '请输入手机号', icon: 'none' })
+    step1Error.value = '请输入手机号'
     return
   }
   if (!/^1[3-9]\d{9}$/.test(phone)) {
-    uni.showToast({ title: '请输入有效的手机号', icon: 'none' })
+    step1Error.value = '请输入有效的手机号'
     return
   }
 
   // 验证密码
   if (!password) {
-    uni.showToast({ title: '请设置密码', icon: 'none' })
+    step1Error.value = '请设置密码'
     return
   }
   if (password.length < 6) {
-    uni.showToast({ title: '密码长度至少6个字符', icon: 'none' })
+    step1Error.value = '密码长度至少6个字符'
     return
   }
   if (password !== confirmPassword) {
-    uni.showToast({ title: '两次输入的密码不一致', icon: 'none' })
+    step1Error.value = '两次输入的密码不一致'
     return
   }
 
@@ -300,12 +305,15 @@ const submitStep1 = async () => {
     } else {
       pendingRegister.phone = phone
       pendingRegister.password = password
+      authForm.nickname = defaultRegisterNickname
+      authForm.avatarPreview = ''
+      authForm.avatarTempFile = ''
       authStep.value = 2
-      uni.showToast({ title: '信息校验通过，请继续完善资料', icon: 'none' })
+      uni.showToast({ title: '校验通过', icon: 'success' })
     }
   } catch (e) {
     uni.hideLoading()
-    uni.showToast({ title: e?.data?.message || '设置失败', icon: 'none' })
+    step1Error.value = e?.data?.message || '校验失败，请检查手机号或密码'
   }
 }
 
@@ -338,27 +346,22 @@ const skipStep2 = async () => {
 
 // 第二步：提交头像昵称
 const submitStep2 = async () => {
-  const hasAvatar = !!authForm.avatarTempFile
-  const hasNickname = !!authForm.nickname.trim()
-
-  if (!hasAvatar && !hasNickname) {
-    uni.showToast({ title: '请选择头像或填入昵称', icon: 'none' })
-    return
-  }
-
   try {
     uni.showLoading({ title: '保存中...', mask: true })
 
     await finalizeRegister()
 
+    const hasAvatar = !!authForm.avatarTempFile
+    const nickname = authForm.nickname.trim() || defaultRegisterNickname
     let avatarUrl = ''
     if (hasAvatar) {
       const uploadRes = await uploadAvatar(authForm.avatarTempFile)
       avatarUrl = uploadRes.data.url
     }
 
-    const updateData = {}
-    if (hasNickname) updateData.nickname = authForm.nickname.trim()
+    const updateData = {
+      nickname
+    }
     if (avatarUrl) updateData.avatar = avatarUrl
 
     await updateUserInfo(updateData)
@@ -407,7 +410,8 @@ const doLogin = async () => {
       step1Form.confirmPassword = ''
       step1PwdVisible.value = false
       step1ConfirmPwdVisible.value = false
-      authForm.nickname = ''
+      step1Error.value = ''
+      authForm.nickname = defaultRegisterNickname
       authForm.avatarPreview = ''
       authForm.avatarTempFile = ''
       pendingRegister.phone = ''
@@ -820,6 +824,14 @@ const goDeactivate = () => {
   margin-top: 16rpx;
   font-size: 24rpx;
   color: #8E8E93;
+  text-align: center;
+}
+
+.auth-error {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #FF3B30;
   text-align: center;
 }
 
