@@ -449,6 +449,23 @@
         </div>
       </div>
 
+      <div v-if="behaviorStats.length" class="debug-sections">
+        <div class="debug-block-title">行为来源统计</div>
+        <el-alert type="info" :closable="false" class="behavior-alert" show-icon>
+          多次浏览、收藏、评分、下单如果集中在同几个景点上，最终“参与推荐的交互景点数”仍然会很小。
+        </el-alert>
+        <el-table :data="behaviorStats" stripe size="small" class="debug-table">
+          <el-table-column prop="behavior" label="行为类型" width="120" />
+          <el-table-column label="记录条数" width="120">
+            <template #default="{ row }">
+              <span>{{ row.recordCount ?? '-' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="uniqueSpotCount" label="命中景点数" width="140" />
+          <el-table-column prop="description" label="说明" min-width="320" />
+        </el-table>
+      </div>
+
       <div v-if="debugInsights.length" class="debug-insights">
         <div class="debug-block-title">结果解读</div>
         <div class="insight-list">
@@ -973,6 +990,7 @@ const debugOutput = computed(() => {
 const debugItems = computed(() => debugResult.value?.list || [])
 const debugInfo = computed(() => debugResult.value?.debugInfo || null)
 const debugNotes = computed(() => debugInfo.value?.notes || [])
+const behaviorStats = computed(() => debugInfo.value?.behaviorStats || [])
 const resultContributions = computed(() => debugInfo.value?.resultContributions || [])
 
 const debugSections = computed(() => {
@@ -1549,6 +1567,10 @@ onMounted(() => {
   .debug-pipeline,
   .debug-sections {
     margin-bottom: 16px;
+  }
+
+  .behavior-alert {
+    margin-bottom: 12px;
   }
 
   .pipeline-grid {

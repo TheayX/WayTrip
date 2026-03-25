@@ -60,6 +60,7 @@ public class RecommendationResponse {
         private Integer candidateCount;
         private Integer filteredCount;
         private Integer finalCount;
+        private List<BehaviorStat> behaviorStats;
         private List<DebugEntry> userInteractions;
         private List<DebugEntry> candidateScores;
         private List<DebugEntry> filteredScores;
@@ -88,5 +89,15 @@ public class RecommendationResponse {
         private String targetSpotName;
         private Double finalScore;
         private List<DebugEntry> contributors;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BehaviorStat {
+        private String behavior;
+        private Integer recordCount;
+        private Integer uniqueSpotCount;
+        private String description;
     }
 }
