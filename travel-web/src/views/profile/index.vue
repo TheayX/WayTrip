@@ -9,7 +9,7 @@
       <!-- 左侧导航 -->
       <div class="profile-sidebar card">
         <div class="user-header">
-          <el-avatar :size="64" :src="userStore.userInfo?.avatar ? getImageUrl(userStore.userInfo.avatar) : ''" icon="User" />
+          <el-avatar :size="64" :src="getAvatarUrl(userStore.userInfo?.avatar)" icon="User" />
           <h3 class="user-name">{{ userStore.userInfo?.nickname || '用户' }}</h3>
           <p class="user-phone">{{ formatPhone(userStore.userInfo?.phone) }}</p>
         </div>
@@ -55,7 +55,7 @@
               <div class="avatar-uploader" @click="handleAvatarClick">
                 <el-avatar
                   :size="80"
-                  :src="avatarPreview || (profileForm.avatar ? getImageUrl(profileForm.avatar) : '')"
+                  :src="avatarPreview || getAvatarUrl(profileForm.avatar)"
                   icon="User"
                 />
                 <div class="avatar-overlay">
@@ -158,7 +158,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getUserInfo, updateUserInfo, setPreferences, changePassword, uploadAvatar, deactivateAccount } from '@/api/auth'
 import { getFilters } from '@/api/spot'
-import { getImageUrl } from '@/utils/request'
+import { getAvatarUrl } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()

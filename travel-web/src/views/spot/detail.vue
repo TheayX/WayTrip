@@ -31,7 +31,7 @@
 
             <div v-if="comments.length" class="comment-list">
               <div v-for="comment in comments" :key="comment.id" class="comment-item">
-                <el-avatar :size="40" :src="comment.avatar" icon="User" />
+                <el-avatar :size="40" :src="getAvatarUrl(comment.avatar)" icon="User" />
                 <div class="comment-body">
                   <div class="comment-top">
                     <span class="comment-name">{{ comment.nickname }}</span>
@@ -141,7 +141,7 @@ import { useUserStore } from '@/stores/user'
 import { getSpotDetail, recordSpotView } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, getSpotReviews, submitReview } from '@/api/review'
-import { getImageUrl } from '@/utils/request'
+import { getAvatarUrl, getImageUrl } from '@/utils/request'
 
 const route = useRoute()
 const router = useRouter()

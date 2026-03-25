@@ -4,11 +4,18 @@
     <view class="ios-header">
       <view class="header-top">
         <text class="large-title">探索</text>
-<image class="avatar-sm" :src="userInfo?.avatar ? getImageUrl(userInfo.avatar) : '/static/default-avatar.png'" @click="goMine"/>
+<image class="avatar-sm" :src="getAvatarUrl(userInfo?.avatar)" @click="goMine"/>
       </view>
       <view class="search-bar" @click="goSearch">
-        <image class="search-icon" src="/static/search.png" />
-        <text class="search-placeholder">搜索景点、攻略...</text>
+        <uni-search-bar
+          :modelValue="''"
+          placeholder="搜索景点、攻略..."
+          :clearButton="'none'"
+          :cancelButton="'none'"
+          :radius="20"
+          :readonly="true"
+          bgColor="#E3E3E8"
+        />
       </view>
     </view>
 
@@ -16,7 +23,7 @@
     <view class="banner-container" v-if="banners.length">
       <swiper class="banner" indicator-dots indicator-active-color="#fff" autoplay circular>
         <swiper-item v-for="banner in banners" :key="banner.id" @click="handleBannerClick(banner)">
-          <image class="banner-image" :src="getImageUrl(banner.imageUrl)" mode="aspectFill" />
+          <image class="banner-image" :src="getContentImageUrl(banner.imageUrl)" mode="aspectFill" />
         </swiper-item>
       </swiper>
     </view>
@@ -29,7 +36,7 @@
       </view>
       <scroll-view class="hot-scroll" scroll-x :show-scrollbar="false" v-if="hotSpots.length">
         <view class="hot-card" v-for="spot in hotSpots" :key="spot.id" @click="goSpotDetail(spot.id)">
-          <image class="hot-img" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
+          <image class="hot-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="hot-overlay">
             <text class="hot-name">{{ spot.name }}</text>
             <view class="hot-badge">¥{{ spot.price }} 起</view>
@@ -56,7 +63,7 @@
 
       <view class="recommend-list" v-if="recommendations.length">
         <view class="recommend-card" v-for="spot in recommendations" :key="spot.id" @click="goSpotDetail(spot.id)">
-          <image class="rec-img" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
+          <image class="rec-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="rec-content">
             <view class="rec-header">
               <text class="rec-name">{{ spot.name }}</text>
@@ -105,7 +112,7 @@ import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { getHotSpots, getRecommendations, refreshRecommendations, getBanners } from '@/api/home'
 import { getFilters } from '@/api/spot'
 import { updatePreferences } from '@/api/auth'
-import { getImageUrl } from '@/utils/request'
+import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
 // 用户信息
@@ -318,23 +325,21 @@ onShow(() => {
 
 /* 搜索栏 */
 .search-bar {
-  background: #E3E3E8;
+  pointer-events: auto;
+}
+
+:deep(.search-bar .uni-searchbar) {
+  padding: 0;
+  background: transparent;
+}
+
+:deep(.search-bar .uni-searchbar__box) {
   height: 80rpx;
   border-radius: 20rpx;
-  display: flex;
-  align-items: center;
-  padding: 0 24rpx;
 }
 
-.search-icon {
-  width: 32rpx;
-  height: 32rpx;
-}
-
-.search-placeholder {
-  color: #8E8E93;
+:deep(.search-bar .uni-searchbar__text-placeholder) {
   font-size: 30rpx;
-  margin-left: 12rpx;
 }
 
 /* 轮播图 */

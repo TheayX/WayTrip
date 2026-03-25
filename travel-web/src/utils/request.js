@@ -86,11 +86,15 @@ request.interceptors.response.use(
  * 生产环境可配置为实际服务器地址
  */
 export const getImageUrl = (url) => {
-  if (!url) return '/empty.jpg'
+  if (!url) return '/empty-image.png'
   if (/^https?:\/\//i.test(url)) return url
   // 确保以 / 开头
   return url.startsWith('/') ? url : `/${url}`
 }
 
-export default request
+export const getAvatarUrl = (url) => {
+  if (!url) return '/default-avatar.png'
+  return getImageUrl(url)
+}
 
+export default request
