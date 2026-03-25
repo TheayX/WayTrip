@@ -70,6 +70,18 @@ public class RecommendationServiceImpl implements RecommendationService {
             if (map.containsKey("weightReviewFactor")) config.setWeightReviewFactor(toDouble(map.get("weightReviewFactor")));
             if (map.containsKey("weightOrderPaid")) config.setWeightOrderPaid(toDouble(map.get("weightOrderPaid")));
             if (map.containsKey("weightOrderCompleted")) config.setWeightOrderCompleted(toDouble(map.get("weightOrderCompleted")));
+            if (map.containsKey("viewSourceFactorHome")) config.setViewSourceFactorHome(toDouble(map.get("viewSourceFactorHome")));
+            if (map.containsKey("viewSourceFactorSearch")) config.setViewSourceFactorSearch(toDouble(map.get("viewSourceFactorSearch")));
+            if (map.containsKey("viewSourceFactorRecommend")) config.setViewSourceFactorRecommend(toDouble(map.get("viewSourceFactorRecommend")));
+            if (map.containsKey("viewSourceFactorGuide")) config.setViewSourceFactorGuide(toDouble(map.get("viewSourceFactorGuide")));
+            if (map.containsKey("viewSourceFactorDetail")) config.setViewSourceFactorDetail(toDouble(map.get("viewSourceFactorDetail")));
+            if (map.containsKey("viewDurationShortThresholdSeconds")) config.setViewDurationShortThresholdSeconds(toInt(map.get("viewDurationShortThresholdSeconds")));
+            if (map.containsKey("viewDurationMediumThresholdSeconds")) config.setViewDurationMediumThresholdSeconds(toInt(map.get("viewDurationMediumThresholdSeconds")));
+            if (map.containsKey("viewDurationLongThresholdSeconds")) config.setViewDurationLongThresholdSeconds(toInt(map.get("viewDurationLongThresholdSeconds")));
+            if (map.containsKey("viewDurationFactorShort")) config.setViewDurationFactorShort(toDouble(map.get("viewDurationFactorShort")));
+            if (map.containsKey("viewDurationFactorMedium")) config.setViewDurationFactorMedium(toDouble(map.get("viewDurationFactorMedium")));
+            if (map.containsKey("viewDurationFactorLong")) config.setViewDurationFactorLong(toDouble(map.get("viewDurationFactorLong")));
+            if (map.containsKey("viewDurationFactorVeryLong")) config.setViewDurationFactorVeryLong(toDouble(map.get("viewDurationFactorVeryLong")));
             if (map.containsKey("heatViewIncrement")) config.setHeatViewIncrement(toInt(map.get("heatViewIncrement")));
             if (map.containsKey("heatFavoriteIncrement")) config.setHeatFavoriteIncrement(toInt(map.get("heatFavoriteIncrement")));
             if (map.containsKey("heatReviewIncrement")) config.setHeatReviewIncrement(toInt(map.get("heatReviewIncrement")));
@@ -789,35 +801,47 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private double calculateViewWeight(UserSpotView view, RecommendationConfigDTO config) {
         double baseWeight = config.getWeightView() == null ? 0.5 : config.getWeightView();
-        return baseWeight * getViewSourceFactor(view.getViewSource()) * getViewDurationFactor(view.getViewDuration());
+        return baseWeight * getViewSourceFactor(view.getViewSource(), config) * getViewDurationFactor(view.getViewDuration(), config);
     }
 
-    private double getViewSourceFactor(String source) {
+    private double getViewSourceFactor(String source, RecommendationConfigDTO config) {
         if (source == null || source.isBlank()) {
-            return 1.0;
+            return defaultDouble(config.getViewSourceFactorDetail(), 1.0);
         }
         return switch (source.trim().toLowerCase(Locale.ROOT)) {
-            case "search" -> 1.2;
-            case "recommend" -> 1.1;
-            case "home" -> 0.9;
-            case "guide" -> 1.0;
-            case "detail" -> 1.0;
-            default -> 1.0;
+            case "search" -> defaultDouble(config.getViewSourceFactorSearch(), 1.2);
+            case "recommend" -> defaultDouble(config.getViewSourceFactorRecommend(), 1.1);
+            case "home" -> defaultDouble(config.getViewSourceFactorHome(), 0.9);
+            case "guide" -> defaultDouble(config.getViewSourceFactorGuide(), 1.0);
+            case "detail" -> defaultDouble(config.getViewSourceFactorDetail(), 1.0);
+            default -> defaultDouble(config.getViewSourceFactorDetail(), 1.0);
         };
     }
 
-    private double getViewDurationFactor(Integer duration) {
+    private double getViewDurationFactor(Integer duration, RecommendationConfigDTO config) {
         int seconds = duration == null ? 0 : Math.max(duration, 0);
-        if (seconds < 10) {
-            return 0.6;
+        int shortThreshold = defaultInt(config.getViewDurationShortThresholdSeconds(), 10);
+        int mediumThreshold = Math.max(shortThreshold, defaultInt(config.getViewDurationMediumThresholdSeconds(), 60));
+        int longThreshold = Math.max(mediumThreshold, defaultInt(config.getViewDurationLongThresholdSeconds(), 180));
+
+        if (seconds < shortThreshold) {
+            return defaultDouble(config.getViewDurationFactorShort(), 0.6);
         }
-        if (seconds < 60) {
-            return 1.0;
+        if (seconds < mediumThreshold) {
+            return defaultDouble(config.getViewDurationFactorMedium(), 1.0);
         }
-        if (seconds < 180) {
-            return 1.2;
+        if (seconds < longThreshold) {
+            return defaultDouble(config.getViewDurationFactorLong(), 1.2);
         }
-        return 1.35;
+        return defaultDouble(config.getViewDurationFactorVeryLong(), 1.35);
+    }
+
+    private double defaultDouble(Double value, double fallback) {
+        return value == null ? fallback : value;
+    }
+
+    private int defaultInt(Integer value, int fallback) {
+        return value == null ? fallback : value;
     }
 
     private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Integer limit, String type, Boolean needPreference) {
