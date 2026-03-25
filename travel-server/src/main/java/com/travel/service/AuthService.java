@@ -54,6 +54,12 @@ public interface AuthService {
     LoginResponse wxBindPhone(WxBindPhoneRequest request);
 
     /**
+     * 小程序端第一步校验手机号+密码；已有账户则直接完成绑定登录，
+     * 新用户则仅校验通过，不立即创建账户。
+     */
+    WxPrepareBindPhoneResponse prepareWxBindPhone(WxPrepareBindPhoneRequest request);
+
+    /**
      * 管理员登录
      */
     AdminLoginResponse adminLogin(AdminLoginRequest request);

@@ -14,6 +14,8 @@ import com.travel.dto.auth.WebLoginRequest;
 import com.travel.dto.auth.WebRegisterRequest;
 import com.travel.dto.auth.WxBindPhoneRequest;
 import com.travel.dto.auth.WxLoginResponse;
+import com.travel.dto.auth.WxPrepareBindPhoneRequest;
+import com.travel.dto.auth.WxPrepareBindPhoneResponse;
 import com.travel.entity.Admin;
 import com.travel.entity.SpotCategory;
 import com.travel.entity.User;
@@ -399,35 +401,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         if (existUser != null) {
-            if (!StringUtils.hasText(existUser.getPassword())) {
-                throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
-            }
-            if (!passwordEncoder.matches(request.getPassword(), existUser.getPassword())) {
-                throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
-            }
-
-            if (StringUtils.hasText(existUser.getOpenid()) && !existUser.getOpenid().equals(openid)) {
-                throw new BusinessException(ResultCode.PHONE_ALREADY_REGISTERED);
-            }
-            existUser.setOpenid(openid);
-            existUser.setLastLoginAt(LocalDateTime.now());
-            userMapper.updateById(existUser);
-            log.info("微信openid合并到已有账户: userId={}, phone={}", existUser.getId(), request.getPhone());
-
-            String token = jwtUtil.generateUserToken(existUser.getId());
-
-            return LoginResponse.builder()
-                    .token(token)
-                    .expiresIn(jwtUtil.getExpirationSeconds())
-                    .user(LoginResponse.UserInfo.builder()
-                            .id(existUser.getId())
-                            .nickname(existUser.getNickname())
-                            .avatar(existUser.getAvatarUrl())
-                            .phone(existUser.getPhone())
-                            .isNewUser(false)
-                            .isMerged(true)
-                            .build())
-                    .build();
+            return mergeExistingWxUser(existUser, openid, request.getPassword(), request.getPhone());
         }
 
         User newUser = new User();
@@ -452,6 +426,89 @@ public class AuthServiceImpl implements AuthService {
                         .phone(newUser.getPhone())
                         .isNewUser(true)
                         .isMerged(false)
+                        .build())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public WxPrepareBindPhoneResponse prepareWxBindPhone(WxPrepareBindPhoneRequest request) {
+        User existByOpenid = userMapper.selectOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getOpenid, request.getOpenid())
+                        .eq(User::getIsDeleted, 0)
+        );
+        if (existByOpenid != null) {
+            String token = jwtUtil.generateUserToken(existByOpenid.getId());
+            LoginResponse login = LoginResponse.builder()
+                    .token(token)
+                    .expiresIn(jwtUtil.getExpirationSeconds())
+                    .user(LoginResponse.UserInfo.builder()
+                            .id(existByOpenid.getId())
+                            .nickname(existByOpenid.getNickname())
+                            .avatar(existByOpenid.getAvatarUrl())
+                            .phone(existByOpenid.getPhone())
+                            .isNewUser(false)
+                            .isMerged(false)
+                            .build())
+                    .build();
+            return WxPrepareBindPhoneResponse.builder()
+                    .completed(true)
+                    .requireProfile(false)
+                    .login(login)
+                    .build();
+        }
+
+        User existUser = userMapper.selectOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getPhone, request.getPhone())
+                        .eq(User::getIsDeleted, 0)
+        );
+        if (existUser != null) {
+            LoginResponse login = mergeExistingWxUser(existUser, request.getOpenid(), request.getPassword(), request.getPhone());
+            return WxPrepareBindPhoneResponse.builder()
+                    .completed(true)
+                    .requireProfile(false)
+                    .login(login)
+                    .build();
+        }
+
+        return WxPrepareBindPhoneResponse.builder()
+                .completed(false)
+                .requireProfile(true)
+                .login(null)
+                .build();
+    }
+
+    private LoginResponse mergeExistingWxUser(User existUser, String openid, String password, String phone) {
+        if (!StringUtils.hasText(existUser.getPassword())) {
+            throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
+        }
+        if (!passwordEncoder.matches(password, existUser.getPassword())) {
+            throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
+        }
+
+        if (StringUtils.hasText(existUser.getOpenid()) && !existUser.getOpenid().equals(openid)) {
+            throw new BusinessException(ResultCode.PHONE_ALREADY_REGISTERED);
+        }
+
+        existUser.setOpenid(openid);
+        existUser.setLastLoginAt(LocalDateTime.now());
+        userMapper.updateById(existUser);
+        log.info("微信openid合并到已有账户: userId={}, phone={}", existUser.getId(), phone);
+
+        String token = jwtUtil.generateUserToken(existUser.getId());
+
+        return LoginResponse.builder()
+                .token(token)
+                .expiresIn(jwtUtil.getExpirationSeconds())
+                .user(LoginResponse.UserInfo.builder()
+                        .id(existUser.getId())
+                        .nickname(existUser.getNickname())
+                        .avatar(existUser.getAvatarUrl())
+                        .phone(existUser.getPhone())
+                        .isNewUser(false)
+                        .isMerged(true)
                         .build())
                 .build();
     }

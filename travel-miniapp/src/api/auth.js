@@ -17,6 +17,13 @@ export const wxBindPhone = (data) => {
 }
 
 /**
+ * 小程序端第一步校验手机号密码
+ */
+export const prepareWxBindPhone = (data) => {
+  return post('/auth/wx-prepare-bind-phone', data)
+}
+
+/**
  * 获取用户信息
  */
 export const getUserInfo = () => {

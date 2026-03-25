@@ -191,7 +191,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { wxLogin, wxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount } from '@/api/auth'
+import { wxLogin, wxBindPhone, prepareWxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount } from '@/api/auth'
 import { getAvatarUrl } from '@/utils/request'
 
 const userStore = useUserStore()
@@ -226,6 +226,11 @@ const authForm = reactive({
   nickname: '',
   avatarPreview: '',
   avatarTempFile: ''
+})
+
+const pendingRegister = reactive({
+  phone: '',
+  password: ''
 })
 
 
@@ -278,24 +283,25 @@ const submitStep1 = async () => {
   try {
     uni.showLoading({ title: '设置中...', mask: true })
 
-    // 调用绑定接口：传入openid + 手机号 + 密码，后端创建用户或合并已有账户
-    const res = await wxBindPhone({ openid: pendingOpenid.value, phone, password })
-
-    // 绑定/注册成功，现在才真正登录
-    userStore.login(res.data)
-    await syncUserInfo()
-    pendingOpenid.value = ''
+    // 第一步只做校验：
+    // 已有账户直接合并登录；新用户仅通过校验，不立即创建账户。
+    const res = await prepareWxBindPhone({ openid: pendingOpenid.value, phone, password })
 
     uni.hideLoading()
 
-    if (res.data.user?.isMerged) {
-      // 已有账户合并成功，无需设置头像昵称，直接完成
+    if (res.data?.completed && res.data?.login) {
+      userStore.login(res.data.login)
+      await syncUserInfo()
+      pendingOpenid.value = ''
+      pendingRegister.phone = ''
+      pendingRegister.password = ''
       authStep.value = 0
       uni.showToast({ title: '账户绑定成功，欢迎回来！', icon: 'success' })
     } else {
-      // 全新用户，进入第二步设置头像昵称（可跳过）
+      pendingRegister.phone = phone
+      pendingRegister.password = password
       authStep.value = 2
-      uni.showToast({ title: '设置成功，可以完善资料', icon: 'none' })
+      uni.showToast({ title: '信息校验通过，请继续完善资料', icon: 'none' })
     }
   } catch (e) {
     uni.hideLoading()
@@ -303,10 +309,31 @@ const submitStep1 = async () => {
   }
 }
 
+const finalizeRegister = async () => {
+  const res = await wxBindPhone({
+    openid: pendingOpenid.value,
+    phone: pendingRegister.phone,
+    password: pendingRegister.password
+  })
+  userStore.login(res.data)
+  await syncUserInfo()
+  pendingOpenid.value = ''
+  pendingRegister.phone = ''
+  pendingRegister.password = ''
+}
+
 // 第二步：跳过头像昵称设置
-const skipStep2 = () => {
-  authStep.value = 0
-  uni.showToast({ title: '欢迎使用微旅！', icon: 'success' })
+const skipStep2 = async () => {
+  try {
+    uni.showLoading({ title: '注册中...', mask: true })
+    await finalizeRegister()
+    uni.hideLoading()
+    authStep.value = 0
+    uni.showToast({ title: '欢迎使用微旅！', icon: 'success' })
+  } catch (e) {
+    uni.hideLoading()
+    uni.showToast({ title: e?.data?.message || '注册失败', icon: 'none' })
+  }
 }
 
 // 第二步：提交头像昵称
@@ -321,6 +348,8 @@ const submitStep2 = async () => {
 
   try {
     uni.showLoading({ title: '保存中...', mask: true })
+
+    await finalizeRegister()
 
     let avatarUrl = ''
     if (hasAvatar) {
@@ -381,6 +410,8 @@ const doLogin = async () => {
       authForm.nickname = ''
       authForm.avatarPreview = ''
       authForm.avatarTempFile = ''
+      pendingRegister.phone = ''
+      pendingRegister.password = ''
       authStep.value = 1 // 弹出第一步：手机号密码
     } else {
       // 老用户：直接登录
