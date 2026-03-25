@@ -25,6 +25,42 @@ public class RecommendationConfigDTO {
     /** 已完成订单权重 */
     private Double weightOrderCompleted = 4.0;
 
+    /** 首页进入浏览来源因子 */
+    private Double viewSourceFactorHome = 0.9;
+
+    /** 搜索进入浏览来源因子 */
+    private Double viewSourceFactorSearch = 1.2;
+
+    /** 推荐位进入浏览来源因子 */
+    private Double viewSourceFactorRecommend = 1.1;
+
+    /** 攻略进入浏览来源因子 */
+    private Double viewSourceFactorGuide = 1.0;
+
+    /** 详情页二跳等默认浏览来源因子 */
+    private Double viewSourceFactorDetail = 1.0;
+
+    /** 短停留阈值（秒） */
+    private Integer viewDurationShortThresholdSeconds = 10;
+
+    /** 中停留阈值（秒） */
+    private Integer viewDurationMediumThresholdSeconds = 60;
+
+    /** 长停留阈值（秒） */
+    private Integer viewDurationLongThresholdSeconds = 180;
+
+    /** 短停留因子 */
+    private Double viewDurationFactorShort = 0.6;
+
+    /** 普通停留因子 */
+    private Double viewDurationFactorMedium = 1.0;
+
+    /** 较长停留因子 */
+    private Double viewDurationFactorLong = 1.2;
+
+    /** 超长停留因子 */
+    private Double viewDurationFactorVeryLong = 1.35;
+
     // ==================== 景点热度参数 ====================
 
     /** 浏览详情增加的热度分数 */

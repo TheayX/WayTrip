@@ -140,6 +140,107 @@
         <div class="form-section">
           <div class="section-title">
             <el-icon><DataLine /></el-icon>
+            <span>浏览细化因子</span>
+          </div>
+          <div class="section-desc">控制浏览行为在 <code>r_ui</code> 中的细化权重。实际浏览权重 = 基础浏览权重 × 来源因子 × 停留时长因子。</div>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="首页来源因子">
+                <el-input-number v-model="config.viewSourceFactorHome" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">从首页进入详情页的浏览因子</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="搜索来源因子">
+                <el-input-number v-model="config.viewSourceFactorSearch" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">从搜索结果进入详情页的浏览因子</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="推荐来源因子">
+                <el-input-number v-model="config.viewSourceFactorRecommend" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">从推荐位进入详情页的浏览因子</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="攻略来源因子">
+                <el-input-number v-model="config.viewSourceFactorGuide" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">从攻略页进入详情页的浏览因子</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="默认来源因子">
+                <el-input-number v-model="config.viewSourceFactorDetail" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">默认或二跳进入详情页的浏览因子</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="短停留阈值">
+                <el-input-number v-model="config.viewDurationShortThresholdSeconds" :min="1" :max="600" :step="1" />
+                <span class="form-tip">短停留判断阈值，单位：秒</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="中停留阈值">
+                <el-input-number v-model="config.viewDurationMediumThresholdSeconds" :min="1" :max="1200" :step="1" />
+                <span class="form-tip">普通停留判断阈值，单位：秒</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="长停留阈值">
+                <el-input-number v-model="config.viewDurationLongThresholdSeconds" :min="1" :max="1800" :step="1" />
+                <span class="form-tip">较长停留判断阈值，单位：秒</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="短停留因子">
+                <el-input-number v-model="config.viewDurationFactorShort" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">停留时长低于短停留阈值时使用</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="普通停留因子">
+                <el-input-number v-model="config.viewDurationFactorMedium" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">停留时长介于短停留阈值和中停留阈值之间时使用</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="较长停留因子">
+                <el-input-number v-model="config.viewDurationFactorLong" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">停留时长介于中停留阈值和长停留阈值之间时使用</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="超长停留因子">
+                <el-input-number v-model="config.viewDurationFactorVeryLong" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">停留时长高于长停留阈值时使用</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title">
+            <el-icon><DataLine /></el-icon>
             <span>景点热度分数</span>
           </div>
           <div class="section-desc">控制每种行为对 <code>spot.heat_score</code> 的贡献。热度用于热门排序和冷启动，不直接参与协同过滤公式。</div>
@@ -457,6 +558,18 @@
               <el-descriptions-item label="评分因子">0.4</el-descriptions-item>
               <el-descriptions-item label="已付款权重">3.0</el-descriptions-item>
               <el-descriptions-item label="已完成权重">4.0</el-descriptions-item>
+              <el-descriptions-item label="首页来源因子">0.9</el-descriptions-item>
+              <el-descriptions-item label="搜索来源因子">1.2</el-descriptions-item>
+              <el-descriptions-item label="推荐来源因子">1.1</el-descriptions-item>
+              <el-descriptions-item label="攻略来源因子">1.0</el-descriptions-item>
+              <el-descriptions-item label="默认来源因子">1.0</el-descriptions-item>
+              <el-descriptions-item label="短停留阈值">10 秒</el-descriptions-item>
+              <el-descriptions-item label="中停留阈值">60 秒</el-descriptions-item>
+              <el-descriptions-item label="长停留阈值">180 秒</el-descriptions-item>
+              <el-descriptions-item label="短停留因子">0.6</el-descriptions-item>
+              <el-descriptions-item label="普通停留因子">1.0</el-descriptions-item>
+              <el-descriptions-item label="较长停留因子">1.2</el-descriptions-item>
+              <el-descriptions-item label="超长停留因子">1.35</el-descriptions-item>
               <el-descriptions-item label="浏览热度加分">1</el-descriptions-item>
               <el-descriptions-item label="收藏热度加分">3</el-descriptions-item>
               <el-descriptions-item label="评价热度加分">2</el-descriptions-item>
@@ -496,6 +609,18 @@ const config = reactive({
   weightReviewFactor: 0.4,
   weightOrderPaid: 3.0,
   weightOrderCompleted: 4.0,
+  viewSourceFactorHome: 0.9,
+  viewSourceFactorSearch: 1.2,
+  viewSourceFactorRecommend: 1.1,
+  viewSourceFactorGuide: 1.0,
+  viewSourceFactorDetail: 1.0,
+  viewDurationShortThresholdSeconds: 10,
+  viewDurationMediumThresholdSeconds: 60,
+  viewDurationLongThresholdSeconds: 180,
+  viewDurationFactorShort: 0.6,
+  viewDurationFactorMedium: 1.0,
+  viewDurationFactorLong: 1.2,
+  viewDurationFactorVeryLong: 1.35,
   heatViewIncrement: 1,
   heatFavoriteIncrement: 3,
   heatReviewIncrement: 2,
@@ -562,6 +687,18 @@ const defaultConfig = {
   weightReviewFactor: 0.4,
   weightOrderPaid: 3.0,
   weightOrderCompleted: 4.0,
+  viewSourceFactorHome: 0.9,
+  viewSourceFactorSearch: 1.2,
+  viewSourceFactorRecommend: 1.1,
+  viewSourceFactorGuide: 1.0,
+  viewSourceFactorDetail: 1.0,
+  viewDurationShortThresholdSeconds: 10,
+  viewDurationMediumThresholdSeconds: 60,
+  viewDurationLongThresholdSeconds: 180,
+  viewDurationFactorShort: 0.6,
+  viewDurationFactorMedium: 1.0,
+  viewDurationFactorLong: 1.2,
+  viewDurationFactorVeryLong: 1.35,
   heatViewIncrement: 1,
   heatFavoriteIncrement: 3,
   heatReviewIncrement: 2,
@@ -575,7 +712,7 @@ const defaultConfig = {
 }
 
 const weightExplanations = [
-  { behavior: '浏览', param: 'weightView', default: '0.5', description: '浏览基础权重；实际按 来源因子 × 停留时长因子 细化，例如搜索进入、停留更久会更高' },
+  { behavior: '浏览', param: 'weightView', default: '0.5', description: '浏览基础权重；实际按 来源因子 × 停留时长因子 细化，来源和时长规则均可在管理端配置' },
   { behavior: '收藏', param: 'weightFavorite', default: '1.0', description: '用户主动收藏景点，表示明确兴趣' },
   { behavior: '评分', param: 'weightReviewFactor', default: '0.4', description: '实际权重 = 评分(1~5) × 因子，如5分评价 = 5×0.4 = 2.0' },
   { behavior: '已付款', param: 'weightOrderPaid', default: '3.0', description: '用户已下单付款但未完成行程，表示强烈意向' },
