@@ -398,28 +398,96 @@
       </div>
 
       <div class="debug-meta" v-if="debugResult">
-        <el-tag size="small" type="info">type: {{ debugResult.type }}</el-tag>
+        <el-tag size="small" :type="recommendationTypeMeta.tagType">{{ recommendationTypeMeta.label }}</el-tag>
         <el-tag size="small" :type="debugResult.needPreference ? 'warning' : 'success'">
-          needPreference: {{ debugResult.needPreference ? 'true' : 'false' }}
+          {{ debugResult.needPreference ? '需要补充偏好设置' : '无需偏好引导' }}
         </el-tag>
-        <el-tag size="small" type="primary">count: {{ debugResult.list?.length || 0 }}</el-tag>
+        <el-tag size="small" type="primary">返回 {{ debugItems.length }} 条</el-tag>
+        <el-tag size="small" type="info">{{ debugForm.refresh ? '本次强制刷新' : '本次优先读取缓存' }}</el-tag>
+      </div>
+
+      <div v-if="debugResult" class="debug-summary">
+        <div class="debug-summary-grid">
+          <div v-for="card in debugSummaryCards" :key="card.label" class="summary-card">
+            <div class="summary-label">{{ card.label }}</div>
+            <div class="summary-value">{{ card.value }}</div>
+            <div class="summary-desc">{{ card.desc }}</div>
+          </div>
+        </div>
+      </div>
+
+      <el-alert
+        v-if="debugResult"
+        class="debug-conclusion"
+        :type="recommendationTypeMeta.alertType"
+        :closable="false"
+        show-icon
+      >
+        <template #title>{{ recommendationTypeMeta.title }}</template>
+        {{ recommendationTypeMeta.description }}
+      </el-alert>
+
+      <div v-if="debugInsights.length" class="debug-insights">
+        <div class="debug-block-title">结果解读</div>
+        <div class="insight-list">
+          <div v-for="(insight, index) in debugInsights" :key="`${index}-${insight}`" class="insight-item">
+            {{ insight }}
+          </div>
+        </div>
+      </div>
+
+      <div v-if="debugItems.length" class="debug-top-results">
+        <div class="debug-block-title">Top 结果速览</div>
+        <div class="top-result-list">
+          <div v-for="item in topDebugItems" :key="item.id" class="top-result-card">
+            <div class="top-result-rank">#{{ item.rank }}</div>
+            <div class="top-result-main">
+              <div class="top-result-name">{{ item.name }}</div>
+              <div class="top-result-meta">
+                <span>{{ item.categoryName || '未分类' }}</span>
+                <span>{{ item.regionName || '未知地区' }}</span>
+              </div>
+            </div>
+            <div class="top-result-score">
+              <div class="score-label">{{ item.score == null ? '无分数' : '推荐分' }}</div>
+              <div class="score-value" :class="{ 'score-value--empty': item.score == null }">
+                {{ item.scoreText }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div v-if="debugResult" class="debug-output">
-        <div class="debug-output-title">调试输出</div>
+        <div class="debug-output-title">请求与响应摘要</div>
         <pre>{{ debugOutput }}</pre>
       </div>
 
-      <el-table v-if="debugResult?.list?.length" :data="debugResult.list" stripe class="debug-table">
+      <el-table v-if="debugItems.length" :data="debugTableRows" stripe class="debug-table">
+        <el-table-column prop="rank" label="排名" width="80" />
         <el-table-column prop="id" label="景点ID" width="100" />
         <el-table-column prop="name" label="景点名称" min-width="180" />
         <el-table-column prop="categoryName" label="分类" width="140" />
         <el-table-column prop="regionName" label="地区" width="140" />
+        <el-table-column label="价格" width="120">
+          <template #default="{ row }">
+            <span>{{ row.priceText }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="评分概况" min-width="180">
+          <template #default="{ row }">
+            <span>{{ row.ratingText }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="推荐分数" width="160">
           <template #default="{ row }">
-            <span v-if="debugForm.debug && row.score != null" class="score-text">{{ Number(row.score).toFixed(4) }}</span>
-            <span v-else-if="row.score != null">{{ Number(row.score).toFixed(4) }}</span>
+            <span v-if="row.score != null" class="score-text">{{ row.scoreText }}</span>
             <span v-else class="score-empty">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="结果解读" min-width="260">
+          <template #default="{ row }">
+            <span>{{ row.reason }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -534,7 +602,7 @@
             </el-table>
             <el-alert type="info" :closable="false" style="margin-top: 16px">
               <template #title>
-                同一景点上多种行为取最大权重。例如用户先浏览(0.5)再收藏(1.0)，最终权重为 1.0。
+                同一景点上多种行为按加权求和聚合。例如用户先浏览(0.5)再收藏(1.0)，最终权重为 1.5。
               </template>
             </el-alert>
           </div>
@@ -751,6 +819,154 @@ const debugOutput = computed(() => {
 
   return lines.join('\n')
 })
+
+const debugItems = computed(() => debugResult.value?.list || [])
+
+const recommendationTypeMeta = computed(() => {
+  const type = debugResult.value?.type
+  if (type === 'personalized') {
+    return {
+      label: '个性化推荐',
+      tagType: 'success',
+      alertType: 'success',
+      title: '当前结果来自协同过滤个性化推荐',
+      description: '说明该用户已有足够交互行为，系统已基于 ItemCF、用户历史交互权重和相似景点关系完成推荐。'
+    }
+  }
+  if (type === 'preference') {
+    return {
+      label: '偏好冷启动',
+      tagType: 'warning',
+      alertType: 'warning',
+      title: '当前结果来自偏好冷启动推荐',
+      description: '说明用户个性化交互不足，系统改为按用户偏好分类召回景点。'
+    }
+  }
+  if (type === 'hot') {
+    return {
+      label: '热门兜底',
+      tagType: 'info',
+      alertType: 'info',
+      title: '当前结果来自热门兜底推荐',
+      description: '说明用户交互不足且偏好信息有限，系统回退到热门景点推荐。'
+    }
+  }
+  return {
+    label: '未知类型',
+    tagType: 'info',
+    alertType: 'info',
+    title: '当前结果类型未识别',
+    description: '请结合后端控制台调试日志进一步确认推荐链路。'
+  }
+})
+
+const scoreStats = computed(() => {
+  const scoredItems = debugItems.value.filter(item => item.score != null)
+  if (!scoredItems.length) {
+    return {
+      count: 0,
+      average: null,
+      max: null,
+      min: null
+    }
+  }
+  const scores = scoredItems.map(item => Number(item.score))
+  return {
+    count: scoredItems.length,
+    average: scores.reduce((sum, value) => sum + value, 0) / scores.length,
+    max: Math.max(...scores),
+    min: Math.min(...scores)
+  }
+})
+
+const debugSummaryCards = computed(() => {
+  const topItem = debugItems.value[0]
+  return [
+    {
+      label: '推荐来源',
+      value: recommendationTypeMeta.value.label,
+      desc: debugResult.value?.needPreference ? '当前链路仍建议补充偏好' : '当前链路无需额外偏好引导'
+    },
+    {
+      label: '返回结果数',
+      value: String(debugItems.value.length),
+      desc: `请求数量 ${debugForm.limit}，实际返回 ${debugItems.value.length}`
+    },
+    {
+      label: '最高推荐分',
+      value: topItem?.score != null ? Number(topItem.score).toFixed(4) : '无',
+      desc: topItem ? `Top1：${topItem.name}` : '暂无返回结果'
+    },
+    {
+      label: '平均推荐分',
+      value: scoreStats.value.average != null ? scoreStats.value.average.toFixed(4) : '无',
+      desc: scoreStats.value.count ? `有 ${scoreStats.value.count} 条结果带个性化分数` : '当前结果没有返回个性化分数'
+    }
+  ]
+})
+
+const debugInsights = computed(() => {
+  if (!debugResult.value) return []
+  const insights = []
+  if (debugResult.value.type === 'personalized') {
+    insights.push('当前用户已满足协同过滤触发条件，本次结果优先反映历史交互与相似景点关系。')
+  }
+  if (debugResult.value.type === 'preference') {
+    insights.push('当前结果来自偏好冷启动，建议对比用户偏好分类是否和返回景点分类一致。')
+  }
+  if (debugResult.value.type === 'hot') {
+    insights.push('当前结果来自热门兜底，此时推荐分数字段通常为空，重点看热度和上架数据是否合理。')
+  }
+  if (debugResult.value.needPreference) {
+    insights.push('接口提示需要偏好引导，说明用户侧可以进一步补充偏好标签以改善冷启动效果。')
+  }
+  if (!debugItems.value.length) {
+    insights.push('本次返回空列表。优先检查用户偏好命中的分类下是否有已上架且未删除的景点。')
+  }
+  if (scoreStats.value.count > 1 && scoreStats.value.max != null && scoreStats.value.min != null) {
+    insights.push(`当前推荐分数区间为 ${scoreStats.value.min.toFixed(4)} ~ ${scoreStats.value.max.toFixed(4)}，可用于判断结果区分度是否足够。`)
+  }
+  if (debugForm.debug) {
+    insights.push('本次已启用后端详细调试日志，可同步结合服务端控制台查看交互权重、候选分数、过滤与重排信息。')
+  }
+  return insights
+})
+
+const topDebugItems = computed(() =>
+  debugItems.value.slice(0, 3).map((item, index) => ({
+    ...item,
+    rank: index + 1,
+    scoreText: item.score == null ? '-' : Number(item.score).toFixed(4)
+  }))
+)
+
+const debugTableRows = computed(() =>
+  debugItems.value.map((item, index) => {
+    const scoreText = item.score == null ? '-' : Number(item.score).toFixed(4)
+    const priceText = item.price == null ? '-' : `¥${item.price}`
+    const ratingText = item.avgRating == null
+      ? '暂无评分'
+      : `${Number(item.avgRating).toFixed(1)} 分 / ${item.ratingCount || 0} 条评价`
+    let reason = '请结合后端详细日志查看交互权重、候选分数与过滤过程。'
+    if (debugResult.value?.type === 'personalized') {
+      reason = item.score == null
+        ? '当前结果来自个性化链路，但该项未返回分数。请检查后端打分与响应填充。'
+        : '该景点保留了个性化推荐分，适合继续比对候选分数与热度重排结果。'
+    } else if (debugResult.value?.type === 'preference') {
+      reason = '该景点来自偏好分类召回，重点确认用户偏好与景点分类是否匹配。'
+    } else if (debugResult.value?.type === 'hot') {
+      reason = '该景点来自热门兜底，重点确认热度、上架状态和冷启动逻辑。'
+    }
+    return {
+      ...item,
+      rank: index + 1,
+      scoreText,
+      priceText,
+      ratingText,
+      reason
+    }
+  })
+)
 
 const defaultConfig = {
   weightView: 0.5,
@@ -1086,8 +1302,142 @@ onMounted(() => {
 
   .debug-meta {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 12px;
+  }
+
+  .debug-summary {
+    margin-bottom: 16px;
+  }
+
+  .debug-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .summary-card {
+    padding: 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+    border: 1px solid #d9e7ff;
+  }
+
+  .summary-label {
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .summary-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1d4ed8;
+    line-height: 1.2;
+  }
+
+  .summary-desc {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #5b6475;
+  }
+
+  .debug-conclusion {
+    margin-bottom: 16px;
+  }
+
+  .debug-insights,
+  .debug-top-results {
+    margin-bottom: 16px;
+  }
+
+  .debug-block-title {
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #253046;
+  }
+
+  .insight-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .insight-item {
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #fff9eb;
+    border: 1px solid #ffe2a8;
+    color: #8a5a00;
+    line-height: 1.7;
+    font-size: 13px;
+  }
+
+  .top-result-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .top-result-card {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) 150px;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #f7faff 100%);
+    border: 1px solid #e3ecff;
+  }
+
+  .top-result-rank {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #1677ff 0%, #69b1ff 100%);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .top-result-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .top-result-meta {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 12px;
+    color: #667085;
+  }
+
+  .top-result-score {
+    text-align: right;
+  }
+
+  .score-label {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .score-value {
+    margin-top: 6px;
+    font-family: 'Consolas', 'Menlo', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1677ff;
+  }
+
+  .score-value--empty {
+    color: #9ca3af;
   }
 
   .debug-output {
@@ -1353,6 +1703,27 @@ onMounted(() => {
     line-height: 1.4;
     white-space: nowrap;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  @media (max-width: 1200px) {
+    .debug-summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .debug-summary-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .top-result-card {
+      grid-template-columns: 1fr;
+      text-align: left;
+    }
+
+    .top-result-score {
+      text-align: left;
+    }
   }
 }
 </style>

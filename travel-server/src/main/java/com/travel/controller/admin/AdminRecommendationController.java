@@ -8,12 +8,14 @@ import com.travel.service.RecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "管理端-推荐系统", description = "管理端推荐系统控制接口")
 @RestController
 @RequestMapping("/api/admin/v1/recommendation")
 @RequiredArgsConstructor
+@Slf4j
 public class AdminRecommendationController {
 
     private final RecommendationService recommendationService;
@@ -21,7 +23,9 @@ public class AdminRecommendationController {
     @Operation(summary = "手动更新物品相似度矩阵")
     @PostMapping("/update-matrix")
     public ApiResponse<Void> updateSimilarityMatrix() {
+        log.info("管理端触发相似度矩阵更新：开始执行");
         recommendationService.updateSimilarityMatrix();
+        log.info("管理端触发相似度矩阵更新：执行完成");
         return ApiResponse.success(null);
     }
 
@@ -51,6 +55,13 @@ public class AdminRecommendationController {
             @RequestParam(defaultValue = "10") Integer limit,
             @RequestParam(defaultValue = "false") Boolean refresh,
             @RequestParam(defaultValue = "false") Boolean debug) {
+        log.info(
+            "管理端请求推荐调试预览：用户ID={}，返回条数={}，是否刷新={}，是否输出详细调试日志={}",
+            userId,
+            limit,
+            refresh,
+            debug
+        );
         return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, refresh, debug));
     }
 }
