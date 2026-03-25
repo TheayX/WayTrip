@@ -26,6 +26,16 @@ export const getImageUrl = (url) => {
   return isHttpUrl(fullUrl) && !isLocalHostUrl(fullUrl) ? toHttps(fullUrl) : fullUrl
 }
 
+export const getAvatarUrl = (url) => {
+  if (!url) return '/static/default-avatar.png'
+  return getImageUrl(url)
+}
+
+export const getContentImageUrl = (url) => {
+  if (!url) return '/static/empty-image.png'
+  return getImageUrl(url)
+}
+
 /**
  * 封装请求方法 (Uni-app 版本)
  */
@@ -152,5 +162,7 @@ export default {
   put,
   del,
   uploadFile,
-  getImageUrl
+  getImageUrl,
+  getAvatarUrl,
+  getContentImageUrl
 }

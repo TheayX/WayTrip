@@ -2,7 +2,7 @@
   <view class="review-page">
     <view v-if="reviewList.length" class="review-list">
       <view v-for="item in reviewList" :key="item.id" class="review-card">
-        <image class="spot-cover" :src="getImageUrl(item.coverImageUrl) || '/static/empty.png'" mode="aspectFill" />
+        <image class="spot-cover" :src="getContentImageUrl(item.coverImageUrl)" mode="aspectFill" />
         <view class="review-body">
           <view class="review-top">
             <text class="spot-name">{{ item.spotName || `景点 #${item.spotId}` }}</text>
@@ -20,7 +20,7 @@
     </view>
 
     <view v-else class="empty-wrap">
-      <image class="empty-img" src="/static/empty.png" mode="aspectFit" />
+      <image class="empty-img" src="/static/empty-image.png" mode="aspectFit" />
       <text class="empty-text">你还没有发布过评价</text>
     </view>
 
@@ -62,7 +62,7 @@
 import { reactive, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { deleteReview, getMyReviews, submitReview } from '@/api/review'
-import { getImageUrl } from '@/utils/request'
+import { getContentImageUrl } from '@/utils/request'
 
 const reviewList = ref([])
 const loadingMore = ref(false)

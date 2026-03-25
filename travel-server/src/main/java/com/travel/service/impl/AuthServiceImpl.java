@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    private static final String DEFAULT_AVATAR_URL = "/uploads/images/avatar.jpg";
+
     private final UserMapper userMapper;
     private final AdminMapper adminMapper;
     private final UserPreferenceMapper userPreferenceMapper;
@@ -287,7 +289,7 @@ public class AuthServiceImpl implements AuthService {
         user.setNickname(nickname);
         user.setPhone(request.getPhone());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setAvatarUrl("");
+        user.setAvatarUrl(DEFAULT_AVATAR_URL);
         user.setLastLoginAt(LocalDateTime.now());
         userMapper.insert(user);
         log.info("Web新用户注册: userId={}, phone={}", user.getId(), request.getPhone());
@@ -433,7 +435,7 @@ public class AuthServiceImpl implements AuthService {
         newUser.setPhone(request.getPhone());
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setNickname("微信用户");
-        newUser.setAvatarUrl("");
+        newUser.setAvatarUrl(DEFAULT_AVATAR_URL);
         newUser.setLastLoginAt(LocalDateTime.now());
         userMapper.insert(newUser);
         log.info("微信新用户注册: userId={}, phone={}", newUser.getId(), request.getPhone());

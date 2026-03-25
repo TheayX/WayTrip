@@ -22,7 +22,7 @@
           <template v-if="userStore.isLoggedIn">
             <el-dropdown trigger="click" @command="handleCommand">
               <div class="user-avatar">
-                <el-avatar :size="32" :src="userStore.userInfo?.avatar || ''" icon="User" />
+                <el-avatar :size="32" :src="getAvatarUrl(userStore.userInfo?.avatar)" icon="User" />
                 <span class="user-name">{{ userStore.userInfo?.nickname || '用户' }}</span>
               </div>
               <template #dropdown>
@@ -87,6 +87,7 @@ import { useUserStore } from '@/stores/user'
 import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getAvatarUrl } from '@/utils/request'
 
 const userStore = useUserStore()
 const router = useRouter()

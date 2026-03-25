@@ -3,7 +3,7 @@
     <!-- 个人信息头 -->
     <view class="profile-header" @click="isLoggedIn ? null : doLogin()">
       <view class="avatar-container">
-<image class="avatar-lg" :src="userInfo?.avatar ? getImageUrl(userInfo.avatar) : '/static/default-avatar.png'" />
+<image class="avatar-lg" :src="getAvatarUrl(userInfo?.avatar)" />
       </view>
       <view class="profile-info">
         <text class="user-name">{{ isLoggedIn ? (userInfo?.nickname || '旅行家') : '点击登录' }}</text>
@@ -192,7 +192,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { wxLogin, wxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount } from '@/api/auth'
-import { getImageUrl } from '@/utils/request'
+import { getAvatarUrl } from '@/utils/request'
 
 const userStore = useUserStore()
 
@@ -408,7 +408,7 @@ const doLogin = async () => {
 const openEditPopup = () => {
   editForm.nickname = userInfo.value?.nickname || ''
   editForm.phone = userInfo.value?.phone || ''
-  editForm.avatar = userInfo.value?.avatar ? getImageUrl(userInfo.value.avatar) : ''
+  editForm.avatar = getAvatarUrl(userInfo.value?.avatar)
   editForm.avatarPreview = ''
   editForm.avatarTempFile = ''
   editVisible.value = true

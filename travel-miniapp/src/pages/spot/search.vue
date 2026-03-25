@@ -3,16 +3,17 @@
     <!-- 搜索头部 -->
     <view class="search-header">
       <view class="search-input-wrap">
-        <image class="search-icon" src="/static/search.png" />
-        <input
-          class="search-input" 
-          v-model="keyword" 
+        <uni-search-bar
+          v-model="keyword"
           placeholder="搜索景点名称"
-          focus
-          confirm-type="search"
+          :focus="true"
+          :radius="16"
+          :clearButton="'auto'"
+          :cancelButton="'none'"
+          bgColor="#E3E3E8"
           @confirm="doSearch"
+          @clear="clearKeyword"
         />
-        <text class="clear-btn" v-if="keyword" @click="clearKeyword">✕</text>
       </view>
       <text class="cancel-btn" @click="goBack">取消</text>
     </view>
@@ -119,29 +120,21 @@ const goDetail = (id) => {
 
 .search-input-wrap {
   flex: 1;
-  display: flex;
-  align-items: center;
-  background: #E3E3E8;
+}
+
+:deep(.search-input-wrap .uni-searchbar) {
+  padding: 0;
+  background: transparent;
+}
+
+:deep(.search-input-wrap .uni-searchbar__box) {
+  height: 80rpx;
   border-radius: 16rpx;
-  padding: 16rpx 20rpx;
 }
 
-.search-icon {
-  width: 32rpx;
-  height: 32rpx;
-  margin-right: 12rpx;
-}
-
-.search-input {
-  flex: 1;
+:deep(.search-input-wrap .uni-searchbar__box-search-input) {
   font-size: 30rpx;
   color: #1C1C1E;
-}
-
-.clear-btn {
-  color: #8E8E93;
-  padding: 10rpx;
-  font-size: 28rpx;
 }
 
 .cancel-btn {

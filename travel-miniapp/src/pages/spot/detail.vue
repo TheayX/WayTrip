@@ -59,7 +59,7 @@
       </view>
       <view class="comment-list" v-if="spot.latestComments?.length">
         <view class="comment-item" v-for="comment in spot.latestComments" :key="comment.id">
-          <image class="comment-avatar" :src="getImageUrl(comment.avatar) || '/static/default-avatar.png'" />
+          <image class="comment-avatar" :src="getAvatarUrl(comment.avatar)" />
           <view class="comment-content">
             <view class="comment-header">
               <text class="comment-name">{{ comment.nickname }}</text>
@@ -130,7 +130,7 @@ import { onLoad, onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import { getSpotDetail, recordSpotView } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, submitReview } from '@/api/review'
-import { getImageUrl } from '@/utils/request'
+import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
 const spot = ref(null)
@@ -150,7 +150,7 @@ const spotImages = computed(() => {
     source.unshift(spot.value.coverImage)
   }
 
-  return Array.from(new Set(source.filter(Boolean))).map(img => getImageUrl(img))
+  return Array.from(new Set(source.filter(Boolean))).map(img => getContentImageUrl(img))
 })
 
 const ratingVisible = ref(false)

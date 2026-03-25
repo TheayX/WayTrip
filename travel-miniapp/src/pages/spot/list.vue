@@ -172,7 +172,7 @@
           <text class="loading-text">正在加载精彩内容...</text>
         </view>
         <view class="empty-state" v-else-if="spotList.length === 0">
-<image class="empty-img" src="/static/empty.png" mode="widthFix" />
+<image class="empty-img" src="/static/empty-image.png" mode="widthFix" />
           <text>暂无相关景点</text>
           <view class="reset-btn" @click="resetAll">清除筛选</view>
         </view>
