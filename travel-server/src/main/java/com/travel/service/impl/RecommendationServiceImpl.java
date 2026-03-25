@@ -135,7 +135,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             }
         }
 
-        return computeRecommendations(userId, limit, false);
+        return computeRecommendations(userId, limit, false, false);
     }
 
     @Override
@@ -146,16 +146,17 @@ public class RecommendationServiceImpl implements RecommendationService {
         String cacheKey = USER_REC_KEY + userId;
         redisTemplate.delete(cacheKey);
         
-        return computeRecommendations(userId, limit, true);
+        return computeRecommendations(userId, limit, true, false);
     }
 
     @Override
     public RecommendationResponse previewRecommendations(Long userId, Integer limit, Boolean refresh, Boolean debug) {
         if (limit == null || limit <= 0) limit = 10;
         boolean refreshMode = Boolean.TRUE.equals(refresh);
-        RecommendationResponse response = refreshMode
-            ? refreshRecommendations(userId, limit)
-            : getRecommendations(userId, limit);
+        boolean debugMode = Boolean.TRUE.equals(debug);
+        RecommendationResponse response = debugMode
+            ? computeRecommendations(userId, limit, refreshMode, true)
+            : (refreshMode ? refreshRecommendations(userId, limit) : getRecommendations(userId, limit));
         if (Boolean.TRUE.equals(debug)) {
             logRecommendationPreview(userId, response, refreshMode);
         }
@@ -171,32 +172,57 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
-        return computeRecommendations(userId, limit, false);
+        return computeRecommendations(userId, limit, false, false);
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean refresh) {
+        return computeRecommendations(userId, limit, refresh, false);
+    }
+
+    private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean refresh, boolean debug) {
         RecommendationConfigDTO config = loadConfig();
+
+        log.info(
+            "开始计算推荐结果：用户ID={}，请求数量={}，是否刷新={}，是否调试={}，协同过滤最少交互数={}，候选扩容倍数={}",
+            userId,
+            limit,
+            refresh,
+            debug,
+            config.getMinInteractionsForCF(),
+            getCandidateExpandFactor(config)
+        );
 
         // ============ 改进：基于总交互景点数判断冷启动（而非仅评分数） ============
         Map<Long, Double> userInteractions = buildUserInteractionWeights(userId, config);
+        logUserInteractionWeights(userId, userInteractions, debug);
 
         if (userInteractions.size() < config.getMinInteractionsForCF()) {
-            return handleColdStart(userId, limit, refresh);
+            log.info(
+                "触发冷启动：用户ID={}，交互景点数={}，阈值={}，原因=交互景点数不足",
+                userId,
+                userInteractions.size(),
+                config.getMinInteractionsForCF()
+            );
+            return handleColdStart(userId, limit, refresh, debug);
         }
 
         // 基于 ItemCF 计算推荐
         int candidateLimit = limit * getCandidateExpandFactor(config);
         Map<Long, Double> recommendedScores = computeItemCFRecommendationScores(userInteractions, candidateLimit);
+        logScoreMap("ItemCF 原始候选分数", recommendedScores, debug);
         List<Long> recommendedIds = new ArrayList<>(recommendedScores.keySet());
         
         // 过滤已交互的景点
         List<Long> filteredIds = filterInteractedSpots(userId, recommendedIds);
+        logFilteredRecommendations(userId, recommendedIds, filteredIds, debug);
         Map<Long, Double> filteredScores = orderScoresByIds(filteredIds, recommendedScores);
-        filteredScores = applyHeatRerank(filteredScores, config);
+        logScoreMap("过滤已交互景点后的候选分数", filteredScores, debug);
+        filteredScores = applyHeatRerank(filteredScores, config, debug);
         filteredIds = new ArrayList<>(filteredScores.keySet());
         
         if (filteredIds.isEmpty()) {
-            return handleColdStart(userId, limit, refresh);
+            log.info("个性化推荐结果为空，降级为冷启动：用户ID={}", userId);
+            return handleColdStart(userId, limit, refresh, debug);
         }
 
         // 缓存结果
@@ -207,6 +233,14 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         String cacheKey = USER_REC_KEY + userId;
         redisTemplate.opsForValue().set(cacheKey, filteredScores, config.getUserRecTTLMinutes(), TimeUnit.MINUTES);
+
+        log.info(
+            "推荐结果计算完成：用户ID={}，推荐类型=personalized，候选数={}，最终返回数={}，缓存时长={}分钟",
+            userId,
+            recommendedScores.size(),
+            Math.min(filteredIds.size(), limit),
+            config.getUserRecTTLMinutes()
+        );
 
         return buildRecommendationResponse(filteredIds, filteredScores, limit, "personalized", false);
     }
@@ -279,6 +313,10 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 冷启动处理：刷新时对返回结果做轮换，避免每次都是同一批
      */
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh) {
+        return handleColdStart(userId, limit, refresh, false);
+    }
+
+    private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh, boolean debug) {
         RecommendationConfigDTO config = loadConfig();
         List<Long> categoryIds = getUserPreferenceCategoryIds(userId);
 
@@ -297,6 +335,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             if (refresh) {
                 spotIds = rotateRecommendations(spotIds, limit);
             }
+            logColdStartResult(userId, "preference", categoryIds, spotIds, debug);
             return buildRecommendationResponse(spotIds, limit, "preference", false);
         }
 
@@ -306,6 +345,13 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (refresh) {
             rotateSpotItems(hotSpotList, limit);
         }
+        logColdStartResult(
+            userId,
+            "hot",
+            Collections.emptyList(),
+            hotSpotList.stream().map(HotSpotResponse.SpotItem::getId).collect(Collectors.toList()),
+            debug
+        );
         RecommendationResponse response = new RecommendationResponse();
         response.setType("hot");
         response.setNeedPreference(true);
@@ -438,12 +484,19 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, RecommendationConfigDTO config) {
+        return applyHeatRerank(scoreMap, config, false);
+    }
+
+    private Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, RecommendationConfigDTO config, boolean debug) {
         if (scoreMap == null || scoreMap.isEmpty()) {
             return Collections.emptyMap();
         }
 
         double rerankFactor = config.getHeatRerankFactor() == null ? 0.0 : config.getHeatRerankFactor();
         if (rerankFactor <= 0) {
+            if (debug) {
+                log.info("热度重排已跳过：原因=热度重排系数<=0，当前系数={}", rerankFactor);
+            }
             return new LinkedHashMap<>(scoreMap);
         }
 
@@ -454,10 +507,13 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         int maxHeat = heatMap.values().stream().max(Integer::compareTo).orElse(0);
         if (maxHeat <= 0) {
+            if (debug) {
+                log.info("热度重排已跳过：原因=候选景点热度均为空或为0");
+            }
             return new LinkedHashMap<>(scoreMap);
         }
 
-        return scoreMap.entrySet().stream()
+        Map<Long, Double> rerankedScores = scoreMap.entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> entry.getValue() + rerankFactor * (heatMap.getOrDefault(entry.getKey(), 0) / (double) maxHeat),
@@ -472,6 +528,11 @@ public class RecommendationServiceImpl implements RecommendationService {
                 (left, right) -> left,
                 LinkedHashMap::new
             ));
+
+        if (debug) {
+            logHeatRerankDetails(scoreMap, rerankedScores, heatMap, rerankFactor, maxHeat);
+        }
+        return rerankedScores;
     }
 
     /**
@@ -638,6 +699,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 new LambdaQueryWrapper<UserSpotView>()
                     .select(UserSpotView::getUserId, UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
             );
+            log.info("离线矩阵更新：读取浏览行为 {} 条", allViews.size());
             for (UserSpotView v : allViews) {
                 if (!activeSpotIds.contains(v.getSpotId())) continue;
                 mergeInteractionWeight(
@@ -654,6 +716,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .eq(UserSpotFavorite::getIsDeleted, 0)
                     .select(UserSpotFavorite::getUserId, UserSpotFavorite::getSpotId)
             );
+            log.info("离线矩阵更新：读取收藏行为 {} 条", allFavorites.size());
             for (UserSpotFavorite f : allFavorites) {
                 if (!activeSpotIds.contains(f.getSpotId())) continue;
                 mergeInteractionWeight(
@@ -670,6 +733,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .eq(Review::getIsDeleted, 0)
                     .select(Review::getUserId, Review::getSpotId, Review::getScore)
             );
+            log.info("离线矩阵更新：读取评分行为 {} 条", allRatings.size());
             for (Review r : allRatings) {
                 if (!activeSpotIds.contains(r.getSpotId())) continue;
                 double w = r.getScore() * config.getWeightReviewFactor();
@@ -688,6 +752,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
                     .select(Order::getUserId, Order::getSpotId, Order::getStatus)
             );
+            log.info("离线矩阵更新：读取有效订单行为 {} 条", allOrders.size());
             for (Order o : allOrders) {
                 if (!activeSpotIds.contains(o.getSpotId())) continue;
                 double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? config.getWeightOrderCompleted() : config.getWeightOrderPaid();
@@ -705,12 +770,14 @@ public class RecommendationServiceImpl implements RecommendationService {
             }
 
             log.info("交互矩阵构建完成：{} 个用户，{} 个景点", userItemMatrix.size(), allSpotIds.size());
+            logUserItemMatrixSamples(userItemMatrix);
 
             // ============ 步骤2：预计算每个用户的交互景点数 |N(u)|（用于 IUF） ============
             Map<Long, Integer> userActivityCount = new HashMap<>();
             for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
                 userActivityCount.put(entry.getKey(), entry.getValue().size());
             }
+            logUserActivitySamples(userActivityCount);
 
             // ============ 步骤3：构建物品到用户的倒排索引 ============
             // Map<spotId, Set<userId>>  即 N(i)
@@ -763,6 +830,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 // 存入 Redis
                 String key = SIMILARITY_KEY + spotI;
                 redisTemplate.opsForValue().set(key, java.util.Objects.requireNonNull(topSimilarities), simTTL, TimeUnit.HOURS);
+                logSpotSimilaritySummary(spotI, topSimilarities);
             }
 
             // ============ 保存状态信息 ============
@@ -772,7 +840,13 @@ public class RecommendationServiceImpl implements RecommendationService {
             statusMap.put("totalSpots", allSpotIds.size());
             redisTemplate.opsForValue().set(STATUS_KEY, statusMap);
 
-            log.info("物品相似度矩阵更新完成，共处理 {} 个景点", allSpotIds.size());
+            log.info(
+                "物品相似度矩阵更新完成：共处理景点 {} 个，用户 {} 个，相似度缓存时长 {} 小时，Top-K 邻居数 {}",
+                allSpotIds.size(),
+                userItemMatrix.size(),
+                simTTL,
+                topK
+            );
         } finally {
             computing.set(false);
         }
@@ -935,7 +1009,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private void logRecommendationPreview(Long userId, RecommendationResponse response, boolean refresh) {
         if (response == null) {
-            log.info("Recommendation preview | userId={} | refresh={} | empty response", userId, refresh);
+            log.info("推荐调试预览：用户ID={}，是否刷新={}，结果为空", userId, refresh);
             return;
         }
 
@@ -953,13 +1027,170 @@ public class RecommendationServiceImpl implements RecommendationService {
             .collect(Collectors.joining(", "));
 
         log.info(
-            "Recommendation preview | userId={} | refresh={} | type={} | needPreference={} | items=[{}]",
+            "推荐调试预览结果：用户ID={}，是否刷新={}，推荐类型={}，是否需要偏好引导={}，结果项明细=[{}]",
             userId,
             refresh,
             response.getType(),
             response.getNeedPreference(),
             items
         );
+    }
+
+    private void logUserInteractionWeights(Long userId, Map<Long, Double> userInteractions, boolean debug) {
+        if (!debug) {
+            log.info("用户交互权重构建完成：用户ID={}，交互景点数={}", userId, userInteractions.size());
+            return;
+        }
+        log.info(
+            "用户交互权重明细：用户ID={}，交互景点数={}，权重详情=[{}]",
+            userId,
+            userInteractions.size(),
+            formatSpotScoreEntries(userInteractions, 20)
+        );
+    }
+
+    private void logScoreMap(String stage, Map<Long, Double> scoreMap, boolean debug) {
+        if (!debug || scoreMap == null) {
+            return;
+        }
+        log.info("{}：候选数={}，明细=[{}]", stage, scoreMap.size(), formatSpotScoreEntries(scoreMap, 20));
+    }
+
+    private void logFilteredRecommendations(Long userId, List<Long> originalIds, List<Long> filteredIds, boolean debug) {
+        if (!debug) {
+            return;
+        }
+        Set<Long> filteredSet = new LinkedHashSet<>(filteredIds);
+        List<Long> removedIds = originalIds.stream()
+            .filter(id -> !filteredSet.contains(id))
+            .collect(Collectors.toList());
+        log.info(
+            "候选过滤结果：用户ID={}，过滤前数量={}，过滤后数量={}，被过滤景点=[{}]",
+            userId,
+            originalIds.size(),
+            filteredIds.size(),
+            formatSpotIdList(removedIds, 20)
+        );
+    }
+
+    private void logColdStartResult(Long userId, String type, List<Long> categoryIds, List<Long> spotIds, boolean debug) {
+        String reason = "preference".equals(type) ? "存在用户偏好，按偏好分类推荐" : "无足够个性化信号，回退热门推荐";
+        log.info(
+            "冷启动推荐结果：用户ID={}，类型={}，原因={}，偏好分类ID={}，候选景点=[{}]",
+            userId,
+            type,
+            reason,
+            categoryIds,
+            formatSpotIdList(spotIds, debug ? 20 : 10)
+        );
+    }
+
+    private void logHeatRerankDetails(Map<Long, Double> beforeScores, Map<Long, Double> afterScores,
+                                      Map<Long, Integer> heatMap, double rerankFactor, int maxHeat) {
+        String details = afterScores.entrySet().stream()
+            .limit(20)
+            .map(entry -> {
+                Long spotId = entry.getKey();
+                double before = beforeScores.getOrDefault(spotId, 0.0);
+                int heat = heatMap.getOrDefault(spotId, 0);
+                double after = entry.getValue();
+                return String.format(
+                    Locale.ROOT,
+                    "{景点ID=%d,景点名称=%s,原始分数=%.4f,热度值=%d,热度加成=%.4f,重排后分数=%.4f}",
+                    spotId,
+                    getSpotName(spotId),
+                    before,
+                    heat,
+                    after - before,
+                    after
+                );
+            })
+            .collect(Collectors.joining(", "));
+        log.info(
+            "热度重排结果：重排系数={}，最大热度={}，重排明细=[{}]",
+            rerankFactor,
+            maxHeat,
+            details
+        );
+    }
+
+    private void logUserItemMatrixSamples(Map<Long, Map<Long, Double>> userItemMatrix) {
+        String samples = userItemMatrix.entrySet().stream()
+            .sorted(Map.Entry.<Long, Map<Long, Double>>comparingByKey())
+            .limit(10)
+            .map(entry -> String.format(
+                Locale.ROOT,
+                "{用户ID=%d,交互数=%d,交互权重=[%s]}",
+                entry.getKey(),
+                entry.getValue().size(),
+                formatSpotScoreEntries(entry.getValue(), 10)
+            ))
+            .collect(Collectors.joining(", "));
+        log.info("离线矩阵更新：用户-景点交互矩阵样本=[{}]", samples);
+    }
+
+    private void logUserActivitySamples(Map<Long, Integer> userActivityCount) {
+        String samples = userActivityCount.entrySet().stream()
+            .sorted(Map.Entry.<Long, Integer>comparingByValue().reversed())
+            .limit(10)
+            .map(entry -> String.format(Locale.ROOT, "{用户ID=%d,交互景点数=%d}", entry.getKey(), entry.getValue()))
+            .collect(Collectors.joining(", "));
+        log.info("离线矩阵更新：用户活跃度样本=[{}]", samples);
+    }
+
+    private void logSpotSimilaritySummary(Long spotId, Map<Long, Double> topSimilarities) {
+        String detail = topSimilarities.entrySet().stream()
+            .limit(10)
+            .map(entry -> String.format(
+                Locale.ROOT,
+                "{相似景点ID=%d,相似景点名称=%s,相似度=%.6f}",
+                entry.getKey(),
+                getSpotName(entry.getKey()),
+                entry.getValue()
+            ))
+            .collect(Collectors.joining(", "));
+        log.info(
+            "离线矩阵更新：景点ID={}，景点名称={}，Top-K 相似邻居数={}，相似邻居明细=[{}]",
+            spotId,
+            getSpotName(spotId),
+            topSimilarities.size(),
+            detail
+        );
+    }
+
+    private String formatSpotScoreEntries(Map<Long, Double> scoreMap, int limit) {
+        if (scoreMap == null || scoreMap.isEmpty()) {
+            return "";
+        }
+        return scoreMap.entrySet().stream()
+            .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+            .limit(limit)
+            .map(entry -> String.format(
+                Locale.ROOT,
+                "{景点ID=%d,景点名称=%s,分数=%.4f}",
+                entry.getKey(),
+                getSpotName(entry.getKey()),
+                entry.getValue()
+            ))
+            .collect(Collectors.joining(", "));
+    }
+
+    private String formatSpotIdList(List<Long> spotIds, int limit) {
+        if (spotIds == null || spotIds.isEmpty()) {
+            return "";
+        }
+        return spotIds.stream()
+            .limit(limit)
+            .map(spotId -> String.format(Locale.ROOT, "{景点ID=%d,景点名称=%s}", spotId, getSpotName(spotId)))
+            .collect(Collectors.joining(", "));
+    }
+
+    private String getSpotName(Long spotId) {
+        if (spotId == null) {
+            return "未知景点";
+        }
+        Spot spot = spotMapper.selectById(spotId);
+        return spot == null || spot.getName() == null ? "未知景点" : spot.getName();
     }
 
     private Map<Long, Double> orderScoresByIds(List<Long> orderedIds, Map<Long, Double> scoreMap) {
