@@ -138,7 +138,7 @@
 
         <!-- 头像选择 -->
         <view class="auth-avatar-wrap">
-          <button class="auth-avatar-btn" @click="onAuthChooseAvatar">
+          <button class="auth-avatar-btn" open-type="chooseAvatar" @chooseavatar="onAuthChooseAvatar">
             <image class="auth-avatar-img" :src="authForm.avatarPreview || defaultRegisterAvatar" />
             <view class="auth-avatar-edit">
               <text class="auth-avatar-edit-text">点击选择头像</text>
@@ -169,8 +169,8 @@
         <!-- 头像选择 -->
         <view class="edit-avatar-row">
           <text class="edit-avatar-label">头像</text>
-          <button class="edit-avatar-btn" @click="onChooseAvatar">
-            <image class="edit-avatar-img" :src="editForm.avatarPreview || editForm.avatar || '/static/default-avatar.png'" />
+          <button class="edit-avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
+            <image class="edit-avatar-img" :src="getAvatarUrl(editForm.avatarPreview || editForm.avatar)" />
             <text class="edit-avatar-tip">点击更换</text>
           </button>
         </view>
@@ -237,25 +237,8 @@ const pendingRegister = reactive({
   password: ''
 })
 
-
-// 第二步：选择头像
-const chooseAvatarImage = async () => {
-  try {
-    const res = await uni.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera']
-    })
-    const url = res?.tempFilePaths?.[0]
-    return url || ''
-  } catch (e) {
-    // User cancellation should be silent.
-    return ''
-  }
-}
-
-const onAuthChooseAvatar = async () => {
-  const url = await chooseAvatarImage()
+const onAuthChooseAvatar = (e) => {
+  const url = e?.detail?.avatarUrl || ''
   if (url) {
     authForm.avatarPreview = url
     authForm.avatarTempFile = url
@@ -488,8 +471,8 @@ const submitProfile = async () => {
 }
 
 // 编辑资料 - 选择头像
-const onChooseAvatar = async () => {
-  const url = await chooseAvatarImage()
+const onChooseAvatar = (e) => {
+  const url = e?.detail?.avatarUrl || ''
   if (url) {
     editForm.avatarPreview = url
     editForm.avatarTempFile = url
