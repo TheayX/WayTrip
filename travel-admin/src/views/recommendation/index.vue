@@ -283,6 +283,15 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
+              <el-form-item label="完成订单加分">
+                <el-input-number v-model="config.heatOrderCompletedIncrement" :min="1" :max="30" :step="1" />
+                <span class="form-tip">订单从已支付变为已完成时增加的热度分数</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
               <el-form-item label="热度重排系数">
                 <el-input-number v-model="config.heatRerankFactor" :min="0" :max="1" :step="0.01" :precision="2" />
                 <span class="form-tip">最终排序按 CF 分数 + 系数 × 归一化热度 轻量重排，建议保持较小值</span>
@@ -310,6 +319,21 @@
               <el-form-item label="近邻数量 K">
                 <el-input-number v-model="config.topKNeighbors" :min="5" :max="100" :step="5" />
                 <span class="form-tip">相似度矩阵每个景点保留的最近邻数</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="个性化候选扩容倍数">
+                <el-input-number v-model="config.candidateExpandFactor" :min="1" :max="10" :step="1" />
+                <span class="form-tip">个性化推荐先计算 limit × 倍数 的候选集，再过滤和排序</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="冷启动扩容倍数">
+                <el-input-number v-model="config.coldStartExpandFactor" :min="1" :max="10" :step="1" />
+                <span class="form-tip">刷新冷启动结果时先拉取更大的候选集，再做轮换截断</span>
               </el-form-item>
             </el-col>
           </el-row>
@@ -574,10 +598,13 @@
               <el-descriptions-item label="收藏热度加分">3</el-descriptions-item>
               <el-descriptions-item label="评价热度加分">2</el-descriptions-item>
               <el-descriptions-item label="支付热度加分">5</el-descriptions-item>
+              <el-descriptions-item label="完成热度加分">8</el-descriptions-item>
               <el-descriptions-item label="浏览去重窗口">30 分钟</el-descriptions-item>
               <el-descriptions-item label="热度重排系数">0.05</el-descriptions-item>
               <el-descriptions-item label="最少交互数">3</el-descriptions-item>
               <el-descriptions-item label="近邻数量 K">20</el-descriptions-item>
+              <el-descriptions-item label="个性化扩容倍数">2</el-descriptions-item>
+              <el-descriptions-item label="冷启动扩容倍数">3</el-descriptions-item>
               <el-descriptions-item label="矩阵 TTL">24 小时</el-descriptions-item>
               <el-descriptions-item label="推荐缓存 TTL">60 分钟</el-descriptions-item>
             </el-descriptions>
@@ -625,10 +652,13 @@ const config = reactive({
   heatFavoriteIncrement: 3,
   heatReviewIncrement: 2,
   heatOrderPaidIncrement: 5,
+  heatOrderCompletedIncrement: 8,
   heatViewDedupeWindowMinutes: 30,
   heatRerankFactor: 0.05,
   minInteractionsForCF: 3,
   topKNeighbors: 20,
+  candidateExpandFactor: 2,
+  coldStartExpandFactor: 3,
   similarityTTLHours: 24,
   userRecTTLMinutes: 60
 })
@@ -703,10 +733,13 @@ const defaultConfig = {
   heatFavoriteIncrement: 3,
   heatReviewIncrement: 2,
   heatOrderPaidIncrement: 5,
+  heatOrderCompletedIncrement: 8,
   heatViewDedupeWindowMinutes: 30,
   heatRerankFactor: 0.05,
   minInteractionsForCF: 3,
   topKNeighbors: 20,
+  candidateExpandFactor: 2,
+  coldStartExpandFactor: 3,
   similarityTTLHours: 24,
   userRecTTLMinutes: 60
 }

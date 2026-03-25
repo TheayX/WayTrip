@@ -75,6 +75,9 @@ public class RecommendationConfigDTO {
     /** 支付订单增加的热度分数 */
     private Integer heatOrderPaidIncrement = 5;
 
+    /** 完成订单增加的热度分数 */
+    private Integer heatOrderCompletedIncrement = 8;
+
     /** 同一用户同一景点浏览去重窗口（分钟） */
     private Integer heatViewDedupeWindowMinutes = 30;
 
@@ -88,6 +91,12 @@ public class RecommendationConfigDTO {
 
     /** 相似度矩阵保留的近邻数量 K（论文 S(j,K)） */
     private Integer topKNeighbors = 20;
+
+    /** 个性化推荐计算时的候选扩容倍数 */
+    private Integer candidateExpandFactor = 2;
+
+    /** 冷启动刷新时的候选扩容倍数 */
+    private Integer coldStartExpandFactor = 3;
 
     // ==================== 缓存参数 ====================
 
