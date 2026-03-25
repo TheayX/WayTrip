@@ -213,7 +213,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     /**
      * 构建单个用户的交互权重 Map<spotId, weight>
-     * 融合浏览、收藏、评分、订单四种行为，同一景点取最大权重
+     * 融合浏览、收藏、评分、订单四种行为，同一景点按加权求和聚合
      */
     private Map<Long, Double> buildUserInteractionWeights(Long userId, RecommendationConfigDTO config) {
         Map<Long, Double> weights = new HashMap<>();
@@ -225,7 +225,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .select(UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
         );
         for (UserSpotView v : views) {
-            weights.merge(v.getSpotId(), calculateViewWeight(v, config), Math::max);
+            mergeInteractionWeight(weights, v.getSpotId(), calculateViewWeight(v, config));
         }
 
         // 收藏
@@ -236,7 +236,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .select(UserSpotFavorite::getSpotId)
         );
         for (UserSpotFavorite f : favorites) {
-            weights.merge(f.getSpotId(), config.getWeightFavorite(), Math::max);
+            mergeInteractionWeight(weights, f.getSpotId(), config.getWeightFavorite());
         }
 
         // 评分
@@ -248,7 +248,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         );
         for (Review r : reviews) {
             double w = r.getScore() * config.getWeightReviewFactor();
-            weights.merge(r.getSpotId(), w, Math::max);
+            mergeInteractionWeight(weights, r.getSpotId(), w);
         }
 
         // 订单（已支付 & 已完成）
@@ -261,7 +261,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         );
         for (Order o : orders) {
             double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? config.getWeightOrderCompleted() : config.getWeightOrderPaid();
-            weights.merge(o.getSpotId(), w, Math::max);
+            mergeInteractionWeight(weights, o.getSpotId(), w);
         }
 
         return weights;
@@ -640,8 +640,11 @@ public class RecommendationServiceImpl implements RecommendationService {
             );
             for (UserSpotView v : allViews) {
                 if (!activeSpotIds.contains(v.getSpotId())) continue;
-                userItemMatrix.computeIfAbsent(v.getUserId(), k -> new HashMap<>())
-                    .merge(v.getSpotId(), calculateViewWeight(v, config), Math::max);
+                mergeInteractionWeight(
+                    userItemMatrix.computeIfAbsent(v.getUserId(), k -> new HashMap<>()),
+                    v.getSpotId(),
+                    calculateViewWeight(v, config)
+                );
                 allSpotIds.add(v.getSpotId());
             }
 
@@ -653,8 +656,11 @@ public class RecommendationServiceImpl implements RecommendationService {
             );
             for (UserSpotFavorite f : allFavorites) {
                 if (!activeSpotIds.contains(f.getSpotId())) continue;
-                userItemMatrix.computeIfAbsent(f.getUserId(), k -> new HashMap<>())
-                    .merge(f.getSpotId(), config.getWeightFavorite(), Math::max);
+                mergeInteractionWeight(
+                    userItemMatrix.computeIfAbsent(f.getUserId(), k -> new HashMap<>()),
+                    f.getSpotId(),
+                    config.getWeightFavorite()
+                );
                 allSpotIds.add(f.getSpotId());
             }
 
@@ -667,8 +673,11 @@ public class RecommendationServiceImpl implements RecommendationService {
             for (Review r : allRatings) {
                 if (!activeSpotIds.contains(r.getSpotId())) continue;
                 double w = r.getScore() * config.getWeightReviewFactor();
-                userItemMatrix.computeIfAbsent(r.getUserId(), k -> new HashMap<>())
-                    .merge(r.getSpotId(), w, Math::max);
+                mergeInteractionWeight(
+                    userItemMatrix.computeIfAbsent(r.getUserId(), k -> new HashMap<>()),
+                    r.getSpotId(),
+                    w
+                );
                 allSpotIds.add(r.getSpotId());
             }
 
@@ -682,8 +691,11 @@ public class RecommendationServiceImpl implements RecommendationService {
             for (Order o : allOrders) {
                 if (!activeSpotIds.contains(o.getSpotId())) continue;
                 double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? config.getWeightOrderCompleted() : config.getWeightOrderPaid();
-                userItemMatrix.computeIfAbsent(o.getUserId(), k -> new HashMap<>())
-                    .merge(o.getSpotId(), w, Math::max);
+                mergeInteractionWeight(
+                    userItemMatrix.computeIfAbsent(o.getUserId(), k -> new HashMap<>()),
+                    o.getSpotId(),
+                    w
+                );
                 allSpotIds.add(o.getSpotId());
             }
 
@@ -808,6 +820,13 @@ public class RecommendationServiceImpl implements RecommendationService {
     private double calculateViewWeight(UserSpotView view, RecommendationConfigDTO config) {
         double baseWeight = config.getWeightView() == null ? 0.5 : config.getWeightView();
         return baseWeight * getViewSourceFactor(view.getViewSource(), config) * getViewDurationFactor(view.getViewDuration(), config);
+    }
+
+    private void mergeInteractionWeight(Map<Long, Double> weights, Long spotId, Double weight) {
+        if (weights == null || spotId == null || weight == null || weight <= 0) {
+            return;
+        }
+        weights.merge(spotId, weight, Double::sum);
     }
 
     private double getViewSourceFactor(String source, RecommendationConfigDTO config) {
