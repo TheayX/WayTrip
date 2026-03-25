@@ -24,3 +24,8 @@ export function updateRecommendationMatrix() {
 export function previewRecommendations(params) {
   return request.get('/recommendation/preview', { params })
 }
+
+// 预览景点相似邻居
+export function previewSimilarityNeighbors(params) {
+  return request.get('/recommendation/similarity-preview', { params })
+}

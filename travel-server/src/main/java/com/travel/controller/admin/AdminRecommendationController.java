@@ -4,6 +4,7 @@ import com.travel.common.result.ApiResponse;
 import com.travel.dto.recommendation.RecommendationConfigDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
 import com.travel.dto.recommendation.RecommendationStatusDTO;
+import com.travel.dto.recommendation.SimilarityPreviewResponse;
 import com.travel.service.RecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -63,5 +64,14 @@ public class AdminRecommendationController {
             debug
         );
         return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, refresh, debug));
+    }
+
+    @Operation(summary = "预览指定景点的相似邻居")
+    @GetMapping("/similarity-preview")
+    public ApiResponse<SimilarityPreviewResponse> previewSimilarityNeighbors(
+            @RequestParam Long spotId,
+            @RequestParam(defaultValue = "10") Integer limit) {
+        log.info("管理端请求相似邻居预览：景点ID={}，返回条数={}", spotId, limit);
+        return ApiResponse.success(recommendationService.previewSimilarityNeighbors(spotId, limit));
     }
 }

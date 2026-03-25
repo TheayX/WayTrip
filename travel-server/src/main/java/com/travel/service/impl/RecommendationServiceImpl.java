@@ -5,6 +5,7 @@ import com.travel.dto.home.HotSpotResponse;
 import com.travel.dto.recommendation.RecommendationConfigDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
 import com.travel.dto.recommendation.RecommendationStatusDTO;
+import com.travel.dto.recommendation.SimilarityPreviewResponse;
 import com.travel.entity.*;
 import com.travel.enums.OrderStatus;
 import com.travel.mapper.*;
@@ -217,7 +218,8 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         // 基于 ItemCF 计算推荐
         int candidateLimit = limit * getCandidateExpandFactor(config);
-        Map<Long, Double> recommendedScores = computeItemCFRecommendationScores(userInteractions, candidateLimit);
+        Map<Long, List<RecommendationResponse.DebugEntry>> contributionMap = debug ? new HashMap<>() : null;
+        Map<Long, Double> recommendedScores = computeItemCFRecommendationScores(userInteractions, candidateLimit, contributionMap);
         populateScoreDebugEntries(debugInfo, recommendedScores, "ItemCF 原始候选分数");
         logScoreMap("ItemCF 原始候选分数", recommendedScores, debug);
         List<Long> recommendedIds = new ArrayList<>(recommendedScores.keySet());
@@ -260,9 +262,10 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         if (debugInfo != null) {
             debugInfo.setTriggerReason("已命中协同过滤主链路");
+            debugInfo.setResultContributions(buildResultContributions(filteredScores, contributionMap));
             debugInfo.setNotes(List.of(
                 "当前结果来自个性化推荐链路。",
-                "可重点关注用户交互权重、候选分数和热度重排后的排序变化。"
+                "可重点关注用户交互权重、候选分数、结果贡献来源和热度重排后的排序变化。"
             ));
         }
         return buildRecommendationResponse(filteredIds, filteredScores, limit, "personalized", false, debugInfo);
@@ -489,6 +492,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private Map<Long, Double> computeItemCFRecommendationScores(Map<Long, Double> userInteractions, Integer limit) {
+        return computeItemCFRecommendationScores(userInteractions, limit, null);
+    }
+
+    private Map<Long, Double> computeItemCFRecommendationScores(Map<Long, Double> userInteractions, Integer limit,
+                                                                Map<Long, List<RecommendationResponse.DebugEntry>> contributionMap) {
         if (userInteractions.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -513,7 +521,17 @@ public class RecommendationServiceImpl implements RecommendationService {
                 }
                 
                 // 公式：P_uj += w_ji × r_ui
-                scores.merge(similarSpotId, wji * rui, Double::sum);
+                double contribution = wji * rui;
+                scores.merge(similarSpotId, contribution, Double::sum);
+                if (contributionMap != null) {
+                    contributionMap.computeIfAbsent(similarSpotId, key -> new ArrayList<>())
+                        .add(new RecommendationResponse.DebugEntry(
+                            spotId,
+                            getSpotName(spotId),
+                            contribution,
+                            String.format(Locale.ROOT, "由该历史景点贡献：相似度=%.4f，交互权重=%.4f", wji, rui)
+                        ));
+                }
             }
         }
 
@@ -1167,6 +1185,32 @@ public class RecommendationServiceImpl implements RecommendationService {
             .collect(Collectors.toList());
     }
 
+    private List<RecommendationResponse.ResultContribution> buildResultContributions(
+        Map<Long, Double> finalScores,
+        Map<Long, List<RecommendationResponse.DebugEntry>> contributionMap
+    ) {
+        if (finalScores == null || finalScores.isEmpty() || contributionMap == null || contributionMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return finalScores.entrySet().stream()
+            .limit(20)
+            .map(entry -> {
+                List<RecommendationResponse.DebugEntry> contributors = contributionMap
+                    .getOrDefault(entry.getKey(), Collections.emptyList())
+                    .stream()
+                    .sorted(Comparator.comparing(RecommendationResponse.DebugEntry::getScore, Comparator.nullsLast(Double::compareTo)).reversed())
+                    .limit(5)
+                    .collect(Collectors.toList());
+                return new RecommendationResponse.ResultContribution(
+                    entry.getKey(),
+                    getSpotName(entry.getKey()),
+                    entry.getValue(),
+                    contributors
+                );
+            })
+            .collect(Collectors.toList());
+    }
+
     private void logUserInteractionWeights(Long userId, Map<Long, Double> userInteractions, boolean debug) {
         if (!debug) {
             log.info("用户交互权重构建完成：用户ID={}，交互景点数={}", userId, userInteractions.size());
@@ -1377,5 +1421,33 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         return status;
+    }
+
+    @Override
+    public SimilarityPreviewResponse previewSimilarityNeighbors(Long spotId, Integer limit) {
+        int safeLimit = limit == null || limit <= 0 ? 10 : limit;
+        Map<Long, Double> similarities = getSimilarSpots(spotId);
+        Map<Long, String> categoryMap = getCategoryMap();
+        Map<Long, String> regionMap = getRegionMap();
+        List<Long> neighborIds = similarities.keySet().stream().limit(safeLimit).collect(Collectors.toList());
+        Map<Long, Spot> spotMap = spotMapper.selectBatchIds(neighborIds).stream()
+            .collect(Collectors.toMap(Spot::getId, spot -> spot));
+
+        SimilarityPreviewResponse response = new SimilarityPreviewResponse();
+        response.setSpotId(spotId);
+        response.setSpotName(getSpotName(spotId));
+        response.setTotalNeighbors(similarities.size());
+        response.setLastUpdateTime(getStatus().getLastUpdateTime());
+        response.setNeighbors(neighborIds.stream().map(id -> {
+            SimilarityPreviewResponse.NeighborItem item = new SimilarityPreviewResponse.NeighborItem();
+            Spot spot = spotMap.get(id);
+            item.setSpotId(id);
+            item.setSpotName(spot == null ? "未知景点" : spot.getName());
+            item.setCategoryName(spot == null ? null : categoryMap.get(spot.getCategoryId()));
+            item.setRegionName(spot == null ? null : regionMap.get(spot.getRegionId()));
+            item.setSimilarity(similarities.get(id));
+            return item;
+        }).collect(Collectors.toList()));
+        return response;
     }
 }

@@ -3,6 +3,7 @@ package com.travel.service;
 import com.travel.dto.home.HotSpotResponse;
 import com.travel.dto.recommendation.RecommendationConfigDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
+import com.travel.dto.recommendation.SimilarityPreviewResponse;
 import com.travel.dto.recommendation.RecommendationStatusDTO;
 
 /**
@@ -24,6 +25,11 @@ public interface RecommendationService {
      * 管理端调试预览推荐结果
      */
     RecommendationResponse previewRecommendations(Long userId, Integer limit, Boolean refresh, Boolean debug);
+
+    /**
+     * 管理端预览某个景点的相似邻居
+     */
+    SimilarityPreviewResponse previewSimilarityNeighbors(Long spotId, Integer limit);
 
     /**
      * 获取热门景点
