@@ -29,3 +29,6 @@ uploads/*
 
 # Documentation
 /docs/
+
+# AI Assistant
+.aiassistant/

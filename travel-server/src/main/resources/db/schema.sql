@@ -26,9 +26,9 @@ USE waytrip_db;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `admin` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '管理员ID',
-  `username` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户名',
-  `password` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码（BCrypt加密）',
-  `real_name` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '真实姓名',
+  `username` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户名',
+  `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码（BCrypt加密）',
+  `real_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '真实姓名',
   `is_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '是否启用：0-禁用，1-启用',
   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   `last_login_at` datetime DEFAULT NULL COMMENT '最后登录时间',
@@ -36,7 +36,7 @@ CREATE TABLE `admin` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员表';
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,10 +47,10 @@ CREATE TABLE `admin` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `guide` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '攻略ID',
-  `title` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '攻略标题',
+  `title` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '攻略标题',
   `content` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '攻略内容（富文本，支持长文）',
-  `cover_image_url` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '封面图URL',
-  `category` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '攻略分类',
+  `cover_image_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '封面图URL',
+  `category` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '攻略分类',
   `admin_id` bigint unsigned DEFAULT NULL COMMENT '创建管理员ID',
   `view_count` int NOT NULL DEFAULT '0' COMMENT '浏览次数',
   `is_published` tinyint NOT NULL DEFAULT '0' COMMENT '发布状态：0-未发布，1-已发布',
@@ -61,7 +61,7 @@ CREATE TABLE `guide` (
   KEY `idx_category` (`category`),
   KEY `idx_view_count` (`view_count`),
   KEY `idx_is_published` (`is_published`,`is_deleted`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='攻略表';
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='攻略表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -84,7 +84,7 @@ CREATE TABLE `guide_spot_relation` (
   KEY `idx_spot_id` (`spot_id`),
   KEY `idx_guide_id_is_deleted_sort` (`guide_id`,`is_deleted`,`sort_order`),
   KEY `idx_spot_id_is_deleted` (`spot_id`,`is_deleted`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='攻略景点关联表';
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='攻略景点关联表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -95,15 +95,15 @@ CREATE TABLE `guide_spot_relation` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `order` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '订单ID',
-  `order_no` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '订单编号',
+  `order_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '订单编号',
   `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
   `spot_id` bigint unsigned NOT NULL COMMENT '景点ID',
   `quantity` int NOT NULL DEFAULT '1' COMMENT '购买数量',
   `total_amount` decimal(10,2) NOT NULL COMMENT '订单总金额',
   `status` tinyint NOT NULL DEFAULT '0' COMMENT '订单状态：0-待支付，1-已支付，2-已取消，3-已退款，4-已完成',
   `visit_date` date NOT NULL COMMENT '游玩日期',
-  `contact_name` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '联系人姓名',
-  `contact_phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '联系人电话',
+  `contact_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '联系人姓名',
+  `contact_phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '联系人电话',
   `paid_at` datetime DEFAULT NULL COMMENT '支付时间',
   `cancelled_at` datetime DEFAULT NULL COMMENT '取消时间',
   `refunded_at` datetime DEFAULT NULL COMMENT '退款时间',
@@ -120,7 +120,7 @@ CREATE TABLE `order` (
   KEY `idx_user_id_status_is_deleted` (`user_id`,`status`,`is_deleted`),
   KEY `idx_spot_id_status_is_deleted` (`spot_id`,`status`,`is_deleted`),
   KEY `idx_user_id_spot_id` (`user_id`,`spot_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -131,14 +131,14 @@ CREATE TABLE `order` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `spot` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '景点ID',
-  `name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '景点名称',
-  `description` text COLLATE utf8mb4_unicode_ci COMMENT '景点描述',
+  `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '景点名称',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '景点描述',
   `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '门票价格',
-  `open_time` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '开放时间',
-  `address` varchar(256) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '详细地址',
+  `open_time` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '开放时间',
+  `address` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '详细地址',
   `latitude` decimal(10,7) DEFAULT NULL COMMENT '纬度',
   `longitude` decimal(10,7) DEFAULT NULL COMMENT '经度',
-  `cover_image_url` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '封面图URL',
+  `cover_image_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '封面图URL',
   `category_id` bigint unsigned DEFAULT NULL COMMENT '分类ID',
   `region_id` bigint unsigned DEFAULT NULL COMMENT '地区ID',
   `heat_score` int NOT NULL DEFAULT '0' COMMENT '热度分数',
@@ -153,7 +153,7 @@ CREATE TABLE `spot` (
   KEY `idx_region_id` (`region_id`),
   KEY `idx_heat_score` (`heat_score`),
   KEY `idx_is_published` (`is_published`,`is_deleted`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点表';
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -164,7 +164,7 @@ CREATE TABLE `spot` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `spot_banner` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '轮播图ID',
-  `image_url` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '图片URL',
+  `image_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '图片URL',
   `spot_id` bigint unsigned DEFAULT NULL COMMENT '关联景点ID',
   `sort_order` int NOT NULL DEFAULT '1' COMMENT '排序序号',
   `is_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '是否启用：0-禁用，1-启用',
@@ -174,7 +174,7 @@ CREATE TABLE `spot_banner` (
   PRIMARY KEY (`id`),
   KEY `idx_is_enabled_sort` (`is_enabled`,`is_deleted`,`sort_order`),
   KEY `idx_spot_id_is_deleted` (`spot_id`,`is_deleted`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点轮播图表';
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点轮播图表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -186,8 +186,8 @@ CREATE TABLE `spot_banner` (
 CREATE TABLE `spot_category` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '分类ID',
   `parent_id` bigint unsigned DEFAULT '0' COMMENT '父分类ID (0表示顶级分类)',
-  `name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '分类名称',
-  `icon_url` varchar(256) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '分类图标URL',
+  `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '分类名称',
+  `icon_url` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '分类图标URL',
   `sort_order` int NOT NULL DEFAULT '1' COMMENT '排序序号',
   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -195,7 +195,7 @@ CREATE TABLE `spot_category` (
   PRIMARY KEY (`id`),
   KEY `idx_sort_order` (`sort_order`),
   KEY `idx_parent_id` (`parent_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点分类表';
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点分类表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -207,7 +207,7 @@ CREATE TABLE `spot_category` (
 CREATE TABLE `spot_image` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '图片ID',
   `spot_id` bigint unsigned NOT NULL COMMENT '景点ID',
-  `image_url` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '图片URL',
+  `image_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '图片URL',
   `sort_order` int NOT NULL DEFAULT '1' COMMENT '排序序号',
   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -215,7 +215,7 @@ CREATE TABLE `spot_image` (
   PRIMARY KEY (`id`),
   KEY `idx_spot_id` (`spot_id`),
   KEY `idx_spot_id_is_deleted_sort` (`spot_id`,`is_deleted`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点图片表';
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点图片表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -227,7 +227,7 @@ CREATE TABLE `spot_image` (
 CREATE TABLE `spot_region` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '地区ID',
   `parent_id` bigint unsigned DEFAULT '0' COMMENT '父地区ID（0表示省级）',
-  `name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '地区名称',
+  `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '地区名称',
   `sort_order` int NOT NULL DEFAULT '1' COMMENT '排序序号',
   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -236,7 +236,7 @@ CREATE TABLE `spot_region` (
   KEY `idx_sort_order` (`sort_order`),
   KEY `idx_is_deleted_sort_order` (`is_deleted`,`sort_order`),
   KEY `idx_parent_id` (`parent_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=109 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点地区表';
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点地区表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -248,10 +248,10 @@ CREATE TABLE `spot_region` (
 CREATE TABLE `user` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '用户ID',
   `openid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '微信OpenID（小程序用户）',
-  `nickname` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '用户昵称',
+  `nickname` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '用户昵称',
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '手机号',
   `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '密码（Web端登录）',
-  `avatar_url` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '头像URL',
+  `avatar_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '头像URL',
   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   `last_login_at` datetime DEFAULT NULL COMMENT '最后登录时间',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -260,7 +260,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `uk_openid` (`openid`),
   UNIQUE KEY `uk_phone` (`phone`),
   KEY `idx_created_at` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -272,7 +272,7 @@ CREATE TABLE `user` (
 CREATE TABLE `user_preference` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
-  `tag` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '偏好标签',
+  `tag` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '偏好标签',
   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -280,7 +280,7 @@ CREATE TABLE `user_preference` (
   UNIQUE KEY `uk_user_tag` (`user_id`,`tag`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_user_id_is_deleted` (`user_id`,`is_deleted`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户偏好标签表';
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户偏好标签表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -302,7 +302,7 @@ CREATE TABLE `user_spot_favorite` (
   KEY `idx_spot_id` (`spot_id`),
   KEY `idx_user_id_is_deleted_created_at` (`user_id`,`is_deleted`,`created_at`),
   KEY `idx_spot_id_is_deleted` (`spot_id`,`is_deleted`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='收藏表';
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='收藏表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -316,7 +316,7 @@ CREATE TABLE `user_spot_review` (
   `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
   `spot_id` bigint unsigned NOT NULL COMMENT '景点ID',
   `score` tinyint NOT NULL COMMENT '评分（1-5）',
-  `comment` text COLLATE utf8mb4_unicode_ci COMMENT '评论',
+  `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '评论',
   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -324,7 +324,7 @@ CREATE TABLE `user_spot_review` (
   UNIQUE KEY `uk_user_spot` (`user_id`,`spot_id`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_spot_list` (`spot_id`,`is_deleted`,`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评价表';
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评价表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -337,16 +337,15 @@ CREATE TABLE `user_spot_view` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
   `spot_id` bigint unsigned NOT NULL COMMENT '景点ID',
-  `view_source` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT 'home' COMMENT '来源：home/search/recommend/guide',
+  `view_source` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'home' COMMENT '来源：home/search/recommend/guide',
   `view_duration` int DEFAULT '0' COMMENT '停留时长(秒)',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_user_spot` (`user_id`,`spot_id`),
   KEY `idx_spot_id` (`spot_id`),
   KEY `idx_created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户景点浏览记录表';
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户景点浏览记录表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
