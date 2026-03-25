@@ -41,7 +41,7 @@
             :on-change="handleAvatarChange"
           >
             <div class="avatar-wrapper">
-              <el-avatar :size="100" :src="avatarPreview || ''" :icon="!avatarPreview ? 'UserFilled' : undefined" class="upload-avatar" />
+              <el-avatar :size="100" :src="avatarPreview || defaultRegisterAvatar" class="upload-avatar" />
               <div class="avatar-tip">点击上传头像</div>
             </div>
           </el-upload>
@@ -65,6 +65,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { register, uploadAvatar, updateUserInfo } from '@/api/auth'
+import { getAvatarUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -72,6 +73,8 @@ const userStore = useUserStore()
 const formRef = ref(null)
 const loading = ref(false)
 const step = ref(1)
+const defaultRegisterNickname = 'web用户'
+const defaultRegisterAvatar = getAvatarUrl('/uploads/images/avatar.jpg')
 
 // 第一步表单
 const form = reactive({
@@ -82,7 +85,7 @@ const form = reactive({
 
 // 第二步表单
 const profileForm = reactive({
-  nickname: ''
+  nickname: defaultRegisterNickname
 })
 const avatarPreview = ref('')
 const avatarFile = ref(null)
@@ -114,6 +117,9 @@ const rules = {
 const handleStep1 = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
+  profileForm.nickname = defaultRegisterNickname
+  avatarPreview.value = ''
+  avatarFile.value = null
   step.value = 2
 }
 
@@ -124,7 +130,8 @@ const handleAvatarChange = (file) => {
 }
 
 // 执行注册（跳过和完成注册都调用这里）
-const doRegister = async (nickname) => {
+const doRegister = async (options = {}) => {
+  const { nickname, avatar } = options
   loading.value = true
   try {
     // 1. 调用注册接口
@@ -139,9 +146,9 @@ const doRegister = async (nickname) => {
     userStore.login(res.data)
 
     // 2. 如果有头像，注册后再上传
-    if (avatarFile.value) {
+    if (avatar) {
       try {
-        const uploadRes = await uploadAvatar(avatarFile.value)
+        const uploadRes = await uploadAvatar(avatar)
         await updateUserInfo({ avatar: uploadRes.data.url })
       } catch (e) {
         console.warn('头像上传失败，可稍后在个人中心设置')
@@ -165,7 +172,10 @@ const handleSkip = () => {
 
 // 完成注册：带上昵称和头像
 const handleStep2 = () => {
-  doRegister(profileForm.nickname.trim() || undefined)
+  doRegister({
+    nickname: profileForm.nickname.trim() || defaultRegisterNickname,
+    avatar: avatarFile.value || null
+  })
 }
 </script>
 
