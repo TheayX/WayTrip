@@ -310,6 +310,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public void prepareWebRegister(WebRegisterRequest request) {
+        User existUser = userMapper.selectOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getPhone, request.getPhone())
+                        .eq(User::getIsDeleted, 0)
+        );
+        if (existUser != null) {
+            throw new BusinessException(ResultCode.PHONE_ALREADY_REGISTERED);
+        }
+    }
+
+    @Override
     public LoginResponse webLogin(WebLoginRequest request) {
         User user = userMapper.selectOne(
                 new LambdaQueryWrapper<User>()

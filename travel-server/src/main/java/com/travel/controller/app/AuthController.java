@@ -56,6 +56,13 @@ public class AuthController {
         return ApiResponse.success(authService.webRegister(request));
     }
 
+    @Operation(summary = "Web端第一步校验手机号是否可注册")
+    @PostMapping("/web-prepare-register")
+    public ApiResponse<Void> prepareWebRegister(@Valid @RequestBody WebRegisterRequest request) {
+        authService.prepareWebRegister(request);
+        return ApiResponse.success(null);
+    }
+
     @Operation(summary = "Web端登录")
     @PostMapping("/web-login")
     public ApiResponse<LoginResponse> webLogin(@Valid @RequestBody WebLoginRequest request) {

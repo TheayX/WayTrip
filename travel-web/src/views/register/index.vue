@@ -64,7 +64,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { register, uploadAvatar, updateUserInfo } from '@/api/auth'
+import { prepareRegister, register, uploadAvatar, updateUserInfo } from '@/api/auth'
 import { getAvatarUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
@@ -117,10 +117,21 @@ const rules = {
 const handleStep1 = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  profileForm.nickname = defaultRegisterNickname
-  avatarPreview.value = ''
-  avatarFile.value = null
-  step.value = 2
+  loading.value = true
+  try {
+    await prepareRegister({
+      phone: form.phone,
+      password: form.password,
+      confirmPassword: form.confirmPassword
+    })
+    profileForm.nickname = defaultRegisterNickname
+    avatarPreview.value = ''
+    avatarFile.value = null
+    step.value = 2
+    ElMessage.success('校验通过')
+  } finally {
+    loading.value = false
+  }
 }
 
 // 头像选择
