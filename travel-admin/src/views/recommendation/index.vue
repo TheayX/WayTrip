@@ -601,7 +601,7 @@
         <div class="card-header">
           <div class="title-section">
             <span class="title">相似邻居预览</span>
-            <el-tag effect="plain" type="info" round>离线矩阵视角</el-tag>
+            <el-tag effect="plain" type="info" round>离线矩阵视角（缓存结果直接预览 / 更新矩阵后预览）</el-tag>
           </div>
         </div>
       </template>
@@ -615,9 +615,16 @@
           <span class="debug-label">邻居数量</span>
           <el-input-number v-model="similarityForm.limit" :min="1" :max="20" :step="1" controls-position="right" />
         </div>
-        <el-button type="primary" :loading="similarityPreviewing" @click="handlePreviewSimilarity">
-          查看相似邻居
-        </el-button>
+        <div class="preview-action-group">
+          <el-button-group>
+            <el-button class="cache-preview-button" :loading="similarityPreviewing" @click="handlePreviewSimilarity">
+              缓存预览
+            </el-button>
+            <el-button class="update-preview-button" :loading="similarityMatrixPreviewing" @click="handlePreviewSimilarityWithMatrixUpdate">
+              更新预览
+            </el-button>
+          </el-button-group>
+        </div>
       </div>
 
       <div v-if="similarityResult" class="debug-summary">
@@ -843,6 +850,20 @@
           </div>
         </el-collapse-item>
 
+        <el-collapse-item title="🧪 调试与预览说明" name="debugging">
+          <div class="help-content">
+            <ul>
+              <li><strong>推荐调试预览 - 重新计算：</strong>会跳过当前用户已有的推荐结果缓存，按当前数据重新计算该用户推荐结果，更适合排查“现在为什么推荐这些景点”。</li>
+              <li><strong>缓存副作用：</strong>如果对某个用户执行“重新计算”，该用户原有的推荐缓存会被删除并立即写入新的结果，相当于提前更新了这个用户当前可命中的推荐缓存。</li>
+              <li><strong>推荐调试预览 - 缓存结果：</strong>优先查看该用户当前命中的缓存结果，更接近用户端此刻可能拿到的返回内容。</li>
+              <li><strong>刷新与更新矩阵的区别：</strong>调试预览里的“重新计算”只会重算当前用户的推荐结果，不会重算底层相似度矩阵；要更新离线相似关系，仍然要用上方“更新矩阵”。</li>
+              <li><strong>相似邻居 - 缓存预览：</strong>直接查看当前矩阵缓存里的邻居结果，适合确认 Redis 中现有的相似关系。</li>
+              <li><strong>相似邻居 - 更新预览：</strong>会先执行一次矩阵更新，再展示该景点的最新相似邻居，适合在调完参数后立即验证离线矩阵效果。</li>
+              <li><strong>联调建议：</strong>如果刚改了影响相似度计算的参数，建议先“更新矩阵”，再看“更新预览”或“推荐调试预览 - 重新计算”，这样看到的结果更一致。</li>
+            </ul>
+          </div>
+        </el-collapse-item>
+
         <el-collapse-item title="📊 默认配置参考" name="defaults">
           <div class="help-content">
             <el-descriptions border :column="2">
@@ -944,13 +965,14 @@ const saving = ref(false)
 const updatingMatrix = ref(false)
 const previewing = ref(false)
 const similarityPreviewing = ref(false)
+const similarityMatrixPreviewing = ref(false)
 const activeCollapse = ref([])
 const debugResult = ref(null)
 const similarityResult = ref(null)
 const debugForm = reactive({
   userId: 1,
   limit: 6,
-  refresh: false,
+  refresh: true,
   debug: true
 })
 const similarityForm = reactive({
@@ -1351,6 +1373,27 @@ const handlePreviewSimilarity = async () => {
   }
 }
 
+const handlePreviewSimilarityWithMatrixUpdate = async () => {
+  if (!similarityForm.spotId) {
+    ElMessage.warning('请输入景点 ID')
+    return
+  }
+  try {
+    similarityMatrixPreviewing.value = true
+    status.computing = true
+    await updateRecommendationMatrix()
+    const res = await previewSimilarityNeighbors({ ...similarityForm })
+    similarityResult.value = res.data || null
+    ElMessage.success('矩阵更新完成，已加载最新相似邻居')
+    await fetchStatus()
+  } catch (e) {
+    ElMessage.error('更新预览失败')
+  } finally {
+    similarityMatrixPreviewing.value = false
+    status.computing = false
+  }
+}
+
 onMounted(() => {
   fetchConfig()
   fetchStatus()
@@ -1503,6 +1546,39 @@ onMounted(() => {
     font-size: 13px;
     color: #606266;
     white-space: nowrap;
+  }
+
+  .preview-action-group {
+    display: flex;
+    align-items: center;
+  }
+
+  .cache-preview-button {
+    border-color: #d7dde8;
+    background: #f7f8fb;
+    color: #516074;
+  }
+
+  .cache-preview-button:hover,
+  .cache-preview-button:focus {
+    border-color: #bcc8da;
+    background: #eef2f8;
+    color: #344256;
+  }
+
+  .update-preview-button {
+    border-color: #ff6b18;
+    background: linear-gradient(135deg, #ff7a1a 0%, #ff5a14 100%);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 8px 18px rgba(255, 107, 24, 0.2);
+  }
+
+  .update-preview-button:hover,
+  .update-preview-button:focus {
+    border-color: #ff5a14;
+    background: linear-gradient(135deg, #ff862e 0%, #ff641f 100%);
+    color: #fff;
   }
 
   .debug-meta {
