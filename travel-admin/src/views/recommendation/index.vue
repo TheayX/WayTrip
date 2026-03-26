@@ -110,12 +110,39 @@
         </div>
 
         <!-- 交互权重 -->
+        <div class="phase-map">
+          <div class="phase-map-card matrix">
+            <div class="phase-map-title">离线矩阵构建</div>
+            <div class="phase-map-desc">行为交互权重、浏览细化因子、近邻数量 K、相似度矩阵 TTL</div>
+            <div class="phase-map-foot">保存后不会自动重算，需要手动重建相似度矩阵</div>
+          </div>
+          <div class="phase-map-card online">
+            <div class="phase-map-title">在线推荐与候选控制</div>
+            <div class="phase-map-desc">最少交互数、个性化候选扩容、冷启动候选扩容</div>
+            <div class="phase-map-foot">保存后新请求立即使用，不需要重建矩阵</div>
+          </div>
+          <div class="phase-map-card heat">
+            <div class="phase-map-title">热度与排序</div>
+            <div class="phase-map-desc">热度累计、去重窗口、热度重排因子</div>
+            <div class="phase-map-foot">只影响热门候选和最终排序，不影响离线相似度</div>
+          </div>
+          <div class="phase-map-card cache">
+            <div class="phase-map-title">缓存与调试</div>
+            <div class="phase-map-desc">用户推荐缓存、矩阵缓存、调试预览判断</div>
+            <div class="phase-map-foot">主要影响缓存命中和观察方式，不改变推荐公式</div>
+          </div>
+        </div>
+
         <div class="form-section">
+          <div class="section-eyebrow">
+            <span>离线矩阵构建</span>
+            <el-tag size="small" effect="plain" type="warning" round>保存后需重建矩阵</el-tag>
+          </div>
           <div class="section-title">
             <el-icon><DataLine /></el-icon>
-            <span>行为交互权重（公式 r<sub>ui</sub>）</span>
+            <span>交互基础权重（公式 r<sub>ui</sub>）</span>
           </div>
-          <div class="section-desc">定义不同用户行为对推荐结果的影响力。数值越大，该行为在相似度计算中的贡献越高。</div>
+          <div class="section-desc">先定义用户对景点的基础交互强度，再把这些行为汇总成离线矩阵使用的 <code>r_ui</code> 权重。</div>
 
           <el-row :gutter="24">
             <el-col :span="12">
@@ -158,11 +185,15 @@
         </div>
 
         <div class="form-section">
+          <div class="section-eyebrow">
+            <span>离线矩阵构建</span>
+            <el-tag size="small" effect="plain" type="warning" round>浏览行为修正</el-tag>
+          </div>
           <div class="section-title">
             <el-icon><DataLine /></el-icon>
-            <span>浏览细化因子</span>
+            <span>浏览行为修正</span>
           </div>
-          <div class="section-desc">控制浏览行为在 <code>r_ui</code> 中的细化权重。实际浏览权重 = 基础浏览权重 × 来源因子 × 停留时长因子。</div>
+          <div class="section-desc">进一步修正浏览行为在 <code>r_ui</code> 中的贡献。实际浏览权重 = 基础浏览权重 × 来源因子 × 停留时长因子。</div>
 
           <el-row :gutter="24">
             <el-col :span="12">
@@ -259,11 +290,15 @@
         </div>
 
         <div class="form-section">
+          <div class="section-eyebrow">
+            <span>热度与排序</span>
+            <el-tag size="small" effect="plain" type="success" round>保存后立即生效</el-tag>
+          </div>
           <div class="section-title">
             <el-icon><DataLine /></el-icon>
-            <span>景点热度分数</span>
+            <span>热度累计与最终重排</span>
           </div>
-          <div class="section-desc">控制每种行为对 <code>spot.heat_score</code> 的贡献。热度用于热门排序和冷启动，不直接参与协同过滤公式。</div>
+          <div class="section-desc">控制每种行为如何累加到 <code>spot.heat_score</code>，以及热度如何参与最终排序。不会影响离线相似度矩阵。</div>
 
           <el-row :gutter="24">
             <el-col :span="12">
@@ -322,11 +357,18 @@
 
         <!-- 算法参数 -->
         <div class="form-section">
+          <div class="section-eyebrow">
+            <span>在线推荐与候选控制</span>
+            <el-tag size="small" effect="plain" type="success" round>大部分保存后立即生效</el-tag>
+          </div>
           <div class="section-title">
             <el-icon><Setting /></el-icon>
-            <span>算法核心参数</span>
+            <span>在线分支切换与候选规模</span>
           </div>
-          <div class="section-desc">控制协同过滤算法的触发条件和计算精度。</div>
+          <div class="section-desc">控制用户什么时候进入协同过滤通道，以及个性化推荐、冷启动推荐各自拉多大的候选集。</div>
+          <div class="section-inline-note">
+            这一组里只有“近邻数量 K”属于离线矩阵参数；其余字段只影响在线推荐分支切换和候选规模。
+          </div>
 
           <el-row :gutter="24">
             <el-col :span="12">
@@ -361,11 +403,18 @@
 
         <!-- 缓存参数 -->
         <div class="form-section">
+          <div class="section-eyebrow">
+            <span>缓存与调试</span>
+            <el-tag size="small" effect="plain" type="primary" round>不直接改变推荐逻辑</el-tag>
+          </div>
           <div class="section-title">
             <el-icon><Clock /></el-icon>
-            <span>缓存策略</span>
+            <span>在线缓存与矩阵缓存</span>
           </div>
-          <div class="section-desc">控制推荐结果在 Redis 中的缓存时长。</div>
+          <div class="section-desc">这里只控制推荐结果缓存时长，主要影响缓存命中和调试观察，不改变推荐公式。</div>
+          <div class="section-inline-note">
+            用户推荐缓存 TTL 只影响命中时长；相似度矩阵 TTL 影响离线矩阵结果缓存，但不改变算法公式。
+          </div>
 
           <el-row :gutter="24">
             <el-col :span="12">
@@ -1933,6 +1982,84 @@ onMounted(() => {
     color: #5b6475;
   }
 
+  .phase-map {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .phase-map-card {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+  }
+
+  .phase-map-card.matrix {
+    background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
+    border-color: #ffd591;
+  }
+
+  .phase-map-card.online {
+    background: linear-gradient(135deg, #f3fff7 0%, #ebfff1 100%);
+    border-color: #b7ebc6;
+  }
+
+  .phase-map-card.heat {
+    background: linear-gradient(135deg, #fff8f5 0%, #fff0ea 100%);
+    border-color: #ffcab5;
+  }
+
+  .phase-map-card.cache {
+    background: linear-gradient(135deg, #f7f5ff 0%, #f0ebff 100%);
+    border-color: #d3c3ff;
+  }
+
+  .phase-map-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #253046;
+  }
+
+  .phase-map-desc {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #4f5f73;
+  }
+
+  .phase-map-foot {
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #364152;
+  }
+
+  .section-eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #5b6475;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .section-inline-note {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #607086;
+  }
+
   .effect-rule-list {
     display: grid;
     gap: 10px;
@@ -2588,7 +2715,8 @@ onMounted(() => {
 
   @media (max-width: 1200px) {
     .impact-overview-grid,
-    .change-hint-panel {
+    .change-hint-panel,
+    .phase-map {
       grid-template-columns: 1fr;
     }
 
@@ -2620,7 +2748,8 @@ onMounted(() => {
     }
 
     .impact-overview-grid,
-    .change-hint-panel {
+    .change-hint-panel,
+    .phase-map {
       grid-template-columns: 1fr;
     }
 
