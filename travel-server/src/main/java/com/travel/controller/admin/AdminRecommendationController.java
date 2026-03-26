@@ -55,15 +55,17 @@ public class AdminRecommendationController {
             @RequestParam Long userId,
             @RequestParam(defaultValue = "10") Integer limit,
             @RequestParam(defaultValue = "false") Boolean refresh,
-            @RequestParam(defaultValue = "false") Boolean debug) {
+            @RequestParam(defaultValue = "false") Boolean debug,
+            @RequestParam(defaultValue = "false") Boolean stable) {
         log.info(
             "管理端请求推荐调试预览：用户ID={}，返回条数={}，是否刷新={}，是否输出详细调试日志={}",
             userId,
             limit,
             refresh,
-            debug
+            debug,
+            stable
         );
-        return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, refresh, debug));
+        return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, refresh, debug, stable));
     }
 
     @Operation(summary = "预览指定景点的相似邻居")

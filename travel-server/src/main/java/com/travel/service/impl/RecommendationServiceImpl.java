@@ -80,13 +80,16 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
-    public RecommendationResponse previewRecommendations(Long userId, Integer limit, Boolean refresh, Boolean debug) {
+    public RecommendationResponse previewRecommendations(Long userId, Integer limit, Boolean refresh, Boolean debug, Boolean stable) {
         if (limit == null || limit <= 0) limit = 10;
         boolean refreshMode = Boolean.TRUE.equals(refresh);
         boolean debugMode = Boolean.TRUE.equals(debug);
+        boolean stableMode = Boolean.TRUE.equals(stable);
         RecommendationResponse response = debugMode
-            ? computeRecommendations(userId, limit, refreshMode, true)
-            : (refreshMode ? refreshRecommendations(userId, limit) : getRecommendations(userId, limit));
+            ? computeRecommendations(userId, limit, refreshMode, true, stableMode)
+            : (refreshMode
+                ? computeRecommendations(userId, limit, true, false, stableMode)
+                : getRecommendations(userId, limit));
         if (Boolean.TRUE.equals(debug)) {
             logRecommendationPreview(userId, response, refreshMode);
         }
@@ -102,14 +105,18 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
-        return computeRecommendations(userId, limit, false, false);
+        return computeRecommendations(userId, limit, false, false, false);
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean refresh) {
-        return computeRecommendations(userId, limit, refresh, false);
+        return computeRecommendations(userId, limit, refresh, false, false);
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean refresh, boolean debug) {
+        return computeRecommendations(userId, limit, refresh, debug, false);
+    }
+
+    private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean refresh, boolean debug, boolean stable) {
         RecommendationConfigBundleDTO config = recommendationCacheService.loadConfig();
         RecommendationAlgorithmConfigDTO algorithmConfig = safeAlgorithmConfig(config);
         RecommendationHeatConfigDTO heatConfig = safeHeatConfig(config);
@@ -147,7 +154,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     "请检查用户历史行为是否足够，或适当调低 minInteractionsForCF。"
                 ));
             }
-            return handleColdStart(userId, limit, refresh, debug, debugInfo);
+            return handleColdStart(userId, limit, refresh, debug, stable, debugInfo);
         }
 
         // 基于 ItemCF 计算个性化推荐。
@@ -174,11 +181,11 @@ public class RecommendationServiceImpl implements RecommendationService {
             if (debugInfo != null) {
                 debugInfo.setTriggerReason("协同过滤候选集在过滤后为空，降级为冷启动");
             }
-            return handleColdStart(userId, limit, refresh, debug, debugInfo);
+            return handleColdStart(userId, limit, refresh, debug, stable, debugInfo);
         }
 
         // 缓存推荐分数。
-        if (refresh) {
+        if (refresh && !stable) {
             filteredIds = rotateRecommendations(filteredIds, limit);
             filteredScores = orderScoresByIds(filteredIds, filteredScores);
         }
@@ -279,10 +286,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh, boolean debug) {
-        return handleColdStart(userId, limit, refresh, debug, debug ? initDebugInfo(userId, limit, refresh) : null);
+        return handleColdStart(userId, limit, refresh, debug, false, debug ? initDebugInfo(userId, limit, refresh) : null);
     }
 
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh, boolean debug,
+                                                   boolean stable,
                                                    RecommendationResponse.DebugInfo debugInfo) {
         RecommendationAlgorithmConfigDTO algorithmConfig = safeAlgorithmConfig(recommendationCacheService.loadConfig());
         List<Long> categoryIds = getUserPreferenceCategoryIds(userId);
@@ -299,7 +307,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             );
 
             List<Long> spotIds = spots.stream().map(Spot::getId).collect(Collectors.toList());
-            if (refresh) {
+            if (refresh && !stable) {
                 spotIds = rotateRecommendations(spotIds, limit);
             }
             if (debugInfo != null) {
@@ -318,7 +326,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         // 没有偏好标签时，回退到热门结果并提示设置偏好。
         HotSpotResponse hotSpots = getHotSpots(refresh ? Math.max(limit * getColdStartExpandFactor(algorithmConfig), limit) : limit);
         List<HotSpotResponse.SpotItem> hotSpotList = new ArrayList<>(hotSpots.getList());
-        if (refresh) {
+        if (refresh && !stable) {
             rotateSpotItems(hotSpotList, limit);
         }
         if (debugInfo != null) {

@@ -24,7 +24,7 @@ public interface RecommendationService {
     /**
      * 管理端调试预览推荐结果
      */
-    RecommendationResponse previewRecommendations(Long userId, Integer limit, Boolean refresh, Boolean debug);
+    RecommendationResponse previewRecommendations(Long userId, Integer limit, Boolean refresh, Boolean debug, Boolean stable);
 
     /**
      * 管理端预览某个景点的相似邻居

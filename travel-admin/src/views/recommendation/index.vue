@@ -459,6 +459,10 @@
           <span class="debug-label">后端日志</span>
           <el-switch v-model="debugForm.debug" inline-prompt active-text="控制台日志" inactive-text="静默" />
         </div>
+        <div class="debug-field">
+          <span class="debug-label">稳定模式</span>
+          <el-switch v-model="debugForm.stable" inline-prompt active-text="稳定" inactive-text="轮换" />
+        </div>
         <el-button type="primary" :loading="previewing" @click="handlePreviewRecommendations">
           调试预览
         </el-button>
@@ -1091,7 +1095,8 @@ const debugForm = reactive({
   userId: 1,
   limit: 6,
   refresh: true,
-  debug: true
+  debug: true,
+  stable: true
 })
 const similarityForm = reactive({
   spotId: 1,
@@ -1105,6 +1110,7 @@ const debugOutput = computed(() => {
     `request.limit = ${debugForm.limit}`,
     `request.refresh = ${debugForm.refresh}`,
     `request.debug = ${debugForm.debug}`,
+    `request.stable = ${debugForm.stable}`,
     `response.type = ${debugResult.value.type}`,
     `response.needPreference = ${debugResult.value.needPreference}`,
     `response.count = ${debugResult.value.list?.length || 0}`
