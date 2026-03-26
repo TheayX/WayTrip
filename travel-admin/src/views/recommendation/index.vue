@@ -76,11 +76,36 @@
           </template>
 
           <el-form :model="config" label-width="180px" class="config-form">
-        <div class="config-bucket-grid">
-          <div v-for="bucket in configBuckets" :key="bucket.title" class="config-bucket-card">
-            <div class="config-bucket-title">{{ bucket.title }}</div>
-            <div class="config-bucket-desc">{{ bucket.desc }}</div>
-            <div class="config-bucket-count">{{ bucket.count }} 项</div>
+        <div class="impact-overview-grid">
+          <div
+            v-for="card in impactOverviewCards"
+            :key="card.title"
+            class="impact-overview-card"
+            :class="card.tone"
+          >
+            <div class="impact-overview-head">
+              <div class="impact-overview-title">{{ card.title }}</div>
+              <el-tag size="small" effect="plain" :type="card.tagType" round>{{ card.tag }}</el-tag>
+            </div>
+            <div class="impact-overview-desc">{{ card.desc }}</div>
+            <div class="impact-overview-meta">{{ card.meta }}</div>
+          </div>
+        </div>
+
+        <div class="change-hint-panel">
+          <div class="change-hint-card">
+            <div class="change-hint-title">
+              <span>即时生效项</span>
+              <el-tag size="small" effect="plain" type="success" round>保存后生效</el-tag>
+            </div>
+            <div class="change-hint-desc">{{ immediateChangeSummary.desc }}</div>
+          </div>
+          <div class="change-hint-card matrix">
+            <div class="change-hint-title">
+              <span>矩阵相关项</span>
+              <el-tag size="small" effect="plain" type="warning" round>需重建矩阵</el-tag>
+            </div>
+            <div class="change-hint-desc">{{ matrixChangeSummary.desc }}</div>
           </div>
         </div>
 
@@ -377,6 +402,33 @@
               配置修改会立即影响新的推荐请求；相似度矩阵只有在手动更新或定时任务执行后，才会按新参数重算。
             </div>
 
+            <div class="effect-rule-list">
+              <div v-for="rule in effectRules" :key="rule.title" class="effect-rule-item">
+                <div class="effect-rule-head">
+                  <div class="effect-rule-title">{{ rule.title }}</div>
+                  <el-tag size="small" effect="plain" :type="rule.tagType" round>{{ rule.tag }}</el-tag>
+                </div>
+                <div class="effect-rule-text">{{ rule.text }}</div>
+              </div>
+            </div>
+
+            <div class="matrix-action-callout" :class="{ pending: matrixChangeSummary.needsRebuild }">
+              <div class="matrix-action-title">
+                <span>重建相似度矩阵</span>
+                <el-tag
+                  size="small"
+                  effect="plain"
+                  :type="matrixChangeSummary.needsRebuild ? 'warning' : 'success'"
+                  round
+                >
+                  {{ matrixChangeSummary.needsRebuild ? '当前有待重建变更' : '当前无需重建' }}
+                </el-tag>
+              </div>
+              <div class="matrix-action-text">
+                只有交互权重、浏览细化因子、TopK 和矩阵缓存相关参数会影响离线相似度矩阵。热度、缓存时长和冷启动参数不需要执行这个操作。
+              </div>
+            </div>
+
             <div class="execution-actions">
               <el-button @click="handleResetConfig" round>
                 <el-icon><RefreshLeft /></el-icon>
@@ -388,7 +440,7 @@
               </el-button>
               <el-button color="#722ed1" @click="handleUpdateMatrix" :loading="updatingMatrix" round>
                 <el-icon><Refresh /></el-icon>
-                更新矩阵
+                重建相似度矩阵
               </el-button>
             </div>
 
@@ -1048,25 +1100,46 @@ const createDefaultConfig = () => ({
   }
 })
 
-const configBuckets = computed(() => [
-  {
-    title: '算法参数',
-    desc: '行为权重、浏览细化因子、协同过滤核心参数',
-    count: 21
-  },
-  {
-    title: '热度策略',
-    desc: '景点热度增量、热度去重窗口、热度重排系数',
-    count: 7
-  },
-  {
-    title: '缓存策略',
-    desc: '推荐结果与相似度矩阵的 Redis TTL',
-    count: 2
-  }
-])
+const matrixFieldPaths = [
+  'algorithm.weightView',
+  'algorithm.weightFavorite',
+  'algorithm.weightReviewFactor',
+  'algorithm.weightOrderPaid',
+  'algorithm.weightOrderCompleted',
+  'algorithm.viewSourceFactorHome',
+  'algorithm.viewSourceFactorSearch',
+  'algorithm.viewSourceFactorRecommend',
+  'algorithm.viewSourceFactorGuide',
+  'algorithm.viewSourceFactorDetail',
+  'algorithm.viewDurationShortThresholdSeconds',
+  'algorithm.viewDurationMediumThresholdSeconds',
+  'algorithm.viewDurationLongThresholdSeconds',
+  'algorithm.viewDurationFactorShort',
+  'algorithm.viewDurationFactorMedium',
+  'algorithm.viewDurationFactorLong',
+  'algorithm.viewDurationFactorVeryLong',
+  'algorithm.topKNeighbors',
+  'cache.similarityTTLHours'
+]
+
+const immediateFieldPaths = [
+  'algorithm.minInteractionsForCF',
+  'algorithm.candidateExpandFactor',
+  'algorithm.coldStartExpandFactor',
+  'heat.heatViewIncrement',
+  'heat.heatFavoriteIncrement',
+  'heat.heatReviewIncrement',
+  'heat.heatOrderPaidIncrement',
+  'heat.heatOrderCompletedIncrement',
+  'heat.heatViewDedupeWindowMinutes',
+  'heat.heatRerankFactor',
+  'cache.userRecTTLMinutes'
+]
+
+const cloneConfig = (value) => JSON.parse(JSON.stringify(value))
 
 const config = reactive(createDefaultConfig())
+const savedConfig = ref(cloneConfig(createDefaultConfig()))
 
 const applyConfig = (nextConfig = {}) => {
   const defaults = createDefaultConfig()
@@ -1075,12 +1148,89 @@ const applyConfig = (nextConfig = {}) => {
   Object.assign(config.cache, defaults.cache, nextConfig.cache || {})
 }
 
+const getByPath = (target, path) => path.split('.').reduce((acc, key) => acc?.[key], target)
+const getChangedPaths = (paths) => paths.filter(path => getByPath(config, path) !== getByPath(savedConfig.value, path))
+
+const matrixChangedPaths = computed(() => getChangedPaths(matrixFieldPaths))
+const immediateChangedPaths = computed(() => getChangedPaths(immediateFieldPaths))
+
 const status = reactive({
   lastUpdateTime: null,
   totalUsers: null,
   totalSpots: null,
   computing: false
 })
+
+const impactOverviewCards = computed(() => [
+  {
+    title: '在线即时生效',
+    desc: '热度累计、冷启动触发、用户缓存和热度重排在保存后会立刻影响新请求。',
+    meta: `${immediateChangedPaths.value.length} 项待保存`,
+    tag: '保存即生效',
+    tagType: 'success',
+    tone: 'tone-live'
+  },
+  {
+    title: '离线相似度矩阵',
+    desc: '交互权重、浏览因子、TopK 和矩阵 TTL 会影响离线相似邻居或其缓存节奏。',
+    meta: `${matrixChangedPaths.value.length} 项待重建矩阵`,
+    tag: '需重建矩阵',
+    tagType: 'warning',
+    tone: 'tone-matrix'
+  },
+  {
+    title: '保存配置',
+    desc: '保存只写入参数，不会自动触发相似度矩阵重建。',
+    meta: '建议先保存，再按需重建矩阵',
+    tag: '不自动重算',
+    tagType: 'info',
+    tone: 'tone-save'
+  },
+  {
+    title: '当前矩阵版本',
+    desc: '离线参数是否真正生效，要看最近一次矩阵重建时间。',
+    meta: status.lastUpdateTime || '尚未生成',
+    tag: '离线版本',
+    tagType: 'primary',
+    tone: 'tone-status'
+  }
+])
+
+const matrixChangeSummary = computed(() => ({
+  count: matrixChangedPaths.value.length,
+  needsRebuild: matrixChangedPaths.value.length > 0,
+  desc: matrixChangedPaths.value.length
+    ? `已改动 ${matrixChangedPaths.value.length} 个离线矩阵相关字段`
+    : '当前没有待重建的矩阵参数变更'
+}))
+
+const immediateChangeSummary = computed(() => ({
+  count: immediateChangedPaths.value.length,
+  desc: immediateChangedPaths.value.length
+    ? `已改动 ${immediateChangedPaths.value.length} 个在线即时生效字段`
+    : '当前没有待保存的即时生效字段变更'
+}))
+
+const effectRules = [
+  {
+    title: '交互权重 / 浏览细化 / TopK',
+    tag: '需重建矩阵',
+    tagType: 'warning',
+    text: '保存后只更新配置，不会自动重算相似度矩阵。'
+  },
+  {
+    title: '热度累计 / 去重窗口 / 热度重排',
+    tag: '立即生效',
+    tagType: 'success',
+    text: '这类参数不参与离线相似度计算，保存后新请求立即使用。'
+  },
+  {
+    title: '冷启动阈值 / 候选扩容 / 用户缓存',
+    tag: '立即生效',
+    tagType: 'primary',
+    text: '这类参数只影响在线推荐链路，不需要重建矩阵。'
+  }
+]
 
 const saving = ref(false)
 const updatingMatrix = ref(false)
@@ -1359,6 +1509,11 @@ const fetchConfig = async () => {
     const res = await getRecommendationConfig()
     if (res.data) {
       applyConfig(res.data)
+      savedConfig.value = cloneConfig({
+        algorithm: { ...config.algorithm },
+        heat: { ...config.heat },
+        cache: { ...config.cache }
+      })
     }
   } catch (e) {
     console.error('获取配置失败', e)
@@ -1381,12 +1536,25 @@ const fetchStatus = async () => {
 const handleSaveConfig = async () => {
   try {
     saving.value = true
-    await updateRecommendationConfig({
+    const payload = {
       algorithm: { ...config.algorithm },
       heat: { ...config.heat },
       cache: { ...config.cache }
-    })
-    ElMessage.success('算法配置已保存！新的推荐请求将使用更新后的参数。')
+    }
+    const matrixChangedCount = matrixChangedPaths.value.length
+    const immediateChangedCount = immediateChangedPaths.value.length
+    await updateRecommendationConfig(payload)
+    savedConfig.value = cloneConfig(payload)
+    if (matrixChangedCount > 0 && immediateChangedCount > 0) {
+      ElMessage.success('配置已保存：在线参数立即生效；离线矩阵参数需重建相似度矩阵后完全生效')
+      return
+    }
+    if (matrixChangedCount > 0) {
+      ElMessage.success('配置已保存：当前改动属于离线矩阵参数，请继续执行“重建相似度矩阵”')
+      return
+    }
+    ElMessage.success('配置已保存：当前改动会在新的推荐请求中立即生效')
+    return
   } catch (e) {
     ElMessage.error('保存配置失败')
   } finally {
@@ -1405,6 +1573,7 @@ const handleResetConfig = async () => {
     const defaults = createDefaultConfig()
     applyConfig(defaults)
     await updateRecommendationConfig(defaults)
+    savedConfig.value = cloneConfig(defaults)
     ElMessage.success('已恢复为默认配置')
   } catch (e) {
     if (e !== 'cancel') {
@@ -1665,6 +1834,164 @@ onMounted(() => {
     color: #7a4e00;
     line-height: 1.7;
     font-size: 13px;
+  }
+
+  .impact-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .impact-overview-card {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+  }
+
+  .impact-overview-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .impact-overview-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .impact-overview-desc {
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #5b6475;
+  }
+
+  .impact-overview-meta {
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  .impact-overview-card.tone-live {
+    background: linear-gradient(135deg, #f3fff7 0%, #ebfff1 100%);
+    border-color: #b7ebc6;
+  }
+
+  .impact-overview-card.tone-matrix {
+    background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
+    border-color: #ffd591;
+  }
+
+  .impact-overview-card.tone-save {
+    background: linear-gradient(135deg, #f8fbff 0%, #f2f7ff 100%);
+    border-color: #d6e4ff;
+  }
+
+  .impact-overview-card.tone-status {
+    background: linear-gradient(135deg, #f7f5ff 0%, #f0ebff 100%);
+    border-color: #d3c3ff;
+  }
+
+  .change-hint-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .change-hint-card {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+
+  .change-hint-card.matrix {
+    background: #fffaf0;
+    border-color: #fbd38d;
+  }
+
+  .change-hint-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #253046;
+  }
+
+  .change-hint-desc {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #5b6475;
+  }
+
+  .effect-rule-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .effect-rule-item {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+
+  .effect-rule-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .effect-rule-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #253046;
+  }
+
+  .effect-rule-text {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #607086;
+  }
+
+  .matrix-action-callout {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f3fff7 0%, #ebfff1 100%);
+    border: 1px solid #b7ebc6;
+  }
+
+  .matrix-action-callout.pending {
+    background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
+    border-color: #ffd591;
+  }
+
+  .matrix-action-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #253046;
+  }
+
+  .matrix-action-text {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #607086;
   }
 
   .execution-actions {
@@ -2023,40 +2350,6 @@ onMounted(() => {
   }
 
   .config-form {
-    .config-bucket-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .config-bucket-card {
-      padding: 14px 16px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #f7f9fc 0%, #eef3fb 100%);
-      border: 1px solid #dce6f5;
-    }
-
-    .config-bucket-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #253046;
-    }
-
-    .config-bucket-desc {
-      margin-top: 8px;
-      font-size: 12px;
-      line-height: 1.6;
-      color: #607086;
-    }
-
-    .config-bucket-count {
-      margin-top: 10px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #245bdb;
-    }
-
     .form-section {
       margin-bottom: 32px;
       padding-bottom: 24px;
@@ -2294,6 +2587,11 @@ onMounted(() => {
   }
 
   @media (max-width: 1200px) {
+    .impact-overview-grid,
+    .change-hint-panel {
+      grid-template-columns: 1fr;
+    }
+
     .debug-summary-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2321,7 +2619,8 @@ onMounted(() => {
       grid-template-columns: 1fr;
     }
 
-    .config-form .config-bucket-grid {
+    .impact-overview-grid,
+    .change-hint-panel {
       grid-template-columns: 1fr;
     }
 
