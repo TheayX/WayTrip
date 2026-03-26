@@ -287,6 +287,24 @@
               </el-form-item>
             </el-col>
           </el-row>
+
+          <div class="section-subtitle">矩阵规模与缓存</div>
+          <div class="section-subdesc">这两个参数同样属于离线矩阵链路：一个控制保留多少相似邻居，一个控制相似矩阵缓存多久。</div>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="近邻数量 K">
+                <el-input-number v-model="config.algorithm.topKNeighbors" :min="5" :max="100" :step="5" />
+                <span class="form-tip">相似度矩阵每个景点保留的最近邻数</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="相似度矩阵 TTL">
+                <el-input-number v-model="config.cache.similarityTTLHours" :min="1" :max="168" :step="1" />
+                <span class="form-tip">单位：小时，控制离线相似矩阵结果缓存时长</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
         </div>
 
         <div class="form-section">
@@ -367,7 +385,7 @@
           </div>
           <div class="section-desc">控制用户什么时候进入协同过滤通道，以及个性化推荐、冷启动推荐各自拉多大的候选集。</div>
           <div class="section-inline-note">
-            这一组里只有“近邻数量 K”属于离线矩阵参数；其余字段只影响在线推荐分支切换和候选规模。
+            这一组字段都只影响在线推荐分支切换和候选规模，不需要重建相似度矩阵。
           </div>
 
           <el-row :gutter="24">
@@ -375,12 +393,6 @@
               <el-form-item label="最少交互数">
                 <el-input-number v-model="config.algorithm.minInteractionsForCF" :min="1" :max="20" :step="1" />
                 <span class="form-tip">用户交互少于此数时走冷启动策略</span>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="近邻数量 K">
-                <el-input-number v-model="config.algorithm.topKNeighbors" :min="5" :max="100" :step="5" />
-                <span class="form-tip">相似度矩阵每个景点保留的最近邻数</span>
               </el-form-item>
             </el-col>
           </el-row>
@@ -413,16 +425,10 @@
           </div>
           <div class="section-desc">这里只控制推荐结果缓存时长，主要影响缓存命中和调试观察，不改变推荐公式。</div>
           <div class="section-inline-note">
-            用户推荐缓存 TTL 只影响命中时长；相似度矩阵 TTL 影响离线矩阵结果缓存，但不改变算法公式。
+            这里保留的是在线用户推荐缓存；相似度矩阵 TTL 已经归到“离线矩阵构建”分组里。
           </div>
 
           <el-row :gutter="24">
-            <el-col :span="12">
-              <el-form-item label="相似度矩阵 TTL">
-                <el-input-number v-model="config.cache.similarityTTLHours" :min="1" :max="168" :step="1" />
-                <span class="form-tip">单位：小时，建议 24h</span>
-              </el-form-item>
-            </el-col>
             <el-col :span="12">
               <el-form-item label="用户推荐缓存 TTL">
                 <el-input-number v-model="config.cache.userRecTTLMinutes" :min="5" :max="1440" :step="5" />
@@ -2508,6 +2514,20 @@ onMounted(() => {
       font-size: 13px;
       color: #909399;
       margin-bottom: 20px;
+    }
+
+    .section-subtitle {
+      margin: 8px 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #253046;
+    }
+
+    .section-subdesc {
+      margin-bottom: 16px;
+      font-size: 12px;
+      line-height: 1.7;
+      color: #607086;
     }
 
     .form-tip {
