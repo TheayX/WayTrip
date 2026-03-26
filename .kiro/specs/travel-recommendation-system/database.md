@@ -1,10 +1,10 @@
-# 数据库设计文档
+﻿# 数据库设计文档
 
 ## 文档说明
 
 - 对齐基线：`travel-server/src/main/resources/db/schema.sql`
-- 更新时间：2026-03-22
-- 说明：本版按当前建表脚本整理，不再沿用历史推导字段说明
+- 更新时间：2026-03-26
+- 说明：本版按当前建表脚本、推荐实现与 Redis 使用现状同步
 
 ## 数据库基础信息
 
@@ -18,7 +18,7 @@
 
 ## 表总览
 
-当前共有 13 张核心业务表：
+当前共有 14 张核心业务表：
 
 1. `user`
 2. `user_preference`
@@ -33,6 +33,7 @@
 11. `user_spot_review`
 12. `user_spot_favorite`
 13. `spot_banner`
+14. `user_spot_view`
 
 ## 关系摘要
 
@@ -42,11 +43,13 @@ erDiagram
     USER ||--o{ USER_SPOT_REVIEW : writes
     USER ||--o{ USER_SPOT_FAVORITE : keeps
     USER ||--o{ USER_PREFERENCE : sets
+    USER ||--o{ USER_SPOT_VIEW : browses
 
     SPOT ||--o{ ORDER : belongs_to
     SPOT ||--o{ SPOT_IMAGE : has
     SPOT ||--o{ USER_SPOT_REVIEW : receives
     SPOT ||--o{ USER_SPOT_FAVORITE : receives
+    SPOT ||--o{ USER_SPOT_VIEW : receives
     SPOT }o--|| SPOT_REGION : in
     SPOT }o--|| SPOT_CATEGORY : in
 
@@ -270,6 +273,24 @@ erDiagram
 - `is_enabled`
 - `is_deleted`
 
+### 14. `user_spot_view`
+
+用途：用户景点浏览记录，用于推荐算法补足轻交互行为，并支撑景点热度去重窗口与调试统计。
+
+关键字段：
+
+- `user_id`
+- `spot_id`
+- `view_source`
+- `view_duration`
+- `created_at`
+
+索引：
+
+- `idx_user_spot(user_id, spot_id)`
+- `idx_spot_id(spot_id)`
+- `idx_created_at(created_at)`
+
 ## 当前索引设计重点
 
 | 表 | 关键索引 | 用途 |
@@ -280,20 +301,44 @@ erDiagram
 | `order` | `uk_order_no`, `idx_status`, `idx_user_id_status` | 订单详情、订单列表 |
 | `user_spot_review` | `uk_user_spot`, `idx_spot_list` | 评分去重、评论列表 |
 | `user_spot_favorite` | `uk_user_spot`, `idx_user_id_is_deleted_created_at` | 收藏去重、收藏列表 |
+| `user_spot_view` | `idx_user_spot`, `idx_spot_id`, `idx_created_at` | 浏览行为回放、推荐统计、景点热度 |
 | `spot_banner` | `idx_is_enabled_sort` | 首页轮播图读取 |
 | `guide_spot_relation` | `uk_guide_spot`, `idx_guide_id_is_deleted_sort` | 关联景点读取 |
 
 ## Redis 使用现状
 
-当前 Redis 主要用于推荐系统：
+当前 Redis 已不只用于“推荐矩阵缓存”，而是包含 3 类核心用途：
 
-- 存储景点相似度矩阵
-- 为推荐结果提供缓存/中间存储支持
+1. 推荐配置与运行状态
+- `waytrip:recommendation:config:algorithm`
+- `waytrip:recommendation:config:heat`
+- `waytrip:recommendation:config:cache`
+- `waytrip:recommendation:status`
 
-说明：
+2. 推荐结果与相似度缓存
+- `waytrip:recommendation:user:{userId}`
+- `waytrip:recommendation:similarity:{spotId}`
 
-- 文档中的“热点缓存、轮播缓存、详情缓存”属于规划项，不应视为全部已落地。
-- 当前确认已实现的是推荐矩阵相关 Redis 使用。
+3. 景点热度浏览去重窗口
+- `waytrip:spot:heat:view:{spotId}:{userId}`
+
+当前 TTL 约定：
+
+- 用户推荐缓存：默认 60 分钟
+- 相似度矩阵缓存：默认 24 小时
+- 浏览去重窗口：默认 30 分钟
+- 推荐配置与运行状态：默认不自动过期
+
+## 推荐算法相关数据流
+
+当前推荐链路同时使用 MySQL 与 Redis：
+
+- `user_spot_review`：显式评分行为
+- `user_spot_favorite`：收藏行为
+- `order`：已支付 / 已完成订单行为
+- `user_spot_view`：浏览来源与停留时长行为
+- `spot.heat_score`：在线热度重排输入
+- Redis：保存推荐配置、用户推荐缓存、相似度矩阵与运行状态
 
 ## 数据设计约定
 
@@ -308,7 +353,7 @@ erDiagram
 
 ### 逻辑删除
 
-所有核心表都带 `is_deleted`，业务读取默认应过滤已删除数据。
+除 `user_spot_view` 外，核心业务表普遍带 `is_deleted`，业务读取默认应过滤已删除数据。
 
 ### 时间字段
 
@@ -321,5 +366,6 @@ erDiagram
 
 ## 当前文档化结论
 
-- 表结构主体已经稳定，文档此前最大的偏差不在表数量，而在字段默认值和 `updated_at` 行为描述。
-- 当前数据库文档应以 `schema.sql` 为唯一真实来源。
+- 当前数据库基线已从 13 张核心表扩展为 14 张，新增的 `user_spot_view` 已进入推荐主流程。
+- 推荐链路的“数据来源 + Redis 缓存 + 管理端调试”已经基本成型，数据库文档不能再只描述评分矩阵一层。
+- 当前数据库文档应以 `schema.sql` 为唯一真实来源，并同步考虑 `RecommendationServiceImpl` 的实际行为使用方式。

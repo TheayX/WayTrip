@@ -1,10 +1,10 @@
-# 设计文档
+﻿# 设计文档
 
 ## 文档说明
 
 - 对齐基线：当前仓库实现
-- 更新时间：2026-03-22
-- 说明：本版重点修正架构、接口分层、任务状态与当前实现不一致的问题
+- 更新时间：2026-03-26
+- 说明：本版重点同步推荐系统、Redis 分区、管理端调试能力与数据库现状
 
 ## 系统概览
 
@@ -44,8 +44,8 @@ graph TB
     FAV[收藏]
     ORDER[订单]
     REC[推荐]
-    BANNER[轮播图]
     DASH[仪表板]
+    BANNER[轮播图]
     USER[用户管理]
     ADMINMGR[管理员管理]
     REGION[地区管理]
@@ -66,8 +66,8 @@ graph TB
     API --> FAV
     API --> ORDER
     API --> REC
-    API --> BANNER
     API --> DASH
+    API --> BANNER
     API --> USER
     API --> ADMINMGR
     API --> REGION
@@ -80,8 +80,8 @@ graph TB
     REVIEW --> MYSQL
     FAV --> MYSQL
     ORDER --> MYSQL
-    BANNER --> MYSQL
     DASH --> MYSQL
+    BANNER --> MYSQL
     USER --> MYSQL
     ADMINMGR --> MYSQL
     REGION --> MYSQL
@@ -97,15 +97,9 @@ graph TB
 ### 用户端路由前缀
 
 - 主业务接口：`/api/v1/*`
-- 资料接口主入口：`ProfileController`
-  - `/api/v1/user/info`
-  - `/api/v1/user/preferences`
-  - `/api/v1/user/password`
-  - `/api/v1/user/account`
-- 资料接口兼容层：`AuthController`
-  - `/api/v1/auth/user-info`
-  - `/api/v1/auth/preferences`
-  - `/api/v1/auth/password`
+- 资料接口主入口：`/api/v1/user/*`
+- 资料兼容路径：`/api/v1/auth/*`
+- 推荐接口：`/api/v1/recommendations`
 
 设计结论：
 
@@ -116,6 +110,7 @@ graph TB
 ### 管理端路由前缀
 
 - 统一前缀：`/api/admin/v1/*`
+- 推荐调参入口：`/api/admin/v1/recommendation/*`
 - 管理端认证、数据管理、统计、上传都走该前缀
 
 ## 认证与上下文
@@ -160,12 +155,14 @@ graph TB
 - 用户端景点列表、搜索、详情、筛选
 - 管理端景点 CRUD、发布状态维护
 - 景点图片上传
+- 浏览行为记录与热度累积
 
 当前实现特点：
 
 - 景点详情包含图片、评论、收藏状态
 - 管理端支持封面图和多张详情图上传
 - 用户端仅展示已发布且未删除内容
+- 浏览行为进入 `user_spot_view`，并通过 Redis 去重窗口控制热度累积频率
 
 ### 3. 攻略模块
 
@@ -224,15 +221,20 @@ stateDiagram-v2
 
 推荐策略：
 
-1. 基于用户评分构建 ItemCF 候选集
-2. 过滤已评分、已收藏、已下单未取消景点
-3. 评分不足时走冷启动
-4. 支持主动刷新推荐结果
-5. 相似度矩阵存入 Redis
+1. 汇总评分、收藏、订单、浏览四类行为
+2. 对浏览行为按来源与停留时长做细化加权
+3. 基于 IUF 加权余弦相似度构建景点相似度矩阵
+4. 过滤已评分、已收藏、已下单未取消景点
+5. 评分不足时走冷启动与热门兜底
+6. 在线结果再按热度进行轻量重排
+7. 推荐结果与相似度矩阵写入 Redis 缓存
 
-相似度刷新：
+当前实现特点：
 
-- `RecommendationTask` 定时更新物品相似度矩阵
+- 推荐配置已拆分为 `algorithm / heat / cache` 三段结构
+- 管理端支持查看配置、更新配置、查看运行状态、预览用户推荐、预览相似邻居、手动重建矩阵
+- `RecommendationTask` 每天凌晨 3 点自动更新相似度矩阵
+- Redis 已统一通过 `RedisKeyManager` 管理推荐相关 key
 
 ### 7. 管理端能力
 
@@ -247,7 +249,29 @@ stateDiagram-v2
 - 管理员管理
 - 地区管理
 - 分类管理
+- 推荐配置、执行、预览与调试页面
 - 文件上传
+
+## Redis 设计摘要
+
+当前 Redis 分为 3 组核心用途：
+
+1. 推荐配置与状态
+- `waytrip:recommendation:config:*`
+- `waytrip:recommendation:status`
+
+2. 推荐计算缓存
+- `waytrip:recommendation:user:{userId}`
+- `waytrip:recommendation:similarity:{spotId}`
+
+3. 景点热度浏览去重
+- `waytrip:spot:heat:view:{spotId}:{userId}`
+
+设计原则：
+
+- 统一由 `RedisKeyManager` 管理键名
+- 配置与状态长期保留，缓存结果按 TTL 自动失效
+- Redis 不再只是“矩阵存储”，而是推荐引擎运行时的一部分
 
 ## 数据设计摘要
 
@@ -263,16 +287,17 @@ stateDiagram-v2
 - `guide_spot_relation`
 - `user_spot_review`
 - `user_spot_favorite`
+- `user_spot_view`
 - `order`
 - `spot_banner`
 - `user_preference`
 
 通用约定：
 
-- 所有业务表使用逻辑删除字段 `is_deleted`
-- 大部分表包含 `created_at`、`updated_at`
+- 核心业务表普遍使用逻辑删除字段 `is_deleted`
 - 用户端读取默认过滤 `is_deleted=0`
 - 用户端内容默认过滤 `is_published=1` 或 `is_enabled=1`
+- `user_spot_view` 作为行为日志表，不使用逻辑删除
 
 ## 文件上传设计
 
@@ -292,18 +317,17 @@ stateDiagram-v2
 
 ### 已知文档债
 
-- 资料接口历史上存在双路由混用，现已完成收口并保留兼容说明
-- 任务文档曾遗漏已完成的图片上传接口
-- 验收勾选与模块完成度仍需要继续回填
+- API 文档仍需继续回填推荐管理端细节与调试说明
+- 验收勾选与模块完成度需要继续与代码同步
 
 ### 已知工程债
 
 - 测试覆盖仍偏薄，当前主要覆盖认证、订单、用户管理和鉴权场景
-- 推荐链路与联调验收测试仍需补齐
+- 推荐链路的自动化验证仍需补齐
 - 性能优化未系统推进
 
 ## 后续建议
 
-1. 继续补推荐与联调相关测试
-2. 再做 Redis 缓存与首屏性能优化
-3. 最后统一回填验收检查点
+1. 补推荐链路与缓存行为的测试
+2. 继续做数据库查询与首屏性能优化
+3. 统一回填 API、任务、验收文档

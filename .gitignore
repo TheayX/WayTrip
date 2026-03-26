@@ -27,8 +27,8 @@ Thumbs.db
 uploads/*
 !uploads/.gitkeep
 
-# Documentation
-/docs/
+# temp
+/_temp/
 
 # AI Assistant
 .aiassistant/

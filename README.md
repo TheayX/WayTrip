@@ -3,6 +3,8 @@
 基于协同过滤推荐算法的个性化旅游推荐系统，包含微信小程序（用户端）、Web 用户端和 Web 管理后台，后端统一提供 RESTful API。
 > 小程序端与 Web 用户端可独立运行（仅使用 Web 或仅使用小程序均可正常体验）
 
+**分支说明：项目当前另有一条 `ai-chatbot` 分支，用于 AI 客服相关实验与实现，并与 `main` 主线分支隔离维护。**
+
 ## 技术栈
 
 | 模块       | 技术                                              |
@@ -113,7 +115,7 @@ npm run dev:mp-weixin
 
 - 用户认证（小程序微信一键登录 / Web 端手机号注册登录）
 - 景点浏览、搜索、筛选（地区 / 分类 / 热度 / 评分 / 价格排序）
-- 个性化推荐（ItemCF 协同过滤）
+- 个性化推荐（基于评分、收藏、订单、浏览记录的 ItemCF 推荐，支持冷启动兜底与热度重排）
 - 旅游攻略阅读（富文本 + 关联景点）
 - 景点评分评论
 - 收藏管理
@@ -130,6 +132,7 @@ npm run dev:mp-weixin
 - 管理员管理（创建、编辑、重置密码、删除）
 - 轮播图管理（排序、启用 / 禁用）
 - 数据统计仪表板（概览卡片、订单趋势图、热门景点排行）
+- 推荐配置与调试页（支持参数调整、运行状态查看、推荐预览、相似邻居预览与手动重建矩阵）
 
 ## API 接口
 
@@ -148,39 +151,16 @@ npm run dev:mp-weixin
 
 ## 推荐算法
 
-采用 ItemCF（基于物品的协同过滤）算法：
+- 基于评分、收藏、订单、浏览记录的 ItemCF 个性化推荐
+- 浏览行为支持按来源与停留时长加权
+- 支持冷启动兜底、结果过滤与热度重排
+- 管理端支持推荐配置、状态查看、调试预览和手动重建相似度矩阵
+- 推荐配置、用户结果和相似度矩阵通过 Redis 统一管理
 
-- 基于用户评分矩阵计算物品余弦相似度，结果缓存至 Redis
+## Redis 使用说明
 
-## Redis 键分区约定
-
-为避免缓存键散落在业务代码中，项目统一使用 `RedisKeyManager` 管理键空间。当前分区如下：
-
-- `waytrip:recommendation:config:algorithm`：协同过滤与行为权重配置
-- `waytrip:recommendation:config:heat`：景点热度与去重窗口配置
-- `waytrip:recommendation:config:cache`：Redis 缓存 TTL 配置
-- `waytrip:recommendation:status`：推荐矩阵计算状态
-- `waytrip:recommendation:user:{userId}`：用户推荐结果缓存
-- `waytrip:recommendation:similarity:{spotId}`：景点相似度矩阵缓存
-- `waytrip:spot:heat:view:{spotId}:{userId}`：景点浏览热度去重窗口
-- `waytrip:ai:chat:session:{sessionId}`：AI 客服会话历史，默认 TTL 30 分钟
-- `waytrip:ai:chat:rl:ip:{clientIp}:{minuteBucket}`：AI 客服 IP 级限流计数，TTL 1 分钟
-- `waytrip:ai:chat:rl:session:{sessionId}:{minuteBucket}`：AI 客服会话级限流计数，TTL 1 分钟
-- `waytrip:ai:chat:cache:{model}:{intent}:{userId}:{digest}`：AI 客服响应缓存，默认 TTL 2 分钟
-
-管理端推荐配置接口按 `algorithm / heat / cache` 三段结构组织，Redis 也只保留对应分区 key。
-
-后续新增 Redis 缓存时，建议继续按 `waytrip:{模块}:{资源}` 规则扩展，避免直接在业务类中拼接字符串。
-- 冷启动策略：评分不足 3 条时返回热门/最新景点 + 偏好标签引导
-- 推荐过滤：排除已评分 / 已收藏 / 已下单（不含已取消）景点
-- 定时任务自动更新相似度矩阵
-
-## AI 客服缓存说明
-
-- Web 端只在 `localStorage` 保存 `sessionId`，不保存完整聊天消息。
-- AI 会话历史保存在 Redis，会随着 `OLLAMA_CHAT_HISTORY_TTL_MINUTES` 到期自动清理。
-- AI 响应缓存与限流计数都使用短 TTL，一般不需要手动清理。
-- 点击聊天组件“清空”会生成新的 `sessionId`，旧会话会在 TTL 到期后自然过期。
+- 项目中的 Redis 缓存统一由后端集中管理，当前主要用于推荐结果、相似度矩阵和景点热度去重窗口。
+- Redis 键命名统一走 `RedisKeyManager`，按 `waytrip:{模块}:{资源}` 规则划分，避免业务代码中散落硬编码 key。
 
 ## 文档
 
