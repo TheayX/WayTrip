@@ -109,30 +109,6 @@
           </div>
         </div>
 
-        <!-- 交互权重 -->
-        <div class="phase-map">
-          <div class="phase-map-card matrix">
-            <div class="phase-map-title">离线矩阵构建</div>
-            <div class="phase-map-desc">行为交互权重、浏览细化因子、近邻数量 K、相似度矩阵 TTL</div>
-            <div class="phase-map-foot">保存后不会自动重算，需要手动重建相似度矩阵</div>
-          </div>
-          <div class="phase-map-card online">
-            <div class="phase-map-title">在线推荐与候选控制</div>
-            <div class="phase-map-desc">最少交互数、个性化候选扩容、冷启动候选扩容</div>
-            <div class="phase-map-foot">保存后新请求立即使用，不需要重建矩阵</div>
-          </div>
-          <div class="phase-map-card heat">
-            <div class="phase-map-title">热度与排序</div>
-            <div class="phase-map-desc">热度累计、去重窗口、热度重排因子</div>
-            <div class="phase-map-foot">只影响热门候选和最终排序，不影响离线相似度</div>
-          </div>
-          <div class="phase-map-card cache">
-            <div class="phase-map-title">缓存与调试</div>
-            <div class="phase-map-desc">用户推荐缓存、矩阵缓存、调试预览判断</div>
-            <div class="phase-map-foot">主要影响缓存命中和观察方式，不改变推荐公式</div>
-          </div>
-        </div>
-
         <div class="form-section">
           <div class="section-eyebrow">
             <span>离线矩阵构建</span>
@@ -457,13 +433,10 @@
               配置修改会立即影响新的推荐请求；相似度矩阵只有在手动更新或定时任务执行后，才会按新参数重算。
             </div>
 
-            <div class="effect-rule-list">
-              <div v-for="rule in effectRules" :key="rule.title" class="effect-rule-item">
-                <div class="effect-rule-head">
-                  <div class="effect-rule-title">{{ rule.title }}</div>
-                  <el-tag size="small" effect="plain" :type="rule.tagType" round>{{ rule.tag }}</el-tag>
-                </div>
-                <div class="effect-rule-text">{{ rule.text }}</div>
+            <div class="execution-brief">
+              <div class="execution-brief-title">执行建议</div>
+              <div class="execution-brief-text">
+                交互权重、浏览行为修正、近邻数量 K、相似度矩阵 TTL 这类离线参数，保存后还需要手动重建相似度矩阵；热度、在线候选和用户缓存参数保存后会立即影响新请求。
               </div>
             </div>
 
@@ -1266,27 +1239,6 @@ const immediateChangeSummary = computed(() => ({
     : '当前没有待保存的即时生效字段变更'
 }))
 
-const effectRules = [
-  {
-    title: '交互权重 / 浏览细化 / TopK',
-    tag: '需重建矩阵',
-    tagType: 'warning',
-    text: '保存后只更新配置，不会自动重算相似度矩阵。'
-  },
-  {
-    title: '热度累计 / 去重窗口 / 热度重排',
-    tag: '立即生效',
-    tagType: 'success',
-    text: '这类参数不参与离线相似度计算，保存后新请求立即使用。'
-  },
-  {
-    title: '冷启动阈值 / 候选扩容 / 用户缓存',
-    tag: '立即生效',
-    tagType: 'primary',
-    text: '这类参数只影响在线推荐链路，不需要重建矩阵。'
-  }
-]
-
 const saving = ref(false)
 const updatingMatrix = ref(false)
 const previewing = ref(false)
@@ -1988,60 +1940,6 @@ onMounted(() => {
     color: #5b6475;
   }
 
-  .phase-map {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .phase-map-card {
-    padding: 16px;
-    border-radius: 14px;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-  }
-
-  .phase-map-card.matrix {
-    background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
-    border-color: #ffd591;
-  }
-
-  .phase-map-card.online {
-    background: linear-gradient(135deg, #f3fff7 0%, #ebfff1 100%);
-    border-color: #b7ebc6;
-  }
-
-  .phase-map-card.heat {
-    background: linear-gradient(135deg, #fff8f5 0%, #fff0ea 100%);
-    border-color: #ffcab5;
-  }
-
-  .phase-map-card.cache {
-    background: linear-gradient(135deg, #f7f5ff 0%, #f0ebff 100%);
-    border-color: #d3c3ff;
-  }
-
-  .phase-map-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #253046;
-  }
-
-  .phase-map-desc {
-    margin-top: 8px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: #4f5f73;
-  }
-
-  .phase-map-foot {
-    margin-top: 10px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #364152;
-  }
-
   .section-eyebrow {
     display: flex;
     align-items: center;
@@ -2066,32 +1964,20 @@ onMounted(() => {
     color: #607086;
   }
 
-  .effect-rule-list {
-    display: grid;
-    gap: 10px;
-  }
-
-  .effect-rule-item {
+  .execution-brief {
     padding: 14px 16px;
     border-radius: 12px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
   }
 
-  .effect-rule-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .effect-rule-title {
+  .execution-brief-title {
     font-size: 13px;
     font-weight: 700;
     color: #253046;
   }
 
-  .effect-rule-text {
+  .execution-brief-text {
     margin-top: 6px;
     font-size: 12px;
     line-height: 1.7;
@@ -2735,8 +2621,7 @@ onMounted(() => {
 
   @media (max-width: 1200px) {
     .impact-overview-grid,
-    .change-hint-panel,
-    .phase-map {
+    .change-hint-panel {
       grid-template-columns: 1fr;
     }
 
@@ -2768,8 +2653,7 @@ onMounted(() => {
     }
 
     .impact-overview-grid,
-    .change-hint-panel,
-    .phase-map {
+    .change-hint-panel {
       grid-template-columns: 1fr;
     }
 
