@@ -45,6 +45,8 @@
 import { nextTick, ref } from 'vue'
 import { chatWithAi } from '@/api/ai'
 
+// Only the session id is persisted locally.
+// Conversation history stays in Redis and expires with the backend TTL.
 const SESSION_STORAGE_KEY = 'waytrip_ai_session_id'
 
 const isOpen = ref(false)

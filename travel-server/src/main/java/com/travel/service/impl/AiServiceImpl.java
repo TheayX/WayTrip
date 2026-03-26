@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
+import com.travel.config.RedisKeyManager;
 import com.travel.entity.Order;
 import com.travel.entity.Spot;
 import com.travel.entity.UserSpotFavorite;
@@ -47,10 +48,6 @@ public class AiServiceImpl implements AiService {
     private static final String DEFAULT_SYSTEM_PROMPT =
             "你是 WayTrip 旅游助手。请始终使用简体中文，回答简洁、友好、可执行。"
                     + "你只能基于已知信息回答，不确定时必须明确说明并建议转人工。";
-    private static final String HISTORY_KEY_PREFIX = "ai:chat:session:";
-    private static final String RATE_LIMIT_IP_KEY_PREFIX = "ai:chat:rl:ip:";
-    private static final String RATE_LIMIT_SESSION_KEY_PREFIX = "ai:chat:rl:session:";
-    private static final String RESPONSE_CACHE_KEY_PREFIX = "ai:chat:cache:";
     private static final int DEFAULT_MAX_ROUNDS = 6;
     private static final int DEFAULT_HISTORY_TTL_MINUTES = 30;
     private static final int DEFAULT_RESPONSE_CACHE_MINUTES = 2;
@@ -101,9 +98,8 @@ public class AiServiceImpl implements AiService {
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final SpotMapper spotMapper;
     private final MeterRegistry meterRegistry;
-
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     @Override
     public String chat(String sessionId, String userMessage, Long userId, String clientIp) {
@@ -328,7 +324,7 @@ public class AiServiceImpl implements AiService {
         int ipLimit = getIpRateLimitPerMinute();
         if (StringUtils.hasText(clientIp)) {
             String minuteBucket = String.valueOf(System.currentTimeMillis() / 60000);
-            String ipKey = RATE_LIMIT_IP_KEY_PREFIX + clientIp + ":" + minuteBucket;
+            String ipKey = RedisKeyManager.aiChatRateLimitIp(clientIp, minuteBucket);
             long ipCount = incrementWithOneMinuteTtl(ipKey);
             if (ipCount > ipLimit) {
                 recordCounter("waytrip.ai.rate_limit.hit", "scope", "ip");
@@ -338,7 +334,7 @@ public class AiServiceImpl implements AiService {
 
         int sessionLimit = getSessionRateLimitPerMinute();
         String minuteBucket = String.valueOf(System.currentTimeMillis() / 60000);
-        String sessionKey = RATE_LIMIT_SESSION_KEY_PREFIX + sessionId + ":" + minuteBucket;
+        String sessionKey = RedisKeyManager.aiChatRateLimitSession(sessionId, minuteBucket);
         long sessionCount = incrementWithOneMinuteTtl(sessionKey);
         if (sessionCount > sessionLimit) {
             recordCounter("waytrip.ai.rate_limit.hit", "scope", "session");
@@ -358,7 +354,7 @@ public class AiServiceImpl implements AiService {
         String uid = userId == null ? "anonymous" : userId.toString();
         String normalized = userMessage.trim().toLowerCase();
         String digest = DigestUtils.md5DigestAsHex(normalized.getBytes(StandardCharsets.UTF_8));
-        return RESPONSE_CACHE_KEY_PREFIX + ollamaModel + ":" + intentType.name().toLowerCase() + ":" + uid + ":" + digest;
+        return RedisKeyManager.aiChatResponseCache(ollamaModel, intentType.name().toLowerCase(), uid, digest);
     }
 
     private String loadCachedReply(String cacheKey) {
@@ -379,7 +375,7 @@ public class AiServiceImpl implements AiService {
 
     @SuppressWarnings("unchecked")
     private List<Map<String, String>> loadHistoryMessages(String sessionId) {
-        String cacheKey = HISTORY_KEY_PREFIX + sessionId;
+        String cacheKey = RedisKeyManager.aiChatSession(sessionId);
         Object cached = redisTemplate.opsForValue().get(cacheKey);
         if (cached == null) {
             return new ArrayList<>();
@@ -410,7 +406,7 @@ public class AiServiceImpl implements AiService {
         }
 
         try {
-            String cacheKey = HISTORY_KEY_PREFIX + sessionId;
+            String cacheKey = RedisKeyManager.aiChatSession(sessionId);
             String serialized = objectMapper.writeValueAsString(updatedHistory);
             redisTemplate.opsForValue().set(cacheKey, serialized, getHistoryTtlMinutes(), TimeUnit.MINUTES);
         } catch (Exception e) {
