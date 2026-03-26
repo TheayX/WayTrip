@@ -163,6 +163,10 @@ npm run dev:mp-weixin
 - `waytrip:recommendation:user:{userId}`：用户推荐结果缓存
 - `waytrip:recommendation:similarity:{spotId}`：景点相似度矩阵缓存
 - `waytrip:spot:heat:view:{spotId}:{userId}`：景点浏览热度去重窗口
+- `waytrip:ai:chat:session:{sessionId}`：AI 客服会话历史，默认 TTL 30 分钟
+- `waytrip:ai:chat:rl:ip:{clientIp}:{minuteBucket}`：AI 客服 IP 级限流计数，TTL 1 分钟
+- `waytrip:ai:chat:rl:session:{sessionId}:{minuteBucket}`：AI 客服会话级限流计数，TTL 1 分钟
+- `waytrip:ai:chat:cache:{model}:{intent}:{userId}:{digest}`：AI 客服响应缓存，默认 TTL 2 分钟
 
 管理端推荐配置接口按 `algorithm / heat / cache` 三段结构组织，Redis 也只保留对应分区 key。
 
@@ -170,6 +174,13 @@ npm run dev:mp-weixin
 - 冷启动策略：评分不足 3 条时返回热门/最新景点 + 偏好标签引导
 - 推荐过滤：排除已评分 / 已收藏 / 已下单（不含已取消）景点
 - 定时任务自动更新相似度矩阵
+
+## AI 客服缓存说明
+
+- Web 端只在 `localStorage` 保存 `sessionId`，不保存完整聊天消息。
+- AI 会话历史保存在 Redis，会随着 `OLLAMA_CHAT_HISTORY_TTL_MINUTES` 到期自动清理。
+- AI 响应缓存与限流计数都使用短 TTL，一般不需要手动清理。
+- 点击聊天组件“清空”会生成新的 `sessionId`，旧会话会在 TTL 到期后自然过期。
 
 ## 文档
 
