@@ -95,13 +95,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="浏览行为权重">
-                <el-input-number v-model="config.weightView" :min="0" :max="10" :step="0.1" :precision="1" />
+                <el-input-number v-model="config.algorithm.weightView" :min="0" :max="10" :step="0.1" :precision="1" />
                 <span class="form-tip">浏览基础权重，实际会再乘以来源因子和停留时长因子</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="收藏行为权重">
-                <el-input-number v-model="config.weightFavorite" :min="0" :max="10" :step="0.1" :precision="1" />
+                <el-input-number v-model="config.algorithm.weightFavorite" :min="0" :max="10" :step="0.1" :precision="1" />
                 <span class="form-tip">用户收藏景点的权重</span>
               </el-form-item>
             </el-col>
@@ -110,13 +110,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="评分因子">
-                <el-input-number v-model="config.weightReviewFactor" :min="0" :max="5" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.weightReviewFactor" :min="0" :max="5" :step="0.1" :precision="2" />
                 <span class="form-tip">实际权重 = 用户评分 × 该因子</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="已付款订单权重">
-                <el-input-number v-model="config.weightOrderPaid" :min="0" :max="10" :step="0.5" :precision="1" />
+                <el-input-number v-model="config.algorithm.weightOrderPaid" :min="0" :max="10" :step="0.5" :precision="1" />
                 <span class="form-tip">用户已付款但未完成的订单</span>
               </el-form-item>
             </el-col>
@@ -125,7 +125,7 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="已完成订单权重">
-                <el-input-number v-model="config.weightOrderCompleted" :min="0" :max="10" :step="0.5" :precision="1" />
+                <el-input-number v-model="config.algorithm.weightOrderCompleted" :min="0" :max="10" :step="0.5" :precision="1" />
                 <span class="form-tip">用户已完成的订单，贡献最高</span>
               </el-form-item>
             </el-col>
@@ -142,13 +142,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="首页来源因子">
-                <el-input-number v-model="config.viewSourceFactorHome" :min="0" :max="3" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.viewSourceFactorHome" :min="0" :max="3" :step="0.1" :precision="2" />
                 <span class="form-tip">从首页进入详情页的浏览因子</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="搜索来源因子">
-                <el-input-number v-model="config.viewSourceFactorSearch" :min="0" :max="3" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.viewSourceFactorSearch" :min="0" :max="3" :step="0.1" :precision="2" />
                 <span class="form-tip">从搜索结果进入详情页的浏览因子</span>
               </el-form-item>
             </el-col>
@@ -157,13 +157,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="推荐来源因子">
-                <el-input-number v-model="config.viewSourceFactorRecommend" :min="0" :max="3" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.viewSourceFactorRecommend" :min="0" :max="3" :step="0.1" :precision="2" />
                 <span class="form-tip">从推荐位进入详情页的浏览因子</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="攻略来源因子">
-                <el-input-number v-model="config.viewSourceFactorGuide" :min="0" :max="3" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.viewSourceFactorGuide" :min="0" :max="3" :step="0.1" :precision="2" />
                 <span class="form-tip">从攻略页进入详情页的浏览因子</span>
               </el-form-item>
             </el-col>
@@ -172,7 +172,7 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="默认来源因子">
-                <el-input-number v-model="config.viewSourceFactorDetail" :min="0" :max="3" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.viewSourceFactorDetail" :min="0" :max="3" :step="0.1" :precision="2" />
                 <span class="form-tip">默认或二跳进入详情页的浏览因子</span>
               </el-form-item>
             </el-col>
@@ -181,13 +181,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="短停留阈值">
-                <el-input-number v-model="config.viewDurationShortThresholdSeconds" :min="1" :max="600" :step="1" />
+                <el-input-number v-model="config.algorithm.viewDurationShortThresholdSeconds" :min="1" :max="600" :step="1" />
                 <span class="form-tip">短停留判断阈值，单位：秒</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="中停留阈值">
-                <el-input-number v-model="config.viewDurationMediumThresholdSeconds" :min="1" :max="1200" :step="1" />
+                <el-input-number v-model="config.algorithm.viewDurationMediumThresholdSeconds" :min="1" :max="1200" :step="1" />
                 <span class="form-tip">普通停留判断阈值，单位：秒</span>
               </el-form-item>
             </el-col>
@@ -196,7 +196,7 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="长停留阈值">
-                <el-input-number v-model="config.viewDurationLongThresholdSeconds" :min="1" :max="1800" :step="1" />
+                <el-input-number v-model="config.algorithm.viewDurationLongThresholdSeconds" :min="1" :max="1800" :step="1" />
                 <span class="form-tip">较长停留判断阈值，单位：秒</span>
               </el-form-item>
             </el-col>
@@ -205,13 +205,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="短停留因子">
-                <el-input-number v-model="config.viewDurationFactorShort" :min="0" :max="3" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.viewDurationFactorShort" :min="0" :max="3" :step="0.1" :precision="2" />
                 <span class="form-tip">停留时长低于短停留阈值时使用</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="普通停留因子">
-                <el-input-number v-model="config.viewDurationFactorMedium" :min="0" :max="3" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.viewDurationFactorMedium" :min="0" :max="3" :step="0.1" :precision="2" />
                 <span class="form-tip">停留时长介于短停留阈值和中停留阈值之间时使用</span>
               </el-form-item>
             </el-col>
@@ -220,13 +220,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="较长停留因子">
-                <el-input-number v-model="config.viewDurationFactorLong" :min="0" :max="3" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.viewDurationFactorLong" :min="0" :max="3" :step="0.1" :precision="2" />
                 <span class="form-tip">停留时长介于中停留阈值和长停留阈值之间时使用</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="超长停留因子">
-                <el-input-number v-model="config.viewDurationFactorVeryLong" :min="0" :max="3" :step="0.1" :precision="2" />
+                <el-input-number v-model="config.algorithm.viewDurationFactorVeryLong" :min="0" :max="3" :step="0.1" :precision="2" />
                 <span class="form-tip">停留时长高于长停留阈值时使用</span>
               </el-form-item>
             </el-col>
@@ -243,13 +243,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="浏览详情加分">
-                <el-input-number v-model="config.heatViewIncrement" :min="1" :max="20" :step="1" />
+                <el-input-number v-model="config.heat.heatViewIncrement" :min="1" :max="20" :step="1" />
                 <span class="form-tip">用户打开景点详情页时增加的热度分数</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="浏览去重窗口">
-                <el-input-number v-model="config.heatViewDedupeWindowMinutes" :min="1" :max="1440" :step="1" />
+                <el-input-number v-model="config.heat.heatViewDedupeWindowMinutes" :min="1" :max="1440" :step="1" />
                 <span class="form-tip">同一用户同一景点在该时间窗口内重复浏览不重复加热，单位：分钟</span>
               </el-form-item>
             </el-col>
@@ -258,13 +258,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="收藏加分">
-                <el-input-number v-model="config.heatFavoriteIncrement" :min="1" :max="20" :step="1" />
+                <el-input-number v-model="config.heat.heatFavoriteIncrement" :min="1" :max="20" :step="1" />
                 <span class="form-tip">新增收藏或恢复收藏时增加的热度分数</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="评价加分">
-                <el-input-number v-model="config.heatReviewIncrement" :min="1" :max="20" :step="1" />
+                <el-input-number v-model="config.heat.heatReviewIncrement" :min="1" :max="20" :step="1" />
                 <span class="form-tip">首次评价或恢复评价时增加的热度分数</span>
               </el-form-item>
             </el-col>
@@ -273,13 +273,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="支付订单加分">
-                <el-input-number v-model="config.heatOrderPaidIncrement" :min="1" :max="30" :step="1" />
+                <el-input-number v-model="config.heat.heatOrderPaidIncrement" :min="1" :max="30" :step="1" />
                 <span class="form-tip">订单从待支付变为已支付时增加的热度分数</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="完成订单加分">
-                <el-input-number v-model="config.heatOrderCompletedIncrement" :min="1" :max="30" :step="1" />
+                <el-input-number v-model="config.heat.heatOrderCompletedIncrement" :min="1" :max="30" :step="1" />
                 <span class="form-tip">订单从已支付变为已完成时增加的热度分数</span>
               </el-form-item>
             </el-col>
@@ -288,7 +288,7 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="热度重排系数">
-                <el-input-number v-model="config.heatRerankFactor" :min="0" :max="1" :step="0.01" :precision="2" />
+                <el-input-number v-model="config.heat.heatRerankFactor" :min="0" :max="1" :step="0.01" :precision="2" />
                 <span class="form-tip">最终排序按 CF 分数 + 系数 × 归一化热度 轻量重排，建议保持较小值</span>
               </el-form-item>
             </el-col>
@@ -306,13 +306,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="最少交互数">
-                <el-input-number v-model="config.minInteractionsForCF" :min="1" :max="20" :step="1" />
+                <el-input-number v-model="config.algorithm.minInteractionsForCF" :min="1" :max="20" :step="1" />
                 <span class="form-tip">用户交互少于此数时走冷启动策略</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="近邻数量 K">
-                <el-input-number v-model="config.topKNeighbors" :min="5" :max="100" :step="5" />
+                <el-input-number v-model="config.algorithm.topKNeighbors" :min="5" :max="100" :step="5" />
                 <span class="form-tip">相似度矩阵每个景点保留的最近邻数</span>
               </el-form-item>
             </el-col>
@@ -321,13 +321,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="个性化候选扩容倍数">
-                <el-input-number v-model="config.candidateExpandFactor" :min="1" :max="10" :step="1" />
+                <el-input-number v-model="config.algorithm.candidateExpandFactor" :min="1" :max="10" :step="1" />
                 <span class="form-tip">个性化推荐先计算 limit × 倍数 的候选集，再过滤和排序</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="冷启动扩容倍数">
-                <el-input-number v-model="config.coldStartExpandFactor" :min="1" :max="10" :step="1" />
+                <el-input-number v-model="config.algorithm.coldStartExpandFactor" :min="1" :max="10" :step="1" />
                 <span class="form-tip">刷新冷启动结果时先拉取更大的候选集，再做轮换截断</span>
               </el-form-item>
             </el-col>
@@ -345,13 +345,13 @@
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="相似度矩阵 TTL">
-                <el-input-number v-model="config.similarityTTLHours" :min="1" :max="168" :step="1" />
+                <el-input-number v-model="config.cache.similarityTTLHours" :min="1" :max="168" :step="1" />
                 <span class="form-tip">单位：小时，建议 24h</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="用户推荐缓存 TTL">
-                <el-input-number v-model="config.userRecTTLMinutes" :min="5" :max="1440" :step="5" />
+                <el-input-number v-model="config.cache.userRecTTLMinutes" :min="5" :max="1440" :step="5" />
                 <span class="form-tip">单位：分钟，建议 60min</span>
               </el-form-item>
             </el-col>
@@ -395,17 +395,17 @@
             <div class="execution-grid">
               <div class="execution-metric">
                 <div class="execution-metric-label">浏览去重窗口</div>
-                <div class="execution-metric-value">{{ config.heatViewDedupeWindowMinutes }} 分钟</div>
+                <div class="execution-metric-value">{{ config.heat.heatViewDedupeWindowMinutes }} 分钟</div>
                 <div class="execution-metric-desc">同一用户重复浏览同一景点，在该窗口内不重复加热</div>
               </div>
               <div class="execution-metric">
                 <div class="execution-metric-label">推荐缓存 TTL</div>
-                <div class="execution-metric-value">{{ config.userRecTTLMinutes }} 分钟</div>
+                <div class="execution-metric-value">{{ config.cache.userRecTTLMinutes }} 分钟</div>
                 <div class="execution-metric-desc">用户推荐结果缓存时长</div>
               </div>
               <div class="execution-metric">
                 <div class="execution-metric-label">矩阵缓存 TTL</div>
-                <div class="execution-metric-value">{{ config.similarityTTLHours }} 小时</div>
+                <div class="execution-metric-value">{{ config.cache.similarityTTLHours }} 小时</div>
                 <div class="execution-metric-desc">景点相似度矩阵缓存时长</div>
               </div>
               <div class="execution-metric">
@@ -985,38 +985,44 @@ import {
   DataLine, Setting, Clock
 } from '@element-plus/icons-vue'
 
-const defaultConfig = {
-  weightView: 0.5,
-  weightFavorite: 1.0,
-  weightReviewFactor: 0.4,
-  weightOrderPaid: 3.0,
-  weightOrderCompleted: 4.0,
-  viewSourceFactorHome: 0.9,
-  viewSourceFactorSearch: 1.2,
-  viewSourceFactorRecommend: 1.1,
-  viewSourceFactorGuide: 1.0,
-  viewSourceFactorDetail: 1.0,
-  viewDurationShortThresholdSeconds: 10,
-  viewDurationMediumThresholdSeconds: 60,
-  viewDurationLongThresholdSeconds: 180,
-  viewDurationFactorShort: 0.6,
-  viewDurationFactorMedium: 1.0,
-  viewDurationFactorLong: 1.2,
-  viewDurationFactorVeryLong: 1.35,
-  heatViewIncrement: 1,
-  heatFavoriteIncrement: 3,
-  heatReviewIncrement: 2,
-  heatOrderPaidIncrement: 5,
-  heatOrderCompletedIncrement: 8,
-  heatViewDedupeWindowMinutes: 30,
-  heatRerankFactor: 0.05,
-  minInteractionsForCF: 3,
-  topKNeighbors: 20,
-  candidateExpandFactor: 2,
-  coldStartExpandFactor: 3,
-  similarityTTLHours: 24,
-  userRecTTLMinutes: 60
-}
+const createDefaultConfig = () => ({
+  algorithm: {
+    weightView: 0.5,
+    weightFavorite: 1.0,
+    weightReviewFactor: 0.4,
+    weightOrderPaid: 3.0,
+    weightOrderCompleted: 4.0,
+    viewSourceFactorHome: 0.9,
+    viewSourceFactorSearch: 1.2,
+    viewSourceFactorRecommend: 1.1,
+    viewSourceFactorGuide: 1.0,
+    viewSourceFactorDetail: 1.0,
+    viewDurationShortThresholdSeconds: 10,
+    viewDurationMediumThresholdSeconds: 60,
+    viewDurationLongThresholdSeconds: 180,
+    viewDurationFactorShort: 0.6,
+    viewDurationFactorMedium: 1.0,
+    viewDurationFactorLong: 1.2,
+    viewDurationFactorVeryLong: 1.35,
+    minInteractionsForCF: 3,
+    topKNeighbors: 20,
+    candidateExpandFactor: 2,
+    coldStartExpandFactor: 3
+  },
+  heat: {
+    heatViewIncrement: 1,
+    heatFavoriteIncrement: 3,
+    heatReviewIncrement: 2,
+    heatOrderPaidIncrement: 5,
+    heatOrderCompletedIncrement: 8,
+    heatViewDedupeWindowMinutes: 30,
+    heatRerankFactor: 0.05
+  },
+  cache: {
+    similarityTTLHours: 24,
+    userRecTTLMinutes: 60
+  }
+})
 
 const configBuckets = computed(() => [
   {
@@ -1036,9 +1042,14 @@ const configBuckets = computed(() => [
   }
 ])
 
-const config = reactive({
-  ...defaultConfig
-})
+const config = reactive(createDefaultConfig())
+
+const applyConfig = (nextConfig = {}) => {
+  const defaults = createDefaultConfig()
+  Object.assign(config.algorithm, defaults.algorithm, nextConfig.algorithm || {})
+  Object.assign(config.heat, defaults.heat, nextConfig.heat || {})
+  Object.assign(config.cache, defaults.cache, nextConfig.cache || {})
+}
 
 const status = reactive({
   lastUpdateTime: null,
@@ -1320,7 +1331,7 @@ const fetchConfig = async () => {
   try {
     const res = await getRecommendationConfig()
     if (res.data) {
-      Object.assign(config, res.data)
+      applyConfig(res.data)
     }
   } catch (e) {
     console.error('获取配置失败', e)
@@ -1343,7 +1354,11 @@ const fetchStatus = async () => {
 const handleSaveConfig = async () => {
   try {
     saving.value = true
-    await updateRecommendationConfig({ ...config })
+    await updateRecommendationConfig({
+      algorithm: { ...config.algorithm },
+      heat: { ...config.heat },
+      cache: { ...config.cache }
+    })
     ElMessage.success('算法配置已保存！新的推荐请求将使用更新后的参数。')
   } catch (e) {
     ElMessage.error('保存配置失败')
@@ -1360,8 +1375,9 @@ const handleResetConfig = async () => {
       '恢复默认配置',
       { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
     )
-    Object.assign(config, { ...defaultConfig })
-    await updateRecommendationConfig({ ...defaultConfig })
+    const defaults = createDefaultConfig()
+    applyConfig(defaults)
+    await updateRecommendationConfig(defaults)
     ElMessage.success('已恢复为默认配置')
   } catch (e) {
     if (e !== 'cancel') {

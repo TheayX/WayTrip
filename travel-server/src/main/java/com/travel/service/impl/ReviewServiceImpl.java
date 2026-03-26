@@ -257,7 +257,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     private int getReviewHeatIncrement() {
-        Integer value = recommendationService.getConfig().getHeatReviewIncrement();
+        Integer value = recommendationService.getConfig().getHeat().getHeatReviewIncrement();
         return value != null && value > 0 ? value : 2;
     }
 }

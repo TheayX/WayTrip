@@ -167,7 +167,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     private int getFavoriteHeatIncrement() {
-        Integer value = recommendationService.getConfig().getHeatFavoriteIncrement();
+        Integer value = recommendationService.getConfig().getHeat().getHeatFavoriteIncrement();
         return value != null && value > 0 ? value : 3;
     }
 }
