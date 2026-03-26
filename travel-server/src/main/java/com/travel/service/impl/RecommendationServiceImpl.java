@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.config.RedisKeyManager;
 import com.travel.dto.home.HotSpotResponse;
 import com.travel.dto.recommendation.RecommendationConfigDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
@@ -37,11 +38,6 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final UserPreferenceMapper userPreferenceMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String SIMILARITY_KEY = "recommendation:similarity:";
-    private static final String USER_REC_KEY = "recommendation:user:";
-    private static final String CONFIG_KEY = "recommendation:config";
-    private static final String STATUS_KEY = "recommendation:status";
-
     private final AtomicBoolean computing = new AtomicBoolean(false);
 
     // ==================== 动态配置读取 ====================
@@ -50,7 +46,7 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 从 Redis 获取算法配置，不存在时返回默认配置
      */
     private RecommendationConfigDTO loadConfig() {
-        Object cached = redisTemplate.opsForValue().get(CONFIG_KEY);
+        Object cached = redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfig());
         if (cached instanceof RecommendationConfigDTO config) {
             return config;
         }
@@ -116,7 +112,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (limit == null || limit <= 0) limit = 10;
 
         // 检查缓存
-        String cacheKey = USER_REC_KEY + userId;
+        String cacheKey = RedisKeyManager.recommendationUser(userId);
         Object cached = redisTemplate.opsForValue().get(cacheKey);
 
         if (cached instanceof Map<?, ?> cachedMap && !cachedMap.isEmpty()) {
@@ -144,7 +140,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (limit == null || limit <= 0) limit = 10;
         
         // 清除缓存
-        String cacheKey = USER_REC_KEY + userId;
+        String cacheKey = RedisKeyManager.recommendationUser(userId);
         redisTemplate.delete(cacheKey);
         
         return computeRecommendations(userId, limit, true, false);
@@ -169,7 +165,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (userId == null) {
             return;
         }
-        redisTemplate.delete(USER_REC_KEY + userId);
+        redisTemplate.delete(RedisKeyManager.recommendationUser(userId));
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
@@ -250,7 +246,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             filteredScores = orderScoresByIds(filteredIds, filteredScores);
         }
 
-        String cacheKey = USER_REC_KEY + userId;
+        String cacheKey = RedisKeyManager.recommendationUser(userId);
         redisTemplate.opsForValue().set(cacheKey, filteredScores, config.getUserRecTTLMinutes(), TimeUnit.MINUTES);
 
         log.info(
@@ -605,7 +601,7 @@ public class RecommendationServiceImpl implements RecommendationService {
      */
     @SuppressWarnings("unchecked")
     private Map<Long, Double> getSimilarSpots(Long spotId) {
-        String key = SIMILARITY_KEY + spotId;
+        String key = RedisKeyManager.recommendationSimilarity(spotId);
         Object cached = redisTemplate.opsForValue().get(key);
         if (!(cached instanceof Map<?, ?> rawMap) || rawMap.isEmpty()) {
             return Collections.emptyMap();
@@ -893,7 +889,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     ));
 
                 // 存入 Redis
-                String key = SIMILARITY_KEY + spotI;
+                String key = RedisKeyManager.recommendationSimilarity(spotI);
                 redisTemplate.opsForValue().set(key, java.util.Objects.requireNonNull(topSimilarities), simTTL, TimeUnit.HOURS);
                 logSpotSimilaritySummary(spotI, topSimilarities);
             }
@@ -903,7 +899,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             statusMap.put("lastUpdateTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             statusMap.put("totalUsers", userItemMatrix.size());
             statusMap.put("totalSpots", allSpotIds.size());
-            redisTemplate.opsForValue().set(STATUS_KEY, statusMap);
+            redisTemplate.opsForValue().set(RedisKeyManager.recommendationStatus(), statusMap);
 
             log.info(
                 "物品相似度矩阵更新完成：共处理景点 {} 个，用户 {} 个，相似度缓存时长 {} 小时，Top-K 邻居数 {}",
@@ -1458,7 +1454,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public void updateConfig(RecommendationConfigDTO config) {
-        redisTemplate.opsForValue().set(CONFIG_KEY, config);
+        redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfig(), config);
         log.info("推荐算法配置已更新: {}", config);
     }
 
@@ -1468,7 +1464,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         RecommendationStatusDTO status = new RecommendationStatusDTO();
         status.setComputing(computing.get());
 
-        Object cached = redisTemplate.opsForValue().get(STATUS_KEY);
+        Object cached = redisTemplate.opsForValue().get(RedisKeyManager.recommendationStatus());
         if (cached instanceof Map<?, ?> map) {
             status.setLastUpdateTime(map.get("lastUpdateTime") != null ? map.get("lastUpdateTime").toString() : null);
             status.setTotalUsers(map.get("totalUsers") instanceof Number n ? n.intValue() : null);
