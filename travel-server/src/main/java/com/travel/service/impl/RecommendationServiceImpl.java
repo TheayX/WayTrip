@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.config.AppCacheProperties;
 import com.travel.config.RedisKeyManager;
 import com.travel.dto.home.HotSpotResponse;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
@@ -38,6 +39,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final SpotRegionMapper spotRegionMapper;
     private final UserPreferenceMapper userPreferenceMapper;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final AppCacheProperties appCacheProperties;
 
     private final AtomicBoolean computing = new AtomicBoolean(false);
 
@@ -47,7 +49,7 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 从 Redis 读取推荐配置，缺失时回退到默认配置。
      */
     private LegacyRecommendationConfigDTO loadLegacyConfig() {
-        LegacyRecommendationConfigDTO mergedConfig = LegacyRecommendationConfigDTO.defaultConfig();
+        LegacyRecommendationConfigDTO mergedConfig = buildDefaultConfig();
         boolean loadedFromPartitionedKeys = false;
 
         loadedFromPartitionedKeys |= applyConfigSection(
@@ -75,7 +77,15 @@ public class RecommendationServiceImpl implements RecommendationService {
             // Jackson 反序列化后可能得到 LinkedHashMap，这里手动转换。
             return mapToConfig(cached);
         }
-        return LegacyRecommendationConfigDTO.defaultConfig();
+        return buildDefaultConfig();
+    }
+
+    private LegacyRecommendationConfigDTO buildDefaultConfig() {
+        LegacyRecommendationConfigDTO config = LegacyRecommendationConfigDTO.defaultConfig();
+        config.setUserRecTTLMinutes(defaultInt(appCacheProperties.getRecommendation().getUserRecTtlMinutes(), 60));
+        config.setSimilarityTTLHours(defaultInt(appCacheProperties.getRecommendation().getSimilarityTtlHours(), 24));
+        config.setHeatViewDedupeWindowMinutes(defaultInt(appCacheProperties.getSpot().getHeatViewDedupeWindowMinutes(), 30));
+        return config;
     }
 
     private boolean applyConfigSection(LegacyRecommendationConfigDTO target, Object cached) {
@@ -131,7 +141,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             return config;
         } catch (Exception e) {
             log.warn("从 Redis 解析推荐配置失败，改用默认配置", e);
-            return LegacyRecommendationConfigDTO.defaultConfig();
+            return buildDefaultConfig();
         }
     }
 
