@@ -18,6 +18,7 @@ import com.travel.mapper.SpotRegionMapper;
 import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
+import com.travel.service.cache.RecommendationCacheService;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.BeforeAll;
@@ -84,6 +85,9 @@ class RecommendationServiceImplTest {
     @Mock
     private ValueOperations<String, Object> valueOperations;
 
+    @Mock
+    private RecommendationCacheService recommendationCacheService;
+
     private AppCacheProperties appCacheProperties;
     private RecommendationServiceImpl recommendationService;
 
@@ -99,7 +103,7 @@ class RecommendationServiceImplTest {
             categoryMapper,
             spotRegionMapper,
             userPreferenceMapper,
-            redisTemplate,
+            recommendationCacheService,
             appCacheProperties
         );
     }
