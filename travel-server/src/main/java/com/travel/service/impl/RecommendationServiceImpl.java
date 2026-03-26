@@ -129,6 +129,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         // ============ 根据总交互数判断是否走冷启动 ============
         Map<Long, Double> userInteractions = buildUserInteractionWeights(userId, algorithmConfig);
         populateBehaviorStats(debugInfo, userId);
+        populateBehaviorDetails(debugInfo, userId, algorithmConfig);
         populateInteractionDebugInfo(debugInfo, userInteractions);
         logUserInteractionWeights(userId, userInteractions, debug);
 
@@ -1133,6 +1134,93 @@ public class RecommendationServiceImpl implements RecommendationService {
             uniqueSpotIds.size(),
             description
         );
+    }
+
+    private void populateBehaviorDetails(RecommendationResponse.DebugInfo debugInfo, Long userId,
+                                         RecommendationAlgorithmConfigDTO config) {
+        if (debugInfo == null || userId == null) {
+            return;
+        }
+
+        List<RecommendationResponse.BehaviorDetail> details = new ArrayList<>();
+
+        List<UserSpotView> views = userSpotViewMapper.selectList(
+            new LambdaQueryWrapper<UserSpotView>()
+                .eq(UserSpotView::getUserId, userId)
+                .select(UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
+        );
+        for (UserSpotView view : views) {
+            details.add(new RecommendationResponse.BehaviorDetail(
+                "浏览",
+                view.getSpotId(),
+                getSpotName(view.getSpotId()),
+                calculateViewWeight(view, config),
+                String.format(
+                    Locale.ROOT,
+                    "来源=%s，停留=%s秒",
+                    view.getViewSource() == null || view.getViewSource().isBlank() ? "detail" : view.getViewSource(),
+                    view.getViewDuration() == null ? 0 : view.getViewDuration()
+                )
+            ));
+        }
+
+        List<UserSpotFavorite> favorites = userSpotFavoriteMapper.selectList(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+                .select(UserSpotFavorite::getSpotId)
+        );
+        for (UserSpotFavorite favorite : favorites) {
+            details.add(new RecommendationResponse.BehaviorDetail(
+                "收藏",
+                favorite.getSpotId(),
+                getSpotName(favorite.getSpotId()),
+                defaultDouble(config.getWeightFavorite(), 1.0),
+                "有效收藏记录"
+            ));
+        }
+
+        List<Review> reviews = reviewMapper.selectList(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getIsDeleted, 0)
+                .select(Review::getSpotId, Review::getScore)
+        );
+        for (Review review : reviews) {
+            details.add(new RecommendationResponse.BehaviorDetail(
+                "评分",
+                review.getSpotId(),
+                getSpotName(review.getSpotId()),
+                review.getScore() * defaultDouble(config.getWeightReviewFactor(), 0.4),
+                String.format(Locale.ROOT, "评分=%s，因子=%.2f", review.getScore(), defaultDouble(config.getWeightReviewFactor(), 0.4))
+            ));
+        }
+
+        List<Order> orders = orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
+                .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
+                .select(Order::getSpotId, Order::getStatus)
+        );
+        for (Order order : orders) {
+            boolean completed = order.getStatus() == OrderStatus.COMPLETED.getCode();
+            details.add(new RecommendationResponse.BehaviorDetail(
+                completed ? "订单(已完成)" : "订单(已支付)",
+                order.getSpotId(),
+                getSpotName(order.getSpotId()),
+                completed
+                    ? defaultDouble(config.getWeightOrderCompleted(), 4.0)
+                    : defaultDouble(config.getWeightOrderPaid(), 3.0),
+                completed ? "订单状态=COMPLETED" : "订单状态=PAID"
+            ));
+        }
+
+        details.sort(Comparator
+            .comparing(RecommendationResponse.BehaviorDetail::getScore, Comparator.nullsLast(Double::compareTo))
+            .reversed()
+            .thenComparing(RecommendationResponse.BehaviorDetail::getSpotId, Comparator.nullsLast(Long::compareTo)));
+        debugInfo.setBehaviorDetails(details);
     }
 
     private void populateScoreDebugEntries(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> scores, String description) {

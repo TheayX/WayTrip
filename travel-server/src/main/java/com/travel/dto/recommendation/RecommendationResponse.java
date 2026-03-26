@@ -61,6 +61,7 @@ public class RecommendationResponse {
         private Integer filteredCount;
         private Integer finalCount;
         private List<BehaviorStat> behaviorStats;
+        private List<BehaviorDetail> behaviorDetails;
         private List<DebugEntry> userInteractions;
         private List<DebugEntry> candidateScores;
         private List<DebugEntry> filteredScores;
@@ -98,6 +99,17 @@ public class RecommendationResponse {
         private String behavior;
         private Integer recordCount;
         private Integer uniqueSpotCount;
+        private String description;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BehaviorDetail {
+        private String behavior;
+        private Long spotId;
+        private String spotName;
+        private Double score;
         private String description;
     }
 }
