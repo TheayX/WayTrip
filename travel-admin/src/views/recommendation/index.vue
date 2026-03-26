@@ -63,32 +63,19 @@
       </el-col>
     </el-row>
 
-    <!-- 配置表单 -->
-    <el-card shadow="hover" class="config-card">
-      <template #header>
-        <div class="card-header">
-          <div class="title-section">
-            <span class="title">算法参数配置</span>
-            <el-tag effect="plain" type="info" round>ItemCF — 基于物品的协同过滤</el-tag>
-          </div>
-          <div class="action-section">
-            <el-button @click="handleResetConfig" round>
-              <el-icon><RefreshLeft /></el-icon>
-              恢复默认
-            </el-button>
-            <el-button type="primary" @click="handleSaveConfig" :loading="saving" round>
-              <el-icon><Check /></el-icon>
-              保存配置
-            </el-button>
-            <el-button color="#722ed1" @click="handleUpdateMatrix" :loading="updatingMatrix" round>
-              <el-icon><Refresh /></el-icon>
-              更新矩阵
-            </el-button>
-          </div>
-        </div>
-      </template>
+    <el-row :gutter="24" class="workspace-row">
+      <el-col :xl="16" :lg="15" :md="24">
+        <el-card shadow="hover" class="config-card">
+          <template #header>
+            <div class="card-header">
+              <div class="title-section">
+                <span class="title">参数配置</span>
+                <el-tag effect="plain" type="info" round>ItemCF 协同过滤 + 热度重排</el-tag>
+              </div>
+            </div>
+          </template>
 
-      <el-form :model="config" label-width="180px" class="config-form">
+          <el-form :model="config" label-width="180px" class="config-form">
         <div class="config-bucket-grid">
           <div v-for="bucket in configBuckets" :key="bucket.title" class="config-bucket-card">
             <div class="config-bucket-title">{{ bucket.title }}</div>
@@ -370,10 +357,82 @@
             </el-col>
           </el-row>
         </div>
-      </el-form>
-    </el-card>
+          </el-form>
+        </el-card>
+      </el-col>
 
-    <el-card shadow="hover" class="debug-card">
+      <el-col :xl="8" :lg="9" :md="24">
+        <el-card shadow="hover" class="execution-card">
+          <template #header>
+            <div class="card-header">
+              <div class="title-section">
+                <span class="title">执行区</span>
+                <el-tag effect="plain" type="warning" round>先保存，再更新矩阵</el-tag>
+              </div>
+            </div>
+          </template>
+
+          <div class="execution-stack">
+            <div class="execution-intro">
+              配置修改会立即影响新的推荐请求；相似度矩阵只有在手动更新或定时任务执行后，才会按新参数重算。
+            </div>
+
+            <div class="execution-actions">
+              <el-button @click="handleResetConfig" round>
+                <el-icon><RefreshLeft /></el-icon>
+                恢复默认
+              </el-button>
+              <el-button type="primary" @click="handleSaveConfig" :loading="saving" round>
+                <el-icon><Check /></el-icon>
+                保存配置
+              </el-button>
+              <el-button color="#722ed1" @click="handleUpdateMatrix" :loading="updatingMatrix" round>
+                <el-icon><Refresh /></el-icon>
+                更新矩阵
+              </el-button>
+            </div>
+
+            <div class="execution-grid">
+              <div class="execution-metric">
+                <div class="execution-metric-label">浏览去重窗口</div>
+                <div class="execution-metric-value">{{ config.heatViewDedupeWindowMinutes }} 分钟</div>
+                <div class="execution-metric-desc">同一用户重复浏览同一景点，在该窗口内不重复加热</div>
+              </div>
+              <div class="execution-metric">
+                <div class="execution-metric-label">推荐缓存 TTL</div>
+                <div class="execution-metric-value">{{ config.userRecTTLMinutes }} 分钟</div>
+                <div class="execution-metric-desc">用户推荐结果缓存时长</div>
+              </div>
+              <div class="execution-metric">
+                <div class="execution-metric-label">矩阵缓存 TTL</div>
+                <div class="execution-metric-value">{{ config.similarityTTLHours }} 小时</div>
+                <div class="execution-metric-desc">景点相似度矩阵缓存时长</div>
+              </div>
+              <div class="execution-metric">
+                <div class="execution-metric-label">当前矩阵覆盖</div>
+                <div class="execution-metric-value">{{ status.totalSpots ?? '-' }} 个景点</div>
+                <div class="execution-metric-desc">最近一次离线矩阵计算涉及的景点数量</div>
+              </div>
+            </div>
+
+            <div class="execution-notes">
+              <div class="execution-note">
+                <div class="execution-note-title">推荐链路</div>
+                <div class="execution-note-text">行为权重决定候选分数，热度参数影响热门排序和最终轻量重排。</div>
+              </div>
+              <div class="execution-note">
+                <div class="execution-note-title">缓存链路</div>
+                <div class="execution-note-text">推荐结果和相似度矩阵都在 Redis 中缓存，但更新节奏不同。</div>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="24" class="preview-row">
+      <el-col :xl="16" :lg="24">
+        <el-card shadow="hover" class="debug-card">
       <template #header>
         <div class="card-header">
           <div class="title-section">
@@ -602,9 +661,11 @@
         </el-table-column>
       </el-table>
       <el-empty v-else :description="debugResult ? '本次请求已返回空列表，请结合上方调试输出查看原因' : '暂无调试结果'" />
-    </el-card>
+        </el-card>
+      </el-col>
 
-    <el-card shadow="hover" class="debug-card">
+      <el-col :xl="8" :lg="24">
+        <el-card shadow="hover" class="debug-card">
       <template #header>
         <div class="card-header">
           <div class="title-section">
@@ -667,7 +728,9 @@
         </el-table-column>
       </el-table>
       <el-empty v-else :description="similarityResult ? '当前景点暂无可预览的相似邻居' : '请输入景点 ID 查看相似邻居'" />
-    </el-card>
+        </el-card>
+      </el-col>
+    </el-row>
 
     <!-- 使用说明 -->
     <el-card shadow="hover" class="help-card">
@@ -1403,6 +1466,11 @@ onMounted(() => {
     margin-bottom: 24px;
   }
 
+  .workspace-row,
+  .preview-row {
+    margin-bottom: 24px;
+  }
+
   .status-card {
     border-radius: 12px;
     border: none;
@@ -1523,6 +1591,95 @@ onMounted(() => {
     border-radius: 12px;
     border: none;
     margin-bottom: 24px;
+  }
+
+  .execution-card {
+    border-radius: 12px;
+    border: none;
+    margin-bottom: 24px;
+  }
+
+  .execution-stack {
+    display: grid;
+    gap: 16px;
+  }
+
+  .execution-intro {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fff7e8 0%, #fff1db 100%);
+    border: 1px solid #ffd8a8;
+    color: #7a4e00;
+    line-height: 1.7;
+    font-size: 13px;
+  }
+
+  .execution-actions {
+    display: grid;
+    gap: 10px;
+  }
+
+  .execution-actions .el-button {
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  .execution-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .execution-metric {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f7faff 0%, #eef5ff 100%);
+    border: 1px solid #d8e7ff;
+  }
+
+  .execution-metric-label {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .execution-metric-value {
+    margin-top: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1d4ed8;
+    line-height: 1.25;
+  }
+
+  .execution-metric-desc {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #5b6475;
+  }
+
+  .execution-notes {
+    display: grid;
+    gap: 12px;
+  }
+
+  .execution-note {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+
+  .execution-note-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #253046;
+  }
+
+  .execution-note-text {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #607086;
   }
 
   .debug-toolbar {
@@ -2077,6 +2234,10 @@ onMounted(() => {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .execution-grid {
+      grid-template-columns: 1fr;
+    }
+
     .pipeline-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2087,6 +2248,15 @@ onMounted(() => {
   }
 
   @media (max-width: 768px) {
+    .workspace-row,
+    .preview-row {
+      margin-bottom: 16px;
+    }
+
+    .execution-grid {
+      grid-template-columns: 1fr;
+    }
+
     .config-form .config-bucket-grid {
       grid-template-columns: 1fr;
     }
