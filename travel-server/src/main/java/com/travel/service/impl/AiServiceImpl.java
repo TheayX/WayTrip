@@ -121,7 +121,7 @@ public class AiServiceImpl implements AiService {
             recordCounter("waytrip.ai.intent", "type", intentType.name().toLowerCase());
 
             List<Map<String, String>> historyMessages = loadHistoryMessages(safeSessionId);
-            String cacheKey = buildResponseCacheKey(intentType, safeUserMessage, userId);
+            String cacheKey = buildResponseCacheKey(intentType, safeUserMessage, userId, safeSessionId);
             String cachedReply = loadCachedReply(cacheKey);
             if (StringUtils.hasText(cachedReply)) {
                 cacheHit = true;
@@ -350,11 +350,11 @@ public class AiServiceImpl implements AiService {
         return count == null ? 0L : count;
     }
 
-    private String buildResponseCacheKey(IntentType intentType, String userMessage, Long userId) {
+    private String buildResponseCacheKey(IntentType intentType, String userMessage, Long userId, String sessionId) {
         String uid = userId == null ? "anonymous" : userId.toString();
         String normalized = userMessage.trim().toLowerCase();
         String digest = DigestUtils.md5DigestAsHex(normalized.getBytes(StandardCharsets.UTF_8));
-        return RedisKeyManager.aiChatResponseCache(ollamaModel, intentType.name().toLowerCase(), uid, digest);
+        return RedisKeyManager.aiChatResponseCache(ollamaModel, intentType.name().toLowerCase(), uid, sessionId, digest);
     }
 
     private String loadCachedReply(String cacheKey) {

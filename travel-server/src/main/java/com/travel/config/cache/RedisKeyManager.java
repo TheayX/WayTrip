@@ -112,8 +112,8 @@ public final class RedisKeyManager {
      * @param digest 请求摘要
      * @return AI 响应缓存 Key
      */
-    public static String aiChatResponseCache(String model, String intentType, String userId, String digest) {
-        return AI + ":chat:cache:" + model + ":" + intentType + ":" + userId + ":" + digest;
+    public static String aiChatResponseCache(String model, String intentType, String userId, String sessionId, String digest) {
+        return AI + ":chat:cache:" + model + ":" + intentType + ":" + userId + ":" + sessionId + ":" + digest;
     }
 
     /**
