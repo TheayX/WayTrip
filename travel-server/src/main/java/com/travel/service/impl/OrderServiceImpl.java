@@ -488,12 +488,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private int getPaidOrderHeatIncrement() {
-        Integer value = recommendationService.getConfig().getHeatOrderPaidIncrement();
+        Integer value = recommendationService.getConfig().getHeat().getHeatOrderPaidIncrement();
         return value != null && value > 0 ? value : 5;
     }
 
     private int getCompletedOrderHeatIncrement() {
-        Integer value = recommendationService.getConfig().getHeatOrderCompletedIncrement();
+        Integer value = recommendationService.getConfig().getHeat().getHeatOrderCompletedIncrement();
         return value != null && value > 0 ? value : 8;
     }
 }

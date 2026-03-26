@@ -1,7 +1,7 @@
 package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.recommendation.RecommendationConfigDTO;
+import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
 import com.travel.dto.recommendation.RecommendationStatusDTO;
 import com.travel.dto.recommendation.SimilarityPreviewResponse;
@@ -32,13 +32,13 @@ public class AdminRecommendationController {
 
     @Operation(summary = "获取推荐算法配置")
     @GetMapping("/config")
-    public ApiResponse<RecommendationConfigDTO> getConfig() {
+    public ApiResponse<RecommendationConfigBundleDTO> getConfig() {
         return ApiResponse.success(recommendationService.getConfig());
     }
 
     @Operation(summary = "更新推荐算法配置")
     @PutMapping("/config")
-    public ApiResponse<Void> updateConfig(@RequestBody RecommendationConfigDTO config) {
+    public ApiResponse<Void> updateConfig(@RequestBody RecommendationConfigBundleDTO config) {
         recommendationService.updateConfig(config);
         return ApiResponse.success(null);
     }

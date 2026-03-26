@@ -1,7 +1,7 @@
 package com.travel.service;
 
 import com.travel.dto.home.HotSpotResponse;
-import com.travel.dto.recommendation.RecommendationConfigDTO;
+import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
 import com.travel.dto.recommendation.SimilarityPreviewResponse;
 import com.travel.dto.recommendation.RecommendationStatusDTO;
@@ -44,12 +44,12 @@ public interface RecommendationService {
     /**
      * 获取当前算法配置
      */
-    RecommendationConfigDTO getConfig();
+    RecommendationConfigBundleDTO getConfig();
 
     /**
      * 更新算法配置
      */
-    void updateConfig(RecommendationConfigDTO config);
+    void updateConfig(RecommendationConfigBundleDTO config);
 
     /**
      * 清理单个用户的推荐缓存

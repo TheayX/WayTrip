@@ -7,7 +7,7 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
 import com.travel.config.RedisKeyManager;
-import com.travel.dto.recommendation.RecommendationConfigDTO;
+import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
 import com.travel.dto.spot.*;
 import com.travel.entity.*;
 import com.travel.mapper.*;
@@ -569,14 +569,14 @@ public class SpotServiceImpl implements SpotService {
     }
 
     private void increaseViewHeatScore(Long spotId, Long userId) {
-        RecommendationConfigDTO config = recommendationService.getConfig();
-        int increment = positiveOrDefault(config.getHeatViewIncrement(), 1);
+        RecommendationConfigBundleDTO config = recommendationService.getConfig();
+        int increment = positiveOrDefault(config.getHeat().getHeatViewIncrement(), 1);
         if (userId == null) {
             incrementHeatScore(spotId, increment);
             return;
         }
 
-        long dedupeWindowMinutes = positiveOrDefault(config.getHeatViewDedupeWindowMinutes(), 30);
+        long dedupeWindowMinutes = positiveOrDefault(config.getHeat().getHeatViewDedupeWindowMinutes(), 30);
         String key = RedisKeyManager.spotHeatView(spotId, userId);
         Boolean firstViewInWindow = redisTemplate.opsForValue().setIfAbsent(
                 key,
