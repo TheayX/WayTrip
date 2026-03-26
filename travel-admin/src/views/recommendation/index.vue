@@ -533,6 +533,26 @@
         </el-table>
       </div>
 
+      <div v-if="behaviorDetails.length" class="debug-sections">
+        <div class="debug-block-title">用户交互行为明细</div>
+        <el-collapse>
+          <el-collapse-item :title="`查看明细（${behaviorDetails.length} 条）`" name="behavior-details">
+            <el-table :data="behaviorDetails" stripe size="small" class="debug-table">
+              <el-table-column prop="behavior" label="行为类型" width="140" />
+              <el-table-column prop="spotId" label="景点ID" width="100" />
+              <el-table-column prop="spotName" label="景点名称" min-width="180" />
+              <el-table-column label="行为权重" width="140">
+                <template #default="{ row }">
+                  <span v-if="row.score != null" class="score-text">{{ Number(row.score).toFixed(4) }}</span>
+                  <span v-else class="score-empty">-</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="description" label="明细说明" min-width="280" />
+            </el-table>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+
       <div v-if="debugInsights.length" class="debug-insights">
         <div class="debug-block-title">结果解读</div>
         <div class="insight-list">
@@ -1111,6 +1131,7 @@ const debugItems = computed(() => debugResult.value?.list || [])
 const debugInfo = computed(() => debugResult.value?.debugInfo || null)
 const debugNotes = computed(() => debugInfo.value?.notes || [])
 const behaviorStats = computed(() => debugInfo.value?.behaviorStats || [])
+const behaviorDetails = computed(() => debugInfo.value?.behaviorDetails || [])
 const resultContributions = computed(() => debugInfo.value?.resultContributions || [])
 
 const debugSections = computed(() => {
