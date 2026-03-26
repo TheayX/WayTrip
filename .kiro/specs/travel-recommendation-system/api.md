@@ -1,50 +1,10 @@
-# API 接口文档
+﻿# API 文档
 
 ## 文档说明
 
 - 对齐基线：当前控制器实现
-- 更新时间：2026-03-22
-- 说明：本版以 `travel-server/src/main/java/com/travel/controller` 为准，删除了与代码不一致的旧描述
-
-## 基础约定
-
-### 路由前缀
-
-- 用户端：`/api/v1`
-- 管理端：`/api/admin/v1`
-
-### 认证方式
-
-- 用户端：`Authorization: Bearer {token}`
-- 管理端：`Authorization: Bearer {token}`
-
-### 统一响应
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": {},
-  "timestamp": 1700000000000
-}
-```
-
-### 分页响应
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": {
-    "list": [],
-    "total": 0,
-    "page": 1,
-    "pageSize": 10,
-    "totalPages": 0
-  },
-  "timestamp": 1700000000000
-}
-```
+- 更新时间：2026-03-26
+- 说明：本版补充推荐模块与管理端推荐接口
 
 ## 用户端接口
 
@@ -53,40 +13,17 @@
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | POST | `/api/v1/auth/wx-login` | 微信登录 |
-| POST | `/api/v1/auth/wx-bind-phone` | 小程序绑定手机号 |
-| POST | `/api/v1/auth/web-register` | Web 注册 |
-| POST | `/api/v1/auth/web-login` | Web 登录 |
-
-### 2. 个人资料主路由
-
-主入口统一为：
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
+| POST | `/api/v1/auth/bind-phone` | 绑定手机号 |
+| POST | `/api/v1/auth/register` | Web 注册 |
+| POST | `/api/v1/auth/login` | Web 登录 |
 | GET | `/api/v1/user/info` | 获取用户信息 |
 | PUT | `/api/v1/user/info` | 更新用户信息 |
-| POST | `/api/v1/user/preferences` | 设置偏好标签 |
+| GET | `/api/v1/user/preferences` | 获取偏好 |
+| PUT | `/api/v1/user/preferences` | 更新偏好 |
 | PUT | `/api/v1/user/password` | 修改密码 |
 | DELETE | `/api/v1/user/account` | 注销账户 |
 
-### 3. 个人资料兼容路由
-
-当前后端还保留了一组资料兼容接口：
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| GET | `/api/v1/auth/user-info` | 获取用户信息 |
-| PUT | `/api/v1/auth/user-info` | 更新用户信息 |
-| POST | `/api/v1/auth/preferences` | 设置偏好标签 |
-| PUT | `/api/v1/auth/password` | 修改密码 |
-
-说明：
-
-- `/api/v1/user/*` 是主入口。
-- `/api/v1/auth/*` 资料接口仅作为兼容层保留。
-- 新接入与现有前端统一使用 `/api/v1/user/*`，不要再混用。
-
-### 4. 上传
+### 2. 文件上传
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -96,7 +33,7 @@
 
 - `multipart/form-data`
 
-### 5. 首页与推荐
+### 3. 首页与推荐
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -105,7 +42,7 @@
 | GET | `/api/v1/recommendations` | 获取个性化推荐 |
 | POST | `/api/v1/recommendations/refresh` | 刷新推荐 |
 
-### 6. 景点
+### 4. 景点
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -114,7 +51,7 @@
 | GET | `/api/v1/spots/{spotId}` | 景点详情 |
 | GET | `/api/v1/spots/filters` | 获取景点筛选项 |
 
-### 7. 攻略
+### 5. 攻略
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -122,7 +59,7 @@
 | GET | `/api/v1/guides/{guideId}` | 攻略详情 |
 | GET | `/api/v1/guides/categories` | 攻略分类 |
 
-### 8. 评分评论
+### 6. 评分评论
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -130,7 +67,7 @@
 | GET | `/api/v1/reviews/spot/{spotId}` | 获取当前用户对景点评分 |
 | GET | `/api/v1/reviews/spot/{spotId}/comments` | 获取景点评论列表 |
 
-### 9. 收藏
+### 7. 收藏
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -139,7 +76,7 @@
 | GET | `/api/v1/favorites/check/{spotId}` | 检查收藏状态 |
 | GET | `/api/v1/favorites` | 收藏列表 |
 
-### 10. 订单
+### 8. 订单
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -167,8 +104,6 @@
 | POST | `/api/admin/v1/spots` | 创建景点 |
 | PUT | `/api/admin/v1/spots/{spotId}` | 更新景点 |
 | PUT | `/api/admin/v1/spots/{spotId}/publish` | 更新发布状态 |
-| DELETE | `/api/admin/v1/spots/{spotId}` | 删除景点 |
-| GET | `/api/admin/v1/spots/filters` | 后台景点筛选项 |
 
 ### 3. 攻略
 
@@ -176,60 +111,35 @@
 | --- | --- | --- |
 | GET | `/api/admin/v1/guides` | 攻略列表 |
 | GET | `/api/admin/v1/guides/{guideId}` | 攻略详情 |
-| GET | `/api/admin/v1/guides/categories` | 攻略分类 |
 | POST | `/api/admin/v1/guides` | 创建攻略 |
 | PUT | `/api/admin/v1/guides/{guideId}` | 更新攻略 |
 | PUT | `/api/admin/v1/guides/{guideId}/publish` | 更新发布状态 |
-| DELETE | `/api/admin/v1/guides/{guideId}` | 删除攻略 |
 
 ### 4. 订单
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/api/admin/v1/orders` | 订单列表 |
-| GET | `/api/admin/v1/orders/{id}` | 订单详情 |
-| POST | `/api/admin/v1/orders/{id}/complete` | 完成订单 |
-| POST | `/api/admin/v1/orders/{id}/refund` | 退款订单 |
-| POST | `/api/admin/v1/orders/{id}/cancel` | 取消待支付订单 |
-| POST | `/api/admin/v1/orders/{id}/reopen` | 恢复已完成订单 |
+| GET | `/api/admin/v1/orders` | 后台订单列表 |
+| GET | `/api/admin/v1/orders/{id}` | 后台订单详情 |
+| POST | `/api/admin/v1/orders/{id}/complete` | 标记完成 |
+| POST | `/api/admin/v1/orders/{id}/refund` | 执行退款 |
+| POST | `/api/admin/v1/orders/{id}/cancel` | 后台取消 |
+| POST | `/api/admin/v1/orders/{id}/restore` | 恢复为已支付 |
 
-### 5. 用户管理
+### 5. 用户与管理员
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | `/api/admin/v1/users` | 用户列表 |
-| GET | `/api/admin/v1/users/{id}` | 用户详情 |
-| PUT | `/api/admin/v1/users/{id}/password` | 重置用户密码 |
-
-### 6. 管理员管理
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
+| GET | `/api/admin/v1/users/{userId}` | 用户详情 |
+| POST | `/api/admin/v1/users/{userId}/reset-password` | 重置用户密码 |
 | GET | `/api/admin/v1/admins` | 管理员列表 |
 | POST | `/api/admin/v1/admins` | 创建管理员 |
-| PUT | `/api/admin/v1/admins/{id}` | 更新管理员 |
-| PUT | `/api/admin/v1/admins/{id}/password` | 重置管理员密码 |
-| DELETE | `/api/admin/v1/admins/{id}` | 删除管理员 |
+| PUT | `/api/admin/v1/admins/{adminId}` | 更新管理员 |
+| POST | `/api/admin/v1/admins/{adminId}/reset-password` | 重置管理员密码 |
+| DELETE | `/api/admin/v1/admins/{adminId}` | 删除管理员 |
 
-### 7. 轮播图
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| GET | `/api/admin/v1/banners` | 轮播图列表 |
-| POST | `/api/admin/v1/banners` | 创建轮播图 |
-| PUT | `/api/admin/v1/banners/{id}` | 更新轮播图 |
-| DELETE | `/api/admin/v1/banners/{id}` | 删除轮播图 |
-| POST | `/api/admin/v1/banners/{id}/toggle` | 切换启用状态 |
-
-### 8. 仪表板
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| GET | `/api/admin/v1/dashboard/overview` | 概览数据 |
-| GET | `/api/admin/v1/dashboard/order-trend` | 订单趋势 |
-| GET | `/api/admin/v1/dashboard/hot-spots` | 热门景点排行 |
-
-### 9. 地区与分类
+### 6. 地区、分类、轮播图、上传
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -241,40 +151,26 @@
 | POST | `/api/admin/v1/categories` | 创建分类 |
 | PUT | `/api/admin/v1/categories/{id}` | 更新分类 |
 | DELETE | `/api/admin/v1/categories/{id}` | 删除分类 |
-
-### 10. 上传
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
+| GET | `/api/admin/v1/banners` | 轮播图列表 |
+| POST | `/api/admin/v1/banners` | 创建轮播图 |
+| PUT | `/api/admin/v1/banners/{id}` | 更新轮播图 |
+| DELETE | `/api/admin/v1/banners/{id}` | 删除轮播图 |
 | POST | `/api/admin/v1/upload/image` | 上传图片 |
 | POST | `/api/admin/v1/upload/icon` | 上传图标 |
 
-## 关键约束
+### 7. 推荐系统
 
-### 内容过滤
-
-- 用户端默认只返回 `is_deleted=0`
-- 用户端景点/攻略默认只返回已发布内容
-- 首页轮播图默认只返回已启用内容
-
-### 订单状态
-
-| 值 | 含义 |
-| --- | --- |
-| 0 | 待支付 |
-| 1 | 已支付 |
-| 2 | 已取消 |
-| 3 | 已退款 |
-| 4 | 已完成 |
-
-### 上传限制
-
-- 头像：图片，2MB
-- 管理端图片：图片，5MB
-- 管理端图标：图片，2MB
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| POST | `/api/admin/v1/recommendation/update-matrix` | 手动重建相似度矩阵 |
+| GET | `/api/admin/v1/recommendation/config` | 获取推荐配置 |
+| PUT | `/api/admin/v1/recommendation/config` | 更新推荐配置 |
+| GET | `/api/admin/v1/recommendation/status` | 获取推荐引擎运行状态 |
+| GET | `/api/admin/v1/recommendation/preview` | 调试预览指定用户推荐结果 |
+| GET | `/api/admin/v1/recommendation/similarity-preview` | 预览指定景点的相似邻居 |
 
 ## 当前文档化结论
 
-- 资料接口现在已完成收口：`/api/v1/user/*` 为主入口，`/api/v1/auth/*` 为兼容层。
-- 管理端图片上传接口和图标上传接口已实际存在，不应再标记为待实现。
-- 如果后续继续演进接口，建议直接以 Knife4j 导出结果为准同步更新该文档。
+- 当前 API 主链路已覆盖用户端、管理端与推荐调试入口。
+- 推荐系统不再只有 `/api/v1/recommendations` 两个用户端接口，管理端接口已成为正式能力的一部分。
+- 若后续接口继续扩展，应优先以控制器实现与 Knife4j 导出结果为准同步更新文档。
