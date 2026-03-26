@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
+import com.travel.config.RedisKeyManager;
 import com.travel.dto.recommendation.RecommendationConfigDTO;
 import com.travel.dto.spot.*;
 import com.travel.entity.*;
@@ -45,8 +46,6 @@ public class SpotServiceImpl implements SpotService {
     private final UserSpotViewMapper userSpotViewMapper;
     private final RecommendationService recommendationService;
     private final RedisTemplate<String, Object> redisTemplate;
-
-    private static final String DETAIL_HEAT_KEY_PREFIX = "spot:heat:view:";
 
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
@@ -578,7 +577,7 @@ public class SpotServiceImpl implements SpotService {
         }
 
         long dedupeWindowMinutes = positiveOrDefault(config.getHeatViewDedupeWindowMinutes(), 30);
-        String key = DETAIL_HEAT_KEY_PREFIX + spotId + ":" + userId;
+        String key = RedisKeyManager.spotHeatView(spotId, userId);
         Boolean firstViewInWindow = redisTemplate.opsForValue().setIfAbsent(
                 key,
                 1,
