@@ -2,7 +2,6 @@ package com.travel.service.cache;
 
 import com.travel.config.AppCacheProperties;
 import com.travel.config.RedisKeyManager;
-import com.travel.dto.recommendation.LegacyRecommendationConfigDTO;
 import com.travel.dto.recommendation.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
@@ -23,28 +22,19 @@ public class RecommendationCacheService {
 
     public RecommendationConfigBundleDTO loadConfig() {
         RecommendationConfigBundleDTO mergedConfig = buildDefaultConfig();
-        boolean loadedFromPartitionedKeys = false;
-
-        loadedFromPartitionedKeys |= applyAlgorithmSection(
+        applyAlgorithmSection(
             mergedConfig,
             redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfigAlgorithm())
         );
-        loadedFromPartitionedKeys |= applyHeatSection(
+        applyHeatSection(
             mergedConfig,
             redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfigHeat())
         );
-        loadedFromPartitionedKeys |= applyCacheSection(
+        applyCacheSection(
             mergedConfig,
             redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfigCache())
         );
-
-        if (loadedFromPartitionedKeys) {
-            return mergedConfig;
-        }
-
-        Object cached = redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfig());
-        RecommendationConfigBundleDTO aggregateConfig = mapAggregateConfig(cached);
-        return aggregateConfig == null ? mergedConfig : mergeBundle(mergedConfig, aggregateConfig);
+        return mergedConfig;
     }
 
     public void saveConfig(RecommendationConfigBundleDTO config) {
@@ -52,7 +42,6 @@ public class RecommendationCacheService {
         redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfigAlgorithm(), safeAlgorithmConfig(safeConfig));
         redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfigHeat(), safeHeatConfig(safeConfig));
         redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfigCache(), safeCacheConfig(safeConfig));
-        redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfig(), safeConfig.toLegacy());
     }
 
     public Object getUserRecommendation(Long userId) {
@@ -128,57 +117,6 @@ public class RecommendationCacheService {
         return true;
     }
 
-    private RecommendationConfigBundleDTO mapAggregateConfig(Object cached) {
-        if (cached == null) {
-            return null;
-        }
-        if (cached instanceof RecommendationConfigBundleDTO bundle) {
-            return bundle;
-        }
-        if (cached instanceof LegacyRecommendationConfigDTO legacy) {
-            return RecommendationConfigBundleDTO.fromLegacy(legacy);
-        }
-        if (!(cached instanceof Map<?, ?> rawMap)) {
-            return null;
-        }
-
-        RecommendationConfigBundleDTO bundle = RecommendationConfigBundleDTO.defaultConfig();
-        boolean matchedNested = false;
-
-        Object algorithm = rawMap.get("algorithm");
-        if (algorithm != null) {
-            RecommendationAlgorithmConfigDTO section = mapAlgorithmSection(algorithm);
-            if (section != null) {
-                mergeAlgorithm(bundle.getAlgorithm(), section);
-                matchedNested = true;
-            }
-        }
-
-        Object heat = rawMap.get("heat");
-        if (heat != null) {
-            RecommendationHeatConfigDTO section = mapHeatSection(heat);
-            if (section != null) {
-                mergeHeat(bundle.getHeat(), section);
-                matchedNested = true;
-            }
-        }
-
-        Object cache = rawMap.get("cache");
-        if (cache != null) {
-            RecommendationCacheConfigDTO section = mapCacheSection(cache);
-            if (section != null) {
-                mergeCache(bundle.getCache(), section);
-                matchedNested = true;
-            }
-        }
-
-        if (matchedNested) {
-            return bundle;
-        }
-
-        return RecommendationConfigBundleDTO.fromLegacy(mapLegacyConfig(rawMap));
-    }
-
     @SuppressWarnings("unchecked")
     private RecommendationAlgorithmConfigDTO mapAlgorithmSection(Object cached) {
         if (cached == null) {
@@ -189,9 +127,6 @@ public class RecommendationCacheService {
         }
         if (cached instanceof RecommendationConfigBundleDTO bundle) {
             return bundle.getAlgorithm();
-        }
-        if (cached instanceof LegacyRecommendationConfigDTO legacy) {
-            return RecommendationConfigBundleDTO.fromLegacy(legacy).getAlgorithm();
         }
         if (!(cached instanceof Map<?, ?>)) {
             return null;
@@ -238,9 +173,6 @@ public class RecommendationCacheService {
         if (cached instanceof RecommendationConfigBundleDTO bundle) {
             return bundle.getHeat();
         }
-        if (cached instanceof LegacyRecommendationConfigDTO legacy) {
-            return RecommendationConfigBundleDTO.fromLegacy(legacy).getHeat();
-        }
         if (!(cached instanceof Map<?, ?>)) {
             return null;
         }
@@ -272,9 +204,6 @@ public class RecommendationCacheService {
         if (cached instanceof RecommendationConfigBundleDTO bundle) {
             return bundle.getCache();
         }
-        if (cached instanceof LegacyRecommendationConfigDTO legacy) {
-            return RecommendationConfigBundleDTO.fromLegacy(legacy).getCache();
-        }
         if (!(cached instanceof Map<?, ?>)) {
             return null;
         }
@@ -287,47 +216,6 @@ public class RecommendationCacheService {
             return config;
         } catch (Exception e) {
             return null;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private LegacyRecommendationConfigDTO mapLegacyConfig(Map<?, ?> rawMap) {
-        try {
-            Map<String, Object> map = (Map<String, Object>) rawMap;
-            LegacyRecommendationConfigDTO config = LegacyRecommendationConfigDTO.defaultConfig();
-            if (map.containsKey("weightView")) config.setWeightView(toDouble(map.get("weightView")));
-            if (map.containsKey("weightFavorite")) config.setWeightFavorite(toDouble(map.get("weightFavorite")));
-            if (map.containsKey("weightReviewFactor")) config.setWeightReviewFactor(toDouble(map.get("weightReviewFactor")));
-            if (map.containsKey("weightOrderPaid")) config.setWeightOrderPaid(toDouble(map.get("weightOrderPaid")));
-            if (map.containsKey("weightOrderCompleted")) config.setWeightOrderCompleted(toDouble(map.get("weightOrderCompleted")));
-            if (map.containsKey("viewSourceFactorHome")) config.setViewSourceFactorHome(toDouble(map.get("viewSourceFactorHome")));
-            if (map.containsKey("viewSourceFactorSearch")) config.setViewSourceFactorSearch(toDouble(map.get("viewSourceFactorSearch")));
-            if (map.containsKey("viewSourceFactorRecommend")) config.setViewSourceFactorRecommend(toDouble(map.get("viewSourceFactorRecommend")));
-            if (map.containsKey("viewSourceFactorGuide")) config.setViewSourceFactorGuide(toDouble(map.get("viewSourceFactorGuide")));
-            if (map.containsKey("viewSourceFactorDetail")) config.setViewSourceFactorDetail(toDouble(map.get("viewSourceFactorDetail")));
-            if (map.containsKey("viewDurationShortThresholdSeconds")) config.setViewDurationShortThresholdSeconds(toInt(map.get("viewDurationShortThresholdSeconds")));
-            if (map.containsKey("viewDurationMediumThresholdSeconds")) config.setViewDurationMediumThresholdSeconds(toInt(map.get("viewDurationMediumThresholdSeconds")));
-            if (map.containsKey("viewDurationLongThresholdSeconds")) config.setViewDurationLongThresholdSeconds(toInt(map.get("viewDurationLongThresholdSeconds")));
-            if (map.containsKey("viewDurationFactorShort")) config.setViewDurationFactorShort(toDouble(map.get("viewDurationFactorShort")));
-            if (map.containsKey("viewDurationFactorMedium")) config.setViewDurationFactorMedium(toDouble(map.get("viewDurationFactorMedium")));
-            if (map.containsKey("viewDurationFactorLong")) config.setViewDurationFactorLong(toDouble(map.get("viewDurationFactorLong")));
-            if (map.containsKey("viewDurationFactorVeryLong")) config.setViewDurationFactorVeryLong(toDouble(map.get("viewDurationFactorVeryLong")));
-            if (map.containsKey("heatViewIncrement")) config.setHeatViewIncrement(toInt(map.get("heatViewIncrement")));
-            if (map.containsKey("heatFavoriteIncrement")) config.setHeatFavoriteIncrement(toInt(map.get("heatFavoriteIncrement")));
-            if (map.containsKey("heatReviewIncrement")) config.setHeatReviewIncrement(toInt(map.get("heatReviewIncrement")));
-            if (map.containsKey("heatOrderPaidIncrement")) config.setHeatOrderPaidIncrement(toInt(map.get("heatOrderPaidIncrement")));
-            if (map.containsKey("heatOrderCompletedIncrement")) config.setHeatOrderCompletedIncrement(toInt(map.get("heatOrderCompletedIncrement")));
-            if (map.containsKey("heatViewDedupeWindowMinutes")) config.setHeatViewDedupeWindowMinutes(toInt(map.get("heatViewDedupeWindowMinutes")));
-            if (map.containsKey("heatRerankFactor")) config.setHeatRerankFactor(toDouble(map.get("heatRerankFactor")));
-            if (map.containsKey("minInteractionsForCF")) config.setMinInteractionsForCF(toInt(map.get("minInteractionsForCF")));
-            if (map.containsKey("topKNeighbors")) config.setTopKNeighbors(toInt(map.get("topKNeighbors")));
-            if (map.containsKey("candidateExpandFactor")) config.setCandidateExpandFactor(toInt(map.get("candidateExpandFactor")));
-            if (map.containsKey("coldStartExpandFactor")) config.setColdStartExpandFactor(toInt(map.get("coldStartExpandFactor")));
-            if (map.containsKey("similarityTTLHours")) config.setSimilarityTTLHours(toInt(map.get("similarityTTLHours")));
-            if (map.containsKey("userRecTTLMinutes")) config.setUserRecTTLMinutes(toInt(map.get("userRecTTLMinutes")));
-            return config;
-        } catch (Exception e) {
-            return LegacyRecommendationConfigDTO.defaultConfig();
         }
     }
 

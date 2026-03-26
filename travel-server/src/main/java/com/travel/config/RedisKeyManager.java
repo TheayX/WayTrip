@@ -23,20 +23,16 @@ public final class RedisKeyManager {
         return RECOMMENDATION + ":user:" + userId;
     }
 
-    public static String recommendationConfig() {
-        return RECOMMENDATION + ":config";
-    }
-
     public static String recommendationConfigAlgorithm() {
-        return recommendationConfig() + ":algorithm";
+        return RECOMMENDATION + ":config:algorithm";
     }
 
     public static String recommendationConfigHeat() {
-        return recommendationConfig() + ":heat";
+        return RECOMMENDATION + ":config:heat";
     }
 
     public static String recommendationConfigCache() {
-        return recommendationConfig() + ":cache";
+        return RECOMMENDATION + ":config:cache";
     }
 
     public static String recommendationStatus() {
