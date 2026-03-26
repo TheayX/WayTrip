@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import com.travel.config.AppCacheProperties;
 import com.travel.dto.recommendation.LegacyRecommendationConfigDTO;
 import com.travel.entity.Order;
 import com.travel.entity.Review;
@@ -83,10 +84,12 @@ class RecommendationServiceImplTest {
     @Mock
     private ValueOperations<String, Object> valueOperations;
 
+    private AppCacheProperties appCacheProperties;
     private RecommendationServiceImpl recommendationService;
 
     @BeforeEach
     void setUp() {
+        appCacheProperties = new AppCacheProperties();
         recommendationService = new RecommendationServiceImpl(
             spotMapper,
             reviewMapper,
@@ -96,7 +99,8 @@ class RecommendationServiceImplTest {
             categoryMapper,
             spotRegionMapper,
             userPreferenceMapper,
-            redisTemplate
+            redisTemplate,
+            appCacheProperties
         );
     }
 

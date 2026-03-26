@@ -6,11 +6,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
+import com.travel.config.AppCacheProperties;
 import com.travel.config.RedisKeyManager;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
 import com.travel.dto.spot.*;
 import com.travel.entity.*;
 import com.travel.mapper.*;
+import com.travel.service.cache.SpotHeatCacheService;
 import com.travel.service.RecommendationService;
 import com.travel.service.SpotService;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,8 @@ public class SpotServiceImpl implements SpotService {
     private final ReviewMapper reviewMapper;
     private final UserSpotViewMapper userSpotViewMapper;
     private final RecommendationService recommendationService;
+    private final SpotHeatCacheService spotHeatCacheService;
+    private final AppCacheProperties appCacheProperties;
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
@@ -576,14 +580,10 @@ public class SpotServiceImpl implements SpotService {
             return;
         }
 
-        long dedupeWindowMinutes = positiveOrDefault(config.getHeat().getHeatViewDedupeWindowMinutes(), 30);
-        String key = RedisKeyManager.spotHeatView(spotId, userId);
-        Boolean firstViewInWindow = redisTemplate.opsForValue().setIfAbsent(
-                key,
-                1,
-                dedupeWindowMinutes,
-                TimeUnit.MINUTES);
-        if (Boolean.TRUE.equals(firstViewInWindow)) {
+        long dedupeWindowMinutes = positiveOrDefault(
+                config.getHeat().getHeatViewDedupeWindowMinutes(),
+                positiveOrDefault(appCacheProperties.getSpot().getHeatViewDedupeWindowMinutes(), 30));
+        if (spotHeatCacheService.markViewInDedupeWindow(spotId, userId, dedupeWindowMinutes)) {
             incrementHeatScore(spotId, increment);
         }
     }
