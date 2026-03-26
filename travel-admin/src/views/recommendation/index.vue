@@ -430,18 +430,18 @@
       </el-col>
     </el-row>
 
-    <el-row :gutter="24" class="preview-row">
-      <el-col :xl="16" :lg="24">
-        <el-card shadow="hover" class="debug-card">
+    <el-card shadow="hover" class="debug-card preview-card">
       <template #header>
         <div class="card-header">
           <div class="title-section">
-            <span class="title">推荐调试预览</span>
-            <el-tag effect="plain" type="warning" round>仅管理端可见</el-tag>
+            <span class="title">预览与调试</span>
+            <el-tag effect="plain" type="warning" round>预览区</el-tag>
           </div>
         </div>
       </template>
 
+      <el-tabs v-model="activePreviewTab" class="preview-tabs">
+        <el-tab-pane label="推荐调试预览" name="recommendation">
       <div class="debug-toolbar">
         <div class="debug-field">
           <span class="debug-label">用户 ID</span>
@@ -661,20 +661,9 @@
         </el-table-column>
       </el-table>
       <el-empty v-else :description="debugResult ? '本次请求已返回空列表，请结合上方调试输出查看原因' : '暂无调试结果'" />
-        </el-card>
-      </el-col>
+        </el-tab-pane>
 
-      <el-col :xl="8" :lg="24">
-        <el-card shadow="hover" class="debug-card">
-      <template #header>
-        <div class="card-header">
-          <div class="title-section">
-            <span class="title">相似邻居预览</span>
-            <el-tag effect="plain" type="info" round>离线矩阵视角（缓存结果直接预览 / 更新矩阵后预览）</el-tag>
-          </div>
-        </div>
-      </template>
-
+        <el-tab-pane label="相似邻居预览" name="similarity">
       <div class="debug-toolbar">
         <div class="debug-field">
           <span class="debug-label">景点 ID</span>
@@ -728,9 +717,9 @@
         </el-table-column>
       </el-table>
       <el-empty v-else :description="similarityResult ? '当前景点暂无可预览的相似邻居' : '请输入景点 ID 查看相似邻居'" />
-        </el-card>
-      </el-col>
-    </el-row>
+        </el-tab-pane>
+      </el-tabs>
+    </el-card>
 
     <!-- 使用说明 -->
     <el-card shadow="hover" class="help-card">
@@ -739,6 +728,10 @@
           <span class="title">使用说明与调参指南</span>
         </div>
       </template>
+
+      <div class="help-intro">
+        这部分主要用于查公式、字段来源、调参策略和默认值。日常调参时可以先只关注上面的配置区、执行区和预览区。
+      </div>
 
       <el-collapse v-model="activeCollapse">
         <el-collapse-item title="📐 核心算法公式" name="formula">
@@ -1059,6 +1052,7 @@ const updatingMatrix = ref(false)
 const previewing = ref(false)
 const similarityPreviewing = ref(false)
 const similarityMatrixPreviewing = ref(false)
+const activePreviewTab = ref('recommendation')
 const activeCollapse = ref([])
 const debugResult = ref(null)
 const similarityResult = ref(null)
@@ -1593,6 +1587,22 @@ onMounted(() => {
     margin-bottom: 24px;
   }
 
+  .preview-card {
+    margin-bottom: 24px;
+  }
+
+  .preview-tabs :deep(.el-tabs__header) {
+    margin-bottom: 18px;
+  }
+
+  .preview-tabs :deep(.el-tabs__nav-wrap::after) {
+    background-color: #e8edf5;
+  }
+
+  .preview-tabs :deep(.el-tabs__item) {
+    font-weight: 600;
+  }
+
   .execution-card {
     border-radius: 12px;
     border: none;
@@ -2075,6 +2085,17 @@ onMounted(() => {
         }
       }
     }
+  }
+
+  .help-intro {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f6fbff 0%, #eef7ff 100%);
+    border: 1px solid #d8eaff;
+    color: #44607a;
+    line-height: 1.7;
+    font-size: 13px;
   }
 
   .help-content {
