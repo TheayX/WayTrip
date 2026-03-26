@@ -163,7 +163,7 @@
         <div class="form-section">
           <div class="section-eyebrow">
             <span>离线矩阵构建</span>
-            <el-tag size="small" effect="plain" type="warning" round>浏览行为修正</el-tag>
+            <el-tag size="small" effect="plain" type="warning" round>需重建矩阵</el-tag>
           </div>
           <div class="section-title">
             <el-icon><DataLine /></el-icon>
@@ -353,7 +353,7 @@
         <div class="form-section">
           <div class="section-eyebrow">
             <span>在线推荐与候选控制</span>
-            <el-tag size="small" effect="plain" type="success" round>大部分保存后立即生效</el-tag>
+            <el-tag size="small" effect="plain" type="success" round>保存后立即生效</el-tag>
           </div>
           <div class="section-title">
             <el-icon><Setting /></el-icon>
@@ -361,7 +361,7 @@
           </div>
           <div class="section-desc">控制用户什么时候进入协同过滤通道，以及个性化推荐、冷启动推荐各自拉多大的候选集。</div>
           <div class="section-inline-note">
-            这一组字段都只影响在线推荐分支切换和候选规模，不需要重建相似度矩阵。
+            这些参数只影响在线推荐分支切换和候选规模，不需要重建相似度矩阵。
           </div>
 
           <el-row :gutter="24">
@@ -393,17 +393,13 @@
         <div class="form-section">
           <div class="section-eyebrow">
             <span>缓存与调试</span>
-            <el-tag size="small" effect="plain" type="primary" round>不直接改变推荐逻辑</el-tag>
+            <el-tag size="small" effect="plain" type="primary" round>缓存命中与调试</el-tag>
           </div>
           <div class="section-title">
             <el-icon><Clock /></el-icon>
-            <span>在线缓存与矩阵缓存</span>
+            <span>用户推荐缓存</span>
           </div>
-          <div class="section-desc">这里只控制推荐结果缓存时长，主要影响缓存命中和调试观察，不改变推荐公式。</div>
-          <div class="section-inline-note">
-            这里保留的是在线用户推荐缓存；相似度矩阵 TTL 已经归到“离线矩阵构建”分组里。
-          </div>
-
+          <div class="section-desc">控制用户推荐结果的缓存时长，主要影响缓存命中和调试观察节奏，不改变推荐公式。</div>
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="用户推荐缓存 TTL">
@@ -436,7 +432,7 @@
             <div class="execution-brief">
               <div class="execution-brief-title">执行建议</div>
               <div class="execution-brief-text">
-                交互权重、浏览行为修正、近邻数量 K、相似度矩阵 TTL 这类离线参数，保存后还需要手动重建相似度矩阵；热度、在线候选和用户缓存参数保存后会立即影响新请求。
+                修改交互权重、浏览行为修正、近邻数量 K、相似度矩阵 TTL 后，保存配置还不够，还需要手动重建相似度矩阵；热度、在线候选和用户缓存参数保存后会直接影响新请求。
               </div>
             </div>
 
@@ -449,7 +445,7 @@
                   :type="matrixChangeSummary.needsRebuild ? 'warning' : 'success'"
                   round
                 >
-                  {{ matrixChangeSummary.needsRebuild ? '当前有待重建变更' : '当前无需重建' }}
+                  {{ matrixChangeSummary.needsRebuild ? '存在待重建改动' : '当前无需重建' }}
                 </el-tag>
               </div>
               <div class="matrix-action-text">
