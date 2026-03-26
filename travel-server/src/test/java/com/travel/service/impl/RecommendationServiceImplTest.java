@@ -1,7 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
-import com.travel.dto.recommendation.LegacyRecommendationConfigDTO;
+import com.travel.dto.recommendation.RecommendationAlgorithmConfigDTO;
 import com.travel.entity.Order;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
@@ -125,7 +125,7 @@ class RecommendationServiceImplTest {
         when(reviewMapper.selectList(any())).thenReturn(List.of(review));
         when(orderMapper.selectList(any())).thenReturn(List.of(order));
 
-        LegacyRecommendationConfigDTO config = LegacyRecommendationConfigDTO.defaultConfig();
+        RecommendationAlgorithmConfigDTO config = new RecommendationAlgorithmConfigDTO();
 
         Map<Long, Double> weights = (Map<Long, Double>) ReflectionTestUtils.invokeMethod(
             recommendationService,

@@ -14,8 +14,3 @@ export function getOrderTrend(days = 7) {
 export function getHotSpots(limit = 10) {
   return request.get('/dashboard/hot-spots', { params: { limit } })
 }
-
-// 触发更新推荐引擎相似度矩阵
-export function updateRecommendationMatrix() {
-  return request.post('/recommendation/update-matrix')
-}

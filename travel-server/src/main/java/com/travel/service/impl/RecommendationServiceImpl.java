@@ -2,8 +2,10 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.home.HotSpotResponse;
+import com.travel.dto.recommendation.RecommendationAlgorithmConfigDTO;
+import com.travel.dto.recommendation.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
-import com.travel.dto.recommendation.LegacyRecommendationConfigDTO;
+import com.travel.dto.recommendation.RecommendationHeatConfigDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
 import com.travel.dto.recommendation.RecommendationStatusDTO;
 import com.travel.dto.recommendation.SimilarityPreviewResponse;
@@ -108,7 +110,10 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean refresh, boolean debug) {
-        LegacyRecommendationConfigDTO config = recommendationCacheService.loadLegacyConfig();
+        RecommendationConfigBundleDTO config = recommendationCacheService.loadConfig();
+        RecommendationAlgorithmConfigDTO algorithmConfig = safeAlgorithmConfig(config);
+        RecommendationHeatConfigDTO heatConfig = safeHeatConfig(config);
+        RecommendationCacheConfigDTO cacheConfig = safeCacheConfig(config);
         RecommendationResponse.DebugInfo debugInfo = debug ? initDebugInfo(userId, limit, refresh) : null;
 
         log.info(
@@ -117,22 +122,22 @@ public class RecommendationServiceImpl implements RecommendationService {
             limit,
             refresh,
             debug,
-            config.getMinInteractionsForCF(),
-            getCandidateExpandFactor(config)
+            defaultInt(algorithmConfig.getMinInteractionsForCF(), 3),
+            getCandidateExpandFactor(algorithmConfig)
         );
 
         // ============ 根据总交互数判断是否走冷启动 ============
-        Map<Long, Double> userInteractions = buildUserInteractionWeights(userId, config);
+        Map<Long, Double> userInteractions = buildUserInteractionWeights(userId, algorithmConfig);
         populateBehaviorStats(debugInfo, userId);
         populateInteractionDebugInfo(debugInfo, userInteractions);
         logUserInteractionWeights(userId, userInteractions, debug);
 
-        if (userInteractions.size() < config.getMinInteractionsForCF()) {
+        if (userInteractions.size() < defaultInt(algorithmConfig.getMinInteractionsForCF(), 3)) {
             log.info(
                 "降级为冷启动：用户ID={}，交互景点数={}，阈值={}，原因=交互不足",
                 userId,
                 userInteractions.size(),
-                config.getMinInteractionsForCF()
+                defaultInt(algorithmConfig.getMinInteractionsForCF(), 3)
             );
             if (debugInfo != null) {
                 debugInfo.setTriggerReason("交互数量不足，切换为冷启动");
@@ -145,7 +150,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         // 基于 ItemCF 计算个性化推荐。
-        int candidateLimit = limit * getCandidateExpandFactor(config);
+        int candidateLimit = limit * getCandidateExpandFactor(algorithmConfig);
         Map<Long, List<RecommendationResponse.DebugEntry>> contributionMap = debug ? new HashMap<>() : null;
         Map<Long, Double> recommendedScores = computeItemCFRecommendationScores(userInteractions, candidateLimit, contributionMap);
         populateScoreDebugEntries(debugInfo, recommendedScores, "ItemCF 原始候选分数");
@@ -159,7 +164,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         Map<Long, Double> filteredScores = orderScoresByIds(filteredIds, recommendedScores);
         populateFilteredScoresDebugEntries(debugInfo, filteredScores, "过滤后的候选分数");
         logScoreMap("过滤后的候选分数", filteredScores, debug);
-        filteredScores = applyHeatRerank(filteredScores, config, debug);
+        filteredScores = applyHeatRerank(filteredScores, heatConfig, debug);
         populateRerankedScoreDebugEntries(debugInfo, filteredScores, "热度重排后的候选分数");
         filteredIds = new ArrayList<>(filteredScores.keySet());
         
@@ -177,14 +182,18 @@ public class RecommendationServiceImpl implements RecommendationService {
             filteredScores = orderScoresByIds(filteredIds, filteredScores);
         }
 
-        recommendationCacheService.saveUserRecommendation(userId, filteredScores, config.getUserRecTTLMinutes());
+        recommendationCacheService.saveUserRecommendation(
+            userId,
+            filteredScores,
+            defaultInt(cacheConfig.getUserRecTTLMinutes(), 60)
+        );
 
         log.info(
             "推荐结果计算完成：用户ID={}，推荐类型=personalized，候选数={}，最终返回数={}，缓存时长={}分钟",
             userId,
             recommendedScores.size(),
             Math.min(filteredIds.size(), limit),
-            config.getUserRecTTLMinutes()
+            defaultInt(cacheConfig.getUserRecTTLMinutes(), 60)
         );
 
         if (debugInfo != null) {
@@ -201,7 +210,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     /**
      * 构建单个用户的融合交互权重：Map<spotId, weight>。
      */
-    private Map<Long, Double> buildUserInteractionWeights(Long userId, LegacyRecommendationConfigDTO config) {
+    private Map<Long, Double> buildUserInteractionWeights(Long userId, RecommendationAlgorithmConfigDTO config) {
         Map<Long, Double> weights = new HashMap<>();
 
         // 浏览行为。
@@ -274,7 +283,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh, boolean debug,
                                                    RecommendationResponse.DebugInfo debugInfo) {
-        LegacyRecommendationConfigDTO config = recommendationCacheService.loadLegacyConfig();
+        RecommendationAlgorithmConfigDTO algorithmConfig = safeAlgorithmConfig(recommendationCacheService.loadConfig());
         List<Long> categoryIds = getUserPreferenceCategoryIds(userId);
 
         // 如果用户设置了偏好标签，则优先按偏好推荐。
@@ -285,7 +294,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .in(Spot::getCategoryId, categoryIds)
                     .eq(Spot::getIsDeleted, 0)
                     .orderByDesc(Spot::getHeatScore)
-                    .last("LIMIT " + (refresh ? Math.max(limit * getColdStartExpandFactor(config), limit) : limit))
+                    .last("LIMIT " + (refresh ? Math.max(limit * getColdStartExpandFactor(algorithmConfig), limit) : limit))
             );
 
             List<Long> spotIds = spots.stream().map(Spot::getId).collect(Collectors.toList());
@@ -306,7 +315,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         // 没有偏好标签时，回退到热门结果并提示设置偏好。
-        HotSpotResponse hotSpots = getHotSpots(refresh ? Math.max(limit * getColdStartExpandFactor(config), limit) : limit);
+        HotSpotResponse hotSpots = getHotSpots(refresh ? Math.max(limit * getColdStartExpandFactor(algorithmConfig), limit) : limit);
         List<HotSpotResponse.SpotItem> hotSpotList = new ArrayList<>(hotSpots.getList());
         if (refresh) {
             rotateSpotItems(hotSpotList, limit);
@@ -467,11 +476,11 @@ public class RecommendationServiceImpl implements RecommendationService {
             ));
     }
 
-    private Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, LegacyRecommendationConfigDTO config) {
+    private Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, RecommendationHeatConfigDTO config) {
         return applyHeatRerank(scoreMap, config, false);
     }
 
-    private Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, LegacyRecommendationConfigDTO config, boolean debug) {
+    private Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, RecommendationHeatConfigDTO config, boolean debug) {
         if (scoreMap == null || scoreMap.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -664,7 +673,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         try {
-            LegacyRecommendationConfigDTO config = recommendationCacheService.loadLegacyConfig();
+            RecommendationConfigBundleDTO config = recommendationCacheService.loadConfig();
+            RecommendationAlgorithmConfigDTO algorithmConfig = safeAlgorithmConfig(config);
+            RecommendationCacheConfigDTO cacheConfig = safeCacheConfig(config);
             log.info("开始更新相似度矩阵");
             Set<Long> activeSpotIds = getActiveSpotIds();
             if (activeSpotIds.isEmpty()) {
@@ -688,7 +699,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 mergeInteractionWeight(
                     userItemMatrix.computeIfAbsent(v.getUserId(), k -> new HashMap<>()),
                     v.getSpotId(),
-                    calculateViewWeight(v, config)
+                    calculateViewWeight(v, algorithmConfig)
                 );
                 allSpotIds.add(v.getSpotId());
             }
@@ -705,7 +716,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 mergeInteractionWeight(
                     userItemMatrix.computeIfAbsent(f.getUserId(), k -> new HashMap<>()),
                     f.getSpotId(),
-                    config.getWeightFavorite()
+                    defaultDouble(algorithmConfig.getWeightFavorite(), 1.0)
                 );
                 allSpotIds.add(f.getSpotId());
             }
@@ -719,7 +730,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             log.info("离线矩阵更新：已读取评分行为 {} 条", allRatings.size());
             for (Review r : allRatings) {
                 if (!activeSpotIds.contains(r.getSpotId())) continue;
-                double w = r.getScore() * config.getWeightReviewFactor();
+                double w = r.getScore() * defaultDouble(algorithmConfig.getWeightReviewFactor(), 0.4);
                 mergeInteractionWeight(
                     userItemMatrix.computeIfAbsent(r.getUserId(), k -> new HashMap<>()),
                     r.getSpotId(),
@@ -738,7 +749,9 @@ public class RecommendationServiceImpl implements RecommendationService {
             log.info("离线矩阵更新：已读取订单行为 {} 条", allOrders.size());
             for (Order o : allOrders) {
                 if (!activeSpotIds.contains(o.getSpotId())) continue;
-                double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? config.getWeightOrderCompleted() : config.getWeightOrderPaid();
+                double w = o.getStatus() == OrderStatus.COMPLETED.getCode()
+                    ? defaultDouble(algorithmConfig.getWeightOrderCompleted(), 4.0)
+                    : defaultDouble(algorithmConfig.getWeightOrderPaid(), 3.0);
                 mergeInteractionWeight(
                     userItemMatrix.computeIfAbsent(o.getUserId(), k -> new HashMap<>()),
                     o.getSpotId(),
@@ -774,8 +787,8 @@ public class RecommendationServiceImpl implements RecommendationService {
 
             // ============ 第 4 步：计算 IUF 加权相似度 ============
             List<Long> spotIdList = new ArrayList<>(allSpotIds);
-            int topK = config.getTopKNeighbors();
-            int simTTL = config.getSimilarityTTLHours();
+            int topK = defaultInt(algorithmConfig.getTopKNeighbors(), 20);
+            int simTTL = defaultInt(cacheConfig.getSimilarityTTLHours(), 24);
 
             for (int i = 0; i < spotIdList.size(); i++) {
                 Long spotI = spotIdList.get(i);
@@ -872,7 +885,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         return iufSum / denominator;
     }
 
-    private double calculateViewWeight(UserSpotView view, LegacyRecommendationConfigDTO config) {
+    private double calculateViewWeight(UserSpotView view, RecommendationAlgorithmConfigDTO config) {
         double baseWeight = config.getWeightView() == null ? 0.5 : config.getWeightView();
         return baseWeight * getViewSourceFactor(view.getViewSource(), config) * getViewDurationFactor(view.getViewDuration(), config);
     }
@@ -884,7 +897,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         weights.merge(spotId, weight, Double::sum);
     }
 
-    private double getViewSourceFactor(String source, LegacyRecommendationConfigDTO config) {
+    private double getViewSourceFactor(String source, RecommendationAlgorithmConfigDTO config) {
         if (source == null || source.isBlank()) {
             return defaultDouble(config.getViewSourceFactorDetail(), 1.0);
         }
@@ -898,7 +911,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         };
     }
 
-    private double getViewDurationFactor(Integer duration, LegacyRecommendationConfigDTO config) {
+    private double getViewDurationFactor(Integer duration, RecommendationAlgorithmConfigDTO config) {
         int seconds = duration == null ? 0 : Math.max(duration, 0);
         int shortThreshold = defaultInt(config.getViewDurationShortThresholdSeconds(), 10);
         int mediumThreshold = Math.max(shortThreshold, defaultInt(config.getViewDurationMediumThresholdSeconds(), 60));
@@ -924,11 +937,29 @@ public class RecommendationServiceImpl implements RecommendationService {
         return value == null ? fallback : value;
     }
 
-    private int getCandidateExpandFactor(LegacyRecommendationConfigDTO config) {
+    private RecommendationAlgorithmConfigDTO safeAlgorithmConfig(RecommendationConfigBundleDTO config) {
+        return config == null || config.getAlgorithm() == null
+            ? new RecommendationAlgorithmConfigDTO()
+            : config.getAlgorithm();
+    }
+
+    private RecommendationHeatConfigDTO safeHeatConfig(RecommendationConfigBundleDTO config) {
+        return config == null || config.getHeat() == null
+            ? new RecommendationHeatConfigDTO()
+            : config.getHeat();
+    }
+
+    private RecommendationCacheConfigDTO safeCacheConfig(RecommendationConfigBundleDTO config) {
+        return config == null || config.getCache() == null
+            ? new RecommendationCacheConfigDTO()
+            : config.getCache();
+    }
+
+    private int getCandidateExpandFactor(RecommendationAlgorithmConfigDTO config) {
         return Math.max(defaultInt(config.getCandidateExpandFactor(), 2), 1);
     }
 
-    private int getColdStartExpandFactor(LegacyRecommendationConfigDTO config) {
+    private int getColdStartExpandFactor(RecommendationAlgorithmConfigDTO config) {
         return Math.max(defaultInt(config.getColdStartExpandFactor(), 3), 1);
     }
 
@@ -1369,15 +1400,12 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public RecommendationConfigBundleDTO getConfig() {
-        return RecommendationConfigBundleDTO.fromLegacy(recommendationCacheService.loadLegacyConfig());
+        return recommendationCacheService.loadConfig();
     }
 
     @Override
     public void updateConfig(RecommendationConfigBundleDTO config) {
-        LegacyRecommendationConfigDTO legacyConfig = (config == null
-            ? RecommendationConfigBundleDTO.defaultConfig()
-            : config).toLegacy();
-        recommendationCacheService.saveLegacyConfig(legacyConfig);
+        recommendationCacheService.saveConfig(config);
         log.info("推荐算法配置已更新 {}", config);
     }
 
