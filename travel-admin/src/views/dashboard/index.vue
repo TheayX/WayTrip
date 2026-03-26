@@ -125,7 +125,8 @@
 
 <script setup>
 import { ref, onMounted, shallowRef, nextTick, onUnmounted } from 'vue'
-import { getOverview, getOrderTrend, getHotSpots, updateRecommendationMatrix } from '@/api/dashboard'
+import { getOverview, getOrderTrend, getHotSpots } from '@/api/dashboard'
+import { updateRecommendationMatrix } from '@/api/recommendation'
 import { ElMessage } from 'element-plus'
 import { RefreshRight, UserFilled, LocationInformation, Tickets, Money, Top } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'

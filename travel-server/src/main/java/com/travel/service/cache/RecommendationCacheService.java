@@ -3,6 +3,7 @@ package com.travel.service.cache;
 import com.travel.config.AppCacheProperties;
 import com.travel.config.RedisKeyManager;
 import com.travel.dto.recommendation.LegacyRecommendationConfigDTO;
+import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,17 @@ public class RecommendationCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final AppCacheProperties appCacheProperties;
+
+    public RecommendationConfigBundleDTO loadConfig() {
+        return RecommendationConfigBundleDTO.fromLegacy(loadLegacyConfig());
+    }
+
+    public void saveConfig(RecommendationConfigBundleDTO config) {
+        RecommendationConfigBundleDTO safeConfig = config == null
+            ? RecommendationConfigBundleDTO.defaultConfig()
+            : config;
+        saveLegacyConfig(safeConfig.toLegacy());
+    }
 
     /**
      * 读取 Redis 中的推荐配置，缺失时回退到默认值。
