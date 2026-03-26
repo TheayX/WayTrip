@@ -46,6 +46,26 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 从 Redis 获取算法配置，不存在时返回默认配置
      */
     private RecommendationConfigDTO loadConfig() {
+        RecommendationConfigDTO mergedConfig = RecommendationConfigDTO.defaultConfig();
+        boolean loadedFromPartitionedKeys = false;
+
+        loadedFromPartitionedKeys |= applyConfigSection(
+            mergedConfig,
+            redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfigAlgorithm())
+        );
+        loadedFromPartitionedKeys |= applyConfigSection(
+            mergedConfig,
+            redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfigHeat())
+        );
+        loadedFromPartitionedKeys |= applyConfigSection(
+            mergedConfig,
+            redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfigCache())
+        );
+
+        if (loadedFromPartitionedKeys) {
+            return mergedConfig;
+        }
+
         Object cached = redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfig());
         if (cached instanceof RecommendationConfigDTO config) {
             return config;
@@ -55,6 +75,21 @@ public class RecommendationServiceImpl implements RecommendationService {
             return mapToConfig(cached);
         }
         return RecommendationConfigDTO.defaultConfig();
+    }
+
+    private boolean applyConfigSection(RecommendationConfigDTO target, Object cached) {
+        if (cached == null) {
+            return false;
+        }
+        if (cached instanceof RecommendationConfigDTO config) {
+            mergeConfig(target, config);
+            return true;
+        }
+        if (cached instanceof Map) {
+            mergeConfig(target, mapToConfig(cached));
+            return true;
+        }
+        return false;
     }
 
     @SuppressWarnings("unchecked")
@@ -105,6 +140,84 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private int toInt(Object v) {
         return v instanceof Number n ? n.intValue() : Integer.parseInt(v.toString());
+    }
+
+    private void mergeConfig(RecommendationConfigDTO target, RecommendationConfigDTO source) {
+        if (source.getWeightView() != null) target.setWeightView(source.getWeightView());
+        if (source.getWeightFavorite() != null) target.setWeightFavorite(source.getWeightFavorite());
+        if (source.getWeightReviewFactor() != null) target.setWeightReviewFactor(source.getWeightReviewFactor());
+        if (source.getWeightOrderPaid() != null) target.setWeightOrderPaid(source.getWeightOrderPaid());
+        if (source.getWeightOrderCompleted() != null) target.setWeightOrderCompleted(source.getWeightOrderCompleted());
+        if (source.getViewSourceFactorHome() != null) target.setViewSourceFactorHome(source.getViewSourceFactorHome());
+        if (source.getViewSourceFactorSearch() != null) target.setViewSourceFactorSearch(source.getViewSourceFactorSearch());
+        if (source.getViewSourceFactorRecommend() != null) target.setViewSourceFactorRecommend(source.getViewSourceFactorRecommend());
+        if (source.getViewSourceFactorGuide() != null) target.setViewSourceFactorGuide(source.getViewSourceFactorGuide());
+        if (source.getViewSourceFactorDetail() != null) target.setViewSourceFactorDetail(source.getViewSourceFactorDetail());
+        if (source.getViewDurationShortThresholdSeconds() != null) target.setViewDurationShortThresholdSeconds(source.getViewDurationShortThresholdSeconds());
+        if (source.getViewDurationMediumThresholdSeconds() != null) target.setViewDurationMediumThresholdSeconds(source.getViewDurationMediumThresholdSeconds());
+        if (source.getViewDurationLongThresholdSeconds() != null) target.setViewDurationLongThresholdSeconds(source.getViewDurationLongThresholdSeconds());
+        if (source.getViewDurationFactorShort() != null) target.setViewDurationFactorShort(source.getViewDurationFactorShort());
+        if (source.getViewDurationFactorMedium() != null) target.setViewDurationFactorMedium(source.getViewDurationFactorMedium());
+        if (source.getViewDurationFactorLong() != null) target.setViewDurationFactorLong(source.getViewDurationFactorLong());
+        if (source.getViewDurationFactorVeryLong() != null) target.setViewDurationFactorVeryLong(source.getViewDurationFactorVeryLong());
+        if (source.getHeatViewIncrement() != null) target.setHeatViewIncrement(source.getHeatViewIncrement());
+        if (source.getHeatFavoriteIncrement() != null) target.setHeatFavoriteIncrement(source.getHeatFavoriteIncrement());
+        if (source.getHeatReviewIncrement() != null) target.setHeatReviewIncrement(source.getHeatReviewIncrement());
+        if (source.getHeatOrderPaidIncrement() != null) target.setHeatOrderPaidIncrement(source.getHeatOrderPaidIncrement());
+        if (source.getHeatOrderCompletedIncrement() != null) target.setHeatOrderCompletedIncrement(source.getHeatOrderCompletedIncrement());
+        if (source.getHeatViewDedupeWindowMinutes() != null) target.setHeatViewDedupeWindowMinutes(source.getHeatViewDedupeWindowMinutes());
+        if (source.getHeatRerankFactor() != null) target.setHeatRerankFactor(source.getHeatRerankFactor());
+        if (source.getMinInteractionsForCF() != null) target.setMinInteractionsForCF(source.getMinInteractionsForCF());
+        if (source.getTopKNeighbors() != null) target.setTopKNeighbors(source.getTopKNeighbors());
+        if (source.getCandidateExpandFactor() != null) target.setCandidateExpandFactor(source.getCandidateExpandFactor());
+        if (source.getColdStartExpandFactor() != null) target.setColdStartExpandFactor(source.getColdStartExpandFactor());
+        if (source.getSimilarityTTLHours() != null) target.setSimilarityTTLHours(source.getSimilarityTTLHours());
+        if (source.getUserRecTTLMinutes() != null) target.setUserRecTTLMinutes(source.getUserRecTTLMinutes());
+    }
+
+    private RecommendationConfigDTO algorithmConfigSection(RecommendationConfigDTO source) {
+        RecommendationConfigDTO section = new RecommendationConfigDTO();
+        section.setWeightView(source.getWeightView());
+        section.setWeightFavorite(source.getWeightFavorite());
+        section.setWeightReviewFactor(source.getWeightReviewFactor());
+        section.setWeightOrderPaid(source.getWeightOrderPaid());
+        section.setWeightOrderCompleted(source.getWeightOrderCompleted());
+        section.setViewSourceFactorHome(source.getViewSourceFactorHome());
+        section.setViewSourceFactorSearch(source.getViewSourceFactorSearch());
+        section.setViewSourceFactorRecommend(source.getViewSourceFactorRecommend());
+        section.setViewSourceFactorGuide(source.getViewSourceFactorGuide());
+        section.setViewSourceFactorDetail(source.getViewSourceFactorDetail());
+        section.setViewDurationShortThresholdSeconds(source.getViewDurationShortThresholdSeconds());
+        section.setViewDurationMediumThresholdSeconds(source.getViewDurationMediumThresholdSeconds());
+        section.setViewDurationLongThresholdSeconds(source.getViewDurationLongThresholdSeconds());
+        section.setViewDurationFactorShort(source.getViewDurationFactorShort());
+        section.setViewDurationFactorMedium(source.getViewDurationFactorMedium());
+        section.setViewDurationFactorLong(source.getViewDurationFactorLong());
+        section.setViewDurationFactorVeryLong(source.getViewDurationFactorVeryLong());
+        section.setMinInteractionsForCF(source.getMinInteractionsForCF());
+        section.setTopKNeighbors(source.getTopKNeighbors());
+        section.setCandidateExpandFactor(source.getCandidateExpandFactor());
+        section.setColdStartExpandFactor(source.getColdStartExpandFactor());
+        return section;
+    }
+
+    private RecommendationConfigDTO heatConfigSection(RecommendationConfigDTO source) {
+        RecommendationConfigDTO section = new RecommendationConfigDTO();
+        section.setHeatViewIncrement(source.getHeatViewIncrement());
+        section.setHeatFavoriteIncrement(source.getHeatFavoriteIncrement());
+        section.setHeatReviewIncrement(source.getHeatReviewIncrement());
+        section.setHeatOrderPaidIncrement(source.getHeatOrderPaidIncrement());
+        section.setHeatOrderCompletedIncrement(source.getHeatOrderCompletedIncrement());
+        section.setHeatViewDedupeWindowMinutes(source.getHeatViewDedupeWindowMinutes());
+        section.setHeatRerankFactor(source.getHeatRerankFactor());
+        return section;
+    }
+
+    private RecommendationConfigDTO cacheConfigSection(RecommendationConfigDTO source) {
+        RecommendationConfigDTO section = new RecommendationConfigDTO();
+        section.setSimilarityTTLHours(source.getSimilarityTTLHours());
+        section.setUserRecTTLMinutes(source.getUserRecTTLMinutes());
+        return section;
     }
 
     @Override
@@ -1454,6 +1567,9 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public void updateConfig(RecommendationConfigDTO config) {
+        redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfigAlgorithm(), algorithmConfigSection(config));
+        redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfigHeat(), heatConfigSection(config));
+        redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfigCache(), cacheConfigSection(config));
         redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfig(), config);
         log.info("推荐算法配置已更新: {}", config);
     }
