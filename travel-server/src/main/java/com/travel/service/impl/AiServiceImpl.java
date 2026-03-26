@@ -20,13 +20,16 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -68,6 +71,9 @@ public class AiServiceImpl implements AiService {
 
     @Value("${ollama.system-prompt:}")
     private String ollamaSystemPrompt;
+
+    @Value("classpath:prompts/ai-system-prompt.txt")
+    private Resource defaultSystemPromptResource;
 
     @Value("${ollama.chat.max-history-rounds:6}")
     private Integer maxHistoryRounds;
@@ -163,7 +169,7 @@ public class AiServiceImpl implements AiService {
     }
 
     private String buildSystemPrompt(IntentType intentType, String userMessage, Long userId) {
-        String basePrompt = StringUtils.hasText(ollamaSystemPrompt) ? ollamaSystemPrompt : DEFAULT_SYSTEM_PROMPT;
+        String basePrompt = resolveBaseSystemPrompt();
         StringBuilder prompt = new StringBuilder(basePrompt)
                 .append("\n\n").append(intentType.getPrompt())
                 .append("\n\n回答边界：")
@@ -195,6 +201,19 @@ public class AiServiceImpl implements AiService {
         }
 
         return prompt.toString();
+    }
+
+    private String resolveBaseSystemPrompt() {
+        if (StringUtils.hasText(ollamaSystemPrompt)) {
+            return ollamaSystemPrompt;
+        }
+        try {
+            String prompt = StreamUtils.copyToString(defaultSystemPromptResource.getInputStream(), StandardCharsets.UTF_8).trim();
+            return StringUtils.hasText(prompt) ? prompt : DEFAULT_SYSTEM_PROMPT;
+        } catch (IOException e) {
+            log.warn("读取默认 AI 系统提示词失败，回退到代码内默认提示词", e);
+            return DEFAULT_SYSTEM_PROMPT;
+        }
     }
 
     private String buildUserContext(Long userId) {
