@@ -467,7 +467,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         LegacyRecommendationConfigDTO config = loadLegacyConfig();
         List<Long> categoryIds = getUserPreferenceCategoryIds(userId);
 
-        // 濡傛灉鐢ㄦ埛璁剧疆浜嗗亸濂芥爣绛撅紝鍩轰簬鍋忓ソ鎺ㄨ崘
+        // 如果用户设置了偏好标签，则优先按偏好推荐。
         if (!categoryIds.isEmpty()) {
             List<Spot> spots = spotMapper.selectList(
                 new LambdaQueryWrapper<Spot>()
@@ -495,7 +495,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             return buildRecommendationResponse(spotIds, limit, "preference", false, debugInfo);
         }
 
-        // 鏃犲亸濂斤紝杩斿洖鐑棬骞舵彁绀鸿缃亸濂?
+        // 没有偏好标签时，回退到热门结果并提示设置偏好。
         HotSpotResponse hotSpots = getHotSpots(refresh ? Math.max(limit * getColdStartExpandFactor(config), limit) : limit);
         List<HotSpotResponse.SpotItem> hotSpotList = new ArrayList<>(hotSpots.getList());
         if (refresh) {
