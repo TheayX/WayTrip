@@ -12,6 +12,24 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       database: 0
+      timeout: 3s
+      connect-timeout: 3s
+      client-name: ${REDIS_CLIENT_NAME:waytrip-prod}
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:32}
+          max-idle: ${REDIS_POOL_MAX_IDLE:16}
+          min-idle: ${REDIS_POOL_MIN_IDLE:4}
+          max-wait: 3s
+        shutdown-timeout: 100ms
+
+app:
+  cache:
+    recommendation:
+      user-rec-ttl-minutes: ${APP_CACHE_RECOMMENDATION_USER_REC_TTL_MINUTES:60}
+      similarity-ttl-hours: ${APP_CACHE_RECOMMENDATION_SIMILARITY_TTL_HOURS:24}
+    spot:
+      heat-view-dedupe-window-minutes: ${APP_CACHE_SPOT_HEAT_VIEW_DEDUPE_WINDOW_MINUTES:30}
 
 # JWT 配置
 jwt:

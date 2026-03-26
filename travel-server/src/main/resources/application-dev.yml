@@ -11,6 +11,24 @@ spring:
       port: 6379
       password: # 输入你的Redis密码
       database: 0
+      timeout: 3s
+      connect-timeout: 3s
+      client-name: waytrip-dev
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+          max-wait: 3s
+        shutdown-timeout: 100ms
+
+app:
+  cache:
+    recommendation:
+      user-rec-ttl-minutes: 60
+      similarity-ttl-hours: 24
+    spot:
+      heat-view-dedupe-window-minutes: 30
 
 # JWT 配置
 jwt:
