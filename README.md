@@ -156,11 +156,16 @@ npm run dev:mp-weixin
 
 为避免缓存键散落在业务代码中，项目统一使用 `RedisKeyManager` 管理键空间。当前分区如下：
 
-- `waytrip:recommendation:config`：推荐算法动态配置
+- `waytrip:recommendation:config`：推荐配置聚合视图（兼容旧结构）
+- `waytrip:recommendation:config:algorithm`：协同过滤与行为权重配置
+- `waytrip:recommendation:config:heat`：景点热度与去重窗口配置
+- `waytrip:recommendation:config:cache`：Redis 缓存 TTL 配置
 - `waytrip:recommendation:status`：推荐矩阵计算状态
 - `waytrip:recommendation:user:{userId}`：用户推荐结果缓存
 - `waytrip:recommendation:similarity:{spotId}`：景点相似度矩阵缓存
 - `waytrip:spot:heat:view:{spotId}:{userId}`：景点浏览热度去重窗口
+
+管理端推荐配置接口仍然保持一个 DTO，但 Redis 内部已按“算法 / 热度 / 缓存”做轻量分区，便于后续单独演进。
 
 后续新增 Redis 缓存时，建议继续按 `waytrip:{模块}:{资源}` 规则扩展，避免直接在业务类中拼接字符串。
 - 冷启动策略：评分不足 3 条时返回热门/最新景点 + 偏好标签引导

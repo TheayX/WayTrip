@@ -27,6 +27,18 @@ public final class RedisKeyManager {
         return RECOMMENDATION + ":config";
     }
 
+    public static String recommendationConfigAlgorithm() {
+        return recommendationConfig() + ":algorithm";
+    }
+
+    public static String recommendationConfigHeat() {
+        return recommendationConfig() + ":heat";
+    }
+
+    public static String recommendationConfigCache() {
+        return recommendationConfig() + ":cache";
+    }
+
     public static String recommendationStatus() {
         return RECOMMENDATION + ":status";
     }

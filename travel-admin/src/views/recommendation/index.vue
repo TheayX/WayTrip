@@ -89,6 +89,14 @@
       </template>
 
       <el-form :model="config" label-width="180px" class="config-form">
+        <div class="config-bucket-grid">
+          <div v-for="bucket in configBuckets" :key="bucket.title" class="config-bucket-card">
+            <div class="config-bucket-title">{{ bucket.title }}</div>
+            <div class="config-bucket-desc">{{ bucket.desc }}</div>
+            <div class="config-bucket-count">{{ bucket.count }} 项</div>
+          </div>
+        </div>
+
         <!-- 交互权重 -->
         <div class="form-section">
           <div class="section-title">
@@ -921,7 +929,7 @@ import {
   DataLine, Setting, Clock
 } from '@element-plus/icons-vue'
 
-const config = reactive({
+const defaultConfig = {
   weightView: 0.5,
   weightFavorite: 1.0,
   weightReviewFactor: 0.4,
@@ -952,6 +960,28 @@ const config = reactive({
   coldStartExpandFactor: 3,
   similarityTTLHours: 24,
   userRecTTLMinutes: 60
+}
+
+const configBuckets = computed(() => [
+  {
+    title: '算法参数',
+    desc: '行为权重、浏览细化因子、协同过滤核心参数',
+    count: 21
+  },
+  {
+    title: '热度策略',
+    desc: '景点热度增量、热度去重窗口、热度重排系数',
+    count: 7
+  },
+  {
+    title: '缓存策略',
+    desc: '推荐结果与相似度矩阵的 Redis TTL',
+    count: 2
+  }
+])
+
+const config = reactive({
+  ...defaultConfig
 })
 
 const status = reactive({
@@ -1177,39 +1207,6 @@ const debugTableRows = computed(() =>
     }
   })
 )
-
-const defaultConfig = {
-  weightView: 0.5,
-  weightFavorite: 1.0,
-  weightReviewFactor: 0.4,
-  weightOrderPaid: 3.0,
-  weightOrderCompleted: 4.0,
-  viewSourceFactorHome: 0.9,
-  viewSourceFactorSearch: 1.2,
-  viewSourceFactorRecommend: 1.1,
-  viewSourceFactorGuide: 1.0,
-  viewSourceFactorDetail: 1.0,
-  viewDurationShortThresholdSeconds: 10,
-  viewDurationMediumThresholdSeconds: 60,
-  viewDurationLongThresholdSeconds: 180,
-  viewDurationFactorShort: 0.6,
-  viewDurationFactorMedium: 1.0,
-  viewDurationFactorLong: 1.2,
-  viewDurationFactorVeryLong: 1.35,
-  heatViewIncrement: 1,
-  heatFavoriteIncrement: 3,
-  heatReviewIncrement: 2,
-  heatOrderPaidIncrement: 5,
-  heatOrderCompletedIncrement: 8,
-  heatViewDedupeWindowMinutes: 30,
-  heatRerankFactor: 0.05,
-  minInteractionsForCF: 3,
-  topKNeighbors: 20,
-  candidateExpandFactor: 2,
-  coldStartExpandFactor: 3,
-  similarityTTLHours: 24,
-  userRecTTLMinutes: 60
-}
 
 const weightExplanations = [
   { behavior: '浏览', param: 'weightView', default: '0.5', description: '浏览基础权重；实际按 来源因子 × 停留时长因子 细化，来源和时长规则均可在管理端配置' },
@@ -1816,6 +1813,40 @@ onMounted(() => {
   }
 
   .config-form {
+    .config-bucket-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .config-bucket-card {
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f7f9fc 0%, #eef3fb 100%);
+      border: 1px solid #dce6f5;
+    }
+
+    .config-bucket-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #253046;
+    }
+
+    .config-bucket-desc {
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #607086;
+    }
+
+    .config-bucket-count {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #245bdb;
+    }
+
     .form-section {
       margin-bottom: 32px;
       padding-bottom: 24px;
@@ -2056,6 +2087,10 @@ onMounted(() => {
   }
 
   @media (max-width: 768px) {
+    .config-form .config-bucket-grid {
+      grid-template-columns: 1fr;
+    }
+
     .debug-summary-grid {
       grid-template-columns: 1fr;
     }
