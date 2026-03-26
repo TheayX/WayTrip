@@ -419,7 +419,7 @@
             <div class="card-header">
               <div class="title-section">
                 <span class="title">执行区</span>
-                <el-tag effect="plain" type="warning" round>先保存，再更新矩阵</el-tag>
+                <el-tag effect="plain" type="warning" round>先保存，再重建矩阵</el-tag>
               </div>
             </div>
           </template>
@@ -825,16 +825,44 @@
     <el-card shadow="hover" class="help-card">
       <template #header>
         <div class="card-header">
-          <span class="title">使用说明与调参指南</span>
+          <span class="title">说明与调参指南</span>
         </div>
       </template>
 
       <div class="help-intro">
-        这部分主要用于查公式、字段来源、调参策略和默认值。日常调参时可以先只关注上面的配置区、执行区和预览区。
+        这部分保留给排查和调参时查阅。日常使用可以先看上面的配置区、执行区和预览区；只有在需要确认公式、字段来源、矩阵机制或默认值时，再展开下面的内容。
       </div>
 
       <el-collapse v-model="activeCollapse">
-        <el-collapse-item title="📐 核心算法公式" name="formula">
+        <el-collapse-item title="先看什么" name="quick-start">
+          <div class="help-content">
+            <div class="strategy-grid">
+              <div class="strategy-item">
+                <div class="strategy-title">只想改推荐倾向</div>
+                <div class="strategy-desc">先看“离线矩阵构建”，这里决定用户历史行为如何进入相似度计算。</div>
+              </div>
+              <div class="strategy-item">
+                <div class="strategy-title">只想改候选范围</div>
+                <div class="strategy-desc">看“在线推荐与候选控制”，这些参数保存后会直接影响新请求。</div>
+              </div>
+              <div class="strategy-item">
+                <div class="strategy-title">只想改热门排序</div>
+                <div class="strategy-desc">看“热度与排序”，这部分不影响离线相似度矩阵。</div>
+              </div>
+              <div class="strategy-item">
+                <div class="strategy-title">只想改缓存表现</div>
+                <div class="strategy-desc">看“用户推荐缓存”和右侧执行区，不需要改算法参数。</div>
+              </div>
+            </div>
+            <el-alert type="info" :closable="false" style="margin-top: 16px">
+              <template #title>
+                一个简单判断：改完后如果你希望“景点之间的相似关系”变了，就需要重建相似度矩阵；如果只是影响在线排序、候选规模或缓存，一般保存后就会生效。
+              </template>
+            </el-alert>
+          </div>
+        </el-collapse-item>
+
+        <el-collapse-item title="核心算法公式" name="formula">
           <div class="help-content">
             <p>本系统基于 <strong>ItemCF（基于物品的协同过滤）</strong> 算法，核心公式如下：</p>
             <div class="formula-block">
@@ -923,7 +951,7 @@
           </div>
         </el-collapse-item>
 
-        <el-collapse-item title="⚖️ 行为权重说明" name="weights">
+        <el-collapse-item title="行为权重说明" name="weights">
           <div class="help-content">
             <el-table :data="weightExplanations" stripe style="width: 100%">
               <el-table-column prop="behavior" label="行为类型" width="120" />
@@ -939,10 +967,10 @@
           </div>
         </el-collapse-item>
 
-        <el-collapse-item title="🗄️ 数据库字段说明" name="data-fields">
+        <el-collapse-item title="数据库字段说明" name="data-fields">
           <div class="help-content">
             <div class="data-field-group">
-              <div class="data-field-title">协同过滤主体字段</div>
+              <div class="data-field-title">离线矩阵主体字段</div>
               <el-table :data="cfDataFieldReferences" stripe style="width: 100%">
                 <el-table-column prop="table" label="表" width="180" />
                 <el-table-column label="涉及字段" min-width="260">
@@ -958,7 +986,7 @@
             </div>
 
             <div class="data-field-group">
-              <div class="data-field-title">冷启动字段</div>
+              <div class="data-field-title">冷启动与热门排序字段</div>
               <el-table :data="coldStartDataFieldReferences" stripe style="width: 100%">
                 <el-table-column prop="table" label="表" width="180" />
                 <el-table-column label="涉及字段" min-width="260">
@@ -980,7 +1008,7 @@
           </div>
         </el-collapse-item>
 
-        <el-collapse-item title="🎯 调参策略建议" name="strategy">
+        <el-collapse-item title="调参策略建议" name="strategy">
           <div class="help-content">
             <div class="strategy-grid">
               <div class="strategy-item">
@@ -1003,32 +1031,33 @@
           </div>
         </el-collapse-item>
 
-        <el-collapse-item title="🔄 矩阵更新机制" name="matrix">
+        <el-collapse-item title="矩阵更新机制" name="matrix">
           <div class="help-content">
             <ul>
               <li><strong>自动更新：</strong>每天凌晨 3:00 定时任务自动重新计算相似度矩阵。</li>
-              <li><strong>手动更新：</strong>点击上方「更新矩阵」按钮可立即触发重算（请求会阻塞到计算完成）。</li>
-              <li><strong>修改参数后：</strong>保存的参数配置会立即对新的推荐请求生效。但相似度矩阵需要手动触发或等待下次定时任务才会用新参数重算。</li>
+              <li><strong>手动更新：</strong>点击上方「重建相似度矩阵」按钮可立即触发重算（请求会阻塞到计算完成）。</li>
+              <li><strong>什么时候要重建：</strong>交互权重、浏览行为修正、近邻数量 K、相似度矩阵 TTL 这类离线参数改完后，需要手动触发或等待下次定时任务才会用新参数重算。</li>
+              <li><strong>什么时候不用重建：</strong>热度、在线候选控制、用户推荐缓存这类参数保存后会直接影响新的推荐请求。</li>
               <li><strong>并发保护：</strong>同一时间只允许一次矩阵计算，重复触发会被跳过。</li>
             </ul>
           </div>
         </el-collapse-item>
 
-        <el-collapse-item title="🧪 调试与预览说明" name="debugging">
+        <el-collapse-item title="调试与预览说明" name="debugging">
           <div class="help-content">
             <ul>
-              <li><strong>推荐调试预览 - 重新计算：</strong>会跳过当前用户已有的推荐结果缓存，按当前数据重新计算该用户推荐结果，更适合排查“现在为什么推荐这些景点”。</li>
-              <li><strong>缓存副作用：</strong>如果对某个用户执行“重新计算”，该用户原有的推荐缓存会被删除并立即写入新的结果，相当于提前更新了这个用户当前可命中的推荐缓存。</li>
-              <li><strong>推荐调试预览 - 缓存结果：</strong>优先查看该用户当前命中的缓存结果，更接近用户端此刻可能拿到的返回内容。</li>
-              <li><strong>刷新与更新矩阵的区别：</strong>调试预览里的“重新计算”只会重算当前用户的推荐结果，不会重算底层相似度矩阵；要更新离线相似关系，仍然要用上方“更新矩阵”。</li>
+              <li><strong>推荐调试预览 - 刷新：</strong>会跳过当前用户已有的推荐结果缓存，按当前数据重新计算该用户推荐结果，更适合排查“现在为什么推荐这些景点”。</li>
+              <li><strong>缓存副作用：</strong>如果对某个用户执行“刷新”，该用户原有的推荐缓存会被删除并立即写入新的结果，相当于提前更新了这个用户当前可命中的推荐缓存。</li>
+              <li><strong>推荐调试预览 - 缓存：</strong>优先查看该用户当前命中的缓存结果，更接近用户端此刻可能拿到的返回内容。</li>
+              <li><strong>刷新与重建矩阵的区别：</strong>调试预览里的“刷新”只会重算当前用户的推荐结果，不会重算底层相似度矩阵；要更新离线相似关系，仍然要用上方“重建相似度矩阵”。</li>
               <li><strong>相似邻居 - 缓存预览：</strong>直接查看当前矩阵缓存里的邻居结果，适合确认 Redis 中现有的相似关系。</li>
               <li><strong>相似邻居 - 更新预览：</strong>会先执行一次矩阵更新，再展示该景点的最新相似邻居，适合在调完参数后立即验证离线矩阵效果。</li>
-              <li><strong>联调建议：</strong>如果刚改了影响相似度计算的参数，建议先“更新矩阵”，再看“更新预览”或“推荐调试预览 - 重新计算”，这样看到的结果更一致。</li>
+              <li><strong>联调建议：</strong>如果刚改了影响相似度计算的参数，建议先“重建相似度矩阵”，再看“更新预览”或“推荐调试预览 - 刷新”，这样看到的结果更一致。</li>
             </ul>
           </div>
         </el-collapse-item>
 
-        <el-collapse-item title="📊 默认配置参考" name="defaults">
+        <el-collapse-item title="默认配置参考" name="defaults">
           <div class="help-content">
             <el-descriptions border :column="2">
               <el-descriptions-item label="浏览权重">0.5</el-descriptions-item>
