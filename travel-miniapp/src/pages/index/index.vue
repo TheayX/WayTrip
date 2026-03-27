@@ -39,7 +39,7 @@
     <view class="section">
       <view class="section-header">
         <text class="section-title">快捷导航</text>
-        <text class="section-desc">围绕景点、攻略和推荐的常用入口</text>
+        <text class="section-desc">已确定入口先保留，其他功能后续补充</text>
       </view>
       <view class="quick-grid">
         <view
@@ -166,13 +166,7 @@ const selectedCategories = ref([])
 
 const quickActions = [
   { id: 'spots', title: '景点列表', note: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
-  { id: 'guides', title: '攻略列表', note: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' },
-  { id: 'spot-category', title: '景点分类', note: '按分类看', icon: 'grid-filled', theme: 'green', action: 'discover-preset', preset: { tab: 'spot', spotFilterMode: 'category' } },
-  { id: 'spot-region', title: '地区景点', note: '按地区看', icon: 'map-filled', theme: 'purple', action: 'discover-preset', preset: { tab: 'spot', spotFilterMode: 'region' } },
-  { id: 'hot-guides', title: '热门攻略', note: '攻略内容', icon: 'flag-filled', theme: 'pink', action: 'discover-preset', preset: { tab: 'guide' } },
-  { id: 'recommend', title: '推荐榜单', note: '查看更多', icon: 'star-filled', theme: 'red', action: 'recommend-list' },
-  { id: 'search', title: '搜索', note: '景点攻略', icon: 'search', theme: 'yellow', action: 'search' },
-  { id: 'preference', title: '偏好分类', note: '冷启动标签', icon: 'heart-filled', theme: 'teal', action: 'preference' }
+  { id: 'guides', title: '攻略列表', note: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' }
 ]
 
 const pendingQuickActions = Array.from({ length: 6 }, (_, index) => ({
@@ -313,22 +307,6 @@ const handleQuickAction = (action) => {
     case 'guide-list':
       goGuideList()
       break
-    case 'discover':
-      uni.switchTab({ url: '/pages/discover/index' })
-      break
-    case 'discover-preset':
-      uni.setStorageSync('discover_preset', action.preset || {})
-      uni.switchTab({ url: '/pages/discover/index' })
-      break
-    case 'search':
-      goSearch()
-      break
-    case 'recommend-list':
-      goRecommendList()
-      break
-    case 'preference':
-      showPreferencePopup()
-      break
     case 'pending':
       uni.showToast({ title: '入口功能待确定', icon: 'none' })
       break
@@ -345,11 +323,11 @@ const goSpotDetail = (spotId) => {
 }
 
 const goSpotList = () => {
-  uni.navigateTo({ url: '/pages/spot/list' })
+  uni.navigateTo({ url: '/pages/spot/list?sortBy=heat' })
 }
 
 const goGuideList = () => {
-  uni.navigateTo({ url: '/pages/guide/list' })
+  uni.navigateTo({ url: '/pages/guide/list?sortBy=time' })
 }
 
 const goRecommendList = () => {
