@@ -169,7 +169,7 @@ const goSpotDetail = (spotId) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
-  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=recommend-list` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=recommendation` })
 }
 
 onMounted(() => {

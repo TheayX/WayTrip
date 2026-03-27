@@ -505,7 +505,7 @@ const goPassword = () => {
 }
 
 const goSettings = () => {
-  uni.navigateTo({ url: '/pages/mine/settings' })
+  uni.navigateTo({ url: '/pages/mine/settings/index' })
 }
 </script>
 
