@@ -288,6 +288,23 @@ const refreshDiscover = async () => {
   ])
 }
 
+const applyPreset = () => {
+  const preset = uni.getStorageSync('discover_preset')
+  if (!preset || typeof preset !== 'object' || Array.isArray(preset)) {
+    return
+  }
+
+  if (preset.tab && ['all', 'spot', 'guide'].includes(preset.tab)) {
+    activeTab.value = preset.tab
+  }
+
+  if (preset.spotFilterMode && ['region', 'category'].includes(preset.spotFilterMode)) {
+    spotFilterMode.value = preset.spotFilterMode
+  }
+
+  uni.removeStorageSync('discover_preset')
+}
+
 const switchTab = (value) => {
   activeTab.value = value
   refreshDiscover()
@@ -348,6 +365,7 @@ onShow(async () => {
   if (!guideCategories.value.length) {
     await fetchGuideCategories()
   }
+  applyPreset()
   await refreshDiscover()
 })
 </script>

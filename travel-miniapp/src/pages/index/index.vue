@@ -167,12 +167,12 @@ const selectedCategories = ref([])
 const quickActions = [
   { id: 'spots', title: '景点列表', note: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
   { id: 'guides', title: '攻略列表', note: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' },
-  { id: 'discover', title: '发现页', note: '聚合入口', icon: 'compass-filled', theme: 'green', action: 'discover' },
-  { id: 'search', title: '搜索', note: '景点攻略', icon: 'search', theme: 'purple', action: 'search' },
-  { id: 'recommend', title: '推荐榜单', note: '查看更多', icon: 'star-filled', theme: 'pink', action: 'recommend-list' },
-  { id: 'preference', title: '偏好分类', note: '冷启动标签', icon: 'heart-filled', theme: 'red', action: 'preference' },
-  { id: 'hot-spots', title: '热门景点', note: '当前热度', icon: 'fire-filled', theme: 'yellow', action: 'spot-list' },
-  { id: 'hot-guides', title: '热门攻略', note: '内容浏览', icon: 'flag-filled', theme: 'teal', action: 'guide-list' }
+  { id: 'spot-category', title: '景点分类', note: '按分类看', icon: 'grid-filled', theme: 'green', action: 'discover-preset', preset: { tab: 'spot', spotFilterMode: 'category' } },
+  { id: 'spot-region', title: '地区景点', note: '按地区看', icon: 'map-filled', theme: 'purple', action: 'discover-preset', preset: { tab: 'spot', spotFilterMode: 'region' } },
+  { id: 'hot-guides', title: '热门攻略', note: '攻略内容', icon: 'flag-filled', theme: 'pink', action: 'discover-preset', preset: { tab: 'guide' } },
+  { id: 'recommend', title: '推荐榜单', note: '查看更多', icon: 'star-filled', theme: 'red', action: 'recommend-list' },
+  { id: 'search', title: '搜索', note: '景点攻略', icon: 'search', theme: 'yellow', action: 'search' },
+  { id: 'preference', title: '偏好分类', note: '冷启动标签', icon: 'heart-filled', theme: 'teal', action: 'preference' }
 ]
 
 const recommendType = computed(() => {
@@ -300,6 +300,10 @@ const handleQuickAction = (action) => {
       goGuideList()
       break
     case 'discover':
+      uni.switchTab({ url: '/pages/discover/index' })
+      break
+    case 'discover-preset':
+      uni.setStorageSync('discover_preset', action.preset || {})
       uni.switchTab({ url: '/pages/discover/index' })
       break
     case 'search':
