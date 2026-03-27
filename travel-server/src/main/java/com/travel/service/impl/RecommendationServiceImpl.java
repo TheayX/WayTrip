@@ -1541,6 +1541,9 @@ public class RecommendationServiceImpl implements RecommendationService {
             Spot spot = spotMap.get(id);
             item.setSpotId(id);
             item.setSpotName(spot == null ? "未知景点" : spot.getName());
+            item.setCoverImage(spot == null ? null : spot.getCoverImageUrl());
+            item.setPrice(spot == null ? null : spot.getPrice());
+            item.setAvgRating(spot == null ? null : spot.getAvgRating());
             item.setCategoryName(spot == null ? null : categoryMap.get(spot.getCategoryId()));
             item.setRegionName(spot == null ? null : regionMap.get(spot.getRegionId()));
             item.setSimilarity(similarities.get(id));

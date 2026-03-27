@@ -2,6 +2,7 @@ package com.travel.dto.recommendation;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -17,6 +18,9 @@ public class SimilarityPreviewResponse {
     public static class NeighborItem {
         private Long spotId;
         private String spotName;
+        private String coverImage;
+        private BigDecimal price;
+        private BigDecimal avgRating;
         private String categoryName;
         private String regionName;
         private Double similarity;
