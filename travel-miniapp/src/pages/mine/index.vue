@@ -17,6 +17,60 @@
       <text class="profile-edit" @click="openEditPopup">编辑资料</text>
     </view>
 
+    <view class="stats-board" v-if="isLoggedIn">
+      <view class="stats-item">
+        <text class="stats-value">{{ dashboardStats.viewed }}</text>
+        <text class="stats-label">最近浏览</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-value">{{ dashboardStats.favorites }}</text>
+        <text class="stats-label">我的收藏</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-value">{{ dashboardStats.reviews }}</text>
+        <text class="stats-label">我的评价</text>
+      </view>
+    </view>
+
+    <view class="order-overview" v-if="isLoggedIn">
+      <view class="overview-header">
+        <text class="overview-title">订单状态</text>
+        <text class="overview-link" @click="goOrders">查看全部</text>
+      </view>
+      <view class="overview-grid">
+        <view class="overview-card" @click="goOrdersByStatus('pending')">
+          <text class="overview-value">{{ orderStats.pending }}</text>
+          <text class="overview-label">待支付</text>
+        </view>
+        <view class="overview-card" @click="goOrdersByStatus('paid')">
+          <text class="overview-value">{{ orderStats.paid }}</text>
+          <text class="overview-label">已支付</text>
+        </view>
+        <view class="overview-card" @click="goOrdersByStatus('completed')">
+          <text class="overview-value">{{ orderStats.completed }}</text>
+          <text class="overview-label">已完成</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="footprint-section" v-if="isLoggedIn && recentFootprints.length">
+      <view class="overview-header">
+        <text class="overview-title">最近浏览</text>
+      </view>
+      <scroll-view class="footprint-scroll" scroll-x :show-scrollbar="false">
+        <view
+          v-for="item in recentFootprints"
+          :key="item.id"
+          class="footprint-card"
+          @click="goSpotById(item.id)"
+        >
+          <image class="footprint-image" :src="getImageUrl(item.coverImage)" mode="aspectFill" />
+          <text class="footprint-name">{{ item.name }}</text>
+          <text class="footprint-meta">{{ item.regionName || '景点' }}</text>
+        </view>
+      </scroll-view>
+    </view>
+
     <!-- 菜单组1 -->
     <view class="ios-group">
       <view class="ios-cell" @click="goOrders">
@@ -177,9 +231,13 @@
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
+import { getFavoriteList } from '@/api/favorite'
+import { getOrderList } from '@/api/order'
+import { getMyReviews } from '@/api/review'
 import { wxLogin, wxBindPhone, prepareWxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount } from '@/api/auth'
-import { getAvatarUrl } from '@/utils/request'
+import { getAvatarUrl, getImageUrl } from '@/utils/request'
 
 const userStore = useUserStore()
 const defaultRegisterAvatar = getAvatarUrl('/uploads/images/avatar.jpg')
@@ -187,6 +245,17 @@ const defaultRegisterNickname = '微信用户'
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
+const dashboardStats = reactive({
+  viewed: 0,
+  favorites: 0,
+  reviews: 0
+})
+const orderStats = reactive({
+  pending: 0,
+  paid: 0,
+  completed: 0
+})
+const recentFootprints = ref([])
 
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
@@ -379,6 +448,46 @@ const syncUserInfo = async () => {
   }
 }
 
+const loadRecentFootprints = () => {
+  const history = uni.getStorageSync('spot_footprints')
+  const footprints = Array.isArray(history) ? history : []
+  recentFootprints.value = footprints.slice(0, 6)
+  dashboardStats.viewed = footprints.length
+}
+
+const loadMineOverview = async () => {
+  if (!isLoggedIn.value) {
+    dashboardStats.viewed = 0
+    dashboardStats.favorites = 0
+    dashboardStats.reviews = 0
+    orderStats.pending = 0
+    orderStats.paid = 0
+    orderStats.completed = 0
+    recentFootprints.value = []
+    return
+  }
+
+  loadRecentFootprints()
+
+  try {
+    const [favoriteRes, reviewRes, pendingRes, paidRes, completedRes] = await Promise.all([
+      getFavoriteList(1, 1),
+      getMyReviews(1, 1),
+      getOrderList({ status: 'pending', page: 1, pageSize: 1 }),
+      getOrderList({ status: 'paid', page: 1, pageSize: 1 }),
+      getOrderList({ status: 'completed', page: 1, pageSize: 1 })
+    ])
+
+    dashboardStats.favorites = favoriteRes.data?.total || favoriteRes.data?.list?.length || 0
+    dashboardStats.reviews = reviewRes.data?.total || reviewRes.data?.list?.length || 0
+    orderStats.pending = pendingRes.data?.total || pendingRes.data?.list?.length || 0
+    orderStats.paid = paidRes.data?.total || paidRes.data?.list?.length || 0
+    orderStats.completed = completedRes.data?.total || completedRes.data?.list?.length || 0
+  } catch (e) {
+    console.error('加载我的页概览失败', e)
+  }
+}
+
 // 登录
 const doLogin = async () => {
   try {
@@ -473,6 +582,13 @@ const doLogout = () => {
     success: (res) => {
       if (res.confirm) {
         userStore.logout()
+        dashboardStats.viewed = 0
+        dashboardStats.favorites = 0
+        dashboardStats.reviews = 0
+        orderStats.pending = 0
+        orderStats.paid = 0
+        orderStats.completed = 0
+        recentFootprints.value = []
         uni.showToast({ title: '已退出登录', icon: 'none' })
       }
     }
@@ -482,6 +598,10 @@ const doLogout = () => {
 // 跳转订单
 const goOrders = () => {
   uni.navigateTo({ url: '/pages/order/list' })
+}
+
+const goOrdersByStatus = (status) => {
+  uni.navigateTo({ url: `/pages/order/list?status=${status}` })
 }
 
 // 跳转收藏
@@ -507,6 +627,17 @@ const goPassword = () => {
 const goSettings = () => {
   uni.navigateTo({ url: '/pages/mine/settings/index' })
 }
+
+const goSpotById = (id) => {
+  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=footprint` })
+}
+
+onShow(async () => {
+  if (isLoggedIn.value) {
+    await syncUserInfo()
+  }
+  await loadMineOverview()
+})
 </script>
 
 <style scoped>
@@ -540,6 +671,123 @@ const goSettings = () => {
 .profile-edit {
   font-size: 26rpx;
   color: #007AFF;
+}
+
+.stats-board {
+  display: flex;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx 16rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.02);
+}
+
+.stats-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stats-value {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.stats-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #8E8E93;
+}
+
+.order-overview,
+.footprint-section {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.02);
+}
+
+.overview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.overview-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.overview-link {
+  font-size: 24rpx;
+  color: #007AFF;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+.overview-card {
+  background: #F2F6FC;
+  border-radius: 20rpx;
+  padding: 24rpx 12rpx;
+  text-align: center;
+}
+
+.overview-value {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #007AFF;
+}
+
+.overview-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #4B5563;
+}
+
+.footprint-scroll {
+  white-space: nowrap;
+}
+
+.footprint-card {
+  display: inline-block;
+  width: 220rpx;
+  margin-right: 16rpx;
+}
+
+.footprint-image {
+  width: 220rpx;
+  height: 160rpx;
+  border-radius: 18rpx;
+  background: #E5E7EB;
+}
+
+.footprint-name {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footprint-meta {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #8E8E93;
 }
 
 .avatar-lg {

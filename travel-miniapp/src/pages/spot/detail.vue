@@ -158,10 +158,26 @@ const ratingForm = reactive({ score: 5, comment: '' })
 const openReviewByQuery = ref(false)
 const reviewPopupOpened = ref(false)
 
+const saveSpotFootprint = (data) => {
+  if (!data?.id) return
+  const history = uni.getStorageSync('spot_footprints')
+  const footprints = Array.isArray(history) ? history : []
+  const nextItem = {
+    id: data.id,
+    name: data.name,
+    coverImage: data.coverImage,
+    regionName: data.regionName,
+    viewedAt: Date.now()
+  }
+  const nextList = [nextItem, ...footprints.filter(item => item.id !== data.id)].slice(0, 20)
+  uni.setStorageSync('spot_footprints', nextList)
+}
+
 const fetchSpotDetail = async () => {
   try {
     const res = await getSpotDetail(spotId.value)
     spot.value = res.data
+    saveSpotFootprint(spot.value)
     if (spot.value.userRating) {
       ratingForm.score = spot.value.userRating
     }
