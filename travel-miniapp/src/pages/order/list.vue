@@ -60,7 +60,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getOrderList, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 
@@ -157,6 +157,10 @@ const handlePay = (order) => {
 const handleReview = (order) => {
   uni.navigateTo({ url: `/pages/spot/detail?id=${order.spotId}&openReview=1&source=order` })
 }
+
+onLoad((options) => {
+  currentTab.value = options?.status || ''
+})
 
 onShow(() => {
   fetchOrders(true)
