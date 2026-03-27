@@ -1,10 +1,12 @@
 <template>
   <view class="ios-page">
-    <!-- iOS 风格头部 -->
     <view class="ios-header">
       <view class="header-top">
-        <text class="large-title">探索</text>
-<image class="avatar-sm" :src="getAvatarUrl(userInfo?.avatar)" @click="goMine"/>
+        <view>
+          <text class="large-title">首页</text>
+          <text class="sub-title">推荐、内容和快捷入口都放在这里</text>
+        </view>
+        <image class="avatar-sm" :src="getAvatarUrl(userInfo?.avatar)" @click="goMine" />
       </view>
       <view class="search-bar" @click="goSearch">
         <uni-search-bar
@@ -14,12 +16,11 @@
           :cancelButton="'none'"
           :radius="20"
           :readonly="true"
-          bgColor="#E3E3E8"
+          bgColor="#E9EEF5"
         />
       </view>
     </view>
 
-    <!-- 轮播图 -->
     <view class="banner-container" v-if="banners.length">
       <swiper class="banner" indicator-dots indicator-active-color="#fff" autoplay circular>
         <swiper-item v-for="banner in banners" :key="banner.id" @click="handleBannerClick(banner)">
@@ -30,46 +31,51 @@
 
     <view v-if="!isLoggedIn" class="guest-banner" @click="goMine">
       <view class="guest-copy">
-        <text class="guest-title">现在去登录或注册，体验完整微旅</text>
+        <text class="guest-title">登录后可保存偏好，拿到更稳定的推荐结果</text>
       </view>
       <text class="guest-action">去登录</text>
     </view>
 
-    <!-- 热门目的地 -->
     <view class="section">
       <view class="section-header">
-        <text class="section-title">热门目的地</text>
-        <text class="section-more" @click="goSpotList">查看全部</text>
+        <text class="section-title">快捷导航</text>
+        <text class="section-desc">先保留核心入口，其他能力逐步补</text>
       </view>
-      <scroll-view class="hot-scroll" scroll-x :show-scrollbar="false" v-if="hotSpots.length">
-        <view class="hot-card" v-for="spot in hotSpots" :key="spot.id" @click="goSpotDetail(spot.id)">
-          <image class="hot-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
-          <view class="hot-overlay">
-            <text class="hot-name">{{ spot.name }}</text>
-            <view class="hot-badge">¥{{ spot.price }} 起</view>
+      <view class="quick-grid">
+        <view
+          v-for="action in quickActions"
+          :key="action.id"
+          class="quick-item"
+          @click="handleQuickAction(action)"
+        >
+          <view class="quick-icon" :class="`theme-${action.theme}`">
+            <uni-icons :type="action.icon" size="24" color="#1F2937" />
           </view>
+          <text class="quick-title">{{ action.title }}</text>
+          <text class="quick-note">{{ action.note }}</text>
         </view>
-      </scroll-view>
-      <view class="empty-tip" v-else>
-        <text>暂无热门景点</text>
       </view>
     </view>
 
-    <!-- 为你推荐 -->
     <view class="section">
       <view class="section-header">
         <text class="section-title">{{ recommendType }}</text>
-        <text class="section-more" @click="handleRefresh">换一批</text>
+        <view class="section-actions">
+          <text class="section-link" @click="handleRefresh">换一批</text>
+          <text class="section-link" @click="goRecommendList">查看更多</text>
+        </view>
       </view>
-      
-      <!-- 偏好设置提示 -->
+
       <view class="preference-tip" v-if="needPreference" @click="showPreferencePopup">
-        <text class="tip-text">设置偏好标签，获取更精准的推荐</text>
+        <view>
+          <text class="tip-text">选择感兴趣的景点分类，帮助冷启动推荐更准确</text>
+          <text class="tip-subtext">当前偏好标签先使用景点分类</text>
+        </view>
         <text class="tip-arrow">›</text>
       </view>
 
-      <view class="recommend-list" v-if="recommendations.length">
-        <view class="recommend-card" v-for="spot in recommendations" :key="spot.id" @click="goSpotDetail(spot.id)">
+      <view class="recommend-list" v-if="recommendPreview.length">
+        <view class="recommend-card" v-for="spot in recommendPreview" :key="spot.id" @click="goSpotDetail(spot.id)">
           <image class="rec-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="rec-content">
             <view class="rec-header">
@@ -78,7 +84,7 @@
             </view>
             <text class="rec-desc">{{ spot.intro || '暂无介绍，点击查看详情...' }}</text>
             <view class="rec-footer">
-              <text class="rec-tag">{{ spot.categoryName }}</text>
+              <text class="rec-tag">{{ spot.categoryName || '景点' }}</text>
               <text class="rec-price">¥{{ spot.price }}</text>
             </view>
           </view>
@@ -89,13 +95,34 @@
       </view>
     </view>
 
-    <!-- 偏好设置弹窗 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">热门目的地</text>
+        <text class="section-link" @click="goSpotList">查看全部</text>
+      </view>
+      <scroll-view class="hot-scroll" scroll-x :show-scrollbar="false" v-if="hotSpots.length">
+        <view class="hot-card" v-for="spot in hotSpots" :key="spot.id" @click="goSpotDetail(spot.id)">
+          <image class="hot-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
+          <view class="hot-overlay">
+            <text class="hot-name">{{ spot.name }}</text>
+            <view class="hot-meta">
+              <text class="hot-badge">{{ spot.categoryName || '热门' }}</text>
+              <text class="hot-price">¥{{ spot.price }} 起</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="empty-tip" v-else>
+        <text>暂无热门景点</text>
+      </view>
+    </view>
+
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
       <view class="preference-content">
-        <text class="preference-title">选择你感兴趣的类型</text>
+        <text class="preference-title">选择你感兴趣的景点分类</text>
         <view class="preference-tags">
-          <view 
-            v-for="cat in categories" 
+          <view
+            v-for="cat in categories"
             :key="cat.id"
             class="preference-tag-item"
             :class="{ active: selectedCategories.includes(cat.id) }"
@@ -114,129 +141,131 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
-import { getHotSpots, getRecommendations, refreshRecommendations, getBanners } from '@/api/home'
-import { getFilters } from '@/api/spot'
+import { computed, ref } from 'vue'
+import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
+import { getBanners, getHotSpots, getRecommendations, refreshRecommendations } from '@/api/home'
 import { updatePreferences } from '@/api/auth'
+import { getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
-// 用户信息
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 
-// 数据
 const banners = ref([])
 const hotSpots = ref([])
 const recommendations = ref([])
 const recommendationType = ref('hot')
 const needPreference = ref(false)
 
-// 偏好设置
 const preferenceVisible = ref(false)
 const categories = ref([])
 const selectedCategories = ref([])
 
-// 推荐类型文案
+const quickActions = [
+  { id: 'spots', title: '景点列表', note: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
+  { id: 'guides', title: '攻略列表', note: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' },
+  { id: 'discover', title: '发现页', note: '聚合入口', icon: 'compass-filled', theme: 'green', action: 'discover' },
+  { id: 'search', title: '搜索', note: '景点攻略', icon: 'search', theme: 'purple', action: 'search' },
+  { id: 'recommend', title: '推荐榜单', note: '查看更多', icon: 'star-filled', theme: 'pink', action: 'recommend-list' },
+  { id: 'preference', title: '偏好分类', note: '冷启动标签', icon: 'heart-filled', theme: 'red', action: 'preference' },
+  { id: 'hot-spots', title: '热门景点', note: '当前热度', icon: 'fire-filled', theme: 'yellow', action: 'spot-list' },
+  { id: 'hot-guides', title: '热门攻略', note: '内容浏览', icon: 'flag-filled', theme: 'teal', action: 'guide-list' }
+]
+
 const recommendType = computed(() => {
   const types = {
     personalized: '为你推荐',
-    preference: '根据偏好推荐',
+    preference: '猜你喜欢',
     hot: '热门推荐'
   }
   return types[recommendationType.value] || '为你推荐'
 })
 
-// 获取轮播图
+const recommendPreview = computed(() => recommendations.value.slice(0, 4))
+
 const fetchBanners = async () => {
   try {
     const res = await getBanners()
     banners.value = res.data?.list || []
-  } catch (e) {
-    console.error('获取轮播图失败', e)
+  } catch (error) {
+    console.error('获取轮播图失败', error)
   }
 }
 
-// 获取热门景点
 const fetchHotSpots = async () => {
   try {
     const res = await getHotSpots(6)
     hotSpots.value = res.data?.list || []
-  } catch (e) {
-    console.error('获取热门景点失败', e)
+  } catch (error) {
+    console.error('获取热门景点失败', error)
   }
 }
 
-// 获取个性化推荐
 const fetchRecommendations = async () => {
   try {
-    const res = await getRecommendations(10)
+    const res = await getRecommendations(12)
     recommendations.value = res.data?.list || []
     recommendationType.value = res.data?.type || 'hot'
     needPreference.value = res.data?.needPreference || false
-  } catch (e) {
-    console.error('获取推荐失败', e)
+  } catch (error) {
+    console.error('获取推荐失败', error)
   }
 }
 
-// 刷新推荐
+const fetchCategories = async () => {
+  try {
+    const res = await getFilters()
+    categories.value = res.data?.categories || []
+  } catch (error) {
+    console.error('获取分类失败', error)
+  }
+}
+
 const handleRefresh = async () => {
   uni.showLoading({ title: '加载中...' })
   try {
-    const res = await refreshRecommendations(10)
+    const res = await refreshRecommendations(12)
     recommendations.value = res.data?.list || []
     recommendationType.value = res.data?.type || 'hot'
     needPreference.value = res.data?.needPreference || false
     uni.showToast({ title: '已刷新', icon: 'none' })
-  } catch (e) {
+  } catch (error) {
+    console.error('刷新推荐失败', error)
     uni.showToast({ title: '刷新失败', icon: 'none' })
   } finally {
     uni.hideLoading()
   }
 }
 
-// 获取分类列表
-const fetchCategories = async () => {
-  try {
-    const res = await getFilters()
-    categories.value = res.data?.categories || []
-  } catch (e) {
-    console.error('获取分类失败', e)
-  }
-}
-
-// 显示偏好设置弹窗
 const showPreferencePopup = async () => {
-  if (categories.value.length === 0) {
+  if (!categories.value.length) {
     await fetchCategories()
   }
   preferenceVisible.value = true
 }
 
-// 切换分类选择
 const toggleCategory = (id) => {
   const index = selectedCategories.value.indexOf(id)
   if (index > -1) {
     selectedCategories.value.splice(index, 1)
-  } else {
-    if (selectedCategories.value.length < 5) {
-      selectedCategories.value.push(id)
-    } else {
-      uni.showToast({ title: '最多选择5个', icon: 'none' })
-    }
+    return
   }
+  if (selectedCategories.value.length >= 5) {
+    uni.showToast({ title: '最多选择5个', icon: 'none' })
+    return
+  }
+  selectedCategories.value.push(id)
 }
 
-// 保存偏好
 const savePreferences = async () => {
-  if (selectedCategories.value.length === 0) {
+  if (!selectedCategories.value.length) {
     uni.showToast({ title: '请至少选择一个', icon: 'none' })
     return
   }
-  
+
   try {
     const categoryNames = selectedCategories.value
       .map(id => categories.value.find(cat => cat.id === id)?.name)
@@ -247,23 +276,46 @@ const savePreferences = async () => {
       preferenceCategoryIds: [...selectedCategories.value],
       preferenceCategoryNames: categoryNames
     })
-    uni.showToast({ title: '设置成功', icon: 'success' })
     preferenceVisible.value = false
-    handleRefresh()
-  } catch (e) {
-    console.error('保存偏好失败', e)
+    uni.showToast({ title: '设置成功', icon: 'success' })
+    await handleRefresh()
+  } catch (error) {
+    console.error('保存偏好失败', error)
     uni.showToast({ title: '保存失败', icon: 'none' })
   }
 }
 
-// 轮播图点击
 const handleBannerClick = (banner) => {
   if (banner.spotId) {
     goSpotDetail(banner.spotId)
   }
 }
 
-// 跳转
+const handleQuickAction = (action) => {
+  switch (action.action) {
+    case 'spot-list':
+      goSpotList()
+      break
+    case 'guide-list':
+      goGuideList()
+      break
+    case 'discover':
+      uni.switchTab({ url: '/pages/discover/index' })
+      break
+    case 'search':
+      goSearch()
+      break
+    case 'recommend-list':
+      goRecommendList()
+      break
+    case 'preference':
+      showPreferencePopup()
+      break
+    default:
+      break
+  }
+}
+
 const goSpotDetail = (spotId) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
@@ -272,24 +324,30 @@ const goSpotDetail = (spotId) => {
 }
 
 const goSpotList = () => {
-  uni.switchTab({ url: '/pages/spot/list' })
+  uni.navigateTo({ url: '/pages/spot/list' })
 }
 
-const goMine = () => {
-  uni.switchTab({ url: '/pages/mine/index' })
+const goGuideList = () => {
+  uni.navigateTo({ url: '/pages/guide/list' })
+}
+
+const goRecommendList = () => {
+  uni.navigateTo({ url: '/pages/recommend/list' })
 }
 
 const goSearch = () => {
   uni.navigateTo({ url: '/pages/spot/search' })
 }
 
-// 下拉刷新
+const goMine = () => {
+  uni.switchTab({ url: '/pages/mine/index' })
+}
+
 onPullDownRefresh(async () => {
   await Promise.all([fetchBanners(), fetchHotSpots(), fetchRecommendations()])
   uni.stopPullDownRefresh()
 })
 
-// 页面显示时刷新
 onShow(() => {
   fetchBanners()
   fetchHotSpots()
@@ -298,17 +356,15 @@ onShow(() => {
 </script>
 
 <style scoped>
-/* iOS 风格页面 */
 .ios-page {
-  background-color: #F2F2F7;
   min-height: 100vh;
-  padding-bottom: 40rpx;
+  background: #f4f6fb;
+  padding-bottom: 48rpx;
 }
 
-/* 头部 */
 .ios-header {
-  padding: 88rpx 32rpx 20rpx;
-  background: #fff;
+  padding: 88rpx 32rpx 24rpx;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -316,26 +372,32 @@ onShow(() => {
 
 .header-top {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 24rpx;
 }
 
 .large-title {
-  font-size: 60rpx;
+  display: block;
+  font-size: 56rpx;
   font-weight: 800;
-  color: #000;
-  letter-spacing: -1px;
+  color: #111827;
+}
+
+.sub-title {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6b7280;
 }
 
 .avatar-sm {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #eee;
+  background: #dbe4f0;
 }
 
-/* 搜索栏 */
 .search-bar {
   pointer-events: auto;
 }
@@ -350,103 +412,248 @@ onShow(() => {
   border-radius: 20rpx;
 }
 
-:deep(.search-bar .uni-searchbar__text-placeholder) {
-  font-size: 30rpx;
+.banner-container {
+  padding: 28rpx 32rpx 12rpx;
 }
 
-/* 轮播图 */
-.banner-container {
-  padding: 32rpx;
+.banner,
+.banner-image {
+  width: 100%;
+  height: 320rpx;
+  border-radius: 28rpx;
 }
 
 .banner {
-  width: 100%;
-  height: 360rpx;
-  border-radius: 32rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.08);
-}
-
-.banner-image {
-  width: 100%;
-  height: 360rpx;
-  border-radius: 32rpx;
+  box-shadow: 0 10rpx 28rpx rgba(31, 41, 55, 0.12);
 }
 
 .guest-banner {
-  margin: 0 32rpx 40rpx;
-  padding: 26rpx 28rpx;
-  border-radius: 28rpx;
-  background: #fff;
-  border: 1rpx solid #E5E5EA;
-  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.05);
+  margin: 16rpx 32rpx 0;
+  padding: 24rpx 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.06);
+}
+
+.guest-title {
+  display: block;
+  font-size: 28rpx;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+.guest-action {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.section {
+  margin-top: 28rpx;
+}
+
+.section-header {
+  padding: 0 32rpx 20rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
 }
 
-.guest-copy {
-  flex: 1;
-  min-width: 0;
+.section-title {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #111827;
 }
 
-.guest-title {
+.section-desc {
+  font-size: 24rpx;
+  color: #6b7280;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.section-link {
+  font-size: 26rpx;
+  color: #2563eb;
+}
+
+.quick-grid {
+  padding: 0 32rpx;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20rpx;
+}
+
+.quick-item {
+  padding: 24rpx 12rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  text-align: center;
+  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.05);
+}
+
+.quick-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin: 0 auto 14rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-blue { background: #dbeafe; }
+.theme-orange { background: #ffedd5; }
+.theme-green { background: #dcfce7; }
+.theme-purple { background: #ede9fe; }
+.theme-pink { background: #fce7f3; }
+.theme-red { background: #fee2e2; }
+.theme-yellow { background: #fef3c7; }
+.theme-teal { background: #ccfbf1; }
+
+.quick-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.quick-note {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #6b7280;
+}
+
+.preference-tip {
+  margin: 0 32rpx 24rpx;
+  padding: 24rpx 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.05);
+}
+
+.tip-text {
   display: block;
   font-size: 28rpx;
-  font-weight: 600;
-  color: #1C1C1E;
-  line-height: 1.5;
+  color: #2563eb;
 }
 
-.guest-action {
-  flex-shrink: 0;
-  font-size: 24rpx;
+.tip-subtext {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.tip-arrow {
+  font-size: 34rpx;
+  color: #9ca3af;
+}
+
+.recommend-list {
+  padding: 0 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.recommend-card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.06);
+}
+
+.rec-img {
+  width: 100%;
+  height: 280rpx;
+}
+
+.rec-content {
+  padding: 24rpx;
+}
+
+.rec-header,
+.rec-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.rec-header {
+  margin-bottom: 12rpx;
+}
+
+.rec-name {
+  flex: 1;
+  font-size: 32rpx;
   font-weight: 600;
-  color: #007AFF;
-  background: rgba(0, 122, 255, 0.08);
-  padding: 10rpx 18rpx;
+  color: #111827;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rec-rating {
+  font-size: 24rpx;
+  color: #f59e0b;
+}
+
+.rec-desc {
+  display: -webkit-box;
+  margin-bottom: 18rpx;
+  font-size: 26rpx;
+  line-height: 1.5;
+  color: #6b7280;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.rec-tag {
+  font-size: 22rpx;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+  padding: 6rpx 14rpx;
   border-radius: 999rpx;
 }
 
-/* 板块通用 */
-.section {
-  margin-bottom: 40rpx;
-}
-
-.section-header {
-  padding: 0 32rpx 24rpx;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-
-.section-title {
-  font-size: 40rpx;
-  font-weight: 700;
-  color: #000;
-}
-
-.section-more {
-  color: #007AFF;
+.rec-price {
   font-size: 30rpx;
+  font-weight: 700;
+  color: #ef4444;
 }
 
-/* 热门横向滚动 */
 .hot-scroll {
-  white-space: nowrap;
   padding-left: 32rpx;
+  white-space: nowrap;
 }
 
 .hot-card {
   display: inline-block;
-  width: 300rpx;
-  height: 400rpx;
-  margin-right: 24rpx;
-  border-radius: 32rpx;
+  width: 280rpx;
+  height: 360rpx;
+  margin-right: 20rpx;
+  border-radius: 28rpx;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.1);
+  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.08);
 }
 
 .hot-img {
@@ -456,151 +663,45 @@ onShow(() => {
 
 .hot-overlay {
   position: absolute;
-  bottom: 0;
   left: 0;
   right: 0;
-  padding: 30rpx 20rpx;
-  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+  bottom: 0;
+  padding: 24rpx 20rpx;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0) 0%, rgba(17, 24, 39, 0.82) 100%);
 }
 
 .hot-name {
   display: block;
-  color: #fff;
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #ffffff;
 }
 
-.hot-badge {
-  display: inline-block;
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(10px);
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  color: #fff;
+.hot-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-top: 10rpx;
+}
+
+.hot-badge,
+.hot-price {
   font-size: 22rpx;
-  margin-top: 8rpx;
+  color: #ffffff;
 }
 
-/* 偏好设置提示 */
-.preference-tip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff;
-  padding: 24rpx 32rpx;
-  margin: 0 32rpx 24rpx;
-  border-radius: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
-}
-
-.tip-text {
-  font-size: 28rpx;
-  color: #007AFF;
-}
-
-.tip-arrow {
-  font-size: 32rpx;
-  color: #C7C7CC;
-}
-
-/* 推荐列表 */
-.recommend-list {
-  padding: 0 32rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 32rpx;
-}
-
-.recommend-card {
-  background: #fff;
-  border-radius: 32rpx;
-  overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
-}
-
-.rec-img {
-  width: 100%;
-  height: 300rpx;
-}
-
-.rec-content {
-  padding: 24rpx;
-}
-
-.rec-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12rpx;
-}
-
-.rec-name {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #1c1c1e;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rec-rating {
-  color: #FF9500;
-  font-size: 26rpx;
-  font-weight: 600;
-  margin-left: 16rpx;
-}
-
-.rec-desc {
-  font-size: 28rpx;
-  color: #8E8E93;
-  line-height: 1.4;
-  margin-bottom: 16rpx;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.rec-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.rec-tag {
-  font-size: 22rpx;
-  color: #007AFF;
-  background: rgba(0, 122, 255, 0.1);
-  padding: 6rpx 16rpx;
-  border-radius: 100rpx;
-}
-
-.rec-price {
-  font-size: 32rpx;
-  color: #FF3B30;
-  font-weight: 600;
-}
-
-/* 空状态 */
 .empty-tip {
+  padding: 48rpx 32rpx;
   text-align: center;
-  padding: 60rpx;
-  color: #8E8E93;
-  font-size: 28rpx;
+  font-size: 26rpx;
+  color: #6b7280;
 }
 
-/* 偏好设置弹窗 */
 .preference-popup {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -608,39 +709,39 @@ onShow(() => {
 }
 
 .preference-content {
-  width: 600rpx;
-  background: #fff;
+  width: 620rpx;
+  background: #ffffff;
   border-radius: 28rpx;
   padding: 40rpx;
 }
 
 .preference-title {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #000;
-  text-align: center;
   display: block;
-  margin-bottom: 30rpx;
+  margin-bottom: 28rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  text-align: center;
+  color: #111827;
 }
 
 .preference-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
-  margin-bottom: 30rpx;
+  margin-bottom: 28rpx;
 }
 
 .preference-tag-item {
-  padding: 16rpx 28rpx;
-  background: #F2F2F7;
-  border-radius: 100rpx;
-  font-size: 26rpx;
-  color: #666;
+  padding: 16rpx 24rpx;
+  border-radius: 999rpx;
+  background: #eef2f7;
+  font-size: 24rpx;
+  color: #4b5563;
 }
 
 .preference-tag-item.active {
-  background: #007AFF;
-  color: #fff;
+  background: #2563eb;
+  color: #ffffff;
 }
 
 .preference-actions {
@@ -651,20 +752,20 @@ onShow(() => {
 .cancel-btn,
 .confirm-btn {
   flex: 1;
-  height: 88rpx;
-  line-height: 88rpx;
-  border-radius: 44rpx;
-  font-size: 30rpx;
+  height: 84rpx;
+  line-height: 84rpx;
+  border-radius: 42rpx;
+  font-size: 28rpx;
   border: none;
 }
 
 .cancel-btn {
-  background: #F2F2F7;
-  color: #666;
+  background: #eef2f7;
+  color: #4b5563;
 }
 
 .confirm-btn {
-  background: #007AFF;
-  color: #fff;
+  background: #2563eb;
+  color: #ffffff;
 }
 </style>

@@ -7,6 +7,18 @@
       }
     },
     {
+      "path": "pages/discover/index",
+      "style": {
+        "navigationBarTitleText": "发现"
+      }
+    },
+    {
+      "path": "pages/recommend/list",
+      "style": {
+        "navigationBarTitleText": "推荐列表"
+      }
+    },
+    {
       "path": "pages/spot/list",
       "style": {
         "navigationBarTitleText": "景点列表"
@@ -67,6 +79,12 @@
       }
     },
     {
+      "path": "pages/mine/settings",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
+    },
+    {
       "path": "pages/mine/preference",
       "style": {
         "navigationBarTitleText": "偏好设置"
@@ -110,16 +128,10 @@
         "selectedIconPath": "static/tabbar/home-active.png"
       },
       {
-        "pagePath": "pages/spot/list",
-        "text": "景点",
+        "pagePath": "pages/discover/index",
+        "text": "发现",
         "iconPath": "static/tabbar/spot.png",
         "selectedIconPath": "static/tabbar/spot-active.png"
-      },
-      {
-        "pagePath": "pages/guide/list",
-        "text": "攻略",
-        "iconPath": "static/tabbar/guide.png",
-        "selectedIconPath": "static/tabbar/guide-active.png"
       },
       {
         "pagePath": "pages/mine/index",
