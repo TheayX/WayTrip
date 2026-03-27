@@ -338,11 +338,27 @@ const goSearch = () => {
 }
 
 const goSpotList = () => {
-  uni.navigateTo({ url: '/pages/spot/list' })
+  const query = [`sortBy=heat`]
+
+  if (selectedRegionId.value) {
+    query.push(`regionId=${selectedRegionId.value}`)
+  }
+
+  if (selectedSpotCategoryId.value) {
+    query.push(`categoryId=${selectedSpotCategoryId.value}`)
+  }
+
+  uni.navigateTo({ url: `/pages/spot/list?${query.join('&')}` })
 }
 
 const goGuideList = () => {
-  uni.navigateTo({ url: '/pages/guide/list' })
+  const query = ['sortBy=time']
+
+  if (selectedGuideCategory.value) {
+    query.push(`category=${encodeURIComponent(selectedGuideCategory.value)}`)
+  }
+
+  uni.navigateTo({ url: `/pages/guide/list?${query.join('&')}` })
 }
 
 const goRecommendationList = () => {
