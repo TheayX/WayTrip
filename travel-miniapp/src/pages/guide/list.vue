@@ -57,7 +57,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getGuideList, getCategories } from '@/api/guide'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
@@ -65,6 +65,7 @@ import { getImageUrl } from '@/utils/request'
 
 const categories = ref([])
 const currentCategory = ref('')
+const sortBy = ref('time')
 
 const guideList = ref([])
 const page = ref(1)
@@ -90,7 +91,7 @@ const fetchGuideList = async (isRefresh = false) => {
     const params = {
       page: isRefresh ? 1 : page.value,
       pageSize: pageSize.value,
-      sortBy: 'time'
+      sortBy: sortBy.value
     }
     if (currentCategory.value) {
       params.category = currentCategory.value
@@ -131,6 +132,16 @@ const goDetail = (id) => {
   }
   uni.navigateTo({ url: `/pages/guide/detail?id=${id}` })
 }
+
+onLoad((options) => {
+  if (typeof options?.category === 'string' && options.category) {
+    currentCategory.value = decodeURIComponent(options.category)
+  }
+
+  if (options?.sortBy === 'time' || options?.sortBy === 'category') {
+    sortBy.value = options.sortBy
+  }
+})
 
 onMounted(() => {
   fetchCategories()

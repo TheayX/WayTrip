@@ -186,6 +186,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { getSpotList, getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
@@ -248,6 +249,56 @@ const currentSubRegions = computed(() => {
   const parent = regionTree.value.find(item => item.id === tempProvinceId.value)
   return parent?.children || []
 })
+
+const parseNumberOption = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return null
+  }
+
+  const parsed = Number(value)
+  return Number.isNaN(parsed) ? null : parsed
+}
+
+const syncRegionDisplay = () => {
+  if (!activeProvinceId.value && !activeCityId.value) {
+    currentRegion.value = null
+    return
+  }
+
+  if (activeCityId.value) {
+    for (const province of regionTree.value) {
+      const city = province.children?.find(item => item.id === activeCityId.value)
+      if (city) {
+        currentRegion.value = { id: city.id, name: city.name }
+        return
+      }
+    }
+  }
+
+  const province = regionTree.value.find(item => item.id === activeProvinceId.value)
+  currentRegion.value = province ? { id: province.id, name: province.name } : null
+}
+
+const syncCategoryDisplay = () => {
+  if (activeCategoryId.value) {
+    for (const parent of categoryTree.value) {
+      const category = parent.children?.find(item => item.id === activeCategoryId.value)
+      if (category) {
+        activeParentId.value = parent.id
+        activeCategoryName.value = category.name
+        return
+      }
+    }
+  }
+
+  if (activeParentId.value) {
+    const parent = categoryTree.value.find(item => item.id === activeParentId.value)
+    activeCategoryName.value = parent?.name || ''
+    return
+  }
+
+  activeCategoryName.value = ''
+}
 
 // --- 交互逻辑 ---
 const toggleTab = (tab) => {
@@ -357,6 +408,8 @@ const fetchFilters = async () => {
     regionTree.value = res.data.regionTree?.length ? res.data.regionTree : fallbackRegions
     categories.value = res.data.categories || []
     categoryTree.value = res.data.categoryTree?.length ? res.data.categoryTree : []
+    syncRegionDisplay()
+    syncCategoryDisplay()
   } catch (e) {
     console.error(e)
   }
@@ -422,6 +475,42 @@ const goDetail = (id) => {
   }
   uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=list` })
 }
+
+onLoad((options) => {
+  const provinceId = parseNumberOption(options?.provinceId)
+  const regionId = parseNumberOption(options?.regionId)
+  const parentCategoryId = parseNumberOption(options?.parentCategoryId)
+  const categoryId = parseNumberOption(options?.categoryId)
+
+  if (provinceId) {
+    activeProvinceId.value = provinceId
+    tempProvinceId.value = provinceId
+  }
+
+  if (regionId) {
+    activeCityId.value = regionId
+    tempCityId.value = regionId
+  }
+
+  if (parentCategoryId) {
+    activeParentId.value = parentCategoryId
+    tempParentId.value = parentCategoryId
+  }
+
+  if (categoryId) {
+    activeCategoryId.value = categoryId
+    tempCategoryId.value = categoryId
+  }
+
+  if (!parentCategoryId && categoryId) {
+    activeParentId.value = categoryId
+    tempParentId.value = categoryId
+  }
+
+  if (options?.sortBy && sortOptions.some(item => item.value === options.sortBy)) {
+    sortBy.value = options.sortBy
+  }
+})
 
 onMounted(() => {
   fetchFilters()
