@@ -1,39 +1,49 @@
 <template>
   <view class="guide-detail-page" v-if="guide">
-    <!-- 封面图 -->
     <image class="guide-cover" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
 
-    <!-- 标题信息 -->
     <view class="guide-header card">
       <text class="guide-title">{{ guide.title }}</text>
       <view class="guide-meta">
         <text class="guide-category">{{ guide.category }}</text>
         <text class="guide-info">👁 {{ guide.viewCount }} · {{ guide.createdAt }}</text>
       </view>
+      <text class="guide-intro">这篇攻略提到的景点会集中展示在下方，方便直接跳转查看。</text>
     </view>
 
-    <!-- 攻略内容 -->
     <view class="guide-content card">
       <rich-text :nodes="guide.content"></rich-text>
     </view>
 
-    <!-- 关联景点 -->
-    <view class="related-spots card" v-if="guide.relatedSpots?.length">
-      <text class="section-title">相关景点</text>
-      <scroll-view class="spots-scroll" scroll-x>
-        <view 
-          class="spot-card" 
-          v-for="spot in guide.relatedSpots" 
+    <view class="related-spots card">
+      <view class="section-header">
+        <view>
+          <text class="section-title">攻略关联景点</text>
+          <text class="section-subtitle">共 {{ guide.relatedSpots?.length || 0 }} 个可直达景点入口</text>
+        </view>
+        <text class="section-link" @click="goSpotList">更多景点</text>
+      </view>
+
+      <scroll-view class="spots-scroll" scroll-x v-if="guide.relatedSpots?.length" :show-scrollbar="false">
+        <view
+          class="spot-card"
+          v-for="spot in guide.relatedSpots"
           :key="spot.id"
           @click="goSpotDetail(spot.id)"
         >
           <image class="spot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="spot-info">
             <text class="spot-name">{{ spot.name }}</text>
-            <text class="spot-price price">{{ spot.price }}</text>
+            <text class="spot-price">{{ spot.price }}</text>
+            <text class="spot-link">查看景点详情 ›</text>
           </view>
         </view>
       </scroll-view>
+
+      <view class="empty-related" v-else>
+        <text class="empty-text">这篇攻略暂时没有配置关联景点</text>
+        <view class="empty-btn" @click="goSpotList">去景点列表看看</view>
+      </view>
     </view>
   </view>
 </template>
@@ -44,11 +54,9 @@ import { onLoad } from '@dcloudio/uni-app'
 import { getGuideDetail } from '@/api/guide'
 import { getImageUrl } from '@/utils/request'
 
-// 攻略数据
 const guide = ref(null)
 const guideId = ref(null)
 
-// 获取攻略详情
 const fetchGuideDetail = async () => {
   try {
     const res = await getGuideDetail(guideId.value)
@@ -65,15 +73,16 @@ const fetchGuideDetail = async () => {
   }
 }
 
-
-// 跳转景点详情
 const goSpotDetail = (id) => {
   uni.navigateTo({
     url: `/pages/spot/detail?id=${id}&source=guide`
   })
 }
 
-// 页面加载
+const goSpotList = () => {
+  uni.navigateTo({ url: '/pages/spot/list' })
+}
+
 onLoad((options) => {
   guideId.value = options.id
   fetchGuideDetail()
@@ -82,28 +91,28 @@ onLoad((options) => {
 
 <style scoped>
 .guide-detail-page {
+  min-height: 100vh;
   padding-bottom: 40rpx;
+  background: linear-gradient(180deg, #f5f7fa 0%, #eef3f8 100%);
 }
 
-/* 封面图 */
 .guide-cover {
   width: 100%;
-  height: 400rpx;
+  height: 420rpx;
 }
 
-/* 标题信息 */
 .guide-header {
-  margin: -60rpx 20rpx 20rpx;
+  margin: -72rpx 24rpx 20rpx;
   position: relative;
   z-index: 1;
 }
 
 .guide-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
   display: block;
   margin-bottom: 16rpx;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .guide-meta {
@@ -114,36 +123,61 @@ onLoad((options) => {
 
 .guide-category {
   font-size: 24rpx;
-  color: #409EFF;
-  background: rgba(64, 158, 255, 0.1);
-  padding: 6rpx 16rpx;
-  border-radius: 4rpx;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
 }
 
 .guide-info {
   font-size: 24rpx;
-  color: #999;
+  color: #94a3b8;
 }
 
-/* 攻略内容 */
+.guide-intro {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: #64748b;
+}
+
 .guide-content {
-  margin: 0 20rpx 20rpx;
+  margin: 0 24rpx 20rpx;
   font-size: 28rpx;
   line-height: 1.8;
-  color: #333;
+  color: #334155;
 }
 
-/* 关联景点 */
 .related-spots {
-  margin: 0 20rpx;
+  margin: 0 24rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
 }
 
 .section-title {
-  font-size: 30rpx;
-  font-weight: bold;
-  color: #333;
   display: block;
-  margin-bottom: 20rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.section-subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #94a3b8;
+}
+
+.section-link {
+  font-size: 24rpx;
+  color: #2563eb;
 }
 
 .spots-scroll {
@@ -154,8 +188,8 @@ onLoad((options) => {
   display: inline-block;
   width: 280rpx;
   margin-right: 20rpx;
-  background: #f9f9f9;
-  border-radius: 12rpx;
+  background: #f8fafc;
+  border-radius: 18rpx;
   overflow: hidden;
 }
 
@@ -165,25 +199,55 @@ onLoad((options) => {
 
 .spot-image {
   width: 280rpx;
-  height: 180rpx;
+  height: 190rpx;
 }
 
 .spot-info {
-  padding: 16rpx;
+  padding: 18rpx;
 }
 
 .spot-name {
-  font-size: 26rpx;
-  color: #333;
   display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1f2937;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .spot-price {
-  font-size: 28rpx;
-  margin-top: 8rpx;
   display: block;
+  margin-top: 10rpx;
+  font-size: 28rpx;
+  color: #ef4444;
+}
+
+.spot-link {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #2563eb;
+}
+
+.empty-related {
+  padding: 32rpx 0 12rpx;
+  text-align: center;
+}
+
+.empty-text {
+  display: block;
+  font-size: 26rpx;
+  color: #94a3b8;
+}
+
+.empty-btn {
+  display: inline-block;
+  margin-top: 20rpx;
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 24rpx;
 }
 </style>
