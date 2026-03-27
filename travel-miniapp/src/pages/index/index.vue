@@ -332,7 +332,7 @@ const goGuideList = () => {
 }
 
 const goRecommendList = () => {
-  uni.navigateTo({ url: '/pages/recommend/list' })
+  uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 
 const goSearch = () => {
