@@ -3,9 +3,9 @@
     <view class="top-bar">
       <view>
         <text class="page-title">{{ recommendType }}</text>
-        <text class="page-subtitle">查看更多推荐结果</text>
+        <text class="page-subtitle">集中浏览当前推荐结果</text>
       </view>
-      <text class="refresh-btn" @click="refreshList">换一批</text>
+      <text class="refresh-btn" @click="refreshList">刷新推荐</text>
     </view>
 
     <view class="preference-tip" v-if="needPreference" @click="showPreferencePopup">
@@ -31,7 +31,7 @@
     </view>
 
     <view class="empty-state" v-else>
-      <text>暂无推荐结果</text>
+      <text>当前暂无推荐结果</text>
     </view>
 
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
