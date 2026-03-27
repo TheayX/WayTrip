@@ -4,7 +4,7 @@
       <view class="header-top">
         <view>
           <text class="large-title">首页</text>
-          <text class="sub-title">推荐、内容和快捷入口都放在这里</text>
+          <text class="sub-title">推荐内容、快捷入口和热门景点都集中在这里</text>
         </view>
         <image class="avatar-sm" :src="getAvatarUrl(userInfo?.avatar)" @click="goMine" />
       </view>
@@ -39,7 +39,7 @@
     <view class="section">
       <view class="section-header">
         <text class="section-title">快捷导航</text>
-        <text class="section-desc">先保留核心入口，其他能力逐步补</text>
+        <text class="section-desc">围绕景点、攻略和推荐的常用入口</text>
       </view>
       <view class="quick-grid">
         <view
@@ -69,7 +69,7 @@
       <view class="preference-tip" v-if="needPreference" @click="showPreferencePopup">
         <view>
           <text class="tip-text">选择感兴趣的景点分类，帮助冷启动推荐更准确</text>
-          <text class="tip-subtext">当前偏好标签先使用景点分类</text>
+          <text class="tip-subtext">当前偏好标签统一使用景点分类</text>
         </view>
         <text class="tip-arrow">›</text>
       </view>
@@ -91,7 +91,7 @@
         </view>
       </view>
       <view class="empty-tip" v-else>
-        <text>暂无推荐</text>
+        <text>当前暂无推荐内容</text>
       </view>
     </view>
 
@@ -113,7 +113,7 @@
         </view>
       </scroll-view>
       <view class="empty-tip" v-else>
-        <text>暂无热门景点</text>
+        <text>当前暂无热门景点</text>
       </view>
     </view>
 

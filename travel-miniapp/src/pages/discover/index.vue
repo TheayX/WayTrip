@@ -1,5 +1,10 @@
 <template>
   <view class="discover-page">
+    <view class="page-intro">
+      <text class="intro-title">发现</text>
+      <text class="intro-desc">把景点和攻略放在同一页里浏览，减少来回切换。</text>
+    </view>
+
     <view class="search-card" @click="goSearch">
       <uni-icons type="search" size="18" color="#6b7280" />
       <text class="search-text">搜索景点、攻略</text>
@@ -128,7 +133,7 @@
         </view>
       </view>
       <view class="empty-block" v-else>
-        <text>暂无景点数据</text>
+        <text>当前条件下暂无景点</text>
       </view>
     </view>
 
@@ -155,7 +160,7 @@
         </view>
       </view>
       <view class="empty-block" v-else>
-        <text>暂无攻略数据</text>
+        <text>当前条件下暂无攻略</text>
       </view>
     </view>
   </view>
@@ -375,6 +380,24 @@ onShow(async () => {
   min-height: 100vh;
   padding: 24rpx 24rpx 40rpx;
   background: #f4f6fb;
+}
+
+.page-intro {
+  margin-bottom: 20rpx;
+}
+
+.intro-title {
+  display: block;
+  font-size: 42rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.intro-desc {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #6b7280;
 }
 
 .search-card,
