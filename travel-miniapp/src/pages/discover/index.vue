@@ -418,6 +418,30 @@ const goGuideDetail = (id) => {
 }
 
 onShow(async () => {
+  const updatedSpot = uni.getStorageSync('spot_detail_updated')
+  if (updatedSpot?.id) {
+    const index = spotList.value.findIndex(item => item.id === updatedSpot.id)
+    if (index !== -1) {
+      spotList.value[index] = {
+        ...spotList.value[index],
+        ...updatedSpot
+      }
+    }
+    uni.removeStorageSync('spot_detail_updated')
+  }
+
+  const updatedGuide = uni.getStorageSync('guide_detail_updated')
+  if (updatedGuide?.id) {
+    const index = guideList.value.findIndex(item => item.id === updatedGuide.id)
+    if (index !== -1) {
+      guideList.value[index] = {
+        ...guideList.value[index],
+        ...updatedGuide
+      }
+    }
+    uni.removeStorageSync('guide_detail_updated')
+  }
+
   if (!regions.value.length || !spotCategories.value.length) {
     await fetchSpotFilters()
   }

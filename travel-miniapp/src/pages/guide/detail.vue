@@ -57,10 +57,24 @@ import { getImageUrl } from '@/utils/request'
 const guide = ref(null)
 const guideId = ref(null)
 
+const syncGuidePreview = (data) => {
+  if (!data?.id) return
+  uni.setStorageSync('guide_detail_updated', {
+    id: data.id,
+    title: data.title,
+    coverImage: data.coverImage,
+    summary: data.summary || '',
+    category: data.category,
+    viewCount: data.viewCount,
+    createdAt: data.createdAt
+  })
+}
+
 const fetchGuideDetail = async () => {
   try {
     const res = await getGuideDetail(guideId.value)
     guide.value = res.data
+    syncGuidePreview(guide.value)
     if (guide.value?.id && typeof guide.value.viewCount === 'number') {
       uni.setStorageSync('guide_view_updated', {
         id: guide.value.id,
@@ -80,7 +94,7 @@ const goSpotDetail = (id) => {
 }
 
 const goSpotList = () => {
-  uni.navigateTo({ url: '/pages/spot/list' })
+  uni.navigateTo({ url: '/pages/spot/list?sortBy=heat' })
 }
 
 onLoad((options) => {
