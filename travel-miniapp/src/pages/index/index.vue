@@ -43,7 +43,7 @@
       </view>
       <view class="quick-grid">
         <view
-          v-for="action in quickActions"
+          v-for="action in displayQuickActions"
           :key="action.id"
           class="quick-item"
           @click="handleQuickAction(action)"
@@ -173,6 +173,20 @@ const quickActions = [
   { id: 'recommend', title: '推荐榜单', note: '查看更多', icon: 'star-filled', theme: 'red', action: 'recommend-list' },
   { id: 'search', title: '搜索', note: '景点攻略', icon: 'search', theme: 'yellow', action: 'search' },
   { id: 'preference', title: '偏好分类', note: '冷启动标签', icon: 'heart-filled', theme: 'teal', action: 'preference' }
+]
+
+const pendingQuickActions = Array.from({ length: 6 }, (_, index) => ({
+  id: `pending-${index + 1}`,
+  title: '待定入口',
+  note: '后续再定',
+  icon: 'more-filled',
+  theme: 'slate',
+  action: 'pending'
+}))
+
+const displayQuickActions = [
+  ...quickActions.slice(0, 2),
+  ...pendingQuickActions
 ]
 
 const recommendType = computed(() => {
@@ -314,6 +328,9 @@ const handleQuickAction = (action) => {
       break
     case 'preference':
       showPreferencePopup()
+      break
+    case 'pending':
+      uni.showToast({ title: '入口功能待确定', icon: 'none' })
       break
     default:
       break
@@ -524,6 +541,7 @@ onShow(() => {
 .theme-red { background: #fee2e2; }
 .theme-yellow { background: #fef3c7; }
 .theme-teal { background: #ccfbf1; }
+.theme-slate { background: #e5e7eb; }
 
 .quick-title {
   display: block;
