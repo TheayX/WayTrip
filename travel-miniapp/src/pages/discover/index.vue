@@ -175,6 +175,8 @@ import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
+const DISCOVER_STATE_KEY = 'discover_state'
+
 const contentTabs = [
   { label: '综合', value: 'all' },
   { label: '景点', value: 'spot' },
@@ -293,10 +295,40 @@ const refreshDiscover = async () => {
   ])
 }
 
+const persistDiscoverState = () => {
+  uni.setStorageSync(DISCOVER_STATE_KEY, {
+    tab: activeTab.value,
+    spotFilterMode: spotFilterMode.value,
+    selectedRegionId: selectedRegionId.value,
+    selectedSpotCategoryId: selectedSpotCategoryId.value,
+    selectedGuideCategory: selectedGuideCategory.value
+  })
+}
+
+const applySavedState = () => {
+  const savedState = uni.getStorageSync(DISCOVER_STATE_KEY)
+  if (!savedState || typeof savedState !== 'object' || Array.isArray(savedState)) {
+    return false
+  }
+
+  if (savedState.tab && ['all', 'spot', 'guide'].includes(savedState.tab)) {
+    activeTab.value = savedState.tab
+  }
+
+  if (savedState.spotFilterMode && ['region', 'category'].includes(savedState.spotFilterMode)) {
+    spotFilterMode.value = savedState.spotFilterMode
+  }
+
+  selectedRegionId.value = savedState.selectedRegionId || ''
+  selectedSpotCategoryId.value = savedState.selectedSpotCategoryId || ''
+  selectedGuideCategory.value = savedState.selectedGuideCategory || ''
+  return true
+}
+
 const applyPreset = () => {
   const preset = uni.getStorageSync('discover_preset')
   if (!preset || typeof preset !== 'object' || Array.isArray(preset)) {
-    return
+    return false
   }
 
   if (preset.tab && ['all', 'spot', 'guide'].includes(preset.tab)) {
@@ -308,15 +340,19 @@ const applyPreset = () => {
   }
 
   uni.removeStorageSync('discover_preset')
+  persistDiscoverState()
+  return true
 }
 
 const switchTab = (value) => {
   activeTab.value = value
+  persistDiscoverState()
   refreshDiscover()
 }
 
 const changeSpotFilterMode = (value) => {
   spotFilterMode.value = value
+  persistDiscoverState()
 }
 
 const selectSpotFilter = (value) => {
@@ -325,11 +361,13 @@ const selectSpotFilter = (value) => {
   } else {
     selectedSpotCategoryId.value = value
   }
+  persistDiscoverState()
   fetchSpotPreview()
 }
 
 const selectGuideCategory = (value) => {
   selectedGuideCategory.value = value
+  persistDiscoverState()
   fetchGuidePreview()
 }
 
@@ -386,7 +424,10 @@ onShow(async () => {
   if (!guideCategories.value.length) {
     await fetchGuideCategories()
   }
-  applyPreset()
+  const usedPreset = applyPreset()
+  if (!usedPreset) {
+    applySavedState()
+  }
   await refreshDiscover()
 })
 </script>
