@@ -1525,17 +1525,24 @@ public class RecommendationServiceImpl implements RecommendationService {
     public SimilarityPreviewResponse previewSimilarityNeighbors(Long spotId, Integer limit) {
         int safeLimit = limit == null || limit <= 0 ? 10 : limit;
         Map<Long, Double> similarities = getSimilarSpots(spotId);
-        Map<Long, String> categoryMap = getCategoryMap();
-        Map<Long, String> regionMap = getRegionMap();
         List<Long> neighborIds = similarities.keySet().stream().limit(safeLimit).collect(Collectors.toList());
-        Map<Long, Spot> spotMap = spotMapper.selectBatchIds(neighborIds).stream()
-            .collect(Collectors.toMap(Spot::getId, spot -> spot));
 
         SimilarityPreviewResponse response = new SimilarityPreviewResponse();
         response.setSpotId(spotId);
         response.setSpotName(getSpotName(spotId));
         response.setTotalNeighbors(similarities.size());
         response.setLastUpdateTime(getStatus().getLastUpdateTime());
+
+        if (neighborIds.isEmpty()) {
+            response.setNeighbors(Collections.emptyList());
+            return response;
+        }
+
+        Map<Long, String> categoryMap = getCategoryMap();
+        Map<Long, String> regionMap = getRegionMap();
+        Map<Long, Spot> spotMap = spotMapper.selectBatchIds(neighborIds).stream()
+            .collect(Collectors.toMap(Spot::getId, spot -> spot));
+
         response.setNeighbors(neighborIds.stream().map(id -> {
             SimilarityPreviewResponse.NeighborItem item = new SimilarityPreviewResponse.NeighborItem();
             Spot spot = spotMap.get(id);
