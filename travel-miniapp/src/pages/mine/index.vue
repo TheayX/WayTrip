@@ -51,25 +51,11 @@
         <text class="cell-title">偏好设置</text>
         <text class="cell-arrow">›</text>
       </view>
-      <view class="ios-cell" @click="contactService">
+      <view class="ios-cell" @click="goSettings">
         <view class="cell-icon">
           <image class="cell-icon-img" src="/static/icons/service.png" />
         </view>
-        <text class="cell-title">联系客服</text>
-        <text class="cell-arrow">›</text>
-      </view>
-      <view class="ios-cell" @click="showAbout">
-        <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/about.png" />
-        </view>
-        <text class="cell-title">关于我们</text>
-        <text class="cell-arrow">›</text>
-      </view>
-      <view class="ios-cell" @click="goDeactivate">
-        <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/deactivate.png" />
-        </view>
-        <text class="cell-title">注销账户</text>
+        <text class="cell-title">设置</text>
         <text class="cell-arrow">›</text>
       </view>
     </view>
@@ -518,27 +504,8 @@ const goPassword = () => {
   uni.navigateTo({ url: '/pages/mine/password' })
 }
 
-// 联系客服
-const contactService = () => {
-  uni.showModal({
-    title: '联系客服',
-    content: '客服电话：400-123-4567',
-    showCancel: false
-  })
-}
-
-// 关于我们
-const showAbout = () => {
-  uni.showModal({
-    title: '关于我们',
-    content: 'WayTrip·微旅 v1.0.0\n基于协同过滤的个性化旅游推荐',
-    showCancel: false
-  })
-}
-
-// 跳转注销账户
-const goDeactivate = () => {
-  uni.navigateTo({ url: '/pages/mine/deactivate' })
+const goSettings = () => {
+  uni.navigateTo({ url: '/pages/mine/settings' })
 }
 </script>
 
