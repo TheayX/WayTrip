@@ -80,7 +80,7 @@
     <view class="comment-card">
       <view class="card-header">
         <text class="card-title">最新评论</text>
-        <text class="more-link" @click="goComments">查看全部 ›</text>
+        <text class="more-link" @click="showRatingPopup">去评价 ›</text>
       </view>
       <view class="comment-list" v-if="spot.latestComments?.length">
         <view class="comment-item" v-for="comment in spot.latestComments" :key="comment.id">
@@ -189,6 +189,21 @@ const similarUpdateTimeText = computed(() => {
   return similarUpdateTime.value ? `更新于 ${similarUpdateTime.value}` : '相似景点'
 })
 
+const syncSpotPreview = (data) => {
+  if (!data?.id) return
+  uni.setStorageSync('spot_detail_updated', {
+    id: data.id,
+    name: data.name,
+    coverImage: data.coverImage,
+    intro: data.intro || data.description || '',
+    regionName: data.regionName,
+    categoryName: data.categoryName,
+    price: data.price,
+    avgRating: data.avgRating,
+    isFavorite: data.isFavorite
+  })
+}
+
 const saveSpotFootprint = (data) => {
   if (!data?.id) return
   const history = uni.getStorageSync('spot_footprints')
@@ -209,6 +224,7 @@ const fetchSpotDetail = async () => {
     const res = await getSpotDetail(spotId.value)
     spot.value = res.data
     saveSpotFootprint(spot.value)
+    syncSpotPreview(spot.value)
     if (spot.value.userRating) {
       ratingForm.score = spot.value.userRating
     }
@@ -243,10 +259,12 @@ const toggleFavorite = async () => {
     if (spot.value.isFavorite) {
       await removeFavorite(spotId.value)
       spot.value.isFavorite = false
+      syncSpotPreview(spot.value)
       uni.showToast({ title: '已取消收藏', icon: 'none' })
     } else {
       await addFavorite(spotId.value)
       spot.value.isFavorite = true
+      syncSpotPreview(spot.value)
       uni.showToast({ title: '收藏成功', icon: 'none' })
     }
   } catch (e) {
@@ -265,10 +283,6 @@ const openNavigation = () => {
     name: spot.value.name,
     address: spot.value.address
   })
-}
-
-const goComments = () => {
-  uni.showToast({ title: '功能开发中', icon: 'none' })
 }
 
 const canDeleteComment = (comment) => {

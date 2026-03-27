@@ -1,5 +1,29 @@
 <template>
   <view class="ios-page">
+    <view class="list-state-card">
+      <view class="state-main">
+        <text class="state-title">攻略列表</text>
+        <text class="state-desc">{{ currentStateText }}</text>
+      </view>
+      <view class="state-actions">
+        <text
+          class="sort-chip"
+          :class="{ active: sortBy === 'time' }"
+          @click="changeSort('time')"
+        >
+          最新优先
+        </text>
+        <text
+          class="sort-chip"
+          :class="{ active: sortBy === 'category' }"
+          @click="changeSort('category')"
+        >
+          分类排序
+        </text>
+        <text class="reset-link" @click="resetFilters">重置</text>
+      </view>
+    </view>
+
     <!-- 分类筛选 -->
     <scroll-view class="category-bar" scroll-x :show-scrollbar="false">
       <view 
@@ -50,6 +74,7 @@
       <!-- 空状态 -->
       <view class="empty" v-if="!loading && guideList.length === 0">
         <text class="empty-text">暂无攻略</text>
+        <view class="empty-reset" @click="resetFilters">清空筛选</view>
       </view>
     </scroll-view>
   </view>
@@ -73,6 +98,11 @@ const pageSize = ref(10)
 const total = ref(0)
 const loading = ref(false)
 const hasMore = computed(() => guideList.value.length < total.value)
+const currentStateText = computed(() => {
+  const categoryText = currentCategory.value ? `分类：${currentCategory.value}` : '全部分类'
+  const sortText = sortBy.value === 'category' ? '分类排序' : '最新优先'
+  return `${categoryText} · 共 ${total.value} 条 · ${sortText}`
+})
 
 const fetchCategories = async () => {
   try {
@@ -120,6 +150,18 @@ const selectCategory = (cat) => {
   fetchGuideList(true)
 }
 
+const changeSort = (value) => {
+  if (sortBy.value === value) return
+  sortBy.value = value
+  fetchGuideList(true)
+}
+
+const resetFilters = () => {
+  currentCategory.value = ''
+  sortBy.value = 'time'
+  fetchGuideList(true)
+}
+
 const loadMore = () => {
   if (hasMore.value && !loading.value) {
     fetchGuideList()
@@ -149,6 +191,18 @@ onMounted(() => {
 })
 
 onShow(() => {
+  const updatedGuide = uni.getStorageSync('guide_detail_updated')
+  if (updatedGuide?.id) {
+    const guideIndex = guideList.value.findIndex(item => item.id === updatedGuide.id)
+    if (guideIndex !== -1) {
+      guideList.value[guideIndex] = {
+        ...guideList.value[guideIndex],
+        ...updatedGuide
+      }
+    }
+    uni.removeStorageSync('guide_detail_updated')
+  }
+
   const updated = uni.getStorageSync('guide_view_updated')
   if (!updated || !updated.id) return
   const idx = guideList.value.findIndex(item => item.id === updated.id)
@@ -168,6 +222,55 @@ onShow(() => {
   flex-direction: column;
   min-height: 100vh;
   background: #F2F2F7;
+}
+
+.list-state-card {
+  padding: 24rpx 32rpx 20rpx;
+  background: #fff;
+  border-bottom: 1px solid #F2F2F7;
+}
+
+.state-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.state-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1C1C1E;
+}
+
+.state-desc {
+  font-size: 24rpx;
+  color: #8E8E93;
+}
+
+.state-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.sort-chip {
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  background: #F2F2F7;
+  font-size: 24rpx;
+  color: #8E8E93;
+}
+
+.sort-chip.active {
+  background: rgba(0, 122, 255, 0.1);
+  color: #007AFF;
+}
+
+.reset-link {
+  margin-left: auto;
+  font-size: 24rpx;
+  color: #007AFF;
 }
 
 /* 分类栏 */
@@ -279,5 +382,15 @@ onShow(() => {
 .empty-text {
   font-size: 28rpx;
   color: #8E8E93;
+}
+
+.empty-reset {
+  margin-top: 28rpx;
+  padding: 14rpx 36rpx;
+  border-radius: 999rpx;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  font-size: 24rpx;
+  color: #4B5563;
 }
 </style>

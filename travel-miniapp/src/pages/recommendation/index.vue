@@ -32,6 +32,10 @@
 
     <view class="empty-state" v-else>
       <text>当前暂无推荐结果</text>
+      <view class="empty-actions">
+        <text class="empty-link" @click="refreshList">刷新推荐</text>
+        <text class="empty-link" @click="showPreferencePopup">设置偏好</text>
+      </view>
     </view>
 
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
@@ -59,6 +63,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { getRecommendations, refreshRecommendations } from '@/api/home'
 import { updatePreferences } from '@/api/auth'
 import { getFilters } from '@/api/spot'
@@ -173,7 +178,23 @@ const goSpotDetail = (spotId) => {
 }
 
 onMounted(() => {
+  selectedCategories.value = [...(userStore.userInfo?.preferenceCategoryIds || [])]
   fetchRecommendations()
+})
+
+onShow(() => {
+  const updatedSpot = uni.getStorageSync('spot_detail_updated')
+  if (!updatedSpot?.id) return
+
+  const index = recommendations.value.findIndex(item => item.id === updatedSpot.id)
+  if (index !== -1) {
+    recommendations.value[index] = {
+      ...recommendations.value[index],
+      ...updatedSpot
+    }
+  }
+
+  uni.removeStorageSync('spot_detail_updated')
 })
 </script>
 
@@ -312,6 +333,22 @@ onMounted(() => {
   text-align: center;
   font-size: 28rpx;
   color: #6b7280;
+}
+
+.empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 24rpx;
+  margin-top: 24rpx;
+}
+
+.empty-link {
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #2563eb;
+  font-size: 24rpx;
+  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.05);
 }
 
 .preference-popup {

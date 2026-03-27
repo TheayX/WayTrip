@@ -131,6 +131,16 @@
       <view class="header-placeholder"></view>
 
       <view class="list-padding">
+        <view class="current-state-card" v-if="activeFilterTags.length || total">
+          <view class="state-header">
+            <text class="state-title">当前筛选</text>
+            <text class="state-count">共 {{ total }} 个结果</text>
+          </view>
+          <view class="state-tags" v-if="activeFilterTags.length">
+            <text v-for="tag in activeFilterTags" :key="tag" class="state-tag">{{ tag }}</text>
+          </view>
+        </view>
+
         <view 
           class="spot-card" 
           v-for="spot in spotList" 
@@ -186,7 +196,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getSpotList, getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
@@ -236,6 +246,19 @@ const currentRegionDisplay = computed(() => currentRegion.value?.name || '全地
 
 const currentCategoryDisplay = computed(() => {
   return activeCategoryName.value || '全部分类'
+})
+const activeFilterTags = computed(() => {
+  const tags = []
+  if (currentRegion.value?.name) {
+    tags.push(currentRegion.value.name)
+  }
+  if (activeCategoryName.value) {
+    tags.push(activeCategoryName.value)
+  }
+  if (sortBy.value !== 'heat') {
+    tags.push(currentSortLabel.value)
+  }
+  return tags
 })
 
 // 计算当前右侧应该显示的子分类列表
@@ -475,6 +498,21 @@ const goDetail = (id) => {
   }
   uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=list` })
 }
+
+onShow(() => {
+  const updated = uni.getStorageSync('spot_detail_updated')
+  if (!updated || !updated.id) return
+
+  const index = spotList.value.findIndex(item => item.id === updated.id)
+  if (index !== -1) {
+    spotList.value[index] = {
+      ...spotList.value[index],
+      ...updated
+    }
+  }
+
+  uni.removeStorageSync('spot_detail_updated')
+})
 
 onLoad((options) => {
   const provinceId = parseNumberOption(options?.provinceId)
@@ -738,6 +776,47 @@ onMounted(() => {
 
 .list-padding {
   padding: 0 24rpx 40rpx;
+}
+
+.current-state-card {
+  margin-bottom: 20rpx;
+  padding: 20rpx 24rpx;
+  background: #fff;
+  border-radius: 18rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.03);
+
+  .state-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16rpx;
+  }
+
+  .state-title {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .state-count {
+    font-size: 24rpx;
+    color: #909399;
+  }
+
+  .state-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12rpx;
+    margin-top: 16rpx;
+  }
+
+  .state-tag {
+    padding: 8rpx 16rpx;
+    border-radius: 999rpx;
+    background: #eef4ff;
+    color: #2563eb;
+    font-size: 22rpx;
+  }
 }
 
 /* 景点卡片优化 */
