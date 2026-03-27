@@ -2,6 +2,7 @@ package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.recommendation.RecommendationResponse;
+import com.travel.dto.recommendation.SimilarityPreviewResponse;
 import com.travel.service.RecommendationService;
 import com.travel.util.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,5 +35,13 @@ public class RecommendationController {
             @RequestParam(defaultValue = "10") Integer limit) {
         Long userId = UserContext.getUserId();
         return ApiResponse.success(recommendationService.refreshRecommendations(userId, limit));
+    }
+
+    @Operation(summary = "获取相似景点推荐")
+    @GetMapping("/similar")
+    public ApiResponse<SimilarityPreviewResponse> getSimilarSpots(
+            @RequestParam Long spotId,
+            @RequestParam(defaultValue = "6") Integer limit) {
+        return ApiResponse.success(recommendationService.previewSimilarityNeighbors(spotId, limit));
     }
 }

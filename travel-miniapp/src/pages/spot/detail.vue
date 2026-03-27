@@ -51,6 +51,31 @@
       <text class="desc-content">{{ spot.description || '暂无简介' }}</text>
     </view>
 
+    <view class="related-card" v-if="similarSpots.length">
+      <view class="card-header">
+        <text class="card-title">看了又看</text>
+        <text class="more-link">{{ similarUpdateTimeText }}</text>
+      </view>
+      <scroll-view class="related-scroll" scroll-x :show-scrollbar="false">
+        <view
+          class="related-item"
+          v-for="item in similarSpots"
+          :key="item.spotId"
+          @click="goSimilarSpot(item.spotId)"
+        >
+          <image class="related-image" :src="getContentImageUrl(item.coverImage)" mode="aspectFill" />
+          <view class="related-info">
+            <text class="related-name">{{ item.spotName }}</text>
+            <text class="related-meta">{{ item.regionName || '周边景点' }} · {{ item.categoryName || '推荐' }}</text>
+            <view class="related-footer">
+              <text class="related-price">¥{{ item.price || 0 }}</text>
+              <text class="related-score">相似度 {{ formatSimilarity(item.similarity) }}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
     <!-- 最新评论 -->
     <view class="comment-card">
       <view class="card-header">
@@ -127,7 +152,7 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { onLoad, onShow, onHide, onUnload } from '@dcloudio/uni-app'
-import { getSpotDetail, recordSpotView } from '@/api/spot'
+import { getSpotDetail, getSimilarSpots, recordSpotView } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, submitReview } from '@/api/review'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
@@ -157,6 +182,12 @@ const ratingVisible = ref(false)
 const ratingForm = reactive({ score: 5, comment: '' })
 const openReviewByQuery = ref(false)
 const reviewPopupOpened = ref(false)
+const similarSpots = ref([])
+const similarUpdateTime = ref('')
+
+const similarUpdateTimeText = computed(() => {
+  return similarUpdateTime.value ? `更新于 ${similarUpdateTime.value}` : '相似景点'
+})
 
 const saveSpotFootprint = (data) => {
   if (!data?.id) return
@@ -187,6 +218,18 @@ const fetchSpotDetail = async () => {
     }
   } catch (e) {
     uni.showToast({ title: '加载失败', icon: 'none' })
+  }
+}
+
+const fetchSimilarSpots = async () => {
+  if (!spotId.value) return
+  try {
+    const res = await getSimilarSpots(spotId.value, 6)
+    similarSpots.value = res.data?.neighbors || []
+    similarUpdateTime.value = res.data?.lastUpdateTime || ''
+  } catch (e) {
+    console.error('获取相似景点失败', e)
+    similarSpots.value = []
   }
 }
 
@@ -276,12 +319,22 @@ const goBuy = () => {
   uni.navigateTo({ url: `/pages/order/create?spotId=${spotId.value}` })
 }
 
+const goSimilarSpot = (id) => {
+  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=similar` })
+}
+
+const formatSimilarity = (value) => {
+  if (typeof value !== 'number') return '0.00'
+  return value.toFixed(2)
+}
+
 onLoad((options) => {
   spotId.value = options.id
   viewSource = options.source || 'detail'
   openReviewByQuery.value = options.openReview === '1'
   reviewPopupOpened.value = false
   fetchSpotDetail()
+  fetchSimilarSpots()
 }) 
 
 onShow(() => {
@@ -480,6 +533,79 @@ onUnload(() => {
   font-size: 28rpx;
   color: #8E8E93;
   line-height: 1.6;
+}
+
+.related-card {
+  margin: 0 32rpx 24rpx;
+  padding: 28rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.related-scroll {
+  white-space: nowrap;
+}
+
+.related-item {
+  display: inline-block;
+  width: 300rpx;
+  margin-right: 20rpx;
+  background: #F8FAFC;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.related-item:last-child {
+  margin-right: 0;
+}
+
+.related-image {
+  width: 300rpx;
+  height: 190rpx;
+}
+
+.related-info {
+  padding: 16rpx;
+}
+
+.related-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1C1C1E;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.related-meta {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #8E8E93;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.related-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 14rpx;
+}
+
+.related-price {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FF3B30;
+}
+
+.related-score {
+  font-size: 20rpx;
+  color: #007AFF;
 }
 
 /* 评论卡片 */

@@ -22,6 +22,13 @@ export const getSpotDetail = (spotId) => {
 }
 
 /**
+ * 获取相似景点推荐
+ */
+export const getSimilarSpots = (spotId, limit = 6) => {
+  return get('/recommendations/similar', { spotId, limit })
+}
+
+/**
  * 上报景点浏览行为
  */
 export const recordSpotView = (spotId, source, duration) => {
