@@ -144,7 +144,6 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.PAID.getCode());
         order.setPaidAt(LocalDateTime.now());
         orderMapper.updateById(order);
-        incrementHeatScore(order.getSpotId(), getPaidOrderHeatIncrement());
         recommendationService.invalidateUserRecommendationCache(userId);
 
         log.info("订单支付成功: orderId={}, userId={}, orderNo={}", orderId, userId, order.getOrderNo());
@@ -274,7 +273,6 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.COMPLETED.getCode());
         order.setCompletedAt(LocalDateTime.now());
         orderMapper.updateById(order);
-        incrementHeatScore(order.getSpotId(), getCompletedOrderHeatIncrement());
         recommendationService.invalidateUserRecommendationCache(order.getUserId());
         log.info("订单已完成: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
@@ -478,24 +476,6 @@ public class OrderServiceImpl implements OrderService {
         return response;
     }
 
-    private void incrementHeatScore(Long spotId, int delta) {
-        spotMapper.update(
-            null,
-            new UpdateWrapper<Spot>()
-                .eq("id", spotId)
-                .setSql("heat_score = COALESCE(heat_score, 0) + " + delta)
-        );
-    }
-
-    private int getPaidOrderHeatIncrement() {
-        Integer value = recommendationService.getConfig().getHeat().getHeatOrderPaidIncrement();
-        return value != null && value > 0 ? value : 5;
-    }
-
-    private int getCompletedOrderHeatIncrement() {
-        Integer value = recommendationService.getConfig().getHeat().getHeatOrderCompletedIncrement();
-        return value != null && value > 0 ? value : 8;
-    }
 }
 
 
