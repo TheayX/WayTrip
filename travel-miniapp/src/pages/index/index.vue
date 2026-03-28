@@ -4,7 +4,7 @@
       <view class="header-top">
         <view>
           <text class="large-title">首页</text>
-          <text class="sub-title">推荐内容、快捷入口和热门景点都集中在这里</text>
+          <text class="sub-title">推荐内容、快捷入口和附近探索都集中在这里</text>
         </view>
         <image class="avatar-sm" :src="getAvatarUrl(userInfo?.avatar)" @click="goMine" />
       </view>
@@ -38,8 +38,10 @@
 
     <view class="section">
       <view class="section-header">
-        <text class="section-title">快捷导航</text>
-        <text class="section-desc">已确定入口先保留，其他功能后续补充</text>
+        <view>
+          <text class="section-title">快捷导航</text>
+          <text class="section-desc">先保留高频入口，其余功能后续继续补齐</text>
+        </view>
       </view>
       <view class="quick-grid">
         <view
@@ -68,10 +70,10 @@
 
       <view class="preference-tip" v-if="needPreference" @click="showPreferencePopup">
         <view>
-          <text class="tip-text">选择感兴趣的景点分类，帮助冷启动推荐更准确</text>
+          <text class="tip-text">选择你感兴趣的景点分类，帮助冷启动推荐更准确</text>
           <text class="tip-subtext">当前偏好标签统一使用景点分类</text>
         </view>
-        <text class="tip-arrow">›</text>
+        <text class="tip-arrow">></text>
       </view>
 
       <view class="recommend-list" v-if="recommendPreview.length">
@@ -82,10 +84,10 @@
               <text class="rec-name">{{ spot.name }}</text>
               <text class="rec-rating">★ {{ spot.avgRating || '4.5' }}</text>
             </view>
-            <text class="rec-desc">{{ spot.intro || '暂无介绍，点击查看详情...' }}</text>
+            <text class="rec-desc">{{ spot.intro || '暂无介绍，点击查看详情。' }}</text>
             <view class="rec-footer">
               <text class="rec-tag">{{ spot.categoryName || '景点' }}</text>
-              <text class="rec-price">¥{{ spot.price }}</text>
+              <text class="rec-price">￥{{ spot.price }}</text>
             </view>
           </view>
         </view>
@@ -100,21 +102,84 @@
         <text class="section-title">热门目的地</text>
         <text class="section-link" @click="goSpotList">查看全部</text>
       </view>
-      <scroll-view class="hot-scroll" scroll-x :show-scrollbar="false" v-if="hotSpots.length">
-        <view class="hot-card" v-for="spot in hotSpots" :key="spot.id" @click="goSpotDetail(spot.id)">
+
+      <view class="hot-nearby-grid">
+        <view v-if="featuredHotSpot" class="feature-card hot-feature-card" @click="goSpotDetail(featuredHotSpot.id)">
+          <image class="feature-image" :src="getContentImageUrl(featuredHotSpot.coverImage)" mode="aspectFill" />
+          <view class="feature-overlay">
+            <text class="feature-eyebrow">热门景点</text>
+            <text class="feature-title">{{ featuredHotSpot.name }}</text>
+            <text class="feature-subtitle">
+              {{ featuredHotSpot.categoryName || '精选景点' }} · ￥{{ featuredHotSpot.price }}
+            </text>
+            <view class="feature-foot">
+              <text class="feature-pill">评分 {{ featuredHotSpot.avgRating || '4.6' }}</text>
+              <text class="feature-pill subtle">热度 {{ featuredHotSpot.heatScore || '--' }}</text>
+            </view>
+          </view>
+        </view>
+        <view v-else class="feature-card feature-empty">
+          <text>当前暂无热门景点</text>
+        </view>
+
+        <view class="feature-card nearby-card" @click="handleNearbyCardClick">
+          <view class="nearby-top">
+            <view>
+              <text class="feature-eyebrow nearby-eyebrow">附近景点</text>
+              <text class="nearby-status">{{ nearbyHeadline }}</text>
+            </view>
+            <text class="nearby-link">{{ nearbyActionText }}</text>
+          </view>
+
+          <view class="nearby-map-shell">
+            <map
+              v-if="canShowNearbyMap"
+              class="nearby-map"
+              :latitude="nearbyMapCenter.latitude"
+              :longitude="nearbyMapCenter.longitude"
+              :scale="12"
+              :markers="nearbyMarkers"
+              :show-location="true"
+              :enable-scroll="false"
+              :enable-zoom="false"
+              :enable-rotate="false"
+              :enable-overlooking="false"
+              @markertap="handleNearbyMarkerTap"
+            />
+            <view v-else class="nearby-map nearby-placeholder">
+              <view class="placeholder-grid"></view>
+              <view class="placeholder-pin pin-a"></view>
+              <view class="placeholder-pin pin-b"></view>
+              <view class="placeholder-pin pin-c"></view>
+              <text class="placeholder-copy">{{ nearbyPlaceholderText }}</text>
+            </view>
+          </view>
+
+          <view class="nearby-copy">
+            <text class="nearby-summary">{{ nearbySummary }}</text>
+            <text class="nearby-caption">{{ nearbyCaption }}</text>
+          </view>
+
+          <view v-if="nearbySpots.length" class="nearby-tags">
+            <text v-for="spot in nearbySpots.slice(0, 2)" :key="spot.id" class="nearby-tag">
+              {{ spot.name }}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <scroll-view class="hot-scroll" scroll-x :show-scrollbar="false" v-if="secondaryHotSpots.length">
+        <view class="hot-card compact" v-for="spot in secondaryHotSpots" :key="spot.id" @click="goSpotDetail(spot.id)">
           <image class="hot-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="hot-overlay">
             <text class="hot-name">{{ spot.name }}</text>
             <view class="hot-meta">
               <text class="hot-badge">{{ spot.categoryName || '热门' }}</text>
-              <text class="hot-price">¥{{ spot.price }} 起</text>
+              <text class="hot-price">￥{{ spot.price }}</text>
             </view>
           </view>
         </view>
       </scroll-view>
-      <view class="empty-tip" v-else>
-        <text>当前暂无热门景点</text>
-      </view>
     </view>
 
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
@@ -143,7 +208,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
-import { getBanners, getHotSpots, getRecommendations, refreshRecommendations } from '@/api/home'
+import { getBanners, getHotSpots, getNearbySpots, getRecommendations, refreshRecommendations } from '@/api/home'
 import { updatePreferences } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
@@ -164,6 +229,13 @@ const preferenceVisible = ref(false)
 const categories = ref([])
 const selectedCategories = ref([])
 
+const nearbySpots = ref([])
+const nearbyLocation = ref(null)
+const nearbyLoading = ref(false)
+const locationStatus = ref('checking')
+
+const markerIcon = '/static/tabbar/spot-active.png'
+
 const quickActions = [
   { id: 'spots', title: '景点列表', note: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
   { id: 'guides', title: '攻略列表', note: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' }
@@ -172,16 +244,13 @@ const quickActions = [
 const pendingQuickActions = Array.from({ length: 6 }, (_, index) => ({
   id: `pending-${index + 1}`,
   title: '待定入口',
-  note: '后续再定',
+  note: '后续补齐',
   icon: 'more-filled',
   theme: 'slate',
   action: 'pending'
 }))
 
-const displayQuickActions = [
-  ...quickActions.slice(0, 2),
-  ...pendingQuickActions
-]
+const displayQuickActions = [...quickActions.slice(0, 2), ...pendingQuickActions]
 
 const recommendType = computed(() => {
   const types = {
@@ -193,6 +262,99 @@ const recommendType = computed(() => {
 })
 
 const recommendPreview = computed(() => recommendations.value.slice(0, 4))
+const featuredHotSpot = computed(() => hotSpots.value[0] || null)
+const secondaryHotSpots = computed(() => hotSpots.value.slice(1))
+const canShowNearbyMap = computed(() => locationStatus.value === 'ready' && nearbySpots.value.length > 0)
+
+const nearbyMapCenter = computed(() => {
+  if (nearbyLocation.value) {
+    return {
+      latitude: Number(nearbyLocation.value.latitude),
+      longitude: Number(nearbyLocation.value.longitude)
+    }
+  }
+  const fallback = nearbySpots.value[0]
+  return {
+    latitude: Number(fallback?.latitude || 39.9042),
+    longitude: Number(fallback?.longitude || 116.4074)
+  }
+})
+
+const nearbyMarkers = computed(() => {
+  const markers = nearbySpots.value.slice(0, 3).map((spot, index) => ({
+    id: Number(spot.id),
+    latitude: Number(spot.latitude),
+    longitude: Number(spot.longitude),
+    iconPath: markerIcon,
+    width: 26,
+    height: 32,
+    zIndex: 10 + index,
+    callout: {
+      content: spot.name,
+      display: 'BYCLICK',
+      padding: 6,
+      borderRadius: 10
+    }
+  }))
+
+  if (nearbyLocation.value) {
+    markers.push({
+      id: -1,
+      latitude: Number(nearbyLocation.value.latitude),
+      longitude: Number(nearbyLocation.value.longitude),
+      iconPath: markerIcon,
+      width: 18,
+      height: 22,
+      alpha: 0.7,
+      zIndex: 9
+    })
+  }
+
+  return markers
+})
+
+const nearbyHeadline = computed(() => {
+  if (nearbyLoading.value) return '正在定位'
+  if (locationStatus.value === 'ready') return '附近可探索'
+  if (locationStatus.value === 'empty') return '附近暂无结果'
+  return '开启定位'
+})
+
+const nearbyActionText = computed(() => {
+  if (nearbyLoading.value) return '加载中'
+  if (locationStatus.value === 'ready' && nearbySpots.value.length) return '查看景点'
+  return '开启定位'
+})
+
+const nearbySummary = computed(() => {
+  if (nearbyLoading.value) return '正在获取你周边的景点'
+  if (locationStatus.value === 'ready' && nearbySpots.value.length) {
+    const nearest = nearbySpots.value[0]
+    return `你附近有 ${nearbySpots.value.length} 个景点，最近约 ${formatDistance(nearest.distanceKm)}`
+  }
+  if (locationStatus.value === 'empty') return '附近暂时没有可展示的景点'
+  return '授权定位后，这里会显示你附近的景点分布'
+})
+
+const nearbyCaption = computed(() => {
+  if (locationStatus.value === 'ready' && nearbySpots.value.length) {
+    return `${nearbySpots.value[0].regionName || '周边区域'} · 点击可快速进入详情`
+  }
+  if (locationStatus.value === 'empty') return '你可以先看看热门景点'
+  return '点击卡片后触发定位授权'
+})
+
+const nearbyPlaceholderText = computed(() => {
+  if (nearbyLoading.value) return '定位中...'
+  if (locationStatus.value === 'empty') return '暂无附近景点'
+  return '点击开启定位'
+})
+
+const formatDistance = (value) => {
+  const distance = Number(value)
+  if (!Number.isFinite(distance)) return '-- km'
+  return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
+}
 
 const fetchBanners = async () => {
   try {
@@ -232,6 +394,97 @@ const fetchCategories = async () => {
   }
 }
 
+const getCurrentLocation = () => new Promise((resolve, reject) => {
+  uni.getLocation({
+    type: 'gcj02',
+    success: resolve,
+    fail: reject
+  })
+})
+
+const fetchNearbyByLocation = async (position, showErrorToast = false) => {
+  nearbyLoading.value = true
+  try {
+    nearbyLocation.value = {
+      latitude: position.latitude,
+      longitude: position.longitude
+    }
+    const res = await getNearbySpots(position.latitude, position.longitude, 3)
+    nearbySpots.value = res.data?.list || []
+    locationStatus.value = nearbySpots.value.length ? 'ready' : 'empty'
+  } catch (error) {
+    nearbySpots.value = []
+    locationStatus.value = 'empty'
+    console.error('获取附近景点失败', error)
+    if (showErrorToast) {
+      uni.showToast({ title: '附近景点加载失败', icon: 'none' })
+    }
+  } finally {
+    nearbyLoading.value = false
+  }
+}
+
+const tryLoadNearbySilently = async () => {
+  try {
+    const setting = await new Promise((resolve, reject) => {
+      uni.getSetting({
+        success: resolve,
+        fail: reject
+      })
+    })
+
+    if (!setting.authSetting?.['scope.userLocation']) {
+      locationStatus.value = 'denied'
+      nearbySpots.value = []
+      return
+    }
+
+    const position = await getCurrentLocation()
+    await fetchNearbyByLocation(position)
+  } catch (error) {
+    locationStatus.value = 'denied'
+    nearbyLoading.value = false
+    console.error('静默定位失败', error)
+  }
+}
+
+const requestLocationAccess = () => {
+  uni.authorize({
+    scope: 'scope.userLocation',
+    success: async () => {
+      const position = await getCurrentLocation().catch((error) => {
+        console.error('定位失败', error)
+        uni.showToast({ title: '定位失败，请稍后重试', icon: 'none' })
+        return null
+      })
+      if (position) {
+        await fetchNearbyByLocation(position, true)
+      }
+    },
+    fail: () => {
+      uni.showModal({
+        title: '开启定位',
+        content: '开启定位后才能查看附近景点，是否前往设置？',
+        success: (res) => {
+          if (!res.confirm) return
+          uni.openSetting({
+            success: async (settingRes) => {
+              if (settingRes.authSetting?.['scope.userLocation']) {
+                const position = await getCurrentLocation().catch(() => null)
+                if (position) {
+                  await fetchNearbyByLocation(position, true)
+                  return
+                }
+              }
+              locationStatus.value = 'denied'
+            }
+          })
+        }
+      })
+    }
+  })
+}
+
 const handleRefresh = async () => {
   uni.showLoading({ title: '加载中...' })
   try {
@@ -262,7 +515,7 @@ const toggleCategory = (id) => {
     return
   }
   if (selectedCategories.value.length >= 5) {
-    uni.showToast({ title: '最多选择5个', icon: 'none' })
+    uni.showToast({ title: '最多选择 5 个', icon: 'none' })
     return
   }
   selectedCategories.value.push(id)
@@ -308,10 +561,25 @@ const handleQuickAction = (action) => {
       goGuideList()
       break
     case 'pending':
-      uni.showToast({ title: '入口功能待确定', icon: 'none' })
+      uni.showToast({ title: '入口功能待补齐', icon: 'none' })
       break
     default:
       break
+  }
+}
+
+const handleNearbyCardClick = () => {
+  if (locationStatus.value !== 'ready' || !nearbySpots.value.length) {
+    requestLocationAccess()
+    return
+  }
+  goSpotDetail(nearbySpots.value[0].id)
+}
+
+const handleNearbyMarkerTap = (event) => {
+  const spot = nearbySpots.value.find(item => Number(item.id) === Number(event.detail.markerId))
+  if (spot) {
+    goSpotDetail(spot.id)
   }
 }
 
@@ -342,15 +610,17 @@ const goMine = () => {
   uni.switchTab({ url: '/pages/mine/index' })
 }
 
+const refreshHome = async () => {
+  await Promise.all([fetchBanners(), fetchHotSpots(), fetchRecommendations(), tryLoadNearbySilently()])
+}
+
 onPullDownRefresh(async () => {
-  await Promise.all([fetchBanners(), fetchHotSpots(), fetchRecommendations()])
+  await refreshHome()
   uni.stopPullDownRefresh()
 })
 
 onShow(() => {
-  fetchBanners()
-  fetchHotSpots()
-  fetchRecommendations()
+  refreshHome()
 })
 </script>
 
@@ -471,6 +741,8 @@ onShow(() => {
 }
 
 .section-desc {
+  display: block;
+  margin-top: 8rpx;
   font-size: 24rpx;
   color: #6b7280;
 }
@@ -513,12 +785,6 @@ onShow(() => {
 
 .theme-blue { background: #dbeafe; }
 .theme-orange { background: #ffedd5; }
-.theme-green { background: #dcfce7; }
-.theme-purple { background: #ede9fe; }
-.theme-pink { background: #fce7f3; }
-.theme-red { background: #fee2e2; }
-.theme-yellow { background: #fef3c7; }
-.theme-teal { background: #ccfbf1; }
 .theme-slate { background: #e5e7eb; }
 
 .quick-title {
@@ -640,7 +906,207 @@ onShow(() => {
   color: #ef4444;
 }
 
+.hot-nearby-grid {
+  padding: 0 32rpx;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20rpx;
+}
+
+.feature-card {
+  min-height: 360rpx;
+  border-radius: 28rpx;
+  overflow: hidden;
+  position: relative;
+  background: #ffffff;
+  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.08);
+}
+
+.feature-image {
+  width: 100%;
+  height: 100%;
+}
+
+.feature-overlay {
+  position: absolute;
+  inset: 0;
+  padding: 24rpx 22rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.08) 8%, rgba(15, 23, 42, 0.82) 100%);
+}
+
+.feature-eyebrow {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-bottom: 12rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 20rpx;
+}
+
+.feature-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.feature-subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.feature-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 18rpx;
+}
+
+.feature-pill {
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: 20rpx;
+}
+
+.feature-pill.subtle {
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.feature-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx;
+  color: #6b7280;
+  font-size: 26rpx;
+}
+
+.nearby-card {
+  padding: 22rpx;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.nearby-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.nearby-eyebrow {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.nearby-status {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.nearby-link {
+  font-size: 22rpx;
+  color: #2563eb;
+}
+
+.nearby-map-shell {
+  margin-top: 18rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  background: #dbeafe;
+}
+
+.nearby-map {
+  width: 100%;
+  height: 170rpx;
+}
+
+.nearby-placeholder {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 18rpx;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.18), transparent 28%),
+    linear-gradient(135deg, #e0f2fe 0%, #dbeafe 55%, #f8fafc 100%);
+}
+
+.placeholder-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.08) 1px, transparent 1px);
+  background-size: 28rpx 28rpx;
+}
+
+.placeholder-pin {
+  position: absolute;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: 0 0 0 8rpx rgba(37, 99, 235, 0.12);
+}
+
+.pin-a { top: 38rpx; left: 56rpx; }
+.pin-b { top: 88rpx; left: 156rpx; }
+.pin-c { top: 58rpx; right: 52rpx; }
+
+.placeholder-copy {
+  position: relative;
+  z-index: 1;
+  font-size: 22rpx;
+  color: #1d4ed8;
+}
+
+.nearby-copy {
+  margin-top: 18rpx;
+}
+
+.nearby-summary {
+  display: block;
+  font-size: 26rpx;
+  line-height: 1.5;
+  color: #111827;
+}
+
+.nearby-caption {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.nearby-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 16rpx;
+}
+
+.nearby-tag {
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 20rpx;
+}
+
 .hot-scroll {
+  margin-top: 20rpx;
   padding-left: 32rpx;
   white-space: nowrap;
 }
@@ -654,6 +1120,11 @@ onShow(() => {
   overflow: hidden;
   position: relative;
   box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.08);
+}
+
+.hot-card.compact {
+  width: 220rpx;
+  height: 260rpx;
 }
 
 .hot-img {

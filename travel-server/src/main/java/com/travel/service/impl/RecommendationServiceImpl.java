@@ -1,7 +1,10 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.common.exception.BusinessException;
+import com.travel.common.result.ResultCode;
 import com.travel.dto.home.HotSpotResponse;
+import com.travel.dto.home.NearbySpotResponse;
 import com.travel.dto.recommendation.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
@@ -18,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -665,6 +670,27 @@ public class RecommendationServiceImpl implements RecommendationService {
             return item;
         }).collect(Collectors.toList()));
 
+        return response;
+    }
+
+    @Override
+    public NearbySpotResponse getNearbySpots(BigDecimal latitude, BigDecimal longitude, Integer limit) {
+        if (latitude == null || longitude == null) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "经纬度不能为空");
+        }
+        if (limit == null || limit <= 0) limit = 3;
+
+        List<NearbySpotResponse.SpotItem> list = spotMapper.selectNearbySpots(latitude, longitude, limit);
+        list.forEach(item -> {
+            if (item.getDistanceKm() != null) {
+                item.setDistanceKm(item.getDistanceKm().setScale(1, RoundingMode.HALF_UP));
+            }
+        });
+
+        NearbySpotResponse response = new NearbySpotResponse();
+        response.setList(list);
+        response.setTotal(list.size());
+        response.setNearestDistanceKm(list.isEmpty() ? null : list.get(0).getDistanceKm());
         return response;
     }
 
