@@ -155,6 +155,7 @@ import { onLoad, onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import { getSpotDetail, getSimilarSpots, recordSpotView } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, submitReview } from '@/api/review'
+import { guardLoginPage } from '@/utils/auth'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -343,13 +344,17 @@ const formatSimilarity = (value) => {
 }
 
 onLoad((options) => {
+  if (!guardLoginPage('登录后可查看景点详情，是否现在去登录？')) {
+    return
+  }
+
   spotId.value = options.id
   viewSource = options.source || 'detail'
   openReviewByQuery.value = options.openReview === '1'
   reviewPopupOpened.value = false
   fetchSpotDetail()
   fetchSimilarSpots()
-}) 
+})
 
 onShow(() => {
   enterTime = Date.now()
