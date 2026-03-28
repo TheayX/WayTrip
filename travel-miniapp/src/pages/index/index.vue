@@ -185,7 +185,9 @@
 
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
       <view class="preference-content">
+        <text class="preference-eyebrow">冷启动推荐</text>
         <text class="preference-title">选择你感兴趣的景点分类</text>
+        <text class="preference-subtitle">先选几类你想看的景点，推荐会立刻从热门兜底切到偏好冷启动。</text>
         <view class="preference-tags">
           <view
             v-for="cat in categories"
@@ -198,8 +200,8 @@
           </view>
         </view>
         <view class="preference-actions">
-          <button class="cancel-btn" @click="preferenceVisible = false">取消</button>
-          <button class="confirm-btn" @click="savePreferences">确定</button>
+          <button class="cancel-btn" @click="skipColdStartGuide">跳过</button>
+          <button class="confirm-btn" @click="savePreferences">立即开启</button>
         </view>
       </view>
     </view>
@@ -213,6 +215,11 @@ import { getBanners, getHotSpots, getNearbySpots, getRecommendations, refreshRec
 import { updatePreferences } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
+import {
+  getColdStartGuideState,
+  markColdStartGuideCompleted,
+  markColdStartGuideSkipped
+} from '@/utils/cold-start-guide'
 import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
@@ -228,6 +235,7 @@ const recommendationType = ref('hot')
 const needPreference = ref(false)
 
 const preferenceVisible = ref(false)
+const preferencePopupTriggered = ref(false)
 const categories = ref([])
 const selectedCategories = ref([])
 
@@ -391,6 +399,7 @@ const fetchRecommendations = async () => {
     recommendations.value = []
     recommendationType.value = 'hot'
     needPreference.value = false
+    preferencePopupTriggered.value = false
     return
   }
 
@@ -399,6 +408,7 @@ const fetchRecommendations = async () => {
     recommendations.value = res.data?.list || []
     recommendationType.value = res.data?.type || 'hot'
     needPreference.value = res.data?.needPreference || false
+    maybeShowColdStartGuide()
   } catch (error) {
     console.error('获取推荐失败', error)
   }
@@ -512,6 +522,30 @@ const showPreferencePopup = async () => {
   if (!categories.value.length) {
     await fetchCategories()
   }
+  selectedCategories.value = [...(userStore.userInfo?.preferenceCategoryIds || [])]
+  preferenceVisible.value = true
+}
+
+const maybeShowColdStartGuide = async () => {
+  if (!userStore.isLoggedIn) return
+  if (!needPreference.value || preferenceVisible.value || preferencePopupTriggered.value) return
+
+  const currentUserId = userStore.userInfo?.id
+  const currentPreferenceIds = userStore.userInfo?.preferenceCategoryIds || []
+  if (!currentUserId || currentPreferenceIds.length) {
+    return
+  }
+
+  const guideState = getColdStartGuideState(currentUserId)
+  if (!guideState.pending || guideState.skipped || guideState.completed) {
+    return
+  }
+
+  if (!categories.value.length) {
+    await fetchCategories()
+  }
+  selectedCategories.value = []
+  preferencePopupTriggered.value = true
   preferenceVisible.value = true
 }
 
@@ -544,6 +578,7 @@ const savePreferences = async () => {
       preferenceCategoryIds: [...selectedCategories.value],
       preferenceCategoryNames: categoryNames
     })
+    markColdStartGuideCompleted(userStore.userInfo?.id)
     preferenceVisible.value = false
     uni.showToast({ title: '设置成功', icon: 'success' })
     await handleRefresh()
@@ -551,6 +586,24 @@ const savePreferences = async () => {
     console.error('保存偏好失败', error)
     uni.showToast({ title: '保存失败', icon: 'none' })
   }
+}
+
+const skipColdStartGuide = async () => {
+  markColdStartGuideSkipped(userStore.userInfo?.id)
+  preferenceVisible.value = false
+  needPreference.value = false
+  recommendationType.value = 'hot'
+  await fetchHotSpots()
+  recommendations.value = hotSpots.value.slice(0, 4).map(item => ({
+    id: item.id,
+    name: item.name,
+    coverImage: item.coverImage,
+    price: item.price,
+    avgRating: item.avgRating,
+    categoryName: item.categoryName,
+    intro: item.description || ''
+  }))
+  uni.showToast({ title: '已跳过，先为你展示热门景点', icon: 'none' })
 }
 
 const handleBannerClick = (banner) => {
@@ -649,6 +702,7 @@ onPullDownRefresh(async () => {
 onShow(() => {
   if (!userStore.token || nearbySessionToken.value !== userStore.token) {
     resetNearbyState()
+    preferencePopupTriggered.value = false
   }
   refreshHome()
   tryLoadNearbyAutomatically()
@@ -1228,11 +1282,31 @@ onShow(() => {
 
 .preference-title {
   display: block;
-  margin-bottom: 28rpx;
+  margin-top: 12rpx;
   font-size: 34rpx;
   font-weight: 700;
   text-align: center;
   color: #111827;
+}
+
+.preference-eyebrow {
+  display: inline-flex;
+  align-self: center;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+}
+
+.preference-subtitle {
+  display: block;
+  margin: 16rpx 0 28rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  text-align: center;
+  color: #6b7280;
 }
 
 .preference-tags {

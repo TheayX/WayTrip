@@ -31,6 +31,7 @@
 import { ref, onMounted } from 'vue'
 import { getFilters } from '@/api/spot'
 import { updatePreferences, getUserInfo } from '@/api/auth'
+import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
@@ -87,6 +88,7 @@ const savePreferences = async () => {
       preferenceCategoryIds: [...selectedIds.value],
       preferenceCategoryNames: categoryNames
     })
+    markColdStartGuideCompleted(userStore.userInfo?.id)
     setTimeout(() => {
       uni.navigateBack()
     }, 1500)
