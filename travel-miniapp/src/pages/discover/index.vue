@@ -2,12 +2,27 @@
   <view class="discover-page">
     <view class="page-intro">
       <text class="intro-title">发现</text>
-      <text class="intro-desc">把景点和攻略放在同一页里浏览，减少来回切换。</text>
+      <text class="intro-desc">景点、攻略和推荐入口都集中在这里。</text>
     </view>
 
     <view class="search-card" @click="goSearch">
       <uni-icons type="search" size="18" color="#6b7280" />
       <text class="search-text">搜索景点、攻略</text>
+    </view>
+
+    <view class="quick-panel">
+      <view class="quick-card" @click="goSpotList">
+        <text class="quick-title">景点列表</text>
+        <text class="quick-desc">查看全部景点</text>
+      </view>
+      <view class="quick-card" @click="goGuideList">
+        <text class="quick-title">攻略列表</text>
+        <text class="quick-desc">查看全部攻略</text>
+      </view>
+      <view class="quick-card" @click="goRecommendationList">
+        <text class="quick-title">推荐列表</text>
+        <text class="quick-desc">查看推荐结果</text>
+      </view>
     </view>
 
     <view class="mode-tabs">
@@ -22,89 +37,60 @@
       </view>
     </view>
 
-    <view class="quick-panel">
-      <view class="quick-card" @click="goSpotList">
-        <text class="quick-title">景点列表</text>
-        <text class="quick-desc">完整筛选和排序</text>
-      </view>
-      <view class="quick-card" @click="goGuideList">
-        <text class="quick-title">攻略列表</text>
-        <text class="quick-desc">查看全部攻略内容</text>
-      </view>
-      <view class="quick-card" @click="goRecommendationList">
-        <text class="quick-title">推荐列表</text>
-        <text class="quick-desc">查看更多推荐结果</text>
-      </view>
-    </view>
-
-    <view class="filter-card" v-if="showSpotFilters">
-      <view class="filter-header">
-        <text class="filter-title">景点筛选</text>
-        <view class="filter-mode-tabs">
-          <text
-            class="filter-mode"
-            :class="{ active: spotFilterMode === 'region' }"
-            @click="changeSpotFilterMode('region')"
-          >
-            地区
-          </text>
-          <text
-            class="filter-mode"
-            :class="{ active: spotFilterMode === 'category' }"
-            @click="changeSpotFilterMode('category')"
-          >
-            分类
-          </text>
-        </view>
+    <view class="filter-card" v-if="showSpotFilters || showGuideFilters">
+      <view class="filter-group" v-if="showSpotFilters">
+        <text class="filter-group-title">地区</text>
+        <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
+          <view class="chip-row">
+            <view class="chip" :class="{ active: selectedRegionId === '' }" @click="selectRegion('')">全部</view>
+            <view
+              v-for="item in regions"
+              :key="`region-${item.id}`"
+              class="chip"
+              :class="{ active: selectedRegionId === item.id }"
+              @click="selectRegion(item.id)"
+            >
+              {{ item.name }}
+            </view>
+          </view>
+        </scroll-view>
       </view>
 
-      <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
-        <view class="chip-row">
-          <view
-            class="chip"
-            :class="{ active: currentSpotFilterValue === '' }"
-            @click="selectSpotFilter('')"
-          >
-            全部
+      <view class="filter-group" v-if="showSpotFilters">
+        <text class="filter-group-title">景点</text>
+        <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
+          <view class="chip-row">
+            <view class="chip" :class="{ active: selectedSpotCategoryId === '' }" @click="selectSpotCategory('')">全部</view>
+            <view
+              v-for="item in spotCategories"
+              :key="`spot-${item.id}`"
+              class="chip"
+              :class="{ active: selectedSpotCategoryId === item.id }"
+              @click="selectSpotCategory(item.id)"
+            >
+              {{ item.name }}
+            </view>
           </view>
-          <view
-            v-for="item in currentSpotFilters"
-            :key="item.id"
-            class="chip"
-            :class="{ active: currentSpotFilterValue === item.id }"
-            @click="selectSpotFilter(item.id)"
-          >
-            {{ item.name }}
-          </view>
-        </view>
-      </scroll-view>
-    </view>
-
-    <view class="filter-card" v-if="showGuideFilters">
-      <view class="filter-header">
-        <text class="filter-title">攻略分类</text>
+        </scroll-view>
       </view>
 
-      <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
-        <view class="chip-row">
-          <view
-            class="chip"
-            :class="{ active: selectedGuideCategory === '' }"
-            @click="selectGuideCategory('')"
-          >
-            全部
+      <view class="filter-group" v-if="showGuideFilters">
+        <text class="filter-group-title">攻略</text>
+        <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
+          <view class="chip-row">
+            <view class="chip" :class="{ active: selectedGuideCategory === '' }" @click="selectGuideCategory('')">全部</view>
+            <view
+              v-for="item in guideCategories"
+              :key="`guide-${item}`"
+              class="chip"
+              :class="{ active: selectedGuideCategory === item }"
+              @click="selectGuideCategory(item)"
+            >
+              {{ item }}
+            </view>
           </view>
-          <view
-            v-for="item in guideCategories"
-            :key="item"
-            class="chip"
-            :class="{ active: selectedGuideCategory === item }"
-            @click="selectGuideCategory(item)"
-          >
-            {{ item }}
-          </view>
-        </view>
-      </scroll-view>
+        </scroll-view>
+      </view>
     </view>
 
     <view class="section" v-if="showSpotSection">
@@ -184,14 +170,11 @@ const contentTabs = [
 ]
 
 const activeTab = ref('all')
-
-const spotFilterMode = ref('region')
 const regions = ref([])
 const spotCategories = ref([])
+const guideCategories = ref([])
 const selectedRegionId = ref('')
 const selectedSpotCategoryId = ref('')
-
-const guideCategories = ref([])
 const selectedGuideCategory = ref('')
 
 const spotList = ref([])
@@ -202,29 +185,16 @@ const showGuideFilters = computed(() => activeTab.value === 'all' || activeTab.v
 const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
 const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
 
-const currentSpotFilters = computed(() => {
-  return spotFilterMode.value === 'region' ? regions.value : spotCategories.value
-})
-
-const currentSpotFilterValue = computed(() => {
-  return spotFilterMode.value === 'region' ? selectedRegionId.value : selectedSpotCategoryId.value
-})
-
 const spotSectionSubtitle = computed(() => {
-  if (spotFilterMode.value === 'region' && selectedRegionId.value) {
-    return '按地区筛选的景点结果'
-  }
-  if (spotFilterMode.value === 'category' && selectedSpotCategoryId.value) {
-    return '按分类筛选的景点结果'
-  }
-  return '当前推荐浏览的景点内容'
+  if (selectedRegionId.value && selectedSpotCategoryId.value) return '当前按地区和景点筛选'
+  if (selectedRegionId.value) return '当前按地区筛选'
+  if (selectedSpotCategoryId.value) return '当前按景点筛选'
+  return '默认浏览景点内容'
 })
 
 const guideSectionSubtitle = computed(() => {
-  if (selectedGuideCategory.value) {
-    return `当前分类：${selectedGuideCategory.value}`
-  }
-  return '当前推荐浏览的攻略内容'
+  if (selectedGuideCategory.value) return `当前按攻略筛选：${selectedGuideCategory.value}`
+  return '默认浏览攻略内容'
 })
 
 const fetchSpotFilters = async () => {
@@ -248,20 +218,9 @@ const fetchGuideCategories = async () => {
 
 const fetchSpotPreview = async () => {
   try {
-    const params = {
-      page: 1,
-      pageSize: 6,
-      sortBy: 'heat'
-    }
-
-    if (selectedRegionId.value) {
-      params.regionId = selectedRegionId.value
-    }
-
-    if (selectedSpotCategoryId.value) {
-      params.categoryId = selectedSpotCategoryId.value
-    }
-
+    const params = { page: 1, pageSize: 6, sortBy: 'heat' }
+    if (selectedRegionId.value) params.regionId = selectedRegionId.value
+    if (selectedSpotCategoryId.value) params.categoryId = selectedSpotCategoryId.value
     const res = await getSpotList(params)
     spotList.value = res.data?.list || []
   } catch (error) {
@@ -271,16 +230,8 @@ const fetchSpotPreview = async () => {
 
 const fetchGuidePreview = async () => {
   try {
-    const params = {
-      page: 1,
-      pageSize: 6,
-      sortBy: 'time'
-    }
-
-    if (selectedGuideCategory.value) {
-      params.category = selectedGuideCategory.value
-    }
-
+    const params = { page: 1, pageSize: 6, sortBy: 'time' }
+    if (selectedGuideCategory.value) params.category = selectedGuideCategory.value
     const res = await getGuideList(params)
     guideList.value = res.data?.list || []
   } catch (error) {
@@ -289,16 +240,12 @@ const fetchGuidePreview = async () => {
 }
 
 const refreshDiscover = async () => {
-  await Promise.all([
-    fetchSpotPreview(),
-    fetchGuidePreview()
-  ])
+  await Promise.all([fetchSpotPreview(), fetchGuidePreview()])
 }
 
 const persistDiscoverState = () => {
   uni.setStorageSync(DISCOVER_STATE_KEY, {
     tab: activeTab.value,
-    spotFilterMode: spotFilterMode.value,
     selectedRegionId: selectedRegionId.value,
     selectedSpotCategoryId: selectedSpotCategoryId.value,
     selectedGuideCategory: selectedGuideCategory.value
@@ -307,18 +254,8 @@ const persistDiscoverState = () => {
 
 const applySavedState = () => {
   const savedState = uni.getStorageSync(DISCOVER_STATE_KEY)
-  if (!savedState || typeof savedState !== 'object' || Array.isArray(savedState)) {
-    return false
-  }
-
-  if (savedState.tab && ['all', 'spot', 'guide'].includes(savedState.tab)) {
-    activeTab.value = savedState.tab
-  }
-
-  if (savedState.spotFilterMode && ['region', 'category'].includes(savedState.spotFilterMode)) {
-    spotFilterMode.value = savedState.spotFilterMode
-  }
-
+  if (!savedState || typeof savedState !== 'object' || Array.isArray(savedState)) return false
+  if (savedState.tab && ['all', 'spot', 'guide'].includes(savedState.tab)) activeTab.value = savedState.tab
   selectedRegionId.value = savedState.selectedRegionId || ''
   selectedSpotCategoryId.value = savedState.selectedSpotCategoryId || ''
   selectedGuideCategory.value = savedState.selectedGuideCategory || ''
@@ -327,18 +264,10 @@ const applySavedState = () => {
 
 const applyPreset = () => {
   const preset = uni.getStorageSync('discover_preset')
-  if (!preset || typeof preset !== 'object' || Array.isArray(preset)) {
-    return false
-  }
-
-  if (preset.tab && ['all', 'spot', 'guide'].includes(preset.tab)) {
-    activeTab.value = preset.tab
-  }
-
-  if (preset.spotFilterMode && ['region', 'category'].includes(preset.spotFilterMode)) {
-    spotFilterMode.value = preset.spotFilterMode
-  }
-
+  if (!preset || typeof preset !== 'object' || Array.isArray(preset)) return false
+  if (preset.tab && ['all', 'spot', 'guide'].includes(preset.tab)) activeTab.value = preset.tab
+  if (preset.spotFilterMode === 'region') selectedSpotCategoryId.value = ''
+  if (preset.spotFilterMode === 'category') selectedRegionId.value = ''
   uni.removeStorageSync('discover_preset')
   persistDiscoverState()
   return true
@@ -350,17 +279,14 @@ const switchTab = (value) => {
   refreshDiscover()
 }
 
-const changeSpotFilterMode = (value) => {
-  spotFilterMode.value = value
+const selectRegion = (value) => {
+  selectedRegionId.value = value
   persistDiscoverState()
+  fetchSpotPreview()
 }
 
-const selectSpotFilter = (value) => {
-  if (spotFilterMode.value === 'region') {
-    selectedRegionId.value = value
-  } else {
-    selectedSpotCategoryId.value = value
-  }
+const selectSpotCategory = (value) => {
+  selectedSpotCategoryId.value = value
   persistDiscoverState()
   fetchSpotPreview()
 }
@@ -376,26 +302,15 @@ const goSearch = () => {
 }
 
 const goSpotList = () => {
-  const query = [`sortBy=heat`]
-
-  if (selectedRegionId.value) {
-    query.push(`regionId=${selectedRegionId.value}`)
-  }
-
-  if (selectedSpotCategoryId.value) {
-    query.push(`categoryId=${selectedSpotCategoryId.value}`)
-  }
-
+  const query = ['sortBy=heat']
+  if (selectedRegionId.value) query.push(`regionId=${selectedRegionId.value}`)
+  if (selectedSpotCategoryId.value) query.push(`categoryId=${selectedSpotCategoryId.value}`)
   uni.navigateTo({ url: `/pages/spot/list?${query.join('&')}` })
 }
 
 const goGuideList = () => {
   const query = ['sortBy=time']
-
-  if (selectedGuideCategory.value) {
-    query.push(`category=${encodeURIComponent(selectedGuideCategory.value)}`)
-  }
-
+  if (selectedGuideCategory.value) query.push(`category=${encodeURIComponent(selectedGuideCategory.value)}`)
   uni.navigateTo({ url: `/pages/guide/list?${query.join('&')}` })
 }
 
@@ -404,16 +319,12 @@ const goRecommendationList = () => {
 }
 
 const goSpotDetail = (id) => {
-  if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
-    return
-  }
+  if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) return
   uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=discover` })
 }
 
 const goGuideDetail = (id) => {
-  if (!promptLogin('登录后可查看攻略详情，是否现在去登录？')) {
-    return
-  }
+  if (!promptLogin('登录后可查看攻略详情，是否现在去登录？')) return
   uni.navigateTo({ url: `/pages/guide/detail?id=${id}` })
 }
 
@@ -422,10 +333,7 @@ onShow(async () => {
   if (updatedSpot?.id) {
     const index = spotList.value.findIndex(item => item.id === updatedSpot.id)
     if (index !== -1) {
-      spotList.value[index] = {
-        ...spotList.value[index],
-        ...updatedSpot
-      }
+      spotList.value.splice(index, 1, { ...spotList.value[index], ...updatedSpot })
     }
     uni.removeStorageSync('spot_detail_updated')
   }
@@ -434,24 +342,17 @@ onShow(async () => {
   if (updatedGuide?.id) {
     const index = guideList.value.findIndex(item => item.id === updatedGuide.id)
     if (index !== -1) {
-      guideList.value[index] = {
-        ...guideList.value[index],
-        ...updatedGuide
-      }
+      guideList.value.splice(index, 1, { ...guideList.value[index], ...updatedGuide })
     }
     uni.removeStorageSync('guide_detail_updated')
   }
 
-  if (!regions.value.length || !spotCategories.value.length) {
-    await fetchSpotFilters()
-  }
-  if (!guideCategories.value.length) {
-    await fetchGuideCategories()
-  }
+  if (!regions.value.length || !spotCategories.value.length) await fetchSpotFilters()
+  if (!guideCategories.value.length) await fetchGuideCategories()
+
   const usedPreset = applyPreset()
-  if (!usedPreset) {
-    applySavedState()
-  }
+  if (!usedPreset) applySavedState()
+
   await refreshDiscover()
 })
 </script>
@@ -504,29 +405,6 @@ onShow(async () => {
   color: #6b7280;
 }
 
-.mode-tabs {
-  display: flex;
-  gap: 16rpx;
-  margin-top: 24rpx;
-}
-
-.mode-tab {
-  flex: 1;
-  height: 76rpx;
-  line-height: 76rpx;
-  border-radius: 18rpx;
-  text-align: center;
-  background: #e8edf5;
-  color: #4b5563;
-  font-size: 28rpx;
-  font-weight: 600;
-}
-
-.mode-tab.active {
-  background: #2563eb;
-  color: #ffffff;
-}
-
 .quick-panel {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -553,63 +431,81 @@ onShow(async () => {
   color: #6b7280;
 }
 
+.mode-tabs {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.mode-tab {
+  flex: 1;
+  height: 76rpx;
+  line-height: 76rpx;
+  border-radius: 18rpx;
+  text-align: center;
+  background: #e8edf5;
+  color: #4b5563;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.mode-tab.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
 .filter-card,
 .section {
   margin-top: 24rpx;
 }
 
 .filter-card {
-  padding: 24rpx 0 18rpx;
+  padding: 16rpx 0;
+  overflow: hidden;
 }
 
-.filter-header,
-.section-header {
-  padding: 0 24rpx;
+.filter-group {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
+  flex-direction: row;
+  gap: 18rpx;
+  min-height: 72rpx;
+  white-space: nowrap;
 }
 
-.filter-title,
-.section-title {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #111827;
+.filter-group + .filter-group {
+  margin-top: 12rpx;
 }
 
-.filter-mode-tabs {
-  display: flex;
-  gap: 12rpx;
-}
-
-.filter-mode {
-  padding: 8rpx 18rpx;
-  border-radius: 999rpx;
-  background: #eef2f7;
-  color: #4b5563;
-  font-size: 22rpx;
-}
-
-.filter-mode.active {
-  background: #dbeafe;
-  color: #2563eb;
+.filter-group-title {
+  display: inline-block;
+  width: 72rpx;
+  padding-left: 24rpx;
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #6b7280;
+  line-height: 56rpx;
 }
 
 .filter-scroll {
-  margin-top: 18rpx;
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  display: block;
   white-space: nowrap;
 }
 
 .chip-row {
-  padding: 0 24rpx;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 24rpx 0 0;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 64rpx;
+  height: 56rpx;
   padding: 0 24rpx;
   margin-right: 16rpx;
   border-radius: 999rpx;
@@ -621,6 +517,20 @@ onShow(async () => {
 .chip.active {
   background: #2563eb;
   color: #ffffff;
+}
+
+.section-header {
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #111827;
 }
 
 .section-subtitle {
