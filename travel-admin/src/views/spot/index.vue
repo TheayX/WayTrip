@@ -164,6 +164,16 @@
         <el-form-item label="开放时间">
           <el-input v-model="form.openTime" placeholder="如：08:30-17:00" />
         </el-form-item>
+        <el-form-item label="热度档位" prop="heatLevel">
+          <el-select v-model="form.heatLevel" placeholder="请选择热度档位">
+            <el-option
+              v-for="item in heatLevelOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="简介">
           <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入景点简介" />
         </el-form-item>
@@ -464,6 +474,7 @@ const form = reactive({
   latitude: null,
   longitude: null,
   openTime: '',
+  heatLevel: 0,
   description: '',
   coverImage: '',
   images: [],
@@ -476,6 +487,7 @@ const rules = {
   regionPath: [{ required: true, message: '请选择地区', trigger: 'change' }],
   parentCategoryId: [{ required: true, message: '请选择父分类', trigger: 'change' }],
   categoryId: [{ required: true, message: '请选择子分类', trigger: 'change' }],
+  heatLevel: [{ required: true, message: '请选择热度档位', trigger: 'change' }],
   address: [{ required: true, message: '请输入地址', trigger: 'blur' }]
 }
 
@@ -583,6 +595,7 @@ const resetForm = () => {
     latitude: null,
     longitude: null,
     openTime: '',
+    heatLevel: 0,
     description: '',
     coverImage: '',
     images: [],
@@ -663,6 +676,7 @@ const buildSubmitPayload = () => ({
   description: form.description,
   price: form.price,
   openTime: form.openTime,
+  heatLevel: form.heatLevel,
   address: form.address,
   latitude: form.latitude,
   longitude: form.longitude,

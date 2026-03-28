@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
+import com.travel.constant.SpotHeatLevelConstants;
 import com.travel.config.AppCacheProperties;
 import com.travel.config.RedisKeyManager;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
@@ -592,22 +593,14 @@ public class SpotServiceImpl implements SpotService {
 
     private void applyHeatScore(Spot spot) {
         RecommendationConfigBundleDTO config = recommendationService.getConfig();
-        int totalHeatScore = calculateBaseHeatScore(spot.getHeatLevel()) + calculateBehaviorHeatScore(spot.getId(), config);
+        int totalHeatScore = SpotHeatLevelConstants.toBaseScore(spot.getHeatLevel())
+                + calculateBehaviorHeatScore(spot.getId(), config);
         spotMapper.update(
                 null,
                 new UpdateWrapper<Spot>()
                         .eq("id", spot.getId())
                         .set("heat_score", totalHeatScore));
         log.info("景点热度同步完成: spotId={}, heatLevel={}, heatScore={}", spot.getId(), spot.getHeatLevel(), totalHeatScore);
-    }
-
-    private int calculateBaseHeatScore(Integer heatLevel) {
-        return switch (heatLevel == null ? 0 : heatLevel) {
-            case 1 -> 200;
-            case 2 -> 500;
-            case 3 -> 1000;
-            default -> 0;
-        };
     }
 
     private int calculateBehaviorHeatScore(Long spotId, RecommendationConfigBundleDTO config) {
