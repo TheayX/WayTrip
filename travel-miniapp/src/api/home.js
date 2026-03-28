@@ -25,7 +25,7 @@ export const getHotSpots = (limit = 10) => {
  * @returns {*}
  */
 export const getNearbySpots = (latitude, longitude, limit = 3) => {
-  return get('/home/nearby', { latitude, longitude, limit })
+  return get('/home/nearby', { latitude, longitude, limit }, { rejectOnAuthExpired: true })
 }
 
 /**
