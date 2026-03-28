@@ -37,6 +37,12 @@
       }
     },
     {
+      "path": "pages/spot/nearby",
+      "style": {
+        "navigationBarTitleText": "附近景点"
+      }
+    },
+    {
       "path": "pages/guide/list",
       "style": {
         "navigationBarTitleText": "旅游攻略"

@@ -573,7 +573,7 @@ const handleNearbyCardClick = () => {
     requestLocationAccess()
     return
   }
-  goSpotDetail(nearbySpots.value[0].id)
+  goNearbyList()
 }
 
 const handleNearbyMarkerTap = (event) => {
@@ -600,6 +600,16 @@ const goGuideList = () => {
 
 const goRecommendList = () => {
   uni.navigateTo({ url: '/pages/recommendation/index' })
+}
+
+const goNearbyList = () => {
+  if (nearbyLocation.value) {
+    uni.navigateTo({
+      url: `/pages/spot/nearby?latitude=${nearbyLocation.value.latitude}&longitude=${nearbyLocation.value.longitude}`
+    })
+    return
+  }
+  uni.navigateTo({ url: '/pages/spot/nearby' })
 }
 
 const goSearch = () => {
