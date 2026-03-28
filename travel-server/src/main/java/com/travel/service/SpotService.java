@@ -41,17 +41,17 @@ public interface SpotService {
     /**
      * 获取景点详情（管理端）
      */
-    AdminSpotRequest getAdminSpotDetail(Long spotId);
+    AdminSpotDetailResponse getAdminSpotDetail(Long spotId);
     
     /**
      * 创建景点
      */
-    Long createSpot(AdminSpotRequest request);
+    Long createSpot(AdminSpotUpsertRequest request);
     
     /**
      * 更新景点
      */
-    void updateSpot(Long spotId, AdminSpotRequest request);
+    void updateSpot(Long spotId, AdminSpotUpsertRequest request);
     
     /**
      * 更新发布状态

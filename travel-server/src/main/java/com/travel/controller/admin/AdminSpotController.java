@@ -33,20 +33,20 @@ public class AdminSpotController {
 
     @Operation(summary = "获取景点详情")
     @GetMapping("/{spotId}")
-    public ApiResponse<AdminSpotRequest> getSpotDetail(@PathVariable("spotId") Long spotId) {
+    public ApiResponse<AdminSpotDetailResponse> getSpotDetail(@PathVariable("spotId") Long spotId) {
         return ApiResponse.success(spotService.getAdminSpotDetail(spotId));
     }
 
     @Operation(summary = "创建景点")
     @PostMapping
-    public ApiResponse<Map<String, Long>> createSpot(@Valid @RequestBody AdminSpotRequest request) {
+    public ApiResponse<Map<String, Long>> createSpot(@Valid @RequestBody AdminSpotUpsertRequest request) {
         Long id = spotService.createSpot(request);
         return ApiResponse.success(Map.of("id", id));
     }
 
     @Operation(summary = "更新景点")
     @PutMapping("/{spotId}")
-    public ApiResponse<Void> updateSpot(@PathVariable("spotId") Long spotId, @Valid @RequestBody AdminSpotRequest request) {
+    public ApiResponse<Void> updateSpot(@PathVariable("spotId") Long spotId, @Valid @RequestBody AdminSpotUpsertRequest request) {
         spotService.updateSpot(spotId, request);
         return ApiResponse.success();
     }

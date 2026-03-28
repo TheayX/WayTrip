@@ -86,7 +86,6 @@ public class RecommendationCacheService {
         RecommendationConfigBundleDTO config = RecommendationConfigBundleDTO.defaultConfig();
         config.getCache().setUserRecTTLMinutes(defaultInt(appCacheProperties.getRecommendation().getUserRecTtlMinutes(), 60));
         config.getCache().setSimilarityTTLHours(defaultInt(appCacheProperties.getRecommendation().getSimilarityTtlHours(), 24));
-        config.getHeat().setHeatViewDedupeWindowMinutes(defaultInt(appCacheProperties.getSpot().getHeatViewDedupeWindowMinutes(), 30));
         return config;
     }
 
@@ -185,7 +184,6 @@ public class RecommendationCacheService {
             if (map.containsKey("heatReviewIncrement")) config.setHeatReviewIncrement(toInt(map.get("heatReviewIncrement")));
             if (map.containsKey("heatOrderPaidIncrement")) config.setHeatOrderPaidIncrement(toInt(map.get("heatOrderPaidIncrement")));
             if (map.containsKey("heatOrderCompletedIncrement")) config.setHeatOrderCompletedIncrement(toInt(map.get("heatOrderCompletedIncrement")));
-            if (map.containsKey("heatViewDedupeWindowMinutes")) config.setHeatViewDedupeWindowMinutes(toInt(map.get("heatViewDedupeWindowMinutes")));
             if (map.containsKey("heatRerankFactor")) config.setHeatRerankFactor(toDouble(map.get("heatRerankFactor")));
             return config;
         } catch (Exception e) {
@@ -266,7 +264,6 @@ public class RecommendationCacheService {
         if (source.getHeatReviewIncrement() != null) target.setHeatReviewIncrement(source.getHeatReviewIncrement());
         if (source.getHeatOrderPaidIncrement() != null) target.setHeatOrderPaidIncrement(source.getHeatOrderPaidIncrement());
         if (source.getHeatOrderCompletedIncrement() != null) target.setHeatOrderCompletedIncrement(source.getHeatOrderCompletedIncrement());
-        if (source.getHeatViewDedupeWindowMinutes() != null) target.setHeatViewDedupeWindowMinutes(source.getHeatViewDedupeWindowMinutes());
         if (source.getHeatRerankFactor() != null) target.setHeatRerankFactor(source.getHeatRerankFactor());
     }
 

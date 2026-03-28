@@ -307,7 +307,7 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
-    public AdminSpotRequest getAdminSpotDetail(Long spotId) {
+    public AdminSpotDetailResponse getAdminSpotDetail(Long spotId) {
         Spot spot = spotMapper.selectById(spotId);
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
@@ -318,7 +318,7 @@ public class SpotServiceImpl implements SpotService {
                         .eq(SpotImage::getSpotId, spotId)
                         .eq(SpotImage::getIsDeleted, 0));
 
-        AdminSpotRequest response = new AdminSpotRequest();
+        AdminSpotDetailResponse response = new AdminSpotDetailResponse();
         response.setName(spot.getName());
         response.setDescription(spot.getDescription());
         response.setPrice(spot.getPrice());
@@ -341,7 +341,7 @@ public class SpotServiceImpl implements SpotService {
 
     @Override
     @Transactional
-    public Long createSpot(AdminSpotRequest request) {
+    public Long createSpot(AdminSpotUpsertRequest request) {
         Spot spot = new Spot();
         copyProperties(request, spot);
         spotMapper.insert(spot);
@@ -356,7 +356,7 @@ public class SpotServiceImpl implements SpotService {
 
     @Override
     @Transactional
-    public void updateSpot(Long spotId, AdminSpotRequest request) {
+    public void updateSpot(Long spotId, AdminSpotUpsertRequest request) {
         Spot spot = spotMapper.selectById(spotId);
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
@@ -537,7 +537,7 @@ public class SpotServiceImpl implements SpotService {
         return allRegionIds;
     }
 
-    private void copyProperties(AdminSpotRequest request, Spot spot) {
+    private void copyProperties(AdminSpotUpsertRequest request, Spot spot) {
         if (request.getName() != null) {
             spot.setName(request.getName());
         }

@@ -10,8 +10,6 @@ public final class RedisKeyManager {
 
     private static final String ROOT = "waytrip";
     private static final String RECOMMENDATION = ROOT + ":recommendation";
-    private static final String SPOT = ROOT + ":spot";
-
     private RedisKeyManager() {
     }
 
@@ -37,9 +35,5 @@ public final class RedisKeyManager {
 
     public static String recommendationStatus() {
         return RECOMMENDATION + ":status";
-    }
-
-    public static String spotHeatView(Long spotId, Long userId) {
-        return SPOT + ":heat:view:" + spotId + ":" + userId;
     }
 }

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 public class AppCacheProperties {
 
     private Recommendation recommendation = new Recommendation();
-    private Spot spot = new Spot();
 
     @Data
     public static class Recommendation {
@@ -29,12 +28,4 @@ public class AppCacheProperties {
         private Integer similarityTtlHours = 24;
     }
 
-    @Data
-    public static class Spot {
-
-        /**
-         * 景点浏览热度去重窗口，单位：分钟。
-         */
-        private Integer heatViewDedupeWindowMinutes = 30;
-    }
 }
