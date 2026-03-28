@@ -202,6 +202,23 @@
       </view>
     </view>
 
+    <view class="auth-mask" v-if="preferenceGuideVisible">
+      <view class="preference-guide-panel">
+        <PreferenceCategorySelector
+          v-model="preferenceGuideSelection"
+          :categories="preferenceGuideCategories"
+          eyebrow="冷启动推荐"
+          title="选择你感兴趣的景点分类"
+          subtitle="现在选好偏好，推荐会立刻从热门兜底切到偏好冷启动；也可以先跳过。"
+          primary-text="立即开启"
+          secondary-text="跳过"
+          @submit="saveRegisterPreferences"
+          @secondary="skipRegisterPreferences"
+          @limit-exceed="handlePreferenceLimitExceed"
+        />
+      </view>
+    </view>
+
     <!-- ========== 编辑资料弹窗 ========== -->
     <view class="edit-mask" v-if="editVisible" @click="editVisible = false">
       <view class="edit-panel" @click.stop>
@@ -236,8 +253,14 @@ import { useUserStore } from '@/stores/user'
 import { getFavoriteList } from '@/api/favorite'
 import { getOrderList } from '@/api/order'
 import { getMyReviews } from '@/api/review'
-import { wxLogin, wxBindPhone, prepareWxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount } from '@/api/auth'
-import { markColdStartGuidePending } from '@/utils/cold-start-guide'
+import { wxLogin, wxBindPhone, prepareWxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount, updatePreferences } from '@/api/auth'
+import { getFilters } from '@/api/spot'
+import {
+  markColdStartGuideCompleted,
+  markColdStartGuidePending,
+  markColdStartGuideSkipped
+} from '@/utils/cold-start-guide'
+import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import { getAvatarUrl, getImageUrl } from '@/utils/request'
 
 const userStore = useUserStore()
@@ -292,6 +315,9 @@ const pendingRegister = reactive({
   phone: '',
   password: ''
 })
+const preferenceGuideVisible = ref(false)
+const preferenceGuideCategories = ref([])
+const preferenceGuideSelection = ref([])
 
 const onAuthChooseAvatar = (e) => {
   const url = e?.detail?.avatarUrl || ''
@@ -385,6 +411,51 @@ const finalizeRegister = async () => {
   pendingRegister.password = ''
 }
 
+const fetchPreferenceGuideCategories = async () => {
+  if (preferenceGuideCategories.value.length) return
+  try {
+    const res = await getFilters()
+    preferenceGuideCategories.value = res.data?.categories || []
+  } catch (e) {
+    console.error('获取偏好分类失败', e)
+  }
+}
+
+const openPreferenceGuide = async () => {
+  await fetchPreferenceGuideCategories()
+  preferenceGuideSelection.value = [...(userStore.userInfo?.preferenceCategoryIds || [])]
+  preferenceGuideVisible.value = true
+}
+
+const handlePreferenceLimitExceed = () => {
+  uni.showToast({ title: '最多选择5个', icon: 'none' })
+}
+
+const saveRegisterPreferences = async () => {
+  try {
+    await updatePreferences({ categoryIds: preferenceGuideSelection.value })
+    const categoryNames = preferenceGuideSelection.value
+      .map(id => preferenceGuideCategories.value.find(cat => cat.id === id)?.name)
+      .filter(Boolean)
+    userStore.updatePreferences({
+      preferences: categoryNames,
+      preferenceCategoryIds: [...preferenceGuideSelection.value],
+      preferenceCategoryNames: categoryNames
+    })
+    markColdStartGuideCompleted(userStore.userInfo?.id)
+    preferenceGuideVisible.value = false
+    uni.showToast({ title: '偏好已生效，开始为你推荐', icon: 'success' })
+  } catch (e) {
+    uni.showToast({ title: '保存偏好失败', icon: 'none' })
+  }
+}
+
+const skipRegisterPreferences = () => {
+  markColdStartGuideSkipped(userStore.userInfo?.id)
+  preferenceGuideVisible.value = false
+  uni.showToast({ title: '已跳过，后续可在我的-偏好设置里设置', icon: 'none' })
+}
+
 // 第二步：跳过头像昵称设置
 const skipStep2 = async () => {
   try {
@@ -392,7 +463,7 @@ const skipStep2 = async () => {
     await finalizeRegister()
     uni.hideLoading()
     authStep.value = 0
-    uni.showToast({ title: '欢迎使用微旅！', icon: 'success' })
+    await openPreferenceGuide()
   } catch (e) {
     uni.hideLoading()
     uni.showToast({ title: e?.data?.message || '注册失败', icon: 'none' })
@@ -424,7 +495,7 @@ const submitStep2 = async () => {
 
     uni.hideLoading()
     authStep.value = 0
-    uni.showToast({ title: '设置成功，欢迎使用微旅！', icon: 'success' })
+    await openPreferenceGuide()
   } catch (e) {
     uni.hideLoading()
     uni.showToast({ title: '保存失败', icon: 'none' })
@@ -919,6 +990,13 @@ onShow(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.preference-guide-panel {
+  width: 640rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 48rpx 36rpx;
 }
 
 .auth-title {

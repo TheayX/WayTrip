@@ -197,7 +197,9 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void setPreferences(Long userId, List<Long> categoryIds) {
         validateCategoryIds(categoryIds);
-        Set<Long> distinctCategoryIds = new LinkedHashSet<>(categoryIds);
+        Set<Long> distinctCategoryIds = categoryIds == null
+                ? new LinkedHashSet<>()
+                : new LinkedHashSet<>(categoryIds);
 
         UserPreference deletedPreference = new UserPreference();
         deletedPreference.setIsDeleted(1);
@@ -205,6 +207,11 @@ public class AuthServiceImpl implements AuthService {
                 deletedPreference,
                 new LambdaUpdateWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
         );
+
+        if (distinctCategoryIds.isEmpty()) {
+            recommendationService.invalidateUserRecommendationCache(userId);
+            return;
+        }
 
         Map<String, UserPreference> existingPreferenceMap = userPreferenceMapper.selectList(
                 new LambdaQueryWrapper<UserPreference>()
@@ -512,7 +519,7 @@ public class AuthServiceImpl implements AuthService {
 
     private void validateCategoryIds(List<Long> categoryIds) {
         if (categoryIds == null || categoryIds.isEmpty()) {
-            throw new BusinessException(ResultCode.PARAM_ERROR, "偏好分类不能为空");
+            return;
         }
 
         Set<Long> distinctIds = new LinkedHashSet<>(categoryIds);

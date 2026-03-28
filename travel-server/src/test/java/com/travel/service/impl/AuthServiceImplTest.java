@@ -310,6 +310,16 @@ class AuthServiceImplTest {
     }
 
     @Test
+    void setPreferences_allowsEmptySelection_andOnlyClearsPreferences() {
+        authService.setPreferences(1L, List.of());
+
+        verify(userPreferenceMapper).update(any(UserPreference.class), any());
+        verify(userPreferenceMapper, never()).insert(any(UserPreference.class));
+        verify(userPreferenceMapper, never()).updateById(any(UserPreference.class));
+        verify(recommendationService).invalidateUserRecommendationCache(1L);
+    }
+
+    @Test
     void adminLogin_disabledAdmin_rejected() {
         Admin admin = new Admin();
         admin.setId(9L);
