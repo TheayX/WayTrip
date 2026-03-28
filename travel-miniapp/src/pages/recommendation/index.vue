@@ -39,22 +39,18 @@
 
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
       <view class="preference-content">
-        <text class="preference-title">选择你感兴趣的景点分类</text>
-        <view class="preference-tags">
-          <view
-            v-for="cat in categories"
-            :key="cat.id"
-            class="preference-tag"
-            :class="{ active: selectedCategories.includes(cat.id) }"
-            @click="toggleCategory(cat.id)"
-          >
-            {{ cat.name }}
-          </view>
-        </view>
-        <view class="preference-actions">
-          <button class="secondary-btn" @click="preferenceVisible = false">取消</button>
-          <button class="primary-btn" @click="savePreferences">确定</button>
-        </view>
+        <PreferenceCategorySelector
+          v-model="selectedCategories"
+          :categories="categories"
+          title="选择你感兴趣的景点分类"
+          subtitle="你可以随时修改，也可以清空偏好后回到热门冷启动。"
+          primary-text="保存设置"
+          secondary-text="取消"
+          :allow-empty="true"
+          @submit="savePreferences"
+          @secondary="preferenceVisible = false"
+          @limit-exceed="handleLimitExceed"
+        />
       </view>
     </view>
   </view>
@@ -68,6 +64,7 @@ import { updatePreferences } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
+import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import { getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -150,6 +147,7 @@ const showPreferencePopup = async () => {
   if (!categories.value.length) {
     await fetchCategories()
   }
+  selectedCategories.value = [...(userStore.userInfo?.preferenceCategoryIds || [])]
   preferenceVisible.value = true
 }
 
@@ -159,25 +157,11 @@ const goLogin = () => {
   }
 }
 
-const toggleCategory = (id) => {
-  const index = selectedCategories.value.indexOf(id)
-  if (index > -1) {
-    selectedCategories.value.splice(index, 1)
-    return
-  }
-  if (selectedCategories.value.length >= 5) {
-    uni.showToast({ title: '最多选择5个', icon: 'none' })
-    return
-  }
-  selectedCategories.value.push(id)
+const handleLimitExceed = () => {
+  uni.showToast({ title: '最多选择5个', icon: 'none' })
 }
 
 const savePreferences = async () => {
-  if (!selectedCategories.value.length) {
-    uni.showToast({ title: '请至少选择一个', icon: 'none' })
-    return
-  }
-
   try {
     const categoryNames = selectedCategories.value
       .map(id => categories.value.find(cat => cat.id === id)?.name)
@@ -394,59 +378,5 @@ onShow(() => {
   background: #ffffff;
   border-radius: 28rpx;
   padding: 40rpx;
-}
-
-.preference-title {
-  display: block;
-  margin-bottom: 28rpx;
-  font-size: 34rpx;
-  font-weight: 700;
-  text-align: center;
-  color: #111827;
-}
-
-.preference-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-  margin-bottom: 28rpx;
-}
-
-.preference-tag {
-  padding: 16rpx 24rpx;
-  border-radius: 999rpx;
-  background: #eef2f7;
-  font-size: 24rpx;
-  color: #4b5563;
-}
-
-.preference-tag.active {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.preference-actions {
-  display: flex;
-  gap: 20rpx;
-}
-
-.secondary-btn,
-.primary-btn {
-  flex: 1;
-  height: 84rpx;
-  line-height: 84rpx;
-  border-radius: 42rpx;
-  font-size: 28rpx;
-  border: none;
-}
-
-.secondary-btn {
-  background: #eef2f7;
-  color: #4b5563;
-}
-
-.primary-btn {
-  background: #2563eb;
-  color: #ffffff;
 }
 </style>

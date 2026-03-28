@@ -69,14 +69,6 @@
         </view>
       </view>
 
-      <view class="preference-tip" v-if="isLoggedIn && needPreference" @click="showPreferencePopup">
-        <view>
-          <text class="tip-text">选择你感兴趣的景点分类，帮助冷启动推荐更准确</text>
-          <text class="tip-subtext">当前偏好标签统一使用景点分类</text>
-        </view>
-        <text class="tip-arrow">></text>
-      </view>
-
       <view class="recommend-list" v-if="isLoggedIn && recommendPreview.length">
         <view class="recommend-card" v-for="spot in recommendPreview" :key="spot.id" @click="goSpotDetail(spot.id)">
           <image class="rec-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
@@ -185,24 +177,18 @@
 
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
       <view class="preference-content">
-        <text class="preference-eyebrow">冷启动推荐</text>
-        <text class="preference-title">选择你感兴趣的景点分类</text>
-        <text class="preference-subtitle">先选几类你想看的景点，推荐会立刻从热门兜底切到偏好冷启动。</text>
-        <view class="preference-tags">
-          <view
-            v-for="cat in categories"
-            :key="cat.id"
-            class="preference-tag-item"
-            :class="{ active: selectedCategories.includes(cat.id) }"
-            @click="toggleCategory(cat.id)"
-          >
-            {{ cat.name }}
-          </view>
-        </view>
-        <view class="preference-actions">
-          <button class="cancel-btn" @click="skipColdStartGuide">跳过</button>
-          <button class="confirm-btn" @click="savePreferences">立即开启</button>
-        </view>
+        <PreferenceCategorySelector
+          v-model="selectedCategories"
+          :categories="categories"
+          eyebrow="冷启动推荐"
+          title="选择你感兴趣的景点分类"
+          subtitle="先选几类你想看的景点，推荐会立刻从热门兜底切到偏好冷启动。"
+          primary-text="立即开启"
+          secondary-text="跳过"
+          @submit="savePreferences"
+          @secondary="skipColdStartGuide"
+          @limit-exceed="handleLimitExceed"
+        />
       </view>
     </view>
   </view>
@@ -221,6 +207,7 @@ import {
   markColdStartGuideSkipped
 } from '@/utils/cold-start-guide'
 import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
+import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -549,17 +536,8 @@ const maybeShowColdStartGuide = async () => {
   preferenceVisible.value = true
 }
 
-const toggleCategory = (id) => {
-  const index = selectedCategories.value.indexOf(id)
-  if (index > -1) {
-    selectedCategories.value.splice(index, 1)
-    return
-  }
-  if (selectedCategories.value.length >= 5) {
-    uni.showToast({ title: '最多选择 5 个', icon: 'none' })
-    return
-  }
-  selectedCategories.value.push(id)
+const handleLimitExceed = () => {
+  uni.showToast({ title: '最多选择 5 个', icon: 'none' })
 }
 
 const savePreferences = async () => {
@@ -603,7 +581,7 @@ const skipColdStartGuide = async () => {
     categoryName: item.categoryName,
     intro: item.description || ''
   }))
-  uni.showToast({ title: '已跳过，先为你展示热门景点', icon: 'none' })
+  uni.showToast({ title: '已跳过，后续可在我的-偏好设置里设置', icon: 'none' })
 }
 
 const handleBannerClick = (banner) => {
@@ -893,36 +871,6 @@ onShow(() => {
   margin-top: 6rpx;
   font-size: 20rpx;
   color: #6b7280;
-}
-
-.preference-tip {
-  margin: 0 32rpx 24rpx;
-  padding: 24rpx 28rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-  background: #ffffff;
-  border-radius: 24rpx;
-  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.05);
-}
-
-.tip-text {
-  display: block;
-  font-size: 28rpx;
-  color: #2563eb;
-}
-
-.tip-subtext {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  color: #6b7280;
-}
-
-.tip-arrow {
-  font-size: 34rpx;
-  color: #9ca3af;
 }
 
 .recommend-list {
@@ -1280,77 +1228,4 @@ onShow(() => {
   padding: 40rpx;
 }
 
-.preference-title {
-  display: block;
-  margin-top: 12rpx;
-  font-size: 34rpx;
-  font-weight: 700;
-  text-align: center;
-  color: #111827;
-}
-
-.preference-eyebrow {
-  display: inline-flex;
-  align-self: center;
-  padding: 8rpx 18rpx;
-  border-radius: 999rpx;
-  background: #eff6ff;
-  color: #2563eb;
-  font-size: 20rpx;
-  letter-spacing: 2rpx;
-}
-
-.preference-subtitle {
-  display: block;
-  margin: 16rpx 0 28rpx;
-  font-size: 24rpx;
-  line-height: 1.6;
-  text-align: center;
-  color: #6b7280;
-}
-
-.preference-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-  margin-bottom: 28rpx;
-}
-
-.preference-tag-item {
-  padding: 16rpx 24rpx;
-  border-radius: 999rpx;
-  background: #eef2f7;
-  font-size: 24rpx;
-  color: #4b5563;
-}
-
-.preference-tag-item.active {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.preference-actions {
-  display: flex;
-  gap: 20rpx;
-}
-
-.cancel-btn,
-.confirm-btn {
-  flex: 1;
-  height: 84rpx;
-  line-height: 84rpx;
-  border-radius: 42rpx;
-  font-size: 28rpx;
-  border: none;
-}
-
-.cancel-btn {
-  background: #eef2f7;
-  color: #4b5563;
-}
-
-.confirm-btn {
-  background: #2563eb;
-  color: #ffffff;
-}
 </style>
