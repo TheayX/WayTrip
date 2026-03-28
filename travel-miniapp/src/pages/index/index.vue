@@ -62,13 +62,13 @@
     <view class="section">
       <view class="section-header">
         <text class="section-title">{{ recommendType }}</text>
-        <view class="section-actions">
+        <view v-if="isLoggedIn" class="section-actions">
           <text class="section-link" @click="handleRefresh">换一批</text>
           <text class="section-link" @click="goRecommendList">查看更多</text>
         </view>
       </view>
 
-      <view class="preference-tip" v-if="needPreference" @click="showPreferencePopup">
+      <view class="preference-tip" v-if="isLoggedIn && needPreference" @click="showPreferencePopup">
         <view>
           <text class="tip-text">选择你感兴趣的景点分类，帮助冷启动推荐更准确</text>
           <text class="tip-subtext">当前偏好标签统一使用景点分类</text>
@@ -76,7 +76,7 @@
         <text class="tip-arrow">></text>
       </view>
 
-      <view class="recommend-list" v-if="recommendPreview.length">
+      <view class="recommend-list" v-if="isLoggedIn && recommendPreview.length">
         <view class="recommend-card" v-for="spot in recommendPreview" :key="spot.id" @click="goSpotDetail(spot.id)">
           <image class="rec-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="rec-content">
@@ -93,7 +93,7 @@
         </view>
       </view>
       <view class="empty-tip" v-else>
-        <text>当前暂无推荐内容</text>
+        <text>{{ isLoggedIn ? '当前暂无推荐内容' : '登录后查看推荐内容' }}</text>
       </view>
     </view>
 
@@ -384,6 +384,13 @@ const fetchHotSpots = async () => {
 }
 
 const fetchRecommendations = async () => {
+  if (!userStore.token) {
+    recommendations.value = []
+    recommendationType.value = 'hot'
+    needPreference.value = false
+    return
+  }
+
   try {
     const res = await getRecommendations(12)
     recommendations.value = res.data?.list || []
@@ -474,6 +481,10 @@ const tryLoadNearbyAutomatically = async () => {
 }
 
 const handleRefresh = async () => {
+  if (!promptLogin('登录后可刷新推荐，是否现在去登录？')) {
+    return
+  }
+
   uni.showLoading({ title: '加载中...' })
   try {
     const res = await refreshRecommendations(12)
@@ -490,6 +501,10 @@ const handleRefresh = async () => {
 }
 
 const showPreferencePopup = async () => {
+  if (!promptLogin('登录后可设置推荐偏好，是否现在去登录？')) {
+    return
+  }
+
   if (!categories.value.length) {
     await fetchCategories()
   }
@@ -591,6 +606,9 @@ const goGuideList = () => {
 }
 
 const goRecommendList = () => {
+  if (!promptLogin('登录后可查看推荐列表，是否现在去登录？')) {
+    return
+  }
   uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 

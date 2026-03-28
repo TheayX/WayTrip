@@ -5,15 +5,15 @@
         <text class="page-title">{{ recommendType }}</text>
         <text class="page-subtitle">集中浏览当前推荐结果</text>
       </view>
-      <text class="refresh-btn" @click="refreshList">刷新推荐</text>
+      <text v-if="isLoggedIn" class="refresh-btn" @click="refreshList">刷新推荐</text>
     </view>
 
-    <view class="preference-tip" v-if="needPreference" @click="showPreferencePopup">
+    <view class="preference-tip" v-if="isLoggedIn && needPreference" @click="showPreferencePopup">
       <text class="tip-main">选择景点分类偏好，帮助冷启动推荐更准确</text>
       <text class="tip-arrow">›</text>
     </view>
 
-    <view class="recommend-list" v-if="recommendations.length">
+    <view class="recommend-list" v-if="isLoggedIn && recommendations.length">
       <view class="recommend-card" v-for="spot in recommendations" :key="spot.id" @click="goSpotDetail(spot.id)">
         <image class="card-image" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
         <view class="card-content">
@@ -31,10 +31,9 @@
     </view>
 
     <view class="empty-state" v-else>
-      <text>当前暂无推荐结果</text>
-      <view class="empty-actions">
-        <text class="empty-link" @click="refreshList">刷新推荐</text>
-        <text class="empty-link" @click="showPreferencePopup">设置偏好</text>
+      <text>{{ isLoggedIn ? '当前暂无推荐结果' : '登录后查看推荐结果' }}</text>
+      <view v-if="!isLoggedIn" class="empty-actions">
+        <text class="empty-link" @click="goLogin">去登录</text>
       </view>
     </view>
 
@@ -72,6 +71,7 @@ import { getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
+const isLoggedIn = computed(() => userStore.isLoggedIn)
 const recommendations = ref([])
 const recommendationType = ref('hot')
 const needPreference = ref(false)
@@ -90,6 +90,13 @@ const recommendType = computed(() => {
 })
 
 const fetchRecommendations = async () => {
+  if (!userStore.token) {
+    recommendations.value = []
+    recommendationType.value = 'hot'
+    needPreference.value = false
+    return
+  }
+
   try {
     const res = await getRecommendations(20)
     recommendations.value = res.data?.list || []
@@ -101,6 +108,11 @@ const fetchRecommendations = async () => {
 }
 
 const fetchCategories = async () => {
+  if (!userStore.token) {
+    categories.value = []
+    return
+  }
+
   try {
     const res = await getFilters()
     categories.value = res.data?.categories || []
@@ -110,6 +122,10 @@ const fetchCategories = async () => {
 }
 
 const refreshList = async () => {
+  if (!promptLogin('登录后可刷新推荐，是否现在去登录？')) {
+    return
+  }
+
   uni.showLoading({ title: '加载中...' })
   try {
     const res = await refreshRecommendations(20)
@@ -126,10 +142,20 @@ const refreshList = async () => {
 }
 
 const showPreferencePopup = async () => {
+  if (!promptLogin('登录后可设置推荐偏好，是否现在去登录？')) {
+    return
+  }
+
   if (!categories.value.length) {
     await fetchCategories()
   }
   preferenceVisible.value = true
+}
+
+const goLogin = () => {
+  if (!promptLogin('登录后可查看推荐列表，是否现在去登录？')) {
+    return
+  }
 }
 
 const toggleCategory = (id) => {
