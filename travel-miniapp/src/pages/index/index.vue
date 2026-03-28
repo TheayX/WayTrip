@@ -586,10 +586,7 @@ const handleNearbyCardClick = async () => {
     return
   }
 
-  const position = await ensureNearbyAccess()
-  if (position) {
-    goNearbyList(position)
-  }
+  await ensureNearbyAccess()
 }
 
 const handleNearbyMarkerTap = (event) => {
