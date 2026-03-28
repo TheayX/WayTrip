@@ -156,7 +156,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { getUserInfo, updateUserInfo, setPreferences, changePassword, uploadAvatar, deactivateAccount } from '@/api/auth'
+import { getUserInfo, updateUserInfo, setPreferences, changePassword, uploadAvatar, deactivateAccount } from '@/api/user'
 import { getFilters } from '@/api/spot'
 import { getAvatarUrl } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'

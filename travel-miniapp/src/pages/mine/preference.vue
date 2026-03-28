@@ -19,7 +19,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getFilters } from '@/api/spot'
-import { updatePreferences, getUserInfo } from '@/api/auth'
+import { updatePreferences, getUserInfo } from '@/api/user'
 import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import { useUserStore } from '@/stores/user'

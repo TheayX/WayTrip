@@ -276,24 +276,6 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
 
-    /**
-     * 冷启动处理：基于用户偏好或热门景点返回结果。
-     */
-    private RecommendationResponse handleColdStart(Long userId, Integer limit) {
-        return handleColdStart(userId, limit, false);
-    }
-
-    /**
-     * 冷启动处理：支持刷新时轮换结果。
-     */
-    private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh) {
-        return handleColdStart(userId, limit, refresh, false);
-    }
-
-    private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh, boolean debug) {
-        return handleColdStart(userId, limit, refresh, debug, false, debug ? initDebugInfo(userId, limit, refresh) : null);
-    }
-
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh, boolean debug,
                                                    boolean stable,
                                                    RecommendationResponse.DebugInfo debugInfo) {

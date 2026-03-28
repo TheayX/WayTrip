@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { deactivateAccount } from '@/api/auth'
+import { deactivateAccount } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
