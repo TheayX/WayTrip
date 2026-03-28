@@ -89,5 +89,13 @@
         LIMIT #{limit}
     </select>
 
+    <select id="selectSpotRatingStats" resultType="com.travel.dto.review.SpotRatingStats">
+        SELECT COALESCE(ROUND(AVG(r.score), 1), 0.0) AS avgRating,
+               COUNT(*) AS ratingCount
+        FROM user_spot_review r
+        WHERE r.spot_id = #{spotId}
+          AND r.is_deleted = 0
+    </select>
+
 </mapper>
 
