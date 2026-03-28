@@ -41,7 +41,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { changePassword } from '@/api/auth'
+import { changePassword } from '@/api/user'
 
 const loading = ref(false)
 const oldPwdVisible = ref(false)

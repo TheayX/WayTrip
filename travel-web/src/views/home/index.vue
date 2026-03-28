@@ -125,7 +125,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getBanners, getHotSpots, getRecommendations, refreshRecommendations } from '@/api/home'
 import { getFilters } from '@/api/spot'
-import { setPreferences } from '@/api/auth'
+import { setPreferences } from '@/api/user'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 

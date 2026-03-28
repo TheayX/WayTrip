@@ -64,7 +64,8 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { prepareRegister, register, uploadAvatar, updateUserInfo } from '@/api/auth'
+import { prepareRegister, register } from '@/api/auth'
+import { uploadAvatar, updateUserInfo } from '@/api/user'
 import { getAvatarUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 

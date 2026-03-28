@@ -197,17 +197,15 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
-import { getBanners, getHotSpots, getNearbySpots, getRecommendations, refreshRecommendations } from '@/api/home'
-import { updatePreferences } from '@/api/auth'
-import { getFilters } from '@/api/spot'
+import { getBanners, getHotSpots, getNearbySpots } from '@/api/home'
 import { promptLogin } from '@/utils/auth'
 import {
   getColdStartGuideState,
-  markColdStartGuideCompleted,
   markColdStartGuideSkipped
 } from '@/utils/cold-start-guide'
 import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
+import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -217,14 +215,22 @@ const isLoggedIn = computed(() => userStore.isLoggedIn)
 
 const banners = ref([])
 const hotSpots = ref([])
-const recommendations = ref([])
-const recommendationType = ref('hot')
-const needPreference = ref(false)
-
-const preferenceVisible = ref(false)
+const {
+  recommendations,
+  recommendationType,
+  needPreference,
+  preferenceVisible,
+  categories,
+  selectedCategories,
+  recommendType,
+  ensureCategoriesLoaded,
+  fetchRecommendationList,
+  refreshRecommendationList,
+  openPreferenceDialog,
+  savePreferences: persistPreferences,
+  resetRecommendationState
+} = useRecommendationFeed(12)
 const preferencePopupTriggered = ref(false)
-const categories = ref([])
-const selectedCategories = ref([])
 
 const nearbySpots = ref([])
 const nearbyLocation = ref(null)
@@ -251,15 +257,6 @@ const pendingQuickActions = Array.from({ length: 4 }, (_, index) => ({
 }))
 
 const displayQuickActions = [...quickActions, ...pendingQuickActions]
-
-const recommendType = computed(() => {
-  const types = {
-    personalized: '为你推荐',
-    preference: '猜你喜欢',
-    hot: '热门推荐'
-  }
-  return types[recommendationType.value] || '为你推荐'
-})
 
 const recommendPreview = computed(() => recommendations.value.slice(0, 4))
 const featuredHotSpot = computed(() => hotSpots.value[0] || null)
@@ -430,31 +427,13 @@ const fetchHotSpots = async () => {
 }
 
 const fetchRecommendations = async () => {
+  const data = await fetchRecommendationList()
   if (!userStore.token) {
-    recommendations.value = []
-    recommendationType.value = 'hot'
-    needPreference.value = false
     preferencePopupTriggered.value = false
     return
   }
-
-  try {
-    const res = await getRecommendations(12)
-    recommendations.value = res.data?.list || []
-    recommendationType.value = res.data?.type || 'hot'
-    needPreference.value = res.data?.needPreference || false
+  if (data) {
     maybeShowColdStartGuide()
-  } catch (error) {
-    console.error('获取推荐失败', error)
-  }
-}
-
-const fetchCategories = async () => {
-  try {
-    const res = await getFilters()
-    categories.value = res.data?.categories || []
-  } catch (error) {
-    console.error('获取分类失败', error)
   }
 }
 
@@ -536,10 +515,7 @@ const handleRefresh = async () => {
 
   uni.showLoading({ title: '加载中...' })
   try {
-    const res = await refreshRecommendations(12)
-    recommendations.value = res.data?.list || []
-    recommendationType.value = res.data?.type || 'hot'
-    needPreference.value = res.data?.needPreference || false
+    await refreshRecommendationList()
     uni.showToast({ title: '已刷新', icon: 'none' })
   } catch (error) {
     console.error('刷新推荐失败', error)
@@ -553,12 +529,7 @@ const showPreferencePopup = async () => {
   if (!promptLogin('登录后可设置推荐偏好，是否现在去登录？')) {
     return
   }
-
-  if (!categories.value.length) {
-    await fetchCategories()
-  }
-  selectedCategories.value = [...(userStore.userInfo?.preferenceCategoryIds || [])]
-  preferenceVisible.value = true
+  await openPreferenceDialog()
 }
 
 const maybeShowColdStartGuide = async () => {
@@ -576,9 +547,7 @@ const maybeShowColdStartGuide = async () => {
     return
   }
 
-  if (!categories.value.length) {
-    await fetchCategories()
-  }
+  await ensureCategoriesLoaded()
   selectedCategories.value = []
   preferencePopupTriggered.value = true
   preferenceVisible.value = true
@@ -595,17 +564,7 @@ const savePreferences = async () => {
   }
 
   try {
-    const categoryNames = selectedCategories.value
-      .map(id => categories.value.find(cat => cat.id === id)?.name)
-      .filter(Boolean)
-    await updatePreferences({ categoryIds: selectedCategories.value })
-    userStore.updatePreferences({
-      preferences: categoryNames,
-      preferenceCategoryIds: [...selectedCategories.value],
-      preferenceCategoryNames: categoryNames
-    })
-    markColdStartGuideCompleted(userStore.userInfo?.id)
-    preferenceVisible.value = false
+    await persistPreferences()
     uni.showToast({ title: '设置成功', icon: 'success' })
     await handleRefresh()
   } catch (error) {
@@ -729,6 +688,9 @@ onShow(() => {
   if (!userStore.token || nearbySessionToken.value !== userStore.token) {
     resetNearbyState()
     preferencePopupTriggered.value = false
+    if (!userStore.token) {
+      resetRecommendationState()
+    }
   }
   refreshHome()
   tryLoadNearbyAutomatically()

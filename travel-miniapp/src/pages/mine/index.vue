@@ -226,7 +226,8 @@ import { useUserStore } from '@/stores/user'
 import { getFavoriteList } from '@/api/favorite'
 import { getOrderList } from '@/api/order'
 import { getMyReviews } from '@/api/review'
-import { wxLogin, wxBindPhone, prepareWxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, updatePreferences } from '@/api/auth'
+import { wxLogin, wxBindPhone, prepareWxBindPhone } from '@/api/auth'
+import { getUserInfo, updateUserInfo, uploadAvatar, updatePreferences } from '@/api/user'
 import { getFilters } from '@/api/spot'
 import {
   markColdStartGuideCompleted,

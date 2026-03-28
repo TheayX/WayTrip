@@ -59,65 +59,26 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { getRecommendations, refreshRecommendations } from '@/api/home'
-import { updatePreferences } from '@/api/auth'
-import { getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
-import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
+import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
-const recommendations = ref([])
-const recommendationType = ref('hot')
-const needPreference = ref(false)
-
-const preferenceVisible = ref(false)
-const categories = ref([])
-const selectedCategories = ref([])
-
-const recommendType = computed(() => {
-  const types = {
-    personalized: '为你推荐',
-    preference: '猜你喜欢',
-    hot: '热门推荐'
-  }
-  return types[recommendationType.value] || '为你推荐'
-})
-
-const fetchRecommendations = async () => {
-  if (!userStore.token) {
-    recommendations.value = []
-    recommendationType.value = 'hot'
-    needPreference.value = false
-    return
-  }
-
-  try {
-    const res = await getRecommendations(20)
-    recommendations.value = res.data?.list || []
-    recommendationType.value = res.data?.type || 'hot'
-    needPreference.value = res.data?.needPreference || false
-  } catch (error) {
-    console.error('获取推荐失败', error)
-  }
-}
-
-const fetchCategories = async () => {
-  if (!userStore.token) {
-    categories.value = []
-    return
-  }
-
-  try {
-    const res = await getFilters()
-    categories.value = res.data?.categories || []
-  } catch (error) {
-    console.error('获取分类失败', error)
-  }
-}
+const {
+  recommendations,
+  needPreference,
+  categories,
+  selectedCategories,
+  preferenceVisible,
+  recommendType,
+  fetchRecommendationList,
+  refreshRecommendationList,
+  openPreferenceDialog,
+  savePreferences: persistPreferences
+} = useRecommendationFeed(20)
 
 const refreshList = async () => {
   if (!promptLogin('登录后可刷新推荐，是否现在去登录？')) {
@@ -126,10 +87,7 @@ const refreshList = async () => {
 
   uni.showLoading({ title: '加载中...' })
   try {
-    const res = await refreshRecommendations(20)
-    recommendations.value = res.data?.list || []
-    recommendationType.value = res.data?.type || 'hot'
-    needPreference.value = res.data?.needPreference || false
+    await refreshRecommendationList()
     uni.showToast({ title: '已刷新', icon: 'none' })
   } catch (error) {
     console.error('刷新推荐失败', error)
@@ -143,12 +101,7 @@ const showPreferencePopup = async () => {
   if (!promptLogin('登录后可设置推荐偏好，是否现在去登录？')) {
     return
   }
-
-  if (!categories.value.length) {
-    await fetchCategories()
-  }
-  selectedCategories.value = [...(userStore.userInfo?.preferenceCategoryIds || [])]
-  preferenceVisible.value = true
+  await openPreferenceDialog()
 }
 
 const goLogin = () => {
@@ -163,17 +116,7 @@ const handleLimitExceed = () => {
 
 const savePreferences = async () => {
   try {
-    const categoryNames = selectedCategories.value
-      .map(id => categories.value.find(cat => cat.id === id)?.name)
-      .filter(Boolean)
-    await updatePreferences({ categoryIds: selectedCategories.value })
-    userStore.updatePreferences({
-      preferences: categoryNames,
-      preferenceCategoryIds: [...selectedCategories.value],
-      preferenceCategoryNames: categoryNames
-    })
-    markColdStartGuideCompleted(userStore.userInfo?.id)
-    preferenceVisible.value = false
+    await persistPreferences()
     uni.showToast({ title: '设置成功', icon: 'success' })
     await refreshList()
   } catch (error) {
@@ -191,7 +134,7 @@ const goSpotDetail = (spotId) => {
 
 onMounted(() => {
   selectedCategories.value = [...(userStore.userInfo?.preferenceCategoryIds || [])]
-  fetchRecommendations()
+  fetchRecommendationList()
 })
 
 onShow(() => {

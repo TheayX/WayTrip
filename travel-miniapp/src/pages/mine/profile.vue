@@ -54,7 +54,7 @@
 <script setup>
 import { computed, reactive } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { getUserInfo, updateUserInfo, uploadAvatar } from '@/api/auth'
+import { getUserInfo, updateUserInfo, uploadAvatar } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { getAvatarUrl } from '@/utils/request'
 
