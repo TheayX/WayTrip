@@ -149,6 +149,7 @@ erDiagram
 - `cover_image_url`
 - `category_id`
 - `region_id`
+- `heat_level`
 - `heat_score`
 - `avg_rating`
 - `rating_count`
@@ -275,7 +276,7 @@ erDiagram
 
 ### 14. `user_spot_view`
 
-用途：用户景点浏览记录，用于推荐算法补足轻交互行为，并支撑景点热度去重窗口与调试统计。
+用途：用户景点浏览记录，用于推荐算法补足轻交互行为，并作为景点热度同步时的行为输入。
 
 关键字段：
 
@@ -301,13 +302,13 @@ erDiagram
 | `order` | `uk_order_no`, `idx_status`, `idx_user_id_status` | 订单详情、订单列表 |
 | `user_spot_review` | `uk_user_spot`, `idx_spot_list` | 评分去重、评论列表 |
 | `user_spot_favorite` | `uk_user_spot`, `idx_user_id_is_deleted_created_at` | 收藏去重、收藏列表 |
-| `user_spot_view` | `idx_user_spot`, `idx_spot_id`, `idx_created_at` | 浏览行为回放、推荐统计、景点热度 |
+| `user_spot_view` | `idx_user_spot`, `idx_spot_id`, `idx_created_at` | 浏览行为回放、推荐统计、热度同步统计 |
 | `spot_banner` | `idx_is_enabled_sort` | 首页轮播图读取 |
 | `guide_spot_relation` | `uk_guide_spot`, `idx_guide_id_is_deleted_sort` | 关联景点读取 |
 
 ## Redis 使用现状
 
-当前 Redis 已不只用于“推荐矩阵缓存”，而是包含 3 类核心用途：
+当前 Redis 已不只用于“推荐矩阵缓存”，而是包含 2 类核心用途：
 
 1. 推荐配置与运行状态
 - `waytrip:recommendation:config:algorithm`
@@ -319,14 +320,10 @@ erDiagram
 - `waytrip:recommendation:user:{userId}`
 - `waytrip:recommendation:similarity:{spotId}`
 
-3. 景点热度浏览去重窗口
-- `waytrip:spot:heat:view:{spotId}:{userId}`
-
 当前 TTL 约定：
 
 - 用户推荐缓存：默认 60 分钟
 - 相似度矩阵缓存：默认 24 小时
-- 浏览去重窗口：默认 30 分钟
 - 推荐配置与运行状态：默认不自动过期
 
 ## 推荐算法相关数据流
@@ -337,8 +334,35 @@ erDiagram
 - `user_spot_favorite`：收藏行为
 - `order`：已支付 / 已完成订单行为
 - `user_spot_view`：浏览来源与停留时长行为
-- `spot.heat_score`：在线热度重排输入
+- `spot.heat_level`：管理端人工热度档位
+- `spot.heat_score`：由热度档位与行为统计同步生成的最终热度分
 - Redis：保存推荐配置、用户推荐缓存、相似度矩阵与运行状态
+
+### 景点热度设计
+
+当前景点热度不再采用“用户行为实时累加写入”的方式，而是采用“档位 + 同步”的方案：
+
+- `spot.heat_level`：运营可配置的人工档位
+  - `0=普通`
+  - `1=推荐`
+  - `2=重点推荐`
+  - `3=强推`
+- `spot.heat_score`：最终用于排序和热度重排的热度分
+
+热度同步规则：
+
+- `heat_score = heat_level 对应基础分 + 行为统计分`
+- 行为统计分当前来自：
+  - `user_spot_view`
+  - `user_spot_favorite`
+  - `user_spot_review`
+  - `order`
+
+同步入口：
+
+- 管理端可手动同步单个景点热度
+- 管理端可手动同步全部景点热度
+- 服务端定时任务自动同步全部景点热度
 
 ## 数据设计约定
 
