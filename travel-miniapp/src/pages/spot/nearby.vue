@@ -28,8 +28,8 @@
       </view>
     </view>
 
-    <view v-if="nearbySpots.length" class="spot-list">
-      <view class="spot-card" v-for="spot in nearbySpots" :key="spot.id" @click="goSpotDetail(spot.id)">
+    <view v-if="displaySpots.length" class="spot-list">
+      <view class="spot-card" v-for="spot in displaySpots" :key="spot.id" @click="goSpotDetail(spot.id)">
         <image class="spot-image" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
         <view class="spot-content">
           <view class="spot-header">
@@ -72,11 +72,21 @@ const loading = ref(false)
 const locationStatus = ref('idle')
 
 const markerIcon = '/static/tabbar/spot-active.png'
+const MAX_NEARBY_DISTANCE_KM = 100
+
+const toFiniteNumber = (value) => {
+  const num = Number(value)
+  return Number.isFinite(num) ? num : null
+}
+
+const isValidLatitude = (value) => value !== null && value >= -90 && value <= 90
+const isValidLongitude = (value) => value !== null && value >= -180 && value <= 180
+const isValidCoordinate = (latitude, longitude) => isValidLatitude(latitude) && isValidLongitude(longitude)
 
 const heroSubtitle = computed(() => {
   if (loading.value) return '正在根据当前位置获取周边景点'
-  if (locationStatus.value === 'ready' && nearbySpots.value.length) {
-    return `共找到 ${nearbySpots.value.length} 个景点，最近约 ${formatDistance(nearbySpots.value[0].distanceKm)}`
+  if (locationStatus.value === 'ready' && displaySpots.value.length) {
+    return `共找到 ${displaySpots.value.length} 个景点，最近约 ${formatDistance(displaySpots.value[0].distanceKm)}`
   }
   if (locationStatus.value === 'empty') return '当前位置附近暂时没有可展示的景点'
   return '登录并授权定位后，可按距离浏览附近景点'
@@ -90,21 +100,57 @@ const placeholderText = computed(() => {
   return '点击重新定位'
 })
 
-const canShowMap = computed(() => locationStatus.value === 'ready' && nearbySpots.value.length > 0)
+const normalizedSpots = computed(() => {
+  return nearbySpots.value
+    .map((spot) => {
+      const latitude = toFiniteNumber(spot.latitude)
+      const longitude = toFiniteNumber(spot.longitude)
+      return {
+        ...spot,
+        latitude,
+        longitude,
+        distanceKm: toFiniteNumber(spot.distanceKm)
+      }
+    })
+    .filter(spot => isValidCoordinate(spot.latitude, spot.longitude))
+})
+
+const hasReasonableNearbySpots = computed(() => {
+  if (!normalizedSpots.value.length) return false
+  const nearestDistance = normalizedSpots.value[0]?.distanceKm
+  return nearestDistance === null || nearestDistance <= MAX_NEARBY_DISTANCE_KM
+})
+
+const displaySpots = computed(() => {
+  return hasReasonableNearbySpots.value ? normalizedSpots.value : []
+})
+
+const canShowMap = computed(() => {
+  if (locationStatus.value !== 'ready' || !hasReasonableNearbySpots.value) return false
+  const latitude = toFiniteNumber(locationInfo.value?.latitude)
+  const longitude = toFiniteNumber(locationInfo.value?.longitude)
+  return isValidCoordinate(latitude, longitude)
+})
 
 const mapCenter = computed(() => {
-  const base = locationInfo.value || nearbySpots.value[0]
+  const locationLatitude = toFiniteNumber(locationInfo.value?.latitude)
+  const locationLongitude = toFiniteNumber(locationInfo.value?.longitude)
+  const firstSpot = normalizedSpots.value[0]
+  const useLocation = isValidCoordinate(locationLatitude, locationLongitude)
+  const base = useLocation
+    ? { latitude: locationLatitude, longitude: locationLongitude }
+    : firstSpot
   return {
-    latitude: Number(base?.latitude || 39.9042),
-    longitude: Number(base?.longitude || 116.4074)
+    latitude: base?.latitude ?? 39.9042,
+    longitude: base?.longitude ?? 116.4074
   }
 })
 
 const markers = computed(() => {
-  const spotMarkers = nearbySpots.value.map((spot, index) => ({
+  const spotMarkers = displaySpots.value.map((spot, index) => ({
     id: Number(spot.id),
-    latitude: Number(spot.latitude),
-    longitude: Number(spot.longitude),
+    latitude: spot.latitude,
+    longitude: spot.longitude,
     iconPath: markerIcon,
     width: 26,
     height: 32,
@@ -117,11 +163,13 @@ const markers = computed(() => {
     }
   }))
 
-  if (locationInfo.value) {
+  const locationLatitude = toFiniteNumber(locationInfo.value?.latitude)
+  const locationLongitude = toFiniteNumber(locationInfo.value?.longitude)
+  if (isValidCoordinate(locationLatitude, locationLongitude)) {
     spotMarkers.push({
       id: -1,
-      latitude: Number(locationInfo.value.latitude),
-      longitude: Number(locationInfo.value.longitude),
+      latitude: locationLatitude,
+      longitude: locationLongitude,
       iconPath: markerIcon,
       width: 18,
       height: 22,
@@ -139,7 +187,7 @@ const emptyTitle = computed(() => {
 })
 
 const emptyDesc = computed(() => {
-  if (locationStatus.value === 'empty') return '你可以重新定位，或者先回首页看看热门景点'
+  if (locationStatus.value === 'empty') return `你可以重新定位，或前往首页查看热门景点（仅展示 ${MAX_NEARBY_DISTANCE_KM} km 内结果）`
   return '点击按钮后会重新申请定位并加载附近景点'
 })
 
@@ -155,7 +203,7 @@ const fetchNearby = async (latitude, longitude, showErrorToast = false) => {
     locationInfo.value = { latitude, longitude }
     const res = await getNearbySpots(latitude, longitude, 10)
     nearbySpots.value = res.data?.list || []
-    locationStatus.value = nearbySpots.value.length ? 'ready' : 'empty'
+    locationStatus.value = hasReasonableNearbySpots.value ? 'ready' : 'empty'
   } catch (error) {
     if (error?.code === 10002) {
       return
