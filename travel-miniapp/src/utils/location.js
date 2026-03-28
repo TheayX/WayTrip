@@ -44,10 +44,32 @@ export const getCurrentLocation = () => new Promise((resolve, reject) => {
   })
 })
 
+export const getLocationPermissionState = () => new Promise((resolve, reject) => {
+  uni.getSetting({
+    success: (res) => {
+      if (res.authSetting?.['scope.userLocation']) {
+        resolve('granted')
+        return
+      }
+      resolve('prompt')
+    },
+    fail: reject
+  })
+})
+
 export const getAuthorizedLocation = async () => {
   const granted = await ensureLocationPermission()
   if (!granted) {
     throw new Error('LOCATION_PERMISSION_DENIED')
+  }
+
+  return getCurrentLocation()
+}
+
+export const getLocationIfAuthorized = async () => {
+  const permissionState = await getLocationPermissionState()
+  if (permissionState !== 'granted') {
+    return null
   }
 
   return getCurrentLocation()

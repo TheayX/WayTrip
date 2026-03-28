@@ -212,7 +212,7 @@ import { getBanners, getHotSpots, getNearbySpots, getRecommendations, refreshRec
 import { updatePreferences } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
-import { getAuthorizedLocation } from '@/utils/location'
+import { getAuthorizedLocation, getLocationIfAuthorized } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -446,6 +446,33 @@ const ensureNearbyAccess = async () => {
   }
 }
 
+const tryLoadNearbyAutomatically = async () => {
+  if (!userStore.token) {
+    resetNearbyState()
+    return
+  }
+
+  if (nearbyLoading.value || locationStatus.value === 'ready') {
+    return
+  }
+
+  try {
+    const position = await getLocationIfAuthorized()
+    if (!position) {
+      if (locationStatus.value === 'idle') {
+        locationStatus.value = 'idle'
+      }
+      return
+    }
+    await fetchNearbyByLocation(position.latitude, position.longitude, 3)
+  } catch (error) {
+    if (error?.code === 10002) {
+      return
+    }
+    console.error('自动加载附近景点失败', error)
+  }
+}
+
 const handleRefresh = async () => {
   uni.showLoading({ title: '加载中...' })
   try {
@@ -599,6 +626,7 @@ onShow(() => {
     resetNearbyState()
   }
   refreshHome()
+  tryLoadNearbyAutomatically()
 })
 </script>
 
