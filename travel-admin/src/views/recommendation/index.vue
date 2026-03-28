@@ -292,49 +292,43 @@
             <el-icon><DataLine /></el-icon>
             <span>热度累计与最终重排</span>
           </div>
-          <div class="section-desc">控制每种行为如何累加到 <code>spot.heat_score</code>，以及热度如何参与最终排序。不会影响离线相似度矩阵。</div>
+          <div class="section-desc">控制热度同步时各类行为如何折算为 <code>spot.heat_score</code>，以及热度如何参与最终排序。不会影响离线相似度矩阵。</div>
 
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="浏览详情加分">
+              <el-form-item label="浏览行为权重">
                 <el-input-number v-model="config.heat.heatViewIncrement" :min="1" :max="20" :step="1" />
-                <span class="form-tip">用户打开景点详情页时增加的热度分数</span>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="浏览去重窗口">
-                <el-input-number v-model="config.heat.heatViewDedupeWindowMinutes" :min="1" :max="1440" :step="1" />
-                <span class="form-tip">同一用户同一景点在该时间窗口内重复浏览不重复加热，单位：分钟</span>
+                <span class="form-tip">热度同步时，每条浏览记录折算的分值</span>
               </el-form-item>
             </el-col>
           </el-row>
 
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="收藏加分">
+              <el-form-item label="收藏行为权重">
                 <el-input-number v-model="config.heat.heatFavoriteIncrement" :min="1" :max="20" :step="1" />
-                <span class="form-tip">新增收藏或恢复收藏时增加的热度分数</span>
+                <span class="form-tip">热度同步时，每条有效收藏记录折算的分值</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="评价加分">
+              <el-form-item label="评价行为权重">
                 <el-input-number v-model="config.heat.heatReviewIncrement" :min="1" :max="20" :step="1" />
-                <span class="form-tip">首次评价或恢复评价时增加的热度分数</span>
+                <span class="form-tip">热度同步时，每条有效评价记录折算的分值</span>
               </el-form-item>
             </el-col>
           </el-row>
 
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="支付订单加分">
+              <el-form-item label="支付订单权重">
                 <el-input-number v-model="config.heat.heatOrderPaidIncrement" :min="1" :max="30" :step="1" />
-                <span class="form-tip">订单从待支付变为已支付时增加的热度分数</span>
+                <span class="form-tip">热度同步时，每条已支付订单记录折算的分值</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="完成订单加分">
+              <el-form-item label="完成订单权重">
                 <el-input-number v-model="config.heat.heatOrderCompletedIncrement" :min="1" :max="30" :step="1" />
-                <span class="form-tip">订单从已支付变为已完成时增加的热度分数</span>
+                <span class="form-tip">热度同步时，每条已完成订单记录折算的分值</span>
               </el-form-item>
             </el-col>
           </el-row>
@@ -469,11 +463,6 @@
             </div>
 
             <div class="execution-grid">
-              <div class="execution-metric">
-                <div class="execution-metric-label">浏览去重窗口</div>
-                <div class="execution-metric-value">{{ config.heat.heatViewDedupeWindowMinutes }} 分钟</div>
-                <div class="execution-metric-desc">同一用户重复浏览同一景点，在该窗口内不重复加热</div>
-              </div>
               <div class="execution-metric">
                 <div class="execution-metric-label">推荐缓存 TTL</div>
                 <div class="execution-metric-value">{{ config.cache.userRecTTLMinutes }} 分钟</div>
@@ -1144,7 +1133,6 @@ const createDefaultConfig = () => ({
     heatReviewIncrement: 2,
     heatOrderPaidIncrement: 5,
     heatOrderCompletedIncrement: 8,
-    heatViewDedupeWindowMinutes: 30,
     heatRerankFactor: 0.05
   },
   cache: {
@@ -1184,7 +1172,6 @@ const immediateFieldPaths = [
   'heat.heatReviewIncrement',
   'heat.heatOrderPaidIncrement',
   'heat.heatOrderCompletedIncrement',
-  'heat.heatViewDedupeWindowMinutes',
   'heat.heatRerankFactor',
   'cache.userRecTTLMinutes'
 ]

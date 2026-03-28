@@ -13,6 +13,5 @@ public class RecommendationHeatConfigDTO {
     private Integer heatReviewIncrement = 2;
     private Integer heatOrderPaidIncrement = 5;
     private Integer heatOrderCompletedIncrement = 8;
-    private Integer heatViewDedupeWindowMinutes = 30;
     private Double heatRerankFactor = 0.05;
 }

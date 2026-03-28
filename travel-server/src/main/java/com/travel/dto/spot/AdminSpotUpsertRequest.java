@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -12,44 +13,38 @@ import java.util.List;
  * 管理端景点创建/更新请求
  */
 @Data
-public class AdminSpotRequest {
-    
+public class AdminSpotUpsertRequest {
+
     @NotBlank(message = "景点名称不能为空")
     private String name;
-    
+
     private String description;
-    
+
     @NotNull(message = "门票价格不能为空")
     private BigDecimal price;
-    
+
     private String openTime;
-    
+
     @NotBlank(message = "详细地址不能为空")
     private String address;
-    
+
     @NotNull(message = "纬度不能为空")
     private BigDecimal latitude;
-    
+
     @NotNull(message = "经度不能为空")
     private BigDecimal longitude;
-    
+
     private String coverImage;
-    
+
     private List<String> images;
-    
+
     private Long regionId;
-    
+
     private Long categoryId;
-    
+
     private Boolean published = false;
-
-    private BigDecimal avgRating;
-
-    private Integer ratingCount;
 
     @Min(value = 0, message = "热度档位不能小于0")
     @Max(value = 3, message = "热度档位不能大于3")
     private Integer heatLevel;
-
-    private Integer heatScore;
 }
