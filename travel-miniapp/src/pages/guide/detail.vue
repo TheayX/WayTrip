@@ -52,6 +52,7 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getGuideDetail } from '@/api/guide'
+import { guardLoginPage } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 
 const guide = ref(null)
@@ -98,6 +99,10 @@ const goSpotList = () => {
 }
 
 onLoad((options) => {
+  if (!guardLoginPage('登录后可查看攻略详情，是否现在去登录？')) {
+    return
+  }
+
   guideId.value = options.id
   fetchGuideDetail()
 })
