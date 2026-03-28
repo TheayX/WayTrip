@@ -97,6 +97,12 @@
       }
     },
     {
+      "path": "pages/mine/activity",
+      "style": {
+        "navigationBarTitleText": "我的互动"
+      }
+    },
+    {
       "path": "pages/mine/preference",
       "style": {
         "navigationBarTitleText": "偏好设置"
