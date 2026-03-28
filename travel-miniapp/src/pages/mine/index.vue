@@ -37,15 +37,15 @@
     </view>
 
     <view class="stats-board" v-if="isLoggedIn">
-      <view class="stats-item">
+      <view class="stats-item" @click="goActivity('browse')">
         <text class="stats-value">{{ dashboardStats.viewed }}</text>
         <text class="stats-label">最近浏览</text>
       </view>
-      <view class="stats-item">
+      <view class="stats-item" @click="goActivity('favorite')">
         <text class="stats-value">{{ dashboardStats.favorites }}</text>
         <text class="stats-label">我的收藏</text>
       </view>
-      <view class="stats-item">
+      <view class="stats-item" @click="goActivity('review')">
         <text class="stats-value">{{ dashboardStats.reviews }}</text>
         <text class="stats-label">我的评价</text>
       </view>
@@ -75,6 +75,7 @@
     <view class="footprint-section" v-if="isLoggedIn && recentFootprints.length">
       <view class="overview-header">
         <text class="overview-title">最近浏览</text>
+        <text class="overview-link" @click="goActivity('browse')">查看全部</text>
       </view>
       <scroll-view class="footprint-scroll" scroll-x :show-scrollbar="false">
         <view
@@ -111,18 +112,11 @@
           <text class="cell-title">我的订单</text>
           <text class="cell-arrow">›</text>
         </view>
-        <view class="ios-cell" @click="goFavorites">
-          <view class="cell-icon">
-            <image class="cell-icon-img" src="/static/icons/favorite.png" />
-          </view>
-          <text class="cell-title">我的收藏</text>
-          <text class="cell-arrow">›</text>
-        </view>
-        <view class="ios-cell" @click="goReviews">
+        <view class="ios-cell" @click="goActivity()">
           <view class="cell-icon">
             <image class="cell-icon-img" src="/static/icons/review.png" />
           </view>
-          <text class="cell-title">我的评价</text>
+          <text class="cell-title">我的互动</text>
           <text class="cell-arrow">›</text>
         </view>
         <view class="ios-cell" @click="goPreference">
@@ -639,12 +633,8 @@ const goOrdersByStatus = (status) => {
 }
 
 // 跳转收藏
-const goFavorites = () => {
-  uni.navigateTo({ url: '/pages/favorite/index' })
-}
-
-const goReviews = () => {
-  uni.navigateTo({ url: '/pages/mine/review' })
+const goActivity = (tab = 'browse') => {
+  uni.navigateTo({ url: `/pages/mine/activity?tab=${tab}` })
 }
 
 // 跳转偏好设置
