@@ -237,6 +237,7 @@ import { getFavoriteList } from '@/api/favorite'
 import { getOrderList } from '@/api/order'
 import { getMyReviews } from '@/api/review'
 import { wxLogin, wxBindPhone, prepareWxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount } from '@/api/auth'
+import { markColdStartGuidePending } from '@/utils/cold-start-guide'
 import { getAvatarUrl, getImageUrl } from '@/utils/request'
 
 const userStore = useUserStore()
@@ -377,6 +378,7 @@ const finalizeRegister = async () => {
     password: pendingRegister.password
   })
   userStore.login(res.data)
+  markColdStartGuidePending(res.data?.user?.id)
   await syncUserInfo()
   pendingOpenid.value = ''
   pendingRegister.phone = ''

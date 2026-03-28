@@ -67,6 +67,7 @@ import { getRecommendations, refreshRecommendations } from '@/api/home'
 import { updatePreferences } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
+import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
 import { getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -187,6 +188,7 @@ const savePreferences = async () => {
       preferenceCategoryIds: [...selectedCategories.value],
       preferenceCategoryNames: categoryNames
     })
+    markColdStartGuideCompleted(userStore.userInfo?.id)
     preferenceVisible.value = false
     uni.showToast({ title: '设置成功', icon: 'success' })
     await refreshList()
