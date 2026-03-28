@@ -58,25 +58,6 @@
       </view>
     </view>
 
-    <view class="footprint-section" v-if="isLoggedIn && recentFootprints.length">
-      <view class="overview-header">
-        <text class="overview-title">最近浏览</text>
-        <text class="overview-link" @click="goActivity('browse')">查看全部</text>
-      </view>
-      <scroll-view class="footprint-scroll" scroll-x :show-scrollbar="false">
-        <view
-          v-for="item in recentFootprints"
-          :key="item.id"
-          class="footprint-card"
-          @click="goSpotById(item.id)"
-        >
-          <image class="footprint-image" :src="getImageUrl(item.coverImage)" mode="aspectFill" />
-          <text class="footprint-name">{{ item.name }}</text>
-          <text class="footprint-meta">{{ item.regionName || '景点' }}</text>
-        </view>
-      </scroll-view>
-    </view>
-
     <view class="section-label">无需登录</view>
     <view class="ios-group">
       <view class="ios-cell" @click="goSettings">
@@ -239,7 +220,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { getFavoriteList } from '@/api/favorite'
@@ -253,7 +234,7 @@ import {
   markColdStartGuideSkipped
 } from '@/utils/cold-start-guide'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
-import { getAvatarUrl, getImageUrl } from '@/utils/request'
+import { getAvatarUrl } from '@/utils/request'
 
 const userStore = useUserStore()
 const defaultRegisterAvatar = getAvatarUrl('/uploads/images/avatar.jpg')
@@ -271,8 +252,6 @@ const orderStats = reactive({
   paid: 0,
   completed: 0
 })
-const recentFootprints = ref([])
-
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
   const normalized = phone.trim()
@@ -398,6 +377,7 @@ const finalizeRegister = async () => {
   userStore.login(res.data)
   markColdStartGuidePending(res.data?.user?.id)
   await syncUserInfo()
+  await loadMineOverview()
   pendingOpenid.value = ''
   pendingRegister.phone = ''
   pendingRegister.password = ''
@@ -506,7 +486,6 @@ const syncUserInfo = async () => {
 const loadRecentFootprints = () => {
   const history = uni.getStorageSync('spot_footprints')
   const footprints = Array.isArray(history) ? history : []
-  recentFootprints.value = footprints.slice(0, 6)
   dashboardStats.viewed = footprints.length
 }
 
@@ -518,7 +497,6 @@ const loadMineOverview = async () => {
     orderStats.pending = 0
     orderStats.paid = 0
     orderStats.completed = 0
-    recentFootprints.value = []
     return
   }
 
@@ -569,6 +547,7 @@ const doLogin = async () => {
       // 老用户：直接登录
       userStore.login(res.data)
       await syncUserInfo()
+      await loadMineOverview()
 
       if (res.data.isReactivated) {
         uni.showModal({
@@ -602,7 +581,6 @@ const doLogout = () => {
         orderStats.pending = 0
         orderStats.paid = 0
         orderStats.completed = 0
-        recentFootprints.value = []
         uni.showToast({ title: '已退出登录', icon: 'none' })
       }
     }
@@ -636,14 +614,16 @@ const goSettings = () => {
   uni.navigateTo({ url: '/pages/mine/settings/index' })
 }
 
-const goSpotById = (id) => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=footprint` })
-}
-
 onShow(async () => {
   if (isLoggedIn.value) {
     await syncUserInfo()
   }
+  await loadMineOverview()
+})
+
+watch(isLoggedIn, async (loggedIn, prevLoggedIn) => {
+  if (!loggedIn || loggedIn === prevLoggedIn) return
+  await syncUserInfo()
   await loadMineOverview()
 })
 </script>
@@ -722,8 +702,7 @@ onShow(async () => {
   color: #8E8E93;
 }
 
-.order-overview,
-.footprint-section {
+.order-overview {
   background: #fff;
   border-radius: 24rpx;
   padding: 24rpx;
@@ -774,41 +753,6 @@ onShow(async () => {
   margin-top: 8rpx;
   font-size: 24rpx;
   color: #4B5563;
-}
-
-.footprint-scroll {
-  white-space: nowrap;
-}
-
-.footprint-card {
-  display: inline-block;
-  width: 220rpx;
-  margin-right: 16rpx;
-}
-
-.footprint-image {
-  width: 220rpx;
-  height: 160rpx;
-  border-radius: 18rpx;
-  background: #E5E7EB;
-}
-
-.footprint-name {
-  display: block;
-  margin-top: 12rpx;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #111827;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.footprint-meta {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  color: #8E8E93;
 }
 
 .avatar-lg {
