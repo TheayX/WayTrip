@@ -153,8 +153,8 @@
             <text class="nearby-caption">{{ nearbyCaption }}</text>
           </view>
 
-          <view v-if="nearbySpots.length" class="nearby-tags">
-            <text v-for="spot in nearbySpots.slice(0, 2)" :key="spot.id" class="nearby-tag">
+          <view v-if="displayNearbySpots.length" class="nearby-tags">
+            <text v-for="spot in displayNearbySpots.slice(0, 2)" :key="spot.id" class="nearby-tag">
               {{ spot.name }}
             </text>
           </view>
@@ -264,21 +264,67 @@ const recommendType = computed(() => {
 const recommendPreview = computed(() => recommendations.value.slice(0, 4))
 const featuredHotSpot = computed(() => hotSpots.value[0] || null)
 const secondaryHotSpots = computed(() => hotSpots.value.slice(1))
-const canShowNearbyMap = computed(() => locationStatus.value === 'ready' && nearbySpots.value.length > 0)
+const MAX_NEARBY_DISTANCE_KM = 100
+
+const toFiniteNumber = (value) => {
+  const num = Number(value)
+  return Number.isFinite(num) ? num : null
+}
+
+const isValidLatitude = (value) => value !== null && value >= -90 && value <= 90
+const isValidLongitude = (value) => value !== null && value >= -180 && value <= 180
+const isValidCoordinate = (latitude, longitude) => isValidLatitude(latitude) && isValidLongitude(longitude)
+
+const normalizedNearbySpots = computed(() => {
+  return nearbySpots.value
+    .map((spot) => {
+      const latitude = toFiniteNumber(spot.latitude)
+      const longitude = toFiniteNumber(spot.longitude)
+      return {
+        ...spot,
+        latitude,
+        longitude,
+        distanceKm: toFiniteNumber(spot.distanceKm)
+      }
+    })
+    .filter(spot => isValidCoordinate(spot.latitude, spot.longitude))
+})
+
+const hasReasonableNearbySpots = computed(() => {
+  if (!normalizedNearbySpots.value.length) return false
+  const nearestDistance = normalizedNearbySpots.value[0]?.distanceKm
+  return nearestDistance === null || nearestDistance <= MAX_NEARBY_DISTANCE_KM
+})
+
+const displayNearbySpots = computed(() => {
+  return hasReasonableNearbySpots.value ? normalizedNearbySpots.value : []
+})
+
+const canShowNearbyMap = computed(() => {
+  if (locationStatus.value !== 'ready' || !displayNearbySpots.value.length) return false
+  const latitude = toFiniteNumber(nearbyLocation.value?.latitude)
+  const longitude = toFiniteNumber(nearbyLocation.value?.longitude)
+  return isValidCoordinate(latitude, longitude)
+})
 
 const nearbyMapCenter = computed(() => {
-  const base = nearbyLocation.value || nearbySpots.value[0]
+  const locationLatitude = toFiniteNumber(nearbyLocation.value?.latitude)
+  const locationLongitude = toFiniteNumber(nearbyLocation.value?.longitude)
+  const useLocation = isValidCoordinate(locationLatitude, locationLongitude)
+  const base = useLocation
+    ? { latitude: locationLatitude, longitude: locationLongitude }
+    : displayNearbySpots.value[0]
   return {
-    latitude: Number(base?.latitude || 39.9042),
-    longitude: Number(base?.longitude || 116.4074)
+    latitude: base?.latitude ?? 39.9042,
+    longitude: base?.longitude ?? 116.4074
   }
 })
 
 const nearbyMarkers = computed(() => {
-  const markers = nearbySpots.value.slice(0, 3).map((spot, index) => ({
+  const markers = displayNearbySpots.value.slice(0, 3).map((spot, index) => ({
     id: Number(spot.id),
-    latitude: Number(spot.latitude),
-    longitude: Number(spot.longitude),
+    latitude: spot.latitude,
+    longitude: spot.longitude,
     iconPath: markerIcon,
     width: 26,
     height: 32,
@@ -291,11 +337,13 @@ const nearbyMarkers = computed(() => {
     }
   }))
 
-  if (nearbyLocation.value) {
+  const locationLatitude = toFiniteNumber(nearbyLocation.value?.latitude)
+  const locationLongitude = toFiniteNumber(nearbyLocation.value?.longitude)
+  if (isValidCoordinate(locationLatitude, locationLongitude)) {
     markers.push({
       id: -1,
-      latitude: Number(nearbyLocation.value.latitude),
-      longitude: Number(nearbyLocation.value.longitude),
+      latitude: locationLatitude,
+      longitude: locationLongitude,
       iconPath: markerIcon,
       width: 18,
       height: 22,
@@ -317,16 +365,16 @@ const nearbyHeadline = computed(() => {
 
 const nearbyActionText = computed(() => {
   if (nearbyLoading.value) return '加载中'
-  if (locationStatus.value === 'ready' && nearbySpots.value.length) return '查看景点'
+  if (locationStatus.value === 'ready' && displayNearbySpots.value.length) return '查看景点'
   if (!isLoggedIn.value) return '去登录'
   return '开启定位'
 })
 
 const nearbySummary = computed(() => {
   if (nearbyLoading.value) return '正在获取你周边的景点'
-  if (locationStatus.value === 'ready' && nearbySpots.value.length) {
-    const nearest = nearbySpots.value[0]
-    return `你附近有 ${nearbySpots.value.length} 个景点，最近约 ${formatDistance(nearest.distanceKm)}`
+  if (locationStatus.value === 'ready' && displayNearbySpots.value.length) {
+    const nearest = displayNearbySpots.value[0]
+    return `你附近有 ${displayNearbySpots.value.length} 个景点，最近约 ${formatDistance(nearest.distanceKm)}`
   }
   if (locationStatus.value === 'empty') return '附近暂时没有可展示的景点'
   if (!isLoggedIn.value) return '登录后可按距离查看你附近的景点'
@@ -334,8 +382,8 @@ const nearbySummary = computed(() => {
 })
 
 const nearbyCaption = computed(() => {
-  if (locationStatus.value === 'ready' && nearbySpots.value.length) {
-    return `${nearbySpots.value[0].regionName || '周边区域'} · 点击进入附近景点页`
+  if (locationStatus.value === 'ready' && displayNearbySpots.value.length) {
+    return `${displayNearbySpots.value[0].regionName || '周边区域'} · 点击进入附近景点页`
   }
   if (locationStatus.value === 'empty') return '你可以先看看热门景点'
   if (!isLoggedIn.value) return '附近景点需要登录后使用'
@@ -416,9 +464,9 @@ const fetchNearbyByLocation = async (latitude, longitude, limit = 3) => {
     nearbyLocation.value = { latitude, longitude }
     const res = await getNearbySpots(latitude, longitude, limit)
     nearbySpots.value = res.data?.list || []
-    locationStatus.value = nearbySpots.value.length ? 'ready' : 'empty'
+    locationStatus.value = hasReasonableNearbySpots.value ? 'ready' : 'empty'
     nearbySessionToken.value = userStore.token || ''
-    return nearbySpots.value
+    return displayNearbySpots.value
   } catch (error) {
     if (error?.code === 10002) {
       resetNearbyState()
@@ -613,7 +661,7 @@ const handleQuickAction = (action) => {
 }
 
 const handleNearbyCardClick = async () => {
-  if (locationStatus.value === 'ready' && nearbySpots.value.length) {
+  if (nearbyLocation.value) {
     goNearbyList()
     return
   }
@@ -622,7 +670,7 @@ const handleNearbyCardClick = async () => {
 }
 
 const handleNearbyMarkerTap = (event) => {
-  const spot = nearbySpots.value.find(item => Number(item.id) === Number(event.detail.markerId))
+  const spot = displayNearbySpots.value.find(item => Number(item.id) === Number(event.detail.markerId))
   if (spot) {
     goSpotDetail(spot.id)
   }
