@@ -285,14 +285,14 @@
 
         <div class="form-section">
           <div class="section-eyebrow">
-            <span>热度与排序</span>
+            <span>热度同步与排序</span>
             <el-tag size="small" effect="plain" type="success" round>保存后立即生效</el-tag>
           </div>
           <div class="section-title">
             <el-icon><DataLine /></el-icon>
-            <span>热度累计与最终重排</span>
+            <span>热度同步权重与最终重排</span>
           </div>
-          <div class="section-desc">控制热度同步时各类行为如何折算为 <code>spot.heat_score</code>，以及热度如何参与最终排序。不会影响离线相似度矩阵。</div>
+          <div class="section-desc">控制热度同步时各类行为如何折算为 <code>spot.heat_score</code>，以及热度如何参与最终排序。这里配置的是热度同步规则，不是实时写分逻辑，也不会影响离线相似度矩阵。</div>
 
           <el-row :gutter="24">
             <el-col :span="12">
@@ -426,7 +426,7 @@
             <div class="execution-brief">
               <div class="execution-brief-title">执行建议</div>
               <div class="execution-brief-text">
-                修改交互权重、浏览行为修正、近邻数量 K、相似度矩阵 TTL 后，保存配置还不够，还需要手动重建相似度矩阵；热度、在线候选和用户缓存参数保存后会直接影响新请求。
+                修改交互权重、浏览行为修正、近邻数量 K、相似度矩阵 TTL 后，保存配置还不够，还需要手动重建相似度矩阵；热度同步权重、在线候选和用户缓存参数保存后会直接影响新请求。
               </div>
             </div>
 
@@ -443,7 +443,7 @@
                 </el-tag>
               </div>
               <div class="matrix-action-text">
-                只有交互权重、浏览细化因子、TopK 和矩阵缓存相关参数会影响离线相似度矩阵。热度、缓存时长和冷启动参数不需要执行这个操作。
+                只有交互权重、浏览细化因子、TopK 和矩阵缓存相关参数会影响离线相似度矩阵。热度同步权重、缓存时长和冷启动参数不需要执行这个操作。
               </div>
             </div>
 
@@ -483,7 +483,7 @@
             <div class="execution-notes">
               <div class="execution-note">
                 <div class="execution-note-title">推荐链路</div>
-                <div class="execution-note-text">行为权重决定候选分数，热度参数影响热门排序和最终轻量重排。</div>
+                <div class="execution-note-text">行为权重决定候选分数，热度同步权重影响热门排序和最终轻量重排。</div>
               </div>
               <div class="execution-note">
                 <div class="execution-note-title">缓存链路</div>

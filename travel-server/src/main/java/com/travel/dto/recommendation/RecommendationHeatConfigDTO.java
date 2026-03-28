@@ -1,11 +1,13 @@
 package com.travel.dto.recommendation;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 /**
  * 推荐热度策略配置。
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RecommendationHeatConfigDTO {
 
     private Integer heatViewIncrement = 1;
