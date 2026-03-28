@@ -2,9 +2,12 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.travel.dto.recommendation.RecommendationAlgorithmConfigDTO;
+import com.travel.dto.recommendation.RecommendationResponse;
 import com.travel.entity.Order;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
+import com.travel.entity.SpotCategory;
+import com.travel.entity.SpotRegion;
 import com.travel.entity.UserPreference;
 import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.UserSpotView;
@@ -32,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -136,5 +140,101 @@ class RecommendationServiceImplTest {
 
         assertEquals(1, weights.size());
         assertEquals(6.6, weights.get(100L), 0.0001);
+    }
+
+    @Test
+    void handleColdStart_fallsBackToHotWhenPreferredCategoriesHaveNoSpots() {
+        UserPreference preference = new UserPreference();
+        preference.setUserId(1L);
+        preference.setTag("10");
+        preference.setIsDeleted(0);
+
+        Spot hotSpot1 = buildSpot(201L, "热门景点1", 20L);
+        Spot hotSpot2 = buildSpot(202L, "热门景点2", 21L);
+        Spot hotSpot3 = buildSpot(203L, "热门景点3", 22L);
+        Spot hotSpot4 = buildSpot(204L, "热门景点4", 23L);
+
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of(preference));
+        when(spotMapper.selectList(any())).thenReturn(
+            List.of(),
+            List.of(hotSpot1, hotSpot2, hotSpot3, hotSpot4)
+        );
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(hotSpot1, hotSpot2, hotSpot3, hotSpot4));
+        mockCategoryAndRegionMaps();
+
+        RecommendationResponse response = (RecommendationResponse) ReflectionTestUtils.invokeMethod(
+            recommendationService,
+            "handleColdStart",
+            1L,
+            4,
+            false,
+            false
+        );
+
+        assertEquals("preference", response.getType());
+        assertFalse(response.getNeedPreference());
+        assertEquals(4, response.getList().size());
+        assertEquals(List.of(201L, 202L, 203L, 204L), response.getList().stream().map(RecommendationResponse.SpotItem::getId).toList());
+    }
+
+    @Test
+    void handleColdStart_supplementsHotSpotsWhenPreferredSpotsAreInsufficient() {
+        UserPreference preference = new UserPreference();
+        preference.setUserId(1L);
+        preference.setTag("10");
+        preference.setIsDeleted(0);
+
+        Spot preferredSpot1 = buildSpot(101L, "偏好景点1", 10L);
+        Spot preferredSpot2 = buildSpot(102L, "偏好景点2", 10L);
+        Spot hotSpot1 = buildSpot(201L, "热门景点1", 20L);
+        Spot hotSpot2 = buildSpot(202L, "热门景点2", 21L);
+
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of(preference));
+        when(spotMapper.selectList(any())).thenReturn(
+            List.of(preferredSpot1, preferredSpot2),
+            List.of(hotSpot1, hotSpot2)
+        );
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(preferredSpot1, preferredSpot2, hotSpot1, hotSpot2));
+        mockCategoryAndRegionMaps();
+
+        RecommendationResponse response = (RecommendationResponse) ReflectionTestUtils.invokeMethod(
+            recommendationService,
+            "handleColdStart",
+            1L,
+            4,
+            false,
+            false
+        );
+
+        assertEquals("preference", response.getType());
+        assertFalse(response.getNeedPreference());
+        assertEquals(4, response.getList().size());
+        assertEquals(List.of(101L, 102L, 201L, 202L), response.getList().stream().map(RecommendationResponse.SpotItem::getId).toList());
+    }
+
+    private Spot buildSpot(Long id, String name, Long categoryId) {
+        Spot spot = new Spot();
+        spot.setId(id);
+        spot.setName(name);
+        spot.setCategoryId(categoryId);
+        spot.setRegionId(1L);
+        spot.setIsPublished(1);
+        spot.setIsDeleted(0);
+        return spot;
+    }
+
+    private void mockCategoryAndRegionMaps() {
+        SpotCategory category = new SpotCategory();
+        category.setId(10L);
+        category.setName("分类");
+        category.setIsDeleted(0);
+
+        SpotRegion region = new SpotRegion();
+        region.setId(1L);
+        region.setName("区域");
+        region.setIsDeleted(0);
+
+        when(categoryMapper.selectList(any())).thenReturn(List.of(category));
+        when(spotRegionMapper.selectList(any())).thenReturn(List.of(region));
     }
 }
