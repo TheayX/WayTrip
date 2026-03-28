@@ -7,19 +7,15 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
 import com.travel.constant.SpotHeatLevelConstants;
-import com.travel.config.AppCacheProperties;
-import com.travel.config.RedisKeyManager;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
 import com.travel.dto.spot.*;
 import com.travel.enums.OrderStatus;
 import com.travel.entity.*;
 import com.travel.mapper.*;
-import com.travel.service.cache.SpotHeatCacheService;
 import com.travel.service.RecommendationService;
 import com.travel.service.SpotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -30,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -50,10 +45,6 @@ public class SpotServiceImpl implements SpotService {
     private final UserSpotViewMapper userSpotViewMapper;
     private final OrderMapper orderMapper;
     private final RecommendationService recommendationService;
-    private final SpotHeatCacheService spotHeatCacheService;
-    private final AppCacheProperties appCacheProperties;
-    private final RedisTemplate<String, Object> redisTemplate;
-
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
         Page<Spot> page = new Page<>(request.getPage(), request.getPageSize());
@@ -144,9 +135,6 @@ public class SpotServiceImpl implements SpotService {
         if (spot.getIsPublished() != 1) {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
-
-        increaseViewHeatScore(spotId, userId);
-
 
         // 获取图片
         List<SpotImage> images = spotImageMapper.selectList(
@@ -586,9 +574,6 @@ public class SpotServiceImpl implements SpotService {
         if (request.getHeatLevel() != null) {
             spot.setHeatLevel(request.getHeatLevel());
         }
-        if (request.getHeatScore() != null) {
-            spot.setHeatScore(request.getHeatScore());
-        }
     }
 
     private void applyHeatScore(Spot spot) {
@@ -656,30 +641,6 @@ public class SpotServiceImpl implements SpotService {
             image.setSortOrder(i + 1);
             spotImageMapper.insert(image);
         }
-    }
-
-    private void increaseViewHeatScore(Long spotId, Long userId) {
-        RecommendationConfigBundleDTO config = recommendationService.getConfig();
-        int increment = positiveOrDefault(config.getHeat().getHeatViewIncrement(), 1);
-        if (userId == null) {
-            incrementHeatScore(spotId, increment);
-            return;
-        }
-
-        long dedupeWindowMinutes = positiveOrDefault(
-                config.getHeat().getHeatViewDedupeWindowMinutes(),
-                positiveOrDefault(appCacheProperties.getSpot().getHeatViewDedupeWindowMinutes(), 30));
-        if (spotHeatCacheService.markViewInDedupeWindow(spotId, userId, dedupeWindowMinutes)) {
-            incrementHeatScore(spotId, increment);
-        }
-    }
-
-    private void incrementHeatScore(Long spotId, int delta) {
-        spotMapper.update(
-                null,
-                new UpdateWrapper<Spot>()
-                        .eq("id", spotId)
-                        .setSql("heat_score = COALESCE(heat_score, 0) + " + delta));
     }
 
     private int positiveOrDefault(Integer value, int fallback) {
