@@ -212,6 +212,7 @@ import { getBanners, getHotSpots, getNearbySpots, getRecommendations, refreshRec
 import { updatePreferences } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
+import { getAuthorizedLocation } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -232,7 +233,7 @@ const selectedCategories = ref([])
 const nearbySpots = ref([])
 const nearbyLocation = ref(null)
 const nearbyLoading = ref(false)
-const locationStatus = ref('checking')
+const locationStatus = ref('idle')
 
 const markerIcon = '/static/tabbar/spot-active.png'
 
@@ -267,16 +268,10 @@ const secondaryHotSpots = computed(() => hotSpots.value.slice(1))
 const canShowNearbyMap = computed(() => locationStatus.value === 'ready' && nearbySpots.value.length > 0)
 
 const nearbyMapCenter = computed(() => {
-  if (nearbyLocation.value) {
-    return {
-      latitude: Number(nearbyLocation.value.latitude),
-      longitude: Number(nearbyLocation.value.longitude)
-    }
-  }
-  const fallback = nearbySpots.value[0]
+  const base = nearbyLocation.value || nearbySpots.value[0]
   return {
-    latitude: Number(fallback?.latitude || 39.9042),
-    longitude: Number(fallback?.longitude || 116.4074)
+    latitude: Number(base?.latitude || 39.9042),
+    longitude: Number(base?.longitude || 116.4074)
   }
 })
 
@@ -314,15 +309,17 @@ const nearbyMarkers = computed(() => {
 })
 
 const nearbyHeadline = computed(() => {
-  if (nearbyLoading.value) return '正在定位'
+  if (nearbyLoading.value) return '定位中'
   if (locationStatus.value === 'ready') return '附近可探索'
   if (locationStatus.value === 'empty') return '附近暂无结果'
+  if (!isLoggedIn.value) return '登录后查看'
   return '开启定位'
 })
 
 const nearbyActionText = computed(() => {
   if (nearbyLoading.value) return '加载中'
   if (locationStatus.value === 'ready' && nearbySpots.value.length) return '查看景点'
+  if (!isLoggedIn.value) return '去登录'
   return '开启定位'
 })
 
@@ -333,19 +330,22 @@ const nearbySummary = computed(() => {
     return `你附近有 ${nearbySpots.value.length} 个景点，最近约 ${formatDistance(nearest.distanceKm)}`
   }
   if (locationStatus.value === 'empty') return '附近暂时没有可展示的景点'
-  return '授权定位后，这里会显示你附近的景点分布'
+  if (!isLoggedIn.value) return '登录后可按距离查看你附近的景点'
+  return '点击卡片后先授权定位，再加载附近景点'
 })
 
 const nearbyCaption = computed(() => {
   if (locationStatus.value === 'ready' && nearbySpots.value.length) {
-    return `${nearbySpots.value[0].regionName || '周边区域'} · 点击可快速进入详情`
+    return `${nearbySpots.value[0].regionName || '周边区域'} · 点击进入附近景点页`
   }
   if (locationStatus.value === 'empty') return '你可以先看看热门景点'
-  return '点击卡片后触发定位授权'
+  if (!isLoggedIn.value) return '附近景点需要登录后使用'
+  return '流程：登录 → 授权 → 定位 → 加载景点'
 })
 
 const nearbyPlaceholderText = computed(() => {
   if (nearbyLoading.value) return '定位中...'
+  if (!isLoggedIn.value) return '登录后开启'
   if (locationStatus.value === 'empty') return '暂无附近景点'
   return '点击开启定位'
 })
@@ -394,95 +394,39 @@ const fetchCategories = async () => {
   }
 }
 
-const getCurrentLocation = () => new Promise((resolve, reject) => {
-  uni.getLocation({
-    type: 'gcj02',
-    success: resolve,
-    fail: reject
-  })
-})
-
-const fetchNearbyByLocation = async (position, showErrorToast = false) => {
+const fetchNearbyByLocation = async (latitude, longitude, limit = 3) => {
   nearbyLoading.value = true
   try {
-    nearbyLocation.value = {
-      latitude: position.latitude,
-      longitude: position.longitude
-    }
-    const res = await getNearbySpots(position.latitude, position.longitude, 3)
+    nearbyLocation.value = { latitude, longitude }
+    const res = await getNearbySpots(latitude, longitude, limit)
     nearbySpots.value = res.data?.list || []
     locationStatus.value = nearbySpots.value.length ? 'ready' : 'empty'
+    return nearbySpots.value
   } catch (error) {
     nearbySpots.value = []
     locationStatus.value = 'empty'
     console.error('获取附近景点失败', error)
-    if (showErrorToast) {
-      uni.showToast({ title: '附近景点加载失败', icon: 'none' })
-    }
+    throw error
   } finally {
     nearbyLoading.value = false
   }
 }
 
-const tryLoadNearbySilently = async () => {
-  try {
-    const setting = await new Promise((resolve, reject) => {
-      uni.getSetting({
-        success: resolve,
-        fail: reject
-      })
-    })
-
-    if (!setting.authSetting?.['scope.userLocation']) {
-      locationStatus.value = 'denied'
-      nearbySpots.value = []
-      return
-    }
-
-    const position = await getCurrentLocation()
-    await fetchNearbyByLocation(position)
-  } catch (error) {
-    locationStatus.value = 'denied'
-    nearbyLoading.value = false
-    console.error('静默定位失败', error)
+const ensureNearbyAccess = async () => {
+  if (!promptLogin('登录后可查看附近景点，是否现在去登录？')) {
+    return null
   }
-}
 
-const requestLocationAccess = () => {
-  uni.authorize({
-    scope: 'scope.userLocation',
-    success: async () => {
-      const position = await getCurrentLocation().catch((error) => {
-        console.error('定位失败', error)
-        uni.showToast({ title: '定位失败，请稍后重试', icon: 'none' })
-        return null
-      })
-      if (position) {
-        await fetchNearbyByLocation(position, true)
-      }
-    },
-    fail: () => {
-      uni.showModal({
-        title: '开启定位',
-        content: '开启定位后才能查看附近景点，是否前往设置？',
-        success: (res) => {
-          if (!res.confirm) return
-          uni.openSetting({
-            success: async (settingRes) => {
-              if (settingRes.authSetting?.['scope.userLocation']) {
-                const position = await getCurrentLocation().catch(() => null)
-                if (position) {
-                  await fetchNearbyByLocation(position, true)
-                  return
-                }
-              }
-              locationStatus.value = 'denied'
-            }
-          })
-        }
-      })
+  try {
+    const position = await getAuthorizedLocation()
+    await fetchNearbyByLocation(position.latitude, position.longitude, 3)
+    return position
+  } catch (error) {
+    if (error?.message !== 'LOCATION_PERMISSION_DENIED') {
+      uni.showToast({ title: '定位失败，请稍后重试', icon: 'none' })
     }
-  })
+    return null
+  }
 }
 
 const handleRefresh = async () => {
@@ -568,12 +512,16 @@ const handleQuickAction = (action) => {
   }
 }
 
-const handleNearbyCardClick = () => {
-  if (locationStatus.value !== 'ready' || !nearbySpots.value.length) {
-    requestLocationAccess()
+const handleNearbyCardClick = async () => {
+  if (locationStatus.value === 'ready' && nearbySpots.value.length) {
+    goNearbyList()
     return
   }
-  goNearbyList()
+
+  const position = await ensureNearbyAccess()
+  if (position) {
+    goNearbyList(position)
+  }
 }
 
 const handleNearbyMarkerTap = (event) => {
@@ -602,10 +550,10 @@ const goRecommendList = () => {
   uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 
-const goNearbyList = () => {
-  if (nearbyLocation.value) {
+const goNearbyList = (position = nearbyLocation.value) => {
+  if (position) {
     uni.navigateTo({
-      url: `/pages/spot/nearby?latitude=${nearbyLocation.value.latitude}&longitude=${nearbyLocation.value.longitude}`
+      url: `/pages/spot/nearby?latitude=${position.latitude}&longitude=${position.longitude}`
     })
     return
   }
@@ -621,7 +569,7 @@ const goMine = () => {
 }
 
 const refreshHome = async () => {
-  await Promise.all([fetchBanners(), fetchHotSpots(), fetchRecommendations(), tryLoadNearbySilently()])
+  await Promise.all([fetchBanners(), fetchHotSpots(), fetchRecommendations()])
 }
 
 onPullDownRefresh(async () => {

@@ -62,13 +62,14 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getNearbySpots } from '@/api/home'
 import { promptLogin } from '@/utils/auth'
+import { getAuthorizedLocation } from '@/utils/location'
 import { getContentImageUrl } from '@/utils/request'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 const nearbySpots = ref([])
 const locationInfo = ref(null)
 const loading = ref(false)
-const locationStatus = ref('checking')
+const locationStatus = ref('idle')
 
 const markerIcon = '/static/tabbar/spot-active.png'
 
@@ -78,34 +79,24 @@ const heroSubtitle = computed(() => {
     return `共找到 ${nearbySpots.value.length} 个景点，最近约 ${formatDistance(nearbySpots.value[0].distanceKm)}`
   }
   if (locationStatus.value === 'empty') return '当前位置附近暂时没有可展示的景点'
-  return '开启定位后可查看你周边的景点'
+  return '登录并授权定位后，可按距离浏览附近景点'
 })
 
-const actionText = computed(() => {
-  if (loading.value) return '定位中'
-  if (locationStatus.value === 'ready') return '重新定位'
-  return '开启定位'
-})
+const actionText = computed(() => (loading.value ? '定位中' : '重新定位'))
 
 const placeholderText = computed(() => {
   if (loading.value) return '定位中...'
   if (locationStatus.value === 'empty') return '暂无附近景点'
-  return '开启定位后显示地图'
+  return '点击重新定位'
 })
 
 const canShowMap = computed(() => locationStatus.value === 'ready' && nearbySpots.value.length > 0)
 
 const mapCenter = computed(() => {
-  if (locationInfo.value) {
-    return {
-      latitude: Number(locationInfo.value.latitude),
-      longitude: Number(locationInfo.value.longitude)
-    }
-  }
-  const first = nearbySpots.value[0]
+  const base = locationInfo.value || nearbySpots.value[0]
   return {
-    latitude: Number(first?.latitude || 39.9042),
-    longitude: Number(first?.longitude || 116.4074)
+    latitude: Number(base?.latitude || 39.9042),
+    longitude: Number(base?.longitude || 116.4074)
   }
 })
 
@@ -144,12 +135,12 @@ const markers = computed(() => {
 
 const emptyTitle = computed(() => {
   if (locationStatus.value === 'empty') return '附近暂时没有景点'
-  return '还没有拿到定位'
+  return '还没有加载附近景点'
 })
 
 const emptyDesc = computed(() => {
   if (locationStatus.value === 'empty') return '你可以重新定位，或者先回首页看看热门景点'
-  return '授权定位后，这里会按距离展示附近景点'
+  return '点击按钮后会重新申请定位并加载附近景点'
 })
 
 const formatDistance = (value) => {
@@ -157,14 +148,6 @@ const formatDistance = (value) => {
   if (!Number.isFinite(distance)) return '-- km'
   return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
 }
-
-const getCurrentLocation = () => new Promise((resolve, reject) => {
-  uni.getLocation({
-    type: 'gcj02',
-    success: resolve,
-    fail: reject
-  })
-})
 
 const fetchNearby = async (latitude, longitude, showErrorToast = false) => {
   loading.value = true
@@ -185,39 +168,23 @@ const fetchNearby = async (latitude, longitude, showErrorToast = false) => {
   }
 }
 
-const requestLocationAndFetch = () => {
-  uni.authorize({
-    scope: 'scope.userLocation',
-    success: async () => {
-      const position = await getCurrentLocation().catch(() => null)
-      if (!position) {
-        uni.showToast({ title: '定位失败，请稍后重试', icon: 'none' })
-        return
-      }
-      await fetchNearby(position.latitude, position.longitude, true)
-    },
-    fail: () => {
-      uni.showModal({
-        title: '开启定位',
-        content: '开启定位后才能查看附近景点，是否前往设置？',
-        success: (res) => {
-          if (!res.confirm) return
-          uni.openSetting({
-            success: async (settingRes) => {
-              if (!settingRes.authSetting?.['scope.userLocation']) return
-              const position = await getCurrentLocation().catch(() => null)
-              if (!position) return
-              await fetchNearby(position.latitude, position.longitude, true)
-            }
-          })
-        }
-      })
+const loadNearby = async () => {
+  if (!promptLogin('登录后可查看附近景点，是否现在去登录？')) {
+    return
+  }
+
+  try {
+    const position = await getAuthorizedLocation()
+    await fetchNearby(position.latitude, position.longitude, true)
+  } catch (error) {
+    if (error?.message !== 'LOCATION_PERMISSION_DENIED') {
+      uni.showToast({ title: '定位失败，请稍后重试', icon: 'none' })
     }
-  })
+  }
 }
 
 const handleRetryLocation = () => {
-  requestLocationAndFetch()
+  loadNearby()
 }
 
 const handleMarkerTap = (event) => {
@@ -235,13 +202,15 @@ const goSpotDetail = (id) => {
 }
 
 onLoad(async (options) => {
+  if (!promptLogin('登录后可查看附近景点，是否现在去登录？')) {
+    return
+  }
+
   const latitude = Number(options?.latitude)
   const longitude = Number(options?.longitude)
   if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
     await fetchNearby(latitude, longitude)
-    return
   }
-  requestLocationAndFetch()
 })
 </script>
 
