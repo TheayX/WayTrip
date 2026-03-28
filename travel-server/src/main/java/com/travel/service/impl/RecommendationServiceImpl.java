@@ -302,26 +302,38 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         // 如果用户设置了偏好标签，则优先按偏好推荐。
         if (!categoryIds.isEmpty()) {
+            int coldStartLimit = refresh ? Math.max(limit * getColdStartExpandFactor(algorithmConfig), limit) : limit;
             List<Spot> spots = spotMapper.selectList(
                 new LambdaQueryWrapper<Spot>()
                     .eq(Spot::getIsPublished, 1)
                     .in(Spot::getCategoryId, categoryIds)
                     .eq(Spot::getIsDeleted, 0)
                     .orderByDesc(Spot::getHeatScore)
-                    .last("LIMIT " + (refresh ? Math.max(limit * getColdStartExpandFactor(algorithmConfig), limit) : limit))
+                    .last("LIMIT " + coldStartLimit)
             );
 
-            List<Long> spotIds = spots.stream().map(Spot::getId).collect(Collectors.toList());
+            LinkedHashSet<Long> recommendedSpotIds = spots.stream()
+                .map(Spot::getId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+            if (recommendedSpotIds.size() < limit) {
+                recommendedSpotIds.addAll(getHotFallbackSpotIds(recommendedSpotIds, coldStartLimit));
+            }
+
+            List<Long> spotIds = new ArrayList<>(recommendedSpotIds);
             if (refresh && !stable) {
                 spotIds = rotateRecommendations(spotIds, limit);
             }
             if (debugInfo != null) {
                 debugInfo.setTriggerReason("交互不足，但存在用户偏好标签");
                 debugInfo.setFinalCount(Math.min(spotIds.size(), limit));
-                debugInfo.setNotes(List.of(
-                    "当前结果来自偏好冷启动链路。",
-                    "请检查用户偏好标签与返回景点分类是否匹配。"
-                ));
+                List<String> notes = new ArrayList<>();
+                notes.add("当前结果来自偏好冷启动链路。");
+                if (spots.size() < limit) {
+                    notes.add("偏好分类景点不足，已使用热门景点补齐结果数量。");
+                } else {
+                    notes.add("请检查用户偏好标签与返回景点分类是否匹配。");
+                }
+                debugInfo.setNotes(notes);
                 debugInfo.setExtra(Map.of("categoryIds", categoryIds));
             }
             logColdStartResult(userId, "preference", categoryIds, spotIds, debug);
@@ -367,6 +379,25 @@ public class RecommendationServiceImpl implements RecommendationService {
             })
             .collect(Collectors.toList()));
         return response;
+    }
+
+    private List<Long> getHotFallbackSpotIds(Collection<Long> excludedSpotIds, int limit) {
+        if (limit <= 0) {
+            return Collections.emptyList();
+        }
+
+        LambdaQueryWrapper<Spot> queryWrapper = new LambdaQueryWrapper<Spot>()
+            .eq(Spot::getIsPublished, 1)
+            .eq(Spot::getIsDeleted, 0);
+        if (excludedSpotIds != null && !excludedSpotIds.isEmpty()) {
+            queryWrapper.notIn(Spot::getId, excludedSpotIds);
+        }
+        queryWrapper.orderByDesc(Spot::getHeatScore)
+            .last("LIMIT " + limit);
+
+        return spotMapper.selectList(queryWrapper).stream()
+            .map(Spot::getId)
+            .collect(Collectors.toList());
     }
 
     private List<Long> getUserPreferenceCategoryIds(Long userId) {
