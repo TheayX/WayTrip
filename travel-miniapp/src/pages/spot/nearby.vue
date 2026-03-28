@@ -62,7 +62,7 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getNearbySpots } from '@/api/home'
 import { promptLogin } from '@/utils/auth'
-import { getAuthorizedLocation } from '@/utils/location'
+import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
 import { getContentImageUrl } from '@/utils/request'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
@@ -213,6 +213,12 @@ onLoad(async (options) => {
   const longitude = Number(options?.longitude)
   if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
     await fetchNearby(latitude, longitude)
+    return
+  }
+
+  const snapshot = await getLocationSnapshot()
+  if (snapshot.current) {
+    await fetchNearby(snapshot.current.latitude, snapshot.current.longitude)
   }
 })
 </script>

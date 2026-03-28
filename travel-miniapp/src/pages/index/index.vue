@@ -213,7 +213,7 @@ import { getBanners, getHotSpots, getNearbySpots, getRecommendations, refreshRec
 import { updatePreferences } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
-import { getAuthorizedLocation, getLocationIfAuthorized } from '@/utils/location'
+import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -467,7 +467,8 @@ const tryLoadNearbyAutomatically = async () => {
   }
 
   try {
-    const position = await getLocationIfAuthorized()
+    const snapshot = await getLocationSnapshot()
+    const position = snapshot.current
     if (!position) {
       if (locationStatus.value === 'idle') {
         locationStatus.value = 'idle'

@@ -39,7 +39,10 @@
       <view class="detail-item" @click="openNavigation">
         <text class="detail-label">景点地址</text>
         <view class="detail-value-row">
-          <text class="detail-value address-text">{{ spot.address }}</text>
+          <view class="address-meta">
+            <text class="detail-value address-text">{{ spot.address }}</text>
+            <text v-if="distanceText" class="distance-text">· 距你 {{ distanceText }}</text>
+          </view>
           <text class="nav-link">导航 ›</text>
         </view>
       </view>
@@ -156,11 +159,13 @@ import { getSpotDetail, getSimilarSpots, recordSpotView } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, submitReview } from '@/api/review'
 import { guardLoginPage } from '@/utils/auth'
+import { getLocationSnapshot } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
 const spot = ref(null)
 const spotId = ref(null)
+const currentLocation = ref(null)
 const userStore = useUserStore()
 let enterTime = 0
 let viewSource = 'detail'
@@ -185,6 +190,22 @@ const openReviewByQuery = ref(false)
 const reviewPopupOpened = ref(false)
 const similarSpots = ref([])
 const similarUpdateTime = ref('')
+
+const distanceText = computed(() => {
+  if (!spot.value || !currentLocation.value) return ''
+
+  const spotLatitude = Number(spot.value.latitude)
+  const spotLongitude = Number(spot.value.longitude)
+  const userLatitude = Number(currentLocation.value.latitude)
+  const userLongitude = Number(currentLocation.value.longitude)
+
+  if (![spotLatitude, spotLongitude, userLatitude, userLongitude].every(Number.isFinite)) {
+    return ''
+  }
+
+  const distanceKm = calculateDistanceKm(userLatitude, userLongitude, spotLatitude, spotLongitude)
+  return formatDistance(distanceKm)
+})
 
 const similarUpdateTimeText = computed(() => {
   return similarUpdateTime.value ? `更新于 ${similarUpdateTime.value}` : '相似景点'
@@ -248,6 +269,29 @@ const fetchSimilarSpots = async () => {
     console.error('获取相似景点失败', e)
     similarSpots.value = []
   }
+}
+
+const calculateDistanceKm = (fromLatitude, fromLongitude, toLatitude, toLongitude) => {
+  const toRadians = (degree) => degree * Math.PI / 180
+  const earthRadiusKm = 6371
+  const deltaLatitude = toRadians(toLatitude - fromLatitude)
+  const deltaLongitude = toRadians(toLongitude - fromLongitude)
+  const a = Math.sin(deltaLatitude / 2) * Math.sin(deltaLatitude / 2)
+    + Math.cos(toRadians(fromLatitude)) * Math.cos(toRadians(toLatitude))
+    * Math.sin(deltaLongitude / 2) * Math.sin(deltaLongitude / 2)
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+const formatDistance = (value) => {
+  const distance = Number(value)
+  if (!Number.isFinite(distance)) return ''
+  return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
+}
+
+const syncCurrentLocation = async () => {
+  const snapshot = await getLocationSnapshot()
+  currentLocation.value = snapshot.current
 }
 
 const previewImage = (index) => {
@@ -352,6 +396,7 @@ onLoad((options) => {
   viewSource = options.source || 'detail'
   openReviewByQuery.value = options.openReview === '1'
   reviewPopupOpened.value = false
+  syncCurrentLocation()
   fetchSpotDetail()
   fetchSimilarSpots()
 })
@@ -517,18 +562,38 @@ onUnload(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16rpx;
+  min-width: 0;
+}
+
+.address-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .address-text {
   flex: 1;
   font-size: 28rpx;
   color: #1C1C1E;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nav-link {
   color: #007AFF;
   font-size: 28rpx;
   margin-left: 16rpx;
+}
+
+.distance-text {
+  color: #2563EB;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 /* 简介卡片 */
