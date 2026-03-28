@@ -41,7 +41,7 @@ export const getContentImageUrl = (url) => {
  */
 const request = (options) => {
   return new Promise((resolve, reject) => {
-    const { url, method = 'GET', data = {}, showLoading = true } = options
+    const { url, method = 'GET', data = {}, showLoading = true, rejectOnAuthExpired = false } = options
     const userStore = useUserStore()
     const hadToken = Boolean(userStore.token)
 
@@ -81,7 +81,13 @@ const request = (options) => {
               })
             }
 
-            resolve({ code: 10002, data: null, message: result.message || 'Token invalid' })
+            const authExpiredResult = { code: 10002, data: null, message: result.message || 'Token invalid' }
+            if (rejectOnAuthExpired) {
+              reject(authExpiredResult)
+              return
+            }
+
+            resolve(authExpiredResult)
           } else {
             uni.showToast({ title: result.message || '请求失败', icon: 'none' })
             reject(result)

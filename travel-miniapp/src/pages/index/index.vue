@@ -234,6 +234,7 @@ const nearbySpots = ref([])
 const nearbyLocation = ref(null)
 const nearbyLoading = ref(false)
 const locationStatus = ref('idle')
+const nearbySessionToken = ref('')
 
 const markerIcon = '/static/tabbar/spot-active.png'
 
@@ -356,6 +357,14 @@ const formatDistance = (value) => {
   return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
 }
 
+const resetNearbyState = () => {
+  nearbySpots.value = []
+  nearbyLocation.value = null
+  nearbyLoading.value = false
+  locationStatus.value = 'idle'
+  nearbySessionToken.value = ''
+}
+
 const fetchBanners = async () => {
   try {
     const res = await getBanners()
@@ -401,8 +410,13 @@ const fetchNearbyByLocation = async (latitude, longitude, limit = 3) => {
     const res = await getNearbySpots(latitude, longitude, limit)
     nearbySpots.value = res.data?.list || []
     locationStatus.value = nearbySpots.value.length ? 'ready' : 'empty'
+    nearbySessionToken.value = userStore.token || ''
     return nearbySpots.value
   } catch (error) {
+    if (error?.code === 10002) {
+      resetNearbyState()
+      throw error
+    }
     nearbySpots.value = []
     locationStatus.value = 'empty'
     console.error('获取附近景点失败', error)
@@ -422,6 +436,9 @@ const ensureNearbyAccess = async () => {
     await fetchNearbyByLocation(position.latitude, position.longitude, 3)
     return position
   } catch (error) {
+    if (error?.code === 10002) {
+      return null
+    }
     if (error?.message !== 'LOCATION_PERMISSION_DENIED') {
       uni.showToast({ title: '定位失败，请稍后重试', icon: 'none' })
     }
@@ -578,6 +595,9 @@ onPullDownRefresh(async () => {
 })
 
 onShow(() => {
+  if (!userStore.token || nearbySessionToken.value !== userStore.token) {
+    resetNearbyState()
+  }
   refreshHome()
 })
 </script>

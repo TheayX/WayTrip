@@ -157,6 +157,9 @@ const fetchNearby = async (latitude, longitude, showErrorToast = false) => {
     nearbySpots.value = res.data?.list || []
     locationStatus.value = nearbySpots.value.length ? 'ready' : 'empty'
   } catch (error) {
+    if (error?.code === 10002) {
+      return
+    }
     nearbySpots.value = []
     locationStatus.value = 'empty'
     console.error('获取附近景点失败', error)
