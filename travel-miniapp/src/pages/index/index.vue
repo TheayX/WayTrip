@@ -29,13 +29,6 @@
       </swiper>
     </view>
 
-    <view v-if="!isLoggedIn" class="guest-banner" @click="goMine">
-      <view class="guest-copy">
-        <text class="guest-title">登录后可保存偏好，拿到更稳定的推荐结果</text>
-      </view>
-      <text class="guest-action">去登录</text>
-    </view>
-
     <view class="section">
       <view class="section-header">
         <view>
@@ -57,6 +50,14 @@
           <text class="quick-note">{{ action.note }}</text>
         </view>
       </view>
+    </view>
+
+    <view v-if="!isLoggedIn" class="guest-banner" @click="goMine">
+      <view class="guest-copy">
+        <text class="guest-title">登录后可保存偏好，拿到更稳定的推荐结果</text>
+        <text class="guest-subtitle">同步收藏、订单和个性化推荐结果</text>
+      </view>
+      <text class="guest-action">去登录</text>
     </view>
 
     <view class="section">
@@ -240,10 +241,12 @@ const markerIcon = '/static/tabbar/spot-active.png'
 
 const quickActions = [
   { id: 'spots', title: '景点列表', note: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
-  { id: 'guides', title: '攻略列表', note: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' }
+  { id: 'guides', title: '攻略列表', note: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' },
+  { id: 'recommend', title: '推荐列表', note: '个性推荐', icon: 'star-filled', theme: 'amber', action: 'recommend-list' },
+  { id: 'nearby', title: '附近景点', note: '周边探索', icon: 'map-filled', theme: 'emerald', action: 'nearby-spots' }
 ]
 
-const pendingQuickActions = Array.from({ length: 6 }, (_, index) => ({
+const pendingQuickActions = Array.from({ length: 4 }, (_, index) => ({
   id: `pending-${index + 1}`,
   title: '待定入口',
   note: '后续补齐',
@@ -252,7 +255,7 @@ const pendingQuickActions = Array.from({ length: 6 }, (_, index) => ({
   action: 'pending'
 }))
 
-const displayQuickActions = [...quickActions.slice(0, 2), ...pendingQuickActions]
+const displayQuickActions = [...quickActions, ...pendingQuickActions]
 
 const recommendType = computed(() => {
   const types = {
@@ -563,6 +566,12 @@ const handleQuickAction = (action) => {
     case 'guide-list':
       goGuideList()
       break
+    case 'recommend-list':
+      goRecommendList()
+      break
+    case 'nearby-spots':
+      handleNearbyCardClick()
+      break
     case 'pending':
       uni.showToast({ title: '入口功能待补齐', icon: 'none' })
       break
@@ -740,6 +749,13 @@ onShow(() => {
   color: #1f2937;
 }
 
+.guest-subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
 .guest-action {
   font-size: 24rpx;
   font-weight: 600;
@@ -809,6 +825,8 @@ onShow(() => {
 
 .theme-blue { background: #dbeafe; }
 .theme-orange { background: #ffedd5; }
+.theme-amber { background: #fef3c7; }
+.theme-emerald { background: #d1fae5; }
 .theme-slate { background: #e5e7eb; }
 
 .quick-title {
