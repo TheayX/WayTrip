@@ -1,10 +1,6 @@
 <template>
   <view class="settings-page">
     <view class="settings-group">
-      <view class="settings-cell" @click="goPassword">
-        <text class="cell-title">修改密码</text>
-        <text class="cell-arrow">›</text>
-      </view>
       <view class="settings-cell" @click="contactService">
         <text class="cell-title">联系客服</text>
         <text class="cell-arrow">›</text>
@@ -26,10 +22,6 @@
 </template>
 
 <script setup>
-const goPassword = () => {
-  uni.navigateTo({ url: '/pages/mine/password' })
-}
-
 const goDeactivate = () => {
   uni.navigateTo({ url: '/pages/mine/deactivate' })
 }
