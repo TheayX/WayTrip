@@ -315,6 +315,7 @@ const goGuideList = () => {
 }
 
 const goRecommendationList = () => {
+  if (!promptLogin('登录后可查看推荐列表，是否现在去登录？')) return
   uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 
