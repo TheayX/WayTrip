@@ -66,4 +66,37 @@
         </choose>
     </select>
 
+    <select id="selectNearbySpots" resultType="com.travel.dto.home.NearbySpotResponse$SpotItem">
+        SELECT
+            s.id,
+            s.name,
+            s.cover_image_url AS coverImage,
+            s.price,
+            s.avg_rating AS avgRating,
+            c.name AS categoryName,
+            r.name AS regionName,
+            s.latitude,
+            s.longitude,
+            ROUND(
+                6371 * ACOS(
+                    LEAST(
+                        1,
+                        COS(RADIANS(#{latitude})) * COS(RADIANS(s.latitude)) *
+                        COS(RADIANS(s.longitude) - RADIANS(#{longitude})) +
+                        SIN(RADIANS(#{latitude})) * SIN(RADIANS(s.latitude))
+                    )
+                ),
+                2
+            ) AS distanceKm
+        FROM spot s
+        LEFT JOIN spot_category c ON s.category_id = c.id AND c.is_deleted = 0
+        LEFT JOIN spot_region r ON s.region_id = r.id AND r.is_deleted = 0
+        WHERE s.is_deleted = 0
+          AND s.is_published = 1
+          AND s.latitude IS NOT NULL
+          AND s.longitude IS NOT NULL
+        ORDER BY distanceKm ASC, s.heat_score DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

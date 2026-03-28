@@ -1,10 +1,13 @@
 package com.travel.service;
 
 import com.travel.dto.home.HotSpotResponse;
+import com.travel.dto.home.NearbySpotResponse;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
 import com.travel.dto.recommendation.SimilarityPreviewResponse;
 import com.travel.dto.recommendation.RecommendationStatusDTO;
+
+import java.math.BigDecimal;
 
 /**
  * 推荐服务接口
@@ -35,6 +38,8 @@ public interface RecommendationService {
      * 获取热门景点
      */
     HotSpotResponse getHotSpots(Integer limit);
+
+    NearbySpotResponse getNearbySpots(BigDecimal latitude, BigDecimal longitude, Integer limit);
 
     /**
      * 计算并更新物品相似度矩阵

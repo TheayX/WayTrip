@@ -3,12 +3,15 @@ package com.travel.controller.app;
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.banner.BannerResponse;
 import com.travel.dto.home.HotSpotResponse;
+import com.travel.dto.home.NearbySpotResponse;
 import com.travel.service.SpotBannerService;
 import com.travel.service.RecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 /**
  * 用户端首页接口
@@ -33,5 +36,14 @@ public class HomeController {
     public ApiResponse<HotSpotResponse> getHotSpots(
             @RequestParam(defaultValue = "10") Integer limit) {
         return ApiResponse.success(recommendationService.getHotSpots(limit));
+    }
+
+    @Operation(summary = "获取附近景点")
+    @GetMapping("/nearby")
+    public ApiResponse<NearbySpotResponse> getNearbySpots(
+            @RequestParam BigDecimal latitude,
+            @RequestParam BigDecimal longitude,
+            @RequestParam(defaultValue = "3") Integer limit) {
+        return ApiResponse.success(recommendationService.getNearbySpots(latitude, longitude, limit));
     }
 }
