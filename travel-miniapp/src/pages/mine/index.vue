@@ -1,20 +1,39 @@
 <template>
   <view class="ios-mine">
-    <!-- 个人信息头 -->
-    <view class="profile-header" @click="isLoggedIn ? null : doLogin()">
-      <view class="avatar-container">
-<image class="avatar-lg" :src="getAvatarUrl(userInfo?.avatar)" />
+    <view class="profile-hero" :class="{ guest: !isLoggedIn }" @click="!isLoggedIn ? doLogin() : null">
+      <view class="profile-header">
+        <view class="avatar-container">
+          <image class="avatar-lg" :src="getAvatarUrl(userInfo?.avatar)" />
+        </view>
+        <view class="profile-info">
+          <text class="user-name">{{ isLoggedIn ? (userInfo?.nickname || '旅行家') : '旅程从登录开始' }}</text>
+          <text class="user-desc">{{ isLoggedIn ? '开启你的探索之旅' : '登录后同步订单、收藏、评价和推荐偏好' }}</text>
+        </view>
+        <view class="hero-action" v-if="!isLoggedIn">
+          <text class="hero-action-text">立即登录</text>
+          <text class="arrow-right">›</text>
+        </view>
       </view>
-      <view class="profile-info">
-        <text class="user-name">{{ isLoggedIn ? (userInfo?.nickname || '旅行家') : '点击登录' }}</text>
-        <text class="user-desc">{{ isLoggedIn ? '开启你的探索之旅' : '登录同步数据' }}</text>
-      </view>
-      <view class="arrow-right" v-if="!isLoggedIn">›</view>
-    </view>
 
-    <view class="profile-extra" v-if="isLoggedIn">
-      <text class="profile-line">手机号：{{ formatPhone(userInfo?.phone) }}</text>
-      <text class="profile-edit" @click="openEditPopup">编辑资料</text>
+      <view class="profile-extra" v-if="isLoggedIn">
+        <text class="profile-line">手机号：{{ formatPhone(userInfo?.phone) }}</text>
+        <text class="profile-line subtle">账号资料与安全设置已整理到下方账户区域</text>
+      </view>
+
+      <view class="guest-benefits" v-else>
+        <view class="guest-benefit">
+          <text class="guest-benefit-value">同步</text>
+          <text class="guest-benefit-label">订单收藏评价</text>
+        </view>
+        <view class="guest-benefit">
+          <text class="guest-benefit-value">激活</text>
+          <text class="guest-benefit-label">偏好冷启动推荐</text>
+        </view>
+        <view class="guest-benefit">
+          <text class="guest-benefit-value">管理</text>
+          <text class="guest-benefit-label">资料与账户安全</text>
+        </view>
+      </view>
     </view>
 
     <view class="stats-board" v-if="isLoggedIn">
@@ -71,46 +90,63 @@
       </scroll-view>
     </view>
 
-    <!-- 菜单组1 -->
+    <view class="section-label">无需登录</view>
     <view class="ios-group">
-      <view class="ios-cell" @click="goOrders">
-        <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/order.png" />
-        </view>
-        <text class="cell-title">我的订单</text>
-        <text class="cell-arrow">›</text>
-      </view>
-      <view class="ios-cell" @click="goFavorites">
-        <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/favorite.png" />
-        </view>
-        <text class="cell-title">我的收藏</text>
-        <text class="cell-arrow">›</text>
-      </view>
-      <view class="ios-cell" @click="goReviews">
-        <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/review.png" />
-        </view>
-        <text class="cell-title">我的评价</text>
-        <text class="cell-arrow">›</text>
-      </view>
-    </view>
-
-    <!-- 菜单组2 -->
-    <view class="ios-group">
-      <view class="ios-cell" @click="goPreference">
-        <view class="cell-icon">
-          <image class="cell-icon-img" src="/static/icons/preference.png" />
-        </view>
-        <text class="cell-title">偏好设置</text>
-        <text class="cell-arrow">›</text>
-      </view>
       <view class="ios-cell" @click="goSettings">
         <view class="cell-icon">
           <image class="cell-icon-img" src="/static/icons/service.png" />
         </view>
         <text class="cell-title">设置</text>
         <text class="cell-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="section-label">登录后使用</view>
+    <view class="locked-group-shell">
+      <view class="ios-group" :class="{ 'group-locked': !isLoggedIn }">
+        <view class="ios-cell" @click="goOrders">
+          <view class="cell-icon">
+            <image class="cell-icon-img" src="/static/icons/order.png" />
+          </view>
+          <text class="cell-title">我的订单</text>
+          <text class="cell-arrow">›</text>
+        </view>
+        <view class="ios-cell" @click="goFavorites">
+          <view class="cell-icon">
+            <image class="cell-icon-img" src="/static/icons/favorite.png" />
+          </view>
+          <text class="cell-title">我的收藏</text>
+          <text class="cell-arrow">›</text>
+        </view>
+        <view class="ios-cell" @click="goReviews">
+          <view class="cell-icon">
+            <image class="cell-icon-img" src="/static/icons/review.png" />
+          </view>
+          <text class="cell-title">我的评价</text>
+          <text class="cell-arrow">›</text>
+        </view>
+        <view class="ios-cell" @click="goPreference">
+          <view class="cell-icon">
+            <image class="cell-icon-img" src="/static/icons/preference.png" />
+          </view>
+          <text class="cell-title">偏好设置</text>
+          <text class="cell-arrow">›</text>
+        </view>
+        <view class="ios-cell" @click="goProfile">
+          <view class="cell-icon">
+            <image class="cell-icon-img" src="/static/icons/service.png" />
+          </view>
+          <text class="cell-title">账号资料</text>
+          <text class="cell-arrow">›</text>
+        </view>
+      </view>
+
+      <view class="group-lock-mask" v-if="!isLoggedIn" @click="doLogin">
+        <view class="group-lock-content">
+          <text class="group-lock-title">登录后管理你的旅行资产</text>
+          <text class="group-lock-desc">订单、收藏、评价、偏好和资料编辑都会集中在这里</text>
+          <view class="group-lock-button">微信一键登录</view>
+        </view>
       </view>
     </view>
 
@@ -219,30 +255,6 @@
       </view>
     </view>
 
-    <!-- ========== 编辑资料弹窗 ========== -->
-    <view class="edit-mask" v-if="editVisible" @click="editVisible = false">
-      <view class="edit-panel" @click.stop>
-        <text class="edit-title">编辑资料</text>
-        <!-- 头像选择 -->
-        <view class="edit-avatar-row">
-          <text class="edit-avatar-label">头像</text>
-          <button class="edit-avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
-            <image class="edit-avatar-img" :src="getAvatarUrl(editForm.avatarPreview || editForm.avatar)" />
-            <text class="edit-avatar-tip">点击更换</text>
-          </button>
-        </view>
-        <input class="edit-input" type="nickname" v-model="editForm.nickname" placeholder="点击填入微信昵称" maxlength="30" />
-        <input class="edit-input" v-model="editForm.phone" placeholder="请输入手机号（可选）" maxlength="20" />
-        <view class="edit-actions">
-          <button class="edit-btn cancel" @click="editVisible = false">取消</button>
-          <button class="edit-btn confirm" @click="submitProfile">保存</button>
-        </view>
-        <view class="edit-password" @click="goPassword">
-          <text class="edit-password-text">修改密码</text>
-          <text class="cell-arrow">›</text>
-        </view>
-      </view>
-    </view>
   </view>
 </template>
 
@@ -253,7 +265,7 @@ import { useUserStore } from '@/stores/user'
 import { getFavoriteList } from '@/api/favorite'
 import { getOrderList } from '@/api/order'
 import { getMyReviews } from '@/api/review'
-import { wxLogin, wxBindPhone, prepareWxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, changePassword, deactivateAccount, updatePreferences } from '@/api/auth'
+import { wxLogin, wxBindPhone, prepareWxBindPhone, getUserInfo, updateUserInfo, uploadAvatar, updatePreferences } from '@/api/auth'
 import { getFilters } from '@/api/spot'
 import {
   markColdStartGuideCompleted,
@@ -502,16 +514,6 @@ const submitStep2 = async () => {
   }
 }
 
-// ========== 编辑资料弹窗 ==========
-const editVisible = ref(false)
-const editForm = reactive({
-  nickname: '',
-  phone: '',
-  avatar: '',
-  avatarPreview: '',
-  avatarTempFile: ''
-})
-
 const syncUserInfo = async () => {
   try {
     const res = await getUserInfo()
@@ -606,47 +608,6 @@ const doLogin = async () => {
   }
 }
 
-const openEditPopup = () => {
-  editForm.nickname = userInfo.value?.nickname || ''
-  editForm.phone = userInfo.value?.phone || ''
-  editForm.avatar = getAvatarUrl(userInfo.value?.avatar)
-  editForm.avatarPreview = ''
-  editForm.avatarTempFile = ''
-  editVisible.value = true
-}
-
-const submitProfile = async () => {
-  try {
-    let avatarUrl = ''
-    if (editForm.avatarTempFile) {
-      const uploadRes = await uploadAvatar(editForm.avatarTempFile)
-      avatarUrl = uploadRes.data.url
-    }
-    const updateData = {
-      nickname: editForm.nickname.trim(),
-      phone: editForm.phone.trim()
-    }
-    if (avatarUrl) {
-      updateData.avatar = avatarUrl
-    }
-    await updateUserInfo(updateData)
-    await syncUserInfo()
-    editVisible.value = false
-    uni.showToast({ title: '保存成功', icon: 'success' })
-  } catch (e) {
-    uni.showToast({ title: '保存失败', icon: 'none' })
-  }
-}
-
-// 编辑资料 - 选择头像
-const onChooseAvatar = (e) => {
-  const url = e?.detail?.avatarUrl || ''
-  if (url) {
-    editForm.avatarPreview = url
-    editForm.avatarTempFile = url
-  }
-}
-
 // 退出登录
 const doLogout = () => {
   uni.showModal({
@@ -691,10 +652,8 @@ const goPreference = () => {
   uni.navigateTo({ url: '/pages/mine/preference' })
 }
 
-// 跳转修改密码
-const goPassword = () => {
-  editVisible.value = false
-  uni.navigateTo({ url: '/pages/mine/password' })
+const goProfile = () => {
+  uni.navigateTo({ url: '/pages/mine/profile' })
 }
 
 const goSettings = () => {
@@ -721,29 +680,42 @@ onShow(async () => {
   padding-top: 120rpx;
 }
 
-/* 个人信息头 */
+.profile-hero {
+  margin-bottom: 24rpx;
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background:
+    linear-gradient(135deg, rgba(16, 46, 70, 0.95), rgba(39, 86, 120, 0.9)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  box-shadow: 0 16rpx 44rpx rgba(15, 23, 42, 0.12);
+}
+
+.profile-hero.guest {
+  background:
+    linear-gradient(135deg, rgba(195, 117, 63, 0.95), rgba(230, 170, 106, 0.92)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+}
+
 .profile-header {
   display: flex;
   align-items: center;
-  margin-bottom: 16rpx;
 }
 
 .profile-extra {
-  margin-bottom: 36rpx;
+  margin-top: 24rpx;
   padding-left: 172rpx;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 10rpx;
 }
 
 .profile-line {
   font-size: 26rpx;
-  color: #8E8E93;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.profile-edit {
-  font-size: 26rpx;
-  color: #007AFF;
+.profile-line.subtle {
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .stats-board {
@@ -867,8 +839,8 @@ onShow(async () => {
   width: 140rpx;
   height: 140rpx;
   border-radius: 50%;
-  border: 4rpx solid #fff;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+  border: 4rpx solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.12);
 }
 
 .profile-info {
@@ -879,19 +851,72 @@ onShow(async () => {
 .user-name {
   font-size: 44rpx;
   font-weight: 700;
-  color: #000;
+  color: #fff;
   display: block;
   margin-bottom: 8rpx;
 }
 
 .user-desc {
   font-size: 28rpx;
-  color: #8E8E93;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.hero-action {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  flex-shrink: 0;
+}
+
+.hero-action-text {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 600;
 }
 
 .arrow-right {
   font-size: 40rpx;
-  color: #C7C7CC;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.guest-benefits {
+  margin-top: 28rpx;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+.guest-benefit {
+  border-radius: 22rpx;
+  padding: 22rpx 16rpx;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+}
+
+.guest-benefit-value {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.guest-benefit-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.section-label {
+  margin: 28rpx 6rpx 18rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  color: #8E8E93;
 }
 
 /* 菜单组 - iOS Inset Grouped 风格 */
@@ -901,6 +926,19 @@ onShow(async () => {
   overflow: hidden;
   margin-bottom: 32rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.02);
+}
+
+.locked-group-shell {
+  position: relative;
+  margin-bottom: 32rpx;
+}
+
+.locked-group-shell .ios-group {
+  margin-bottom: 0;
+}
+
+.group-locked {
+  filter: saturate(0.7);
 }
 
 .ios-cell {
@@ -924,6 +962,10 @@ onShow(async () => {
 
 .ios-cell:active {
   background-color: #F2F2F7;
+}
+
+.group-locked .ios-cell {
+  pointer-events: none;
 }
 
 /* 图标容器 - 毛玻璃风格 */
@@ -955,6 +997,56 @@ onShow(async () => {
   color: #C7C7CC;
   font-size: 34rpx;
   font-weight: 300;
+}
+
+.group-lock-mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 24rpx;
+  background: linear-gradient(180deg, rgba(242, 242, 247, 0.08), rgba(242, 242, 247, 0.74));
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28rpx;
+}
+
+.group-lock-content {
+  width: 100%;
+  border-radius: 28rpx;
+  padding: 32rpx 28rpx;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.08);
+  text-align: center;
+}
+
+.group-lock-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.group-lock-desc {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #6B7280;
+}
+
+.group-lock-button {
+  margin-top: 24rpx;
+  height: 78rpx;
+  line-height: 78rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #D9822B, #E8A255);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
 }
 
 /* 退出登录 */
@@ -1128,115 +1220,4 @@ onShow(async () => {
   text-align: center;
 }
 
-/* ========== 编辑资料弹窗 ========== */
-.edit-mask {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.35);
-  display: flex;
-  align-items: flex-end;
-  z-index: 999;
-}
-
-.edit-panel {
-  width: 100%;
-  background: #fff;
-  border-radius: 24rpx 24rpx 0 0;
-  padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom));
-}
-
-.edit-title {
-  display: block;
-  font-size: 32rpx;
-  font-weight: 600;
-  margin-bottom: 24rpx;
-}
-
-.edit-avatar-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24rpx;
-  padding: 0 8rpx;
-}
-
-.edit-avatar-label {
-  font-size: 30rpx;
-  color: #333;
-}
-
-.edit-avatar-btn {
-  display: flex;
-  align-items: center;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  line-height: normal;
-  font-size: inherit;
-}
-
-.edit-avatar-btn::after {
-  border: none;
-}
-
-.edit-avatar-img {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 50%;
-  border: 2rpx solid #E5E5EA;
-}
-
-.edit-avatar-tip {
-  font-size: 24rpx;
-  color: #8E8E93;
-  margin-left: 16rpx;
-}
-
-.edit-input {
-  height: 84rpx;
-  border-radius: 16rpx;
-  background: #F2F2F7;
-  padding: 0 24rpx;
-  margin-bottom: 20rpx;
-  font-size: 30rpx;
-}
-
-.edit-actions {
-  display: flex;
-  gap: 16rpx;
-}
-
-.edit-btn {
-  flex: 1;
-  border-radius: 16rpx;
-  font-size: 30rpx;
-}
-
-.edit-btn.cancel {
-  color: #666;
-  background: #f0f0f0;
-}
-
-.edit-btn.confirm {
-  color: #fff;
-  background: #007AFF;
-}
-
-.edit-password {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 28rpx;
-  padding-top: 24rpx;
-  border-top: 1px solid #E5E5EA;
-}
-
-.edit-password-text {
-  font-size: 30rpx;
-  color: #007AFF;
-}
 </style>

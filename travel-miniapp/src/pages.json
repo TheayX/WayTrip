@@ -91,6 +91,12 @@
       }
     },
     {
+      "path": "pages/mine/profile",
+      "style": {
+        "navigationBarTitleText": "账号资料"
+      }
+    },
+    {
       "path": "pages/mine/preference",
       "style": {
         "navigationBarTitleText": "偏好设置"
