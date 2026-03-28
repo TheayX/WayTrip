@@ -46,7 +46,7 @@ public class AdminSpotController {
 
     @Operation(summary = "更新景点")
     @PutMapping("/{spotId}")
-    public ApiResponse<Void> updateSpot(@PathVariable("spotId") Long spotId, @RequestBody AdminSpotRequest request) {
+    public ApiResponse<Void> updateSpot(@PathVariable("spotId") Long spotId, @Valid @RequestBody AdminSpotRequest request) {
         spotService.updateSpot(spotId, request);
         return ApiResponse.success();
     }
@@ -76,6 +76,20 @@ public class AdminSpotController {
     @PostMapping("/rating/refresh")
     public ApiResponse<Void> refreshAllSpotRatings() {
         reviewService.refreshAllSpotRatings();
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "按热度档位和行为数据同步单个景点热度")
+    @PostMapping("/{spotId}/heat/refresh")
+    public ApiResponse<Void> refreshSpotHeat(@PathVariable("spotId") Long spotId) {
+        spotService.refreshSpotHeat(spotId);
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "按热度档位和行为数据同步全部景点热度")
+    @PostMapping("/heat/refresh")
+    public ApiResponse<Void> refreshAllSpotHeat() {
+        spotService.refreshAllSpotHeat();
         return ApiResponse.success();
     }
 

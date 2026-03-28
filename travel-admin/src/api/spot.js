@@ -39,6 +39,14 @@ export function refreshAllSpotRatings() {
   return request.post('/spots/rating/refresh')
 }
 
+export function refreshSpotHeat(id) {
+  return request.post(`/spots/${id}/heat/refresh`)
+}
+
+export function refreshAllSpotHeat() {
+  return request.post('/spots/heat/refresh')
+}
+
 export function getFilters() {
   return request.get('/spots/filters')
 }

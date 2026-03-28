@@ -10,6 +10,7 @@ import com.travel.config.AppCacheProperties;
 import com.travel.config.RedisKeyManager;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
 import com.travel.dto.spot.*;
+import com.travel.enums.OrderStatus;
 import com.travel.entity.*;
 import com.travel.mapper.*;
 import com.travel.service.cache.SpotHeatCacheService;
@@ -46,6 +47,7 @@ public class SpotServiceImpl implements SpotService {
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final ReviewMapper reviewMapper;
     private final UserSpotViewMapper userSpotViewMapper;
+    private final OrderMapper orderMapper;
     private final RecommendationService recommendationService;
     private final SpotHeatCacheService spotHeatCacheService;
     private final AppCacheProperties appCacheProperties;
@@ -342,6 +344,7 @@ public class SpotServiceImpl implements SpotService {
         response.setPublished(spot.getIsPublished() == 1);
         response.setAvgRating(spot.getAvgRating());
         response.setRatingCount(spot.getRatingCount());
+        response.setHeatLevel(spot.getHeatLevel());
         response.setHeatScore(spot.getHeatScore());
 
         return response;
@@ -415,6 +418,29 @@ public class SpotServiceImpl implements SpotService {
         log.info("景点已删除: spotId={}, name={}", spotId, spot.getName());
     }
 
+    @Override
+    @Transactional
+    public void refreshSpotHeat(Long spotId) {
+        Spot spot = spotMapper.selectById(spotId);
+        if (spot == null || spot.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
+        }
+        applyHeatScore(spot);
+    }
+
+    @Override
+    @Transactional
+    public void refreshAllSpotHeat() {
+        List<Spot> spots = spotMapper.selectList(
+                new LambdaQueryWrapper<Spot>()
+                        .eq(Spot::getIsDeleted, 0)
+                        .select(Spot::getId, Spot::getHeatLevel));
+
+        for (Spot spot : spots) {
+            applyHeatScore(spot);
+        }
+    }
+
     private SpotListResponse convertToListResponse(Spot spot) {
         return SpotListResponse.builder()
                 .id(spot.getId())
@@ -438,6 +464,7 @@ public class SpotServiceImpl implements SpotService {
                 .categoryName(getCategoryName(spot.getCategoryId()))
                 .avgRating(spot.getAvgRating())
                 .ratingCount(spot.getRatingCount())
+                .heatLevel(spot.getHeatLevel())
                 .heatScore(spot.getHeatScore())
                 .published(spot.getIsPublished() == 1)
                 .createdAt(spot.getCreatedAt())
@@ -555,9 +582,75 @@ public class SpotServiceImpl implements SpotService {
         if (request.getPublished() != null) {
             spot.setIsPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
         }
+        if (request.getHeatLevel() != null) {
+            spot.setHeatLevel(request.getHeatLevel());
+        }
         if (request.getHeatScore() != null) {
             spot.setHeatScore(request.getHeatScore());
         }
+    }
+
+    private void applyHeatScore(Spot spot) {
+        RecommendationConfigBundleDTO config = recommendationService.getConfig();
+        int totalHeatScore = calculateBaseHeatScore(spot.getHeatLevel()) + calculateBehaviorHeatScore(spot.getId(), config);
+        spotMapper.update(
+                null,
+                new UpdateWrapper<Spot>()
+                        .eq("id", spot.getId())
+                        .set("heat_score", totalHeatScore));
+        log.info("景点热度同步完成: spotId={}, heatLevel={}, heatScore={}", spot.getId(), spot.getHeatLevel(), totalHeatScore);
+    }
+
+    private int calculateBaseHeatScore(Integer heatLevel) {
+        return switch (heatLevel == null ? 0 : heatLevel) {
+            case 1 -> 200;
+            case 2 -> 500;
+            case 3 -> 1000;
+            default -> 0;
+        };
+    }
+
+    private int calculateBehaviorHeatScore(Long spotId, RecommendationConfigBundleDTO config) {
+        long viewCount = userSpotViewMapper.selectCount(
+                new LambdaQueryWrapper<UserSpotView>()
+                        .eq(UserSpotView::getSpotId, spotId)
+        );
+        long favoriteCount = userSpotFavoriteMapper.selectCount(
+                new LambdaQueryWrapper<UserSpotFavorite>()
+                        .eq(UserSpotFavorite::getSpotId, spotId)
+                        .eq(UserSpotFavorite::getIsDeleted, 0)
+        );
+        long reviewCount = reviewMapper.selectCount(
+                new LambdaQueryWrapper<Review>()
+                        .eq(Review::getSpotId, spotId)
+                        .eq(Review::getIsDeleted, 0)
+        );
+        long paidOrderCount = orderMapper.selectCount(
+                new LambdaQueryWrapper<Order>()
+                        .eq(Order::getSpotId, spotId)
+                        .eq(Order::getIsDeleted, 0)
+                        .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
+        );
+        long completedOrderCount = orderMapper.selectCount(
+                new LambdaQueryWrapper<Order>()
+                        .eq(Order::getSpotId, spotId)
+                        .eq(Order::getIsDeleted, 0)
+                        .eq(Order::getStatus, OrderStatus.COMPLETED.getCode())
+        );
+
+        int viewIncrement = positiveOrDefault(config.getHeat().getHeatViewIncrement(), 1);
+        int favoriteIncrement = positiveOrDefault(config.getHeat().getHeatFavoriteIncrement(), 3);
+        int reviewIncrement = positiveOrDefault(config.getHeat().getHeatReviewIncrement(), 2);
+        int paidIncrement = positiveOrDefault(config.getHeat().getHeatOrderPaidIncrement(), 5);
+        int completedIncrement = positiveOrDefault(config.getHeat().getHeatOrderCompletedIncrement(), 8);
+
+        return Math.toIntExact(
+                viewCount * (long) viewIncrement
+                        + favoriteCount * (long) favoriteIncrement
+                        + reviewCount * (long) reviewIncrement
+                        + paidOrderCount * (long) paidIncrement
+                        + completedOrderCount * (long) completedIncrement
+        );
     }
 
     private void saveSpotImages(Long spotId, List<String> images) {

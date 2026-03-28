@@ -2,6 +2,8 @@ package com.travel.dto.spot;
 
 import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
@@ -44,6 +46,10 @@ public class AdminSpotRequest {
     private BigDecimal avgRating;
 
     private Integer ratingCount;
+
+    @Min(value = 0, message = "热度档位不能小于0")
+    @Max(value = 3, message = "热度档位不能大于3")
+    private Integer heatLevel;
 
     private Integer heatScore;
 }

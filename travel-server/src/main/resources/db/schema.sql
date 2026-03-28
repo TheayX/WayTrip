@@ -141,6 +141,7 @@ CREATE TABLE `spot` (
   `cover_image_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '封面图URL',
   `category_id` bigint unsigned DEFAULT NULL COMMENT '分类ID',
   `region_id` bigint unsigned DEFAULT NULL COMMENT '地区ID',
+  `heat_level` tinyint NOT NULL DEFAULT '0' COMMENT '热度档位：0-普通，1-推荐，2-重点推荐，3-强推',
   `heat_score` int NOT NULL DEFAULT '0' COMMENT '热度分数',
   `avg_rating` decimal(2,1) NOT NULL DEFAULT '0.0' COMMENT '平均评分',
   `rating_count` int NOT NULL DEFAULT '0' COMMENT '评分数量',
