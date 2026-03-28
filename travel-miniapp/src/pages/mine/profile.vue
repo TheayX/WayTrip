@@ -42,6 +42,11 @@
         <text class="link-desc">更新登录密码，保护账户安全</text>
         <text class="link-arrow">›</text>
       </view>
+      <view class="link-cell danger-cell" @click="goDeactivate">
+        <text class="link-title danger-text">注销账户</text>
+        <text class="link-desc">注销后可通过同一微信重新登录恢复账户</text>
+        <text class="link-arrow danger-text">›</text>
+      </view>
     </view>
   </view>
 </template>
@@ -122,6 +127,10 @@ const submitProfile = async () => {
 
 const goPassword = () => {
   uni.navigateTo({ url: '/pages/mine/password' })
+}
+
+const goDeactivate = () => {
+  uni.navigateTo({ url: '/pages/mine/deactivate' })
 }
 
 onShow(async () => {
@@ -232,6 +241,12 @@ onShow(async () => {
   padding-right: 36rpx;
 }
 
+.link-cell + .link-cell {
+  margin-top: 28rpx;
+  padding-top: 28rpx;
+  border-top: 1rpx solid #EDF2F7;
+}
+
 .link-title {
   display: block;
   font-size: 30rpx;
@@ -253,5 +268,10 @@ onShow(async () => {
   transform: translateY(-50%);
   font-size: 32rpx;
   color: #9CA3AF;
+}
+
+.danger-cell .link-desc,
+.danger-text {
+  color: #DC2626;
 }
 </style>

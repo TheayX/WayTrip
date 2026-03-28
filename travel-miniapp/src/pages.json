@@ -73,12 +73,6 @@
       }
     },
     {
-      "path": "pages/favorite/index",
-      "style": {
-        "navigationBarTitleText": "我的收藏"
-      }
-    },
-    {
       "path": "pages/mine/index",
       "style": {
         "navigationBarTitleText": "我的"
@@ -112,12 +106,6 @@
       "path": "pages/mine/password",
       "style": {
         "navigationBarTitleText": "修改密码"
-      }
-    },
-    {
-      "path": "pages/mine/review",
-      "style": {
-        "navigationBarTitleText": "我的评价"
       }
     },
     {

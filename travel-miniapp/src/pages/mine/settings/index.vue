@@ -13,19 +13,11 @@
         <text class="cell-title">清除缓存</text>
         <text class="cell-arrow">›</text>
       </view>
-      <view class="settings-cell danger" @click="goDeactivate">
-        <text class="cell-title">注销账户</text>
-        <text class="cell-arrow">›</text>
-      </view>
     </view>
   </view>
 </template>
 
 <script setup>
-const goDeactivate = () => {
-  uni.navigateTo({ url: '/pages/mine/deactivate' })
-}
-
 const contactService = () => {
   uni.showModal({
     title: '联系客服',
@@ -80,11 +72,6 @@ const clearCache = () => {
 
 .settings-cell:not(:last-child) {
   border-bottom: 1rpx solid #edf2f7;
-}
-
-.settings-cell.danger,
-.settings-cell.danger .cell-title {
-  color: #dc2626;
 }
 
 .cell-title {
