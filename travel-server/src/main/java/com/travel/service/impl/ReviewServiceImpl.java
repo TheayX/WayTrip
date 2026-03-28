@@ -9,6 +9,7 @@ import com.travel.common.result.ResultCode;
 import com.travel.dto.review.AdminReviewListRequest;
 import com.travel.dto.review.ReviewRequest;
 import com.travel.dto.review.ReviewResponse;
+import com.travel.dto.review.SpotRatingStats;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.entity.User;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -187,35 +187,20 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     private void updateSpotAvgRating(Long spotId) {
-        LambdaQueryWrapper<Review> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Review::getSpotId, spotId);
-        wrapper.eq(Review::getIsDeleted, 0);
-        List<Review> reviews = reviewMapper.selectList(wrapper);
-
-        if (reviews.isEmpty()) {
-            spotMapper.update(
-                null,
-                new UpdateWrapper<Spot>()
-                    .eq("id", spotId)
-                    .set("avg_rating", BigDecimal.ZERO.setScale(1, RoundingMode.HALF_UP))
-                    .set("rating_count", 0)
-            );
-            return;
-        }
-
-        double avg = reviews.stream()
-            .mapToInt(Review::getScore)
-            .average()
-            .orElse(0);
-
-        BigDecimal avgRating = BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP);
+        SpotRatingStats stats = reviewMapper.selectSpotRatingStats(spotId);
+        BigDecimal avgRating = stats != null && stats.getAvgRating() != null
+            ? stats.getAvgRating()
+            : BigDecimal.ZERO;
+        long ratingCount = stats != null && stats.getRatingCount() != null
+            ? stats.getRatingCount()
+            : 0L;
 
         spotMapper.update(
             null,
             new UpdateWrapper<Spot>()
                 .eq("id", spotId)
                 .set("avg_rating", avgRating)
-                .set("rating_count", reviews.size())
+                .set("rating_count", ratingCount)
         );
     }
 

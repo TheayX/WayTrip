@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
+import com.travel.dto.review.ReviewRequest;
+import com.travel.dto.review.SpotRatingStats;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.mapper.ReviewMapper;
@@ -17,9 +19,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -62,7 +61,7 @@ class ReviewServiceImplTest {
     @Test
     void deleteReview_marksOwnReviewDeleted_andRefreshesSpotStats() {
         when(reviewMapper.selectById(10L)).thenReturn(review);
-        when(reviewMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(buildReview(3), buildReview(4)));
+        when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("3.5", 2L));
 
         reviewService.deleteReview(1L, 10L);
 
@@ -85,7 +84,7 @@ class ReviewServiceImplTest {
     @Test
     void deleteReview_resetsSpotStatsWhenLastReviewRemoved() {
         when(reviewMapper.selectById(10L)).thenReturn(review);
-        when(reviewMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Collections.emptyList());
+        when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("0.0", 0L));
 
         reviewService.deleteReview(1L, 10L);
 
@@ -95,11 +94,35 @@ class ReviewServiceImplTest {
         assertEquals("avg_rating=#{ew.paramNameValuePairs.MPGENVAL1},rating_count=#{ew.paramNameValuePairs.MPGENVAL2}", sqlSegment);
     }
 
-    private Review buildReview(int score) {
-        Review item = new Review();
-        item.setScore(score);
-        item.setSpotId(100L);
-        item.setIsDeleted(0);
-        return item;
+    @Test
+    void submitReview_updatesExistingReview_andRefreshesSpotStats() {
+        Spot spot = new Spot();
+        spot.setId(100L);
+        spot.setIsDeleted(0);
+        spot.setIsPublished(1);
+        when(spotMapper.selectById(100L)).thenReturn(spot);
+        when(reviewMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(review);
+        when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("4.0", 3L));
+
+        ReviewRequest request = new ReviewRequest();
+        request.setSpotId(100L);
+        request.setScore(4);
+        request.setComment("updated");
+
+        reviewService.submitReview(1L, request);
+
+        assertEquals(4, review.getScore());
+        assertEquals("updated", review.getComment());
+        assertEquals(0, review.getIsDeleted());
+        verify(reviewMapper).updateById(review);
+        verify(spotMapper).update(isNull(), any(UpdateWrapper.class));
+        verify(recommendationService).invalidateUserRecommendationCache(1L);
+    }
+
+    private SpotRatingStats buildStats(String avgRating, Long ratingCount) {
+        SpotRatingStats stats = new SpotRatingStats();
+        stats.setAvgRating(new java.math.BigDecimal(avgRating));
+        stats.setRatingCount(ratingCount);
+        return stats;
     }
 }
