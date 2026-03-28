@@ -20,20 +20,6 @@
         <text class="profile-line subtle">账号资料与安全设置已整理到下方账户区域</text>
       </view>
 
-      <view class="guest-benefits" v-else>
-        <view class="guest-benefit">
-          <text class="guest-benefit-value">同步</text>
-          <text class="guest-benefit-label">订单收藏评价</text>
-        </view>
-        <view class="guest-benefit">
-          <text class="guest-benefit-value">激活</text>
-          <text class="guest-benefit-label">偏好冷启动推荐</text>
-        </view>
-        <view class="guest-benefit">
-          <text class="guest-benefit-value">管理</text>
-          <text class="guest-benefit-label">资料与账户安全</text>
-        </view>
-      </view>
     </view>
 
     <view class="stats-board" v-if="isLoggedIn">
@@ -870,35 +856,6 @@ onShow(async () => {
 .arrow-right {
   font-size: 40rpx;
   color: rgba(255, 255, 255, 0.72);
-}
-
-.guest-benefits {
-  margin-top: 28rpx;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16rpx;
-}
-
-.guest-benefit {
-  border-radius: 22rpx;
-  padding: 22rpx 16rpx;
-  background: rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(8px);
-}
-
-.guest-benefit-value {
-  display: block;
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #fff;
-}
-
-.guest-benefit-label {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.76);
 }
 
 .section-label {
