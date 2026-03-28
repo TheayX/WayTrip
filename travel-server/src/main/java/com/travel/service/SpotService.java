@@ -62,4 +62,14 @@ public interface SpotService {
      * 删除景点
      */
     void deleteSpot(Long spotId);
+
+    /**
+     * 按热度档位和行为数据同步单个景点热度
+     */
+    void refreshSpotHeat(Long spotId);
+
+    /**
+     * 按热度档位和行为数据同步全部景点热度
+     */
+    void refreshAllSpotHeat();
 }

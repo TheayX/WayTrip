@@ -36,6 +36,8 @@ public class Spot {
 
     private Long regionId;
 
+    private Integer heatLevel;
+
     private Integer heatScore;
 
     private BigDecimal avgRating;

@@ -6,6 +6,7 @@
           <span>景点列表</span>
           <div class="header-actions">
             <el-button @click="handleRefreshAllRatings" :loading="refreshingAllRatings">同步全部评分</el-button>
+            <el-button @click="handleRefreshAllHeats" :loading="refreshingAllHeats">同步全部热度</el-button>
             <el-button type="primary" @click="handleAdd">新增景点</el-button>
           </div>
         </div>
@@ -78,6 +79,13 @@
         </el-table-column>
         <el-table-column prop="avgRating" label="评分" width="80" />
         <el-table-column prop="ratingCount" label="评价数" width="90" />
+        <el-table-column label="热度档位" width="110">
+          <template #default="{ row }">
+            <el-tag :type="getHeatLevelTagType(row.heatLevel)">
+              {{ getHeatLevelLabel(row.heatLevel) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="heatScore" label="热度" width="90" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
@@ -96,6 +104,7 @@
             <div class="table-actions">
               <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
               <el-button link type="primary" @click="handleHeatEdit(row)">热度</el-button>
+              <el-button link type="primary" @click="handleRefreshSpotHeat(row)">同步热度</el-button>
               <el-button link type="primary" @click="handleRefreshSpotRating(row)">同步评分</el-button>
               <el-button link :type="row.published ? 'warning' : 'success'" @click="handleTogglePublish(row)">
                 {{ row.published ? '下架' : '发布' }}
@@ -224,8 +233,18 @@
         <el-form-item label="评价数">
           <span>{{ heatForm.ratingCount ?? 0 }}</span>
         </el-form-item>
-        <el-form-item label="热度" prop="heatScore">
-          <el-input-number v-model="heatForm.heatScore" :min="0" :precision="2" />
+        <el-form-item label="当前总热度">
+          <span>{{ heatForm.heatScore ?? 0 }}</span>
+        </el-form-item>
+        <el-form-item label="热度档位" prop="heatLevel">
+          <el-select v-model="heatForm.heatLevel" style="width: 100%" placeholder="请选择热度档位">
+            <el-option
+              v-for="item in heatLevelOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -246,7 +265,9 @@ import {
   getFilters,
   getSpotDetail,
   getSpotList,
+  refreshAllSpotHeat,
   refreshAllSpotRatings,
+  refreshSpotHeat,
   refreshSpotRating,
   updatePublishStatus,
   updateSpot
@@ -273,6 +294,30 @@ const getImageUrl = (url) => {
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return dateStr.replace('T', ' ').substring(0, 19)
+}
+
+const heatLevelOptions = [
+  { value: 0, label: '普通' },
+  { value: 1, label: '推荐' },
+  { value: 2, label: '重点推荐' },
+  { value: 3, label: '强推' }
+]
+
+const getHeatLevelLabel = (level) => {
+  return heatLevelOptions.find((item) => item.value === Number(level))?.label || '普通'
+}
+
+const getHeatLevelTagType = (level) => {
+  switch (Number(level)) {
+    case 1:
+      return 'success'
+    case 2:
+      return 'warning'
+    case 3:
+      return 'danger'
+    default:
+      return 'info'
+  }
 }
 
 const beforeUpload = (file) => {
@@ -322,6 +367,7 @@ const handleUploadError = () => {
 
 const loading = ref(false)
 const refreshingAllRatings = ref(false)
+const refreshingAllHeats = ref(false)
 const tableData = ref([])
 const total = ref(0)
 const regions = ref([])
@@ -436,11 +482,12 @@ const rules = {
 const heatForm = reactive({
   avgRating: 0,
   ratingCount: 0,
+  heatLevel: 0,
   heatScore: 0
 })
 
 const heatRules = {
-  heatScore: [{ required: true, message: '请输入热度', trigger: 'blur' }]
+  heatLevel: [{ required: true, message: '请选择热度档位', trigger: 'change' }]
 }
 
 onMounted(() => {
@@ -567,6 +614,7 @@ const handleHeatEdit = async (row) => {
     const res = await getSpotDetail(row.id)
     heatForm.avgRating = res.data.avgRating ?? 0
     heatForm.ratingCount = res.data.ratingCount ?? 0
+    heatForm.heatLevel = res.data.heatLevel ?? 0
     heatForm.heatScore = res.data.heatScore ?? 0
     heatDialogVisible.value = true
   } catch (e) {}
@@ -578,6 +626,12 @@ const handleRefreshSpotRating = async (row) => {
   loadData()
 }
 
+const handleRefreshSpotHeat = async (row) => {
+  await refreshSpotHeat(row.id)
+  ElMessage.success('热度已按档位和行为数据同步')
+  loadData()
+}
+
 const handleRefreshAllRatings = async () => {
   refreshingAllRatings.value = true
   try {
@@ -586,6 +640,17 @@ const handleRefreshAllRatings = async () => {
     loadData()
   } finally {
     refreshingAllRatings.value = false
+  }
+}
+
+const handleRefreshAllHeats = async () => {
+  refreshingAllHeats.value = true
+  try {
+    await refreshAllSpotHeat()
+    ElMessage.success('全部景点热度已按档位和行为数据同步')
+    loadData()
+  } finally {
+    refreshingAllHeats.value = false
   }
 }
 
@@ -631,7 +696,7 @@ const handleHeatSubmit = async () => {
   heatSubmitting.value = true
   try {
     await updateSpot(heatEditId.value, {
-      heatScore: heatForm.heatScore
+      heatLevel: heatForm.heatLevel
     })
     ElMessage.success('更新成功')
     heatDialogVisible.value = false
