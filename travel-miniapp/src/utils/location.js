@@ -1,3 +1,14 @@
+const LOCATION_CACHE_KEY = 'user_location_cache'
+
+const saveLocationCache = (location) => {
+  if (!location) return
+  uni.setStorageSync(LOCATION_CACHE_KEY, {
+    latitude: location.latitude,
+    longitude: location.longitude,
+    timestamp: Date.now()
+  })
+}
+
 const requestAuthorize = () => new Promise((resolve, reject) => {
   uni.authorize({
     scope: 'scope.userLocation',
@@ -39,10 +50,40 @@ export const ensureLocationPermission = async () => {
 export const getCurrentLocation = () => new Promise((resolve, reject) => {
   uni.getLocation({
     type: 'gcj02',
-    success: resolve,
+    success: (res) => {
+      saveLocationCache(res)
+      resolve(res)
+    },
     fail: reject
   })
 })
+
+export const getCachedLocation = () => {
+  const cached = uni.getStorageSync(LOCATION_CACHE_KEY)
+  if (!cached?.latitude || !cached?.longitude) {
+    return null
+  }
+  return cached
+}
+
+export const getLocationSnapshot = async () => {
+  const cached = getCachedLocation()
+
+  try {
+    const latest = await getLocationIfAuthorized()
+    return {
+      cached,
+      latest,
+      current: latest || cached || null
+    }
+  } catch (_error) {
+    return {
+      cached,
+      latest: null,
+      current: cached || null
+    }
+  }
+}
 
 export const getLocationPermissionState = () => new Promise((resolve, reject) => {
   uni.getSetting({
