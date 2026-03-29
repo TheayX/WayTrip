@@ -68,7 +68,7 @@
       </el-form>
 
       <!-- 景点数据表格 -->
-      <el-table :data="tableData" v-loading="loading" stripe>
+      <el-table :data="tableData" v-loading="loading" stripe :row-class-name="getRowClassName">
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column label="封面" width="100">
           <template #default="{ row }">
@@ -391,6 +391,8 @@ const refreshingAllRatings = ref(false)
 const refreshingAllHeats = ref(false)
 const tableData = ref([])
 const total = ref(0)
+const activeSpotId = ref(null)
+const autoOpenedSpotId = ref(null)
 const regions = ref([])
 const regionTree = ref([])
 const categories = ref([])
@@ -517,10 +519,10 @@ const heatRules = {
 }
 
 // 页面初始化
-onMounted(() => {
+onMounted(async () => {
   applyRouteQuery()
-  loadFilters()
-  loadData()
+  await loadFilters()
+  await loadData()
 })
 
 // 加载筛选项
@@ -577,6 +579,7 @@ const loadData = async () => {
     const res = await getSpotList(queryParams)
     tableData.value = res.data.list || []
     total.value = res.data.total || 0
+    await openSpotFromRoute()
   } finally {
     loading.value = false
   }
@@ -614,8 +617,22 @@ const syncRouteQuery = () => {
   router.replace({ path: route.path, query: nextQuery })
 }
 
+const normalizeRouteSpotId = (value) => {
+  const spotId = Number(value)
+  return Number.isInteger(spotId) && spotId > 0 ? spotId : null
+}
+
 const applyRouteQuery = () => {
   queryParams.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
+  const nextSpotId = normalizeRouteSpotId(route.query.spotId)
+  if (nextSpotId !== activeSpotId.value) {
+    autoOpenedSpotId.value = null
+  }
+  activeSpotId.value = nextSpotId
+}
+
+const getRowClassName = ({ row }) => {
+  return Number(row.id) === activeSpotId.value ? 'spot-highlight-row' : ''
 }
 
 // 重置景点表单
@@ -651,12 +668,30 @@ const handleEdit = async (row) => {
   editId.value = row.id
   try {
     const res = await getSpotDetail(row.id)
-    Object.assign(form, res.data)
-    form.regionPath = findPathById(form.regionId, regionCascaderOptions.value)
-    form.images = Array.isArray(res.data.images) ? [...res.data.images] : []
-    form.parentCategoryId = categoryParentMap.value[form.categoryId] || null
-    dialogVisible.value = true
+    applySpotDetail(res.data)
   } catch (e) {}
+}
+
+const applySpotDetail = (detail) => {
+  Object.assign(form, detail)
+  form.regionPath = findPathById(form.regionId, regionCascaderOptions.value)
+  form.images = Array.isArray(detail.images) ? [...detail.images] : []
+  form.parentCategoryId = categoryParentMap.value[form.categoryId] || null
+  dialogVisible.value = true
+}
+
+const openSpotFromRoute = async () => {
+  if (!activeSpotId.value || autoOpenedSpotId.value === activeSpotId.value) {
+    return
+  }
+  autoOpenedSpotId.value = activeSpotId.value
+  editId.value = activeSpotId.value
+  try {
+    const res = await getSpotDetail(activeSpotId.value)
+    applySpotDetail(res.data)
+  } catch (e) {
+    autoOpenedSpotId.value = null
+  }
 }
 
 // 打开热度设置对话框
@@ -780,10 +815,10 @@ const handleDelete = async (row) => {
 }
 
 watch(
-  () => route.query.keyword,
+  () => [route.query.keyword, route.query.spotId],
   () => {
     applyRouteQuery()
-    handleSearch()
+    loadData()
   }
 )
 </script>
@@ -884,5 +919,13 @@ watch(
 .gallery-image {
   width: 100%;
   height: 90px;
+}
+
+:deep(.spot-highlight-row) {
+  --el-table-tr-bg-color: #fdf6ec;
+
+  td {
+    background-color: #fdf6ec !important;
+  }
 }
 </style>

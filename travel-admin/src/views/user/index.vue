@@ -85,8 +85,46 @@
         <el-descriptions-item label="修改时间" :span="2">{{ currentUser.updatedAt }}</el-descriptions-item>
         <el-descriptions-item label="订单数">{{ currentUser.orderCount }}</el-descriptions-item>
         <el-descriptions-item label="收藏数">{{ currentUser.favoriteCount }}</el-descriptions-item>
-        <el-descriptions-item label="评价数" :span="2">{{ currentUser.ratingCount }}</el-descriptions-item>
+        <el-descriptions-item label="评价数">{{ currentUser.ratingCount }}</el-descriptions-item>
+        <el-descriptions-item label="浏览数">{{ currentUser.viewCount }}</el-descriptions-item>
       </el-descriptions>
+
+      <div class="summary-grid" v-if="currentUser">
+        <el-card shadow="never" class="summary-card">
+          <template #header>
+            <span>偏好画像</span>
+          </template>
+          <div class="summary-metric">标签数：{{ currentUser.preferenceSummary?.count ?? 0 }}</div>
+          <div class="summary-tags" v-if="currentUser.preferenceSummary?.tags?.length">
+            <el-tag v-for="tag in currentUser.preferenceSummary.tags" :key="tag" effect="light">{{ tag }}</el-tag>
+          </div>
+          <div class="summary-empty" v-else>暂无偏好标签</div>
+          <div class="summary-meta">最近更新时间：{{ formatDateTime(currentUser.preferenceSummary?.updatedAt) }}</div>
+        </el-card>
+
+        <el-card shadow="never" class="summary-card">
+          <template #header>
+            <span>收藏行为</span>
+          </template>
+          <div class="summary-metric">累计收藏：{{ currentUser.favoriteCount || 0 }}</div>
+          <div class="summary-line">最近收藏：{{ currentUser.favoriteSummary?.latestSpotName || '暂无' }}</div>
+          <div class="summary-meta">最近收藏时间：{{ formatDateTime(currentUser.favoriteSummary?.latestCreatedAt) }}</div>
+        </el-card>
+
+        <el-card shadow="never" class="summary-card">
+          <template #header>
+            <span>浏览行为</span>
+          </template>
+          <div class="summary-metric">累计浏览：{{ currentUser.viewCount || 0 }}</div>
+          <div class="summary-line">最近浏览：{{ currentUser.viewSummary?.latestSpotName || '暂无' }}</div>
+          <div class="summary-line">主要来源：{{ getViewSourceLabel(currentUser.viewSummary?.topSource) }}</div>
+          <div class="summary-meta">
+            平均停留：{{ currentUser.viewSummary?.averageDuration ?? 0 }} 秒
+            <span class="summary-divider">|</span>
+            最近浏览时间：{{ formatDateTime(currentUser.viewSummary?.latestCreatedAt) }}
+          </div>
+        </el-card>
+      </div>
 
       <div class="recent-orders" v-if="currentUser?.recentOrders?.length">
         <h4>最近订单</h4>
@@ -137,6 +175,14 @@ const pagination = reactive({
 const detailVisible = ref(false)
 const currentUser = ref(null)
 
+const viewSourceMap = {
+  home: '首页',
+  search: '搜索',
+  recommend: '推荐',
+  guide: '攻略',
+  detail: '详情'
+}
+
 // 格式化手机号显示
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
@@ -148,6 +194,15 @@ const formatPhone = (phone) => {
     return normalized
   }
   return '已隐藏'
+}
+
+const formatDateTime = (value) => {
+  if (!value) return '暂无'
+  return String(value).replace('T', ' ').slice(0, 19)
+}
+
+const getViewSourceLabel = (value) => {
+  return viewSourceMap[value] || value || '暂无'
 }
 
 // 获取用户列表
@@ -283,6 +338,59 @@ watch(
     h4 {
       margin-bottom: 10px;
       color: #333;
+    }
+  }
+
+  .summary-grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .summary-card {
+    min-height: 180px;
+  }
+
+  .summary-metric {
+    font-size: 20px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .summary-line {
+    margin-top: 12px;
+    color: #606266;
+  }
+
+  .summary-meta {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #909399;
+    line-height: 1.6;
+  }
+
+  .summary-tags {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .summary-empty {
+    margin-top: 12px;
+    color: #909399;
+  }
+
+  .summary-divider {
+    margin: 0 6px;
+  }
+}
+
+@media (max-width: 900px) {
+  .user-page {
+    .summary-grid {
+      grid-template-columns: 1fr;
     }
   }
 }

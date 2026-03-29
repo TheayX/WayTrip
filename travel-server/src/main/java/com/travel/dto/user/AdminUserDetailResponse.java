@@ -23,6 +23,12 @@ public class AdminUserDetailResponse {
     private Integer orderCount;
     private Integer favoriteCount;
     private Integer ratingCount;
+    private Integer viewCount;
+
+    // 行为摘要
+    private PreferenceSummary preferenceSummary;
+    private FavoriteSummary favoriteSummary;
+    private ViewSummary viewSummary;
 
     // 最近订单
     private List<RecentOrder> recentOrders;
@@ -35,5 +41,26 @@ public class AdminUserDetailResponse {
         private String status;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+    }
+
+    @Data
+    public static class PreferenceSummary {
+        private Integer count;
+        private List<String> tags;
+        private LocalDateTime updatedAt;
+    }
+
+    @Data
+    public static class FavoriteSummary {
+        private String latestSpotName;
+        private LocalDateTime latestCreatedAt;
+    }
+
+    @Data
+    public static class ViewSummary {
+        private String latestSpotName;
+        private LocalDateTime latestCreatedAt;
+        private String topSource;
+        private Integer averageDuration;
     }
 }

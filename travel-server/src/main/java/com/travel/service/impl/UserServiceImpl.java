@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,8 +31,11 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final OrderMapper orderMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
+    private final UserSpotViewMapper userSpotViewMapper;
+    private final UserPreferenceMapper userPreferenceMapper;
     private final ReviewMapper reviewMapper;
     private final SpotMapper spotMapper;
+    private final SpotCategoryMapper spotCategoryMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
     // 管理端用户查询与维护
@@ -93,6 +97,14 @@ public class UserServiceImpl implements UserService {
                 .eq(Review::getUserId, userId)
                 .eq(Review::getIsDeleted, 0)
         )));
+        response.setViewCount(Math.toIntExact(userSpotViewMapper.selectCount(
+            new LambdaQueryWrapper<UserSpotView>()
+                .eq(UserSpotView::getUserId, userId)
+        )));
+
+        response.setPreferenceSummary(buildPreferenceSummary(userId));
+        response.setFavoriteSummary(buildFavoriteSummary(userId));
+        response.setViewSummary(buildViewSummary(userId));
 
         // 详情页仅展示最近订单摘要，避免一次性返回过多记录。
         List<Order> recentOrders = orderMapper.selectList(
@@ -128,9 +140,112 @@ public class UserServiceImpl implements UserService {
         return response;
     }
 
+    private AdminUserDetailResponse.PreferenceSummary buildPreferenceSummary(Long userId) {
+        List<UserPreference> preferences = userPreferenceMapper.selectList(
+            new LambdaQueryWrapper<UserPreference>()
+                .eq(UserPreference::getUserId, userId)
+                .eq(UserPreference::getIsDeleted, 0)
+                .orderByDesc(UserPreference::getUpdatedAt)
+        );
+        if (preferences.isEmpty()) {
+            return null;
+        }
+
+        java.util.Set<Long> categoryIds = preferences.stream()
+            .map(UserPreference::getTag)
+            .map(this::parseCategoryId)
+            .filter(java.util.Objects::nonNull)
+            .collect(java.util.stream.Collectors.toSet());
+        java.util.Map<Long, String> categoryNameMap = categoryIds.isEmpty()
+            ? java.util.Collections.emptyMap()
+            : spotCategoryMapper.selectBatchIds(categoryIds).stream()
+                .collect(java.util.stream.Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
+
+        AdminUserDetailResponse.PreferenceSummary summary = new AdminUserDetailResponse.PreferenceSummary();
+        summary.setCount(preferences.size());
+        summary.setTags(preferences.stream()
+            .map(UserPreference::getTag)
+            .map(this::parseCategoryId)
+            .filter(java.util.Objects::nonNull)
+            .map(categoryNameMap::get)
+            .filter(StringUtils::hasText)
+            .distinct()
+            .limit(4)
+            .collect(Collectors.toList()));
+        summary.setUpdatedAt(preferences.stream()
+            .map(UserPreference::getUpdatedAt)
+            .filter(java.util.Objects::nonNull)
+            .max(LocalDateTime::compareTo)
+            .orElse(null));
+        return summary;
+    }
+
+    private AdminUserDetailResponse.FavoriteSummary buildFavoriteSummary(Long userId) {
+        UserSpotFavorite latestFavorite = userSpotFavoriteMapper.selectOne(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+                .orderByDesc(UserSpotFavorite::getCreatedAt)
+                .last("LIMIT 1")
+        );
+        if (latestFavorite == null) {
+            return null;
+        }
+
+        Spot latestSpot = spotMapper.selectById(latestFavorite.getSpotId());
+        AdminUserDetailResponse.FavoriteSummary summary = new AdminUserDetailResponse.FavoriteSummary();
+        summary.setLatestSpotName(latestSpot != null ? latestSpot.getName() : "景点#" + latestFavorite.getSpotId());
+        summary.setLatestCreatedAt(latestFavorite.getCreatedAt());
+        return summary;
+    }
+
+    private AdminUserDetailResponse.ViewSummary buildViewSummary(Long userId) {
+        List<UserSpotView> views = userSpotViewMapper.selectList(
+            new LambdaQueryWrapper<UserSpotView>()
+                .eq(UserSpotView::getUserId, userId)
+                .orderByDesc(UserSpotView::getCreatedAt)
+                .last("LIMIT 20")
+        );
+        if (views.isEmpty()) {
+            return null;
+        }
+
+        UserSpotView latestView = views.get(0);
+        Spot latestSpot = spotMapper.selectById(latestView.getSpotId());
+
+        java.util.Map<String, Long> sourceCounter = views.stream()
+            .filter(view -> StringUtils.hasText(view.getViewSource()))
+            .collect(Collectors.groupingBy(UserSpotView::getViewSource, Collectors.counting()));
+
+        int averageDuration = (int) Math.round(views.stream()
+            .map(UserSpotView::getViewDuration)
+            .filter(java.util.Objects::nonNull)
+            .mapToInt(Integer::intValue)
+            .average()
+            .orElse(0));
+
+        AdminUserDetailResponse.ViewSummary summary = new AdminUserDetailResponse.ViewSummary();
+        summary.setLatestSpotName(latestSpot != null ? latestSpot.getName() : "景点#" + latestView.getSpotId());
+        summary.setLatestCreatedAt(latestView.getCreatedAt());
+        summary.setTopSource(sourceCounter.entrySet().stream()
+            .max(java.util.Map.Entry.comparingByValue())
+            .map(java.util.Map.Entry::getKey)
+            .orElse(null));
+        summary.setAverageDuration(averageDuration);
+        return summary;
+    }
+
     private String convertStatusToString(Integer status) {
         OrderStatus orderStatus = OrderStatus.fromCode(status);
         return orderStatus != null ? orderStatus.getKey() : "unknown";
+    }
+
+    private Long parseCategoryId(String tag) {
+        try {
+            return Long.parseLong(tag);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // 内部转换方法
