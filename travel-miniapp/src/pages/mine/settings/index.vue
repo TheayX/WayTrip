@@ -1,5 +1,7 @@
+<!-- 设置页 -->
 <template>
   <view class="settings-page">
+    <!-- 设置列表区域 -->
     <view class="settings-group">
       <view class="settings-cell" @click="contactService">
         <text class="cell-title">联系客服</text>
@@ -18,6 +20,7 @@
 </template>
 
 <script setup>
+// 交互处理方法
 const contactService = () => {
   uni.showModal({
     title: '联系客服',

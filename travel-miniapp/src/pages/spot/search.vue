@@ -1,3 +1,4 @@
+<!-- 景点搜索页 -->
 <template>
   <view class="ios-page">
     <!-- 搜索头部 -->
@@ -48,13 +49,14 @@ import { searchSpots } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 
+// 页面数据状态
 const keyword = ref('')
 const resultList = ref([])
 const page = ref(1)
 const hasMore = ref(true)
 const searched = ref(false)
 
-// 搜索
+// 数据加载方法
 const doSearch = async () => {
   if (!keyword.value.trim()) return
   
@@ -70,7 +72,6 @@ const doSearch = async () => {
   }
 }
 
-// 加载更多
 const loadMore = async () => {
   if (!hasMore.value || !keyword.value.trim()) return
   
@@ -85,19 +86,18 @@ const loadMore = async () => {
   }
 }
 
-// 清空关键词
+// 交互处理方法
 const clearKeyword = () => {
   keyword.value = ''
   resultList.value = []
   searched.value = false
 }
 
-// 返回
+// 页面跳转方法
 const goBack = () => {
   uni.navigateBack()
 }
 
-// 跳转详情
 const goDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return

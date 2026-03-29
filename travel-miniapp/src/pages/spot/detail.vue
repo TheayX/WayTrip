@@ -1,3 +1,4 @@
+<!-- 景点详情页 -->
 <template>
   <view class="ios-page" v-if="spot">
     <!-- 图片轮播 -->
@@ -54,6 +55,7 @@
       <text class="desc-content">{{ spot.description || '暂无简介' }}</text>
     </view>
 
+    <!-- 相似景点区域 -->
     <view class="related-card" v-if="similarSpots.length">
       <view class="card-header">
         <text class="card-title">看了又看</text>
@@ -163,6 +165,7 @@ import { getLocationSnapshot } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
+// 基础依赖与用户状态
 const spot = ref(null)
 const spotId = ref(null)
 const currentLocation = ref(null)
@@ -170,6 +173,7 @@ const userStore = useUserStore()
 let enterTime = 0
 let viewSource = 'detail'
 
+// 计算属性
 const spotImages = computed(() => {
   if (!spot.value) return []
 
@@ -211,6 +215,7 @@ const similarUpdateTimeText = computed(() => {
   return similarUpdateTime.value ? `更新于 ${similarUpdateTime.value}` : '相似景点'
 })
 
+// 工具方法
 const syncSpotPreview = (data) => {
   if (!data?.id) return
   uni.setStorageSync('spot_detail_updated', {
@@ -241,6 +246,7 @@ const saveSpotFootprint = (data) => {
   uni.setStorageSync('spot_footprints', nextList)
 }
 
+// 数据加载方法
 const fetchSpotDetail = async () => {
   try {
     const res = await getSpotDetail(spotId.value)
@@ -294,6 +300,7 @@ const syncCurrentLocation = async () => {
   currentLocation.value = snapshot.current
 }
 
+// 交互处理方法
 const previewImage = (index) => {
   if (!spotImages.value.length) return
   uni.previewImage({ current: index, urls: spotImages.value })
@@ -374,6 +381,7 @@ const handleDeleteComment = (comment) => {
   })
 }
 
+// 页面跳转方法
 const goBuy = () => {
   uni.navigateTo({ url: `/pages/order/create?spotId=${spotId.value}` })
 }
@@ -387,6 +395,7 @@ const formatSimilarity = (value) => {
   return value.toFixed(2)
 }
 
+// 生命周期
 onLoad((options) => {
   if (!guardLoginPage('登录后可查看景点详情，是否现在去登录？')) {
     return

@@ -1,11 +1,14 @@
+<!-- 账号注销页 -->
 <template>
   <view class="deactivate-page">
+    <!-- 风险提示区域 -->
     <view class="warning-card">
       <view class="warning-icon">⚠️</view>
       <text class="warning-title">注销账户</text>
       <text class="warning-desc">注销后你将无法使用此账户登录，所有数据将被保留。</text>
     </view>
 
+    <!-- 注销说明区域 -->
     <view class="info-section">
       <text class="info-title">注销说明</text>
       <view class="info-item">
@@ -26,6 +29,7 @@
       </view>
     </view>
 
+    <!-- 操作区域 -->
     <view class="action-buttons">
       <button class="btn-cancel" @click="goBack">取消</button>
       <button class="btn-deactivate" @click="confirmDeactivate">确认注销</button>
@@ -38,13 +42,16 @@ import { ref } from 'vue'
 import { deactivateAccount } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 
+// 基础依赖与用户状态
 const userStore = useUserStore()
 const loading = ref(false)
 
+// 页面跳转方法
 const goBack = () => {
   uni.navigateBack()
 }
 
+// 交互处理方法
 const confirmDeactivate = () => {
   uni.showModal({
     title: '确认注销',

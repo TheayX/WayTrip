@@ -1,7 +1,10 @@
+// 景点相关API接口
 import { get, post } from '@/utils/request'
 
 /**
  * 获取景点列表
+ * @param params
+ * @returns {*}
  */
 export const getSpotList = (params) => {
   return get('/spots', params)
@@ -9,6 +12,10 @@ export const getSpotList = (params) => {
 
 /**
  * 搜索景点
+ * @param keyword
+ * @param page
+ * @param pageSize
+ * @returns {*}
  */
 export const searchSpots = (keyword, page = 1, pageSize = 10) => {
   return get('/spots/search', { keyword, page, pageSize })
@@ -16,6 +23,8 @@ export const searchSpots = (keyword, page = 1, pageSize = 10) => {
 
 /**
  * 获取景点详情
+ * @param spotId
+ * @returns {*}
  */
 export const getSpotDetail = (spotId) => {
   return get(`/spots/${spotId}`)
@@ -23,13 +32,20 @@ export const getSpotDetail = (spotId) => {
 
 /**
  * 获取相似景点推荐
+ * @param spotId
+ * @param limit
+ * @returns {*}
  */
 export const getSimilarSpots = (spotId, limit = 6) => {
   return get('/recommendations/similar', { spotId, limit })
 }
 
 /**
- * 上报景点浏览行为
+ * 记录景点浏览
+ * @param spotId
+ * @param source
+ * @param duration
+ * @returns {*}
  */
 export const recordSpotView = (spotId, source, duration) => {
   // Query parameters
@@ -37,7 +53,8 @@ export const recordSpotView = (spotId, source, duration) => {
 }
 
 /**
- * 获取筛选选项
+ * 获取景点过滤条件
+ * @returns {*}
  */
 export const getFilters = () => {
   return get('/spots/filters')

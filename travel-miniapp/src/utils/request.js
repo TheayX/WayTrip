@@ -1,13 +1,10 @@
 import { useUserStore } from '@/stores/user'
 
-// 基础 URL 配置
-// Base URLs
+// 常量配置
 const SERVER_URL = 'http://localhost:8080'
 const BASE_URL = `${SERVER_URL.replace(/\/$/, '')}/api/v1`
 
-/**
- * 获取完整图片URL
- */
+// 图片地址处理方法
 const isHttpUrl = (value) => /^http:\/\//i.test(value)
 const isHttpsUrl = (value) => /^https:\/\//i.test(value)
 const isAbsoluteUrl = (value) => isHttpUrl(value) || isHttpsUrl(value)
@@ -36,9 +33,7 @@ export const getContentImageUrl = (url) => {
   return getImageUrl(url)
 }
 
-/**
- * 封装请求方法 (Uni-app 版本)
- */
+// 基础请求方法
 const request = (options) => {
   return new Promise((resolve, reject) => {
     const { url, method = 'GET', data = {}, showLoading = true, rejectOnAuthExpired = false } = options
@@ -106,27 +101,23 @@ const request = (options) => {
   })
 }
 
-// GET 请求
+// 对外暴露方法
 export const get = (url, data, options = {}) => {
   return request({ url, method: 'GET', data, ...options })
 }
 
-// POST 请求
 export const post = (url, data, options = {}) => {
   return request({ url, method: 'POST', data, ...options })
 }
 
-// PUT 请求
 export const put = (url, data, options = {}) => {
   return request({ url, method: 'PUT', data, ...options })
 }
 
-// DELETE 请求
 export const del = (url, data, options = {}) => {
   return request({ url, method: 'DELETE', data, ...options })
 }
 
-// 文件上传
 export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
   return new Promise((resolve, reject) => {
     const userStore = useUserStore()

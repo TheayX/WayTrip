@@ -1,15 +1,19 @@
+<!-- 发现页 -->
 <template>
   <view class="discover-page">
+    <!-- 顶部区域 -->
     <view class="page-intro">
       <text class="intro-title">发现</text>
       <text class="intro-desc">景点、攻略和推荐入口都集中在这里。</text>
     </view>
 
+    <!-- 搜索区域 -->
     <view class="search-card" @click="goSearch">
       <uni-icons type="search" size="18" color="#6b7280" />
       <text class="search-text">搜索景点、攻略</text>
     </view>
 
+    <!-- 快捷入口 -->
     <view class="quick-panel">
       <view class="quick-card" @click="goSpotList">
         <text class="quick-title">景点列表</text>
@@ -25,6 +29,7 @@
       </view>
     </view>
 
+    <!-- 内容切换 -->
     <view class="mode-tabs">
       <view
         v-for="tab in contentTabs"
@@ -37,6 +42,7 @@
       </view>
     </view>
 
+    <!-- 筛选区域 -->
     <view class="filter-card" v-if="showSpotFilters || showGuideFilters">
       <view class="filter-group" v-if="showSpotFilters">
         <text class="filter-group-title">地区</text>
@@ -161,6 +167,7 @@ import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
+// 常量配置
 const DISCOVER_STATE_KEY = 'discover_state'
 
 const contentTabs = [
@@ -169,6 +176,7 @@ const contentTabs = [
   { label: '攻略', value: 'guide' }
 ]
 
+// 页面数据状态
 const activeTab = ref('all')
 const regions = ref([])
 const spotCategories = ref([])
@@ -180,6 +188,7 @@ const selectedGuideCategory = ref('')
 const spotList = ref([])
 const guideList = ref([])
 
+// 计算属性
 const showSpotFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
 const showGuideFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
 const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
@@ -197,6 +206,7 @@ const guideSectionSubtitle = computed(() => {
   return '默认浏览攻略内容'
 })
 
+// 数据加载方法
 const fetchSpotFilters = async () => {
   try {
     const res = await getFilters()
@@ -243,6 +253,7 @@ const refreshDiscover = async () => {
   await Promise.all([fetchSpotPreview(), fetchGuidePreview()])
 }
 
+// 工具方法
 const persistDiscoverState = () => {
   uni.setStorageSync(DISCOVER_STATE_KEY, {
     tab: activeTab.value,
@@ -273,6 +284,7 @@ const applyPreset = () => {
   return true
 }
 
+// 交互处理方法
 const switchTab = (value) => {
   activeTab.value = value
   persistDiscoverState()
@@ -297,6 +309,7 @@ const selectGuideCategory = (value) => {
   fetchGuidePreview()
 }
 
+// 页面跳转方法
 const goSearch = () => {
   uni.navigateTo({ url: '/pages/spot/search' })
 }
@@ -329,6 +342,7 @@ const goGuideDetail = (id) => {
   uni.navigateTo({ url: `/pages/guide/detail?id=${id}` })
 }
 
+// 生命周期
 onShow(async () => {
   const updatedSpot = uni.getStorageSync('spot_detail_updated')
   if (updatedSpot?.id) {

@@ -1,5 +1,7 @@
+<!-- 偏好设置页 -->
 <template>
   <view class="ios-page">
+    <!-- 偏好选择区域 -->
     <view class="header">
       <PreferenceCategorySelector
         v-model="selectedIds"
@@ -24,11 +26,15 @@ import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import { useUserStore } from '@/stores/user'
 
+// 基础依赖与用户状态
 const userStore = useUserStore()
+
+// 页面数据状态
 const categories = ref([])
 const selectedIds = ref([])
 const saving = ref(false)
 
+// 数据加载方法
 const fetchCategories = async () => {
   try {
     const res = await getFilters()
@@ -47,6 +53,7 @@ const fetchUserPreferences = async () => {
   }
 }
 
+// 交互处理方法
 const handleLimitExceed = () => {
   uni.showToast({ title: '最多选择5个', icon: 'none' })
 }
@@ -75,6 +82,7 @@ const savePreferences = async () => {
   }
 }
 
+// 生命周期
 onMounted(() => {
   fetchCategories()
   fetchUserPreferences()

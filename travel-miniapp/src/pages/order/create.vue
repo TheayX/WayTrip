@@ -1,3 +1,4 @@
+<!-- 订单创建页 -->
 <template>
   <view class="ios-page" v-if="spot">
     <!-- 景点信息 -->
@@ -88,6 +89,7 @@ import { getSpotDetail } from '@/api/spot'
 import { createOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 
+// 页面数据状态
 const spot = ref(null)
 const spotId = ref(null)
 const submitting = ref(false)
@@ -99,6 +101,7 @@ const form = reactive({
   contactPhone: ''
 })
 
+// 计算属性
 const minDate = computed(() => {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
@@ -110,6 +113,7 @@ const totalPrice = computed(() => {
   return (spot.value.price * form.quantity).toFixed(2)
 })
 
+// 数据加载方法
 const fetchSpotDetail = async () => {
   try {
     const res = await getSpotDetail(spotId.value)
@@ -119,6 +123,7 @@ const fetchSpotDetail = async () => {
   }
 }
 
+// 交互处理方法
 const onDateChange = (e) => {
   form.visitDate = e.detail.value
 }
@@ -170,6 +175,7 @@ const handleSubmit = async () => {
   }
 }
 
+// 生命周期
 onLoad((options) => {
   spotId.value = options.spotId
   fetchSpotDetail()

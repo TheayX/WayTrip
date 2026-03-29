@@ -1,5 +1,7 @@
+<!-- 推荐列表页 -->
 <template>
   <view class="recommend-page">
+    <!-- 顶部区域 -->
     <view class="top-bar">
       <view>
         <text class="page-title">{{ recommendType }}</text>
@@ -8,11 +10,13 @@
       <text v-if="isLoggedIn" class="refresh-btn" @click="refreshList">刷新推荐</text>
     </view>
 
+    <!-- 偏好提示 -->
     <view class="preference-tip" v-if="isLoggedIn && needPreference" @click="showPreferencePopup">
       <text class="tip-main">选择景点分类偏好，帮助冷启动推荐更准确</text>
       <text class="tip-arrow">›</text>
     </view>
 
+    <!-- 推荐区域 -->
     <view class="recommend-list" v-if="isLoggedIn && recommendations.length">
       <view class="recommend-card" v-for="spot in recommendations" :key="spot.id" @click="goSpotDetail(spot.id)">
         <image class="card-image" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
@@ -37,6 +41,7 @@
       </view>
     </view>
 
+    <!-- 偏好设置弹层 -->
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
       <view class="preference-content">
         <PreferenceCategorySelector
@@ -65,8 +70,11 @@ import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
+// 基础依赖与用户状态
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
+
+// 页面数据状态
 const {
   recommendations,
   needPreference,
@@ -80,6 +88,7 @@ const {
   savePreferences: persistPreferences
 } = useRecommendationFeed(20)
 
+// 交互处理方法
 const refreshList = async () => {
   if (!promptLogin('登录后可刷新推荐，是否现在去登录？')) {
     return
@@ -125,6 +134,7 @@ const savePreferences = async () => {
   }
 }
 
+// 页面跳转方法
 const goSpotDetail = (spotId) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
@@ -132,6 +142,7 @@ const goSpotDetail = (spotId) => {
   uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=recommendation` })
 }
 
+// 生命周期
 onMounted(() => {
   selectedCategories.value = [...(userStore.userInfo?.preferenceCategoryIds || [])]
   fetchRecommendationList()

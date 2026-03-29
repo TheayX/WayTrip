@@ -1,3 +1,4 @@
+// 内部方法
 const buildGuideKey = (userId) => `cold_start_guide:${userId}`
 
 const resolveUserId = (userId) => {
@@ -5,6 +6,7 @@ const resolveUserId = (userId) => {
   return Number.isInteger(value) && value > 0 ? value : null
 }
 
+// 对外暴露方法
 export const getColdStartGuideState = (userId) => {
   const resolvedUserId = resolveUserId(userId)
   if (!resolvedUserId) {

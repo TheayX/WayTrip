@@ -5,6 +5,7 @@ import { setPreferences } from '@/api/user'
 import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
 import { useUserStore } from '@/stores/user'
 
+// 常量配置
 const RECOMMENDATION_TYPE_MAP = {
   personalized: '为你推荐',
   preference: '猜你喜欢',
@@ -12,6 +13,7 @@ const RECOMMENDATION_TYPE_MAP = {
 }
 
 export const useRecommendationFeed = (limit) => {
+  // 基础状态
   const userStore = useUserStore()
   const recommendations = ref([])
   const recommendationType = ref('hot')
@@ -20,10 +22,12 @@ export const useRecommendationFeed = (limit) => {
   const selectedCategories = ref([])
   const preferenceVisible = ref(false)
 
+  // 计算属性
   const recommendType = computed(() => {
     return RECOMMENDATION_TYPE_MAP[recommendationType.value] || '为你推荐'
   })
 
+  // 内部方法
   const applyRecommendationResponse = (data) => {
     recommendations.value = data?.list || []
     recommendationType.value = data?.type || 'hot'
@@ -56,6 +60,7 @@ export const useRecommendationFeed = (limit) => {
     }
   }
 
+  // 对外暴露方法
   const fetchRecommendationList = async () => {
     if (!userStore.token) {
       resetRecommendationState()

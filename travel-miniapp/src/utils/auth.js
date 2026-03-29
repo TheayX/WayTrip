@@ -1,5 +1,17 @@
 import { useUserStore } from '@/stores/user'
 
+// 内部方法
+const redirectAfterLoginCancel = () => {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+    return
+  }
+
+  uni.switchTab({ url: '/pages/index/index' })
+}
+
+// 对外暴露方法
 export const promptLogin = (content = '登录后可查看详情，是否现在去登录？') => {
   const userStore = useUserStore()
   if (userStore.isLoggedIn) {
@@ -18,16 +30,6 @@ export const promptLogin = (content = '登录后可查看详情，是否现在�
     }
   })
   return false
-}
-
-const redirectAfterLoginCancel = () => {
-  const pages = getCurrentPages()
-  if (pages.length > 1) {
-    uni.navigateBack()
-    return
-  }
-
-  uni.switchTab({ url: '/pages/index/index' })
 }
 
 export const guardLoginPage = (content = '登录后可查看详情，是否现在去登录？') => {
