@@ -11,6 +11,7 @@
       <!-- 导航菜单 -->
       <el-menu
         :default-active="$route.path"
+        :default-openeds="defaultOpenGroups"
         :collapse="isCollapse"
         :collapse-transition="false"
         router
@@ -19,10 +20,22 @@
         text-color="#a6adb4"
         active-text-color="#ffffff"
       >
-        <el-menu-item v-for="item in menuList" :key="item.path" :index="item.fullPath">
-          <el-icon><component :is="item.meta.icon" /></el-icon>
-          <template #title>{{ item.meta.title }}</template>
-        </el-menu-item>
+        <template v-for="group in groupedMenuList" :key="group.key">
+          <el-menu-item v-if="group.single && group.items.length === 1" :index="group.items[0].fullPath">
+            <el-icon><component :is="group.icon" /></el-icon>
+            <template #title>{{ group.items[0].meta.title }}</template>
+          </el-menu-item>
+          <el-sub-menu v-else :index="group.key">
+            <template #title>
+              <el-icon><component :is="group.icon" /></el-icon>
+              <span>{{ group.title }}</span>
+            </template>
+            <el-menu-item v-for="item in group.items" :key="item.path" :index="item.fullPath">
+              <el-icon><component :is="item.meta.icon" /></el-icon>
+              <template #title>{{ item.meta.title }}</template>
+            </el-menu-item>
+          </el-sub-menu>
+        </template>
       </el-menu>
     </el-aside>
 
@@ -38,6 +51,7 @@
           <!-- 面包屑导航 -->
           <el-breadcrumb separator="/" class="breadcrumb">
             <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="currentGroupTitle">{{ currentGroupTitle }}</el-breadcrumb-item>
             <el-breadcrumb-item>{{ $route.meta.title }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
@@ -73,6 +87,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { NAVIGATION_GROUPS, NAVIGATION_GROUP_MAP } from '@/constants/navigation'
 
 const router = useRouter()
 const route = useRoute()
@@ -80,13 +95,18 @@ const userStore = useUserStore()
 // 侧边栏折叠状态
 const isCollapse = ref(false)
 
-// 计算属性：生成菜单列表，包含完整路径
-const menuList = computed(() => {
+// 计算属性：按业务域分组生成菜单结构，避免一级菜单继续横向膨胀
+const groupedMenuList = computed(() => {
   const mainRoute = router.options.routes.find(r => r.path === '/')
-  return (mainRoute?.children || []).map(item => ({
+  const leafRoutes = (mainRoute?.children || []).map(item => ({
     ...item,
     fullPath: item.path.startsWith('/') ? item.path : `/${item.path}`
   }))
+
+  return NAVIGATION_GROUPS.map(group => ({
+    ...group,
+    items: leafRoutes.filter(item => item.meta?.group === group.key)
+  })).filter(group => group.items.length > 0)
 })
 
 // 处理用户下拉菜单命令
@@ -96,6 +116,14 @@ const handleCommand = (command) => {
     router.push('/login')
   }
 }
+
+const currentGroupTitle = computed(() => {
+  return NAVIGATION_GROUP_MAP[route.meta?.group]?.title || ''
+})
+
+const defaultOpenGroups = computed(() => {
+  return currentGroupTitle.value ? [route.meta?.group] : []
+})
 
 // 组件挂载时检查用户信息
 onMounted(async () => {
@@ -162,6 +190,17 @@ onMounted(async () => {
       }
 
       &:hover:not(.is-active) {
+        color: #fff;
+      }
+    }
+
+    :deep(.el-sub-menu__title) {
+      margin: 4px 8px;
+      border-radius: 4px;
+      height: 40px;
+      line-height: 40px;
+
+      &:hover {
         color: #fff;
       }
     }
