@@ -238,7 +238,13 @@ const handleOpenUser = (row) => {
 }
 
 const handleOpenSpot = (row) => {
-  router.push({ path: '/spot', query: { keyword: row.spotName || '' } })
+  router.push({
+    path: '/spot',
+    query: {
+      keyword: row.spotName || '',
+      spotId: row.spotId || ''
+    }
+  })
 }
 
 const handleOpenFavorite = (row) => {
