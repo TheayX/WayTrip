@@ -1,3 +1,4 @@
+<!-- 推荐引擎配置页面 -->
 <template>
   <div class="recommendation-page">
     <!-- 状态卡片 -->
@@ -343,7 +344,7 @@
           </el-row>
         </div>
 
-        <!-- 算法参数 -->
+        <!-- 在线推荐参数 -->
         <div class="form-section">
           <div class="section-eyebrow">
             <span>在线推荐与候选控制</span>
@@ -383,7 +384,7 @@
           </el-row>
         </div>
 
-        <!-- 缓存参数 -->
+        <!-- 缓存参数配置 -->
         <div class="form-section">
           <div class="section-eyebrow">
             <span>缓存与调试</span>
@@ -1103,6 +1104,7 @@ import {
   DataLine, Setting, Clock
 } from '@element-plus/icons-vue'
 
+// 默认推荐配置
 const createDefaultConfig = () => ({
   algorithm: {
     weightView: 0.5,
@@ -1141,6 +1143,7 @@ const createDefaultConfig = () => ({
   }
 })
 
+// 需要重建矩阵的字段
 const matrixFieldPaths = [
   'algorithm.weightView',
   'algorithm.weightFavorite',
@@ -1163,6 +1166,7 @@ const matrixFieldPaths = [
   'cache.similarityTTLHours'
 ]
 
+// 保存后即时生效的字段
 const immediateFieldPaths = [
   'algorithm.minInteractionsForCF',
   'algorithm.candidateExpandFactor',
@@ -1178,9 +1182,11 @@ const immediateFieldPaths = [
 
 const cloneConfig = (value) => JSON.parse(JSON.stringify(value))
 
+// 当前配置与上次保存的配置
 const config = reactive(createDefaultConfig())
 const savedConfig = ref(cloneConfig(createDefaultConfig()))
 
+// 应用服务端配置并补齐默认值
 const applyConfig = (nextConfig = {}) => {
   const defaults = createDefaultConfig()
   Object.assign(config.algorithm, defaults.algorithm, nextConfig.algorithm || {})
@@ -1194,6 +1200,7 @@ const getChangedPaths = (paths) => paths.filter(path => getByPath(config, path) 
 const matrixChangedPaths = computed(() => getChangedPaths(matrixFieldPaths))
 const immediateChangedPaths = computed(() => getChangedPaths(immediateFieldPaths))
 
+// 推荐引擎运行状态
 const status = reactive({
   lastUpdateTime: null,
   totalUsers: null,
@@ -1201,6 +1208,7 @@ const status = reactive({
   computing: false
 })
 
+// 顶部影响说明卡片
 const impactOverviewCards = computed(() => [
   {
     title: '在线即时生效',
@@ -1522,7 +1530,7 @@ const coldStartDataFieldReferences = [
   }
 ]
 
-// 获取配置
+// 加载推荐配置
 const fetchConfig = async () => {
   try {
     const res = await getRecommendationConfig()
@@ -1539,7 +1547,7 @@ const fetchConfig = async () => {
   }
 }
 
-// 获取状态
+// 加载引擎状态
 const fetchStatus = async () => {
   try {
     const res = await getRecommendationStatus()
@@ -1551,7 +1559,7 @@ const fetchStatus = async () => {
   }
 }
 
-// 保存配置
+// 保存推荐配置
 const handleSaveConfig = async () => {
   try {
     saving.value = true
@@ -1581,7 +1589,7 @@ const handleSaveConfig = async () => {
   }
 }
 
-// 恢复默认
+// 恢复默认配置
 const handleResetConfig = async () => {
   try {
     await ElMessageBox.confirm(
@@ -1601,7 +1609,7 @@ const handleResetConfig = async () => {
   }
 }
 
-// 更新矩阵
+// 重建推荐矩阵
 const handleUpdateMatrix = async () => {
   try {
     await ElMessageBox.confirm(
@@ -1679,6 +1687,7 @@ const handlePreviewSimilarityWithMatrixUpdate = async () => {
   }
 }
 
+// 页面初始化
 onMounted(() => {
   fetchConfig()
   fetchStatus()

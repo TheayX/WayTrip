@@ -1,13 +1,21 @@
 <!DOCTYPE html>
+<!--
+  WayTrip 管理后台入口文件
+  作用：作为管理后台的 HTML 模板，加载 Vue 应用的主入口文件和样式
+  位置：travel-admin/index.html
+-->
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <!-- Vite 项目的 favicon -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WayTrip·微旅 - 管理后台</title>
   </head>
   <body>
+    <!-- Vue 应用的挂载点 -->
     <div id="app"></div>
+    <!-- 通过 Vite 加载主入口 JS 文件（开发模式下会启用 HMR） -->
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

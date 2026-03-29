@@ -1,5 +1,11 @@
+// 旅游目的地相关接口
 import request from '@/utils/request'
 
+/**
+ * 获取目的地列表
+ * @param params
+ * @returns {*}
+ */
 export function getRegions(params) {
   return request({
     url: '/regions',
@@ -8,6 +14,11 @@ export function getRegions(params) {
   })
 }
 
+/**
+ * 创建新目的地
+ * @param data
+ * @returns {*}
+ */
 export function createRegion(data) {
   return request({
     url: '/regions',
@@ -16,6 +27,12 @@ export function createRegion(data) {
   })
 }
 
+/**
+ * 更新目的地信息
+ * @param id
+ * @param data
+ * @returns {*}
+ */
 export function updateRegion(id, data) {
   return request({
     url: `/regions/${id}`,
@@ -24,6 +41,11 @@ export function updateRegion(id, data) {
   })
 }
 
+/**
+ * 删除目的地
+ * @param id
+ * @returns {*}
+ */
 export function deleteRegion(id) {
   return request({
     url: `/regions/${id}`,

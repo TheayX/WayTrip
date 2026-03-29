@@ -1,13 +1,15 @@
+<!-- 用户管理页面 -->
 <template>
   <div class="user-page">
     <el-card  shadow="hover">
+      <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>用户管理</span>
         </div>
       </template>
 
-      <!-- 搜索 -->
+      <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="昵称">
           <el-input
@@ -53,7 +55,7 @@
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
+      <!-- 分页器 -->
       <div class="pagination-wrapper">
         <el-pagination
           v-model:current-page="pagination.page"
@@ -67,7 +69,7 @@
       </div>
     </el-card>
 
-    <!-- 用户详情弹窗 -->
+    <!-- 用户详情对话框 -->
     <el-dialog v-model="detailVisible" title="用户详情" width="600px">
       <el-descriptions :column="2" border v-if="currentUser">
         <el-descriptions-item label="头像">
@@ -106,12 +108,12 @@ import { ref, reactive, onMounted } from 'vue'
 import { getUserList, getUserDetail, resetUserPassword } from '@/api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-// 搜索表单
+// 查询参数
 const searchForm = reactive({
   nickname: ''
 })
 
-// 列表数据
+// 列表状态
 const loading = ref(false)
 const userList = ref([])
 const pagination = reactive({
@@ -120,10 +122,11 @@ const pagination = reactive({
   total: 0
 })
 
-// 详情弹窗
+// 对话框与表单状态
 const detailVisible = ref(false)
 const currentUser = ref(null)
 
+// 格式化手机号显示
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
   const normalized = phone.trim()
@@ -154,19 +157,19 @@ const fetchUserList = async () => {
   }
 }
 
-// 搜索
+// 搜索操作
 const handleSearch = () => {
   pagination.page = 1
   fetchUserList()
 }
 
-// 重置
+// 重置搜索条件
 const handleReset = () => {
   searchForm.nickname = ''
   handleSearch()
 }
 
-// 查看详情
+// 打开用户详情对话框
 const handleDetail = async (row) => {
   try {
     const res = await getUserDetail(row.id)
@@ -201,6 +204,7 @@ const handleResetPassword = async (row) => {
   }
 }
 
+// 页面初始化
 onMounted(() => {
   fetchUserList()
 })

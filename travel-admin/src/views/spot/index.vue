@@ -1,6 +1,8 @@
+<!-- 景点管理页面 -->
 <template>
   <div class="spot-page">
     <el-card  shadow="hover">
+      <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>景点列表</span>
@@ -12,6 +14,7 @@
         </div>
       </template>
 
+      <!-- 搜索筛选表单 -->
       <el-form :inline="true" :model="queryParams" class="search-form" @submit.prevent>
         <el-form-item label="关键词">
           <el-input
@@ -64,6 +67,7 @@
         </el-form-item>
       </el-form>
 
+      <!-- 景点数据表格 -->
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column label="封面" width="100">
@@ -115,6 +119,7 @@
         </el-table-column>
       </el-table>
 
+      <!-- 分页器 -->
       <el-pagination
         v-model:current-page="queryParams.page"
         v-model:page-size="queryParams.pageSize"
@@ -127,6 +132,7 @@
       />
     </el-card>
 
+    <!-- 新增/编辑景点对话框 -->
     <el-dialog v-model="dialogVisible" :title="editId ? '编辑景点' : '新增景点'" width="700px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="名称" prop="name">
@@ -235,6 +241,7 @@
       </template>
     </el-dialog>
 
+    <!-- 热度设置对话框 -->
     <el-dialog v-model="heatDialogVisible" title="热度设置" width="420px">
       <el-form ref="heatFormRef" :model="heatForm" :rules="heatRules" label-width="110px">
         <el-form-item label="当前评分">
@@ -287,6 +294,7 @@ import { useUserStore } from '@/stores/user'
 const BASE_URL = 'http://localhost:8080'
 const userStore = useUserStore()
 
+// 上传相关配置
 const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/image`)
 const uploadHeaders = computed(() => ({
   Authorization: `Bearer ${userStore.token}`
@@ -295,6 +303,7 @@ const uploadData = computed(() => ({
   tag: form.name || ''
 }))
 
+// 补全图片访问地址
 const getImageUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
@@ -306,6 +315,7 @@ const formatDate = (dateStr) => {
   return dateStr.replace('T', ' ').substring(0, 19)
 }
 
+// 热度档位选项
 const heatLevelOptions = [
   { value: 0, label: '普通' },
   { value: 1, label: '推荐' },
@@ -385,6 +395,7 @@ const regionTree = ref([])
 const categories = ref([])
 const categoryTree = ref([])
 
+// 扁平化分类树，便于建立父子映射
 const flattenCategories = (nodes = [], level = 0) => {
   return nodes.reduce((acc, node) => {
     const hasChildren = Array.isArray(node.children) && node.children.length > 0
@@ -454,6 +465,7 @@ const uiFilters = reactive({
   published: ''
 })
 
+// 对话框与表单状态
 const dialogVisible = ref(false)
 const editId = ref(null)
 const submitting = ref(false)
@@ -463,6 +475,7 @@ const heatSubmitting = ref(false)
 const heatFormRef = ref()
 const heatEditId = ref(null)
 
+// 景点编辑表单
 const form = reactive({
   name: '',
   price: 0,
@@ -502,11 +515,13 @@ const heatRules = {
   heatLevel: [{ required: true, message: '请选择热度档位', trigger: 'change' }]
 }
 
+// 页面初始化
 onMounted(() => {
   loadFilters()
   loadData()
 })
 
+// 加载筛选项
 const loadFilters = async () => {
   try {
     const res = await getFilters()
@@ -517,6 +532,7 @@ const loadFilters = async () => {
   } catch (e) {}
 }
 
+// 将界面筛选值同步到查询参数
 const syncFilters = () => {
   const selectedRegionId = uiFilters.regionPath?.length
     ? uiFilters.regionPath[uiFilters.regionPath.length - 1]
@@ -531,6 +547,7 @@ const syncFilters = () => {
     : Number(uiFilters.published)
 }
 
+// 根据节点 ID 查找级联路径
 const findPathById = (targetId, tree) => {
   if (!targetId || !Array.isArray(tree) || !tree.length) {
     return []
@@ -551,6 +568,7 @@ const findPathById = (targetId, tree) => {
   return []
 }
 
+// 加载景点列表
 const loadData = async () => {
   loading.value = true
   try {
@@ -562,6 +580,7 @@ const loadData = async () => {
   }
 }
 
+// 搜索操作
 const handleSearch = () => {
   queryParams.page = 1
   syncFilters()
@@ -572,6 +591,7 @@ const handleFilterChange = () => {
   handleSearch()
 }
 
+// 重置搜索条件
 const handleReset = () => {
   queryParams.keyword = ''
   queryParams.regionId = null
@@ -583,6 +603,7 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 重置景点表单
 const resetForm = () => {
   Object.assign(form, {
     name: '',
@@ -603,12 +624,14 @@ const resetForm = () => {
   })
 }
 
+// 新增景点
 const handleAdd = () => {
   editId.value = null
   resetForm()
   dialogVisible.value = true
 }
 
+// 编辑景点
 const handleEdit = async (row) => {
   editId.value = row.id
   try {
@@ -621,6 +644,7 @@ const handleEdit = async (row) => {
   } catch (e) {}
 }
 
+// 打开热度设置对话框
 const handleHeatEdit = async (row) => {
   heatEditId.value = row.id
   try {
@@ -671,6 +695,7 @@ const handleParentCategoryChange = () => {
   form.categoryId = null
 }
 
+// 构建接口提交参数
 const buildSubmitPayload = () => ({
   name: form.name,
   description: form.description,
@@ -687,6 +712,7 @@ const buildSubmitPayload = () => ({
   images: form.images
 })
 
+// 提交景点表单
 const handleSubmit = async () => {
   await formRef.value.validate()
   submitting.value = true
@@ -705,6 +731,7 @@ const handleSubmit = async () => {
   }
 }
 
+// 提交热度设置
 const handleHeatSubmit = async () => {
   await heatFormRef.value.validate()
   heatSubmitting.value = true
@@ -720,6 +747,7 @@ const handleHeatSubmit = async () => {
   }
 }
 
+// 切换发布状态
 const handleTogglePublish = async (row) => {
   const action = row.published ? '下架' : '发布'
   await ElMessageBox.confirm(`确定要${action}该景点吗？`, '提示', { type: 'warning' })
@@ -728,6 +756,7 @@ const handleTogglePublish = async (row) => {
   loadData()
 }
 
+// 删除景点
 const handleDelete = async (row) => {
   await ElMessageBox.confirm('确定要删除该景点吗？', '提示', { type: 'warning' })
   await deleteSpot(row.id)

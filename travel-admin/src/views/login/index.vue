@@ -1,7 +1,10 @@
+<!-- 登录页面 -->
 <template>
   <div class="login-container">
+    <!-- 背景装饰层 -->
     <div class="login-bg"></div>
     <div class="login-box">
+      <!-- 左侧品牌介绍 -->
       <div class="login-left">
         <div class="left-content">
           <div class="brand">
@@ -16,6 +19,7 @@
           <div class="circle circle-2"></div>
         </div>
       </div>
+      <!-- 右侧登录表单 -->
       <div class="login-right">
         <div class="form-wrapper">
           <h2 class="title">欢迎回来</h2>
@@ -45,11 +49,13 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
+// 基础状态
 const router = useRouter()
 const userStore = useUserStore()
 const formRef = ref()
 const loading = ref(false)
 
+// 登录表单
 const form = reactive({
   username: '',
   password: ''
@@ -60,6 +66,7 @@ const rules = {
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }
 
+// 提交登录
 const handleLogin = async () => {
   if (!formRef.value) return
   await formRef.value.validate()

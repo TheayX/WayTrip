@@ -1,3 +1,4 @@
+<!-- 仪表板页面 -->
 <template>
   <div class="dashboard">
     <!-- 统计卡片 -->
@@ -131,11 +132,13 @@ import { ElMessage } from 'element-plus'
 import { RefreshRight, UserFilled, LocationInformation, Tickets, Money, Top } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 
+// 仪表板概览数据
 const overview = ref({})
 const orderTrend = ref([])
 const hotSpots = ref([])
 const updatingMatrix = ref(false)
 
+// 图表实例引用
 const chartRef = ref(null)
 const chartInstance = shallowRef(null)
 
@@ -232,7 +235,7 @@ const initChart = () => {
   chartInstance.value.setOption(option)
 }
 
-// 获取数据
+// 加载仪表板数据
 const fetchData = async () => {
   try {
     const [overviewRes, trendRes, hotRes] = await Promise.all([
@@ -258,11 +261,13 @@ const handleResize = () => {
   chartInstance.value?.resize()
 }
 
+// 页面初始化
 onMounted(() => {
   fetchData()
   window.addEventListener('resize', handleResize)
 })
 
+// 页面销毁时清理资源
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   chartInstance.value?.dispose()

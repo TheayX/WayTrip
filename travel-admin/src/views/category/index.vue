@@ -1,3 +1,4 @@
+<!-- 分类管理页面 -->
 <template>
   <div class="category-page">
     <el-row :gutter="20">
@@ -88,7 +89,7 @@
       </el-col>
     </el-row>
 
-    <!-- 弹窗 -->
+    <!-- 新增/编辑对话框 -->
     <el-dialog 
       v-model="dialogVisible" 
       :title="dialogTitle"
@@ -142,7 +143,7 @@ import { useUserStore } from '@/stores/user'
 const BASE_URL = 'http://localhost:8080'
 const userStore = useUserStore()
 
-// 上传配置
+// 上传相关配置
 const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/icon`)
 const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
@@ -151,7 +152,7 @@ const uploadData = computed(() => ({
   tag: form.name || ''
 }))
 
-// 获取完整图片URL
+// 补全图片访问地址
 const getImageUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
@@ -163,14 +164,14 @@ const formatDate = (dateStr) => {
   return dateStr.replace('T', ' ').substring(0, 19)
 }
 
-// 状态
+// 列表状态
 const loading1 = ref(false)
 const loading2 = ref(false)
 const level1List = ref([])
 const level2List = ref([])
 const activeParentId = ref(null)
 
-// 弹窗
+// 对话框与表单状态
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const isLevel2 = ref(false)
@@ -185,6 +186,7 @@ const form = reactive({
   sortOrder: 1
 })
 
+// 表单校验规则
 const rules = {
   name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }]
 }
@@ -213,7 +215,7 @@ const fetchLevel1 = async () => {
   }
 }
 
-// 选中一级分类
+// 选择一级分类
 const handleSelectParent = (id) => {
   activeParentId.value = id
   fetchLevel2(id)
@@ -232,7 +234,7 @@ const fetchLevel2 = async (parentId) => {
   }
 }
 
-// 一级分类操作
+// 一级分类相关操作
 const handleAddLevel1 = () => {
   isEdit.value = false
   isLevel2.value = false
@@ -261,7 +263,7 @@ const handleDeleteLevel1 = async (row) => {
   } catch (e) {}
 }
 
-// 二级分类操作
+// 二级分类相关操作
 const handleAddLevel2 = () => {
   isEdit.value = false
   isLevel2.value = true
@@ -287,7 +289,7 @@ const handleDeleteLevel2 = async (row) => {
   } catch (e) {}
 }
 
-// 图片上传
+// 图片上传相关方法
 const beforeUpload = (file) => {
   const isImage = file.type.startsWith('image/')
   if (!isImage) ElMessage.error('只能上传图片文件!')
@@ -303,7 +305,7 @@ const handleUploadSuccess = (response) => {
   }
 }
 
-// 提交表单
+// 提交分类表单
 const handleSubmit = async () => {
   if (!formRef.value) return
   await formRef.value.validate()
@@ -331,6 +333,7 @@ const handleSubmit = async () => {
   }
 }
 
+// 页面初始化
 onMounted(() => {
   fetchLevel1()
 })

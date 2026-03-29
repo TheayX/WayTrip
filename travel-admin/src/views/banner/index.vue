@@ -1,6 +1,8 @@
+<!-- 轮播图管理页面 -->
 <template>
   <div class="banner-page">
     <el-card  shadow="hover">
+      <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>轮播图管理</span>
@@ -55,7 +57,7 @@
       </el-table>
     </el-card>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增/编辑对话框 -->
     <el-dialog 
       v-model="dialogVisible" 
       :title="isEdit ? '编辑轮播图' : '新增轮播图'"
@@ -131,13 +133,13 @@ import { useUserStore } from '@/stores/user'
 const BASE_URL = 'http://localhost:8080'
 const userStore = useUserStore()
 
-// 上传配置
+// 上传相关配置
 const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/image`)
 const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
 }))
 
-// 获取完整图片URL
+// 补全图片访问地址
 const getImageUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
@@ -149,12 +151,12 @@ const formatDate = (dateStr) => {
   return dateStr.replace('T', ' ').substring(0, 19)
 }
 
-// 列表数据
+// 列表状态
 const loading = ref(false)
 const bannerList = ref([])
 const spotList = ref([])
 
-// 弹窗
+// 对话框与表单状态
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
@@ -168,6 +170,7 @@ const form = reactive({
   enabled: 1
 })
 
+// 表单校验规则
 const rules = {
   imageUrl: [{ required: true, message: '请上传轮播图片', trigger: 'change' }]
 }
@@ -203,7 +206,7 @@ const handleUploadError = () => {
   ElMessage.error('上传失败，请重试')
 }
 
-// 获取轮播图列表
+// 加载轮播图列表
 const fetchBannerList = async () => {
   loading.value = true
   try {
@@ -216,7 +219,7 @@ const fetchBannerList = async () => {
   }
 }
 
-// 获取景点列表
+// 加载景点选项
 const fetchSpotList = async () => {
   try {
     const res = await getSpotList({ pageSize: 100 })
@@ -226,7 +229,7 @@ const fetchSpotList = async () => {
   }
 }
 
-// 新增
+// 新增轮播图
 const handleAdd = () => {
   isEdit.value = false
   currentId.value = null
@@ -239,7 +242,7 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
-// 编辑
+// 编辑轮播图
 const handleEdit = (row) => {
   isEdit.value = true
   currentId.value = row.id
@@ -252,7 +255,7 @@ const handleEdit = (row) => {
   dialogVisible.value = true
 }
 
-// 提交
+// 提交轮播图表单
 const handleSubmit = async () => {
   try {
     await formRef.value.validate()
@@ -277,7 +280,7 @@ const handleSubmit = async () => {
   }
 }
 
-// 切换状态
+// 切换启用状态
 const handleToggle = async (row) => {
   try {
     await toggleBannerEnabled(row.id)
@@ -288,7 +291,7 @@ const handleToggle = async (row) => {
   }
 }
 
-// 删除
+// 删除轮播图
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除该轮播图吗？', '提示', {
@@ -304,6 +307,7 @@ const handleDelete = async (row) => {
   }
 }
 
+// 页面初始化
 onMounted(() => {
   fetchBannerList()
   fetchSpotList()
