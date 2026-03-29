@@ -163,9 +163,9 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getGuideList, getGuideDetail, createGuide, updateGuide, updatePublishStatus, deleteGuide, getCategories } from '@/api/guide'
-import { getSpotList } from '@/api/spot'
 import { useUserStore } from '@/stores/user'
 import { getAdminUploadUrl, getResourceUrl } from '@/utils/resource'
+import { fetchAllSpotOptions } from '@/utils/spot-options'
 
 const userStore = useUserStore()
 
@@ -288,8 +288,7 @@ const loadCategories = async () => {
 // 加载景点选项
 const loadSpots = async () => {
   try {
-    const res = await getSpotList({ page: 1, pageSize: 100 })
-    spotList.value = res.data.list || []
+    spotList.value = await fetchAllSpotOptions()
   } catch (e) {}
 }
 
