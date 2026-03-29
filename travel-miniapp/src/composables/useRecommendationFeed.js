@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { getFilters } from '@/api/spot'
 import { getRecommendations, refreshRecommendations } from '@/api/home'
-import { updatePreferences } from '@/api/user'
+import { setPreferences } from '@/api/user'
 import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
 import { useUserStore } from '@/stores/user'
 
@@ -90,7 +90,7 @@ export const useRecommendationFeed = (limit) => {
       .map(id => categories.value.find(cat => cat.id === id)?.name)
       .filter(Boolean)
 
-    await updatePreferences({ categoryIds })
+    await setPreferences({ categoryIds })
     userStore.updatePreferences({
       preferences: categoryNames,
       preferenceCategoryIds: categoryIds,
