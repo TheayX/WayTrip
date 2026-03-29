@@ -1,5 +1,7 @@
+<!-- 附近景点页 -->
 <template>
   <view class="nearby-page">
+    <!-- 顶部概览区域 -->
     <view class="hero-card">
       <view class="hero-copy">
         <text class="hero-title">附近景点</text>
@@ -11,6 +13,7 @@
       </view>
     </view>
 
+    <!-- 地图区域 -->
     <view class="map-card">
       <map
         v-if="canShowMap"
@@ -28,6 +31,7 @@
       </view>
     </view>
 
+    <!-- 列表区域 -->
     <view v-if="displaySpots.length" class="spot-list">
       <view class="spot-card" v-for="spot in displaySpots" :key="spot.id" @click="goSpotDetail(spot.id)">
         <image class="spot-image" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
@@ -66,14 +70,17 @@ import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
 import { getContentImageUrl } from '@/utils/request'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
+// 页面数据状态
 const nearbySpots = ref([])
 const locationInfo = ref(null)
 const loading = ref(false)
 const locationStatus = ref('idle')
 
+// 常量配置
 const markerIcon = '/static/tabbar/spot-active.png'
 const MAX_NEARBY_DISTANCE_KM = 100
 
+// 工具方法
 const toFiniteNumber = (value) => {
   const num = Number(value)
   return Number.isFinite(num) ? num : null
@@ -83,6 +90,7 @@ const isValidLatitude = (value) => value !== null && value >= -90 && value <= 90
 const isValidLongitude = (value) => value !== null && value >= -180 && value <= 180
 const isValidCoordinate = (latitude, longitude) => isValidLatitude(latitude) && isValidLongitude(longitude)
 
+// 计算属性
 const heroSubtitle = computed(() => {
   if (loading.value) return '正在根据当前位置获取周边景点'
   if (locationStatus.value === 'ready' && displaySpots.value.length) {
@@ -197,6 +205,7 @@ const formatDistance = (value) => {
   return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
 }
 
+// 数据加载方法
 const fetchNearby = async (latitude, longitude, showErrorToast = false) => {
   loading.value = true
   try {
@@ -234,6 +243,7 @@ const loadNearby = async () => {
   }
 }
 
+// 交互处理方法
 const handleRetryLocation = () => {
   loadNearby()
 }
@@ -245,6 +255,7 @@ const handleMarkerTap = (event) => {
   }
 }
 
+// 页面跳转方法
 const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
@@ -252,6 +263,7 @@ const goSpotDetail = (id) => {
   uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=nearby` })
 }
 
+// 生命周期
 onLoad(async (options) => {
   if (!promptLogin('登录后可查看附近景点，是否现在去登录？')) {
     return

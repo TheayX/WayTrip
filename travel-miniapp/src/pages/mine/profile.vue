@@ -1,5 +1,7 @@
+<!-- 账号资料页 -->
 <template>
   <view class="profile-page">
+    <!-- 基本资料区域 -->
     <view class="profile-card">
       <text class="card-title">基本资料</text>
 
@@ -35,6 +37,7 @@
       <button class="save-button" @click="submitProfile">保存资料</button>
     </view>
 
+    <!-- 账户安全区域 -->
     <view class="profile-card">
       <text class="card-title">账户安全</text>
       <view class="link-cell" @click="goPassword">
@@ -58,10 +61,12 @@ import { getUserInfo, updateUserInfo, uploadAvatar } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { getAvatarUrl } from '@/utils/request'
 
+// 基础依赖与用户状态
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
 
+// 页面数据状态
 const form = reactive({
   nickname: '',
   phone: '',
@@ -70,6 +75,7 @@ const form = reactive({
   avatarTempFile: ''
 })
 
+// 数据加载方法
 const syncUserInfo = async () => {
   const res = await getUserInfo()
   userStore.setUserInfo(res.data)
@@ -92,6 +98,7 @@ const ensureLogin = () => {
   return false
 }
 
+// 交互处理方法
 const onChooseAvatar = (e) => {
   const url = e?.detail?.avatarUrl || ''
   if (!url) return
@@ -125,6 +132,7 @@ const submitProfile = async () => {
   }
 }
 
+// 页面跳转方法
 const goPassword = () => {
   uni.navigateTo({ url: '/pages/mine/password' })
 }
@@ -133,6 +141,7 @@ const goDeactivate = () => {
   uni.navigateTo({ url: '/pages/mine/deactivate' })
 }
 
+// 生命周期
 onShow(async () => {
   if (!ensureLogin()) return
   try {

@@ -1,6 +1,4 @@
-/**
- * 格式化日期
- */
+// 工具方法
 const formatDate = (date, fmt = 'YYYY-MM-DD') => {
   if (!date) return ''
   if (typeof date === 'string') {
@@ -24,17 +22,12 @@ const formatDate = (date, fmt = 'YYYY-MM-DD') => {
   return fmt
 }
 
-/**
- * 格式化价格
- */
 const formatPrice = (price) => {
   if (price === undefined || price === null) return '0.00'
   return Number(price).toFixed(2)
 }
 
-/**
- * 订单状态文本
- */
+// 常量配置
 const orderStatusText = {
   'PENDING_PAYMENT': '待支付',
   'PENDING_USE': '待使用',
@@ -46,6 +39,7 @@ const getOrderStatusText = (status) => {
   return orderStatusText[status] || status
 }
 
+// 对外暴露方法
 export {
   formatDate,
   formatPrice,

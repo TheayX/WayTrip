@@ -1,7 +1,10 @@
+<!-- 攻略详情页 -->
 <template>
   <view class="guide-detail-page" v-if="guide">
+    <!-- 顶部封面区域 -->
     <image class="guide-cover" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
 
+    <!-- 攻略信息区域 -->
     <view class="guide-header card">
       <text class="guide-title">{{ guide.title }}</text>
       <view class="guide-meta">
@@ -11,10 +14,12 @@
       <text class="guide-intro">这篇攻略提到的景点会集中展示在下方，方便直接跳转查看。</text>
     </view>
 
+    <!-- 攻略内容区域 -->
     <view class="guide-content card">
       <rich-text :nodes="guide.content"></rich-text>
     </view>
 
+    <!-- 关联景点区域 -->
     <view class="related-spots card">
       <view class="section-header">
         <view>
@@ -55,9 +60,11 @@ import { getGuideDetail } from '@/api/guide'
 import { guardLoginPage } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 
+// 页面数据状态
 const guide = ref(null)
 const guideId = ref(null)
 
+// 工具方法
 const syncGuidePreview = (data) => {
   if (!data?.id) return
   uni.setStorageSync('guide_detail_updated', {
@@ -71,6 +78,7 @@ const syncGuidePreview = (data) => {
   })
 }
 
+// 数据加载方法
 const fetchGuideDetail = async () => {
   try {
     const res = await getGuideDetail(guideId.value)
@@ -88,6 +96,7 @@ const fetchGuideDetail = async () => {
   }
 }
 
+// 页面跳转方法
 const goSpotDetail = (id) => {
   uni.navigateTo({
     url: `/pages/spot/detail?id=${id}&source=guide`
@@ -98,6 +107,7 @@ const goSpotList = () => {
   uni.navigateTo({ url: '/pages/spot/list?sortBy=heat' })
 }
 
+// 生命周期
 onLoad((options) => {
   if (!guardLoginPage('登录后可查看攻略详情，是否现在去登录？')) {
     return

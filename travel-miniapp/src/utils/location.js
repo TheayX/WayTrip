@@ -1,5 +1,7 @@
+// 常量配置
 const LOCATION_CACHE_KEY = 'user_location_cache'
 
+// 内部方法
 const saveLocationCache = (location) => {
   if (!location) return
   uni.setStorageSync(LOCATION_CACHE_KEY, {
@@ -38,6 +40,7 @@ const openLocationSetting = () => new Promise((resolve) => {
   })
 })
 
+// 对外暴露方法
 export const ensureLocationPermission = async () => {
   try {
     await requestAuthorize()

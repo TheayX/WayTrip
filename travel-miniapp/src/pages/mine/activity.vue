@@ -1,5 +1,7 @@
+<!-- 我的互动页 -->
 <template>
   <view class="activity-page">
+    <!-- 顶部类型切换 -->
     <view class="tab-bar">
       <view
         v-for="tab in tabs"
@@ -12,6 +14,7 @@
       </view>
     </view>
 
+    <!-- 内容区域 -->
     <scroll-view class="activity-scroll" scroll-y @scrolltolower="loadMore">
       <template v-if="activeTab === 'browse'">
         <view v-if="footprintList.length" class="card-list">
@@ -98,6 +101,7 @@
       </view>
     </scroll-view>
 
+    <!-- 编辑评价弹层 -->
     <view v-if="editVisible" class="popup-mask" @tap="closeEdit">
       <view class="popup-panel" @tap.stop>
         <text class="popup-title">编辑评价</text>
@@ -134,14 +138,18 @@ import { deleteReview, getMyReviews, submitReview } from '@/api/review'
 import { useUserStore } from '@/stores/user'
 import { getContentImageUrl, getImageUrl } from '@/utils/request'
 
+// 常量配置
 const tabs = [
   { key: 'browse', label: '浏览' },
   { key: 'favorite', label: '收藏' },
   { key: 'review', label: '评价' }
 ]
 
+// 基础依赖与用户状态
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
+
+// 页面数据状态
 const activeTab = ref('browse')
 const footprintList = ref([])
 
@@ -168,6 +176,7 @@ const editForm = reactive({
   comment: ''
 })
 
+// 计算属性
 const currentLoading = computed(() => {
   if (activeTab.value === 'favorite') return favoriteLoading.value
   if (activeTab.value === 'review') return reviewLoading.value
@@ -184,6 +193,7 @@ const showLoadMore = computed(() => {
   return false
 })
 
+// 工具方法
 const normalizeTab = (tab) => {
   return tabs.some(item => item.key === tab) ? tab : 'browse'
 }
@@ -208,6 +218,7 @@ const formatViewedTime = (timestamp) => {
   return `${yyyy}-${mm}-${dd} ${hh}:${min}`
 }
 
+// 数据加载方法
 const loadFootprints = () => {
   const history = uni.getStorageSync('spot_footprints')
   footprintList.value = Array.isArray(history) ? history : []
@@ -261,6 +272,7 @@ const loadActiveTab = async (reset = false) => {
   await fetchReviewPage(reset)
 }
 
+// 交互处理方法
 const switchTab = async (tab) => {
   const nextTab = normalizeTab(tab)
   if (nextTab === activeTab.value) return
@@ -336,10 +348,12 @@ const handleDelete = (item) => {
   })
 }
 
+// 页面跳转方法
 const goSpot = (spotId, source) => {
   uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=${source}` })
 }
 
+// 生命周期
 onLoad((options) => {
   activeTab.value = normalizeTab(options?.tab)
 })

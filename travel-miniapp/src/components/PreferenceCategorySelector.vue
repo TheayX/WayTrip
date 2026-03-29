@@ -1,3 +1,4 @@
+<!-- 偏好分类选择器组件 -->
 <template>
   <view class="selector-card">
     <text v-if="eyebrow" class="selector-eyebrow">{{ eyebrow }}</text>
@@ -41,6 +42,7 @@
 <script setup>
 import { computed } from 'vue'
 
+// 组件属性定义
 const props = defineProps({
   categories: {
     type: Array,
@@ -88,8 +90,10 @@ const props = defineProps({
   }
 })
 
+// 组件事件定义
 const emit = defineEmits(['update:modelValue', 'submit', 'secondary', 'limit-exceed'])
 
+// 计算属性
 const selectedIds = computed(() => props.modelValue || [])
 
 const footerText = computed(() => {
@@ -105,6 +109,7 @@ const primaryDisabled = computed(() => {
   return false
 })
 
+// 交互处理方法
 const toggleCategory = (id) => {
   const nextIds = [...selectedIds.value]
   const index = nextIds.indexOf(id)

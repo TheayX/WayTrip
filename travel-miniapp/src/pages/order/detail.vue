@@ -1,5 +1,7 @@
+<!-- 订单详情页 -->
 <template>
   <view class="ios-page" v-if="order">
+    <!-- 订单状态区域 -->
     <view class="status-card" :class="order.status">
       <text class="status-icon">{{ getStatusIcon(order.status) }}</text>
       <text class="status-text">{{ order.statusText }}</text>
@@ -9,6 +11,7 @@
       </text>
     </view>
 
+    <!-- 景点信息区域 -->
     <view class="spot-card" @click="goSpot">
       <image class="spot-image" :src="getImageUrl(order.spotImage)" mode="aspectFill" />
       <view class="spot-info">
@@ -62,6 +65,7 @@
       </view>
     </view>
 
+    <!-- 底部操作栏 -->
     <view class="bottom-bar" v-if="showActions">
       <button v-if="order.canCancel" class="action-btn cancel" @click="handleCancel">
         {{ order.status === 'paid' ? '申请退款' : '取消订单' }}
@@ -78,17 +82,20 @@ import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
 import { getOrderDetail, payOrder, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 
+// 页面数据状态
 const order = ref(null)
 const orderId = ref(null)
 const countdownText = ref('')
 let countdownTimer = null
 let countdownTargetMs = null
 
+// 计算属性
 const showActions = computed(() => {
   if (!order.value) return false
   return order.value.canPay || order.value.canCancel || order.value.status === 'completed'
 })
 
+// 数据加载方法
 const fetchOrderDetail = async () => {
   try {
     const res = await getOrderDetail(orderId.value)
@@ -99,6 +106,7 @@ const fetchOrderDetail = async () => {
   }
 }
 
+// 工具方法
 const getStatusIcon = (status) => {
   const icons = {
     pending: '⏳',
@@ -166,10 +174,12 @@ const setupCountdown = () => {
   countdownTimer = setInterval(tick, 1000)
 }
 
+// 页面跳转方法
 const goSpot = () => {
   uni.navigateTo({ url: `/pages/spot/detail?id=${order.value.spotId}&source=order` })
 }
 
+// 交互处理方法
 const handlePay = async () => {
   try {
     await payOrder(orderId.value)
@@ -202,6 +212,7 @@ const handleReview = () => {
   uni.navigateTo({ url: `/pages/spot/detail?id=${order.value.spotId}&openReview=1&source=order` })
 }
 
+// 生命周期
 onLoad((options) => {
   orderId.value = options.id
   fetchOrderDetail()

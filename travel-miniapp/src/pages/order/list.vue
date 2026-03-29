@@ -1,5 +1,7 @@
+<!-- 订单列表页 -->
 <template>
   <view class="ios-page">
+    <!-- 顶部状态切换 -->
     <view class="tabs">
       <view
         v-for="tab in tabs"
@@ -12,6 +14,7 @@
       </view>
     </view>
 
+    <!-- 列表区域 -->
     <scroll-view scroll-y class="order-list" @scrolltolower="loadMore">
       <view v-if="orderList.length">
         <view class="order-card" v-for="order in orderList" :key="order.id" @click="goDetail(order.id)">
@@ -64,6 +67,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getOrderList, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 
+// 常量配置
 const tabs = [
   { label: '全部', value: '' },
   { label: '待支付', value: 'pending' },
@@ -72,16 +76,19 @@ const tabs = [
   { label: '已取消', value: 'cancelled' }
 ]
 
+// 页面数据状态
 const currentTab = ref('')
 const orderList = ref([])
 const loading = ref(false)
 const noMore = ref(false)
 const pagination = reactive({ page: 1, pageSize: 10 })
 
+// 工具方法
 const showActions = (order) => {
   return order.status === 'pending' || order.status === 'paid' || order.status === 'completed'
 }
 
+// 数据加载方法
 const fetchOrders = async (refresh = false) => {
   if (loading.value) return
   if (!refresh && noMore.value) return
@@ -116,6 +123,7 @@ const fetchOrders = async (refresh = false) => {
   }
 }
 
+// 交互处理方法
 const switchTab = (value) => {
   currentTab.value = value
   fetchOrders(true)
@@ -158,6 +166,7 @@ const handleReview = (order) => {
   uni.navigateTo({ url: `/pages/spot/detail?id=${order.spotId}&openReview=1&source=order` })
 }
 
+// 生命周期
 onLoad((options) => {
   currentTab.value = options?.status || ''
 })

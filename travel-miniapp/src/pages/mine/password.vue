@@ -1,5 +1,7 @@
+<!-- 密码设置页 -->
 <template>
   <view class="password-page">
+    <!-- 密码表单区域 -->
     <view class="form-group">
       <view class="form-item">
         <text class="form-label">旧密码</text>
@@ -43,6 +45,7 @@
 import { reactive, ref } from 'vue'
 import { changePassword } from '@/api/user'
 
+// 页面数据状态
 const loading = ref(false)
 const oldPwdVisible = ref(false)
 const newPwdVisible = ref(false)
@@ -53,6 +56,7 @@ const form = reactive({
   confirmPassword: ''
 })
 
+// 交互处理方法
 const handleSubmit = async () => {
   if (!form.newPassword) {
     return uni.showToast({ title: '请输入新密码', icon: 'none' })

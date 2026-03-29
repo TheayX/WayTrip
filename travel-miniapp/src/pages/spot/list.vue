@@ -1,5 +1,7 @@
+<!-- 景点列表页 -->
 <template>
   <view class="page-container">
+    <!-- 顶部筛选区域 -->
     <view class="sticky-header">
       <view class="search-section" @click="goSearch">
         <view class="search-box">
@@ -122,6 +124,7 @@
       </view>
     </view>
 
+    <!-- 列表区域 -->
     <scroll-view 
       class="scroll-container" 
       scroll-y 
@@ -202,7 +205,7 @@ import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
-// --- 基础数据 ---
+// 基础数据状态
 const regionTree = ref([])
 const categories = ref([])
 const categoryTree = ref([])
@@ -213,7 +216,7 @@ const sortOptions = [
   { label: '价格最高', value: 'price_desc' }
 ]
 
-// --- 筛选状态 ---
+// 筛选状态
 const activeTab = ref(null) // 当前展开的面板：'region' | 'category' | 'sort' | null
 const currentRegion = ref(null)
 const sortBy = ref('heat')
@@ -222,7 +225,7 @@ const activeCityId = ref(null)
 const tempProvinceId = ref(null)
 const tempCityId = ref(null)
 
-// --- 分类双栏逻辑专用状态 ---
+// 分类筛选状态
 const activeParentId = ref(null) // 实际选中的父类ID
 const activeCategoryId = ref(null) // 实际选中的子类ID
 const activeCategoryName = ref('') // 用于展示的名字
@@ -230,7 +233,7 @@ const activeCategoryName = ref('') // 用于展示的名字
 const tempParentId = ref(null) // 临时选中的父类ID（在面板未关闭前）
 const tempCategoryId = ref(null) // 临时选中的子类ID
 
-// --- 列表数据 ---
+// 列表数据状态
 const spotList = ref([])
 const page = ref(1)
 const pageSize = ref(10)
@@ -238,7 +241,7 @@ const total = ref(0)
 const loading = ref(false)
 const hasMore = computed(() => spotList.value.length < total.value)
 
-// --- 计算属性 ---
+// 计算属性
 const currentSortLabel = computed(() => {
   return sortOptions.find(s => s.value === sortBy.value)?.label || '排序'
 })
@@ -273,6 +276,7 @@ const currentSubRegions = computed(() => {
   return parent?.children || []
 })
 
+// 工具方法
 const parseNumberOption = (value) => {
   if (value === undefined || value === null || value === '') {
     return null
@@ -323,7 +327,7 @@ const syncCategoryDisplay = () => {
   activeCategoryName.value = ''
 }
 
-// --- 交互逻辑 ---
+// 交互处理方法
 const toggleTab = (tab) => {
   if (activeTab.value === tab) {
     closeTab()
@@ -423,7 +427,7 @@ const resetAll = () => {
   refreshList()
 }
 
-// --- API 请求 ---
+// 数据加载方法
 const fetchFilters = async () => {
   try {
     const res = await getFilters()
@@ -491,6 +495,7 @@ const loadMore = () => {
   }
 }
 
+// 页面跳转方法
 const goSearch = () => uni.navigateTo({ url: '/pages/spot/search' })
 const goDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
@@ -499,6 +504,7 @@ const goDetail = (id) => {
   uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=list` })
 }
 
+// 生命周期
 onShow(() => {
   const updated = uni.getStorageSync('spot_detail_updated')
   if (!updated || !updated.id) return

@@ -1,5 +1,7 @@
+<!-- 我的页面 -->
 <template>
   <view class="ios-mine">
+    <!-- 用户信息区域 -->
     <view class="profile-hero" :class="{ guest: !isLoggedIn }" @click="!isLoggedIn ? doLogin() : null">
       <view class="profile-header">
         <view class="avatar-container">
@@ -22,6 +24,7 @@
 
     </view>
 
+    <!-- 统计概览 -->
     <view class="stats-board" v-if="isLoggedIn">
       <view class="stats-item" @click="goActivity('browse')">
         <text class="stats-value">{{ dashboardStats.viewed }}</text>
@@ -37,6 +40,7 @@
       </view>
     </view>
 
+    <!-- 订单概览 -->
     <view class="order-overview" v-if="isLoggedIn">
       <view class="overview-header">
         <text class="overview-title">订单状态</text>
@@ -119,6 +123,7 @@
     </view>
 
     <!-- ========== 第一步：强制设置手机号和密码 ========== -->
+    <!-- 新用户注册弹层：账号绑定 -->
     <view class="auth-mask" v-if="authStep === 1">
       <view class="auth-panel">
         <text class="auth-title">欢迎来到微旅 🎉</text>
@@ -168,6 +173,7 @@
     </view>
 
     <!-- ========== 第二步：可选设置头像和昵称 ========== -->
+    <!-- 新用户注册弹层：资料补充 -->
     <view class="auth-mask" v-if="authStep === 2">
       <view class="auth-panel">
         <text class="auth-title">完成注册 ✨</text>
@@ -199,6 +205,7 @@
       </view>
     </view>
 
+    <!-- 偏好设置弹层 -->
     <view class="auth-mask" v-if="preferenceGuideVisible">
       <view class="preference-guide-panel">
         <PreferenceCategorySelector
@@ -237,12 +244,15 @@ import {
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import { getAvatarUrl } from '@/utils/request'
 
+// 基础依赖与用户状态
 const userStore = useUserStore()
 const defaultRegisterAvatar = getAvatarUrl('/uploads/images/avatar.jpg')
 const defaultRegisterNickname = '微信用户'
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
+
+// 页面数据状态
 const dashboardStats = reactive({
   viewed: 0,
   favorites: 0,
@@ -253,6 +263,8 @@ const orderStats = reactive({
   paid: 0,
   completed: 0
 })
+
+// 工具方法
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
   const normalized = phone.trim()
@@ -265,7 +277,7 @@ const formatPhone = (phone) => {
   return '已隐藏'
 }
 
-// ========== 新用户两步授权流程 ==========
+// 新用户注册流程状态
 const authStep = ref(0) // 0: 未开始, 1: 设置手机号密码, 2: 设置头像昵称（可跳过）
 const pendingOpenid = ref('') // 临时存储新用户的openid（尚未创建用户）
 const step1Form = reactive({
@@ -291,6 +303,7 @@ const preferenceGuideVisible = ref(false)
 const preferenceGuideCategories = ref([])
 const preferenceGuideSelection = ref([])
 
+// 交互处理方法
 const onAuthChooseAvatar = (e) => {
   const url = e?.detail?.avatarUrl || ''
   if (url) {
@@ -299,14 +312,13 @@ const onAuthChooseAvatar = (e) => {
   }
 }
 
-// 昵称输入
 const onNicknameBlur = (e) => {
   if (e.detail?.value) {
     authForm.nickname = e.detail.value
   }
 }
 
-// 第一步：提交手机号和密码（核心绑定/注册逻辑）
+// 提交注册第一步
 const submitStep1 = async () => {
   const phone = step1Form.phone.trim()
   const password = step1Form.password.trim()
@@ -429,7 +441,7 @@ const skipRegisterPreferences = () => {
   uni.showToast({ title: '已跳过，后续可在我的-偏好设置里设置', icon: 'none' })
 }
 
-// 第二步：跳过头像昵称设置
+// 跳过注册第二步
 const skipStep2 = async () => {
   try {
     uni.showLoading({ title: '注册中...', mask: true })
@@ -443,7 +455,7 @@ const skipStep2 = async () => {
   }
 }
 
-// 第二步：提交头像昵称
+// 提交注册第二步
 const submitStep2 = async () => {
   try {
     uni.showLoading({ title: '保存中...', mask: true })
@@ -484,6 +496,7 @@ const syncUserInfo = async () => {
   }
 }
 
+// 数据加载方法
 const loadRecentFootprints = () => {
   const history = uni.getStorageSync('spot_footprints')
   const footprints = Array.isArray(history) ? history : []
@@ -522,7 +535,7 @@ const loadMineOverview = async () => {
   }
 }
 
-// 登录
+// 登录与退出
 const doLogin = async () => {
   try {
     const loginRes = await uni.login({ provider: 'weixin' })
@@ -568,7 +581,6 @@ const doLogin = async () => {
   }
 }
 
-// 退出登录
 const doLogout = () => {
   uni.showModal({
     title: '提示',
@@ -588,7 +600,7 @@ const doLogout = () => {
   })
 }
 
-// 跳转订单
+// 页面跳转方法
 const goOrders = () => {
   uni.navigateTo({ url: '/pages/order/list' })
 }
@@ -615,6 +627,7 @@ const goSettings = () => {
   uni.navigateTo({ url: '/pages/mine/settings/index' })
 }
 
+// 生命周期
 onShow(async () => {
   if (isLoggedIn.value) {
     await syncUserInfo()

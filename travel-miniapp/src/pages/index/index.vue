@@ -1,5 +1,7 @@
+<!-- 首页 -->
 <template>
   <view class="ios-page">
+    <!-- 顶部区域 -->
     <view class="ios-header">
       <view class="header-top">
         <view>
@@ -21,6 +23,7 @@
       </view>
     </view>
 
+    <!-- 轮播区域 -->
     <view class="banner-container" v-if="banners.length">
       <swiper class="banner" indicator-dots indicator-active-color="#fff" autoplay circular>
         <swiper-item v-for="banner in banners" :key="banner.id" @click="handleBannerClick(banner)">
@@ -29,6 +32,7 @@
       </swiper>
     </view>
 
+    <!-- 快捷入口 -->
     <view class="section">
       <view class="section-header">
         <view>
@@ -60,6 +64,7 @@
       <text class="guest-action">去登录</text>
     </view>
 
+    <!-- 推荐区域 -->
     <view class="section">
       <view class="section-header">
         <text class="section-title">{{ recommendType }}</text>
@@ -90,6 +95,7 @@
       </view>
     </view>
 
+    <!-- 热门与附近区域 -->
     <view class="section">
       <view class="section-header">
         <text class="section-title">热门目的地</text>
@@ -175,6 +181,7 @@
       </scroll-view>
     </view>
 
+    <!-- 偏好设置弹层 -->
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
       <view class="preference-content">
         <PreferenceCategorySelector
@@ -209,10 +216,12 @@ import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
+// 基础依赖与用户状态
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 
+// 页面数据状态
 const banners = ref([])
 const hotSpots = ref([])
 const {
@@ -238,6 +247,7 @@ const nearbyLoading = ref(false)
 const locationStatus = ref('idle')
 const nearbySessionToken = ref('')
 
+// 常量配置
 const markerIcon = '/static/tabbar/spot-active.png'
 
 const quickActions = [
@@ -258,6 +268,7 @@ const pendingQuickActions = Array.from({ length: 4 }, (_, index) => ({
 
 const displayQuickActions = [...quickActions, ...pendingQuickActions]
 
+// 计算属性
 const recommendPreview = computed(() => recommendations.value.slice(0, 4))
 const featuredHotSpot = computed(() => hotSpots.value[0] || null)
 const secondaryHotSpots = computed(() => hotSpots.value.slice(1))
@@ -394,6 +405,7 @@ const nearbyPlaceholderText = computed(() => {
   return '点击开启定位'
 })
 
+// 工具方法
 const formatDistance = (value) => {
   const distance = Number(value)
   if (!Number.isFinite(distance)) return '-- km'
@@ -408,6 +420,7 @@ const resetNearbyState = () => {
   nearbySessionToken.value = ''
 }
 
+// 数据加载方法
 const fetchBanners = async () => {
   try {
     const res = await getBanners()
@@ -508,6 +521,7 @@ const tryLoadNearbyAutomatically = async () => {
   }
 }
 
+// 交互处理方法
 const handleRefresh = async () => {
   if (!promptLogin('登录后可刷新推荐，是否现在去登录？')) {
     return
@@ -635,6 +649,7 @@ const handleNearbyMarkerTap = (event) => {
   }
 }
 
+// 页面跳转方法
 const goSpotDetail = (spotId) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
@@ -679,6 +694,7 @@ const refreshHome = async () => {
   await Promise.all([fetchBanners(), fetchHotSpots(), fetchRecommendations()])
 }
 
+// 生命周期
 onPullDownRefresh(async () => {
   await refreshHome()
   uni.stopPullDownRefresh()

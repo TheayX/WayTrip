@@ -1,5 +1,7 @@
+<!-- 攻略列表页 -->
 <template>
   <view class="ios-page">
+    <!-- 顶部状态区域 -->
     <view class="list-state-card">
       <view class="state-main">
         <text class="state-title">攻略列表</text>
@@ -87,7 +89,7 @@ import { getGuideList, getCategories } from '@/api/guide'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 
-
+// 页面数据状态
 const categories = ref([])
 const currentCategory = ref('')
 const sortBy = ref('time')
@@ -98,12 +100,15 @@ const pageSize = ref(10)
 const total = ref(0)
 const loading = ref(false)
 const hasMore = computed(() => guideList.value.length < total.value)
+
+// 计算属性
 const currentStateText = computed(() => {
   const categoryText = currentCategory.value ? `分类：${currentCategory.value}` : '全部分类'
   const sortText = sortBy.value === 'category' ? '分类排序' : '最新优先'
   return `${categoryText} · 共 ${total.value} 条 · ${sortText}`
 })
 
+// 数据加载方法
 const fetchCategories = async () => {
   try {
     const res = await getCategories()
@@ -145,6 +150,7 @@ const fetchGuideList = async (isRefresh = false) => {
   }
 }
 
+// 交互处理方法
 const selectCategory = (cat) => {
   currentCategory.value = cat
   fetchGuideList(true)
@@ -168,6 +174,7 @@ const loadMore = () => {
   }
 }
 
+// 页面跳转方法
 const goDetail = (id) => {
   if (!promptLogin('登录后可查看攻略详情，是否现在去登录？')) {
     return
@@ -175,6 +182,7 @@ const goDetail = (id) => {
   uni.navigateTo({ url: `/pages/guide/detail?id=${id}` })
 }
 
+// 生命周期
 onLoad((options) => {
   if (typeof options?.category === 'string' && options.category) {
     currentCategory.value = decodeURIComponent(options.category)

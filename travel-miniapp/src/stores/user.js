@@ -2,14 +2,14 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
-  // 状态
+  // 基础状态
   const token = ref('')
   const userInfo = ref(null)
 
   // 计算属性
   const isLoggedIn = computed(() => !!token.value)
 
-  // 从本地存储初始化
+  // 内部方法
   function initFromStorage() {
     const storedToken = uni.getStorageSync('token')
     const storedUserInfo = uni.getStorageSync('userInfo')
@@ -22,25 +22,21 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 设置 Token
   function setToken(newToken) {
     token.value = newToken
     uni.setStorageSync('token', newToken)
   }
 
-  // 设置用户信息
   function setUserInfo(info) {
     userInfo.value = info
     uni.setStorageSync('userInfo', info)
   }
 
-  // 登录
   function login(data) {
     setToken(data.token)
     setUserInfo(data.user)
   }
 
-  // 登出
   function logout() {
     token.value = ''
     userInfo.value = null
@@ -48,12 +44,10 @@ export const useUserStore = defineStore('user', () => {
     uni.removeStorageSync('userInfo')
   }
 
-  // 检查登录状态
   function checkLogin() {
     return isLoggedIn.value
   }
 
-  // 更新偏好设置
   function updatePreferences(preferences) {
     if (userInfo.value) {
       userInfo.value = {
@@ -64,6 +58,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // 对外暴露方法
   return {
     token,
     userInfo,
