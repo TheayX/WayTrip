@@ -71,9 +71,13 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getPreferenceList } from '@/api/user-insight'
 import { getFilters } from '@/api/spot'
+
+const router = useRouter()
+const route = useRoute()
 
 const loading = ref(false)
 const tableData = ref([])
@@ -134,6 +138,7 @@ const fetchPreferenceList = async () => {
 
 const handleSearch = () => {
   pagination.page = 1
+  syncRouteQuery()
   fetchPreferenceList()
 }
 
@@ -143,10 +148,32 @@ const handleReset = () => {
   handleSearch()
 }
 
+const syncRouteQuery = () => {
+  const nextQuery = {}
+  if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
+  if (searchForm.categoryId != null) nextQuery.categoryId = String(searchForm.categoryId)
+  router.replace({ path: route.path, query: nextQuery })
+}
+
+const applyRouteQuery = () => {
+  searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
+  searchForm.categoryId = typeof route.query.categoryId === 'string' ? Number(route.query.categoryId) : null
+}
+
 onMounted(() => {
+  applyRouteQuery()
   fetchFilters()
   fetchPreferenceList()
 })
+
+watch(
+  () => route.query,
+  () => {
+    applyRouteQuery()
+    fetchPreferenceList()
+  },
+  { deep: true }
+)
 </script>
 
 <style lang="scss" scoped>

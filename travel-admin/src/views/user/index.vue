@@ -45,10 +45,13 @@
         <el-table-column prop="ratingCount" label="评价数" width="100" />
         <el-table-column prop="createdAt" label="注册时间" width="170" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" />
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="300" fixed="right">
           <template #default="{ row }">
             <div style="white-space: nowrap;">
               <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
+              <el-button type="primary" link @click="handleOpenPreference(row)">偏好</el-button>
+              <el-button type="primary" link @click="handleOpenFavorite(row)">收藏</el-button>
+              <el-button type="primary" link @click="handleOpenViewLog(row)">浏览</el-button>
               <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
             </div>
           </template>
@@ -97,6 +100,9 @@
       </div>
 
       <template #footer>
+        <el-button v-if="currentUser" @click="handleOpenPreference(currentUser)">查看偏好</el-button>
+        <el-button v-if="currentUser" @click="handleOpenFavorite(currentUser)">查看收藏</el-button>
+        <el-button v-if="currentUser" @click="handleOpenViewLog(currentUser)">查看浏览</el-button>
         <el-button @click="detailVisible = false">关闭</el-button>
       </template>
     </el-dialog>
@@ -104,10 +110,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getUserList, getUserDetail, resetUserPassword } from '@/api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/utils/message-box'
+
+const router = useRouter()
+const route = useRoute()
 
 // 查询参数
 const searchForm = reactive({
@@ -161,6 +171,7 @@ const fetchUserList = async () => {
 // 搜索操作
 const handleSearch = () => {
   pagination.page = 1
+  syncRouteQuery()
   fetchUserList()
 }
 
@@ -168,6 +179,40 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.nickname = ''
   handleSearch()
+}
+
+const syncRouteQuery = () => {
+  const nextQuery = {}
+  if (searchForm.nickname) {
+    nextQuery.nickname = searchForm.nickname
+  }
+  router.replace({ path: route.path, query: nextQuery })
+}
+
+const applyRouteQuery = () => {
+  searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
+}
+
+const openUserOpsPage = (path, row) => {
+  detailVisible.value = false
+  router.push({
+    path,
+    query: {
+      nickname: row.nickname || ''
+    }
+  })
+}
+
+const handleOpenPreference = (row) => {
+  openUserOpsPage('/preference', row)
+}
+
+const handleOpenFavorite = (row) => {
+  openUserOpsPage('/favorite', row)
+}
+
+const handleOpenViewLog = (row) => {
+  openUserOpsPage('/view-log', row)
 }
 
 // 打开用户详情对话框
@@ -207,8 +252,17 @@ const handleResetPassword = async (row) => {
 
 // 页面初始化
 onMounted(() => {
+  applyRouteQuery()
   fetchUserList()
 })
+
+watch(
+  () => route.query.nickname,
+  () => {
+    applyRouteQuery()
+    fetchUserList()
+  }
+)
 </script>
 
 <style lang="scss" scoped>

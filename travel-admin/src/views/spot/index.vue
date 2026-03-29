@@ -273,7 +273,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import {
@@ -292,6 +293,8 @@ import {
 import { useUserStore } from '@/stores/user'
 import { getAdminUploadUrl, getResourceUrl } from '@/utils/resource'
 
+const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 // 上传相关配置
@@ -515,6 +518,7 @@ const heatRules = {
 
 // 页面初始化
 onMounted(() => {
+  applyRouteQuery()
   loadFilters()
   loadData()
 })
@@ -582,6 +586,7 @@ const loadData = async () => {
 const handleSearch = () => {
   queryParams.page = 1
   syncFilters()
+  syncRouteQuery()
   loadData()
 }
 
@@ -599,6 +604,18 @@ const handleReset = () => {
   uiFilters.categoryPath = []
   uiFilters.published = ''
   handleSearch()
+}
+
+const syncRouteQuery = () => {
+  const nextQuery = {}
+  if (queryParams.keyword) {
+    nextQuery.keyword = queryParams.keyword
+  }
+  router.replace({ path: route.path, query: nextQuery })
+}
+
+const applyRouteQuery = () => {
+  queryParams.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
 }
 
 // 重置景点表单
@@ -761,6 +778,14 @@ const handleDelete = async (row) => {
   ElMessage.success('删除成功')
   loadData()
 }
+
+watch(
+  () => route.query.keyword,
+  () => {
+    applyRouteQuery()
+    handleSearch()
+  }
+)
 </script>
 
 <style lang="scss" scoped>
