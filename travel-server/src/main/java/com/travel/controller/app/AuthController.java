@@ -2,7 +2,8 @@ package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.auth.*;
-import com.travel.service.AuthService;
+import com.travel.service.UserAccountService;
+import com.travel.service.UserAuthService;
 import com.travel.util.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,18 +24,19 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    private final UserAuthService userAuthService;
+    private final UserAccountService userAccountService;
 
     @Operation(summary = "微信登录")
     @PostMapping("/wx-login")
     public ApiResponse<WxLoginResponse> wxLogin(@Valid @RequestBody WxLoginRequest request) {
-        return ApiResponse.success(authService.wxLogin(request.getCode()));
+        return ApiResponse.success(userAuthService.wxLogin(request.getCode()));
     }
 
     @Operation(summary = "小程序端绑定手机号（新用户注册或匹配已有账户合并openid）")
     @PostMapping("/wx-bind-phone")
     public ApiResponse<LoginResponse> wxBindPhone(@Valid @RequestBody WxBindPhoneRequest request) {
-        return ApiResponse.success(authService.wxBindPhone(request));
+        return ApiResponse.success(userAuthService.wxBindPhone(request));
     }
 
     @Operation(summary = "小程序端第一步校验手机号密码")
@@ -42,7 +44,7 @@ public class AuthController {
     public ApiResponse<Map<String, Object>> prepareWxBindPhone(@Valid @RequestBody WxBindPhoneRequest request) {
         // login == null 表示当前手机号未匹配到已有账户，前端应进入第二步补充资料，
         // 后续再调用 /wx-bind-phone 正式创建账户。
-        LoginResponse login = authService.prepareWxBindPhone(request);
+        LoginResponse login = userAuthService.prepareWxBindPhone(request);
         Map<String, Object> data = new HashMap<>();
         data.put("completed", login != null);
         data.put("login", login);
@@ -52,20 +54,20 @@ public class AuthController {
     @Operation(summary = "Web端注册")
     @PostMapping("/web-register")
     public ApiResponse<LoginResponse> webRegister(@Valid @RequestBody WebRegisterRequest request) {
-        return ApiResponse.success(authService.webRegister(request));
+        return ApiResponse.success(userAuthService.webRegister(request));
     }
 
     @Operation(summary = "Web端第一步校验手机号是否可注册")
     @PostMapping("/web-prepare-register")
     public ApiResponse<Void> prepareWebRegister(@Valid @RequestBody WebRegisterRequest request) {
-        authService.prepareWebRegister(request);
+        userAuthService.prepareWebRegister(request);
         return ApiResponse.success(null);
     }
 
     @Operation(summary = "Web端登录")
     @PostMapping("/web-login")
     public ApiResponse<LoginResponse> webLogin(@Valid @RequestBody WebLoginRequest request) {
-        return ApiResponse.success(authService.webLogin(request));
+        return ApiResponse.success(userAuthService.webLogin(request));
     }
 
     @Deprecated
@@ -73,7 +75,7 @@ public class AuthController {
     @GetMapping("/user-info")
     public ApiResponse<UserInfoResponse> getUserInfo() {
         Long userId = UserContext.getUserId();
-        return ApiResponse.success(authService.getUserInfo(userId));
+        return ApiResponse.success(userAccountService.getUserInfo(userId));
     }
 
     @Deprecated
@@ -81,7 +83,7 @@ public class AuthController {
     @PutMapping("/user-info")
     public ApiResponse<Void> updateUserInfo(@Valid @RequestBody UpdateUserInfoRequest request) {
         Long userId = UserContext.getUserId();
-        authService.updateUserInfo(userId, request);
+        userAccountService.updateUserInfo(userId, request);
         return ApiResponse.success(null);
     }
 
@@ -90,7 +92,7 @@ public class AuthController {
     @PutMapping("/password")
     public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         Long userId = UserContext.getUserId();
-        authService.changePassword(userId, request);
+        userAccountService.changePassword(userId, request);
         return ApiResponse.success(null);
     }
 
@@ -99,7 +101,7 @@ public class AuthController {
     @PostMapping("/preferences")
     public ApiResponse<Void> setPreferences(@Valid @RequestBody PreferencesRequest request) {
         Long userId = UserContext.getUserId();
-        authService.setPreferences(userId, request.getCategoryIds());
+        userAccountService.setPreferences(userId, request.getCategoryIds());
         return ApiResponse.success(null);
     }
 }

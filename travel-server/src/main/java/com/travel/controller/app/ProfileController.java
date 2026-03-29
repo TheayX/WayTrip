@@ -2,7 +2,7 @@ package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.auth.*;
-import com.travel.service.AuthService;
+import com.travel.service.UserAccountService;
 import com.travel.util.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,20 +20,20 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class ProfileController {
 
-    private final AuthService authService;
+    private final UserAccountService userAccountService;
 
     @Operation(summary = "获取用户信息")
     @GetMapping("/info")
     public ApiResponse<UserInfoResponse> getUserInfo() {
         Long userId = UserContext.getUserId();
-        return ApiResponse.success(authService.getUserInfo(userId));
+        return ApiResponse.success(userAccountService.getUserInfo(userId));
     }
 
     @Operation(summary = "更新用户信息")
     @PutMapping("/info")
     public ApiResponse<Void> updateUserInfo(@RequestBody UpdateUserInfoRequest request) {
         Long userId = UserContext.getUserId();
-        authService.updateUserInfo(userId, request);
+        userAccountService.updateUserInfo(userId, request);
         return ApiResponse.success();
     }
 
@@ -41,7 +41,7 @@ public class ProfileController {
     @PostMapping("/preferences")
     public ApiResponse<Void> setPreferences(@Valid @RequestBody PreferencesRequest request) {
         Long userId = UserContext.getUserId();
-        authService.setPreferences(userId, request.getCategoryIds());
+        userAccountService.setPreferences(userId, request.getCategoryIds());
         return ApiResponse.success();
     }
 
@@ -49,7 +49,7 @@ public class ProfileController {
     @PutMapping("/password")
     public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         Long userId = UserContext.getUserId();
-        authService.changePassword(userId, request);
+        userAccountService.changePassword(userId, request);
         return ApiResponse.success();
     }
 
@@ -57,7 +57,7 @@ public class ProfileController {
     @DeleteMapping("/account")
     public ApiResponse<Void> deactivateAccount() {
         Long userId = UserContext.getUserId();
-        authService.deactivateAccount(userId);
+        userAccountService.deactivateAccount(userId);
         return ApiResponse.success();
     }
 }

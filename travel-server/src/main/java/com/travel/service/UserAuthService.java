@@ -1,13 +1,16 @@
 package com.travel.service;
 
-import com.travel.dto.auth.*;
-import java.util.List;
+import com.travel.dto.auth.LoginResponse;
+import com.travel.dto.auth.WebLoginRequest;
+import com.travel.dto.auth.WebRegisterRequest;
+import com.travel.dto.auth.WxBindPhoneRequest;
+import com.travel.dto.auth.WxLoginResponse;
 
 /**
- * 认证服务接口
+ * 用户认证服务接口
  */
-public interface AuthService {
-    
+public interface UserAuthService {
+
     /**
      * 微信登录（老用户返回token，新用户只返回openid）
      */
@@ -29,31 +32,6 @@ public interface AuthService {
     LoginResponse webLogin(WebLoginRequest request);
 
     /**
-     * 获取用户信息
-     */
-    UserInfoResponse getUserInfo(Long userId);
-    
-    /**
-     * 更新用户信息
-     */
-    void updateUserInfo(Long userId, UpdateUserInfoRequest request);
-
-    /**
-     * 修改密码
-     */
-    void changePassword(Long userId, ChangePasswordRequest request);
-
-    /**
-     * 注销账户
-     */
-    void deactivateAccount(Long userId);
-
-    /**
-     * 设置用户偏好标签
-     */
-    void setPreferences(Long userId, List<Long> categoryIds);
-
-    /**
      * 小程序端绑定手机号（新用户注册或匹配已有账户合并openid）
      */
     LoginResponse wxBindPhone(WxBindPhoneRequest request);
@@ -64,14 +42,4 @@ public interface AuthService {
      * 返回 null 表示需要进入第二步继续完成注册。
      */
     LoginResponse prepareWxBindPhone(WxBindPhoneRequest request);
-
-    /**
-     * 管理员登录
-     */
-    AdminLoginResponse adminLogin(AdminLoginRequest request);
-    
-    /**
-     * 获取管理员信息
-     */
-    AdminLoginResponse.AdminInfo getAdminInfo(Long adminId);
 }
