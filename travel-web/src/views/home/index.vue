@@ -1,3 +1,4 @@
+<!-- 首页 -->
 <template>
   <div class="home-page">
     <!-- Hero 区域 -->
@@ -129,9 +130,11 @@ import { setPreferences } from '@/api/user'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
+// 基础依赖与路由状态
 const userStore = useUserStore()
 const router = useRouter()
 
+// 页面数据状态
 const banners = ref([])
 const hotSpots = ref([])
 const recommendations = ref([])
@@ -142,10 +145,12 @@ const savingPref = ref(false)
 const refreshing = ref(false)
 const needPreference = ref(false)
 
+// 计算属性
 const recommendType = computed(() =>
   needPreference.value ? '热门推荐' : '为你推荐'
 )
 
+// 数据加载方法
 const fetchBanners = async () => {
   try {
     const res = await getBanners()
@@ -175,6 +180,7 @@ const fetchCategories = async () => {
   } catch (e) { /* ignore */ }
 }
 
+// 交互处理方法
 const handleRefresh = async () => {
   refreshing.value = true
   try {
@@ -225,6 +231,7 @@ const handleHotSpotClick = (spot) => {
   router.push(`/spots/${spot.id}?source=home`)
 }
 
+// 生命周期
 onMounted(() => {
   fetchBanners()
   fetchHotSpots()

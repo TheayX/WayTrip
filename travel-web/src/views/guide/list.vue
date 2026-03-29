@@ -1,3 +1,4 @@
+<!-- 攻略列表页 -->
 <template>
   <div class="page-container">
     <el-breadcrumb separator="/">
@@ -60,6 +61,7 @@ import { ref, onMounted } from 'vue'
 import { getGuideList, getCategories } from '@/api/guide'
 import { getImageUrl } from '@/utils/request'
 
+// 页面数据状态
 const categories = ref([])
 const currentCategory = ref('')
 const guideList = ref([])
@@ -68,6 +70,7 @@ const pageSize = 12
 const total = ref(0)
 const loading = ref(false)
 
+// 数据加载方法
 const fetchCategories = async () => {
   try {
     const res = await getCategories()
@@ -87,12 +90,14 @@ const fetchGuideList = async () => {
   loading.value = false
 }
 
+// 交互处理方法
 const selectCategory = (cat) => {
   currentCategory.value = cat
   page.value = 1
   fetchGuideList()
 }
 
+// 生命周期
 onMounted(() => {
   fetchCategories()
   fetchGuideList()

@@ -1,3 +1,4 @@
+<!-- 主布局 -->
 <template>
   <div class="layout">
     <!-- 顶部导航 -->
@@ -89,15 +90,17 @@ import { computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/utils/request'
 
+// 基础依赖与路由状态
 const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
 
-// 检查是否是首页
+// 计算属性
 const isHomeActive = computed(() => route.name === 'Home')
 const hiddenBackRoutes = ['Home', 'Login', 'Register']
 const showBackBar = computed(() => !hiddenBackRoutes.includes(route.name))
 
+// 交互处理方法
 const handleBack = () => {
   if (window.history.length > 1) {
     router.back()

@@ -1,3 +1,4 @@
+<!-- 订单详情页 -->
 <template>
   <div class="page-container" v-if="order">
     <el-breadcrumb separator="/">
@@ -104,15 +105,20 @@ import { getOrderDetail, payOrder, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+// 基础依赖与路由状态
 const route = useRoute()
 const router = useRouter()
+
+// 页面数据状态
 const order = ref(null)
 
+// 计算属性
 const showActions = computed(() => {
   if (!order.value) return false
   return order.value.canPay || order.value.canCancel || order.value.status === 'completed'
 })
 
+// 工具方法
 const getStatusIcon = (status) => {
   const map = { pending: '⏳', paid: '✅', completed: '🎉', cancelled: '❌' }
   return map[status] || '🧾'
@@ -128,6 +134,7 @@ const getStatusDesc = (status) => {
   return map[status] || ''
 }
 
+// 数据加载方法
 const fetchDetail = async () => {
   try {
     const res = await getOrderDetail(route.params.id)
@@ -137,6 +144,7 @@ const fetchDetail = async () => {
   }
 }
 
+// 交互处理方法
 const handlePay = async () => {
   try {
     await ElMessageBox.confirm('确定要支付该订单吗？', '支付确认', { type: 'info' })
@@ -165,6 +173,7 @@ const handleReview = () => {
   router.push(`/spots/${order.value.spotId}?openReview=1&source=order`)
 }
 
+// 生命周期
 onMounted(() => {
   fetchDetail()
 })

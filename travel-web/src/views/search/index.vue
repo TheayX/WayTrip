@@ -1,3 +1,4 @@
+<!-- 搜索页 -->
 <template>
   <div class="page-container">
     <el-breadcrumb separator="/">
@@ -76,6 +77,7 @@ import { ref } from 'vue'
 import { searchSpots } from '@/api/spot'
 import { getImageUrl } from '@/utils/request'
 
+// 页面数据状态
 const keyword = ref('')
 const results = ref([])
 const loading = ref(false)
@@ -84,12 +86,14 @@ const page = ref(1)
 const pageSize = 10
 const total = ref(0)
 
+// 交互处理方法
 const handleSearch = () => {
   if (!keyword.value.trim()) return
   page.value = 1
   doSearch()
 }
 
+// 数据加载方法
 const doSearch = async () => {
   loading.value = true
   searched.value = true

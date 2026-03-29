@@ -1,7 +1,10 @@
+// Web 端路由配置
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
+// 路由表配置
 const routes = [
+  // 主布局（包含所有子页面）
   {
     path: '/',
     component: () => import('@/layout/index.vue'),
@@ -20,22 +23,32 @@ const routes = [
       { path: 'search', name: 'Search', component: () => import('@/views/search/index.vue'), meta: { title: '搜索' } }
     ]
   },
+  // 登录页
   { path: '/login', name: 'Login', component: () => import('@/views/login/index.vue'), meta: { title: '登录' } },
+  // 注册页
   { path: '/register', name: 'Register', component: () => import('@/views/register/index.vue'), meta: { title: '注册' } }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  // 路由切换时滚动到页面顶部
   scrollBehavior() {
     return { top: 0 }
   }
 })
 
+/**
+ * 全局前置守卫
+ * 功能：
+ * 1. 设置页面标题
+ * 2. 检查需要登录的页面，未登录则跳转到登录页
+ */
 router.beforeEach((to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - WayTrip` : 'WayTrip'
 
   const userStore = useUserStore()
+  // 需要登录但未登录，跳转到登录页并带上重定向参数
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next({ path: '/login', query: { redirect: to.fullPath } })
   } else {
