@@ -15,7 +15,7 @@
     {
       "path": "pages/recommendation/index",
       "style": {
-        "navigationBarTitleText": "推荐列表"
+        "navigationBarTitleText": "推荐景点"
       }
     },
     {

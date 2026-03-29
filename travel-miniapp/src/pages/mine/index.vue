@@ -211,9 +211,9 @@
         <PreferenceCategorySelector
           v-model="preferenceGuideSelection"
           :categories="preferenceGuideCategories"
-          eyebrow="冷启动推荐"
+          eyebrow="偏好冷启动"
           title="选择你感兴趣的景点分类"
-          subtitle="现在选好偏好，推荐会立刻从热门兜底切到偏好冷启动；也可以先跳过。"
+          subtitle="现在选好偏好，推荐会立刻从热门冷启动切到偏好冷启动；也可以先跳过。"
           primary-text="立即开启"
           secondary-text="跳过"
           @submit="saveRegisterPreferences"
@@ -429,7 +429,7 @@ const saveRegisterPreferences = async () => {
     })
     markColdStartGuideCompleted(userStore.userInfo?.id)
     preferenceGuideVisible.value = false
-    uni.showToast({ title: '偏好已生效，开始为你推荐', icon: 'success' })
+    uni.showToast({ title: '偏好已生效，已切换到偏好推荐', icon: 'success' })
   } catch (e) {
     uni.showToast({ title: '保存偏好失败', icon: 'none' })
   }

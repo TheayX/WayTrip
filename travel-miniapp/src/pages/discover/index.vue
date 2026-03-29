@@ -23,9 +23,9 @@
         <text class="quick-title">攻略列表</text>
         <text class="quick-desc">查看全部攻略</text>
       </view>
-      <view class="quick-card" @click="goRecommendationList">
-        <text class="quick-title">推荐列表</text>
-        <text class="quick-desc">查看推荐结果</text>
+      <view class="quick-card" @click="goRecommendationSpots">
+        <text class="quick-title">推荐景点</text>
+        <text class="quick-desc">查看全部推荐景点</text>
       </view>
     </view>
 
@@ -327,8 +327,8 @@ const goGuideList = () => {
   uni.navigateTo({ url: `/pages/guide/list?${query.join('&')}` })
 }
 
-const goRecommendationList = () => {
-  if (!promptLogin('登录后可查看推荐列表，是否现在去登录？')) return
+const goRecommendationSpots = () => {
+  if (!promptLogin('登录后可查看推荐景点，是否现在去登录？')) return
   uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 

@@ -58,8 +58,8 @@
 
     <view v-if="!isLoggedIn" class="guest-banner" @click="goMine">
       <view class="guest-copy">
-        <text class="guest-title">登录后可保存偏好，拿到更稳定的推荐结果</text>
-        <text class="guest-subtitle">同步收藏、订单和个性化推荐结果</text>
+        <text class="guest-title">登录后可保存偏好，拿到更稳定的推荐景点</text>
+        <text class="guest-subtitle">同步收藏、订单和推荐内容</text>
       </view>
       <text class="guest-action">去登录</text>
     </view>
@@ -67,10 +67,10 @@
     <!-- 推荐区域 -->
     <view class="section">
       <view class="section-header">
-        <text class="section-title">{{ recommendType }}</text>
+        <text class="section-title">{{ recommendationSectionTitle }}</text>
         <view v-if="isLoggedIn" class="section-actions">
           <text class="section-link" @click="handleRefresh">换一批</text>
-          <text class="section-link" @click="goRecommendList">查看更多</text>
+          <text class="section-link" @click="goRecommendationSpots">查看更多</text>
         </view>
       </view>
 
@@ -91,29 +91,29 @@
         </view>
       </view>
       <view class="empty-tip" v-else>
-        <text>{{ isLoggedIn ? '当前暂无推荐内容' : '登录后查看推荐内容' }}</text>
+        <text>{{ isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点' }}</text>
       </view>
     </view>
 
     <!-- 热门与附近区域 -->
     <view class="section">
       <view class="section-header">
-        <text class="section-title">热门目的地</text>
+        <text class="section-title">热门景点</text>
         <text class="section-link" @click="goSpotList">查看全部</text>
       </view>
 
       <view class="hot-nearby-grid">
-        <view v-if="featuredHotSpot" class="feature-card hot-feature-card" @click="goSpotDetail(featuredHotSpot.id)">
-          <image class="feature-image" :src="getContentImageUrl(featuredHotSpot.coverImage)" mode="aspectFill" />
+        <view v-if="primaryPopularSpot" class="feature-card hot-feature-card" @click="goSpotDetail(primaryPopularSpot.id)">
+          <image class="feature-image" :src="getContentImageUrl(primaryPopularSpot.coverImage)" mode="aspectFill" />
           <view class="feature-overlay">
             <text class="feature-eyebrow">热门景点</text>
-            <text class="feature-title">{{ featuredHotSpot.name }}</text>
+            <text class="feature-title">{{ primaryPopularSpot.name }}</text>
             <text class="feature-subtitle">
-              {{ featuredHotSpot.categoryName || '精选景点' }} · ￥{{ featuredHotSpot.price }}
+              {{ primaryPopularSpot.categoryName || '精选景点' }} · ￥{{ primaryPopularSpot.price }}
             </text>
             <view class="feature-foot">
-              <text class="feature-pill">评分 {{ featuredHotSpot.avgRating || '4.6' }}</text>
-              <text class="feature-pill subtle">热度 {{ featuredHotSpot.heatScore || '--' }}</text>
+              <text class="feature-pill">评分 {{ primaryPopularSpot.avgRating || '4.6' }}</text>
+              <text class="feature-pill subtle">热度 {{ primaryPopularSpot.heatScore || '--' }}</text>
             </view>
           </view>
         </view>
@@ -167,8 +167,8 @@
         </view>
       </view>
 
-      <scroll-view class="hot-scroll" scroll-x :show-scrollbar="false" v-if="secondaryHotSpots.length">
-        <view class="hot-card compact" v-for="spot in secondaryHotSpots" :key="spot.id" @click="goSpotDetail(spot.id)">
+      <scroll-view class="hot-scroll" scroll-x :show-scrollbar="false" v-if="remainingPopularSpots.length">
+        <view class="hot-card compact" v-for="spot in remainingPopularSpots" :key="spot.id" @click="goSpotDetail(spot.id)">
           <image class="hot-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="hot-overlay">
             <text class="hot-name">{{ spot.name }}</text>
@@ -187,9 +187,9 @@
         <PreferenceCategorySelector
           v-model="selectedCategories"
           :categories="categories"
-          eyebrow="冷启动推荐"
+          eyebrow="偏好冷启动"
           title="选择你感兴趣的景点分类"
-          subtitle="先选几类你想看的景点，推荐会立刻从热门兜底切到偏好冷启动。"
+          subtitle="先选几类你想看的景点，推荐会立刻从热门冷启动切到偏好冷启动。"
           primary-text="立即开启"
           secondary-text="跳过"
           @submit="savePreferences"
@@ -223,7 +223,7 @@ const isLoggedIn = computed(() => userStore.isLoggedIn)
 
 // 页面数据状态
 const banners = ref([])
-const hotSpots = ref([])
+const popularSpots = ref([])
 const {
   recommendations,
   recommendationType,
@@ -253,7 +253,7 @@ const markerIcon = '/static/tabbar/spot-active.png'
 const quickActions = [
   { id: 'spots', title: '景点列表', note: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
   { id: 'guides', title: '攻略列表', note: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' },
-  { id: 'recommend', title: '推荐列表', note: '个性推荐', icon: 'star-filled', theme: 'amber', action: 'recommend-list' },
+  { id: 'recommend', title: '推荐景点', note: '个性推荐', icon: 'star-filled', theme: 'amber', action: 'recommend-spots' },
   { id: 'nearby', title: '附近景点', note: '周边探索', icon: 'map-filled', theme: 'emerald', action: 'nearby-spots' }
 ]
 
@@ -269,9 +269,10 @@ const pendingQuickActions = Array.from({ length: 4 }, (_, index) => ({
 const displayQuickActions = [...quickActions, ...pendingQuickActions]
 
 // 计算属性
+const recommendationSectionTitle = computed(() => (isLoggedIn.value ? recommendType.value : '推荐景点'))
 const recommendPreview = computed(() => recommendations.value.slice(0, 4))
-const featuredHotSpot = computed(() => hotSpots.value[0] || null)
-const secondaryHotSpots = computed(() => hotSpots.value.slice(1))
+const primaryPopularSpot = computed(() => popularSpots.value[0] || null)
+const remainingPopularSpots = computed(() => popularSpots.value.slice(1))
 const MAX_NEARBY_DISTANCE_KM = 100
 
 const toFiniteNumber = (value) => {
@@ -433,7 +434,7 @@ const fetchBanners = async () => {
 const fetchHotSpots = async () => {
   try {
     const res = await getHotSpots(6)
-    hotSpots.value = res.data?.list || []
+    popularSpots.value = res.data?.list || []
   } catch (error) {
     console.error('获取热门景点失败', error)
   }
@@ -593,7 +594,7 @@ const skipColdStartGuide = async () => {
   needPreference.value = false
   recommendationType.value = 'hot'
   await fetchHotSpots()
-  recommendations.value = hotSpots.value.slice(0, 4).map(item => ({
+  recommendations.value = popularSpots.value.slice(0, 4).map(item => ({
     id: item.id,
     name: item.name,
     coverImage: item.coverImage,
@@ -619,8 +620,8 @@ const handleQuickAction = (action) => {
     case 'guide-list':
       goGuideList()
       break
-    case 'recommend-list':
-      goRecommendList()
+    case 'recommend-spots':
+      goRecommendationSpots()
       break
     case 'nearby-spots':
       handleNearbyCardClick()
@@ -665,8 +666,8 @@ const goGuideList = () => {
   uni.navigateTo({ url: '/pages/guide/list?sortBy=time' })
 }
 
-const goRecommendList = () => {
-  if (!promptLogin('登录后可查看推荐列表，是否现在去登录？')) {
+const goRecommendationSpots = () => {
+  if (!promptLogin('登录后可查看推荐景点，是否现在去登录？')) {
     return
   }
   uni.navigateTo({ url: '/pages/recommendation/index' })

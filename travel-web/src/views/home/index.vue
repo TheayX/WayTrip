@@ -30,10 +30,10 @@
     </section>
 
     <div class="page-container">
-      <!-- 热门目的地 -->
+      <!-- 热门景点 -->
       <section class="section">
         <div class="section-header">
-          <h2 class="section-title">🔥 热门目的地</h2>
+          <h2 class="section-title">🔥 热门景点</h2>
           <el-button text type="primary" @click="$router.push('/spots')">查看全部 →</el-button>
         </div>
         <div v-if="hotSpots.length" class="hot-grid">
@@ -58,13 +58,13 @@
             </div>
           </div>
         </div>
-        <el-empty v-else description="暂无热门目的地" />
+        <el-empty v-else description="暂无热门景点" />
       </section>
 
       <!-- 个性化推荐 -->
       <section class="section">
         <div class="section-header">
-          <h2 class="section-title">✨ {{ recommendType }}</h2>
+          <h2 class="section-title">✨ {{ recommendationSectionTitle }}</h2>
           <el-button text type="primary" :loading="refreshing" @click="handleRefresh">换一批</el-button>
         </div>
 
@@ -96,7 +96,7 @@
             </div>
           </div>
         </div>
-        <el-empty v-else description="暂无推荐" />
+        <el-empty v-else :description="userStore.isLoggedIn ? '暂无推荐景点' : '登录后查看推荐景点'" />
       </section>
     </div>
 
@@ -144,10 +144,21 @@ const showPreferenceDialog = ref(false)
 const savingPref = ref(false)
 const refreshing = ref(false)
 const needPreference = ref(false)
+const recommendationType = ref('hot')
 
 // 计算属性
+const RECOMMENDATION_TYPE_MAP = {
+  personalized: '个性推荐',
+  preference: '偏好推荐',
+  hot: '热门推荐'
+}
+
 const recommendType = computed(() =>
-  needPreference.value ? '热门推荐' : '为你推荐'
+  RECOMMENDATION_TYPE_MAP[recommendationType.value] || '个性推荐'
+)
+
+const recommendationSectionTitle = computed(() =>
+  userStore.isLoggedIn ? recommendType.value : '推荐景点'
 )
 
 // 数据加载方法
@@ -169,6 +180,7 @@ const fetchRecommendations = async () => {
   try {
     const res = await getRecommendations(6)
     recommendations.value = res.data?.list || res.data || []
+    recommendationType.value = res.data?.type || 'hot'
     needPreference.value = res.data?.needPreference || false
   } catch (e) { /* ignore */ }
 }
@@ -186,6 +198,7 @@ const handleRefresh = async () => {
   try {
     const res = await refreshRecommendations(6)
     recommendations.value = res.data?.list || res.data || []
+    recommendationType.value = res.data?.type || recommendationType.value
   } catch (e) { /* ignore */ }
   refreshing.value = false
 }
@@ -212,7 +225,7 @@ const savePreferences = async () => {
       preferenceCategoryNames: categoryNames
     })
     showPreferenceDialog.value = false
-    ElMessage.success(selectedCategories.value.length ? '偏好设置成功' : '已清空偏好，将回退到热门推荐')
+    ElMessage.success(selectedCategories.value.length ? '偏好设置成功，已切换到偏好推荐' : '已清空偏好，已切换到热门推荐')
     await fetchRecommendations()
   } catch (e) { /* ignore */ }
   savingPref.value = false
@@ -225,7 +238,7 @@ const handleBannerClick = (banner) => {
 
 const handleHotSpotClick = (spot) => {
   if (!spot?.id) {
-    ElMessage.warning('该热门目的地数据不完整，暂时无法查看详情')
+    ElMessage.warning('该热门景点数据不完整，暂时无法查看详情')
     return
   }
   router.push(`/spots/${spot.id}?source=home`)

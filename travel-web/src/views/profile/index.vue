@@ -81,7 +81,7 @@
         <!-- 偏好设置 -->
         <div v-if="activeMenu === 'preference'" class="section-card card">
           <h3 class="card-title">偏好设置</h3>
-          <p class="tip">选择你感兴趣的旅行类型，也可以清空偏好，推荐会回退到热门景点。</p>
+          <p class="tip">选择你感兴趣的旅行类型，也可以清空偏好，推荐会回到热门冷启动。</p>
           <div class="preference-tags">
             <el-check-tag
               v-for="cat in categories"
