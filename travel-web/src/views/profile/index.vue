@@ -80,7 +80,7 @@
         <!-- 偏好设置 -->
         <div v-if="activeMenu === 'preference'" class="section-card card">
           <h3 class="card-title">偏好设置</h3>
-          <p class="tip">选择你感兴趣的旅行类型，我们将为你推荐更精准的内容</p>
+          <p class="tip">选择你感兴趣的旅行类型，也可以清空偏好，推荐会回退到热门景点。</p>
           <div class="preference-tags">
             <el-check-tag
               v-for="cat in categories"
@@ -377,10 +377,6 @@ const handleDeactivate = () => {
 }
 
 const handleSavePreference = async () => {
-  if (!selectedCategories.value.length) {
-    ElMessage.warning('请至少选择一个标签')
-    return
-  }
   savingPref.value = true
   try {
     const categoryNames = selectedCategories.value
