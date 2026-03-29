@@ -139,12 +139,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete, Picture } from '@element-plus/icons-vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
 import { useUserStore } from '@/stores/user'
+import { getAdminUploadUrl, getResourceUrl } from '@/utils/resource'
 
-const BASE_URL = 'http://localhost:8080'
 const userStore = useUserStore()
 
 // 上传相关配置
-const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/icon`)
+const uploadUrl = computed(() => getAdminUploadUrl('icon'))
 const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
 }))
@@ -154,9 +154,7 @@ const uploadData = computed(() => ({
 
 // 补全图片访问地址
 const getImageUrl = (url) => {
-  if (!url) return ''
-  if (url.startsWith('http')) return url
-  return BASE_URL + url
+  return getResourceUrl(url)
 }
 
 const formatDate = (dateStr) => {
