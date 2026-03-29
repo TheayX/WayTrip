@@ -22,9 +22,13 @@ import org.springframework.lang.Nullable;
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
+    // Token 解析依赖
     @Autowired
     private JwtUtil jwtUtil;
 
+    /**
+     * 拦截请求并根据接口前缀写入当前用户上下文。
+     */
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
         // OPTIONS 请求直接放行
@@ -70,6 +74,9 @@ public class AuthInterceptor implements HandlerInterceptor {
         UserContext.clear();
     }
 
+    /**
+     * 从 Authorization 请求头中提取 Bearer Token。
+     */
     private String getToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 /**
- * 用户端首页接口
+ * 用户端首页控制器，负责首页聚合数据接口。
  */
 @Tag(name = "用户端-首页", description = "首页轮播图、热门景点相关接口")
 @RestController

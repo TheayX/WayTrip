@@ -5,7 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 /**
- * 仪表板概览响应
+ * 仪表盘概览响应对象。
  */
 @Data
 public class DashboardOverviewResponse {

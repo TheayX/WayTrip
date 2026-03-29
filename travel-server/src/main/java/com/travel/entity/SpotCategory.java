@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 景点分类实体
+ * 景点分类持久化实体，对应 spot_category 表。
  */
 @Data
 @TableName("spot_category")

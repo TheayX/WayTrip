@@ -9,7 +9,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * 微信 API 工具类
+ * 微信接口工具类。
+ * <p>
+ * 负责调用微信小程序登录接口，并从响应中提取 OpenID。
  */
 @Slf4j
 @Component
@@ -28,7 +30,10 @@ public class WxApiUtil {
     private static final String WX_LOGIN_URL = "https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code";
 
     /**
-     * 通过 code 获取 openid
+     * 通过微信登录凭证换取 OpenID。
+     *
+     * @param code 小程序登录返回的临时凭证
+     * @return OpenID；调用失败、响应非法或微信返回错误码时返回 {@code null}
      */
     public String getOpenid(String code) {
         try {

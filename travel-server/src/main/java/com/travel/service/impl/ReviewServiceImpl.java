@@ -28,17 +28,24 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 评价服务实现，负责评价提交、查询与景点评分同步。
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
+    // 持久层依赖
     private final ReviewMapper reviewMapper;
     private final SpotMapper spotMapper;
     private final UserMapper userMapper;
     private final RecommendationService recommendationService;
 
+    // 时间格式配置
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    // 用户端评价操作
 
     @Override
     @Transactional
@@ -71,6 +78,7 @@ public class ReviewServiceImpl implements ReviewService {
             reviewMapper.insert(review);
         }
 
+        // 评价变更后需要立即刷新景点评分聚合，并清理推荐缓存。
         updateSpotAvgRating(request.getSpotId());
         recommendationService.invalidateUserRecommendationCache(userId);
         log.info("用户提交评价: userId={}, spotId={}, score={}", userId, request.getSpotId(), request.getScore());
@@ -134,6 +142,8 @@ public class ReviewServiceImpl implements ReviewService {
         log.info("用户删除评价: userId={}, reviewId={}, spotId={}", userId, reviewId, review.getSpotId());
     }
 
+    // 管理端评价查询与评分刷新
+
     @Override
     public PageResult<ReviewResponse> getAdminReviews(AdminReviewListRequest request) {
         Page<Review> pageObj = new Page<>(request.getPage(), request.getPageSize());
@@ -179,6 +189,8 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
 
+    // 景点评分同步与响应转换
+
     private void updateSpotAvgRating(Long spotId) {
         SpotRatingStats stats = reviewMapper.selectSpotRatingStats(spotId);
         BigDecimal avgRating = stats != null && stats.getAvgRating() != null
@@ -197,6 +209,7 @@ public class ReviewServiceImpl implements ReviewService {
         );
     }
 
+    // 响应对象转换方法
     private ReviewResponse convertToResponse(Review review) {
         User user = null;
         if (review.getNickname() == null || review.getAvatarUrl() == null) {

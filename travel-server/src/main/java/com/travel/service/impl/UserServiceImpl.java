@@ -17,10 +17,15 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 用户管理服务实现，负责管理端用户查询、详情统计与密码重置。
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
+    // 持久层依赖
 
     private final UserMapper userMapper;
     private final OrderMapper orderMapper;
@@ -28,6 +33,8 @@ public class UserServiceImpl implements UserService {
     private final ReviewMapper reviewMapper;
     private final SpotMapper spotMapper;
     private final BCryptPasswordEncoder passwordEncoder;
+
+    // 管理端用户查询与维护
 
     @Override
     public AdminUserListResponse getAdminUsers(AdminUserListRequest request) {
@@ -70,7 +77,7 @@ public class UserServiceImpl implements UserService {
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
 
-        // 统计数据
+        // 详情页需要聚合订单、收藏和评价数量。
         response.setOrderCount(Math.toIntExact(orderMapper.selectCount(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getUserId, userId)
@@ -87,7 +94,7 @@ public class UserServiceImpl implements UserService {
                 .eq(Review::getIsDeleted, 0)
         )));
 
-        // 最近订单
+        // 详情页仅展示最近订单摘要，避免一次性返回过多记录。
         List<Order> recentOrders = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getUserId, userId)
@@ -96,7 +103,7 @@ public class UserServiceImpl implements UserService {
                 .last("LIMIT 5")
         );
 
-        // 获取景点名称
+        // 订单表中仅保存景点 ID，展示时补充景点名称。
         java.util.Set<Long> spotIds = recentOrders.stream()
             .map(Order::getSpotId)
             .collect(java.util.stream.Collectors.toSet());
@@ -126,6 +133,8 @@ public class UserServiceImpl implements UserService {
         return orderStatus != null ? orderStatus.getKey() : "unknown";
     }
 
+    // 内部转换方法
+
     private AdminUserListResponse.UserItem buildUserItem(User user) {
         AdminUserListResponse.UserItem item = new AdminUserListResponse.UserItem();
         item.setId(user.getId());
@@ -135,7 +144,7 @@ public class UserServiceImpl implements UserService {
         item.setCreatedAt(user.getCreatedAt());
         item.setUpdatedAt(user.getUpdatedAt());
 
-        // 统计数据
+        // 列表页同步返回关键统计项，减少前端二次查询。
         item.setOrderCount(Math.toIntExact(orderMapper.selectCount(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getUserId, user.getId())

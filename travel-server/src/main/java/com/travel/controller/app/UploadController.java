@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 /**
- * 用户端文件上传接口（头像等）
+ * 用户端文件上传控制器，负责头像等资源上传接口。
  */
 @Tag(name = "用户端-文件上传", description = "用户端头像等文件上传接口")
 @RestController

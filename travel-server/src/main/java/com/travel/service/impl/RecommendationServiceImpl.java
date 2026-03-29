@@ -30,10 +30,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+/**
+ * 推荐服务实现，负责个性化推荐、冷启动兜底、相似度矩阵维护与调试能力。
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecommendationServiceImpl implements RecommendationService {
+
+    // 持久层与缓存依赖
 
     private final SpotMapper spotMapper;
     private final ReviewMapper reviewMapper;
@@ -46,6 +51,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final RecommendationCacheService recommendationCacheService;
 
     private final AtomicBoolean computing = new AtomicBoolean(false);
+
+    // 推荐主链路入口
 
     @Override
     public RecommendationResponse getRecommendations(Long userId, Integer limit) {
@@ -108,6 +115,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
         recommendationCacheService.deleteUserRecommendation(userId);
     }
+
+    // 推荐结果计算与冷启动兜底
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
         return computeRecommendations(userId, limit, false, false, false);
@@ -220,6 +229,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         return buildRecommendationResponse(filteredIds, filteredScores, limit, "personalized", false, debugInfo);
     }
 
+    // 用户行为权重构建
+
     /**
      * 构建单个用户的融合交互权重：Map<spotId, weight>。
      */
@@ -275,6 +286,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         return weights;
     }
 
+
+    // 冷启动推荐与兜底补齐
 
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean refresh, boolean debug,
                                                    boolean stable,
@@ -655,6 +668,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
 
+    // 热门与附近景点能力
+
     @Override
     public HotSpotResponse getHotSpots(Integer limit) {
         if (limit == null || limit <= 0) limit = 10;
@@ -706,6 +721,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         response.setNearestDistanceKm(list.isEmpty() ? null : list.get(0).getDistanceKm());
         return response;
     }
+
+    // 相似度矩阵离线更新
 
     /**
      * 离线重建景点相似度矩阵。
@@ -1011,6 +1028,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         return Math.max(defaultInt(config.getColdStartExpandFactor(), 3), 1);
     }
 
+    // 推荐结果组装与元数据补充
+
     private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Integer limit, String type, Boolean needPreference) {
         return buildRecommendationResponse(spotIds, null, limit, type, needPreference, null);
     }
@@ -1111,6 +1130,8 @@ public class RecommendationServiceImpl implements RecommendationService {
             items
         );
     }
+
+    // 调试信息组装与日志输出
 
     private RecommendationResponse.DebugInfo initDebugInfo(Long userId, Integer limit, boolean refresh) {
         RecommendationResponse.DebugInfo debugInfo = new RecommendationResponse.DebugInfo();

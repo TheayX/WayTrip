@@ -3,7 +3,7 @@ package com.travel.dto.guide;
 import lombok.Data;
 
 /**
- * 管理端攻略列表请求
+ * 管理端攻略列表筛选参数对象。
  */
 @Data
 public class AdminGuideListRequest {

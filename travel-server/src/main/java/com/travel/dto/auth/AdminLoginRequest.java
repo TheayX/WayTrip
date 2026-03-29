@@ -4,7 +4,7 @@ import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * 管理员登录请求
+ * 管理员登录请求对象。
  */
 @Data
 public class AdminLoginRequest {

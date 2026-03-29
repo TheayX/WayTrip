@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 /**
- * 推荐热度策略配置。
+ * 推荐热度策略配置参数对象。
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)

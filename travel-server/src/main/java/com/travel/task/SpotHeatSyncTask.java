@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SpotHeatSyncTask {
 
+    // 服务依赖
+
     private final SpotService spotService;
 
     /**

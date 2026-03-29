@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 订单列表响应
+ * 用户端订单分页响应对象。
  */
 @Data
 public class OrderListResponse {
@@ -20,6 +20,9 @@ public class OrderListResponse {
     private Integer page;
     private Integer pageSize;
 
+    /**
+     * 用户端订单列表项对象。
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

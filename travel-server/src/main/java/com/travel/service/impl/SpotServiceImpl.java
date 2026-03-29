@@ -29,12 +29,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 景点服务实现
+ * 景点服务实现，负责用户端景点浏览、管理端维护与热度同步逻辑。
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SpotServiceImpl implements SpotService {
+
+    // 持久层与服务依赖
 
     private final SpotMapper spotMapper;
     private final SpotImageMapper spotImageMapper;
@@ -45,6 +47,9 @@ public class SpotServiceImpl implements SpotService {
     private final UserSpotViewMapper userSpotViewMapper;
     private final OrderMapper orderMapper;
     private final RecommendationService recommendationService;
+
+    // 用户端景点查询与行为上报
+
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
         Page<Spot> page = new Page<>(request.getPage(), request.getPageSize());
@@ -70,7 +75,7 @@ public class SpotServiceImpl implements SpotService {
             }
         }
 
-        // 排序
+        // 未显式指定排序时，默认按热度分数返回。
         String sortBy = request.getSortBy();
         if ("rating".equals(sortBy)) {
             wrapper.orderByDesc(Spot::getAvgRating);
@@ -120,6 +125,7 @@ public class SpotServiceImpl implements SpotService {
             view.setViewSource(source);
             view.setViewDuration(duration != null ? duration : 0);
             userSpotViewMapper.insert(view);
+            // 浏览行为会影响推荐结果，需要同步清理用户推荐缓存。
             recommendationService.invalidateUserRecommendationCache(userId);
         } catch (Exception e) {
             log.warn("记录浏览行为失败: userId={}, spotId={}", userId, spotId, e);
@@ -172,7 +178,7 @@ public class SpotServiceImpl implements SpotService {
             }
         }
 
-        // 获取最新评论
+        // 详情页仅展示最新评论摘要，完整评价列表走评价接口分页查询。
         List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5);
 
         return SpotDetailResponse.builder()
@@ -235,6 +241,8 @@ public class SpotServiceImpl implements SpotService {
                 .build();
     }
 
+    // 筛选项与树结构组装
+
     private SpotFilterResponse.FilterItem convertCategoryFilterItem(SpotCategory category) {
         return SpotFilterResponse.FilterItem.builder()
                 .id(category.getId())
@@ -265,6 +273,8 @@ public class SpotServiceImpl implements SpotService {
 
         return roots;
     }
+
+    // 管理端景点维护与热度同步
 
     @Override
     public PageResult<AdminSpotListResponse> getAdminSpotList(AdminSpotListRequest request) {
@@ -429,6 +439,8 @@ public class SpotServiceImpl implements SpotService {
             applyHeatScore(spot);
         }
     }
+
+    // 内部转换与层级查询方法
 
     private SpotListResponse convertToListResponse(Spot spot) {
         return SpotListResponse.builder()

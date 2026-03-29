@@ -1,3 +1,7 @@
+#
+# 应用基础配置
+# 作用：定义后端服务通用配置，并通过 profile 叠加开发/生产环境差异。
+#
 server:
   port: 8080
 
@@ -25,7 +29,7 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# Knife4j 配置
+# API 文档配置
 knife4j:
   enable: true
   setting:

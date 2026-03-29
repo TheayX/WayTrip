@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * 小程序端通过手机号+密码注册/绑定已有账户请求
+ * 小程序端绑定手机号请求对象。
  */
 @Data
 public class WxBindPhoneRequest {

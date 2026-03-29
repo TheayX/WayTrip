@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 用户端攻略接口
+ * 用户端攻略控制器，负责攻略浏览接口。
  */
 @Tag(name = "用户端-攻略", description = "用户端攻略浏览相关接口")
 @RestController

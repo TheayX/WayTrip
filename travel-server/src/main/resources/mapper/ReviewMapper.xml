@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.travel.mapper.ReviewMapper">
 
+    <!-- 评价实体及关联用户/景点字段映射 -->
     <resultMap id="ReviewResultMap" type="com.travel.entity.Review">
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
@@ -17,6 +18,7 @@
         <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
+    <!-- 景点详情页最新评论映射 -->
     <resultMap id="CommentItemResultMap" type="com.travel.dto.spot.SpotDetailResponse$CommentItem">
         <result column="id" property="id"/>
         <result column="user_id" property="userId"/>
@@ -27,6 +29,7 @@
         <result column="created_at" property="createdAt"/>
     </resultMap>
 
+    <!-- 用户端景点评价分页查询 -->
     <select id="selectReviewPage" resultMap="ReviewResultMap">
         SELECT r.*,
                u.nickname,
@@ -38,6 +41,7 @@
         ORDER BY r.created_at DESC
     </select>
 
+    <!-- 用户个人评价分页查询 -->
     <select id="selectUserReviewPage" resultMap="ReviewResultMap">
         SELECT r.*,
                u.nickname,
@@ -52,6 +56,7 @@
         ORDER BY r.updated_at DESC, r.created_at DESC
     </select>
 
+    <!-- 管理端评价分页查询 -->
     <select id="selectAdminReviewPage" resultMap="ReviewResultMap">
         SELECT r.*,
                u.nickname,
@@ -71,6 +76,7 @@
         ORDER BY r.updated_at DESC, r.created_at DESC
     </select>
 
+    <!-- 景点详情页最新评论查询 -->
     <select id="selectLatestComments" resultMap="CommentItemResultMap">
         SELECT r.id,
                r.user_id,
@@ -89,6 +95,7 @@
         LIMIT #{limit}
     </select>
 
+    <!-- 景点评分统计查询 -->
     <select id="selectSpotRatingStats" resultType="com.travel.dto.review.SpotRatingStats">
         SELECT COALESCE(ROUND(AVG(r.score), 1), 0.0) AS avgRating,
                COUNT(*) AS ratingCount

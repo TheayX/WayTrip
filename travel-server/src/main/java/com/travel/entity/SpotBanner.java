@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 景点轮播图实体（对应 spot_banner 表）
+ * 景点轮播图持久化实体，对应 spot_banner 表。
  */
 @Data
 @TableName("spot_banner")
@@ -33,7 +33,9 @@ public class SpotBanner {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 
-    // 非数据库字段
+    /**
+     * 非数据库字段，通过关联查询补充。
+     */
     @TableField(exist = false)
     private String spotName;
 }

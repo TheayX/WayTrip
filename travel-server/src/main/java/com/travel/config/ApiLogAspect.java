@@ -49,6 +49,9 @@ public class ApiLogAspect {
      */
     private ObjectMapper logObjectMapper;
 
+    /**
+     * 初始化日志专用 ObjectMapper，并注册敏感字段过滤器。
+     */
     @PostConstruct
     public void init() {
         logObjectMapper = new ObjectMapper();
@@ -75,6 +78,9 @@ public class ApiLogAspect {
     public void controllerPointcut() {
     }
 
+    /**
+     * 环绕记录 Controller 请求日志、耗时和异常信息。
+     */
     @Around("controllerPointcut()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 景点地区实体（对应 spot_region 表）
+ * 景点地区持久化实体，对应 spot_region 表。
  */
 @Data
 @TableName("spot_region")

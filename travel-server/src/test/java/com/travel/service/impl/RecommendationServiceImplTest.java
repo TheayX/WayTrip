@@ -39,9 +39,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+/**
+ * 推荐服务测试
+ * 重点覆盖用户行为权重计算和冷启动兜底策略。
+ */
 @ExtendWith(MockitoExtension.class)
 class RecommendationServiceImplTest {
 
+    /**
+     * 初始化 MyBatis-Plus Lambda 缓存，保证推荐逻辑里的 Lambda 查询可用。
+     */
     @BeforeAll
     static void initMybatisPlusLambdaCache() {
         Configuration configuration = new Configuration();
@@ -84,6 +91,9 @@ class RecommendationServiceImplTest {
 
     private RecommendationServiceImpl recommendationService;
 
+    /**
+     * 构建推荐服务测试对象及其缓存依赖。
+     */
     @BeforeEach
     void setUp() {
         recommendationService = new RecommendationServiceImpl(
@@ -212,6 +222,9 @@ class RecommendationServiceImplTest {
         assertEquals(List.of(101L, 102L, 201L, 202L), response.getList().stream().map(RecommendationResponse.SpotItem::getId).toList());
     }
 
+    /**
+     * 构造推荐结果中的景点夹具。
+     */
     private Spot buildSpot(Long id, String name, Long categoryId) {
         Spot spot = new Spot();
         spot.setId(id);
@@ -223,6 +236,9 @@ class RecommendationServiceImplTest {
         return spot;
     }
 
+    /**
+     * 模拟分类与地区字典，供推荐结果组装时使用。
+     */
     private void mockCategoryAndRegionMaps() {
         SpotCategory category = new SpotCategory();
         category.setId(10L);

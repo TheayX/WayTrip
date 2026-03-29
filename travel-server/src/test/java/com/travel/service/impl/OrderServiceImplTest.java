@@ -28,6 +28,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * 订单服务测试
+ * 重点覆盖取消订单、完成订单和重新打开订单的状态流转。
+ */
 @ExtendWith(MockitoExtension.class)
 class OrderServiceImplTest {
 
@@ -48,6 +52,9 @@ class OrderServiceImplTest {
 
     private Spot spot;
 
+    /**
+     * 构建基础景点夹具，供订单响应断言使用。
+     */
     @BeforeEach
     void setUp() {
         spot = new Spot();
@@ -116,6 +123,9 @@ class OrderServiceImplTest {
         assertTrue(response.getCanCancel());
     }
 
+    /**
+     * 按指定状态构造订单夹具。
+     */
     private Order buildOrder(OrderStatus status) {
         Order order = new Order();
         order.setId(10L);

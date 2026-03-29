@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 管理端景点详情响应
+ * 管理端景点详情回显对象。
  */
 @Data
 public class AdminSpotDetailResponse {

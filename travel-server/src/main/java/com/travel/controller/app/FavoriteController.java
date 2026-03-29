@@ -15,7 +15,7 @@ import jakarta.validation.Valid;
 import java.util.Map;
 
 /**
- * 用户端收藏接口
+ * 用户端收藏控制器，负责景点收藏相关接口。
  */
 @Tag(name = "用户端-收藏", description = "用户收藏管理相关接口")
 @RestController

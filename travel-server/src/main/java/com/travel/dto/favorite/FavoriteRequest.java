@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 收藏请求
+ * 收藏操作请求对象。
  */
 @Data
 public class FavoriteRequest {

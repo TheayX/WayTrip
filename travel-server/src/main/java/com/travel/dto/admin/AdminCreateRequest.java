@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * 管理员创建请求对象。
+ */
 @Data
 public class AdminCreateRequest {
 

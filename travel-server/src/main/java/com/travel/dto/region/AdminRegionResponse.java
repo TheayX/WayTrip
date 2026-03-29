@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * 管理端地区响应对象。
+ */
 @Data
 @Schema(description = "管理端地区响应参数")
 public class AdminRegionResponse {

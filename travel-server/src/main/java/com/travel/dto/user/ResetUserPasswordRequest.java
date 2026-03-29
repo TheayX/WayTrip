@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * 管理端重置用户密码请求
+ * 管理端重置用户密码请求对象。
  */
 @Data
 public class ResetUserPasswordRequest {

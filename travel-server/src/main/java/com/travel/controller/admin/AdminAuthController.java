@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 /**
- * 管理端认证接口
+ * 管理端认证控制器，负责管理员登录与信息查询接口。
  */
 @Tag(name = "管理端-认证", description = "管理员登录、信息获取相关接口")
 @RestController

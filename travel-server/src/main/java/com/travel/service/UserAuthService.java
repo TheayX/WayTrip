@@ -7,39 +7,58 @@ import com.travel.dto.auth.WxBindPhoneRequest;
 import com.travel.dto.auth.WxLoginResponse;
 
 /**
- * 用户认证服务接口
+ * 用户认证服务接口。
+ * <p>
+ * 定义微信登录、Web 注册登录以及手机号绑定相关能力。
  */
 public interface UserAuthService {
 
     /**
-     * 微信登录（老用户返回token，新用户只返回openid）
+     * 执行微信登录。
+     *
+     * @param code 微信登录临时凭证
+     * @return 微信登录结果；老用户返回 Token，新用户仅返回 OpenID
      */
     WxLoginResponse wxLogin(String code);
 
     /**
-     * Web端注册（手机号+密码）
+     * 执行 Web 端注册。
+     *
+     * @param request Web 注册参数
+     * @return 登录结果
      */
     LoginResponse webRegister(WebRegisterRequest request);
 
     /**
-     * Web端第一步校验手机号是否可注册。
+     * 预校验 Web 端手机号是否允许注册。
+     *
+     * @param request Web 注册参数
      */
     void prepareWebRegister(WebRegisterRequest request);
 
     /**
-     * Web端登录（手机号+密码）
+     * 执行 Web 端登录。
+     *
+     * @param request Web 登录参数
+     * @return 登录结果
      */
     LoginResponse webLogin(WebLoginRequest request);
 
     /**
-     * 小程序端绑定手机号（新用户注册或匹配已有账户合并openid）
+     * 小程序端绑定手机号。
+     *
+     * @param request 绑定手机号参数
+     * @return 登录结果
      */
     LoginResponse wxBindPhone(WxBindPhoneRequest request);
 
     /**
-     * 小程序端第一步校验手机号+密码；已有账户则直接完成绑定登录，
-     * 新用户则仅校验通过，不立即创建账户。
-     * 返回 null 表示需要进入第二步继续完成注册。
+     * 小程序端预校验手机号和密码。
+     * <p>
+     * 已有账户时直接完成绑定登录；新用户仅校验通过，不立即创建账户。
+     *
+     * @param request 绑定手机号参数
+     * @return 已可直接登录时返回登录结果；需要继续完成注册时返回 {@code null}
      */
     LoginResponse prepareWxBindPhone(WxBindPhoneRequest request);
 }

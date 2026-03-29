@@ -5,7 +5,7 @@ import lombok.Builder;
 import java.math.BigDecimal;
 
 /**
- * 景点列表项响应
+ * 用户端景点列表项响应对象。
  */
 @Data
 @Builder

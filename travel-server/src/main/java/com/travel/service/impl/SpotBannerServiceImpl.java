@@ -15,13 +15,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 景点轮播图服务实现，负责用户端展示与管理端维护逻辑。
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SpotBannerServiceImpl implements SpotBannerService {
 
+    // 持久层依赖
+
     private final SpotBannerMapper spotBannerMapper;
     private final SpotMapper spotMapper;
+
+    // 用户端展示接口
 
     @Override
     public BannerResponse getBanners() {
@@ -40,6 +47,8 @@ public class SpotBannerServiceImpl implements SpotBannerService {
 
         return response;
     }
+
+    // 管理端维护接口
 
     @Override
     public AdminBannerListResponse getAdminBanners() {
@@ -117,6 +126,8 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         spotBannerMapper.updateById(banner);
         log.info("轮播图启用状态切换: bannerId={}, enabled={}", id, banner.getIsEnabled());
     }
+
+    // 内部转换与补充方法
 
     private Map<Long, String> getSpotNameMap(List<SpotBanner> banners) {
         List<Long> spotIds = banners.stream()

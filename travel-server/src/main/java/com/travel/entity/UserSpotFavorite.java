@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 用户景点收藏实体（对应 user_spot_favorite 表）
+ * 用户景点收藏持久化实体，对应 user_spot_favorite 表。
  */
 @Data
 @TableName("user_spot_favorite")

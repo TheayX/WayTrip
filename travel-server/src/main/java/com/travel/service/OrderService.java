@@ -3,57 +3,104 @@ package com.travel.service;
 import com.travel.dto.order.*;
 
 /**
- * 订单服务接口
+ * 订单服务接口。
+ * <p>
+ * 定义用户端订单创建、查询、支付、取消，以及管理端订单处理能力。
  */
 public interface OrderService {
 
     /**
-     * 创建订单
+     * 创建订单。
+     *
+     * @param userId 当前登录用户 ID
+     * @param request 订单创建参数
+     * @return 订单详情
      */
     OrderDetailResponse createOrder(Long userId, CreateOrderRequest request);
 
     /**
-     * 获取用户订单列表
+     * 分页获取当前用户的订单列表。
+     *
+     * @param userId 当前登录用户 ID
+     * @param request 订单查询参数
+     * @return 用户订单列表
      */
     OrderListResponse getUserOrders(Long userId, OrderListRequest request);
 
     /**
-     * 获取订单详情
+     * 获取当前用户的订单详情。
+     *
+     * @param userId 当前登录用户 ID
+     * @param orderId 订单 ID
+     * @return 订单详情
      */
     OrderDetailResponse getOrderDetail(Long userId, Long orderId);
 
     /**
-     * 模拟支付
+     * 执行订单支付。
+     *
+     * @param userId 当前登录用户 ID
+     * @param orderId 订单 ID
+     * @param idempotentKey 幂等键
+     * @return 支付后的订单详情
      */
     OrderDetailResponse payOrder(Long userId, Long orderId, String idempotentKey);
 
     /**
-     * 取消订单
+     * 取消当前用户的订单。
+     *
+     * @param userId 当前登录用户 ID
+     * @param orderId 订单 ID
+     * @return 取消后的订单详情
      */
     OrderDetailResponse cancelOrder(Long userId, Long orderId);
 
     /**
-     * 管理端获取订单列表
+     * 分页获取管理端订单列表。
+     *
+     * @param request 管理端订单查询参数
+     * @return 管理端订单分页结果
      */
     AdminOrderListResponse getAdminOrders(AdminOrderListRequest request);
 
     /**
-     * 管理端获取订单详情
+     * 获取管理端订单详情。
+     *
+     * @param orderId 订单 ID
+     * @return 订单详情
      */
     OrderDetailResponse getAdminOrderDetail(Long orderId);
 
     /**
-     * 管理端完成订单
+     * 将订单标记为已完成。
+     *
+     * @param orderId 订单 ID
+     * @return 更新后的订单详情
      */
     OrderDetailResponse completeOrder(Long orderId);
 
     /**
-     * 管理端退款订单
+     * 将订单标记为已退款。
+     *
+     * @param orderId 订单 ID
+     * @return 更新后的订单详情
      */
     OrderDetailResponse refundOrder(Long orderId);
 
+    /**
+     * 管理端取消订单。
+     *
+     * @param orderId 订单 ID
+     * @return 更新后的订单详情
+     */
     OrderDetailResponse cancelOrderByAdmin(Long orderId);
 
+    /**
+     * 将已完成订单恢复为已支付状态。
+     *
+     * @param orderId 订单 ID
+     * @return 更新后的订单详情
+     */
     OrderDetailResponse reopenOrder(Long orderId);
 }
 

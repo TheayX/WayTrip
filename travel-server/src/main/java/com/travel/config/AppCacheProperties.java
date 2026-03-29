@@ -6,15 +6,23 @@ import org.springframework.stereotype.Component;
 
 /**
  * 业务缓存配置。
+ * <p>
+ * 用于绑定 {@code app.cache} 前缀下的缓存相关参数。
  */
 @Data
 @Component
 @ConfigurationProperties(prefix = "app.cache")
 public class AppCacheProperties {
 
+    /**
+     * 推荐模块缓存配置。
+     */
     private Recommendation recommendation = new Recommendation();
 
     @Data
+    /**
+     * 推荐缓存细分配置。
+     */
     public static class Recommendation {
 
         /**

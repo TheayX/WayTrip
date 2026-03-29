@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 订单趋势响应
+ * 订单趋势响应对象。
  */
 @Data
 public class OrderTrendResponse {

@@ -14,7 +14,7 @@ import jakarta.validation.Valid;
 import java.util.Map;
 
 /**
- * 管理端景点接口
+ * 管理端景点控制器，负责景点管理与数据刷新接口。
  */
 @Tag(name = "管理端-景点", description = "管理端景点管理相关接口")
 @RestController

@@ -2,6 +2,9 @@ package com.travel.dto.review;
 
 import lombok.Data;
 
+/**
+ * 管理端评价列表筛选参数对象。
+ */
 @Data
 public class AdminReviewListRequest {
 

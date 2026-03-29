@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 /**
- * 管理端用户管理接口
+ * 管理端用户控制器，负责用户查询与账号维护接口。
  */
 @Tag(name = "管理端-用户", description = "管理端用户管理相关接口")
 @RestController

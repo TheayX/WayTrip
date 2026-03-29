@@ -5,6 +5,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * 附近景点响应对象。
+ */
 @Data
 public class NearbySpotResponse {
 

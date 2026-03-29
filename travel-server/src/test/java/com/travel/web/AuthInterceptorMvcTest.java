@@ -25,6 +25,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * AuthInterceptor MVC 测试
+ * 用于校验用户端与管理端接口的 Token 鉴权行为。
+ */
 class AuthInterceptorMvcTest {
 
     private MockMvc mockMvc;
@@ -34,6 +38,9 @@ class AuthInterceptorMvcTest {
     private AdminAuthService adminAuthService;
     private UserService userService;
 
+    /**
+     * 构建带鉴权拦截器的 MockMvc 测试环境。
+     */
     @BeforeEach
     void setUp() {
         jwtUtil = new JwtUtil();

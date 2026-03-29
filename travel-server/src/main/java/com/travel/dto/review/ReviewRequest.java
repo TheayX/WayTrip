@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 评价提交请求
+ * 用户端评价提交请求参数对象。
  */
 @Data
 public class ReviewRequest {

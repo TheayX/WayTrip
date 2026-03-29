@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 用户端评价控制器，负责评价提交、查询与删除接口。
+ */
 @Tag(name = "用户端-评价", description = "用户评价提交与查看相关接口")
 @RestController
 @RequestMapping("/api/v1/reviews")

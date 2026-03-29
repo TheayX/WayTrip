@@ -1,4 +1,5 @@
 # 开发环境配置
+# 用途：本地开发默认配置，包含数据库、Redis、JWT、微信和上传目录占位项。
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -22,6 +23,7 @@ spring:
           max-wait: 3s
         shutdown-timeout: 100ms
 
+# 应用级配置
 app:
   cache:
     recommendation:

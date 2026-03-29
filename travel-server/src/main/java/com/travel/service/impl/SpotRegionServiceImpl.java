@@ -16,8 +16,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * 景点地区服务实现，负责管理端地区查询与层级维护。
+ */
 @Service
 public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotRegion> implements SpotRegionService {
+
+    // 管理端地区查询与维护
 
     @Override
     public List<AdminRegionResponse> getAdminRegions(Long parentId) {
@@ -66,7 +71,7 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
             return;
         }
         
-        // 检查是否有子地区
+        // 删除前需要先保证当前地区下不存在子地区，避免树结构残缺。
         LambdaQueryWrapper<SpotRegion> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SpotRegion::getParentId, id)
                .eq(SpotRegion::getIsDeleted, 0);

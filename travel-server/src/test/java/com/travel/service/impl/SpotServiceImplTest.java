@@ -40,9 +40,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * 景点服务测试
+ * 重点覆盖热度分同步逻辑。
+ */
 @ExtendWith(MockitoExtension.class)
 class SpotServiceImplTest {
 
+    /**
+     * 初始化 MyBatis-Plus Lambda 缓存，确保 LambdaQueryWrapper 可正常解析字段。
+     */
     @BeforeAll
     static void initMybatisPlusLambdaCache() {
         Configuration configuration = new Configuration();

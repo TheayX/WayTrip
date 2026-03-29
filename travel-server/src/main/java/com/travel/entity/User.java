@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 用户实体
+ * 用户持久化实体，对应 user 表。
  */
 @Data
 @TableName("user")

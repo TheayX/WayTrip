@@ -3,8 +3,7 @@ package com.travel.enums;
 import lombok.Getter;
 
 /**
- * 订单状态枚举 - 与数据库 order.status 字段完全对应
- * 0-待支付，1-已支付，2-已取消，3-已退款，4-已完成
+ * 订单状态枚举，对应 order.status 字段取值。
  */
 @Getter
 public enum OrderStatus {
@@ -26,7 +25,7 @@ public enum OrderStatus {
     }
 
     /**
-     * 根据数据库 code 获取枚举
+     * 根据数据库状态码解析订单状态。
      */
     public static OrderStatus fromCode(Integer code) {
         if (code == null) return null;
@@ -37,7 +36,7 @@ public enum OrderStatus {
     }
 
     /**
-     * 根据前端传入的字符串 key 获取枚举
+     * 根据前端状态标识解析订单状态。
      */
     public static OrderStatus fromKey(String key) {
         if (key == null || key.isEmpty()) return null;
@@ -48,42 +47,42 @@ public enum OrderStatus {
     }
 
     /**
-     * 判断是否可以支付
+     * 判断当前状态是否允许支付。
      */
     public boolean canPay() {
         return this == PENDING;
     }
 
     /**
-     * 判断是否可以取消
+     * 判断当前状态是否允许取消。
      */
     public boolean canCancel() {
         return this == PENDING || this == PAID;
     }
 
     /**
-     * 判断是否可以完成
+     * 判断当前状态是否允许完成。
      */
     public boolean canComplete() {
         return this == PAID;
     }
 
     /**
-     * 判断是否可以退款
+     * 判断当前状态是否允许退款。
      */
     public boolean canRefund() {
         return this == PAID;
     }
 
     /**
-     * 是否为有效订单（未取消）
+     * 判断是否为未取消的有效订单。
      */
     public boolean isActive() {
         return this != CANCELLED;
     }
 
     /**
-     * 是否产生了收入（已支付或已退款前的状态）
+     * 判断当前状态是否计入收入口径。
      */
     public boolean hasRevenue() {
         return this == PAID || this == REFUNDED;

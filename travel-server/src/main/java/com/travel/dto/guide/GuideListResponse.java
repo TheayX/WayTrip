@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * 攻略列表响应
+ * 用户端攻略列表项响应对象。
  */
 @Data
 @Builder

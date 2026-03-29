@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * 订单详情响应
+ * 用户端订单详情响应对象。
  */
 @Data
 public class OrderDetailResponse {

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 /**
- * 管理端管理员管理接口
+ * 管理端管理员控制器，负责管理员管理接口。
  */
 @Tag(name = "管理端-管理员", description = "管理员账户管理相关接口")
 @RestController

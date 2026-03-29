@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 管理端攻略列表响应
+ * 管理端攻略列表项响应对象。
  */
 @Data
 @Builder

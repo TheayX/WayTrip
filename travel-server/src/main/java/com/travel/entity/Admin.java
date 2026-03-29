@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 管理员实体
+ * 管理员持久化实体，对应 admin 表。
  */
 @Data
 @TableName("admin")

@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.Builder;
 
 /**
- * 登录响应
+ * 通用登录响应对象。
  */
 @Data
 @Builder

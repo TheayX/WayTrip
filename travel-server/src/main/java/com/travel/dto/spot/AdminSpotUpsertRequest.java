@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 管理端景点创建/更新请求
+ * 管理端景点新增或编辑请求参数对象。
  */
 @Data
 public class AdminSpotUpsertRequest {

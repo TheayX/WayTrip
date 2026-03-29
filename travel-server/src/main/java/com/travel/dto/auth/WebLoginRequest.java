@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * Web端登录请求
+ * Web 端登录请求对象。
  */
 @Data
 public class WebLoginRequest {

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 景点图片实体
+ * 景点图片持久化实体，对应 spot_image 表。
  */
 @Data
 @TableName("spot_image")

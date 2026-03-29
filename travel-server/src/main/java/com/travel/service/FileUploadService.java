@@ -16,10 +16,10 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 文件上传公共服务
- *
- * 文件名格式：{类型前缀}_{标签}_{日期时间}_{短随机码}.{扩展名}
- * 示例：img_xihu_20260308_232057_a3b5c7.jpg
+ * 文件上传公共服务。
+ * <p>
+ * 统一处理图片和图标上传、文件名生成以及访问地址返回逻辑。
+ * 文件名格式：{@code {类型前缀}_{标签}_{日期时间}_{短随机码}.{扩展名}}。
  */
 @Slf4j
 @Service
@@ -31,12 +31,12 @@ public class FileUploadService {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     /**
-     * 上传图片文件
+     * 上传图片文件。
      *
-     * @param file       上传的文件
-     * @param maxSizeMB  最大文件大小（MB）
-     * @param logPrefix  日志前缀（如 "文件" / "头像"）
-     * @param tag        文件标签（如景点名 "西湖"，会转为拼音 "xihu"），可为 null
+     * @param file 上传的文件
+     * @param maxSizeMB 最大文件大小（MB）
+     * @param logPrefix 日志前缀
+     * @param tag 文件标签，可为 {@code null}
      * @return 上传结果
      */
     public ApiResponse<Map<String, String>> uploadImage(MultipartFile file, int maxSizeMB, String logPrefix, String tag) {
@@ -87,19 +87,24 @@ public class FileUploadService {
     }
 
     /**
-     * 上传图片文件（无标签，保持向后兼容）
+     * 上传图片文件（无标签，保持向后兼容）。
+     *
+     * @param file 上传的文件
+     * @param maxSizeMB 最大文件大小（MB）
+     * @param logPrefix 日志前缀
+     * @return 上传结果
      */
     public ApiResponse<Map<String, String>> uploadImage(MultipartFile file, int maxSizeMB, String logPrefix) {
         return uploadImage(file, maxSizeMB, logPrefix, null);
     }
 
     /**
-     * 上传图标文件
+     * 上传图标文件。
      *
-     * @param file       上传的文件
-     * @param maxSizeMB  最大文件大小（MB）
-     * @param logPrefix  日志前缀（如 "图标"）
-     * @param tag        文件标签（如分类名），可为 null
+     * @param file 上传的文件
+     * @param maxSizeMB 最大文件大小（MB）
+     * @param logPrefix 日志前缀
+     * @param tag 文件标签，可为 {@code null}
      * @return 上传结果
      */
     public ApiResponse<Map<String, String>> uploadIcon(MultipartFile file, int maxSizeMB, String logPrefix, String tag) {
@@ -150,7 +155,12 @@ public class FileUploadService {
     }
 
     /**
-     * 上传图标文件（无标签，保持向后兼容）
+     * 上传图标文件（无标签，保持向后兼容）。
+     *
+     * @param file 上传的文件
+     * @param maxSizeMB 最大文件大小（MB）
+     * @param logPrefix 日志前缀
+     * @return 上传结果
      */
     public ApiResponse<Map<String, String>> uploadIcon(MultipartFile file, int maxSizeMB, String logPrefix) {
         return uploadIcon(file, maxSizeMB, logPrefix, null);

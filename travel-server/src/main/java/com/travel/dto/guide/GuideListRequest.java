@@ -3,7 +3,7 @@ package com.travel.dto.guide;
 import lombok.Data;
 
 /**
- * 攻略列表请求
+ * 用户端攻略列表查询参数对象。
  */
 @Data
 public class GuideListRequest {

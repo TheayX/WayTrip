@@ -3,7 +3,7 @@ package com.travel.dto.spot;
 import lombok.Data;
 
 /**
- * 管理端景点列表查询请求
+ * 管理端景点列表筛选参数对象。
  */
 @Data
 public class AdminSpotListRequest {

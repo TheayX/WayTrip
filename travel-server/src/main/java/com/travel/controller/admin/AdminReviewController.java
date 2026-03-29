@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 管理端评价控制器，负责评价检索接口。
+ */
 @Tag(name = "管理端-评价", description = "管理端评价查询相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/reviews")

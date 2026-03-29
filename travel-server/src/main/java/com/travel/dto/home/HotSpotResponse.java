@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 热门景点响应
+ * 首页热门景点响应对象。
  */
 @Data
 public class HotSpotResponse {

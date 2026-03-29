@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 用户景点浏览记录实体（对应 user_spot_view 表）
+ * 用户景点浏览记录持久化实体，对应 user_spot_view 表。
  */
 @Data
 @TableName("user_spot_view")

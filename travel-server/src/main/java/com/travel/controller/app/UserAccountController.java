@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 /**
- * 用户端个人资料接口
+ * 用户端账户控制器，负责资料、偏好与账号设置接口。
  */
 @Tag(name = "用户端-个人资料", description = "用户信息管理、偏好设置、密码修改、账户注销等接口")
 @RestController
