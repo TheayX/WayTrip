@@ -46,7 +46,7 @@
             </div>
           </el-upload>
         </div>
-        <el-input v-model="profileForm.nickname" placeholder="请输入昵称" prefix-icon="User" maxlength="30" size="large" class="nickname-input" />
+        <el-input v-model="registerProfileForm.nickname" placeholder="请输入昵称" prefix-icon="User" maxlength="30" size="large" class="nickname-input" />
         <div class="step2-actions">
           <el-button size="large" class="skip-btn" :loading="loading" @click="handleSkip">跳过</el-button>
           <el-button type="primary" size="large" :loading="loading" class="confirm-btn" @click="handleStep2">完成注册</el-button>
@@ -85,7 +85,7 @@ const form = reactive({
 })
 
 // 第二步表单
-const profileForm = reactive({
+const registerProfileForm = reactive({
   nickname: defaultRegisterNickname
 })
 const avatarPreview = ref('')
@@ -125,7 +125,7 @@ const handleStep1 = async () => {
       password: form.password,
       confirmPassword: form.confirmPassword
     })
-    profileForm.nickname = defaultRegisterNickname
+    registerProfileForm.nickname = defaultRegisterNickname
     avatarPreview.value = ''
     avatarFile.value = null
     step.value = 2
@@ -185,10 +185,10 @@ const handleSkip = () => {
 // 完成注册：带上昵称和头像
 const handleStep2 = () => {
   doRegister({
-    nickname: profileForm.nickname.trim() || defaultRegisterNickname,
-    avatar: avatarFile.value || null
-  })
-}
+      nickname: registerProfileForm.nickname.trim() || defaultRegisterNickname,
+      avatar: avatarFile.value || null
+    })
+  }
 </script>
 
 <style lang="scss" scoped>

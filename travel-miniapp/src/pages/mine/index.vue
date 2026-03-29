@@ -227,7 +227,7 @@ import { getFavoriteList } from '@/api/favorite'
 import { getOrderList } from '@/api/order'
 import { getMyReviews } from '@/api/review'
 import { wxLogin, wxBindPhone, prepareWxBindPhone } from '@/api/auth'
-import { getUserInfo, updateUserInfo, uploadAvatar, updatePreferences } from '@/api/user'
+import { getUserInfo, updateUserInfo, uploadAvatar, setPreferences } from '@/api/user'
 import { getFilters } from '@/api/spot'
 import {
   markColdStartGuideCompleted,
@@ -406,7 +406,7 @@ const handlePreferenceLimitExceed = () => {
 
 const saveRegisterPreferences = async () => {
   try {
-    await updatePreferences({ categoryIds: preferenceGuideSelection.value })
+    await setPreferences({ categoryIds: preferenceGuideSelection.value })
     const categoryNames = preferenceGuideSelection.value
       .map(id => preferenceGuideCategories.value.find(cat => cat.id === id)?.name)
       .filter(Boolean)

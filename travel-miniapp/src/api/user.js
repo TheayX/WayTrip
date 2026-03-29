@@ -17,9 +17,9 @@ export const updateUserInfo = (data) => {
 }
 
 /**
- * 更新偏好标签
+ * 设置偏好标签
  */
-export const updatePreferences = (data) => {
+export const setPreferences = (data) => {
   return post('/user/preferences', data)
 }
 

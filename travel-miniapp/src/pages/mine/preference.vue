@@ -19,7 +19,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getFilters } from '@/api/spot'
-import { updatePreferences, getUserInfo } from '@/api/user'
+import { setPreferences, getUserInfo } from '@/api/user'
 import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import { useUserStore } from '@/stores/user'
@@ -54,7 +54,7 @@ const handleLimitExceed = () => {
 const savePreferences = async () => {
   saving.value = true
   try {
-    await updatePreferences({ categoryIds: selectedIds.value })
+    await setPreferences({ categoryIds: selectedIds.value })
     const categoryNames = selectedIds.value
       .map(id => categories.value.find(cat => cat.id === id)?.name)
       .filter(Boolean)
