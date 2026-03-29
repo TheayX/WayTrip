@@ -8,6 +8,25 @@
         </div>
       </template>
 
+      <!-- 统计卡片 -->
+      <div class="insight-stat-row">
+        <el-card shadow="never" class="insight-stat-card">
+          <div class="insight-stat-label">覆盖用户</div>
+          <div class="insight-stat-value">{{ pagination.total }}</div>
+          <div class="insight-stat-desc">当前筛选条件下的用户画像记录数</div>
+        </el-card>
+        <el-card shadow="never" class="insight-stat-card">
+          <div class="insight-stat-label">当前页标签数</div>
+          <div class="insight-stat-value">{{ currentPageTagCount }}</div>
+          <div class="insight-stat-desc">当前页所有用户偏好标签的累计数量</div>
+        </el-card>
+        <el-card shadow="never" class="insight-stat-card">
+          <div class="insight-stat-label">当前页高频偏好</div>
+          <div class="insight-stat-value">{{ topPreferenceTag }}</div>
+          <div class="insight-stat-desc">用于快速观察当前筛选结果的主导偏好方向</div>
+        </el-card>
+      </div>
+
       <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="用户昵称">
@@ -75,7 +94,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getPreferenceList } from '@/api/user-insight'
 import { getFilters } from '@/api/spot'
@@ -99,6 +118,21 @@ const pagination = reactive({
   page: 1,
   pageSize: 10,
   total: 0
+})
+
+// 当前页统计
+const currentPageTagCount = computed(() => {
+  return tableData.value.reduce((sum, item) => sum + (item.preferenceTags?.length || 0), 0)
+})
+
+const topPreferenceTag = computed(() => {
+  const counter = tableData.value.reduce((acc, item) => {
+    ;(item.preferenceTags || []).forEach((tag) => {
+      acc[tag] = (acc[tag] || 0) + 1
+    })
+    return acc
+  }, {})
+  return Object.entries(counter).sort((a, b) => b[1] - a[1])[0]?.[0] || '暂无'
 })
 
 // 格式化手机号显示
@@ -193,22 +227,10 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+@use '@/styles/user-ops.scss' as userOps;
+
 .preference-page {
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .search-form {
-    margin-bottom: 20px;
-  }
-
-  .pagination-wrapper {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
+  @include userOps.page-shell;
 }
 
 .tag-list {

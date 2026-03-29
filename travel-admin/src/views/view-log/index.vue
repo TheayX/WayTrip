@@ -9,18 +9,21 @@
       </template>
 
       <!-- 统计卡片 -->
-      <div class="stat-row">
-        <el-card shadow="never" class="stat-card">
-          <div class="stat-label">筛选结果</div>
-          <div class="stat-value">{{ pagination.total }}</div>
+      <div class="insight-stat-row">
+        <el-card shadow="never" class="insight-stat-card">
+          <div class="insight-stat-label">筛选结果</div>
+          <div class="insight-stat-value">{{ pagination.total }}</div>
+          <div class="insight-stat-desc">当前条件下的浏览记录总数</div>
         </el-card>
-        <el-card shadow="never" class="stat-card">
-          <div class="stat-label">当前页平均停留</div>
-          <div class="stat-value">{{ averageDuration }} 秒</div>
+        <el-card shadow="never" class="insight-stat-card">
+          <div class="insight-stat-label">当前页平均停留</div>
+          <div class="insight-stat-value">{{ averageDuration }} 秒</div>
+          <div class="insight-stat-desc">用于快速判断当前筛选结果的浏览深度</div>
         </el-card>
-        <el-card shadow="never" class="stat-card">
-          <div class="stat-label">当前页主要来源</div>
-          <div class="stat-value">{{ topSourceLabel }}</div>
+        <el-card shadow="never" class="insight-stat-card">
+          <div class="insight-stat-label">当前页主要来源</div>
+          <div class="insight-stat-value">{{ topSourceLabel }}</div>
+          <div class="insight-stat-desc">帮助判断推荐、搜索、攻略等入口的贡献</div>
         </el-card>
       </div>
 
@@ -308,43 +311,10 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+@use '@/styles/user-ops.scss' as userOps;
+
 .view-log-page {
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .search-form {
-    margin-bottom: 20px;
-  }
-
-  .pagination-wrapper {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
-}
-
-.stat-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  .stat-label {
-    font-size: 13px;
-    color: #909399;
-  }
-
-  .stat-value {
-    margin-top: 10px;
-    font-size: 24px;
-    font-weight: 700;
-    color: #303133;
-  }
+  @include userOps.page-shell;
 }
 
 .spot-cell {
@@ -358,11 +328,5 @@ watch(
   height: 48px;
   border-radius: 8px;
   flex-shrink: 0;
-}
-
-@media (max-width: 900px) {
-  .stat-row {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
