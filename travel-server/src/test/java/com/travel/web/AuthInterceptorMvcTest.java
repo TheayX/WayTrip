@@ -1,11 +1,14 @@
 package com.travel.web;
 
 import com.travel.common.exception.GlobalExceptionHandler;
+import com.travel.controller.app.UserAccountController;
 import com.travel.dto.auth.AdminLoginResponse;
 import com.travel.dto.auth.UserInfoResponse;
 import com.travel.dto.user.AdminUserListResponse;
 import com.travel.interceptor.AuthInterceptor;
-import com.travel.service.AuthService;
+import com.travel.service.AdminAuthService;
+import com.travel.service.UserAccountService;
+import com.travel.service.UserAuthService;
 import com.travel.service.UserService;
 import com.travel.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +29,9 @@ class AuthInterceptorMvcTest {
 
     private MockMvc mockMvc;
     private JwtUtil jwtUtil;
-    private AuthService authService;
+    private UserAuthService userAuthService;
+    private UserAccountService userAccountService;
+    private AdminAuthService adminAuthService;
     private UserService userService;
 
     @BeforeEach
@@ -40,9 +45,11 @@ class AuthInterceptorMvcTest {
         AuthInterceptor authInterceptor = new AuthInterceptor();
         ReflectionTestUtils.setField(authInterceptor, "jwtUtil", jwtUtil);
 
-        authService = Mockito.mock(AuthService.class);
+        userAuthService = Mockito.mock(UserAuthService.class);
+        userAccountService = Mockito.mock(UserAccountService.class);
+        adminAuthService = Mockito.mock(AdminAuthService.class);
         userService = Mockito.mock(UserService.class);
-        Mockito.when(authService.getUserInfo(1L)).thenReturn(
+        Mockito.when(userAccountService.getUserInfo(1L)).thenReturn(
                 UserInfoResponse.builder()
                         .id(1L)
                         .nickname("测试用户")
@@ -52,7 +59,7 @@ class AuthInterceptorMvcTest {
                         .preferences(List.of("自然风光"))
                         .build()
         );
-        Mockito.when(authService.getAdminInfo(99L)).thenReturn(
+        Mockito.when(adminAuthService.getAdminInfo(99L)).thenReturn(
                 AdminLoginResponse.AdminInfo.builder()
                         .id(99L)
                         .username("admin")
@@ -80,10 +87,10 @@ class AuthInterceptorMvcTest {
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(
-                        new com.travel.controller.app.ProfileController(authService),
-                        new com.travel.controller.app.AuthController(authService),
+                        new UserAccountController(userAccountService),
+                        new com.travel.controller.app.AuthController(userAuthService, userAccountService),
                         new com.travel.controller.admin.AdminUserController(userService),
-                        new com.travel.controller.admin.AdminAuthController(authService)
+                        new com.travel.controller.admin.AdminAuthController(adminAuthService)
                 )
                 .addInterceptors(authInterceptor)
                 .setControllerAdvice(new GlobalExceptionHandler())

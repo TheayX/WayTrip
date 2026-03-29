@@ -18,7 +18,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
-public class ProfileController {
+public class UserAccountController {
 
     private final UserAccountService userAccountService;
 
@@ -31,7 +31,7 @@ public class ProfileController {
 
     @Operation(summary = "更新用户信息")
     @PutMapping("/info")
-    public ApiResponse<Void> updateUserInfo(@RequestBody UpdateUserInfoRequest request) {
+    public ApiResponse<Void> updateUserInfo(@Valid @RequestBody UpdateUserInfoRequest request) {
         Long userId = UserContext.getUserId();
         userAccountService.updateUserInfo(userId, request);
         return ApiResponse.success();
@@ -61,4 +61,3 @@ public class ProfileController {
         return ApiResponse.success();
     }
 }
-
