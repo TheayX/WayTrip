@@ -194,10 +194,6 @@ const toggleCategory = (id) => {
 }
 
 const savePreferences = async () => {
-  if (!selectedCategories.value.length) {
-    ElMessage.warning('请至少选择一个标签')
-    return
-  }
   savingPref.value = true
   try {
     const categoryNames = selectedCategories.value
@@ -210,7 +206,7 @@ const savePreferences = async () => {
       preferenceCategoryNames: categoryNames
     })
     showPreferenceDialog.value = false
-    ElMessage.success('偏好设置成功')
+    ElMessage.success(selectedCategories.value.length ? '偏好设置成功' : '已清空偏好，将回退到热门推荐')
     await fetchRecommendations()
   } catch (e) { /* ignore */ }
   savingPref.value = false
