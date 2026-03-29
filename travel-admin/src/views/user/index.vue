@@ -107,6 +107,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { getUserList, getUserDetail, resetUserPassword } from '@/api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { isMessageBoxDismissed } from '@/utils/message-box'
 
 // 查询参数
 const searchForm = reactive({
@@ -200,7 +201,7 @@ const handleResetPassword = async (row) => {
     await resetUserPassword(row.id, { newPassword: value })
     ElMessage.success('密码重置成功')
   } catch (e) {
-    if (e !== 'cancel') console.error('重置密码失败', e)
+    if (!isMessageBoxDismissed(e)) console.error('重置密码失败', e)
   }
 }
 

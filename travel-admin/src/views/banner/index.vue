@@ -129,6 +129,7 @@ import { Plus } from '@element-plus/icons-vue'
 import { getBannerList, createBanner, updateBanner, deleteBanner, toggleBannerEnabled } from '@/api/banner'
 import { getSpotList } from '@/api/spot'
 import { useUserStore } from '@/stores/user'
+import { isMessageBoxDismissed } from '@/utils/message-box'
 import { getAdminUploadUrl, getResourceUrl } from '@/utils/resource'
 
 const userStore = useUserStore()
@@ -270,7 +271,7 @@ const handleSubmit = async () => {
     dialogVisible.value = false
     fetchBannerList()
   } catch (e) {
-    if (e !== 'cancel') {
+    if (!isMessageBoxDismissed(e)) {
       ElMessage.error('操作失败')
     }
   } finally {
@@ -299,7 +300,7 @@ const handleDelete = async (row) => {
     ElMessage.success('删除成功')
     fetchBannerList()
   } catch (e) {
-    if (e !== 'cancel') {
+    if (!isMessageBoxDismissed(e)) {
       ElMessage.error('删除失败')
     }
   }

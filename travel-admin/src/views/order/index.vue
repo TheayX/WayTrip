@@ -184,6 +184,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder, cancelOrder } from '@/api/order'
+import { isMessageBoxDismissed } from '@/utils/message-box'
 
 // 查询参数
 const searchForm = reactive({
@@ -278,7 +279,7 @@ const handleComplete = async (row) => {
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {
-    if (e !== 'cancel') {
+    if (!isMessageBoxDismissed(e)) {
       ElMessage.error('操作失败')
     }
   }
@@ -295,7 +296,7 @@ const handleRefund = async (row) => {
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {
-    if (e !== 'cancel') {
+    if (!isMessageBoxDismissed(e)) {
       ElMessage.error('操作失败')
     }
   }
@@ -312,7 +313,7 @@ const handleCancel = async (row) => {
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {
-    if (e !== 'cancel') {
+    if (!isMessageBoxDismissed(e)) {
       ElMessage.error('操作失败')
     }
   }
@@ -329,7 +330,7 @@ const handleReopen = async (row) => {
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {
-    if (e !== 'cancel') {
+    if (!isMessageBoxDismissed(e)) {
       ElMessage.error('操作失败')
     }
   }

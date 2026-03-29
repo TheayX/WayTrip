@@ -1099,6 +1099,7 @@ import {
   previewSimilarityNeighbors
 } from '@/api/recommendation'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { isMessageBoxDismissed } from '@/utils/message-box'
 import {
   Cpu, Timer, User, Location, RefreshLeft, Check, Refresh,
   DataLine, Setting, Clock
@@ -1603,7 +1604,7 @@ const handleResetConfig = async () => {
     savedConfig.value = cloneConfig(defaults)
     ElMessage.success('已恢复为默认配置')
   } catch (e) {
-    if (e !== 'cancel') {
+    if (!isMessageBoxDismissed(e)) {
       ElMessage.error('恢复默认失败')
     }
   }
@@ -1623,7 +1624,7 @@ const handleUpdateMatrix = async () => {
     ElMessage.success('相似度矩阵更新完成！')
     await fetchStatus()
   } catch (e) {
-    if (e !== 'cancel') {
+    if (!isMessageBoxDismissed(e)) {
       ElMessage.error('矩阵更新失败')
     }
   } finally {
