@@ -27,8 +27,6 @@ app:
     recommendation:
       user-rec-ttl-minutes: 60
       similarity-ttl-hours: 24
-    spot:
-      heat-view-dedupe-window-minutes: 30
   task:
     spot-heat-sync-cron: 0 30 3 * * ?
 

@@ -45,7 +45,6 @@ public class AuthController {
         LoginResponse login = authService.prepareWxBindPhone(request);
         Map<String, Object> data = new HashMap<>();
         data.put("completed", login != null);
-        data.put("requireProfile", login == null);
         data.put("login", login);
         return ApiResponse.success(data);
     }
