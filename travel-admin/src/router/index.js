@@ -94,6 +94,12 @@ const routes = [
       },
       {
         path: 'recommendation',
+        name: 'RecommendationOverview',
+        component: () => import('@/views/recommendation/overview.vue'),
+        meta: { title: '推荐总览', icon: 'MagicStick', group: 'recommendation' }
+      },
+      {
+        path: 'recommendation/config',
         name: 'Recommendation',
         component: () => import('@/views/recommendation/index.vue'),
         meta: { title: '推荐配置', icon: 'MagicStick', group: 'recommendation' }

@@ -8,6 +8,25 @@
         </div>
       </template>
 
+      <!-- 统计卡片 -->
+      <div class="insight-stat-row">
+        <el-card shadow="never" class="insight-stat-card">
+          <div class="insight-stat-label">筛选结果</div>
+          <div class="insight-stat-value">{{ pagination.total }}</div>
+          <div class="insight-stat-desc">当前条件下的收藏记录总数</div>
+        </el-card>
+        <el-card shadow="never" class="insight-stat-card">
+          <div class="insight-stat-label">当前页用户数</div>
+          <div class="insight-stat-value">{{ currentPageUserCount }}</div>
+          <div class="insight-stat-desc">用于判断收藏行为是否集中在少数用户</div>
+        </el-card>
+        <el-card shadow="never" class="insight-stat-card">
+          <div class="insight-stat-label">当前页景点数</div>
+          <div class="insight-stat-value">{{ currentPageSpotCount }}</div>
+          <div class="insight-stat-desc">用于快速观察收藏覆盖的景点范围</div>
+        </el-card>
+      </div>
+
       <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="用户昵称">
@@ -90,7 +109,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted, watch } from 'vue'
+import { computed, reactive, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteFavorite, getFavoriteList } from '@/api/user-insight'
@@ -117,6 +136,10 @@ const pagination = reactive({
   pageSize: 10,
   total: 0
 })
+
+// 当前页统计
+const currentPageUserCount = computed(() => new Set(tableData.value.map(item => item.userId)).size)
+const currentPageSpotCount = computed(() => new Set(tableData.value.map(item => item.spotId)).size)
 
 // 获取收藏列表
 const fetchFavoriteList = async () => {
@@ -235,22 +258,10 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+@use '@/styles/user-ops.scss' as userOps;
+
 .favorite-page {
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .search-form {
-    margin-bottom: 20px;
-  }
-
-  .pagination-wrapper {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
+  @include userOps.page-shell;
 }
 
 .spot-cell {
