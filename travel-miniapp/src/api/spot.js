@@ -31,6 +31,16 @@ export const getSpotDetail = (spotId) => {
 }
 
 /**
+ * 获取我的最近浏览记录
+ * @param page
+ * @param pageSize
+ * @returns {*}
+ */
+export const getViewHistory = (page = 1, pageSize = 20) => {
+  return get('/spots/views', { page, pageSize })
+}
+
+/**
  * 获取相似景点推荐
  * @param spotId
  * @param limit

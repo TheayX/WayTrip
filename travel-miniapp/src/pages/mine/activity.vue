@@ -24,7 +24,7 @@
             class="browse-card"
             @click="goSpot(item.id, 'footprint')"
           >
-            <image class="browse-image" :src="getImageUrl(item.coverImage)" mode="aspectFill" />
+            <image class="browse-image" :src="getContentImageUrl(item.coverImage)" mode="aspectFill" />
             <view class="browse-body">
               <text class="browse-name">{{ item.name }}</text>
               <text class="browse-meta">{{ item.regionName || '景点' }}</text>
@@ -135,6 +135,7 @@ import { computed, reactive, ref } from 'vue'
 import { onShow, onLoad } from '@dcloudio/uni-app'
 import { getFavoriteList, removeFavorite } from '@/api/favorite'
 import { deleteReview, getMyReviews, submitReview } from '@/api/review'
+import { getViewHistory } from '@/api/spot'
 import { useUserStore } from '@/stores/user'
 import { getContentImageUrl, getImageUrl } from '@/utils/request'
 
@@ -210,6 +211,7 @@ const ensureLogin = () => {
 const formatViewedTime = (timestamp) => {
   if (!timestamp) return '-'
   const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) return timestamp
   const yyyy = date.getFullYear()
   const mm = `${date.getMonth() + 1}`.padStart(2, '0')
   const dd = `${date.getDate()}`.padStart(2, '0')
@@ -218,10 +220,58 @@ const formatViewedTime = (timestamp) => {
   return `${yyyy}-${mm}-${dd} ${hh}:${min}`
 }
 
+const normalizeFootprints = (list) => {
+  if (!Array.isArray(list)) return []
+  return list
+    .filter(item => item?.id)
+    .map(item => ({
+      id: item.id,
+      name: item.name || '',
+      coverImage: item.coverImage || '',
+      regionName: item.regionName || '',
+      categoryName: item.categoryName || '',
+      viewedAt: item.viewedAt || Date.now()
+    }))
+}
+
+const cacheFootprints = (list) => {
+  const normalized = normalizeFootprints(list).slice(0, 20)
+  uni.setStorageSync('spot_footprints', normalized)
+  footprintList.value = normalized
+}
+
+const fetchRemoteFootprints = async () => {
+  try {
+    const res = await getViewHistory(1, 20)
+    const list = normalizeFootprints(res.data?.list || [])
+    cacheFootprints(list)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
 // 数据加载方法
-const loadFootprints = () => {
+const loadFootprints = async () => {
   const history = uni.getStorageSync('spot_footprints')
-  footprintList.value = Array.isArray(history) ? history : []
+  const cachedList = normalizeFootprints(history)
+  const shouldSyncRemote = isLoggedIn.value && (
+    cachedList.length === 0
+    || cachedList.some(item => !item.coverImage)
+  )
+
+  if (!shouldSyncRemote) {
+    footprintList.value = cachedList
+    return
+  }
+
+  if (cachedList.length) {
+    footprintList.value = cachedList
+  }
+  const synced = await fetchRemoteFootprints()
+  if (!synced && !cachedList.length) {
+    footprintList.value = []
+  }
 }
 
 const fetchFavoritePage = async (reset = false) => {
@@ -262,7 +312,7 @@ const fetchReviewPage = async (reset = false) => {
 
 const loadActiveTab = async (reset = false) => {
   if (activeTab.value === 'browse') {
-    loadFootprints()
+    await loadFootprints()
     return
   }
   if (activeTab.value === 'favorite') {
