@@ -1,12 +1,14 @@
 <template>
   <div class="preference-page">
     <el-card shadow="hover">
+      <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>用户偏好</span>
         </div>
       </template>
 
+      <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="用户昵称">
           <el-input
@@ -37,6 +39,7 @@
         </el-form-item>
       </el-form>
 
+      <!-- 偏好列表 -->
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="userId" label="用户ID" width="90" />
         <el-table-column prop="nickname" label="用户昵称" min-width="140" />
@@ -55,6 +58,7 @@
         <el-table-column prop="createdAt" label="注册时间" width="170" />
       </el-table>
 
+      <!-- 分页器 -->
       <div class="pagination-wrapper">
         <el-pagination
           v-model:current-page="pagination.page"
@@ -79,21 +83,25 @@ import { getFilters } from '@/api/spot'
 const router = useRouter()
 const route = useRoute()
 
+// 列表状态
 const loading = ref(false)
 const tableData = ref([])
 const categoryOptions = ref([])
 
+// 查询参数
 const searchForm = reactive({
   nickname: '',
   categoryId: null
 })
 
+// 分页参数
 const pagination = reactive({
   page: 1,
   pageSize: 10,
   total: 0
 })
 
+// 格式化手机号显示
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
   const normalized = phone.trim()
@@ -103,6 +111,7 @@ const formatPhone = (phone) => {
   return normalized
 }
 
+// 构建分类选项
 const buildCategoryOptions = (nodes = [], level = 0) => {
   return nodes.reduce((acc, node) => {
     acc.push({
@@ -116,11 +125,13 @@ const buildCategoryOptions = (nodes = [], level = 0) => {
   }, [])
 }
 
+// 获取筛选项
 const fetchFilters = async () => {
   const res = await getFilters()
   categoryOptions.value = buildCategoryOptions(res.data.categoryTree || [])
 }
 
+// 获取偏好列表
 const fetchPreferenceList = async () => {
   loading.value = true
   try {
@@ -136,18 +147,21 @@ const fetchPreferenceList = async () => {
   }
 }
 
+// 搜索操作
 const handleSearch = () => {
   pagination.page = 1
   syncRouteQuery()
   fetchPreferenceList()
 }
 
+// 重置搜索条件
 const handleReset = () => {
   searchForm.nickname = ''
   searchForm.categoryId = null
   handleSearch()
 }
 
+// 同步路由参数
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
@@ -155,11 +169,13 @@ const syncRouteQuery = () => {
   router.replace({ path: route.path, query: nextQuery })
 }
 
+// 回填路由参数
 const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.categoryId = typeof route.query.categoryId === 'string' ? Number(route.query.categoryId) : null
 }
 
+// 页面初始化
 onMounted(() => {
   applyRouteQuery()
   fetchFilters()

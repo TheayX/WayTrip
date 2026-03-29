@@ -1,12 +1,14 @@
 <template>
   <div class="view-log-page">
     <el-card shadow="hover">
+      <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>浏览行为</span>
         </div>
       </template>
 
+      <!-- 统计卡片 -->
       <div class="stat-row">
         <el-card shadow="never" class="stat-card">
           <div class="stat-label">筛选结果</div>
@@ -22,6 +24,7 @@
         </el-card>
       </div>
 
+      <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="用户昵称">
           <el-input
@@ -73,6 +76,7 @@
         </el-form-item>
       </el-form>
 
+      <!-- 浏览列表 -->
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="id" label="记录ID" width="90" />
         <el-table-column label="用户昵称" width="160">
@@ -105,6 +109,7 @@
         </el-table-column>
       </el-table>
 
+      <!-- 分页器 -->
       <div class="pagination-wrapper">
         <el-pagination
           v-model:current-page="pagination.page"
@@ -131,6 +136,7 @@ import { getResourceUrl } from '@/utils/resource'
 const router = useRouter()
 const route = useRoute()
 
+// 来源选项
 const sourceOptions = [
   { label: '首页', value: 'home' },
   { label: '搜索', value: 'search' },
@@ -139,28 +145,33 @@ const sourceOptions = [
   { label: '详情', value: 'detail' }
 ]
 
+// 列表状态
 const loading = ref(false)
 const tableData = ref([])
 const dateRange = ref([])
 
+// 查询参数
 const searchForm = reactive({
   nickname: '',
   spotName: '',
   source: ''
 })
 
+// 分页参数
 const pagination = reactive({
   page: 1,
   pageSize: 10,
   total: 0
 })
 
+// 当前页平均停留时长
 const averageDuration = computed(() => {
   if (!tableData.value.length) return 0
   const totalDuration = tableData.value.reduce((sum, item) => sum + (item.duration || 0), 0)
   return Math.round(totalDuration / tableData.value.length)
 })
 
+// 当前页主要来源
 const topSourceLabel = computed(() => {
   if (!tableData.value.length) return '暂无'
   const sourceCounter = tableData.value.reduce((acc, item) => {
@@ -172,10 +183,12 @@ const topSourceLabel = computed(() => {
   return getSourceLabel(topSource)
 })
 
+// 获取来源文案
 const getSourceLabel = (source) => {
   return sourceOptions.find(item => item.value === source)?.label || source || '未知'
 }
 
+// 获取浏览列表
 const fetchViewList = async () => {
   loading.value = true
   try {
@@ -196,12 +209,14 @@ const fetchViewList = async () => {
   }
 }
 
+// 搜索操作
 const handleSearch = () => {
   pagination.page = 1
   syncRouteQuery()
   fetchViewList()
 }
 
+// 重置搜索条件
 const handleReset = () => {
   searchForm.nickname = ''
   searchForm.spotName = ''
@@ -210,6 +225,7 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 同步路由参数
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
@@ -222,6 +238,7 @@ const syncRouteQuery = () => {
   router.replace({ path: route.path, query: nextQuery })
 }
 
+// 回填路由参数
 const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
@@ -233,10 +250,12 @@ const applyRouteQuery = () => {
   }
 }
 
+// 跳转用户页
 const handleOpenUser = (row) => {
   router.push({ path: '/user', query: { nickname: row.nickname || '' } })
 }
 
+// 跳转景点页
 const handleOpenSpot = (row) => {
   router.push({
     path: '/spot',
@@ -247,6 +266,7 @@ const handleOpenSpot = (row) => {
   })
 }
 
+// 跳转收藏页
 const handleOpenFavorite = (row) => {
   router.push({
     path: '/favorite',
@@ -257,6 +277,7 @@ const handleOpenFavorite = (row) => {
   })
 }
 
+// 删除浏览记录
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除这条浏览记录吗？', '提示', { type: 'warning' })
@@ -270,6 +291,7 @@ const handleDelete = async (row) => {
   }
 }
 
+// 页面初始化
 onMounted(() => {
   applyRouteQuery()
   fetchViewList()

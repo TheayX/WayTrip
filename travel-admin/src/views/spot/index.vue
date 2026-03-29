@@ -622,6 +622,7 @@ const normalizeRouteSpotId = (value) => {
   return Number.isInteger(spotId) && spotId > 0 ? spotId : null
 }
 
+// 同步路由参数
 const applyRouteQuery = () => {
   queryParams.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
   const nextSpotId = normalizeRouteSpotId(route.query.spotId)
@@ -680,6 +681,7 @@ const applySpotDetail = (detail) => {
   dialogVisible.value = true
 }
 
+// 根据路由定位景点
 const openSpotFromRoute = async () => {
   if (!activeSpotId.value || autoOpenedSpotId.value === activeSpotId.value) {
     return

@@ -26,8 +26,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminUserInsightServiceImpl implements AdminUserInsightService {
 
+    // 时间格式配置
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
+    // 持久层依赖
     private final UserMapper userMapper;
     private final SpotMapper spotMapper;
     private final SpotCategoryMapper spotCategoryMapper;
@@ -35,6 +37,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final UserSpotViewMapper userSpotViewMapper;
 
+    // 用户偏好查询
     @Override
     public PageResult<AdminUserPreferenceListItem> getPreferenceList(AdminUserPreferenceListRequest request) {
         LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
@@ -116,6 +119,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    // 用户收藏查询与治理
     @Override
     public PageResult<AdminUserFavoriteListItem> getFavoriteList(AdminUserFavoriteListRequest request) {
         LambdaQueryWrapper<UserSpotFavorite> wrapper = new LambdaQueryWrapper<>();
@@ -166,6 +170,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         userSpotFavoriteMapper.updateById(favorite);
     }
 
+    // 用户浏览查询与治理
     @Override
     public PageResult<AdminUserViewListItem> getViewList(AdminUserViewListRequest request) {
         LambdaQueryWrapper<UserSpotView> wrapper = new LambdaQueryWrapper<>();
@@ -216,6 +221,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         userSpotViewMapper.deleteById(viewId);
     }
 
+    // 列表项转换方法
     private List<AdminUserFavoriteListItem> buildFavoriteItems(List<UserSpotFavorite> favorites) {
         if (favorites.isEmpty()) {
             return Collections.emptyList();
@@ -274,6 +280,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         }).collect(Collectors.toList());
     }
 
+    // 查询辅助方法
     private Set<Long> resolveUserIdsByNickname(String nickname) {
         if (nickname == null || nickname.isBlank()) {
             return null;
