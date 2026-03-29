@@ -127,10 +127,10 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getBannerList, createBanner, updateBanner, deleteBanner, toggleBannerEnabled } from '@/api/banner'
-import { getSpotList } from '@/api/spot'
 import { useUserStore } from '@/stores/user'
 import { isMessageBoxDismissed } from '@/utils/message-box'
 import { getAdminUploadUrl, getResourceUrl } from '@/utils/resource'
+import { fetchAllSpotOptions } from '@/utils/spot-options'
 
 const userStore = useUserStore()
 
@@ -221,8 +221,7 @@ const fetchBannerList = async () => {
 // 加载景点选项
 const fetchSpotList = async () => {
   try {
-    const res = await getSpotList({ pageSize: 100 })
-    spotList.value = res.data.list || []
+    spotList.value = await fetchAllSpotOptions()
   } catch (e) {
     console.error('获取景点列表失败', e)
   }
