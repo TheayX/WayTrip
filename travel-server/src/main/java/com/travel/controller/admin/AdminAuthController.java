@@ -3,7 +3,7 @@ package com.travel.controller.admin;
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.auth.AdminLoginRequest;
 import com.travel.dto.auth.AdminLoginResponse;
-import com.travel.service.AuthService;
+import com.travel.service.AdminAuthService;
 import com.travel.util.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,18 +21,18 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class AdminAuthController {
 
-    private final AuthService authService;
+    private final AdminAuthService adminAuthService;
 
     @Operation(summary = "管理员登录")
     @PostMapping("/login")
     public ApiResponse<AdminLoginResponse> login(@Valid @RequestBody AdminLoginRequest request) {
-        return ApiResponse.success(authService.adminLogin(request));
+        return ApiResponse.success(adminAuthService.adminLogin(request));
     }
 
     @Operation(summary = "获取管理员信息")
     @GetMapping("/info")
     public ApiResponse<AdminLoginResponse.AdminInfo> getInfo() {
         Long adminId = UserContext.getAdminId();
-        return ApiResponse.success(authService.getAdminInfo(adminId));
+        return ApiResponse.success(adminAuthService.getAdminInfo(adminId));
     }
 }
