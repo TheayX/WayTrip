@@ -8,7 +8,9 @@ import com.travel.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,5 +29,12 @@ public class AdminReviewController {
     @GetMapping
     public ApiResponse<PageResult<ReviewResponse>> getReviews(AdminReviewListRequest request) {
         return ApiResponse.success(reviewService.getAdminReviews(request));
+    }
+
+    @Operation(summary = "删除评价")
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteReview(@PathVariable("id") Long id) {
+        reviewService.deleteReviewByAdmin(id);
+        return ApiResponse.success();
     }
 }

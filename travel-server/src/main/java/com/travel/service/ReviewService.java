@@ -58,6 +58,13 @@ public interface ReviewService {
     void deleteReview(Long userId, Long reviewId);
 
     /**
+     * 管理员删除指定评价记录。
+     *
+     * @param reviewId 评价 ID
+     */
+    void deleteReviewByAdmin(Long reviewId);
+
+    /**
      * 分页获取管理端评价列表。
      *
      * @param request 管理端评价查询参数
