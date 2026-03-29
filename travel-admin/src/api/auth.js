@@ -18,13 +18,3 @@ export function login(username, password) {
 export function getAdminInfo() {
   return request.get('/auth/info')
 }
-
-/**
- * 修改管理员密码
- * @param oldPassword
- * @param newPassword
- * @returns {Promise<axios.AxiosResponse<any>>}
- */
-export function changePassword(oldPassword, newPassword) {
-  return request.put('/auth/password', { oldPassword, newPassword })
-}
