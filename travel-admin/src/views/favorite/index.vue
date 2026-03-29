@@ -48,18 +48,23 @@
 
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="id" label="记录ID" width="90" />
-        <el-table-column prop="nickname" label="用户昵称" width="140" />
+        <el-table-column label="用户昵称" width="160">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="handleOpenUser(row)">{{ row.nickname }}</el-button>
+          </template>
+        </el-table-column>
         <el-table-column label="景点" min-width="240">
           <template #default="{ row }">
             <div class="spot-cell">
               <el-image v-if="row.coverImage" :src="getResourceUrl(row.coverImage)" fit="cover" class="spot-cover" />
-              <span>{{ row.spotName }}</span>
+              <el-button link type="primary" @click="handleOpenSpot(row)">{{ row.spotName }}</el-button>
             </div>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="收藏时间" width="170" />
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="操作" width="190" fixed="right">
           <template #default="{ row }">
+            <el-button link type="primary" @click="handleOpenViewLog(row)">浏览行为</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -81,11 +86,15 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteFavorite, getFavoriteList } from '@/api/user-insight'
 import { isMessageBoxDismissed } from '@/utils/message-box'
 import { getResourceUrl } from '@/utils/resource'
+
+const router = useRouter()
+const route = useRoute()
 
 const loading = ref(false)
 const tableData = ref([])
@@ -124,6 +133,7 @@ const fetchFavoriteList = async () => {
 
 const handleSearch = () => {
   pagination.page = 1
+  syncRouteQuery()
   fetchFavoriteList()
 }
 
@@ -132,6 +142,45 @@ const handleReset = () => {
   searchForm.spotName = ''
   dateRange.value = []
   handleSearch()
+}
+
+const syncRouteQuery = () => {
+  const nextQuery = {}
+  if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
+  if (searchForm.spotName) nextQuery.spotName = searchForm.spotName
+  if (dateRange.value?.length === 2) {
+    nextQuery.startDate = dateRange.value[0]
+    nextQuery.endDate = dateRange.value[1]
+  }
+  router.replace({ path: route.path, query: nextQuery })
+}
+
+const applyRouteQuery = () => {
+  searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
+  searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
+  if (typeof route.query.startDate === 'string' && typeof route.query.endDate === 'string') {
+    dateRange.value = [route.query.startDate, route.query.endDate]
+  } else {
+    dateRange.value = []
+  }
+}
+
+const handleOpenUser = (row) => {
+  router.push({ path: '/user', query: { nickname: row.nickname || '' } })
+}
+
+const handleOpenSpot = (row) => {
+  router.push({ path: '/spot', query: { keyword: row.spotName || '' } })
+}
+
+const handleOpenViewLog = (row) => {
+  router.push({
+    path: '/view-log',
+    query: {
+      nickname: row.nickname || '',
+      spotName: row.spotName || ''
+    }
+  })
 }
 
 const handleDelete = async (row) => {
@@ -148,8 +197,18 @@ const handleDelete = async (row) => {
 }
 
 onMounted(() => {
+  applyRouteQuery()
   fetchFavoriteList()
 })
+
+watch(
+  () => route.query,
+  () => {
+    applyRouteQuery()
+    fetchFavoriteList()
+  },
+  { deep: true }
+)
 </script>
 
 <style lang="scss" scoped>
