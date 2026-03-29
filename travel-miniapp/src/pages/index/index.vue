@@ -1,185 +1,41 @@
 <!-- 首页 -->
 <template>
   <view class="ios-page">
-    <!-- 顶部区域 -->
-    <view class="ios-header">
-      <view class="header-top">
-        <view>
-          <text class="large-title">首页</text>
-          <text class="sub-title">推荐内容、快捷入口和附近探索都集中在这里</text>
-        </view>
-        <image class="avatar-sm" :src="getAvatarUrl(userInfo?.avatar)" @click="goMine" />
-      </view>
-      <view class="search-bar" @click="goSearch">
-        <uni-search-bar
-          :modelValue="''"
-          placeholder="搜索景点、攻略..."
-          :clearButton="'none'"
-          :cancelButton="'none'"
-          :radius="20"
-          :readonly="true"
-          bgColor="#E9EEF5"
-        />
-      </view>
-    </view>
-
-    <!-- 轮播区域 -->
-    <view class="banner-container" v-if="banners.length">
-      <swiper class="banner" indicator-dots indicator-active-color="#fff" autoplay circular>
-        <swiper-item v-for="banner in banners" :key="banner.id" @click="handleBannerClick(banner)">
-          <image class="banner-image" :src="getContentImageUrl(banner.imageUrl)" mode="aspectFill" />
-        </swiper-item>
-      </swiper>
-    </view>
-
-    <!-- 快捷入口 -->
-    <view class="section">
-      <view class="section-header">
-        <view>
-          <text class="section-title">快捷导航</text>
-          <text class="section-desc">先保留高频入口，其余功能后续继续补齐</text>
-        </view>
-      </view>
-      <view class="quick-grid">
-        <view
-          v-for="action in displayQuickActions"
-          :key="action.id"
-          class="quick-item"
-          @click="handleQuickAction(action)"
-        >
-          <view class="quick-icon" :class="`theme-${action.theme}`">
-            <uni-icons :type="action.icon" size="24" color="#1F2937" />
-          </view>
-          <text class="quick-title">{{ action.title }}</text>
-          <text class="quick-note">{{ action.note }}</text>
-        </view>
-      </view>
-    </view>
-
-    <view v-if="!isLoggedIn" class="guest-banner" @click="goMine">
-      <view class="guest-copy">
-        <text class="guest-title">登录后可保存偏好，拿到更稳定的推荐景点</text>
-        <text class="guest-subtitle">同步收藏、订单和推荐内容</text>
-      </view>
-      <text class="guest-action">去登录</text>
-    </view>
-
-    <!-- 推荐区域 -->
-    <view class="section">
-      <view class="section-header">
-        <text class="section-title">{{ recommendationSectionTitle }}</text>
-        <view v-if="isLoggedIn" class="section-actions">
-          <text class="section-link" @click="handleRefresh">换一批</text>
-          <text class="section-link" @click="goRecommendationSpots">查看更多</text>
-        </view>
-      </view>
-
-      <view class="recommend-list" v-if="isLoggedIn && recommendPreview.length">
-        <view class="recommend-card" v-for="spot in recommendPreview" :key="spot.id" @click="goSpotDetail(spot.id)">
-          <image class="rec-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
-          <view class="rec-content">
-            <view class="rec-header">
-              <text class="rec-name">{{ spot.name }}</text>
-              <text class="rec-rating">★ {{ spot.avgRating || '4.5' }}</text>
-            </view>
-            <text class="rec-desc">{{ spot.intro || '暂无介绍，点击查看详情。' }}</text>
-            <view class="rec-footer">
-              <text class="rec-tag">{{ spot.categoryName || '景点' }}</text>
-              <text class="rec-price">￥{{ spot.price }}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-      <view class="empty-tip" v-else>
-        <text>{{ isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点' }}</text>
-      </view>
-    </view>
-
-    <!-- 热门与附近区域 -->
-    <view class="section">
-      <view class="section-header">
-        <text class="section-title">热门景点</text>
-        <text class="section-link" @click="goSpotList">查看全部</text>
-      </view>
-
-      <view class="hot-nearby-grid">
-        <view v-if="primaryPopularSpot" class="feature-card hot-feature-card" @click="goSpotDetail(primaryPopularSpot.id)">
-          <image class="feature-image" :src="getContentImageUrl(primaryPopularSpot.coverImage)" mode="aspectFill" />
-          <view class="feature-overlay">
-            <text class="feature-eyebrow">热门景点</text>
-            <text class="feature-title">{{ primaryPopularSpot.name }}</text>
-            <text class="feature-subtitle">
-              {{ primaryPopularSpot.categoryName || '精选景点' }} · ￥{{ primaryPopularSpot.price }}
-            </text>
-            <view class="feature-foot">
-              <text class="feature-pill">评分 {{ primaryPopularSpot.avgRating || '4.6' }}</text>
-              <text class="feature-pill subtle">热度 {{ primaryPopularSpot.heatScore || '--' }}</text>
-            </view>
-          </view>
-        </view>
-        <view v-else class="feature-card feature-empty">
-          <text>当前暂无热门景点</text>
-        </view>
-
-        <view class="feature-card nearby-card" @click="handleNearbyCardClick">
-          <view class="nearby-top">
-            <view>
-              <text class="feature-eyebrow nearby-eyebrow">附近景点</text>
-              <text class="nearby-status">{{ nearbyHeadline }}</text>
-            </view>
-            <text class="nearby-link">{{ nearbyActionText }}</text>
-          </view>
-
-          <view class="nearby-map-shell">
-            <map
-              v-if="canShowNearbyMap"
-              class="nearby-map"
-              :latitude="nearbyMapCenter.latitude"
-              :longitude="nearbyMapCenter.longitude"
-              :scale="12"
-              :markers="nearbyMarkers"
-              :show-location="true"
-              :enable-scroll="false"
-              :enable-zoom="false"
-              :enable-rotate="false"
-              :enable-overlooking="false"
-              @markertap="handleNearbyMarkerTap"
-            />
-            <view v-else class="nearby-map nearby-placeholder">
-              <view class="placeholder-grid"></view>
-              <view class="placeholder-pin pin-a"></view>
-              <view class="placeholder-pin pin-b"></view>
-              <view class="placeholder-pin pin-c"></view>
-              <text class="placeholder-copy">{{ nearbyPlaceholderText }}</text>
-            </view>
-          </view>
-
-          <view class="nearby-copy">
-            <text class="nearby-summary">{{ nearbySummary }}</text>
-            <text class="nearby-caption">{{ nearbyCaption }}</text>
-          </view>
-
-          <view v-if="displayNearbySpots.length" class="nearby-tags">
-            <text v-for="spot in displayNearbySpots.slice(0, 2)" :key="spot.id" class="nearby-tag">
-              {{ spot.name }}
-            </text>
-          </view>
-        </view>
-      </view>
-
-      <scroll-view class="hot-scroll" scroll-x :show-scrollbar="false" v-if="remainingPopularSpots.length">
-        <view class="hot-card compact" v-for="spot in remainingPopularSpots" :key="spot.id" @click="goSpotDetail(spot.id)">
-          <image class="hot-img" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
-          <view class="hot-overlay">
-            <text class="hot-name">{{ spot.name }}</text>
-            <view class="hot-meta">
-              <text class="hot-badge">{{ spot.categoryName || '热门' }}</text>
-              <text class="hot-price">￥{{ spot.price }}</text>
-            </view>
-          </view>
-        </view>
-      </scroll-view>
-    </view>
+    <HomeHeader 
+      :avatar-url="getAvatarUrl(userInfo?.avatar)"
+      @goSearch="goSearch"
+      @goMine="goMine"
+    />
+    <HomeBanner 
+      :banners="banners"
+      @click="handleBannerClick"
+    />
+    <QuickNav 
+      :actions="quickActions"
+      @click="handleQuickAction"
+    />
+    <NearbyAndHot 
+      :hot-spots="popularSpots"
+      :nearby-headline="nearbyHeadline"
+      :can-show-map="canShowNearbyMap"
+      :center="nearbyMapCenter"
+      :markers="nearbyMarkers"
+      :nearby-spots="displayNearbySpots"
+      :placeholder-text="nearbyPlaceholderText"
+      @clickNearby="handleNearbyCardClick"
+      @markerTap="handleNearbyMarkerTap"
+      @moreHot="goSpotList"
+      @clickHot="(spot) => goSpotDetail(spot.id)"
+    />
+    <RecommendSpots 
+      :is-logged-in="isLoggedIn"
+      :title="recommendationSectionTitle"
+      :spots="recommendPreview"
+      @goLogin="goMine"
+      @refresh="handleRefresh"
+      @more="goRecommendationSpots"
+      @click="(spot) => goSpotDetail(spot.id)"
+    />
 
     <!-- 偏好设置弹层 -->
     <view class="preference-popup" v-if="preferenceVisible" @click.self="preferenceVisible = false">
@@ -212,6 +68,11 @@ import {
 } from '@/utils/cold-start-guide'
 import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
+import HomeHeader from './components/HomeHeader.vue'
+import HomeBanner from './components/HomeBanner.vue'
+import QuickNav from './components/QuickNav.vue'
+import RecommendSpots from './components/RecommendSpots.vue'
+import NearbyAndHot from './components/NearbyAndHot.vue'
 import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
@@ -251,22 +112,11 @@ const nearbySessionToken = ref('')
 const markerIcon = '/static/tabbar/spot-active.png'
 
 const quickActions = [
-  { id: 'spots', title: '景点列表', note: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
-  { id: 'guides', title: '攻略列表', note: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' },
-  { id: 'recommend', title: '推荐景点', note: '个性推荐', icon: 'star-filled', theme: 'amber', action: 'recommend-spots' },
-  { id: 'nearby', title: '附近景点', note: '周边探索', icon: 'map-filled', theme: 'emerald', action: 'nearby-spots' }
+  { id: 'spots', title: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
+  { id: 'guides', title: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' },
+  { id: 'recommend', title: '个性推荐', icon: 'star-filled', theme: 'amber', action: 'recommend-spots' },
+  { id: 'nearby', title: '附近探索', icon: 'map-filled', theme: 'emerald', action: 'nearby-spots' }
 ]
-
-const pendingQuickActions = Array.from({ length: 4 }, (_, index) => ({
-  id: `pending-${index + 1}`,
-  title: '待定入口',
-  note: '后续补齐',
-  icon: 'more-filled',
-  theme: 'slate',
-  action: 'pending'
-}))
-
-const displayQuickActions = [...quickActions, ...pendingQuickActions]
 
 // 计算属性
 const recommendationSectionTitle = computed(() => (isLoggedIn.value ? recommendType.value : '推荐景点'))
@@ -721,523 +571,6 @@ onShow(() => {
   padding-bottom: 48rpx;
 }
 
-.ios-header {
-  padding: 88rpx 32rpx 24rpx;
-  background: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 24rpx;
-}
-
-.large-title {
-  display: block;
-  font-size: 56rpx;
-  font-weight: 800;
-  color: #111827;
-}
-
-.sub-title {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 24rpx;
-  color: #6b7280;
-}
-
-.avatar-sm {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
-  background: #dbe4f0;
-}
-
-.search-bar {
-  pointer-events: auto;
-}
-
-:deep(.search-bar .uni-searchbar) {
-  padding: 0;
-  background: transparent;
-}
-
-:deep(.search-bar .uni-searchbar__box) {
-  height: 80rpx;
-  border-radius: 20rpx;
-}
-
-.banner-container {
-  padding: 28rpx 32rpx 12rpx;
-}
-
-.banner,
-.banner-image {
-  width: 100%;
-  height: 320rpx;
-  border-radius: 28rpx;
-}
-
-.banner {
-  overflow: hidden;
-  box-shadow: 0 10rpx 28rpx rgba(31, 41, 55, 0.12);
-}
-
-.guest-banner {
-  margin: 16rpx 32rpx 0;
-  padding: 24rpx 28rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-  background: #ffffff;
-  border-radius: 24rpx;
-  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.06);
-}
-
-.guest-title {
-  display: block;
-  font-size: 28rpx;
-  line-height: 1.5;
-  color: #1f2937;
-}
-
-.guest-subtitle {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  color: #6b7280;
-}
-
-.guest-action {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: #2563eb;
-}
-
-.section {
-  margin-top: 28rpx;
-}
-
-.section-header {
-  padding: 0 32rpx 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-}
-
-.section-title {
-  font-size: 38rpx;
-  font-weight: 700;
-  color: #111827;
-}
-
-.section-desc {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 24rpx;
-  color: #6b7280;
-}
-
-.section-actions {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-}
-
-.section-link {
-  font-size: 26rpx;
-  color: #2563eb;
-}
-
-.quick-grid {
-  padding: 0 32rpx;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20rpx;
-}
-
-.quick-item {
-  padding: 24rpx 12rpx;
-  background: #ffffff;
-  border-radius: 24rpx;
-  text-align: center;
-  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.05);
-}
-
-.quick-icon {
-  width: 80rpx;
-  height: 80rpx;
-  margin: 0 auto 14rpx;
-  border-radius: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.theme-blue { background: #dbeafe; }
-.theme-orange { background: #ffedd5; }
-.theme-amber { background: #fef3c7; }
-.theme-emerald { background: #d1fae5; }
-.theme-slate { background: #e5e7eb; }
-
-.quick-title {
-  display: block;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #111827;
-}
-
-.quick-note {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 20rpx;
-  color: #6b7280;
-}
-
-.recommend-list {
-  padding: 0 32rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
-}
-
-.recommend-card {
-  background: #ffffff;
-  border-radius: 28rpx;
-  overflow: hidden;
-  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.06);
-}
-
-.rec-img {
-  width: 100%;
-  height: 280rpx;
-}
-
-.rec-content {
-  padding: 24rpx;
-}
-
-.rec-header,
-.rec-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
-}
-
-.rec-header {
-  margin-bottom: 12rpx;
-}
-
-.rec-name {
-  flex: 1;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #111827;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.rec-rating {
-  font-size: 24rpx;
-  color: #f59e0b;
-}
-
-.rec-desc {
-  display: -webkit-box;
-  margin-bottom: 18rpx;
-  font-size: 26rpx;
-  line-height: 1.5;
-  color: #6b7280;
-  overflow: hidden;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.rec-tag {
-  font-size: 22rpx;
-  color: #2563eb;
-  background: rgba(37, 99, 235, 0.1);
-  padding: 6rpx 14rpx;
-  border-radius: 999rpx;
-}
-
-.rec-price {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #ef4444;
-}
-
-.hot-nearby-grid {
-  padding: 0 32rpx;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20rpx;
-}
-
-.feature-card {
-  min-height: 360rpx;
-  border-radius: 28rpx;
-  overflow: hidden;
-  position: relative;
-  background: #ffffff;
-  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.08);
-}
-
-.feature-image {
-  width: 100%;
-  height: 100%;
-}
-
-.feature-overlay {
-  position: absolute;
-  inset: 0;
-  padding: 24rpx 22rpx;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.08) 8%, rgba(15, 23, 42, 0.82) 100%);
-}
-
-.feature-eyebrow {
-  display: inline-flex;
-  align-self: flex-start;
-  margin-bottom: 12rpx;
-  padding: 6rpx 14rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
-  font-size: 20rpx;
-}
-
-.feature-title {
-  display: block;
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.feature-subtitle {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.feature-foot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-  margin-top: 18rpx;
-}
-
-.feature-pill {
-  padding: 6rpx 12rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  font-size: 20rpx;
-}
-
-.feature-pill.subtle {
-  background: rgba(15, 23, 42, 0.28);
-}
-
-.feature-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24rpx;
-  color: #6b7280;
-  font-size: 26rpx;
-}
-
-.nearby-card {
-  padding: 22rpx;
-  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-}
-
-.nearby-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16rpx;
-}
-
-.nearby-eyebrow {
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
-}
-
-.nearby-status {
-  display: block;
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #111827;
-}
-
-.nearby-link {
-  font-size: 22rpx;
-  color: #2563eb;
-}
-
-.nearby-map-shell {
-  margin-top: 18rpx;
-  border-radius: 24rpx;
-  overflow: hidden;
-  background: #dbeafe;
-}
-
-.nearby-map {
-  width: 100%;
-  height: 170rpx;
-}
-
-.nearby-placeholder {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  padding: 18rpx;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.18), transparent 28%),
-    linear-gradient(135deg, #e0f2fe 0%, #dbeafe 55%, #f8fafc 100%);
-}
-
-.placeholder-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(37, 99, 235, 0.08) 1px, transparent 1px);
-  background-size: 28rpx 28rpx;
-}
-
-.placeholder-pin {
-  position: absolute;
-  width: 14rpx;
-  height: 14rpx;
-  border-radius: 50%;
-  background: #2563eb;
-  box-shadow: 0 0 0 8rpx rgba(37, 99, 235, 0.12);
-}
-
-.pin-a { top: 38rpx; left: 56rpx; }
-.pin-b { top: 88rpx; left: 156rpx; }
-.pin-c { top: 58rpx; right: 52rpx; }
-
-.placeholder-copy {
-  position: relative;
-  z-index: 1;
-  font-size: 22rpx;
-  color: #1d4ed8;
-}
-
-.nearby-copy {
-  margin-top: 18rpx;
-}
-
-.nearby-summary {
-  display: block;
-  font-size: 26rpx;
-  line-height: 1.5;
-  color: #111827;
-}
-
-.nearby-caption {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  color: #6b7280;
-}
-
-.nearby-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-  margin-top: 16rpx;
-}
-
-.nearby-tag {
-  padding: 6rpx 12rpx;
-  border-radius: 999rpx;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 20rpx;
-}
-
-.hot-scroll {
-  margin-top: 20rpx;
-  padding-left: 32rpx;
-  white-space: nowrap;
-}
-
-.hot-card {
-  display: inline-block;
-  width: 280rpx;
-  height: 360rpx;
-  margin-right: 20rpx;
-  border-radius: 28rpx;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.08);
-}
-
-.hot-card.compact {
-  width: 220rpx;
-  height: 260rpx;
-}
-
-.hot-img {
-  width: 100%;
-  height: 100%;
-}
-
-.hot-overlay {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 24rpx 20rpx;
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0) 0%, rgba(17, 24, 39, 0.82) 100%);
-}
-
-.hot-name {
-  display: block;
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.hot-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12rpx;
-  margin-top: 10rpx;
-}
-
-.hot-badge,
-.hot-price {
-  font-size: 22rpx;
-  color: #ffffff;
-}
-
-.empty-tip {
-  padding: 48rpx 32rpx;
-  text-align: center;
-  font-size: 26rpx;
-  color: #6b7280;
-}
-
 .preference-popup {
   position: fixed;
   inset: 0;
@@ -1251,8 +584,7 @@ onShow(() => {
 .preference-content {
   width: 620rpx;
   background: #ffffff;
-  border-radius: 28rpx;
+  border-radius: 36rpx;
   padding: 40rpx;
 }
-
 </style>
