@@ -1,3 +1,4 @@
+<!-- 登录页 -->
 <template>
   <div class="login-page">
     <div class="login-card">
@@ -31,10 +32,12 @@ import { useUserStore } from '@/stores/user'
 import { login } from '@/api/auth'
 import { ElMessage } from 'element-plus'
 
+// 基础依赖与路由状态
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
+// 页面数据状态
 const formRef = ref(null)
 const loading = ref(false)
 
@@ -43,6 +46,7 @@ const form = reactive({
   password: ''
 })
 
+// 表单校验规则
 const rules = {
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
@@ -54,6 +58,7 @@ const rules = {
   ]
 }
 
+// 交互处理方法
 const handleLogin = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return

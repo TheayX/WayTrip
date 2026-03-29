@@ -1,3 +1,4 @@
+<!-- 景点详情页 -->
 <template>
   <div v-if="spot" class="spot-detail">
     <div class="page-container">
@@ -143,6 +144,7 @@ import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, getSpotReviews, submitReview } from '@/api/review'
 import { getAvatarUrl, getImageUrl } from '@/utils/request'
 
+// 基础依赖与路由状态
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
@@ -150,6 +152,7 @@ const userStore = useUserStore()
 let enterTime = 0
 let viewSource = 'detail'
 
+// 计算属性
 const spotId = computed(() => {
   const id = Number(route.params.id)
   return Number.isInteger(id) && id > 0 ? id : null
@@ -198,11 +201,13 @@ const spotImages = computed(() => {
   return images
 })
 
+// 交互处理方法
 const previewImage = (idx) => {
   previewIndex.value = idx
   previewVisible.value = true
 }
 
+// 数据加载方法
 const fetchDetail = async () => {
   if (!spotId.value) {
     spot.value = null
@@ -253,8 +258,10 @@ const loadMoreComments = () => {
   }
 }
 
+// 工具方法
 const canDeleteComment = (comment) => userStore.isLoggedIn && comment.userId === userStore.userInfo?.id
 
+// 页面跳转方法
 const handleBuy = () => {
   if (!spot.value?.id) {
     ElMessage.warning('当前景点信息无效')
@@ -344,6 +351,7 @@ const handleDeleteComment = async (comment) => {
   }
 }
 
+// 生命周期
 onMounted(() => {
   enterTime = Date.now()
   viewSource = route.query.source || 'detail'

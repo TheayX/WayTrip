@@ -1,3 +1,4 @@
+<!-- 攻略详情页 -->
 <template>
   <div class="page-container" v-if="guide">
     <el-breadcrumb separator="/">
@@ -57,9 +58,13 @@ import { getGuideDetail } from '@/api/guide'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
+// 基础依赖与路由状态
 const route = useRoute()
+
+// 页面数据状态
 const guide = ref(null)
 
+// 数据加载方法
 const fetchDetail = async () => {
   try {
     const res = await getGuideDetail(route.params.id)
@@ -69,6 +74,7 @@ const fetchDetail = async () => {
   }
 }
 
+// 生命周期
 onMounted(() => {
   fetchDetail()
 })

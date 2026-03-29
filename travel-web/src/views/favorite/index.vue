@@ -1,3 +1,4 @@
+<!-- 我的收藏页 -->
 <template>
   <div class="page-container">
     <el-breadcrumb separator="/">
@@ -57,12 +58,14 @@ import { getFavoriteList, removeFavorite } from '@/api/favorite'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
+// 页面数据状态
 const favoriteList = ref([])
 const loading = ref(false)
 const page = ref(1)
 const pageSize = 12
 const total = ref(0)
 
+// 数据加载方法
 const fetchList = async () => {
   loading.value = true
   try {
@@ -73,6 +76,7 @@ const fetchList = async () => {
   loading.value = false
 }
 
+// 交互处理方法
 const handleRemove = async (spotId) => {
   try {
     await removeFavorite(spotId)
@@ -82,6 +86,7 @@ const handleRemove = async (spotId) => {
   } catch (e) { /* ignore */ }
 }
 
+// 生命周期
 onMounted(() => {
   fetchList()
 })

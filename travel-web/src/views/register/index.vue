@@ -1,3 +1,4 @@
+<!-- 注册页 -->
 <template>
   <div class="register-page">
     <div class="register-card">
@@ -69,28 +70,31 @@ import { uploadAvatar, updateUserInfo } from '@/api/user'
 import { getAvatarUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
+// 基础依赖与路由状态
 const router = useRouter()
 const userStore = useUserStore()
+
+// 页面数据状态
 const formRef = ref(null)
 const loading = ref(false)
 const step = ref(1)
 const defaultRegisterNickname = 'web用户'
 const defaultRegisterAvatar = getAvatarUrl('/uploads/images/avatar.jpg')
 
-// 第一步表单
+// 注册表单状态
 const form = reactive({
   phone: '',
   password: '',
   confirmPassword: ''
 })
 
-// 第二步表单
 const registerProfileForm = reactive({
   nickname: defaultRegisterNickname
 })
 const avatarPreview = ref('')
 const avatarFile = ref(null)
 
+// 工具方法
 const validateConfirm = (rule, value, callback) => {
   if (value !== form.password) {
     callback(new Error('两次输入的密码不一致'))
@@ -99,6 +103,7 @@ const validateConfirm = (rule, value, callback) => {
   }
 }
 
+// 表单校验规则
 const rules = {
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
@@ -114,7 +119,7 @@ const rules = {
   ]
 }
 
-// 第一步：仅前端验证，通过后进入第二步
+// 交互处理方法
 const handleStep1 = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
@@ -135,13 +140,11 @@ const handleStep1 = async () => {
   }
 }
 
-// 头像选择
 const handleAvatarChange = (file) => {
   avatarFile.value = file.raw
   avatarPreview.value = URL.createObjectURL(file.raw)
 }
 
-// 执行注册（跳过和完成注册都调用这里）
 const doRegister = async (options = {}) => {
   const { nickname, avatar } = options
   loading.value = true
@@ -177,12 +180,10 @@ const doRegister = async (options = {}) => {
   }
 }
 
-// 跳过第二步：使用默认头像和昵称直接注册
 const handleSkip = () => {
   doRegister()
 }
 
-// 完成注册：带上昵称和头像
 const handleStep2 = () => {
   doRegister({
       nickname: registerProfileForm.nickname.trim() || defaultRegisterNickname,

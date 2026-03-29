@@ -1,3 +1,4 @@
+<!-- 我的评价页 -->
 <template>
   <div class="page-container">
     <el-breadcrumb separator="/">
@@ -86,6 +87,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteReview, getMyReviews, submitReview } from '@/api/review'
 import { getImageUrl } from '@/utils/request'
 
+// 页面数据状态
 const loading = ref(false)
 const saving = ref(false)
 const reviewList = ref([])
@@ -103,6 +105,7 @@ const editForm = reactive({
   comment: ''
 })
 
+// 数据加载方法
 const fetchReviewList = async () => {
   loading.value = true
   try {
@@ -114,6 +117,7 @@ const fetchReviewList = async () => {
   }
 }
 
+// 交互处理方法
 const openEdit = (item) => {
   currentReview.value = item
   editForm.score = item.score || 5
@@ -160,6 +164,7 @@ const handleDelete = async (item) => {
   }
 }
 
+// 生命周期
 onMounted(() => {
   fetchReviewList()
 })

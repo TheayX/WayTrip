@@ -1,3 +1,4 @@
+<!-- 个人中心页 -->
 <template>
   <div class="page-container">
     <el-breadcrumb separator="/">
@@ -161,6 +162,7 @@ import { getFilters } from '@/api/spot'
 import { getAvatarUrl } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+// 基础依赖与路由状态
 const router = useRouter()
 
 const userStore = useUserStore()
@@ -170,17 +172,19 @@ const savingPref = ref(false)
 const categories = ref([])
 const selectedCategories = ref([])
 
+// 页面数据状态
 const profileForm = reactive({
   nickname: '',
   phone: '',
   avatar: ''
 })
 
-// 头像相关
+// 头像相关状态
 const avatarInputRef = ref(null)
 const avatarPreview = ref('')
 const avatarFile = ref(null)
 
+// 工具方法
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定手机'
   const normalized = phone.trim()
@@ -207,6 +211,7 @@ const getErrorMessage = (error, fallback) => {
   return error?.response?.data?.message || error?.data?.message || error?.message || fallback
 }
 
+// 数据加载方法
 const fetchUserInfo = async () => {
   try {
     const res = await getUserInfo()
@@ -234,12 +239,11 @@ const fetchCategories = async () => {
   }
 }
 
-// 点击头像触发文件选择
+// 交互处理方法
 const handleAvatarClick = () => {
   avatarInputRef.value?.click()
 }
 
-// 选择头像文件后预览
 const handleAvatarChange = (e) => {
   const file = e.target.files?.[0]
   if (!file) return
@@ -300,7 +304,7 @@ const toggleCategory = (categoryId) => {
   }
 }
 
-// ======== 修改密码 ========
+// 密码表单状态
 const savingPwd = ref(false)
 const passwordFormRef = ref(null)
 const passwordForm = reactive({
@@ -349,7 +353,6 @@ const handleChangePassword = async () => {
   savingPwd.value = false
 }
 
-// ======== 注销账户 ========
 const handleDeactivate = () => {
   ElMessageBox.confirm(
     '注销后你将无法使用此账户登录，确定要继续吗？',
@@ -396,6 +399,7 @@ const handleSavePreference = async () => {
   savingPref.value = false
 }
 
+// 生命周期
 onMounted(() => {
   fetchUserInfo()
   fetchCategories()

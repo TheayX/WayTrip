@@ -1,3 +1,4 @@
+<!-- 景点列表页 -->
 <template>
   <div class="page-container">
     <el-breadcrumb separator="/">
@@ -149,6 +150,7 @@ import { computed, ref, reactive, onMounted } from 'vue'
 import { getSpotList, getFilters } from '@/api/spot'
 import { getImageUrl } from '@/utils/request'
 
+// 页面数据状态
 const spotList = ref([])
 const loading = ref(false)
 const page = ref(1)
@@ -168,6 +170,7 @@ const filters = reactive({
   sortBy: ''
 })
 
+// 计算属性
 const activeRegionParent = computed(() =>
   regionTree.value.find(item => item.id === activeRegionParentId.value) || null
 )
@@ -182,6 +185,7 @@ const activeCategoryChildren = computed(() => activeCategoryParent.value?.childr
 const selectedRegionLabel = computed(() => findNodeName(filters.regionId, regionTree.value, '全部地区'))
 const selectedCategoryLabel = computed(() => findNodeName(filters.categoryId, categoryTree.value, '全部分类'))
 
+// 数据加载方法
 const fetchFilters = async () => {
   try {
     const res = await getFilters()
@@ -190,6 +194,7 @@ const fetchFilters = async () => {
   } catch (e) { /* ignore */ }
 }
 
+// 交互处理方法
 const fetchSpotList = async () => {
   loading.value = true
   try {
@@ -214,6 +219,7 @@ const handleFilter = () => {
   fetchSpotList()
 }
 
+// 工具方法
 const findNodeName = (id, tree, fallback) => {
   if (!id) return fallback
   const stack = [...tree]
@@ -284,6 +290,7 @@ const clearCategoryFilter = () => {
   handleFilter()
 }
 
+// 生命周期
 onMounted(() => {
   fetchFilters()
   fetchSpotList()

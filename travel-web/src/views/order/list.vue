@@ -1,3 +1,4 @@
+<!-- 订单列表页 -->
 <template>
   <div class="page-container">
     <el-breadcrumb separator="/">
@@ -61,6 +62,7 @@ import { getOrderList, cancelOrder, payOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+// 常量配置
 const tabs = [
   { label: '全部', value: '' },
   { label: '待支付', value: 'pending' },
@@ -69,7 +71,10 @@ const tabs = [
   { label: '已取消', value: 'cancelled' }
 ]
 
+// 基础依赖与路由状态
 const router = useRouter()
+
+// 页面数据状态
 const currentTab = ref('')
 const orderList = ref([])
 const loading = ref(false)
@@ -77,6 +82,7 @@ const page = ref(1)
 const pageSize = 10
 const total = ref(0)
 
+// 工具方法
 const statusType = (status) => {
   const map = { pending: 'warning', paid: 'success', completed: 'info', cancelled: 'danger' }
   return map[status] || 'info'
@@ -86,6 +92,7 @@ const showActions = (order) => {
   return order.status === 'pending' || order.status === 'paid' || order.status === 'completed'
 }
 
+// 数据加载方法
 const fetchOrders = async () => {
   loading.value = true
   try {
@@ -100,6 +107,7 @@ const fetchOrders = async () => {
   loading.value = false
 }
 
+// 交互处理方法
 const handleTabChange = () => {
   page.value = 1
   fetchOrders()
@@ -136,6 +144,7 @@ const handleReview = (order) => {
   router.push(`/spots/${order.spotId}?openReview=1&source=order`)
 }
 
+// 生命周期
 onMounted(() => {
   fetchOrders()
 })

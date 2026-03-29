@@ -1,3 +1,4 @@
+<!-- 订单创建页 -->
 <template>
   <div class="page-container" v-if="spot">
     <el-breadcrumb separator="/">
@@ -82,8 +83,11 @@ import { createOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
+// 基础依赖与路由状态
 const route = useRoute()
 const router = useRouter()
+
+// 页面数据状态
 const formRef = ref(null)
 const spot = ref(null)
 const submitting = ref(false)
@@ -95,6 +99,7 @@ const form = reactive({
   contactPhone: ''
 })
 
+// 表单校验规则
 const rules = {
   visitDate: [{ required: true, message: '请选择游玩日期', trigger: 'change' }],
   contactName: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
@@ -104,14 +109,17 @@ const rules = {
   ]
 }
 
+// 计算属性
 const totalPrice = computed(() =>
   spot.value ? (spot.value.price * form.quantity).toFixed(2) : '0.00'
 )
 
+// 工具方法
 const disableDate = (date) => {
   return date.getTime() < Date.now() - 86400000
 }
 
+// 数据加载方法
 const fetchSpot = async () => {
   try {
     const res = await getSpotDetail(route.params.spotId)
@@ -121,6 +129,7 @@ const fetchSpot = async () => {
   }
 }
 
+// 交互处理方法
 const handleSubmit = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
@@ -140,6 +149,7 @@ const handleSubmit = async () => {
   submitting.value = false
 }
 
+// 生命周期
 onMounted(() => {
   fetchSpot()
 })
