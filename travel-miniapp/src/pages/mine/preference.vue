@@ -92,13 +92,13 @@ onMounted(() => {
 <style scoped>
 .ios-page {
   min-height: 100vh;
-  background: #F2F2F7;
+  background: #f4f6fb;
   padding: 32rpx;
 }
 
 .header {
   background: #fff;
-  border-radius: 28rpx;
+  border-radius: 40rpx;
   padding: 40rpx 32rpx;
   box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.05);
 }

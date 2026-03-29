@@ -111,7 +111,7 @@ const goDetail = (id) => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #F2F2F7;
+  background: #f4f6fb;
 }
 
 /* 搜索头部 */
@@ -133,7 +133,7 @@ const goDetail = (id) => {
 
 :deep(.search-input-wrap .uni-searchbar__box) {
   height: 80rpx;
-  border-radius: 16rpx;
+  border-radius: 36rpx;
 }
 
 :deep(.search-input-wrap .uni-searchbar__box-search-input) {
@@ -143,7 +143,7 @@ const goDetail = (id) => {
 
 .cancel-btn {
   margin-left: 24rpx;
-  color: #007AFF;
+  color: #2563eb;
   font-size: 30rpx;
 }
 
@@ -156,10 +156,10 @@ const goDetail = (id) => {
 .result-card {
   display: flex;
   background: #fff;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   overflow: hidden;
   margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .result-image {
@@ -184,7 +184,7 @@ const goDetail = (id) => {
 
 .result-region {
   font-size: 24rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .result-price {
@@ -203,6 +203,6 @@ const goDetail = (id) => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 </style>

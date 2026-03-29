@@ -207,7 +207,7 @@ onShow(() => {
   align-items: center;
   justify-content: space-between;
   background: #ffffff;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.05);
 }
 
@@ -230,7 +230,7 @@ onShow(() => {
 
 .recommend-card {
   background: #ffffff;
-  border-radius: 28rpx;
+  border-radius: 40rpx;
   overflow: hidden;
   box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.06);
 }
@@ -332,7 +332,7 @@ onShow(() => {
 .preference-content {
   width: 620rpx;
   background: #ffffff;
-  border-radius: 28rpx;
+  border-radius: 40rpx;
   padding: 40rpx;
 }
 </style>

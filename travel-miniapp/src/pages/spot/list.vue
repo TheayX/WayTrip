@@ -568,7 +568,7 @@ onMounted(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #F5F7FA;
+  background-color: #f4f6fb;
 }
 
 /* 吸顶容器 */
@@ -579,7 +579,7 @@ onMounted(() => {
   width: 100%;
   z-index: 99;
   background-color: #fff;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 /* 搜索栏 */
@@ -589,7 +589,7 @@ onMounted(() => {
   
   .search-box {
     height: 72rpx;
-    background: #F5F7FA;
+    background: #f4f6fb;
     border-radius: 36rpx;
     display: flex;
     align-items: center;
@@ -628,9 +628,9 @@ onMounted(() => {
     }
     
     &.active {
-      color: #007AFF;
+      color: #2563eb;
       .text {
-        color: #007AFF;
+        color: #2563eb;
       }
     }
   }
@@ -678,14 +678,14 @@ onMounted(() => {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #F5F7FA;
+      background: #f4f6fb;
       border-radius: 8rpx;
       font-size: 26rpx;
       color: #606266;
       
       &.active {
         background: #E1F0FF;
-        color: #007AFF;
+        color: #2563eb;
         font-weight: 500;
       }
     }
@@ -699,7 +699,7 @@ onMounted(() => {
   
   .col-left {
     width: 200rpx;
-    background: #F5F7FA;
+    background: #f4f6fb;
     
     .menu-item {
       height: 90rpx;
@@ -712,7 +712,7 @@ onMounted(() => {
       
       &.active {
         background: #fff;
-        color: #007AFF;
+        color: #2563eb;
         font-weight: 600;
         
         &::before {
@@ -722,7 +722,7 @@ onMounted(() => {
           top: 30rpx;
           bottom: 30rpx;
           width: 6rpx;
-          background: #007AFF;
+          background: #2563eb;
           border-radius: 0 4rpx 4rpx 0;
         }
       }
@@ -744,7 +744,7 @@ onMounted(() => {
       border-bottom: 1rpx solid #F5F7FA;
       
       &.active {
-        color: #007AFF;
+        color: #2563eb;
       }
     }
   }
@@ -763,7 +763,7 @@ onMounted(() => {
     border-bottom: 1rpx solid #F5F7FA;
     
     .text-blue {
-      color: #007AFF;
+      color: #2563eb;
       font-weight: 500;
     }
   }
@@ -789,7 +789,7 @@ onMounted(() => {
   padding: 20rpx 24rpx;
   background: #fff;
   border-radius: 18rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.03);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 
   .state-header {
     display: flex;
@@ -828,12 +828,12 @@ onMounted(() => {
 /* 景点卡片优化 */
 .spot-card {
   background: #fff;
-  border-radius: 20rpx;
+  border-radius: 32rpx;
   overflow: hidden;
   margin-bottom: 24rpx;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.03);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
   
   .card-image-box {
     position: relative;
@@ -899,7 +899,7 @@ onMounted(() => {
         }
         &.category {
           background: #ECF5FF;
-          color: #409EFF;
+          color: #2563eb;
         }
       }
     }

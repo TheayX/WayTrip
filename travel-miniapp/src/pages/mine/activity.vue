@@ -424,7 +424,7 @@ onShow(async () => {
   display: flex;
   gap: 20rpx;
   padding: 20rpx;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   background: #fff;
   box-shadow: 0 12rpx 28rpx rgba(31, 45, 61, 0.06);
 }
@@ -434,7 +434,7 @@ onShow(async () => {
 .review-image {
   width: 180rpx;
   height: 180rpx;
-  border-radius: 20rpx;
+  border-radius: 32rpx;
   flex-shrink: 0;
 }
 
@@ -493,7 +493,7 @@ onShow(async () => {
 .favorite-remove {
   display: flex;
   align-items: center;
-  color: #8E8E93;
+  color: #6b7280;
   font-size: 26rpx;
 }
 
@@ -629,7 +629,7 @@ onShow(async () => {
   width: 100%;
   height: 220rpx;
   padding: 20rpx;
-  border-radius: 20rpx;
+  border-radius: 32rpx;
   background: #f8fafc;
   font-size: 28rpx;
   box-sizing: border-box;

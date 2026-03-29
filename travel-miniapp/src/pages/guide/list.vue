@@ -229,7 +229,7 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #F2F2F7;
+  background: #f4f6fb;
 }
 
 .list-state-card {
@@ -252,7 +252,7 @@ onShow(() => {
 
 .state-desc {
   font-size: 24rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .state-actions {
@@ -265,20 +265,20 @@ onShow(() => {
 .sort-chip {
   padding: 10rpx 22rpx;
   border-radius: 999rpx;
-  background: #F2F2F7;
+  background: #f4f6fb;
   font-size: 24rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .sort-chip.active {
   background: rgba(0, 122, 255, 0.1);
-  color: #007AFF;
+  color: #2563eb;
 }
 
 .reset-link {
   margin-left: auto;
   font-size: 24rpx;
-  color: #007AFF;
+  color: #2563eb;
 }
 
 /* 分类栏 */
@@ -293,14 +293,14 @@ onShow(() => {
   display: inline-block;
   padding: 14rpx 32rpx;
   margin-right: 16rpx;
-  background: #F2F2F7;
+  background: #f4f6fb;
   border-radius: 100rpx;
   font-size: 26rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .category-item.active {
-  background: #007AFF;
+  background: #2563eb;
   color: #fff;
 }
 
@@ -315,10 +315,10 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   background: #fff;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   overflow: hidden;
   margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
   width: 100%;
 }
 
@@ -342,7 +342,7 @@ onShow(() => {
 
 .guide-summary {
   font-size: 26rpx;
-  color: #8E8E93;
+  color: #6b7280;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -359,7 +359,7 @@ onShow(() => {
 
 .guide-category {
   font-size: 24rpx;
-  color: #007AFF;
+  color: #2563eb;
   background: rgba(0, 122, 255, 0.1);
   padding: 6rpx 16rpx;
   border-radius: 100rpx;
@@ -367,7 +367,7 @@ onShow(() => {
 
 .guide-views {
   font-size: 24rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 /* 加载状态 */
@@ -375,7 +375,7 @@ onShow(() => {
 .no-more {
   text-align: center;
   padding: 30rpx;
-  color: #8E8E93;
+  color: #6b7280;
   font-size: 26rpx;
 }
 
@@ -389,7 +389,7 @@ onShow(() => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .empty-reset {

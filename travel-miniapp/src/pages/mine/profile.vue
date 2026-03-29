@@ -162,7 +162,7 @@ onShow(async () => {
 
 .profile-card {
   background: #fff;
-  border-radius: 28rpx;
+  border-radius: 40rpx;
   padding: 32rpx 28rpx;
   box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.05);
 }
