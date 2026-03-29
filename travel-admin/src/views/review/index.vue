@@ -69,6 +69,11 @@
         <el-table-column prop="comment" label="评价内容" min-width="260" show-overflow-tooltip />
         <el-table-column prop="createdAt" label="创建时间" width="170" />
         <el-table-column prop="updatedAt" label="更新时间" width="170" />
+        <el-table-column label="操作" width="120" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="danger" @click="handleDelete(row)">违规删除</el-button>
+          </template>
+        </el-table-column>
       </el-table>
 
       <!-- 分页器 -->
@@ -89,7 +94,9 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { getReviewList } from '@/api/review'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { deleteReview, getReviewList } from '@/api/review'
+import { isMessageBoxDismissed } from '@/utils/message-box'
 
 // 列表状态
 const loading = ref(false)
@@ -133,6 +140,22 @@ const handleReset = () => {
   searchForm.nickname = ''
   searchForm.spotName = ''
   handleSearch()
+}
+
+// 删除评价
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这条评价吗？删除后会同步更新景点评分。', '提示', {
+      type: 'warning'
+    })
+    await deleteReview(row.id)
+    ElMessage.success('删除成功')
+    fetchReviewList()
+  } catch (e) {
+    if (!isMessageBoxDismissed(e)) {
+      ElMessage.error('删除失败')
+    }
+  }
 }
 
 // 页面初始化

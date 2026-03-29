@@ -9,3 +9,12 @@ import request from '@/utils/request'
 export function getReviewList(params) {
   return request.get('/reviews', { params })
 }
+
+/**
+ * 删除评论
+ * @param id
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export function deleteReview(id) {
+  return request.delete(`/reviews/${id}`)
+}

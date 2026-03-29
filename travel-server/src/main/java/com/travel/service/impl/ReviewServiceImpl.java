@@ -142,7 +142,7 @@ public class ReviewServiceImpl implements ReviewService {
         log.info("用户删除评价: userId={}, reviewId={}, spotId={}", userId, reviewId, review.getSpotId());
     }
 
-    // 管理端评价查询与评分刷新
+    // 管理端评价查询与评分刷新、删除
 
     @Override
     public PageResult<ReviewResponse> getAdminReviews(AdminReviewListRequest request) {
@@ -187,6 +187,21 @@ public class ReviewServiceImpl implements ReviewService {
         for (Spot spot : spots) {
             updateSpotAvgRating(spot.getId());
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteReviewByAdmin(Long reviewId) {
+        Review review = reviewMapper.selectById(reviewId);
+        if (review == null || review.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.REVIEW_NOT_FOUND);
+        }
+
+        review.setIsDeleted(1);
+        reviewMapper.updateById(review);
+        updateSpotAvgRating(review.getSpotId());
+        recommendationService.invalidateUserRecommendationCache(review.getUserId());
+        log.info("管理员删除评价: reviewId={}, userId={}, spotId={}", reviewId, review.getUserId(), review.getSpotId());
     }
 
     // 景点评分同步与响应转换
