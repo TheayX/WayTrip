@@ -409,7 +409,7 @@
       </el-col>
 
       <el-col :xl="8" :lg="9" :md="24">
-        <el-card shadow="hover" class="execution-card">
+        <el-card ref="executionCardRef" shadow="hover" class="execution-card">
           <template #header>
             <div class="card-header">
               <div class="title-section">
@@ -496,7 +496,7 @@
       </el-col>
     </el-row>
 
-    <el-card shadow="hover" class="debug-card preview-card">
+    <el-card ref="debugCardRef" shadow="hover" class="debug-card preview-card">
       <template #header>
         <div class="card-header">
           <div class="title-section">
@@ -1089,7 +1089,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, reactive, computed, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   getRecommendationConfig,
   updateRecommendationConfig,
@@ -1104,6 +1105,8 @@ import {
   Cpu, Timer, User, Location, RefreshLeft, Check, Refresh,
   DataLine, Setting, Clock
 } from '@element-plus/icons-vue'
+
+const route = useRoute()
 
 // 默认推荐配置
 const createDefaultConfig = () => ({
@@ -1267,6 +1270,8 @@ const similarityPreviewing = ref(false)
 const similarityMatrixPreviewing = ref(false)
 const activePreviewTab = ref('recommendation')
 const activeCollapse = ref([])
+const executionCardRef = ref()
+const debugCardRef = ref()
 const debugResult = ref(null)
 const similarityResult = ref(null)
 const debugForm = reactive({
@@ -1688,10 +1693,25 @@ const handlePreviewSimilarityWithMatrixUpdate = async () => {
   }
 }
 
+// 根据路由定位区域
+const applyRouteFocus = async () => {
+  await nextTick()
+  if (route.query.focus === 'execution') {
+    executionCardRef.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
+  if (route.query.focus === 'debug') {
+    activePreviewTab.value = 'recommendation'
+    await nextTick()
+    debugCardRef.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
 // 页面初始化
-onMounted(() => {
+onMounted(async () => {
   fetchConfig()
   fetchStatus()
+  applyRouteFocus()
 })
 </script>
 

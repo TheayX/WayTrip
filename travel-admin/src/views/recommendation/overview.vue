@@ -53,6 +53,39 @@
           </div>
         </el-card>
 
+        <el-card shadow="hover" class="summary-card">
+          <!-- 最近行为摘要 -->
+          <template #header>
+            <div class="card-header">
+              <span>最近行为摘要</span>
+            </div>
+          </template>
+
+          <div class="summary-grid">
+            <div class="summary-panel">
+              <div class="summary-title">最新收藏</div>
+              <div class="summary-main">{{ latestFavorite.spotName || '暂无数据' }}</div>
+              <div class="summary-sub">
+                {{ latestFavorite.nickname ? `${latestFavorite.nickname} 收藏于 ${latestFavorite.createdAt}` : '可从这里快速回看显式偏好行为' }}
+              </div>
+            </div>
+            <div class="summary-panel">
+              <div class="summary-title">最新浏览</div>
+              <div class="summary-main">{{ latestView.spotName || '暂无数据' }}</div>
+              <div class="summary-sub">
+                {{ latestView.nickname ? `${latestView.nickname} 来自 ${latestView.sourceLabel}，浏览于 ${latestView.createdAt}` : '可从这里快速观察最新流量入口' }}
+              </div>
+            </div>
+            <div class="summary-panel">
+              <div class="summary-title">高频偏好</div>
+              <div class="summary-main">{{ latestPreference.tag || '暂无数据' }}</div>
+              <div class="summary-sub">
+                {{ latestPreference.nickname ? `${latestPreference.nickname} 的画像最近一次更新时间为 ${latestPreference.updatedAt || '暂无'}` : '可从这里快速观察当前画像标签' }}
+              </div>
+            </div>
+          </div>
+        </el-card>
+
         <el-card shadow="hover" class="journey-card">
           <!-- 推荐链路 -->
           <template #header>
@@ -98,6 +131,8 @@
 
           <div class="quick-actions">
             <el-button type="primary" @click="goTo('/recommendation/config')">进入推荐配置</el-button>
+            <el-button @click="goTo('/recommendation/config?focus=execution')">进入执行区</el-button>
+            <el-button @click="goTo('/recommendation/config?focus=debug')">进入调试预览</el-button>
             <el-button @click="goTo('/view-log')">查看浏览行为</el-button>
             <el-button @click="goTo('/favorite')">查看用户收藏</el-button>
             <el-button @click="goTo('/preference')">查看用户偏好</el-button>
@@ -112,6 +147,7 @@
 import { onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { getRecommendationStatus } from '@/api/recommendation'
+import { getFavoriteList, getPreferenceList, getViewList } from '@/api/user-insight'
 
 const router = useRouter()
 
@@ -121,6 +157,26 @@ const status = reactive({
   lastUpdateTime: '',
   totalUsers: null,
   totalSpots: null
+})
+
+// 最近行为摘要
+const latestFavorite = reactive({
+  nickname: '',
+  spotName: '',
+  createdAt: ''
+})
+
+const latestView = reactive({
+  nickname: '',
+  spotName: '',
+  createdAt: '',
+  sourceLabel: ''
+})
+
+const latestPreference = reactive({
+  nickname: '',
+  tag: '',
+  updatedAt: ''
 })
 
 // 工作台入口
@@ -209,14 +265,59 @@ const fetchStatus = async () => {
   Object.assign(status, res.data || {})
 }
 
+// 获取最近行为摘要
+const fetchBehaviorSummary = async () => {
+  const [favoriteRes, viewRes, preferenceRes] = await Promise.all([
+    getFavoriteList({ page: 1, pageSize: 1 }),
+    getViewList({ page: 1, pageSize: 1 }),
+    getPreferenceList({ page: 1, pageSize: 1 })
+  ])
+
+  const favorite = favoriteRes.data.list?.[0]
+  const view = viewRes.data.list?.[0]
+  const preference = preferenceRes.data.list?.[0]
+
+  Object.assign(latestFavorite, {
+    nickname: favorite?.nickname || '',
+    spotName: favorite?.spotName || '',
+    createdAt: favorite?.createdAt || ''
+  })
+
+  Object.assign(latestView, {
+    nickname: view?.nickname || '',
+    spotName: view?.spotName || '',
+    createdAt: view?.createdAt || '',
+    sourceLabel: getSourceLabel(view?.source)
+  })
+
+  Object.assign(latestPreference, {
+    nickname: preference?.nickname || '',
+    tag: preference?.preferenceTags?.[0] || '',
+    updatedAt: preference?.updatedAt || ''
+  })
+}
+
+// 获取来源文案
+const getSourceLabel = (value) => {
+  const sourceMap = {
+    home: '首页',
+    search: '搜索',
+    recommend: '推荐',
+    guide: '攻略',
+    detail: '详情'
+  }
+  return sourceMap[value] || value || '未知来源'
+}
+
 // 页面跳转
 const goTo = (path) => {
   router.push(path)
 }
 
 // 页面初始化
-onMounted(() => {
+onMounted(async () => {
   fetchStatus()
+  fetchBehaviorSummary()
 })
 </script>
 
@@ -350,6 +451,43 @@ onMounted(() => {
     margin-top: 24px;
   }
 
+  .summary-card {
+    margin-top: 24px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .summary-panel {
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid #e7edf7;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  }
+
+  .summary-title {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .summary-main {
+    margin-top: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #1f2937;
+  }
+
+  .summary-sub {
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #607086;
+  }
+
   .journey-grid {
     display: grid;
     gap: 14px;
@@ -430,14 +568,16 @@ onMounted(() => {
 
   @media (max-width: 1200px) {
     .hero-grid,
-    .entry-grid {
+    .entry-grid,
+    .summary-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 768px) {
     .hero-grid,
-    .entry-grid {
+    .entry-grid,
+    .summary-grid {
       grid-template-columns: 1fr;
     }
   }
