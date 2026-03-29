@@ -184,109 +184,112 @@ onShow(() => {
   flex-direction: column;
 }
 
+/* Glassmorphism Tab Bar */
 .tabs {
   display: flex;
-  background: #fff;
-  padding: 0 16rpx;
+  padding: 16rpx 24rpx;
   position: sticky;
   top: 0;
   z-index: 10;
+  background: rgba(244, 246, 251, 0.85);
+  backdrop-filter: blur(12px);
+  gap: 16rpx;
 }
 
 .tab-item {
   flex: 1;
   text-align: center;
-  padding: 28rpx 0;
-  font-size: 28rpx;
-  color: #6b7280;
-  position: relative;
+  padding: 18rpx 0;
+  font-size: 26rpx;
+  color: #64748b;
+  border-radius: 99rpx;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .tab-item.active {
-  color: #2563eb;
-  font-weight: 600;
-}
-
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40rpx;
-  height: 4rpx;
   background: #2563eb;
-  border-radius: 2rpx;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 6rpx 16rpx rgba(37, 99, 235, 0.25);
 }
 
 .order-list {
   flex: 1;
   width: 100%;
   box-sizing: border-box;
-  padding: 24rpx calc(32rpx + env(safe-area-inset-right)) 24rpx calc(32rpx + env(safe-area-inset-left));
+  padding: 24rpx 32rpx;
 }
 
 .order-card {
   background: #fff;
   border-radius: 36rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 32rpx;
   overflow: hidden;
   box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
   width: 100%;
   box-sizing: border-box;
+  padding: 28rpx;
 }
 
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20rpx 24rpx;
-  border-bottom: 1px solid #F2F2F7;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx dashed #f1f5f9;
+  margin-bottom: 24rpx;
 }
 
 .order-no {
   font-size: 24rpx;
-  color: #6b7280;
+  color: #94a3b8;
+  font-family: monospace;
 }
 
 .order-status {
-  font-size: 26rpx;
-  font-weight: 600;
+  font-size: 24rpx;
+  font-weight: 700;
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
 }
 
-.order-status.pending { color: #FF9500; }
-.order-status.paid { color: #2563eb; }
-.order-status.completed { color: #34C759; }
-.order-status.cancelled { color: #6b7280; }
+.order-status.pending { background: #fff7ed; color: #ea580c; }
+.order-status.paid { background: #eff6ff; color: #2563eb; }
+.order-status.completed { background: #ecfdf5; color: #10b981; }
+.order-status.cancelled { background: #f1f5f9; color: #64748b; }
 
 .order-content {
   display: flex;
-  padding: 24rpx;
+  margin-bottom: 24rpx;
 }
 
 .spot-image {
-  width: 160rpx;
-  height: 120rpx;
-  border-radius: 36rpx;
-  margin-right: 20rpx;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 28rpx;
+  margin-right: 24rpx;
+  background: #f1f5f9;
 }
 
 .spot-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .spot-name {
-  font-size: 30rpx;
-  color: #1C1C1E;
-  font-weight: 600;
+  font-size: 32rpx;
+  color: #1e293b;
+  font-weight: 700;
+  margin-bottom: 12rpx;
 }
 
 .visit-date {
   font-size: 24rpx;
-  color: #6b7280;
+  color: #64748b;
+  margin-bottom: 16rpx;
 }
 
 .price-row {
@@ -295,66 +298,70 @@ onShow(() => {
 }
 
 .price {
-  font-size: 32rpx;
-  color: #FF3B30;
-  font-weight: 600;
+  font-size: 36rpx;
+  color: #ef4444;
+  font-weight: 800;
 }
 
 .quantity {
   font-size: 24rpx;
-  color: #6b7280;
+  color: #94a3b8;
   margin-left: 12rpx;
 }
 
 .order-actions {
   display: flex;
   justify-content: flex-end;
-  padding: 16rpx 24rpx;
-  border-top: 1px solid #F2F2F7;
-  gap: 20rpx;
+  padding-top: 24rpx;
+  border-top: 2rpx dashed #f1f5f9;
+  gap: 16rpx;
 }
 
 .action-btn {
-  padding: 0 32rpx;
-  height: 64rpx;
-  line-height: 64rpx;
+  padding: 0 40rpx;
+  height: 68rpx;
+  line-height: 68rpx;
   font-size: 26rpx;
-  border-radius: 32rpx;
+  font-weight: 600;
+  border-radius: 99rpx;
   border: none;
+  margin: 0;
 }
 
 .action-btn.cancel {
-  background: #f4f6fb;
-  color: #6b7280;
+  background: #f8fafc;
+  color: #64748b;
 }
 
 .action-btn.pay {
-  background: #2563eb;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.3);
 }
 
 .action-btn.review {
-  background: #10B981;
+  background: linear-gradient(135deg, #10b981, #059669);
   color: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(16, 185, 129, 0.3);
 }
 
 .empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 100rpx 0;
+  padding: 160rpx 0;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #6b7280;
+  color: #94a3b8;
 }
 
 .loading-more,
 .no-more {
   text-align: center;
-  padding: 30rpx;
-  font-size: 26rpx;
-  color: #6b7280;
+  padding: 40rpx;
+  font-size: 24rpx;
+  color: #94a3b8;
 }
 </style>
