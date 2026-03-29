@@ -1,12 +1,15 @@
+<!-- 评价管理页面 -->
 <template>
   <div class="review-page">
     <el-card  shadow="hover">
+      <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>评价管理</span>
         </div>
       </template>
 
+      <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="用户昵称">
           <el-input
@@ -34,6 +37,7 @@
         </el-form-item>
       </el-form>
 
+      <!-- 评价列表 -->
       <el-table :data="reviewList" v-loading="loading" stripe>
         <el-table-column label="用户" min-width="180">
           <template #default="{ row }">
@@ -67,6 +71,7 @@
         <el-table-column prop="updatedAt" label="更新时间" width="170" />
       </el-table>
 
+      <!-- 分页器 -->
       <div class="pagination-wrapper">
         <el-pagination
           v-model:current-page="pagination.page"
@@ -86,20 +91,24 @@
 import { onMounted, reactive, ref } from 'vue'
 import { getReviewList } from '@/api/review'
 
+// 列表状态
 const loading = ref(false)
 const reviewList = ref([])
 
+// 查询参数
 const searchForm = reactive({
   nickname: '',
   spotName: ''
 })
 
+// 分页参数
 const pagination = reactive({
   page: 1,
   pageSize: 10,
   total: 0
 })
 
+// 获取评价列表
 const fetchReviewList = async () => {
   loading.value = true
   try {
@@ -126,6 +135,7 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 页面初始化
 onMounted(() => {
   fetchReviewList()
 })

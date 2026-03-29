@@ -1,6 +1,8 @@
+<!-- 管理员管理页面 -->
 <template>
   <div class="admin-page">
     <el-card shadow="never">
+      <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>管理员管理</span>
@@ -8,25 +10,26 @@
         </div>
       </template>
 
+      <!-- 搜索表单 -->
       <el-form :model="queryParams" inline class="search-form" @submit.prevent>
         <el-form-item label="关键字">
           <el-input
-            v-model="queryParams.keyword"
-            placeholder="用户名/姓名"
-            clearable
-            style="width: 220px"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
+              v-model="queryParams.keyword"
+              placeholder="用户名/姓名"
+              clearable
+              style="width: 220px"
+              @keyup.enter="handleSearch"
+              @clear="handleSearch"
           />
         </el-form-item>
         <el-form-item label="状态">
           <el-select
-            v-model="uiStatus"
-            placeholder="全部"
-            clearable
-            style="width: 140px"
-            @change="handleSearch"
-            @clear="handleSearch"
+              v-model="uiStatus"
+              placeholder="全部"
+              clearable
+              style="width: 140px"
+              @change="handleSearch"
+              @clear="handleSearch"
           >
             <el-option label="启用" value="1" />
             <el-option label="禁用" value="0" />
@@ -38,6 +41,7 @@
         </el-form-item>
       </el-form>
 
+      <!-- 数据表格 -->
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="username" label="用户名" min-width="140" />
@@ -70,10 +74,10 @@
               <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
               <el-button link type="warning" @click="handleOpenPasswordDialog(row)">重置密码</el-button>
               <el-button
-                link
-                type="danger"
-                :disabled="isCurrentAdmin(row)"
-                @click="handleDelete(row)"
+                  link
+                  type="danger"
+                  :disabled="isCurrentAdmin(row)"
+                  @click="handleDelete(row)"
               >
                 删除
               </el-button>
@@ -82,26 +86,28 @@
         </el-table-column>
       </el-table>
 
+      <!-- 分页器 -->
       <div class="pagination-wrapper">
         <el-pagination
-          v-model:current-page="queryParams.page"
-          v-model:page-size="queryParams.pageSize"
-          :page-sizes="[10, 20, 50]"
-          :total="total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="fetchData"
-          @current-change="fetchData"
+            v-model:current-page="queryParams.page"
+            v-model:page-size="queryParams.pageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="total"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="fetchData"
+            @current-change="fetchData"
         />
       </div>
     </el-card>
 
+    <!-- 新增/编辑对话框 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑管理员' : '新增管理员'" width="520px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
         <el-form-item v-if="!isEdit" label="用户名" prop="username">
           <el-input v-model="form.username" placeholder="仅支持字母/数字/下划线" />
         </el-form-item>
         <el-form-item v-if="!isEdit" label="密码" prop="password">
-          <el-input v-model="form.password" type="password" show-password placeholder="至少6位" />
+          <el-input v-model="form.password" type="password" show-password placeholder="至少 6 位" />
         </el-form-item>
         <el-form-item label="姓名" prop="realName">
           <el-input v-model="form.realName" placeholder="请输入姓名" />
@@ -119,10 +125,11 @@
       </template>
     </el-dialog>
 
+    <!-- 重置密码对话框 -->
     <el-dialog v-model="passwordDialogVisible" title="重置密码" width="420px">
       <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="90px">
         <el-form-item label="新密码" prop="password">
-          <el-input v-model="passwordForm.password" type="password" show-password placeholder="至少6位" />
+          <el-input v-model="passwordForm.password" type="password" show-password placeholder="至少 6 位" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -141,10 +148,13 @@ import { createAdmin, deleteAdmin, getAdminList, resetAdminPassword, updateAdmin
 
 const userStore = useUserStore()
 
+// 列表状态
 const loading = ref(false)
-const total = ref(0)
-const tableData = ref([])
-const uiStatus = ref('')
+const total = ref(0) // 总数
+const tableData = ref([]) // 表格数据
+const uiStatus = ref('') // UI 绑定状态（用于下拉框）
+
+// 查询参数
 const queryParams = reactive({
   page: 1,
   pageSize: 10,
@@ -152,11 +162,12 @@ const queryParams = reactive({
   status: null
 })
 
+// 对话框与表单状态
 const dialogVisible = ref(false)
-const isEdit = ref(false)
-const isEditingCurrentAdmin = ref(false)
-const editingId = ref(null)
-const submitting = ref(false)
+const isEdit = ref(false) // 是否为编辑模式
+const isEditingCurrentAdmin = ref(false) // 是否正在编辑当前登录的管理员
+const editingId = ref(null) // 正在编辑的管理员 ID
+const submitting = ref(false) // 提交中状态
 const formRef = ref()
 const form = reactive({
   username: '',
@@ -165,16 +176,19 @@ const form = reactive({
   status: 1
 })
 
+// 重置密码对话框状态
 const passwordDialogVisible = ref(false)
 const resettingPassword = ref(false)
 const passwordFormRef = ref()
-const passwordTargetId = ref(null)
+const passwordTargetId = ref(null) // 要重置密码的管理员 ID
 const passwordForm = reactive({
   password: ''
 })
 
+// 当前管理员信息
 const currentAdminId = computed(() => userStore.adminInfo?.id)
 
+// 表单验证规则
 const rules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -192,6 +206,7 @@ const rules = {
   status: [{ required: true, message: '请选择状态', trigger: 'change' }]
 }
 
+// 重置密码表单验证规则
 const passwordRules = {
   password: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
@@ -199,6 +214,7 @@ const passwordRules = {
   ]
 }
 
+// 获取管理员列表
 const fetchData = async () => {
   loading.value = true
   try {
@@ -210,12 +226,14 @@ const fetchData = async () => {
   }
 }
 
+// 搜索操作
 const handleSearch = () => {
   queryParams.page = 1
   queryParams.status = uiStatus.value === '' || uiStatus.value == null ? null : Number(uiStatus.value)
   fetchData()
 }
 
+// 重置搜索条件
 const handleReset = () => {
   queryParams.keyword = ''
   queryParams.status = null
@@ -223,6 +241,7 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 重置表单状态
 const resetFormState = () => {
   form.username = ''
   form.password = ''
@@ -233,12 +252,14 @@ const resetFormState = () => {
   formRef.value?.clearValidate()
 }
 
+// 新增管理员
 const handleAdd = () => {
   isEdit.value = false
   resetFormState()
   dialogVisible.value = true
 }
 
+// 编辑管理员
 const handleEdit = (row) => {
   isEdit.value = true
   resetFormState()
@@ -249,6 +270,7 @@ const handleEdit = (row) => {
   dialogVisible.value = true
 }
 
+// 提交管理员表单
 const handleSubmit = async () => {
   await formRef.value.validate()
   submitting.value = true
@@ -272,6 +294,7 @@ const handleSubmit = async () => {
   }
 }
 
+// 打开重置密码对话框
 const handleOpenPasswordDialog = (row) => {
   passwordTargetId.value = row.id
   passwordForm.password = ''
@@ -279,6 +302,7 @@ const handleOpenPasswordDialog = (row) => {
   passwordDialogVisible.value = true
 }
 
+// 重置密码
 const handleResetPassword = async () => {
   await passwordFormRef.value.validate()
   resettingPassword.value = true
@@ -291,6 +315,7 @@ const handleResetPassword = async () => {
   }
 }
 
+// 删除管理员
 const handleDelete = async (row) => {
   await ElMessageBox.confirm(`确定删除管理员「${row.username}」吗？`, '提示', { type: 'warning' })
   await deleteAdmin(row.id)
@@ -298,13 +323,16 @@ const handleDelete = async (row) => {
   fetchData()
 }
 
+// 判断是否为当前登录管理员
 const isCurrentAdmin = (row) => row.id === currentAdminId.value
 
+// 格式化日期
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return dateStr.replace('T', ' ').substring(0, 19)
 }
 
+// 页面初始化
 onMounted(() => {
   fetchData()
 })

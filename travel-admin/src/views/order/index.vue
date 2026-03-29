@@ -1,13 +1,15 @@
+<!-- 订单管理页面 -->
 <template>
   <div class="order-page">
     <el-card  shadow="hover">
+      <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>订单管理</span>
         </div>
       </template>
 
-      <!-- 搜索筛选 -->
+      <!-- 搜索筛选表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="订单号">
           <el-input
@@ -114,7 +116,7 @@
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
+      <!-- 分页器 -->
       <div class="pagination-wrapper">
         <el-pagination
           v-model:current-page="pagination.page"
@@ -128,7 +130,7 @@
       </div>
     </el-card>
 
-    <!-- 订单详情弹窗 -->
+    <!-- 订单详情对话框 -->
     <el-dialog v-model="detailVisible" title="订单详情" width="600px">
       <el-descriptions :column="2" border v-if="currentOrder">
         <el-descriptions-item label="订单号" :span="2">{{ currentOrder.orderNo }}</el-descriptions-item>
@@ -183,7 +185,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder, cancelOrder } from '@/api/order'
 
-// 搜索表单
+// 查询参数
 const searchForm = reactive({
   orderNo: '',
   spotName: '',
@@ -191,7 +193,7 @@ const searchForm = reactive({
 })
 const dateRange = ref([])
 
-// 列表数据
+// 列表状态
 const loading = ref(false)
 const orderList = ref([])
 const pagination = reactive({
@@ -200,7 +202,7 @@ const pagination = reactive({
   total: 0
 })
 
-// 详情弹窗
+// 对话框与表单状态
 const detailVisible = ref(false)
 const currentOrder = ref(null)
 
@@ -227,13 +229,13 @@ const fetchOrderList = async () => {
   }
 }
 
-// 搜索
+// 搜索操作
 const handleSearch = () => {
   pagination.page = 1
   fetchOrderList()
 }
 
-// 重置
+// 重置搜索条件
 const handleReset = () => {
   searchForm.orderNo = ''
   searchForm.spotName = ''
@@ -254,7 +256,7 @@ const getStatusType = (status) => {
   return types[status] || 'info'
 }
 
-// 查看详情
+// 打开订单详情对话框
 const handleDetail = async (row) => {
   try {
     const res = await getOrderDetail(row.id)
@@ -333,6 +335,7 @@ const handleReopen = async (row) => {
   }
 }
 
+// 页面初始化
 onMounted(() => {
   fetchOrderList()
 })

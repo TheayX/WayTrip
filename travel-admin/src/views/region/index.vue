@@ -1,7 +1,8 @@
+<!-- 地区管理页面 -->
 <template>
   <div class="region-page">
     <el-row :gutter="20">
-      <!-- 左侧：一级地区 (省级) -->
+      <!-- 左侧：一级地区 -->
       <el-col :span="6">
         <el-card shadow="never" class="left-card">
           <template #header>
@@ -29,7 +30,7 @@
         </el-card>
       </el-col>
 
-      <!-- 右侧：二级地区 (市级/区级) -->
+      <!-- 右侧：二级地区 -->
       <el-col :span="18">
         <el-card shadow="never" class="right-card">
           <template #header>
@@ -63,7 +64,7 @@
       </el-col>
     </el-row>
 
-    <!-- 弹窗 -->
+    <!-- 新增/编辑对话框 -->
     <el-dialog 
       v-model="dialogVisible" 
       :title="dialogTitle"
@@ -94,19 +95,20 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { getRegions, createRegion, updateRegion, deleteRegion } from '@/api/region'
 
+// 格式化日期
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return dateStr.replace('T', ' ').substring(0, 19)
 }
 
-// 状态
+// 列表状态
 const loading1 = ref(false)
 const loading2 = ref(false)
 const level1List = ref([])
 const level2List = ref([])
 const activeParentId = ref(null)
 
-// 弹窗
+// 对话框与表单状态
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const isLevel2 = ref(false)
@@ -148,7 +150,7 @@ const fetchLevel1 = async () => {
   }
 }
 
-// 选中一级地区
+// 选择一级地区
 const handleSelectParent = (id) => {
   activeParentId.value = id
   fetchLevel2(id)
@@ -167,7 +169,7 @@ const fetchLevel2 = async (parentId) => {
   }
 }
 
-// 一级地区操作
+// 一级地区相关操作
 const handleAddLevel1 = () => {
   isEdit.value = false
   isLevel2.value = false
@@ -196,7 +198,7 @@ const handleDeleteLevel1 = async (row) => {
   } catch (e) {}
 }
 
-// 二级地区操作
+// 二级地区相关操作
 const handleAddLevel2 = () => {
   isEdit.value = false
   isLevel2.value = true
@@ -222,7 +224,7 @@ const handleDeleteLevel2 = async (row) => {
   } catch (e) {}
 }
 
-// 提交表单
+// 提交地区表单
 const handleSubmit = async () => {
   if (!formRef.value) return
   await formRef.value.validate()
@@ -250,6 +252,7 @@ const handleSubmit = async () => {
   }
 }
 
+// 页面初始化
 onMounted(() => {
   fetchLevel1()
 })

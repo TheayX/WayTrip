@@ -1,11 +1,14 @@
+<!-- 管理后台主布局组件 -->
 <template>
   <el-container class="layout-container">
     <!-- 侧边栏 -->
     <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
+      <!-- Logo 区域 -->
       <div class="logo">
         <span v-if="!isCollapse">WayTrip 运营中心</span>
         <span v-else>旅</span>
       </div>
+      <!-- 导航菜单 -->
       <el-menu
         :default-active="$route.path"
         :collapse="isCollapse"
@@ -27,16 +30,19 @@
       <!-- 顶栏 -->
       <el-header class="header">
         <div class="header-left">
+          <!-- 折叠按钮 -->
           <el-icon class="collapse-btn" @click="isCollapse = !isCollapse">
             <Fold v-if="!isCollapse" />
             <Expand v-else />
           </el-icon>
+          <!-- 面包屑导航 -->
           <el-breadcrumb separator="/" class="breadcrumb">
             <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
             <el-breadcrumb-item>{{ $route.meta.title }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
         <div class="header-right">
+          <!-- 用户下拉菜单 -->
           <el-dropdown @command="handleCommand">
             <span class="user-info">
               <el-avatar :size="28" class="user-avatar">{{ userStore.adminInfo?.realName?.charAt(0) || '管' }}</el-avatar>
@@ -55,6 +61,7 @@
       <!-- 内容区 -->
       <el-main class="main">
         <div class="main-content-wrapper">
+          <!-- 路由视图：页面内容渲染区域 -->
           <router-view />
         </div>
       </el-main>
@@ -70,8 +77,10 @@ import { useUserStore } from '@/stores/user'
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+// 侧边栏折叠状态
 const isCollapse = ref(false)
 
+// 计算属性：生成菜单列表，包含完整路径
 const menuList = computed(() => {
   const mainRoute = router.options.routes.find(r => r.path === '/')
   return (mainRoute?.children || []).map(item => ({
@@ -80,6 +89,7 @@ const menuList = computed(() => {
   }))
 })
 
+// 处理用户下拉菜单命令
 const handleCommand = (command) => {
   if (command === 'logout') {
     userStore.logout()
@@ -87,6 +97,7 @@ const handleCommand = (command) => {
   }
 }
 
+// 组件挂载时检查用户信息
 onMounted(async () => {
   if (userStore.token && !userStore.adminInfo) {
     try {

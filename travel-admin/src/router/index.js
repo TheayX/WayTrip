@@ -1,3 +1,4 @@
+// 管理后台路由配置
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
@@ -83,11 +84,13 @@ const routes = [
   }
 ]
 
+// 创建路由实例
 const router = createRouter({
   history: createWebHistory(),
   routes
 })
 
+// 全局前置守卫：权限控制 + 页面标题设置
 router.beforeEach((to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - WayTrip 管理端` : 'WayTrip 管理端'
 

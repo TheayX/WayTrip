@@ -1,6 +1,8 @@
+<!-- 攻略管理页面 -->
 <template>
   <div class="guide-page">
     <el-card shadow="never">
+      <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>攻略列表</span>
@@ -8,7 +10,7 @@
         </div>
       </template>
       
-      <!-- 搜索筛选 -->
+      <!-- 搜索筛选表单 -->
       <el-form :inline="true" :model="queryParams" class="search-form" @submit.prevent>
         <el-form-item label="关键词">
           <el-input
@@ -36,7 +38,7 @@
         </el-form-item>
       </el-form>
 
-      <!-- 表格 -->
+      <!-- 数据表格 -->
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column label="封面" width="100">
@@ -77,7 +79,7 @@
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
+      <!-- 分页器 -->
       <el-pagination
         v-model:current-page="queryParams.page"
         v-model:page-size="queryParams.pageSize"
@@ -90,7 +92,7 @@
       />
     </el-card>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增/编辑对话框 -->
     <el-dialog v-model="dialogVisible" :title="editId ? '编辑攻略' : '新增攻略'" width="900px" top="5vh">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="标题" prop="title">
@@ -167,7 +169,7 @@ import { useUserStore } from '@/stores/user'
 const BASE_URL = 'http://localhost:8080'
 const userStore = useUserStore()
 
-// 上传配置
+// 上传相关配置
 const uploadUrl = computed(() => `${BASE_URL}/api/admin/v1/upload/image`)
 const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
@@ -176,7 +178,7 @@ const uploadData = computed(() => ({
   tag: form.title || ''
 }))
 
-// 获取完整图片URL
+// 补全图片访问地址
 const getImageUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
@@ -221,6 +223,7 @@ const categories = ref([])
 const spotList = ref([])
 const spotOptions = ref([])
 
+// 合并可选景点和编辑态回填景点
 const mergedSpotOptions = computed(() => {
   const map = new Map()
   spotList.value.forEach(spot => {
@@ -250,7 +253,7 @@ const uiFilters = reactive({
   published: ''
 })
 
-// 弹窗相关
+// 对话框与表单状态
 const dialogVisible = ref(false)
 const editId = ref(null)
 const submitting = ref(false)
@@ -269,12 +272,14 @@ const rules = {
   content: [{ required: true, message: '请输入攻略内容', trigger: 'blur' }]
 }
 
+// 页面初始化
 onMounted(() => {
   loadCategories()
   loadSpots()
   loadData()
 })
 
+// 加载攻略分类
 const loadCategories = async () => {
   try {
     const res = await getCategories()
@@ -282,6 +287,7 @@ const loadCategories = async () => {
   } catch (e) {}
 }
 
+// 加载景点选项
 const loadSpots = async () => {
   try {
     const res = await getSpotList({ page: 1, pageSize: 100 })
@@ -289,6 +295,7 @@ const loadSpots = async () => {
   } catch (e) {}
 }
 
+// 加载攻略列表
 const loadData = async () => {
   loading.value = true
   try {
@@ -300,11 +307,13 @@ const loadData = async () => {
   }
 }
 
+// 格式化日期
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return dateStr.replace('T', ' ').substring(0, 19)
 }
 
+// 搜索操作
 const handleSearch = () => {
   queryParams.page = 1
   queryParams.published = uiFilters.published == null || uiFilters.published === ''
@@ -317,6 +326,7 @@ const handleFilterChange = () => {
   handleSearch()
 }
 
+// 重置搜索条件
 const handleReset = () => {
   queryParams.keyword = ''
   queryParams.category = ''
@@ -325,12 +335,14 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 新增攻略
 const handleAdd = () => {
   editId.value = null
   Object.assign(form, { title: '', category: '', coverImage: '', content: '', spotIds: [] })
   dialogVisible.value = true
 }
 
+// 编辑攻略
 const handleEdit = async (row) => {
   editId.value = row.id
   try {
@@ -341,6 +353,7 @@ const handleEdit = async (row) => {
   } catch (e) {}
 }
 
+// 提交攻略表单
 const handleSubmit = async () => {
   await formRef.value.validate()
   submitting.value = true
@@ -360,6 +373,7 @@ const handleSubmit = async () => {
   }
 }
 
+// 切换发布状态
 const handleTogglePublish = async (row) => {
   const action = row.published ? '下架' : '发布'
   await ElMessageBox.confirm(`确定要${action}该攻略吗？`, '提示', { type: 'warning' })
@@ -368,6 +382,7 @@ const handleTogglePublish = async (row) => {
   loadData()
 }
 
+// 删除攻略
 const handleDelete = async (row) => {
   await ElMessageBox.confirm('确定要删除该攻略吗？', '提示', { type: 'warning' })
   await deleteGuide(row.id)
