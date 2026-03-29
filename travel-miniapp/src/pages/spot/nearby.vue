@@ -295,7 +295,7 @@ onLoad(async (options) => {
 .spot-card,
 .empty-state {
   background: #ffffff;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.06);
 }
 

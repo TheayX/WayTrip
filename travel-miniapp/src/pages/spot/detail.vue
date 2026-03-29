@@ -433,7 +433,7 @@ onUnload(() => {
 
 <style scoped>
 .ios-page {
-  background: #F2F2F7;
+  background: #f4f6fb;
   min-height: 100vh;
   padding-bottom: 160rpx;
 }
@@ -466,10 +466,10 @@ onUnload(() => {
   margin: -60rpx 32rpx 24rpx;
   padding: 28rpx;
   background: #fff;
-  border-radius: 28rpx;
+  border-radius: 40rpx;
   position: relative;
   z-index: 1;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .info-header {
@@ -506,17 +506,17 @@ onUnload(() => {
 }
 
 .rating-count {
-  color: #8E8E93;
+  color: #6b7280;
   margin-left: 8rpx;
 }
 
 .divider {
-  color: #C7C7CC;
+  color: #9ca3af;
   margin: 0 12rpx;
 }
 
 .category {
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .price-row {
@@ -531,7 +531,7 @@ onUnload(() => {
 
 .price-label {
   font-size: 26rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 /* 详细信息卡片 */
@@ -539,8 +539,8 @@ onUnload(() => {
   margin: 0 32rpx 24rpx;
   padding: 0 28rpx;
   background: #fff;
-  border-radius: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: 36rpx;
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .detail-item {
@@ -556,7 +556,7 @@ onUnload(() => {
 .detail-label {
   width: 160rpx;
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
   flex-shrink: 0;
 }
 
@@ -594,7 +594,7 @@ onUnload(() => {
 }
 
 .nav-link {
-  color: #007AFF;
+  color: #2563eb;
   font-size: 28rpx;
   margin-left: 16rpx;
 }
@@ -610,8 +610,8 @@ onUnload(() => {
   margin: 0 32rpx 24rpx;
   padding: 28rpx;
   background: #fff;
-  border-radius: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: 36rpx;
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .card-title {
@@ -624,7 +624,7 @@ onUnload(() => {
 
 .desc-content {
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
   line-height: 1.6;
 }
 
@@ -632,8 +632,8 @@ onUnload(() => {
   margin: 0 32rpx 24rpx;
   padding: 28rpx;
   background: #fff;
-  border-radius: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: 36rpx;
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .related-scroll {
@@ -645,7 +645,7 @@ onUnload(() => {
   width: 300rpx;
   margin-right: 20rpx;
   background: #F8FAFC;
-  border-radius: 20rpx;
+  border-radius: 32rpx;
   overflow: hidden;
 }
 
@@ -676,7 +676,7 @@ onUnload(() => {
   display: block;
   margin-top: 10rpx;
   font-size: 22rpx;
-  color: #8E8E93;
+  color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -698,7 +698,7 @@ onUnload(() => {
 
 .related-score {
   font-size: 20rpx;
-  color: #007AFF;
+  color: #2563eb;
 }
 
 /* 评论卡片 */
@@ -706,8 +706,8 @@ onUnload(() => {
   margin: 0 32rpx 24rpx;
   padding: 28rpx;
   background: #fff;
-  border-radius: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: 36rpx;
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .card-header {
@@ -719,7 +719,7 @@ onUnload(() => {
 
 .more-link {
   font-size: 28rpx;
-  color: #007AFF;
+  color: #2563eb;
 }
 
 .comment-item {
@@ -775,7 +775,7 @@ onUnload(() => {
 
 .comment-text {
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
   margin-top: 12rpx;
   display: block;
   line-height: 1.5;
@@ -783,7 +783,7 @@ onUnload(() => {
 
 .comment-time {
   font-size: 24rpx;
-  color: #C7C7CC;
+  color: #9ca3af;
   margin-top: 12rpx;
   display: block;
 }
@@ -791,7 +791,7 @@ onUnload(() => {
 .empty-comment {
   text-align: center;
   padding: 40rpx;
-  color: #8E8E93;
+  color: #6b7280;
   font-size: 28rpx;
 }
 
@@ -806,7 +806,7 @@ onUnload(() => {
   padding: 20rpx 32rpx;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  box-shadow: 0 -1rpx 0 rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 }
 
@@ -823,7 +823,7 @@ onUnload(() => {
 
 .action-text {
   font-size: 22rpx;
-  color: #8E8E93;
+  color: #6b7280;
   margin-top: 4rpx;
 }
 
@@ -831,7 +831,7 @@ onUnload(() => {
   flex: 1;
   height: 88rpx;
   line-height: 88rpx;
-  background: #007AFF;
+  background: #2563eb;
   color: #fff;
   font-size: 32rpx;
   font-weight: 600;
@@ -857,7 +857,7 @@ onUnload(() => {
 .rating-content {
   width: 600rpx;
   background: #fff;
-  border-radius: 28rpx;
+  border-radius: 40rpx;
   padding: 40rpx;
 }
 
@@ -890,7 +890,7 @@ onUnload(() => {
   width: 100%;
   height: 200rpx;
   border: 1px solid #E5E5EA;
-  border-radius: 16rpx;
+  border-radius: 36rpx;
   padding: 20rpx;
   font-size: 28rpx;
   box-sizing: border-box;
@@ -913,12 +913,12 @@ onUnload(() => {
 }
 
 .cancel-btn {
-  background: #F2F2F7;
-  color: #8E8E93;
+  background: #f4f6fb;
+  color: #6b7280;
 }
 
 .submit-btn {
-  background: #007AFF;
+  background: #2563eb;
   color: #fff;
 }
 </style>

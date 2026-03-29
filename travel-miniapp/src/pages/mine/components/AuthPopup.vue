@@ -307,13 +307,13 @@ const skipRegisterPreferences = () => {
 .auth-avatar-edit { margin-top: 16rpx; }
 .auth-avatar-edit-text { font-size: 24rpx; color: #3b82f6; font-weight: 500;}
 
-.auth-input { width: 100%; height: 88rpx; border-radius: 20rpx; background: #f3f4f6; padding: 0 24rpx; margin-bottom: 20rpx; font-size: 30rpx; text-align: center; }
-.auth-input-wrap { width: 100%; height: 88rpx; border-radius: 20rpx; background: #f3f4f6; display: flex; align-items: center; padding: 0 24rpx; margin-bottom: 20rpx; }
+.auth-input { width: 100%; height: 88rpx; border-radius: 32rpx; background: #f3f4f6; padding: 0 24rpx; margin-bottom: 20rpx; font-size: 30rpx; text-align: center; }
+.auth-input-wrap { width: 100%; height: 88rpx; border-radius: 32rpx; background: #f3f4f6; display: flex; align-items: center; padding: 0 24rpx; margin-bottom: 20rpx; }
 .auth-input-field { flex: 1; height: 88rpx; font-size: 30rpx; text-align: center; }
 .pwd-eye { font-size: 40rpx; padding: 0 8rpx; flex-shrink: 0; }
 
 .auth-actions { display: flex; gap: 20rpx; width: 100%; margin-top: 16rpx; }
-.auth-btn { flex: 1; height: 88rpx; line-height: 88rpx; border-radius: 24rpx; font-size: 30rpx; text-align: center; font-weight: 600; }
+.auth-btn { flex: 1; height: 88rpx; line-height: 88rpx; border-radius: 36rpx; font-size: 30rpx; text-align: center; font-weight: 600; }
 .auth-btn.skip { color: #4b5563; background: #f3f4f6; }
 .auth-btn.confirm { color: #ffffff; background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.3); }
 .auth-btn.confirm.full { flex: 1; width: 100%; }

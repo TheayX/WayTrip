@@ -88,7 +88,7 @@ const doDeactivate = async () => {
 
 <style scoped>
 .deactivate-page {
-  background-color: #F2F2F7;
+  background-color: #f4f6fb;
   min-height: 100vh;
   padding: 20rpx 32rpx;
   padding-top: 40rpx;
@@ -96,11 +96,11 @@ const doDeactivate = async () => {
 
 .warning-card {
   background: #fff;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   padding: 48rpx 32rpx;
   text-align: center;
   margin-bottom: 40rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.02);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .warning-icon {
@@ -119,16 +119,16 @@ const doDeactivate = async () => {
 .warning-desc {
   display: block;
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
   line-height: 1.6;
 }
 
 .info-section {
   background: #fff;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   padding: 32rpx;
   margin-bottom: 40rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.02);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .info-title {
@@ -169,10 +169,10 @@ const doDeactivate = async () => {
   flex: 1;
   height: 88rpx;
   line-height: 88rpx;
-  background: #F2F2F7;
+  background: #f4f6fb;
   color: #666;
   border: none;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   font-size: 32rpx;
   font-weight: 600;
 }
@@ -184,7 +184,7 @@ const doDeactivate = async () => {
   background: #FF3B30;
   color: #fff;
   border: none;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   font-size: 32rpx;
   font-weight: 600;
 }

@@ -232,7 +232,7 @@ onUnload(() => {
 <style scoped>
 .ios-page {
   min-height: 100vh;
-  background: #F2F2F7;
+  background: #f4f6fb;
   padding-bottom: 160rpx;
 }
 
@@ -245,7 +245,7 @@ onUnload(() => {
 }
 
 .status-card.pending { background: linear-gradient(135deg, #FF9500, #FFCC00); }
-.status-card.paid { background: linear-gradient(135deg, #007AFF, #5AC8FA); }
+.status-card.paid { background: linear-gradient(135deg, #2563eb, #5AC8FA); }
 .status-card.completed { background: linear-gradient(135deg, #34C759, #30D158); }
 .status-card.cancelled { background: linear-gradient(135deg, #8E8E93, #AEAEB2); }
 .status-card.refunded { background: linear-gradient(135deg, #FF3B30, #FF8A80); }
@@ -280,14 +280,14 @@ onUnload(() => {
   margin: 24rpx 32rpx;
   padding: 24rpx;
   background: #fff;
-  border-radius: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: 36rpx;
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .spot-image {
   width: 140rpx;
   height: 100rpx;
-  border-radius: 16rpx;
+  border-radius: 36rpx;
   margin-right: 20rpx;
 }
 
@@ -305,20 +305,20 @@ onUnload(() => {
 
 .visit-date {
   font-size: 26rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .arrow {
   font-size: 36rpx;
-  color: #C7C7CC;
+  color: #9ca3af;
 }
 
 .info-card {
   margin: 0 32rpx 24rpx;
   padding: 24rpx;
   background: #fff;
-  border-radius: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: 36rpx;
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
 }
 
 .info-title {
@@ -338,7 +338,7 @@ onUnload(() => {
 
 .info-item .label {
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .info-item .value {
@@ -351,7 +351,7 @@ onUnload(() => {
   justify-content: space-between;
   padding: 12rpx 0;
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .price-item.total {
@@ -379,7 +379,7 @@ onUnload(() => {
   padding: 20rpx 32rpx;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  box-shadow: 0 -1rpx 0 rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 }
 
@@ -393,12 +393,12 @@ onUnload(() => {
 }
 
 .action-btn.cancel {
-  background: #F2F2F7;
-  color: #8E8E93;
+  background: #f4f6fb;
+  color: #6b7280;
 }
 
 .action-btn.pay {
-  background: #007AFF;
+  background: #2563eb;
   color: #fff;
 }
 

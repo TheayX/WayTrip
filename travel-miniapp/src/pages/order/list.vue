@@ -179,7 +179,7 @@ onShow(() => {
 <style scoped>
 .ios-page {
   min-height: 100vh;
-  background: #F2F2F7;
+  background: #f4f6fb;
   display: flex;
   flex-direction: column;
 }
@@ -198,12 +198,12 @@ onShow(() => {
   text-align: center;
   padding: 28rpx 0;
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
   position: relative;
 }
 
 .tab-item.active {
-  color: #007AFF;
+  color: #2563eb;
   font-weight: 600;
 }
 
@@ -215,7 +215,7 @@ onShow(() => {
   transform: translateX(-50%);
   width: 40rpx;
   height: 4rpx;
-  background: #007AFF;
+  background: #2563eb;
   border-radius: 2rpx;
 }
 
@@ -228,10 +228,10 @@ onShow(() => {
 
 .order-card {
   background: #fff;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   margin-bottom: 24rpx;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
   width: 100%;
   box-sizing: border-box;
 }
@@ -246,7 +246,7 @@ onShow(() => {
 
 .order-no {
   font-size: 24rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .order-status {
@@ -255,9 +255,9 @@ onShow(() => {
 }
 
 .order-status.pending { color: #FF9500; }
-.order-status.paid { color: #007AFF; }
+.order-status.paid { color: #2563eb; }
 .order-status.completed { color: #34C759; }
-.order-status.cancelled { color: #8E8E93; }
+.order-status.cancelled { color: #6b7280; }
 
 .order-content {
   display: flex;
@@ -267,7 +267,7 @@ onShow(() => {
 .spot-image {
   width: 160rpx;
   height: 120rpx;
-  border-radius: 16rpx;
+  border-radius: 36rpx;
   margin-right: 20rpx;
 }
 
@@ -286,7 +286,7 @@ onShow(() => {
 
 .visit-date {
   font-size: 24rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .price-row {
@@ -302,7 +302,7 @@ onShow(() => {
 
 .quantity {
   font-size: 24rpx;
-  color: #8E8E93;
+  color: #6b7280;
   margin-left: 12rpx;
 }
 
@@ -324,12 +324,12 @@ onShow(() => {
 }
 
 .action-btn.cancel {
-  background: #F2F2F7;
-  color: #8E8E93;
+  background: #f4f6fb;
+  color: #6b7280;
 }
 
 .action-btn.pay {
-  background: #007AFF;
+  background: #2563eb;
   color: #fff;
 }
 
@@ -347,7 +347,7 @@ onShow(() => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 
 .loading-more,
@@ -355,6 +355,6 @@ onShow(() => {
   text-align: center;
   padding: 30rpx;
   font-size: 26rpx;
-  color: #8E8E93;
+  color: #6b7280;
 }
 </style>

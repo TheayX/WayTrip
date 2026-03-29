@@ -59,7 +59,7 @@ const clearCache = () => {
 
 .settings-group {
   background: #ffffff;
-  border-radius: 28rpx;
+  border-radius: 40rpx;
   overflow: hidden;
   box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.05);
 }

@@ -87,14 +87,14 @@ const handleSubmit = async () => {
 
 <style scoped>
 .password-page {
-  background-color: #F2F2F7;
+  background-color: #f4f6fb;
   min-height: 100vh;
   padding: 32rpx;
 }
 
 .form-group {
   background: #fff;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   overflow: hidden;
   margin-bottom: 40rpx;
 }
@@ -139,10 +139,10 @@ const handleSubmit = async () => {
   width: 100%;
   height: 88rpx;
   line-height: 88rpx;
-  background: #007AFF;
+  background: #2563eb;
   color: #fff;
   border: none;
-  border-radius: 24rpx;
+  border-radius: 36rpx;
   font-size: 32rpx;
   font-weight: 600;
 }
