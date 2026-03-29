@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 管理端推荐控制器，负责推荐配置、状态查看与调试接口。
+ */
 @Tag(name = "管理端-推荐系统", description = "管理端推荐系统控制接口")
 @RestController
 @RequestMapping("/api/admin/v1/recommendation")
@@ -49,6 +52,9 @@ public class AdminRecommendationController {
         return ApiResponse.success(recommendationService.getStatus());
     }
 
+    /**
+     * 仅供管理端调试使用，可按需刷新缓存并输出详细推荐明细。
+     */
     @Operation(summary = "调试预览指定用户的推荐结果")
     @GetMapping("/preview")
     public ApiResponse<RecommendationResponse> previewRecommendations(
@@ -68,6 +74,9 @@ public class AdminRecommendationController {
         return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, refresh, debug, stable));
     }
 
+    /**
+     * 用于核对相似度矩阵结果，返回指定景点的相似邻居列表。
+     */
     @Operation(summary = "预览指定景点的相似邻居")
     @GetMapping("/similarity-preview")
     public ApiResponse<SimilarityPreviewResponse> previewSimilarityNeighbors(

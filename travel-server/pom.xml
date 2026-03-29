@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- WayTrip 后端 Maven 构建配置 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -18,6 +19,7 @@
     <name>travel-server</name>
     <description>旅游推荐系统后端服务</description>
 
+    <!-- 版本统一配置 -->
     <properties>
         <java.version>17</java.version>
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
@@ -26,6 +28,7 @@
         <hutool.version>5.8.25</hutool.version>
     </properties>
 
+    <!-- 依赖配置 -->
     <dependencies>
 
         <dependency>
@@ -126,6 +129,7 @@
         </dependency>
     </dependencies>
 
+    <!-- 构建插件配置 -->
     <build>
         <plugins>
             <plugin>

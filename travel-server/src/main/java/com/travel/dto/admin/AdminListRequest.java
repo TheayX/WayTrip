@@ -2,6 +2,9 @@ package com.travel.dto.admin;
 
 import lombok.Data;
 
+/**
+ * 管理员列表查询请求对象。
+ */
 @Data
 public class AdminListRequest {
 

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 设置偏好分类请求
+ * 用户偏好设置请求对象。
  */
 @Data
 public class PreferencesRequest {

@@ -28,6 +28,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * 评价服务测试
+ * 重点覆盖评价提交、删除和景点评分统计刷新逻辑。
+ */
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceImplTest {
 
@@ -48,6 +52,9 @@ class ReviewServiceImplTest {
 
     private Review review;
 
+    /**
+     * 构建基础评价夹具，供删除和更新相关测试复用。
+     */
     @BeforeEach
     void setUp() {
         review = new Review();
@@ -119,6 +126,9 @@ class ReviewServiceImplTest {
         verify(recommendationService).invalidateUserRecommendationCache(1L);
     }
 
+    /**
+     * 构造评分统计结果，模拟聚合查询返回值。
+     */
     private SpotRatingStats buildStats(String avgRating, Long ratingCount) {
         SpotRatingStats stats = new SpotRatingStats();
         stats.setAvgRating(new java.math.BigDecimal(avgRating));

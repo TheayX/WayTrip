@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 攻略详情响应
+ * 用户端攻略详情响应对象。
  */
 @Data
 @Builder
@@ -19,6 +19,9 @@ public class GuideDetailResponse {
     private String createdAt;
     private List<RelatedSpot> relatedSpots;
     
+    /**
+     * 攻略关联景点响应对象。
+     */
     @Data
     @Builder
     @lombok.NoArgsConstructor

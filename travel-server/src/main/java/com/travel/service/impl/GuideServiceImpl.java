@@ -28,18 +28,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 攻略服务实现
+ * 攻略服务实现，负责用户端浏览、管理端维护与景点关联编排。
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GuideServiceImpl implements GuideService {
 
+    // 持久层依赖
     private final GuideMapper guideMapper;
     private final GuideSpotRelationMapper guideSpotRelationMapper;
     private final SpotMapper spotMapper;
 
+    // 时间格式配置
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    // 用户端攻略浏览
 
     @Override
     public PageResult<GuideListResponse> getGuideList(GuideListRequest request) {
@@ -53,7 +57,7 @@ public class GuideServiceImpl implements GuideService {
             wrapper.eq(Guide::getCategory, request.getCategory());
         }
 
-        // 排序
+        // 默认按发布时间倒序，分类排序仅作为后台筛查场景的补充。
         if ("category".equals(request.getSortBy())) {
             wrapper.orderByAsc(Guide::getCategory).orderByDesc(Guide::getCreatedAt);
         } else {
@@ -79,7 +83,7 @@ public class GuideServiceImpl implements GuideService {
             throw new BusinessException(ResultCode.GUIDE_OFFLINE);
         }
 
-        // 增加浏览量（不更新 updatedAt）
+        // 浏览量单独累加，不改动 updatedAt，避免干扰后台编辑时间语义。
         int nextViewCount = (guide.getViewCount() == null ? 0 : guide.getViewCount()) + 1;
         guide.setViewCount(nextViewCount);
         guideMapper.update(
@@ -88,7 +92,7 @@ public class GuideServiceImpl implements GuideService {
                         .eq("id", guideId)
                         .setSql("view_count = view_count + 1"));
 
-        // 获取关联景点
+        // 详情页返回攻略关联景点摘要，用于引导继续浏览。
         List<GuideDetailResponse.RelatedSpot> relatedSpots = getRelatedSpots(guideId);
 
         return GuideDetailResponse.builder()
@@ -107,6 +111,8 @@ public class GuideServiceImpl implements GuideService {
     public List<String> getCategories() {
         return guideMapper.selectDistinctCategories();
     }
+
+    // 管理端攻略维护
 
     @Override
     public PageResult<AdminGuideListResponse> getAdminGuideList(AdminGuideListRequest request) {
@@ -142,7 +148,7 @@ public class GuideServiceImpl implements GuideService {
             throw new BusinessException(ResultCode.GUIDE_NOT_FOUND);
         }
 
-        // 获取关联景点ID
+        // 编辑回显需要保留已下架或已删除景点的信息，避免历史关联丢失。
         List<GuideSpotRelation> guideSpots = guideSpotRelationMapper.selectList(
                 new LambdaQueryWrapper<GuideSpotRelation>()
                         .eq(GuideSpotRelation::getGuideId, guideId)
@@ -197,7 +203,7 @@ public class GuideServiceImpl implements GuideService {
         guide.setViewCount(0);
         guideMapper.insert(guide);
 
-        // 保存关联景点
+        // 关联景点单独存表，创建主记录后再批量写入关联关系。
         saveGuideSpots(guide.getId(), request.getSpotIds());
 
         log.info("攻略创建成功: guideId={}, title={}, adminId={}", guide.getId(), guide.getTitle(), adminId);
@@ -220,7 +226,7 @@ public class GuideServiceImpl implements GuideService {
         guide.setIsPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
         guideMapper.updateById(guide);
 
-        // 更新关联景点
+        // 关联关系按“先软删再重建”处理，避免排序和删除状态残留。
         GuideSpotRelation deletedSpot = new GuideSpotRelation();
         deletedSpot.setIsDeleted(1);
         guideSpotRelationMapper.update(
@@ -261,6 +267,9 @@ public class GuideServiceImpl implements GuideService {
         log.info("攻略已删除: guideId={}, title={}", guideId, guide.getTitle());
     }
 
+    // 响应对象转换方法
+    // 响应转换与关联景点组装
+
     private GuideListResponse convertToListResponse(Guide guide) {
         String summary = guide.getContent();
         if (summary != null && summary.length() > 100) {
@@ -295,7 +304,7 @@ public class GuideServiceImpl implements GuideService {
                 .build();
     }
 
-
+    // 攻略关联景点处理方法
     private List<GuideDetailResponse.RelatedSpot> getRelatedSpots(Long guideId) {
         List<GuideSpotRelation> guideSpots = guideSpotRelationMapper.selectList(
                 new LambdaQueryWrapper<GuideSpotRelation>()

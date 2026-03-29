@@ -3,7 +3,7 @@ package com.travel.dto.recommendation;
 import lombok.Data;
 
 /**
- * 推荐算法配置。
+ * 推荐算法参数配置对象。
  */
 @Data
 public class RecommendationAlgorithmConfigDTO {

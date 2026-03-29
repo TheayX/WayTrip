@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 用户端推荐接口
+ * 用户端推荐控制器，负责推荐结果获取与刷新接口。
  */
 @Tag(name = "用户端-推荐", description = "个性化推荐相关接口")
 @RestController

@@ -10,7 +10,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.lang.NonNull;
 
 /**
- * Web MVC 配置
+ * Web MVC 配置。
+ * <p>
+ * 负责统一注册跨域规则、鉴权拦截器以及静态资源映射。
  */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -18,6 +20,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private AuthInterceptor authInterceptor;
 
+    /**
+     * 配置全局跨域规则。
+     *
+     * @param registry Spring MVC 跨域注册器
+     */
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/**")
@@ -28,6 +35,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .maxAge(3600);
     }
 
+    /**
+     * 注册接口鉴权拦截器，并排除登录、公开查询和文档等无需鉴权的路径。
+     *
+     * @param registry Spring MVC 拦截器注册器
+     */
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(java.util.Objects.requireNonNull(authInterceptor))
@@ -54,6 +66,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 );
     }
 
+    /**
+     * 注册上传目录的静态资源映射。
+     *
+     * @param registry Spring MVC 资源处理器注册器
+     */
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         // 静态资源映射 - 使用绝对路径

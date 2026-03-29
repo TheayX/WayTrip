@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.travel.mapper.SpotMapper">
 
+    <!-- 景点实体及扩展字段映射 -->
     <resultMap id="SpotResultMap" type="com.travel.entity.Spot">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
@@ -25,6 +26,7 @@
         <result column="region_name" property="regionName"/>
     </resultMap>
 
+    <!-- 管理端景点分页查询 -->
     <select id="selectSpotPage" resultMap="SpotResultMap">
         SELECT s.*,
                c.name AS category_name,
@@ -66,6 +68,7 @@
         </choose>
     </select>
 
+    <!-- 附近景点查询（按距离升序返回） -->
     <select id="selectNearbySpots" resultType="com.travel.dto.home.NearbySpotResponse$SpotItem">
         SELECT
             s.id,

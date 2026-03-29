@@ -3,7 +3,7 @@ package com.travel.dto.recommendation;
 import lombok.Data;
 
 /**
- * 推荐缓存策略配置。
+ * 推荐缓存策略配置参数对象。
  */
 @Data
 public class RecommendationCacheConfigDTO {

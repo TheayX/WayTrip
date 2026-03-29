@@ -25,22 +25,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 收藏服务实现
+ * 收藏服务实现，负责收藏增删、状态判断与收藏列表查询。
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FavoriteServiceImpl implements FavoriteService {
 
+    // 持久层与服务依赖
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final SpotMapper spotMapper;
     private final SpotRegionMapper spotRegionMapper;
     private final SpotCategoryMapper spotCategoryMapper;
     private final RecommendationService recommendationService;
 
+    // 收藏操作与状态判断
+
     @Override
     public void addFavorite(Long userId, Long spotId) {
-        // 检查景点是否存在
+        // 只允许收藏仍然可见的景点，避免脏数据进入收藏列表。
         Spot spot = spotMapper.selectById(spotId);
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
@@ -49,7 +52,7 @@ public class FavoriteServiceImpl implements FavoriteService {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
         
-        // 检查是否已收藏
+        // 收藏接口按幂等处理，历史软删除记录则直接恢复。
         UserSpotFavorite existingFavorite = userSpotFavoriteMapper.selectOne(
             new LambdaQueryWrapper<UserSpotFavorite>()
                 .eq(UserSpotFavorite::getUserId, userId)
@@ -97,9 +100,10 @@ public class FavoriteServiceImpl implements FavoriteService {
         ) > 0;
     }
 
+    // 收藏列表查询与转换
+
     @Override
     public PageResult<SpotListResponse> getFavoriteList(Long userId, Integer page, Integer pageSize) {
-        // 分页查询收藏记录
         Page<UserSpotFavorite> pageObj = new Page<>(page, pageSize);
         Page<UserSpotFavorite> favoriteResult = userSpotFavoriteMapper.selectPage(pageObj,
             new LambdaQueryWrapper<UserSpotFavorite>()
@@ -112,15 +116,12 @@ public class FavoriteServiceImpl implements FavoriteService {
             return PageResult.of(new ArrayList<>(), 0L, page, pageSize);
         }
         
-        // 获取景点ID列表
         List<Long> spotIds = favoriteResult.getRecords().stream()
                 .map(UserSpotFavorite::getSpotId)
                 .collect(Collectors.toList());
-        
-        // 批量查询景点
+
         List<Spot> spots = spotMapper.selectBatchIds(spotIds);
-        
-        // 转换为响应
+
         List<SpotListResponse> list = spots.stream()
                 .filter(spot -> spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
                 .map(this::convertToListResponse)
@@ -129,6 +130,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         return PageResult.of(list, favoriteResult.getTotal(), page, pageSize);
     }
 
+    // 响应转换与名称补全
     private SpotListResponse convertToListResponse(Spot spot) {
         return SpotListResponse.builder()
                 .id(spot.getId())

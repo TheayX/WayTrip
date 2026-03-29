@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * 管理端分类响应对象。
+ */
 @Data
 @Schema(description = "管理端分类响应参数")
 public class AdminCategoryResponse {

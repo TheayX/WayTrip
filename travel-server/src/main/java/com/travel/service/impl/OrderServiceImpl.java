@@ -27,15 +27,21 @@ import java.util.Set;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 订单服务实现，负责下单、支付、取消及管理端状态流转编排。
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
+    // 持久层与服务依赖
     private final OrderMapper orderMapper;
     private final SpotMapper spotMapper;
     private final UserMapper userMapper;
     private final RecommendationService recommendationService;
+
+    // 用户端订单操作
 
     @Override
     @Transactional
@@ -132,6 +138,7 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("订单不存在");
         }
 
+        // 支付接口按幂等返回，避免重复请求造成前端报错。
         if (order.getStatus() == OrderStatus.PAID.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
@@ -166,6 +173,7 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("订单不存在");
         }
 
+        // 取消接口同样按幂等返回，兼容用户重复点击。
         if (order.getStatus() == OrderStatus.CANCELLED.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
@@ -187,6 +195,7 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order);
     }
 
+    // 管理端订单查询与状态流转
 
     @Override
     public AdminOrderListResponse getAdminOrders(AdminOrderListRequest request) {
@@ -349,6 +358,8 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order);
     }
 
+    // 内部状态转换与响应组装
+
     private String generateOrderNo() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String random = String.format("%04d", new Random().nextInt(10000));
@@ -366,6 +377,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+    // 景点信息补全
     private void fillSpotInfo(List<Order> orders) {
         if (orders == null || orders.isEmpty()) return;
 
@@ -400,6 +412,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    // 响应对象构建
     private OrderListResponse.OrderItem buildOrderItem(Order order) {
         OrderListResponse.OrderItem item = new OrderListResponse.OrderItem();
         item.setId(order.getId());

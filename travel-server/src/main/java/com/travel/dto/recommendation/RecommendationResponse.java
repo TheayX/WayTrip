@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 推荐响应
+ * 推荐结果响应对象，包含推荐列表和可选调试信息。
  */
 @Data
 public class RecommendationResponse {
@@ -34,6 +34,9 @@ public class RecommendationResponse {
      */
     private DebugInfo debugInfo;
 
+    /**
+     * 推荐景点项对象。
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -49,6 +52,9 @@ public class RecommendationResponse {
         private Double score; // 推荐分数
     }
 
+    /**
+     * 管理端调试信息对象。
+     */
     @Data
     public static class DebugInfo {
         private Long userId;
@@ -72,6 +78,9 @@ public class RecommendationResponse {
         private Map<String, Object> extra;
     }
 
+    /**
+     * 调试明细项对象。
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -82,6 +91,9 @@ public class RecommendationResponse {
         private String description;
     }
 
+    /**
+     * 推荐结果贡献项对象。
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -92,6 +104,9 @@ public class RecommendationResponse {
         private List<DebugEntry> contributors;
     }
 
+    /**
+     * 用户行为统计对象。
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -102,6 +117,9 @@ public class RecommendationResponse {
         private String description;
     }
 
+    /**
+     * 用户行为明细对象。
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 
+/**
+ * 管理端景点地区控制器，负责地区树查询与维护接口。
+ */
 @Tag(name = "管理端-景点地区", description = "管理端景点地区管理相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/regions")

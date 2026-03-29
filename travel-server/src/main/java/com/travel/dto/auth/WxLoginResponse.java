@@ -4,9 +4,9 @@ import lombok.Data;
 import lombok.Builder;
 
 /**
- * 微信登录响应
- * 新用户: isNewUser=true, openid有值, token为空
- * 老用户: isNewUser=false, token有值, openid为空
+ * 微信登录响应对象。
+ * <p>
+ * 新用户返回 OpenID，老用户返回 Token 和用户信息。
  */
 @Data
 @Builder

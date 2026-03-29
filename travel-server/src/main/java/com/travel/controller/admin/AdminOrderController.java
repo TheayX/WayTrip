@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 管理端订单接口
+ * 管理端订单控制器，负责订单查询与状态流转接口。
  */
 @Tag(name = "管理端-订单", description = "管理端订单管理相关接口")
 @RestController

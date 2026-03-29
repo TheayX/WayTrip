@@ -5,7 +5,7 @@ import lombok.Builder;
 import java.util.List;
 
 /**
- * 景点筛选选项响应
+ * 景点筛选项响应对象。
  */
 @Data
 @Builder
@@ -24,6 +24,9 @@ public class SpotFilterResponse {
      */
     private List<FilterItem> categoryTree;
     
+    /**
+     * 景点筛选项对象。
+     */
     @Data
     @Builder
     public static class FilterItem {

@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * 评价响应
+ * 评价记录响应对象。
  */
 @Data
 @Builder

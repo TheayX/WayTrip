@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 用户端景点接口
+ * 用户端景点控制器，负责景点浏览、搜索与行为上报接口。
  */
 @Tag(name = "用户端-景点", description = "用户端景点浏览与搜索相关接口")
 @RestController

@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 景点详情响应
+ * 用户端景点详情响应对象。
  */
 @Data
 @Builder
@@ -28,6 +28,9 @@ public class SpotDetailResponse {
     private Integer userRating;
     private List<CommentItem> latestComments;
     
+    /**
+     * 景点详情页最新评论对象。
+     */
     @Data
     @Builder
     @lombok.NoArgsConstructor

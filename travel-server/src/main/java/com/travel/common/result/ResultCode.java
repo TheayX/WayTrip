@@ -3,7 +3,9 @@ package com.travel.common.result;
 import lombok.Getter;
 
 /**
- * 错误码枚举
+ * 统一业务结果码枚举。
+ * <p>
+ * 用于约束接口响应中的业务状态码与默认提示信息。
  */
 @Getter
 public enum ResultCode {
@@ -51,6 +53,12 @@ public enum ResultCode {
     private final int code;
     private final String message;
 
+    /**
+     * 创建结果码枚举项。
+     *
+     * @param code 业务状态码
+     * @param message 默认提示信息
+     */
     ResultCode(int code, String message) {
         this.code = code;
         this.message = message;

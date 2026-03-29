@@ -11,11 +11,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * OpenAPI 3 配置 (Spring Boot 3.x)
+ * OpenAPI 3 配置。
+ * <p>
+ * 负责定义接口文档基础信息、JWT 鉴权方案以及用户端/管理端接口分组。
  */
 @Configuration
 public class SwaggerConfig {
 
+    /**
+     * 构建全局 OpenAPI 文档对象。
+     *
+     * @return OpenAPI 文档配置
+     */
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
@@ -36,7 +43,9 @@ public class SwaggerConfig {
     }
 
     /**
-     * 用户端API分组
+     * 用户端 API 分组。
+     *
+     * @return 用户端接口分组配置
      */
     @Bean
     public GroupedOpenApi userApi() {
@@ -48,7 +57,9 @@ public class SwaggerConfig {
     }
 
     /**
-     * 管理端API分组
+     * 管理端 API 分组。
+     *
+     * @return 管理端接口分组配置
      */
     @Bean
     public GroupedOpenApi adminApi() {

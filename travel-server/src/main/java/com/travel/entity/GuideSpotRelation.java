@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 攻略景点关联实体（对应 guide_spot_relation 表）
+ * 攻略与景点关联持久化实体，对应 guide_spot_relation 表。
  */
 @Data
 @TableName("guide_spot_relation")

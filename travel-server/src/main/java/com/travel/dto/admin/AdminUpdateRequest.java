@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * 管理员更新请求对象。
+ */
 @Data
 public class AdminUpdateRequest {
 

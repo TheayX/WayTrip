@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 攻略实体
+ * 攻略持久化实体，对应 guide 表。
  */
 @Data
 @TableName("guide")

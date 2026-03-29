@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 管理端攻略接口
+ * 管理端攻略控制器，负责攻略管理接口。
  */
 @Tag(name = "管理端-攻略", description = "管理端攻略管理相关接口")
 @RestController

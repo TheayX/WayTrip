@@ -3,7 +3,7 @@ package com.travel.dto.recommendation;
 import lombok.Data;
 
 /**
- * 推荐引擎运行状态
+ * 推荐引擎运行状态传输对象。
  */
 @Data
 public class RecommendationStatusDTO {

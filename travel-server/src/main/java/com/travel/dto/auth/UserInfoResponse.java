@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 用户信息响应
+ * 用户资料响应对象。
  */
 @Data
 @Builder

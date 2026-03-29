@@ -16,14 +16,19 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.stream.Collectors;
 
 /**
- * 全局异常处理器
+ * 全局异常处理器。
+ * <p>
+ * 统一将业务异常、参数校验异常和系统异常转换为标准响应结构。
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
-     * 处理业务异常
+     * 处理业务异常。
+     *
+     * @param e 业务异常
+     * @return 标准错误响应
      */
     @ExceptionHandler(BusinessException.class)
     public ApiResponse<Void> handleBusinessException(BusinessException e) {
@@ -32,7 +37,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理参数校验异常 - @RequestBody
+     * 处理 {@code @RequestBody} 触发的参数校验异常。
+     *
+     * @param e 参数校验异常
+     * @return 标准错误响应
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -45,7 +53,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理参数校验异常 - @ModelAttribute
+     * 处理 {@code @ModelAttribute} 触发的参数绑定异常。
+     *
+     * @param e 参数绑定异常
+     * @return 标准错误响应
      */
     @ExceptionHandler(BindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -58,7 +69,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理参数校验异常 - @RequestParam
+     * 处理 {@code @RequestParam} 或路径参数触发的约束校验异常。
+     *
+     * @param e 约束校验异常
+     * @return 标准错误响应
      */
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -71,7 +85,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理其他异常
+     * 处理未被显式捕获的系统异常。
+     *
+     * @param e 系统异常
+     * @return 标准错误响应
      */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

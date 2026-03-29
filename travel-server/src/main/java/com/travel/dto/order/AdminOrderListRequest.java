@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 /**
- * 管理端订单列表请求
+ * 管理端订单列表筛选参数对象。
  */
 @Data
 public class AdminOrderListRequest {

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 评价实体（对应 user_spot_review 表）
+ * 景点评价持久化实体，对应 user_spot_review 表。
  */
 @Data
 @TableName("user_spot_review")
@@ -32,7 +32,9 @@ public class Review {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 
-    // 非数据库字段
+    /**
+     * 非数据库字段，通过关联查询补充。
+     */
     @TableField(exist = false)
     private String nickname;
 

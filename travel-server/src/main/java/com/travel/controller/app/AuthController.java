@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 用户端认证接口
+ * 用户端认证控制器，负责登录、注册与账号绑定接口。
  */
 @Tag(name = "用户端-认证", description = "用户登录、注册相关接口")
 @RestController
@@ -35,6 +35,10 @@ public class AuthController {
         return ApiResponse.success(userAuthService.wxBindPhone(request));
     }
 
+    /**
+     * 预校验小程序绑定流程；若手机号已匹配现有账号，则直接返回登录结果，
+     * 否则由前端继续补充资料并调用正式绑定接口。
+     */
     @Operation(summary = "小程序端第一步校验手机号密码")
     @PostMapping("/wx-prepare-bind-phone")
     public ApiResponse<Map<String, Object>> prepareWxBindPhone(@Valid @RequestBody WxBindPhoneRequest request) {

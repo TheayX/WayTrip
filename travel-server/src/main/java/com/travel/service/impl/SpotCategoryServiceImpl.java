@@ -16,8 +16,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * 景点分类服务实现，负责管理端分类查询与层级维护。
+ */
 @Service
 public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, SpotCategory> implements SpotCategoryService {
+
+    // 管理端分类查询与维护
 
     @Override
     public List<AdminCategoryResponse> getAdminCategories(Long parentId) {
@@ -66,7 +71,7 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
             return;
         }
         
-        // 检查是否有子分类
+        // 删除前需要先保证当前分类下不存在子分类，避免树结构残缺。
         LambdaQueryWrapper<SpotCategory> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SpotCategory::getParentId, id)
                .eq(SpotCategory::getIsDeleted, 0);

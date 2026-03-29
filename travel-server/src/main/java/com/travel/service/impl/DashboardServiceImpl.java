@@ -17,14 +17,20 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 仪表板服务实现，负责后台概览、趋势与热门景点统计。
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DashboardServiceImpl implements DashboardService {
 
+    // 持久层依赖
     private final UserMapper userMapper;
     private final SpotMapper spotMapper;
     private final OrderMapper orderMapper;
+
+    // 概览与趋势统计
 
     @Override
     public DashboardOverviewResponse getOverview() {
@@ -42,7 +48,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .eq(Spot::getIsDeleted, 0)
         ));
 
-        // 总订单数和收入 (排除已取消的订单)
+        // 已取消订单不计入总订单统计口径。
         List<Order> allOrders = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getIsDeleted, 0)
@@ -57,7 +63,7 @@ public class DashboardServiceImpl implements DashboardService {
             .map(Order::getTotalAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add));
 
-        // 今日数据
+        // 今日统计统一按自然日零点切分。
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         
         List<Order> todayOrders = orderMapper.selectList(
@@ -98,13 +104,12 @@ public class DashboardServiceImpl implements DashboardService {
                 .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
         );
 
-        // 按日期分组
+        // 先按日期聚合，再补齐空日期，保证前端折线连续。
         Map<String, List<Order>> ordersByDate = orders.stream()
             .collect(Collectors.groupingBy(o -> 
                 o.getCreatedAt().toLocalDate().format(DateTimeFormatter.ISO_DATE)
             ));
 
-        // 生成趋势数据
         List<OrderTrendResponse.TrendItem> list = new ArrayList<>();
         for (int i = 0; i < days; i++) {
             LocalDate date = startDate.plusDays(i);
@@ -128,6 +133,8 @@ public class DashboardServiceImpl implements DashboardService {
         response.setList(list);
         return response;
     }
+
+    // 热门景点统计
 
     @Override
     public HotSpotsResponse getHotSpots(Integer limit) {

@@ -5,6 +5,9 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 管理员列表响应对象。
+ */
 @Data
 public class AdminListResponse {
 

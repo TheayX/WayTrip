@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 管理端轮播图请求
+ * 管理端轮播图创建或更新请求对象。
  */
 @Data
 public class AdminBannerRequest {

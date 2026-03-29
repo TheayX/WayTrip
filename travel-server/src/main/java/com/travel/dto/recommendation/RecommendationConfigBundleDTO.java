@@ -3,7 +3,7 @@ package com.travel.dto.recommendation;
 import lombok.Data;
 
 /**
- * 聚合后的推荐配置。
+ * 推荐配置聚合传输对象。
  */
 @Data
 public class RecommendationConfigBundleDTO {
@@ -12,6 +12,11 @@ public class RecommendationConfigBundleDTO {
     private RecommendationHeatConfigDTO heat = new RecommendationHeatConfigDTO();
     private RecommendationCacheConfigDTO cache = new RecommendationCacheConfigDTO();
 
+    /**
+     * 构建默认推荐配置。
+     *
+     * @return 默认推荐配置
+     */
     public static RecommendationConfigBundleDTO defaultConfig() {
         return new RecommendationConfigBundleDTO();
     }

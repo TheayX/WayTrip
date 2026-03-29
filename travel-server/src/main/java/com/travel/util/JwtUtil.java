@@ -12,11 +12,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 /**
- * JWT 工具类 (适配 jjwt 0.12.x)
+ * JWT 工具类。
+ * <p>
+ * 负责生成和解析用户端、管理端 Token，并提供过期时间换算能力。
  */
 @Component
 public class JwtUtil {
 
+    // 配置项
     @Value("${jwt.secret}")
     private String secret;
 
@@ -26,21 +29,29 @@ public class JwtUtil {
     @Value("${jwt.admin-expiration}")
     private long adminExpiration;
 
+    // 运行时密钥
     private SecretKey key;
 
+    // Token 声明字段
     private static final String CLAIM_USER_ID = "userId";
     private static final String CLAIM_ADMIN_ID = "adminId";
     private static final String CLAIM_TYPE = "type";
     private static final String TYPE_USER = "user";
     private static final String TYPE_ADMIN = "admin";
 
+    /**
+     * 初始化签名密钥。
+     */
     @PostConstruct
     public void init() {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
-     * 生成用户 Token
+     * 生成用户端 Token。
+     *
+     * @param userId 用户 ID
+     * @return 用户端 Token
      */
     public String generateUserToken(Long userId) {
         Date now = new Date();
@@ -56,7 +67,10 @@ public class JwtUtil {
     }
 
     /**
-     * 生成管理员 Token
+     * 生成管理端 Token。
+     *
+     * @param adminId 管理员 ID
+     * @return 管理端 Token
      */
     public String generateAdminToken(Long adminId) {
         Date now = new Date();
@@ -72,7 +86,10 @@ public class JwtUtil {
     }
 
     /**
-     * 从 Token 获取用户 ID
+     * 从 Token 中解析用户 ID。
+     *
+     * @param token JWT Token
+     * @return 用户 ID；若 Token 非用户端 Token 或解析失败则返回 {@code null}
      */
     public Long getUserIdFromToken(String token) {
         Claims claims = parseToken(token);
@@ -83,7 +100,10 @@ public class JwtUtil {
     }
 
     /**
-     * 从 Token 获取管理员 ID
+     * 从 Token 中解析管理员 ID。
+     *
+     * @param token JWT Token
+     * @return 管理员 ID；若 Token 非管理端 Token 或解析失败则返回 {@code null}
      */
     public Long getAdminIdFromToken(String token) {
         Claims claims = parseToken(token);
@@ -94,7 +114,10 @@ public class JwtUtil {
     }
 
     /**
-     * 解析 Token
+     * 解析并校验 Token，有异常时返回 null。
+     *
+     * @param token JWT Token
+     * @return Token 载荷；解析失败时返回 {@code null}
      */
     private Claims parseToken(String token) {
         try {
@@ -109,14 +132,18 @@ public class JwtUtil {
     }
 
     /**
-     * 获取 Token 过期时间（秒）
+     * 获取用户端 Token 过期时间（秒）。
+     *
+     * @return 用户端 Token 过期时间（秒）
      */
     public long getExpirationSeconds() {
         return expiration / 1000;
     }
 
     /**
-     * 获取管理员 Token 过期时间（秒）
+     * 获取管理端 Token 过期时间（秒）。
+     *
+     * @return 管理端 Token 过期时间（秒）
      */
     public long getAdminExpirationSeconds() {
         return adminExpiration / 1000;

@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 
+/**
+ * 管理端景点分类控制器，负责分类树查询与维护接口。
+ */
 @Tag(name = "管理端-景点分类", description = "管理端景点分类管理相关接口")
 @RestController
 @RequestMapping("/api/admin/v1/categories")

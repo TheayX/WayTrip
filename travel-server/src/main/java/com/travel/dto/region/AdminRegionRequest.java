@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * 管理端地区创建或更新请求对象。
+ */
 @Data
 @Schema(description = "管理端地区请求参数")
 public class AdminRegionRequest {

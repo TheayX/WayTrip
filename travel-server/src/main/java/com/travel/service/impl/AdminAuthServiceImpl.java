@@ -17,15 +17,19 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 /**
- * 管理员认证服务实现
+ * 管理员认证服务实现，负责后台登录校验与管理员信息查询。
  */
 @Service
 @RequiredArgsConstructor
 public class AdminAuthServiceImpl implements AdminAuthService {
 
+    // 持久层与安全依赖
+
     private final AdminMapper adminMapper;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
+
+    // 管理员认证流程
 
     @Override
     public AdminLoginResponse adminLogin(AdminLoginRequest request) {

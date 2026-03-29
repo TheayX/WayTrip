@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 景点实体
+ * 景点持久化实体，对应 spot 表。
  */
 @Data
 @TableName("spot")
@@ -55,7 +55,9 @@ public class Spot {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 
-    // 非数据库字段
+    /**
+     * 非数据库字段，通过关联查询补充。
+     */
     @TableField(exist = false)
     private String categoryName;
 

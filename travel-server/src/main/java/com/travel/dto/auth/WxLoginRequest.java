@@ -4,7 +4,7 @@ import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * 微信登录请求
+ * 微信登录请求对象。
  */
 @Data
 public class WxLoginRequest {

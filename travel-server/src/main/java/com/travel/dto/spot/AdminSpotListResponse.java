@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 管理端景点列表项响应
+ * 管理端景点列表项对象。
  */
 @Data
 @Builder

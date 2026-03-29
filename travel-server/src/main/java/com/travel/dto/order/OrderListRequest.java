@@ -3,7 +3,7 @@ package com.travel.dto.order;
 import lombok.Data;
 
 /**
- * 订单列表请求（用户端）
+ * 用户端订单列表查询参数对象。
  */
 @Data
 public class OrderListRequest {

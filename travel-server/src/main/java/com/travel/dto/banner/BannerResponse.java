@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * 轮播图响应
+ * 用户端轮播图响应对象。
  */
 @Data
 public class BannerResponse {

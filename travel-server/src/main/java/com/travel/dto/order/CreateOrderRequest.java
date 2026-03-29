@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 /**
- * 创建订单请求
+ * 用户端订单创建请求参数对象。
  */
 @Data
 public class CreateOrderRequest {

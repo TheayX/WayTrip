@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 /**
- * 管理端文件上传接口
+ * 管理端文件上传控制器，负责后台资源上传接口。
  */
 @Tag(name = "管理端-文件上传", description = "管理端文件上传相关接口")
 @RestController

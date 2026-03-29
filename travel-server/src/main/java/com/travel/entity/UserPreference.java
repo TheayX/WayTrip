@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 用户偏好标签实体
+ * 用户偏好标签持久化实体，对应 user_preference 表。
  */
 @Data
 @TableName("user_preference")

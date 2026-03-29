@@ -35,9 +35,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * 用户账户服务测试
+ * 重点覆盖资料修改、密码变更、偏好设置和账号注销逻辑。
+ */
 @ExtendWith(MockitoExtension.class)
 class UserAccountServiceImplTest {
 
+    /**
+     * 初始化 MyBatis-Plus Lambda 缓存，确保测试中可使用 Lambda 包装器。
+     */
     @BeforeAll
     static void initMybatisPlusLambdaCache() {
         Configuration configuration = new Configuration();

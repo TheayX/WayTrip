@@ -13,13 +13,24 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 推荐缓存服务。
+ * <p>
+ * 负责管理推荐配置缓存、用户推荐结果缓存、景点相似度缓存以及推荐引擎状态缓存。
+ */
 @Service
 @RequiredArgsConstructor
 public class RecommendationCacheService {
 
+    // Redis 访问与默认配置依赖
     private final RedisTemplate<String, Object> redisTemplate;
     private final AppCacheProperties appCacheProperties;
 
+    /**
+     * 从 Redis 加载推荐配置，并与默认配置合并。
+     *
+     * @return 合并后的完整推荐配置
+     */
     public RecommendationConfigBundleDTO loadConfig() {
         RecommendationConfigBundleDTO mergedConfig = buildDefaultConfig();
         applyAlgorithmSection(
@@ -37,6 +48,11 @@ public class RecommendationCacheService {
         return mergedConfig;
     }
 
+    /**
+     * 保存推荐配置到 Redis。
+     *
+     * @param config 要保存的推荐配置；保存前会与默认配置合并
+     */
     public void saveConfig(RecommendationConfigBundleDTO config) {
         RecommendationConfigBundleDTO safeConfig = mergeBundle(buildDefaultConfig(), config);
         redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfigAlgorithm(), safeAlgorithmConfig(safeConfig));
@@ -44,10 +60,23 @@ public class RecommendationCacheService {
         redisTemplate.opsForValue().set(RedisKeyManager.recommendationConfigCache(), safeCacheConfig(safeConfig));
     }
 
+    /**
+     * 获取指定用户的推荐结果缓存。
+     *
+     * @param userId 用户 ID
+     * @return 推荐结果缓存对象；通常为 {@code Map<Long, Double>}
+     */
     public Object getUserRecommendation(Long userId) {
         return redisTemplate.opsForValue().get(RedisKeyManager.recommendationUser(userId));
     }
 
+    /**
+     * 保存用户推荐结果到 Redis。
+     *
+     * @param userId 用户 ID
+     * @param scores 推荐分数映射（景点 ID -> 分数）
+     * @param ttlMinutes 过期时间（分钟）
+     */
     public void saveUserRecommendation(Long userId, Map<Long, Double> scores, long ttlMinutes) {
         redisTemplate.opsForValue().set(
             RedisKeyManager.recommendationUser(userId),
@@ -57,14 +86,32 @@ public class RecommendationCacheService {
         );
     }
 
+    /**
+     * 删除用户推荐结果缓存。
+     *
+     * @param userId 用户 ID
+     */
     public void deleteUserRecommendation(Long userId) {
         redisTemplate.delete(RedisKeyManager.recommendationUser(userId));
     }
 
+    /**
+     * 获取指定景点的相似度缓存。
+     *
+     * @param spotId 景点 ID
+     * @return 相似度缓存对象；通常为 {@code Map<Long, Double>}
+     */
     public Object getSimilarity(Long spotId) {
         return redisTemplate.opsForValue().get(RedisKeyManager.recommendationSimilarity(spotId));
     }
 
+    /**
+     * 保存景点相似度数据到 Redis。
+     *
+     * @param spotId 景点 ID
+     * @param similarities 相似度映射（其他景点 ID -> 相似度分数）
+     * @param ttlHours 过期时间（小时）
+     */
     public void saveSimilarity(Long spotId, Map<Long, Double> similarities, long ttlHours) {
         redisTemplate.opsForValue().set(
             RedisKeyManager.recommendationSimilarity(spotId),
@@ -74,14 +121,29 @@ public class RecommendationCacheService {
         );
     }
 
+    /**
+     * 获取推荐系统运行状态缓存。
+     *
+     * @return 状态缓存对象
+     */
     public Object getStatus() {
         return redisTemplate.opsForValue().get(RedisKeyManager.recommendationStatus());
     }
 
+    /**
+     * 保存推荐系统运行状态到 Redis。
+     *
+     * @param statusMap 状态信息映射
+     */
     public void saveStatus(Map<String, Object> statusMap) {
         redisTemplate.opsForValue().set(RedisKeyManager.recommendationStatus(), statusMap);
     }
 
+    /**
+     * 构建默认推荐配置。
+     *
+     * @return 默认配置对象
+     */
     private RecommendationConfigBundleDTO buildDefaultConfig() {
         RecommendationConfigBundleDTO config = RecommendationConfigBundleDTO.defaultConfig();
         config.getCache().setUserRecTTLMinutes(defaultInt(appCacheProperties.getRecommendation().getUserRecTtlMinutes(), 60));
@@ -89,6 +151,13 @@ public class RecommendationCacheService {
         return config;
     }
 
+    /**
+     * 将算法配置缓存合并到目标配置中。
+     *
+     * @param target 目标配置
+     * @param cached 缓存中的配置
+     * @return 是否成功应用
+     */
     private boolean applyAlgorithmSection(RecommendationConfigBundleDTO target, Object cached) {
         RecommendationAlgorithmConfigDTO section = mapAlgorithmSection(cached);
         if (section == null) {
@@ -98,6 +167,13 @@ public class RecommendationCacheService {
         return true;
     }
 
+    /**
+     * 将热度配置缓存合并到目标配置中。
+     *
+     * @param target 目标配置
+     * @param cached 缓存中的配置
+     * @return 是否成功应用
+     */
     private boolean applyHeatSection(RecommendationConfigBundleDTO target, Object cached) {
         RecommendationHeatConfigDTO section = mapHeatSection(cached);
         if (section == null) {
@@ -107,6 +183,13 @@ public class RecommendationCacheService {
         return true;
     }
 
+    /**
+     * 将缓存配置合并到目标配置中。
+     *
+     * @param target 目标配置
+     * @param cached 缓存中的配置
+     * @return 是否成功应用
+     */
     private boolean applyCacheSection(RecommendationConfigBundleDTO target, Object cached) {
         RecommendationCacheConfigDTO section = mapCacheSection(cached);
         if (section == null) {
@@ -116,6 +199,12 @@ public class RecommendationCacheService {
         return true;
     }
 
+    /**
+     * 将缓存对象转换为算法配置对象。
+     *
+     * @param cached 缓存中的数据
+     * @return 算法配置对象，转换失败返回 null
+     */
     @SuppressWarnings("unchecked")
     private RecommendationAlgorithmConfigDTO mapAlgorithmSection(Object cached) {
         if (cached == null) {
@@ -161,6 +250,12 @@ public class RecommendationCacheService {
         }
     }
 
+    /**
+     * 将缓存对象转换为热度配置对象。
+     *
+     * @param cached 缓存中的数据
+     * @return 热度配置对象，转换失败返回 null
+     */
     @SuppressWarnings("unchecked")
     private RecommendationHeatConfigDTO mapHeatSection(Object cached) {
         if (cached == null) {
@@ -191,6 +286,12 @@ public class RecommendationCacheService {
         }
     }
 
+    /**
+     * 将缓存对象转换为缓存配置对象。
+     *
+     * @param cached 缓存中的数据
+     * @return 缓存配置对象，转换失败返回 null
+     */
     @SuppressWarnings("unchecked")
     private RecommendationCacheConfigDTO mapCacheSection(Object cached) {
         if (cached == null) {
@@ -217,6 +318,13 @@ public class RecommendationCacheService {
         }
     }
 
+    /**
+     * 合并两个配置包。
+     *
+     * @param base 基础配置
+     * @param override 覆盖配置
+     * @return 合并后的配置
+     */
     private RecommendationConfigBundleDTO mergeBundle(RecommendationConfigBundleDTO base, RecommendationConfigBundleDTO override) {
         RecommendationConfigBundleDTO merged = base == null ? RecommendationConfigBundleDTO.defaultConfig() : base;
         if (override == null) {
@@ -228,6 +336,12 @@ public class RecommendationCacheService {
         return merged;
     }
 
+    /**
+     * 合并算法配置，使用源配置中的非空值覆盖目标配置。
+     *
+     * @param target 目标配置
+     * @param source 源配置
+     */
     private void mergeAlgorithm(RecommendationAlgorithmConfigDTO target, RecommendationAlgorithmConfigDTO source) {
         if (target == null || source == null) {
             return;
@@ -255,6 +369,12 @@ public class RecommendationCacheService {
         if (source.getColdStartExpandFactor() != null) target.setColdStartExpandFactor(source.getColdStartExpandFactor());
     }
 
+    /**
+     * 合并热度配置，使用源配置中的非空值覆盖目标配置。
+     *
+     * @param target 目标配置
+     * @param source 源配置
+     */
     private void mergeHeat(RecommendationHeatConfigDTO target, RecommendationHeatConfigDTO source) {
         if (target == null || source == null) {
             return;
@@ -267,6 +387,12 @@ public class RecommendationCacheService {
         if (source.getHeatRerankFactor() != null) target.setHeatRerankFactor(source.getHeatRerankFactor());
     }
 
+    /**
+     * 合并缓存配置，使用源配置中的非空值覆盖目标配置。
+     *
+     * @param target 目标配置
+     * @param source 源配置
+     */
     private void mergeCache(RecommendationCacheConfigDTO target, RecommendationCacheConfigDTO source) {
         if (target == null || source == null) {
             return;
@@ -275,32 +401,69 @@ public class RecommendationCacheService {
         if (source.getUserRecTTLMinutes() != null) target.setUserRecTTLMinutes(source.getUserRecTTLMinutes());
     }
 
+    /**
+     * 安全获取算法配置；为空时返回新实例。
+     *
+     * @param config 推荐配置包
+     * @return 算法配置对象
+     */
     private RecommendationAlgorithmConfigDTO safeAlgorithmConfig(RecommendationConfigBundleDTO config) {
         return config == null || config.getAlgorithm() == null
             ? new RecommendationAlgorithmConfigDTO()
             : config.getAlgorithm();
     }
 
+    /**
+     * 安全获取热度配置；为空时返回新实例。
+     *
+     * @param config 推荐配置包
+     * @return 热度配置对象
+     */
     private RecommendationHeatConfigDTO safeHeatConfig(RecommendationConfigBundleDTO config) {
         return config == null || config.getHeat() == null
             ? new RecommendationHeatConfigDTO()
             : config.getHeat();
     }
 
+    /**
+     * 安全获取缓存配置；为空时返回新实例。
+     *
+     * @param config 推荐配置包
+     * @return 缓存配置对象
+     */
     private RecommendationCacheConfigDTO safeCacheConfig(RecommendationConfigBundleDTO config) {
         return config == null || config.getCache() == null
             ? new RecommendationCacheConfigDTO()
             : config.getCache();
     }
 
+    /**
+     * 将对象转换为 double 值。
+     *
+     * @param v 原始对象
+     * @return double 值
+     */
     private double toDouble(Object v) {
         return v instanceof Number n ? n.doubleValue() : Double.parseDouble(v.toString());
     }
 
+    /**
+     * 将对象转换为 int 值。
+     *
+     * @param v 原始对象
+     * @return int 值
+     */
     private int toInt(Object v) {
         return v instanceof Number n ? n.intValue() : Integer.parseInt(v.toString());
     }
 
+    /**
+     * 获取整数配置值，为空时返回默认值。
+     *
+     * @param value 原始整数值
+     * @param fallback 默认值
+     * @return 有效整数值
+     */
     private int defaultInt(Integer value, int fallback) {
         return value == null ? fallback : value;
     }

@@ -11,11 +11,14 @@ import org.apache.ibatis.annotations.Param;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * 景点数据访问接口。
+ */
 @Mapper
 public interface SpotMapper extends BaseMapper<Spot> {
 
     /**
-     * 分页查询景点（带分类和地区名称）
+     * 分页查询景点列表，并补充分类和地区名称。
      */
     IPage<Spot> selectSpotPage(Page<Spot> page,
                                @Param("regionId") Long regionId,
@@ -24,6 +27,9 @@ public interface SpotMapper extends BaseMapper<Spot> {
                                @Param("keyword") String keyword,
                                @Param("sortBy") String sortBy);
 
+    /**
+     * 根据经纬度查询附近景点列表。
+     */
     List<NearbySpotResponse.SpotItem> selectNearbySpots(@Param("latitude") BigDecimal latitude,
                                                         @Param("longitude") BigDecimal longitude,
                                                         @Param("limit") Integer limit);

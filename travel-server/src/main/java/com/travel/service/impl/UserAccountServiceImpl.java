@@ -29,17 +29,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 用户账户服务实现
+ * 用户账户服务实现，负责资料维护、密码修改、偏好设置与账户状态变更。
  */
 @Service
 @RequiredArgsConstructor
 public class UserAccountServiceImpl implements UserAccountService {
 
+    // 持久层与服务依赖
     private final UserMapper userMapper;
     private final UserPreferenceMapper userPreferenceMapper;
     private final SpotCategoryMapper spotCategoryMapper;
     private final RecommendationService recommendationService;
     private final BCryptPasswordEncoder passwordEncoder;
+
+    // 账户资料与安全设置
 
     @Override
     public UserInfoResponse getUserInfo(Long userId) {
@@ -111,6 +114,8 @@ public class UserAccountServiceImpl implements UserAccountService {
         userMapper.updateById(user);
     }
 
+    // 账户状态与偏好维护
+
     @Override
     public void deactivateAccount(Long userId) {
         User user = userMapper.selectById(userId);
@@ -130,6 +135,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                 ? new LinkedHashSet<>()
                 : new LinkedHashSet<>(categoryIds);
 
+        // 先整体标记为删除，再按最新选择恢复或补建，便于处理取消偏好的情况。
         UserPreference deletedPreference = new UserPreference();
         deletedPreference.setIsDeleted(1);
         userPreferenceMapper.update(
@@ -169,6 +175,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         recommendationService.invalidateUserRecommendationCache(userId);
     }
 
+    // 偏好校验与转换方法
     private void validateCategoryIds(List<Long> categoryIds) {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return;

@@ -24,19 +24,23 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 
 /**
- * 用户认证服务实现
+ * 用户认证服务实现，负责微信与 Web 登录、注册及账号绑定流程。
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserAuthServiceImpl implements UserAuthService {
 
+    // 默认资料配置
     private static final String DEFAULT_AVATAR_URL = "/uploads/images/avatar.jpg";
 
+    // 持久层与外部能力依赖
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
     private final WxApiUtil wxApiUtil;
     private final BCryptPasswordEncoder passwordEncoder;
+
+    // 微信登录与绑定流程
 
     @Override
     @Transactional
@@ -87,6 +91,8 @@ public class UserAuthServiceImpl implements UserAuthService {
                         .build())
                 .build();
     }
+
+    // Web 端认证流程
 
     @Override
     @Transactional
@@ -278,6 +284,8 @@ public class UserAuthServiceImpl implements UserAuthService {
         return null;
     }
 
+    // 账号合并与复用
+
     private LoginResponse mergeExistingWxUser(User existUser, String openid, String password, String phone) {
         if (!StringUtils.hasText(existUser.getPassword())) {
             throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
@@ -286,6 +294,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             throw new BusinessException(ResultCode.WEB_LOGIN_FAILED);
         }
 
+        // 已绑定其他 openid 的账号不允许被当前微信号直接接管。
         if (StringUtils.hasText(existUser.getOpenid()) && !existUser.getOpenid().equals(openid)) {
             throw new BusinessException(ResultCode.PHONE_ALREADY_REGISTERED);
         }

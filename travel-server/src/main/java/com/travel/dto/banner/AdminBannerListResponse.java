@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 管理端轮播图列表响应
+ * 管理端轮播图列表响应对象。
  */
 @Data
 public class AdminBannerListResponse {

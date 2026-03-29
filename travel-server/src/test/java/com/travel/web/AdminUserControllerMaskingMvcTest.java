@@ -35,6 +35,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 管理端用户接口脱敏测试
+ * 用于校验手机号脱敏和 OpenID 不外露的返回约束。
+ */
 class AdminUserControllerMaskingMvcTest {
 
     private MockMvc mockMvc;
@@ -46,6 +50,9 @@ class AdminUserControllerMaskingMvcTest {
     private SpotMapper spotMapper;
     private BCryptPasswordEncoder passwordEncoder;
 
+    /**
+     * 初始化 MyBatis-Plus Lambda 缓存，避免测试环境下的实体元数据缺失。
+     */
     @BeforeAll
     static void initMybatisPlusLambdaCache() {
         Configuration configuration = new Configuration();
@@ -58,6 +65,9 @@ class AdminUserControllerMaskingMvcTest {
         TableInfoHelper.initTableInfo(assistant, Spot.class);
     }
 
+    /**
+     * 构建仅包含管理端用户控制器的 MockMvc 测试环境。
+     */
     @BeforeEach
     void setUp() {
         userMapper = mock(UserMapper.class);
@@ -131,6 +141,9 @@ class AdminUserControllerMaskingMvcTest {
                 .andExpect(jsonPath("$.data.openid").doesNotExist());
     }
 
+    /**
+     * 构造管理端用户查询用的测试用户夹具。
+     */
     private User buildUser() {
         User user = new User();
         user.setId(1L);

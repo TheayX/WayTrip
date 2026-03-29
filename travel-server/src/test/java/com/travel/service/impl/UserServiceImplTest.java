@@ -39,9 +39,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * 用户管理服务测试
+ * 重点覆盖管理端用户列表、详情聚合和密码重置逻辑。
+ */
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
+    /**
+     * 初始化 MyBatis-Plus Lambda 缓存，避免测试中的实体字段解析失败。
+     */
     @BeforeAll
     static void initMybatisPlusLambdaCache() {
         Configuration configuration = new Configuration();
