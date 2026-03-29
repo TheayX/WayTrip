@@ -197,6 +197,16 @@ const handleMenuSelect = (index) => {
   activeMenu.value = index
 }
 
+const logProfileError = (message, error) => {
+  if (import.meta.env.DEV) {
+    console.error(message, error)
+  }
+}
+
+const getErrorMessage = (error, fallback) => {
+  return error?.response?.data?.message || error?.data?.message || error?.message || fallback
+}
+
 const fetchUserInfo = async () => {
   try {
     const res = await getUserInfo()
@@ -208,14 +218,20 @@ const fetchUserInfo = async () => {
     avatarPreview.value = ''
     avatarFile.value = null
     selectedCategories.value = info.preferenceCategoryIds || []
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    logProfileError('获取用户信息失败', e)
+    ElMessage.error(getErrorMessage(e, '加载用户信息失败'))
+  }
 }
 
 const fetchCategories = async () => {
   try {
     const res = await getFilters()
     categories.value = res.data?.categories || []
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    logProfileError('获取偏好分类失败', e)
+    ElMessage.error(getErrorMessage(e, '加载偏好分类失败'))
+  }
 }
 
 // 点击头像触发文件选择
@@ -268,7 +284,10 @@ const saveProfile = async () => {
       avatarFile.value = null
     }
     ElMessage.success('保存成功')
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    logProfileError('保存用户资料失败', e)
+    ElMessage.error(getErrorMessage(e, '保存失败'))
+  }
   saving.value = false
 }
 
@@ -323,7 +342,10 @@ const handleChangePassword = async () => {
     passwordForm.oldPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    logProfileError('修改密码失败', e)
+    ElMessage.error(getErrorMessage(e, '密码修改失败'))
+  }
   savingPwd.value = false
 }
 
@@ -346,7 +368,10 @@ const handleDeactivate = () => {
           userStore.logout()
           router.push('/login')
         }, 1500)
-      } catch (e) { /* ignore */ }
+      } catch (e) {
+        logProfileError('注销账户失败', e)
+        ElMessage.error(getErrorMessage(e, '注销账户失败'))
+      }
     })
     .catch(() => {})
 }
@@ -368,7 +393,10 @@ const handleSavePreference = async () => {
       preferenceCategoryNames: categoryNames
     })
     ElMessage.success('偏好保存成功')
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    logProfileError('保存偏好失败', e)
+    ElMessage.error(getErrorMessage(e, '偏好保存失败'))
+  }
   savingPref.value = false
 }
 
