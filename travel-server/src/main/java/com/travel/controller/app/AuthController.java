@@ -2,9 +2,7 @@ package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.auth.*;
-import com.travel.service.UserAccountService;
 import com.travel.service.UserAuthService;
-import com.travel.util.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +14,6 @@ import java.util.Map;
 
 /**
  * 用户端认证接口
- * 用户资料相关路由仅保留兼容能力，主入口为 /api/v1/user/*
  */
 @Tag(name = "用户端-认证", description = "用户登录、注册相关接口")
 @RestController
@@ -25,7 +22,6 @@ import java.util.Map;
 public class AuthController {
 
     private final UserAuthService userAuthService;
-    private final UserAccountService userAccountService;
 
     @Operation(summary = "微信登录")
     @PostMapping("/wx-login")
@@ -68,40 +64,5 @@ public class AuthController {
     @PostMapping("/web-login")
     public ApiResponse<LoginResponse> webLogin(@Valid @RequestBody WebLoginRequest request) {
         return ApiResponse.success(userAuthService.webLogin(request));
-    }
-
-    @Deprecated
-    @Operation(summary = "获取当前用户信息（兼容路由，主入口请使用 /api/v1/user/info）")
-    @GetMapping("/user-info")
-    public ApiResponse<UserInfoResponse> getUserInfo() {
-        Long userId = UserContext.getUserId();
-        return ApiResponse.success(userAccountService.getUserInfo(userId));
-    }
-
-    @Deprecated
-    @Operation(summary = "更新用户信息（兼容路由，主入口请使用 /api/v1/user/info）")
-    @PutMapping("/user-info")
-    public ApiResponse<Void> updateUserInfo(@Valid @RequestBody UpdateUserInfoRequest request) {
-        Long userId = UserContext.getUserId();
-        userAccountService.updateUserInfo(userId, request);
-        return ApiResponse.success(null);
-    }
-
-    @Deprecated
-    @Operation(summary = "修改密码（兼容路由，主入口请使用 /api/v1/user/password）")
-    @PutMapping("/password")
-    public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-        Long userId = UserContext.getUserId();
-        userAccountService.changePassword(userId, request);
-        return ApiResponse.success(null);
-    }
-
-    @Deprecated
-    @Operation(summary = "设置偏好标签（兼容路由，主入口请使用 /api/v1/user/preferences）")
-    @PostMapping("/preferences")
-    public ApiResponse<Void> setPreferences(@Valid @RequestBody PreferencesRequest request) {
-        Long userId = UserContext.getUserId();
-        userAccountService.setPreferences(userId, request.getCategoryIds());
-        return ApiResponse.success(null);
     }
 }

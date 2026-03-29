@@ -88,7 +88,7 @@ class AuthInterceptorMvcTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(
                         new UserAccountController(userAccountService),
-                        new com.travel.controller.app.AuthController(userAuthService, userAccountService),
+                        new com.travel.controller.app.AuthController(userAuthService),
                         new com.travel.controller.admin.AdminUserController(userService),
                         new com.travel.controller.admin.AdminAuthController(adminAuthService)
                 )
@@ -140,13 +140,6 @@ class AuthInterceptorMvcTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.id").value(99))
                 .andExpect(jsonPath("$.data.username").value("admin"));
-    }
-
-    @Test
-    void protectedAuthUserInfo_rejectsRequestWithoutToken() throws Exception {
-        mockMvc.perform(get("/api/v1/auth/user-info").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(10002));
     }
 
     @Test
