@@ -1,18 +1,18 @@
-<!-- 推荐列表页 -->
+<!-- 推荐景点页 -->
 <template>
   <view class="recommend-page">
     <!-- 顶部区域 -->
     <view class="top-bar">
       <view>
-        <text class="page-title">{{ recommendType }}</text>
-        <text class="page-subtitle">集中浏览当前推荐结果</text>
+        <text class="page-title">{{ recommendationPageTitle }}</text>
+        <text class="page-subtitle">集中浏览当前推荐景点</text>
       </view>
       <text v-if="isLoggedIn" class="refresh-btn" @click="refreshList">刷新推荐</text>
     </view>
 
     <!-- 偏好提示 -->
     <view class="preference-tip" v-if="isLoggedIn && needPreference" @click="showPreferencePopup">
-      <text class="tip-main">选择景点分类偏好，帮助冷启动推荐更准确</text>
+      <text class="tip-main">选择景点分类偏好，帮助偏好冷启动更准确</text>
       <text class="tip-arrow">›</text>
     </view>
 
@@ -35,7 +35,7 @@
     </view>
 
     <view class="empty-state" v-else>
-      <text>{{ isLoggedIn ? '当前暂无推荐结果' : '登录后查看推荐结果' }}</text>
+      <text>{{ isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点' }}</text>
       <view v-if="!isLoggedIn" class="empty-actions">
         <text class="empty-link" @click="goLogin">去登录</text>
       </view>
@@ -114,10 +114,12 @@ const showPreferencePopup = async () => {
 }
 
 const goLogin = () => {
-  if (!promptLogin('登录后可查看推荐列表，是否现在去登录？')) {
+  if (!promptLogin('登录后可查看推荐景点，是否现在去登录？')) {
     return
   }
 }
+
+const recommendationPageTitle = computed(() => (isLoggedIn.value ? recommendType.value : '推荐景点'))
 
 const handleLimitExceed = () => {
   uni.showToast({ title: '最多选择5个', icon: 'none' })

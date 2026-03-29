@@ -7,7 +7,7 @@
         v-model="selectedIds"
         :categories="categories"
         title="选择你感兴趣的类型"
-        subtitle="最多选择5个，也可以清空偏好，推荐会回退到热门景点。"
+        subtitle="最多选择5个，也可以清空偏好，推荐会回到热门冷启动。"
         primary-text="保存设置"
         :allow-empty="true"
         :saving="saving"

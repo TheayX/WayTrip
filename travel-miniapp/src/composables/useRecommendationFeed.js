@@ -7,8 +7,8 @@ import { useUserStore } from '@/stores/user'
 
 // 常量配置
 const RECOMMENDATION_TYPE_MAP = {
-  personalized: '为你推荐',
-  preference: '猜你喜欢',
+  personalized: '个性推荐',
+  preference: '偏好推荐',
   hot: '热门推荐'
 }
 
@@ -24,7 +24,7 @@ export const useRecommendationFeed = (limit) => {
 
   // 计算属性
   const recommendType = computed(() => {
-    return RECOMMENDATION_TYPE_MAP[recommendationType.value] || '为你推荐'
+    return RECOMMENDATION_TYPE_MAP[recommendationType.value] || '个性推荐'
   })
 
   // 内部方法
