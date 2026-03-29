@@ -30,23 +30,27 @@ export function deleteSpot(id) {
   return request.delete(`/spots/${id}`)
 }
 
-// 获取筛选选项（地区、分类）
+// 刷新单个景点评分
 export function refreshSpotRating(id) {
   return request.post(`/spots/${id}/rating/refresh`)
 }
 
+// 刷新全部景点评分
 export function refreshAllSpotRatings() {
   return request.post('/spots/rating/refresh')
 }
 
+// 同步单个景点热度
 export function refreshSpotHeat(id) {
   return request.post(`/spots/${id}/heat/refresh`)
 }
 
+// 同步全部景点热度
 export function refreshAllSpotHeat() {
   return request.post('/spots/heat/refresh')
 }
 
+// 获取筛选选项（地区、分类）
 export function getFilters() {
   return request.get('/spots/filters')
 }
