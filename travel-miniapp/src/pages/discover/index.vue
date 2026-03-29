@@ -1,158 +1,165 @@
 <!-- 发现页 -->
 <template>
   <view class="discover-page">
-    <!-- 顶部区域 -->
-    <view class="page-intro">
-      <text class="intro-title">发现</text>
-      <text class="intro-desc">景点、攻略和推荐入口都集中在这里。</text>
-    </view>
-
-    <!-- 搜索区域 -->
-    <view class="search-card" @click="goSearch">
-      <uni-icons type="search" size="18" color="#6b7280" />
-      <text class="search-text">搜索景点、攻略</text>
-    </view>
-
-    <!-- 快捷入口 -->
-    <view class="quick-panel">
-      <view class="quick-card" @click="goSpotList">
-        <text class="quick-title">景点列表</text>
-        <text class="quick-desc">查看全部景点</text>
+    <!-- 吸顶宽幅导航栏带搜索 -->
+    <view class="ios-header">
+      <view class="header-top">
+        <text class="large-title">发现</text>
       </view>
-      <view class="quick-card" @click="goGuideList">
-        <text class="quick-title">攻略列表</text>
-        <text class="quick-desc">查看全部攻略</text>
-      </view>
-      <view class="quick-card" @click="goRecommendationSpots">
-        <text class="quick-title">推荐景点</text>
-        <text class="quick-desc">查看全部推荐景点</text>
+      <view class="search-bar" @click="goSearch">
+        <uni-search-bar
+          :modelValue="''"
+          placeholder="搜索景点、攻略..."
+          :clearButton="'none'"
+          :cancelButton="'none'"
+          :radius="100"
+          :readonly="true"
+          bgColor="rgba(255, 255, 255, 0.6)"
+        />
       </view>
     </view>
 
-    <!-- 内容切换 -->
-    <view class="mode-tabs">
-      <view
-        v-for="tab in contentTabs"
-        :key="tab.value"
-        class="mode-tab"
-        :class="{ active: activeTab === tab.value }"
-        @click="switchTab(tab.value)"
-      >
-        {{ tab.label }}
-      </view>
-    </view>
-
-    <!-- 筛选区域 -->
-    <view class="filter-card" v-if="showSpotFilters || showGuideFilters">
-      <view class="filter-group" v-if="showSpotFilters">
-        <text class="filter-group-title">地区</text>
-        <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
-          <view class="chip-row">
-            <view class="chip" :class="{ active: selectedRegionId === '' }" @click="selectRegion('')">全部</view>
-            <view
-              v-for="item in regions"
-              :key="`region-${item.id}`"
-              class="chip"
-              :class="{ active: selectedRegionId === item.id }"
-              @click="selectRegion(item.id)"
-            >
-              {{ item.name }}
-            </view>
-          </view>
-        </scroll-view>
-      </view>
-
-      <view class="filter-group" v-if="showSpotFilters">
-        <text class="filter-group-title">景点</text>
-        <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
-          <view class="chip-row">
-            <view class="chip" :class="{ active: selectedSpotCategoryId === '' }" @click="selectSpotCategory('')">全部</view>
-            <view
-              v-for="item in spotCategories"
-              :key="`spot-${item.id}`"
-              class="chip"
-              :class="{ active: selectedSpotCategoryId === item.id }"
-              @click="selectSpotCategory(item.id)"
-            >
-              {{ item.name }}
-            </view>
-          </view>
-        </scroll-view>
-      </view>
-
-      <view class="filter-group" v-if="showGuideFilters">
-        <text class="filter-group-title">攻略</text>
-        <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
-          <view class="chip-row">
-            <view class="chip" :class="{ active: selectedGuideCategory === '' }" @click="selectGuideCategory('')">全部</view>
-            <view
-              v-for="item in guideCategories"
-              :key="`guide-${item}`"
-              class="chip"
-              :class="{ active: selectedGuideCategory === item }"
-              @click="selectGuideCategory(item)"
-            >
-              {{ item }}
-            </view>
-          </view>
-        </scroll-view>
-      </view>
-    </view>
-
-    <view class="section" v-if="showSpotSection">
-      <view class="section-header">
-        <view>
-          <text class="section-title">景点</text>
-          <text class="section-subtitle">{{ spotSectionSubtitle }}</text>
+    <!-- 顶部状态栏占位下面是内容 -->
+    <view class="page-content">
+      <!-- 快捷入口 (简约化) -->
+      <view class="quick-panel">
+        <view class="quick-card" @click="goSpotList">
+          <view class="icon-orb bg-blue"><uni-icons type="location-filled" size="24" color="#2563eb" /></view>
+          <text class="quick-title">全部景点</text>
         </view>
-        <text class="section-link" @click="goSpotList">查看全部</text>
-      </view>
-
-      <view class="card-list" v-if="spotList.length">
-        <view class="spot-card" v-for="spot in spotList" :key="spot.id" @click="goSpotDetail(spot.id)">
-          <image class="spot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
-          <view class="spot-content">
-            <view class="spot-title-row">
-              <text class="spot-title">{{ spot.name }}</text>
-              <text class="spot-price">¥{{ spot.price }}</text>
-            </view>
-            <text class="spot-desc">{{ spot.intro || '点击查看景点详情' }}</text>
-            <view class="spot-meta">
-              <text class="meta-tag">{{ spot.regionName || '地区待补充' }}</text>
-              <text class="meta-tag">{{ spot.categoryName || '分类待补充' }}</text>
-            </view>
-          </view>
+        <view class="quick-card" @click="goGuideList">
+          <view class="icon-orb bg-orange"><uni-icons type="paperplane-filled" size="24" color="#ea580c" /></view>
+          <text class="quick-title">游玩攻略</text>
+        </view>
+        <view class="quick-card" @click="goRecommendationSpots">
+          <view class="icon-orb bg-amber"><uni-icons type="star-filled" size="24" color="#d97706" /></view>
+          <text class="quick-title">推荐景点</text>
         </view>
       </view>
-      <view class="empty-block" v-else>
-        <text>当前条件下暂无景点</text>
-      </view>
-    </view>
 
-    <view class="section" v-if="showGuideSection">
-      <view class="section-header">
-        <view>
-          <text class="section-title">攻略</text>
-          <text class="section-subtitle">{{ guideSectionSubtitle }}</text>
+      <!-- 模式切换：胶囊切页 -->
+      <view class="mode-tabs">
+        <view
+          v-for="tab in contentTabs"
+          :key="tab.value"
+          class="mode-tab"
+          :class="{ active: activeTab === tab.value }"
+          @click="switchTab(tab.value)"
+        >
+          {{ tab.label }}
         </view>
-        <text class="section-link" @click="goGuideList">查看全部</text>
       </view>
 
-      <view class="card-list" v-if="guideList.length">
-        <view class="guide-card" v-for="guide in guideList" :key="guide.id" @click="goGuideDetail(guide.id)">
-          <image class="guide-image" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
-          <view class="guide-content">
-            <text class="guide-title">{{ guide.title }}</text>
-            <text class="guide-desc">{{ guide.summary || '点击查看攻略详情' }}</text>
-            <view class="guide-meta">
-              <text class="meta-tag">{{ guide.category || '攻略' }}</text>
-              <text class="meta-view">浏览 {{ guide.viewCount || 0 }}</text>
+      <!-- 扁平化筛选区域 -->
+      <view class="filter-card" v-if="showSpotFilters || showGuideFilters">
+        <view class="filter-group" v-if="showSpotFilters">
+          <text class="filter-group-title">地区</text>
+          <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
+            <view class="chip-row">
+              <view class="chip" :class="{ active: selectedRegionId === '' }" @click="selectRegion('')">全部</view>
+              <view
+                v-for="item in regions"
+                :key="`region-${item.id}`"
+                class="chip"
+                :class="{ active: selectedRegionId === item.id }"
+                @click="selectRegion(item.id)"
+              >
+                {{ item.name }}
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+
+        <view class="filter-group" v-if="showSpotFilters">
+          <text class="filter-group-title">分类</text>
+          <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
+            <view class="chip-row">
+              <view class="chip" :class="{ active: selectedSpotCategoryId === '' }" @click="selectSpotCategory('')">全部</view>
+              <view
+                v-for="item in spotCategories"
+                :key="`spot-${item.id}`"
+                class="chip"
+                :class="{ active: selectedSpotCategoryId === item.id }"
+                @click="selectSpotCategory(item.id)"
+              >
+                {{ item.name }}
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+
+        <view class="filter-group" v-if="showGuideFilters">
+          <text class="filter-group-title">主题</text>
+          <scroll-view class="filter-scroll" scroll-x :show-scrollbar="false">
+            <view class="chip-row">
+              <view class="chip" :class="{ active: selectedGuideCategory === '' }" @click="selectGuideCategory('')">全部</view>
+              <view
+                v-for="item in guideCategories"
+                :key="`guide-${item}`"
+                class="chip"
+                :class="{ active: selectedGuideCategory === item }"
+                @click="selectGuideCategory(item)"
+              >
+                {{ item }}
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+
+      <!-- 景点列表 -->
+      <view class="section" v-if="showSpotSection">
+        <view class="section-header">
+          <text class="section-title">探索景点</text>
+          <text class="section-link" @click="goSpotList">查看全部</text>
+        </view>
+
+        <view class="card-list" v-if="spotList.length">
+          <view class="spot-card" v-for="spot in spotList" :key="spot.id" @click="goSpotDetail(spot.id)">
+            <image class="spot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
+            <view class="spot-content">
+              <view class="spot-title-row">
+                <text class="spot-title">{{ spot.name }}</text>
+                <text class="spot-price">¥{{ spot.price }}</text>
+              </view>
+              <text v-if="spot.intro" class="spot-desc">{{ spot.intro }}</text>
+              <view class="spot-meta">
+                <text class="meta-tag">{{ spot.regionName || '地区待补充' }}</text>
+                <text class="meta-tag">{{ spot.categoryName || '分类待补充' }}</text>
+              </view>
             </view>
           </view>
         </view>
+        <view class="empty-tip" v-else>
+          <uni-icons type="info" size="32" color="#cbd5e1" />
+          <text class="empty-text">当前条件暂无景点，换个筛选试试吧</text>
+        </view>
       </view>
-      <view class="empty-block" v-else>
-        <text>当前条件下暂无攻略</text>
+
+      <!-- 攻略列表 -->
+      <view class="section" v-if="showGuideSection">
+        <view class="section-header">
+          <text class="section-title">精华攻略</text>
+          <text class="section-link" @click="goGuideList">查看全部</text>
+        </view>
+
+        <view class="card-list" v-if="guideList.length">
+          <view class="guide-card" v-for="guide in guideList" :key="guide.id" @click="goGuideDetail(guide.id)">
+            <image class="guide-image" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
+            <view class="guide-content">
+              <text class="guide-title">{{ guide.title }}</text>
+              <text class="guide-desc">{{ guide.summary || '带上好心情，发现更多旅行灵感。' }}</text>
+              <view class="guide-meta">
+                <text class="meta-tag">{{ guide.category || '攻略' }}</text>
+                <view class="meta-view"><uni-icons type="eye" size="14" color="#9ca3af"/> {{ guide.viewCount || 0 }}</view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="empty-tip" v-else>
+          <uni-icons type="info" size="32" color="#cbd5e1" />
+          <text class="empty-text">当前条件暂无攻略，换个筛选试试吧</text>
+        </view>
       </view>
     </view>
   </view>
@@ -165,7 +172,6 @@ import { getGuideList, getCategories } from '@/api/guide'
 import { getSpotList, getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
-import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 常量配置
 const DISCOVER_STATE_KEY = 'discover_state'
@@ -193,18 +199,6 @@ const showSpotFilters = computed(() => activeTab.value === 'all' || activeTab.va
 const showGuideFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
 const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
 const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
-
-const spotSectionSubtitle = computed(() => {
-  if (selectedRegionId.value && selectedSpotCategoryId.value) return '当前按地区和景点筛选'
-  if (selectedRegionId.value) return '当前按地区筛选'
-  if (selectedSpotCategoryId.value) return '当前按景点筛选'
-  return '默认浏览景点内容'
-})
-
-const guideSectionSubtitle = computed(() => {
-  if (selectedGuideCategory.value) return `当前按攻略筛选：${selectedGuideCategory.value}`
-  return '默认浏览攻略内容'
-})
 
 // 数据加载方法
 const fetchSpotFilters = async () => {
@@ -375,107 +369,99 @@ onShow(async () => {
 <style scoped>
 .discover-page {
   min-height: 100vh;
-  padding: 24rpx 24rpx 40rpx;
   background: #f4f6fb;
+  padding-bottom: 48rpx;
 }
 
-.page-intro {
-  margin-bottom: 20rpx;
+/* Glassmorphism Header */
+.ios-header {
+  padding: 88rpx 32rpx 24rpx;
+  background: linear-gradient(180deg, #f4f6fb 0%, rgba(244, 246, 251, 0.9) 100%);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
+.large-title { font-size: 48rpx; font-weight: 800; color: #111827; letter-spacing: 1rpx; }
+.search-bar :deep(.uni-searchbar) { padding: 0; background: transparent; }
+.search-bar :deep(.uni-searchbar__box) { border: 2rpx solid #e5e7eb; height: 80rpx; border-radius: 40rpx; backdrop-filter: blur(10px); box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.02); }
+
+.page-content {
+  padding: 0 32rpx;
 }
 
-.intro-title {
-  display: block;
-  font-size: 42rpx;
-  font-weight: 700;
-  color: #111827;
-}
-
-.intro-desc {
-  display: block;
-  margin-top: 10rpx;
-  font-size: 24rpx;
-  color: #6b7280;
-}
-
-.search-card,
-.quick-card,
-.filter-card,
-.spot-card,
-.guide-card,
-.empty-block {
-  background: #ffffff;
-  border-radius: 24rpx;
-  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.05);
-}
-
-.search-card {
-  padding: 22rpx 24rpx;
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-}
-
-.search-text {
-  font-size: 28rpx;
-  color: #6b7280;
-}
-
+/* Quick Nav Redesign */
 .quick-panel {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16rpx;
-  margin-top: 24rpx;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10rpx;
+  margin-bottom: 32rpx;
 }
 
 .quick-card {
-  padding: 24rpx 20rpx;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
 }
+
+.icon-orb {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6rpx 16rpx rgba(0,0,0,0.03);
+}
+.bg-blue { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
+.bg-orange { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); }
+.bg-amber { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
 
 .quick-title {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #111827;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #374151;
 }
 
-.quick-desc {
-  display: block;
-  margin-top: 10rpx;
-  font-size: 22rpx;
-  line-height: 1.5;
-  color: #6b7280;
-}
-
+/* Tab Redesign */
 .mode-tabs {
   display: flex;
   gap: 16rpx;
   margin-top: 24rpx;
+  background: #ffffff;
+  padding: 10rpx;
+  border-radius: 36rpx;
+  box-shadow: 0 4rpx 16rpx rgba(17, 24, 39, 0.03);
 }
 
 .mode-tab {
   flex: 1;
-  height: 76rpx;
-  line-height: 76rpx;
-  border-radius: 18rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 28rpx;
   text-align: center;
-  background: #e8edf5;
-  color: #4b5563;
+  color: #6b7280;
   font-size: 28rpx;
   font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .mode-tab.active {
   background: #2563eb;
   color: #ffffff;
+  box-shadow: 0 6rpx 12rpx rgba(37, 99, 235, 0.2);
 }
 
-.filter-card,
-.section {
-  margin-top: 24rpx;
-}
-
+/* Filters */
 .filter-card {
-  padding: 16rpx 0;
+  margin-top: 24rpx;
+  background: #ffffff;
+  border-radius: 36rpx;
+  padding: 20rpx 0;
+  box-shadow: 0 4rpx 16rpx rgba(17, 24, 39, 0.03);
   overflow: hidden;
 }
 
@@ -483,7 +469,6 @@ onShow(async () => {
   display: flex;
   align-items: center;
   flex-direction: row;
-  gap: 18rpx;
   min-height: 72rpx;
   white-space: nowrap;
 }
@@ -493,12 +478,13 @@ onShow(async () => {
 }
 
 .filter-group-title {
-  display: inline-block;
-  width: 72rpx;
-  padding-left: 24rpx;
+  display: block;
+  width: 90rpx;
+  padding-left: 28rpx;
   flex-shrink: 0;
   font-size: 24rpx;
-  color: #6b7280;
+  font-weight: 600;
+  color: #9ca3af;
   line-height: 56rpx;
 }
 
@@ -523,124 +509,53 @@ onShow(async () => {
   height: 56rpx;
   padding: 0 24rpx;
   margin-right: 16rpx;
-  border-radius: 999rpx;
-  background: #eef2f7;
-  color: #4b5563;
+  border-radius: 99rpx;
+  background: #f1f5f9;
+  color: #64748b;
   font-size: 24rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .chip.active {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.section-header {
-  padding: 0 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
-}
-
-.section-title {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #111827;
-}
-
-.section-subtitle {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  color: #6b7280;
-}
-
-.section-link {
-  font-size: 24rpx;
+  background: rgba(37, 99, 235, 0.1);
   color: #2563eb;
-}
-
-.card-list {
-  margin-top: 16rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 18rpx;
-}
-
-.spot-card,
-.guide-card {
-  overflow: hidden;
-}
-
-.spot-image,
-.guide-image {
-  width: 100%;
-  height: 260rpx;
-}
-
-.spot-content,
-.guide-content {
-  padding: 22rpx 24rpx;
-}
-
-.spot-title-row,
-.guide-meta,
-.spot-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12rpx;
-}
-
-.spot-title,
-.guide-title {
-  display: block;
-  font-size: 30rpx;
   font-weight: 600;
-  color: #111827;
 }
 
-.spot-price {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #ef4444;
-}
+/* Section Shared */
+.section { margin-top: 40rpx; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
+.section-title { font-size: 38rpx; font-weight: 700; color: #111827; }
+.section-link { font-size: 26rpx; color: #6b7280; font-weight: 500;}
 
-.spot-desc,
-.guide-desc {
-  display: -webkit-box;
-  margin-top: 12rpx;
-  margin-bottom: 16rpx;
-  font-size: 24rpx;
-  line-height: 1.6;
-  color: #6b7280;
+/* Lists */
+.card-list { display: flex; flex-direction: column; gap: 24rpx; }
+.spot-card, .guide-card {
+  background: #ffffff;
+  border-radius: 36rpx;
   overflow: hidden;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+}
+.spot-image, .guide-image { width: 100%; height: 280rpx; }
+.spot-content, .guide-content { padding: 24rpx 28rpx; }
+
+.spot-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin-bottom: 12rpx; }
+.spot-title, .guide-title { font-size: 34rpx; font-weight: 700; color: #111827; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spot-price { font-size: 34rpx; font-weight: 800; color: #ef4444; }
+
+.spot-desc, .guide-desc {
+  display: -webkit-box; margin-bottom: 20rpx; font-size: 26rpx; line-height: 1.5;
+  color: #6b7280; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 
-.meta-tag,
-.meta-view {
-  font-size: 22rpx;
-  color: #4b5563;
-}
+.guide-title { margin-bottom: 12rpx;}
 
-.meta-tag {
-  padding: 6rpx 14rpx;
-  border-radius: 999rpx;
-  background: #eef2f7;
-}
+.spot-meta, .guide-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12rpx;}
+.spot-meta { justify-content: flex-start; }
+.meta-tag { padding: 8rpx 20rpx; border-radius: 12rpx; background: #f3f4f6; color: #4b5563; font-size: 22rpx; font-weight: 500; }
+.meta-view { display: flex; align-items: center; gap: 6rpx; font-size: 24rpx; color: #9ca3af; font-weight: 500;}
 
-.spot-meta {
-  justify-content: flex-start;
-  flex-wrap: wrap;
-}
-
-.empty-block {
-  margin-top: 16rpx;
-  padding: 48rpx 24rpx;
-  text-align: center;
-  font-size: 26rpx;
-  color: #6b7280;
-}
+.empty-tip { display: flex; flex-direction: column; align-items: center; padding: 64rpx 0; gap: 16rpx; }
+.empty-text { font-size: 26rpx; color: #94a3b8; }
 </style>
