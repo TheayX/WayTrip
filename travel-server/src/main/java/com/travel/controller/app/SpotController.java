@@ -36,6 +36,15 @@ public class SpotController {
         return ApiResponse.success(spotService.searchSpots(keyword, page, pageSize));
     }
 
+    @Operation(summary = "获取我的最近浏览")
+    @GetMapping("/views")
+    public ApiResponse<PageResult<SpotViewHistoryResponse>> getViewHistory(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize) {
+        Long userId = UserContext.getUserId();
+        return ApiResponse.success(spotService.getViewHistory(userId, page, pageSize));
+    }
+
     @Operation(summary = "获取景点详情")
     @GetMapping("/{spotId}")
     public ApiResponse<SpotDetailResponse> getSpotDetail(@PathVariable("spotId") Long spotId) {

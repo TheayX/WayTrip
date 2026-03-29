@@ -124,6 +124,7 @@ import { useUserStore } from '@/stores/user'
 import { getFavoriteList } from '@/api/favorite'
 import { getOrderList } from '@/api/order'
 import { getMyReviews } from '@/api/review'
+import { getViewHistory } from '@/api/spot'
 import { wxLogin } from '@/api/auth'
 import { getUserInfo } from '@/api/user'
 import AuthPopup from './components/AuthPopup.vue'
@@ -158,9 +159,44 @@ const syncUserInfo = async () => {
   } catch (e) { console.error('同步用户信息失败', e) }
 }
 
-const loadRecentFootprints = () => {
+const normalizeFootprints = (list) => {
+  if (!Array.isArray(list)) return []
+  return list
+    .filter(item => item?.id)
+    .map(item => ({
+      id: item.id,
+      name: item.name || '',
+      coverImage: item.coverImage || '',
+      regionName: item.regionName || '',
+      categoryName: item.categoryName || '',
+      viewedAt: item.viewedAt || Date.now()
+    }))
+}
+
+const cacheFootprints = (list) => {
+  uni.setStorageSync('spot_footprints', normalizeFootprints(list).slice(0, 20))
+}
+
+const loadRecentFootprints = async () => {
   const history = uni.getStorageSync('spot_footprints')
-  const footprints = Array.isArray(history) ? history : []
+  const footprints = normalizeFootprints(history)
+  if (!isLoggedIn.value) {
+    dashboardStats.viewed = footprints.length
+    return
+  }
+  if (footprints.length > 0) {
+    dashboardStats.viewed = footprints.length
+    return
+  }
+
+  try {
+    const res = await getViewHistory(1, 20)
+    const list = normalizeFootprints(res.data?.list || [])
+    cacheFootprints(list)
+    dashboardStats.viewed = res.data?.total || list.length
+    return
+  } catch (e) {}
+
   dashboardStats.viewed = footprints.length
 }
 
@@ -171,7 +207,7 @@ const loadMineOverview = async () => {
     return
   }
 
-  loadRecentFootprints()
+  await loadRecentFootprints()
 
   try {
     const [favoriteRes, reviewRes, pendingRes, paidRes, completedRes] = await Promise.all([

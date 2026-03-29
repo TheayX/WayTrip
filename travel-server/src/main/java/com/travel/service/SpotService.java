@@ -27,6 +27,16 @@ public interface SpotService {
      * @return 景点分页结果
      */
     PageResult<SpotListResponse> searchSpots(String keyword, Integer page, Integer pageSize);
+
+    /**
+     * 分页获取用户最近浏览景点。
+     *
+     * @param userId 当前登录用户 ID
+     * @param page 当前页码
+     * @param pageSize 每页条数
+     * @return 最近浏览分页结果
+     */
+    PageResult<SpotViewHistoryResponse> getViewHistory(Long userId, Integer page, Integer pageSize);
     
     /**
      * 获取景点详情。

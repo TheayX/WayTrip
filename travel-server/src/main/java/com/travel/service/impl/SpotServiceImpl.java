@@ -20,7 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +38,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SpotServiceImpl implements SpotService {
+
+    private static final DateTimeFormatter VIEW_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     // 持久层与服务依赖
 
@@ -116,6 +121,66 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
+    public PageResult<SpotViewHistoryResponse> getViewHistory(Long userId, Integer page, Integer pageSize) {
+        if (userId == null) {
+            return PageResult.of(new ArrayList<>(), 0L, page, pageSize);
+        }
+
+        List<UserSpotView> views = userSpotViewMapper.selectList(
+                new LambdaQueryWrapper<UserSpotView>()
+                        .eq(UserSpotView::getUserId, userId)
+                        .orderByDesc(UserSpotView::getCreatedAt)
+                        .orderByDesc(UserSpotView::getId));
+
+        Map<Long, UserSpotView> latestBySpot = new LinkedHashMap<>();
+        for (UserSpotView view : views) {
+            if (view.getSpotId() == null || latestBySpot.containsKey(view.getSpotId())) {
+                continue;
+            }
+            latestBySpot.put(view.getSpotId(), view);
+        }
+
+        List<UserSpotView> latestViews = new ArrayList<>(latestBySpot.values());
+        if (latestViews.isEmpty()) {
+            return PageResult.of(new ArrayList<>(), 0L, page, pageSize);
+        }
+
+        Set<Long> spotIds = latestViews.stream()
+                .map(UserSpotView::getSpotId)
+                .collect(Collectors.toSet());
+        Map<Long, Spot> spotMap = spotMapper.selectBatchIds(spotIds).stream()
+                .filter(spot -> spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
+                .collect(Collectors.toMap(Spot::getId, spot -> spot));
+
+        List<SpotViewHistoryResponse> allItems = latestViews.stream()
+                .map(view -> {
+                    Spot spot = spotMap.get(view.getSpotId());
+                    if (spot == null) {
+                        return null;
+                    }
+                    return SpotViewHistoryResponse.builder()
+                            .id(spot.getId())
+                            .name(spot.getName())
+                            .coverImage(spot.getCoverImageUrl())
+                            .regionName(getRegionName(spot.getRegionId()))
+                            .categoryName(getCategoryName(spot.getCategoryId()))
+                            .viewedAt(view.getCreatedAt() == null ? null : view.getCreatedAt().format(VIEW_TIME_FORMATTER))
+                            .build();
+                })
+                .filter(java.util.Objects::nonNull)
+                .sorted(Comparator.comparing(SpotViewHistoryResponse::getViewedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .collect(Collectors.toList());
+
+        long total = allItems.size();
+        int safePage = page == null || page < 1 ? 1 : page;
+        int safePageSize = pageSize == null || pageSize < 1 ? 10 : pageSize;
+        int fromIndex = Math.min((safePage - 1) * safePageSize, allItems.size());
+        int toIndex = Math.min(fromIndex + safePageSize, allItems.size());
+
+        return PageResult.of(new ArrayList<>(allItems.subList(fromIndex, toIndex)), total, safePage, safePageSize);
+    }
+
+    @Override
     public void recordView(Long spotId, Long userId, String source, Integer duration) {
         if (userId == null) return;
         try {
@@ -184,6 +249,7 @@ public class SpotServiceImpl implements SpotService {
         return SpotDetailResponse.builder()
                 .id(spot.getId())
                 .name(spot.getName())
+                .coverImage(spot.getCoverImageUrl())
                 .description(spot.getDescription())
                 .price(spot.getPrice())
                 .openTime(spot.getOpenTime())

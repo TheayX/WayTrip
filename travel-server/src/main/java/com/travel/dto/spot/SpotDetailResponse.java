@@ -13,6 +13,7 @@ import java.util.List;
 public class SpotDetailResponse {
     private Long id;
     private String name;
+    private String coverImage;
     private String description;
     private BigDecimal price;
     private String openTime;
