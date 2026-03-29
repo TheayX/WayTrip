@@ -180,6 +180,7 @@ public class UserServiceImpl implements UserService {
         return summary;
     }
 
+    // 用户行为摘要构建
     private AdminUserDetailResponse.FavoriteSummary buildFavoriteSummary(Long userId) {
         UserSpotFavorite latestFavorite = userSpotFavoriteMapper.selectOne(
             new LambdaQueryWrapper<UserSpotFavorite>()
@@ -235,6 +236,7 @@ public class UserServiceImpl implements UserService {
         return summary;
     }
 
+    // 内部辅助方法
     private String convertStatusToString(Integer status) {
         OrderStatus orderStatus = OrderStatus.fromCode(status);
         return orderStatus != null ? orderStatus.getKey() : "unknown";

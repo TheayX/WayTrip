@@ -175,6 +175,7 @@ const pagination = reactive({
 const detailVisible = ref(false)
 const currentUser = ref(null)
 
+// 浏览来源映射
 const viewSourceMap = {
   home: '首页',
   search: '搜索',
@@ -196,11 +197,13 @@ const formatPhone = (phone) => {
   return '已隐藏'
 }
 
+// 格式化时间
 const formatDateTime = (value) => {
   if (!value) return '暂无'
   return String(value).replace('T', ' ').slice(0, 19)
 }
 
+// 获取浏览来源文案
 const getViewSourceLabel = (value) => {
   return viewSourceMap[value] || value || '暂无'
 }
