@@ -10,6 +10,9 @@ const routes = [
     component: () => import('@/layout/index.vue'),
     children: [
       { path: '', name: 'Home', component: () => import('@/views/home/index.vue'), meta: { title: '首页' } },
+      { path: 'discover', name: 'Discover', component: () => import('@/views/discover/index.vue'), meta: { title: '发现' } },
+      { path: 'recommendations', name: 'Recommendations', component: () => import('@/views/recommendation/index.vue'), meta: { title: '推荐景点', requiresAuth: true } },
+      { path: 'nearby', name: 'Nearby', component: () => import('@/views/nearby/index.vue'), meta: { title: '附近景点', requiresAuth: true } },
       { path: 'spots', name: 'SpotList', component: () => import('@/views/spot/list.vue'), meta: { title: '景点列表' } },
       { path: 'spots/:id', name: 'SpotDetail', component: () => import('@/views/spot/detail.vue'), meta: { title: '景点详情' } },
       { path: 'guides', name: 'GuideList', component: () => import('@/views/guide/list.vue'), meta: { title: '攻略列表' } },
@@ -20,6 +23,8 @@ const routes = [
       { path: 'favorites', name: 'Favorites', component: () => import('@/views/favorite/index.vue'), meta: { title: '我的收藏', requiresAuth: true } },
       { path: 'reviews', name: 'ReviewList', component: () => import('@/views/review/index.vue'), meta: { title: '我的评价', requiresAuth: true } },
       { path: 'profile', name: 'Profile', component: () => import('@/views/profile/index.vue'), meta: { title: '个人中心', requiresAuth: true } },
+      { path: 'profile/activity', name: 'Activity', component: () => import('@/views/activity/index.vue'), meta: { title: '我的互动', requiresAuth: true } },
+      { path: 'settings', name: 'Settings', component: () => import('@/views/settings/index.vue'), meta: { title: '设置', requiresAuth: true } },
       { path: 'search', name: 'Search', component: () => import('@/views/search/index.vue'), meta: { title: '搜索' } }
     ]
   },

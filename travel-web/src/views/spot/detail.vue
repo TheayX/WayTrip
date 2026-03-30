@@ -24,6 +24,26 @@
             <p class="desc-text">{{ spot.description || '暂无简介' }}</p>
           </div>
 
+          <div v-if="similarSpots.length" class="info-section card">
+            <div class="section-header-row">
+              <h2 class="section-label">看了又看</h2>
+              <span class="section-hint">{{ similarUpdateTime ? `更新于 ${similarUpdateTime}` : '相似景点' }}</span>
+            </div>
+            <div class="similar-list">
+              <article v-for="item in similarSpots" :key="item.spotId" class="similar-item" @click="router.push(`/spots/${item.spotId}?source=similar`)">
+                <img :src="getImageUrl(item.coverImage)" class="similar-image" alt="" />
+                <div class="similar-content">
+                  <h3>{{ item.spotName }}</h3>
+                  <p>{{ item.regionName || '周边景点' }} · {{ item.categoryName || '推荐' }}</p>
+                  <div class="similar-bottom">
+                    <span class="price">¥{{ item.price || 0 }}</span>
+                    <span class="similar-score">相似度 {{ formatSimilarity(item.similarity) }}</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+
           <div class="info-section card">
             <div class="section-header-row">
               <h2 class="section-label">最新评论</h2>
@@ -72,12 +92,7 @@
               <span class="price-label">/人</span>
             </div>
             <el-button type="primary" size="large" class="buy-btn" @click="handleBuy">立即购票</el-button>
-            <el-button
-              :type="spot.isFavorite ? 'warning' : 'default'"
-              size="large"
-              class="fav-btn"
-              @click="toggleFavorite"
-            >
+            <el-button :type="spot.isFavorite ? 'warning' : 'default'" size="large" class="fav-btn" @click="toggleFavorite">
               {{ spot.isFavorite ? '已收藏' : '收藏' }}
             </el-button>
           </div>
@@ -89,7 +104,7 @@
             </div>
             <div class="detail-item">
               <span class="detail-label">景点地址</span>
-              <span class="detail-value">{{ spot.address || '暂无信息' }}</span>
+              <span class="detail-value">{{ spot.address || '暂无信息' }}{{ distanceText ? ` · 距你 ${distanceText}` : '' }}</span>
             </div>
           </div>
 
@@ -139,9 +154,11 @@ import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { getSpotDetail, recordSpotView } from '@/api/spot'
+import { getSpotDetail, getSimilarSpots, recordSpotView } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, getSpotReviews, submitReview } from '@/api/review'
+import { getLocationSnapshot } from '@/utils/location'
+import { saveSpotFootprint } from '@/utils/footprint'
 import { getAvatarUrl, getImageUrl } from '@/utils/request'
 
 // 基础依赖与路由状态
@@ -161,6 +178,9 @@ const spotId = computed(() => {
 const loading = ref(true)
 const spot = ref(null)
 const comments = ref([])
+const similarSpots = ref([])
+const similarUpdateTime = ref('')
+const currentLocation = ref(null)
 const commentPage = ref(1)
 const commentTotal = ref(0)
 const previewVisible = ref(false)
@@ -178,16 +198,12 @@ const spotImages = computed(() => {
   if (!spot.value) return []
 
   const images = []
-
   if (spot.value.coverImage) {
     images.push(getImageUrl(spot.value.coverImage))
   }
 
   if (spot.value.images) {
-    const list = typeof spot.value.images === 'string'
-      ? spot.value.images.split(',')
-      : spot.value.images
-
+    const list = typeof spot.value.images === 'string' ? spot.value.images.split(',') : spot.value.images
     list.forEach((img) => {
       const raw = typeof img === 'string' ? img.trim() : ''
       if (!raw) return
@@ -199,6 +215,20 @@ const spotImages = computed(() => {
   }
 
   return images
+})
+
+const distanceText = computed(() => {
+  if (!spot.value || !currentLocation.value) return ''
+
+  const spotLatitude = Number(spot.value.latitude)
+  const spotLongitude = Number(spot.value.longitude)
+  const userLatitude = Number(currentLocation.value.latitude)
+  const userLongitude = Number(currentLocation.value.longitude)
+  if (![spotLatitude, spotLongitude, userLatitude, userLongitude].every(Number.isFinite)) {
+    return ''
+  }
+
+  return formatDistance(calculateDistanceKm(userLatitude, userLongitude, spotLatitude, spotLongitude))
 })
 
 // 交互处理方法
@@ -218,7 +248,10 @@ const fetchDetail = async () => {
   try {
     const res = await getSpotDetail(spotId.value)
     spot.value = res.data || null
-  } catch (e) {
+    if (spot.value) {
+      saveSpotFootprint(spot.value)
+    }
+  } catch (_error) {
     spot.value = null
     ElMessage.error('获取景点详情失败')
   } finally {
@@ -233,22 +266,32 @@ const fetchComments = async (refresh = false) => {
     return
   }
 
-  try {
-    if (refresh) {
-      commentPage.value = 1
-      comments.value = []
-    }
+  if (refresh) {
+    commentPage.value = 1
+    comments.value = []
+  }
 
-    const res = await getSpotReviews(spotId.value, commentPage.value, 5)
-    const list = Array.isArray(res.data?.list) ? res.data.list : Array.isArray(res.data) ? res.data : []
-    comments.value = refresh ? list : [...comments.value, ...list]
-    commentTotal.value = res.data?.total || list.length
-    commentPage.value += 1
-  } catch (e) {
-    if (refresh) {
-      comments.value = []
-      commentTotal.value = 0
-    }
+  const res = await getSpotReviews(spotId.value, commentPage.value, 5)
+  const list = Array.isArray(res.data?.list) ? res.data.list : Array.isArray(res.data) ? res.data : []
+  comments.value = refresh ? list : [...comments.value, ...list]
+  commentTotal.value = res.data?.total || list.length
+  commentPage.value += 1
+}
+
+const fetchSimilarList = async () => {
+  if (!spotId.value) {
+    similarSpots.value = []
+    similarUpdateTime.value = ''
+    return
+  }
+
+  try {
+    const res = await getSimilarSpots(spotId.value, 6)
+    similarSpots.value = res.data?.neighbors || []
+    similarUpdateTime.value = res.data?.lastUpdateTime || ''
+  } catch (_error) {
+    similarSpots.value = []
+    similarUpdateTime.value = ''
   }
 }
 
@@ -260,6 +303,28 @@ const loadMoreComments = () => {
 
 // 工具方法
 const canDeleteComment = (comment) => userStore.isLoggedIn && comment.userId === userStore.userInfo?.id
+
+const calculateDistanceKm = (fromLatitude, fromLongitude, toLatitude, toLongitude) => {
+  const toRadians = (degree) => degree * Math.PI / 180
+  const earthRadiusKm = 6371
+  const deltaLatitude = toRadians(toLatitude - fromLatitude)
+  const deltaLongitude = toRadians(toLongitude - fromLongitude)
+  const a = Math.sin(deltaLatitude / 2) * Math.sin(deltaLatitude / 2)
+    + Math.cos(toRadians(fromLatitude)) * Math.cos(toRadians(toLatitude))
+    * Math.sin(deltaLongitude / 2) * Math.sin(deltaLongitude / 2)
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+const formatDistance = (value) => {
+  const distance = Number(value)
+  if (!Number.isFinite(distance)) return ''
+  return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
+}
+
+const formatSimilarity = (value) => {
+  if (typeof value !== 'number') return '0.00'
+  return value.toFixed(2)
+}
 
 // 页面跳转方法
 const handleBuy = () => {
@@ -297,7 +362,7 @@ const toggleFavorite = async () => {
       spot.value.isFavorite = true
       ElMessage.success('收藏成功')
     }
-  } catch (e) {
+  } catch (_error) {
     ElMessage.error('收藏操作失败')
   }
 }
@@ -330,7 +395,7 @@ const handleSubmitRating = async () => {
     ratingForm.comment = ''
     await fetchComments(true)
     await fetchDetail()
-  } catch (e) {
+  } catch (_error) {
     ElMessage.error('提交评价失败')
   } finally {
     submittingRating.value = false
@@ -346,8 +411,8 @@ const handleDeleteComment = async (comment) => {
     ElMessage.success('评价已删除')
     await fetchComments(true)
     await fetchDetail()
-  } catch (e) {
-    // user cancelled or request failed
+  } catch (_error) {
+    // 用户取消时不需要额外提示。
   }
 }
 
@@ -363,7 +428,11 @@ onMounted(() => {
   }
 
   fetchDetail()
+  fetchSimilarList()
   fetchComments(true)
+  getLocationSnapshot().then((snapshot) => {
+    currentLocation.value = snapshot.current
+  })
 })
 
 onUnmounted(() => {
@@ -434,11 +503,67 @@ onUnmounted(() => {
   align-items: center;
 }
 
+.section-hint {
+  color: #909399;
+  font-size: 13px;
+}
+
 .desc-text {
   font-size: 14px;
   color: #606266;
   line-height: 1.8;
   white-space: pre-wrap;
+}
+
+.similar-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.similar-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.similar-image {
+  width: 120px;
+  height: 90px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.similar-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.similar-content h3 {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.similar-content p {
+  color: #909399;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.similar-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.similar-score {
+  color: #409eff;
+  font-size: 12px;
 }
 
 .comment-list {
@@ -604,6 +729,10 @@ onUnmounted(() => {
 
   .detail-sidebar {
     width: 100%;
+  }
+
+  .similar-list {
+    grid-template-columns: 1fr;
   }
 }
 </style>

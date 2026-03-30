@@ -56,8 +56,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getOrderList, cancelOrder, payOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -72,6 +72,7 @@ const tabs = [
 ]
 
 // 基础依赖与路由状态
+const route = useRoute()
 const router = useRouter()
 
 // 页面数据状态
@@ -146,7 +147,21 @@ const handleReview = (order) => {
 
 // 生命周期
 onMounted(() => {
+  const status = typeof route.query.status === 'string' ? route.query.status : ''
+  if (tabs.some(tab => tab.value === status)) {
+    currentTab.value = status
+  }
   fetchOrders()
+})
+
+watch(() => route.query.status, (status) => {
+  const nextStatus = typeof status === 'string' ? status : ''
+  if (currentTab.value === nextStatus) return
+  if (tabs.some(tab => tab.value === nextStatus)) {
+    currentTab.value = nextStatus
+    page.value = 1
+    fetchOrders()
+  }
 })
 </script>
 

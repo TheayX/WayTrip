@@ -11,6 +11,7 @@
           </router-link>
           <nav class="nav-links">
             <router-link to="/" class="nav-link" :class="{ active: isHomeActive }">首页</router-link>
+            <router-link to="/discover" class="nav-link" active-class="active">发现</router-link>
             <router-link to="/spots" class="nav-link" active-class="active">景点</router-link>
             <router-link to="/guides" class="nav-link" active-class="active">攻略</router-link>
           </nav>
@@ -31,11 +32,17 @@
                   <el-dropdown-item command="profile">
                     <el-icon><User /></el-icon>个人中心
                   </el-dropdown-item>
+                  <el-dropdown-item command="activity">
+                    <el-icon><ChatDotRound /></el-icon>我的互动
+                  </el-dropdown-item>
                   <el-dropdown-item command="orders">
                     <el-icon><Tickets /></el-icon>我的订单
                   </el-dropdown-item>
                   <el-dropdown-item command="favorites">
                     <el-icon><Star /></el-icon>我的收藏
+                  </el-dropdown-item>
+                  <el-dropdown-item command="settings">
+                    <el-icon><Setting /></el-icon>设置
                   </el-dropdown-item>
                   <el-dropdown-item divided command="logout">
                     <el-icon><SwitchButton /></el-icon>退出登录
@@ -118,8 +125,14 @@ const handleCommand = (command) => {
     case 'orders':
       router.push('/orders')
       break
+    case 'activity':
+      router.push('/profile/activity')
+      break
     case 'favorites':
       router.push('/favorites')
+      break
+    case 'settings':
+      router.push('/settings')
       break
     case 'logout':
       ElMessageBox.confirm('确定要退出登录吗？', '提示', {

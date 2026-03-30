@@ -57,9 +57,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { getGuideList, getCategories } from '@/api/guide'
 import { getImageUrl } from '@/utils/request'
+
+// 基础依赖与路由状态
+const route = useRoute()
 
 // 页面数据状态
 const categories = ref([])
@@ -69,6 +73,7 @@ const page = ref(1)
 const pageSize = 12
 const total = ref(0)
 const loading = ref(false)
+const sortBy = ref('time')
 
 // 数据加载方法
 const fetchCategories = async () => {
@@ -81,7 +86,7 @@ const fetchCategories = async () => {
 const fetchGuideList = async () => {
   loading.value = true
   try {
-    const params = { page: page.value, pageSize, sortBy: 'time' }
+    const params = { page: page.value, pageSize, sortBy: sortBy.value }
     if (currentCategory.value) params.category = currentCategory.value
     const res = await getGuideList(params)
     guideList.value = res.data?.list || res.data || []
@@ -99,6 +104,12 @@ const selectCategory = (cat) => {
 
 // 生命周期
 onMounted(() => {
+  if (typeof route.query.category === 'string' && route.query.category) {
+    currentCategory.value = route.query.category
+  }
+  if (route.query.sortBy === 'time' || route.query.sortBy === 'category') {
+    sortBy.value = route.query.sortBy
+  }
   fetchCategories()
   fetchGuideList()
 })
