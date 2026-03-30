@@ -99,7 +99,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getGuideList, getCategories } from '@/api/guide'
 import { getSpotList, getFilters } from '@/api/spot'
@@ -110,6 +110,7 @@ const DISCOVER_STATE_KEY = 'discover_state'
 
 // 基础依赖与用户状态
 const userStore = useUserStore()
+const route = useRoute()
 const router = useRouter()
 
 // 页面数据状态
@@ -148,6 +149,22 @@ const restoreState = () => {
   selectedRegionId.value = state.selectedRegionId || ''
   selectedSpotCategoryId.value = state.selectedSpotCategoryId || ''
   selectedGuideCategory.value = state.selectedGuideCategory || ''
+}
+
+const applyRoutePreset = () => {
+  const tab = typeof route.query.tab === 'string' ? route.query.tab : ''
+  if (['all', 'spot', 'guide'].includes(tab)) {
+    activeTab.value = tab
+  }
+  if (typeof route.query.regionId === 'string') {
+    selectedRegionId.value = route.query.regionId
+  }
+  if (typeof route.query.categoryId === 'string') {
+    selectedSpotCategoryId.value = route.query.categoryId
+  }
+  if (typeof route.query.guideCategory === 'string') {
+    selectedGuideCategory.value = route.query.guideCategory
+  }
 }
 
 // 数据加载方法
@@ -210,6 +227,7 @@ watch([activeTab, selectedRegionId, selectedSpotCategoryId, selectedGuideCategor
 // 生命周期
 onMounted(async () => {
   restoreState()
+  applyRoutePreset()
   await Promise.all([fetchSpotFilters(), fetchGuideCategories()])
   await refreshDiscover()
 })

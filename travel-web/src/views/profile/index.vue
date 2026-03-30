@@ -21,15 +21,15 @@
     </section>
 
     <section class="stats-grid">
-      <div class="stats-card card" @click="$router.push('/profile/activity')">
+      <div class="stats-card card" @click="$router.push('/profile/activity?tab=browse')">
         <strong>{{ dashboardStats.viewed }}</strong>
         <span>浏览历史</span>
       </div>
-      <div class="stats-card card" @click="$router.push('/favorites')">
+      <div class="stats-card card" @click="$router.push('/profile/activity?tab=favorite')">
         <strong>{{ dashboardStats.favorites }}</strong>
         <span>我的收藏</span>
       </div>
-      <div class="stats-card card" @click="$router.push('/reviews')">
+      <div class="stats-card card" @click="$router.push('/profile/activity?tab=review')">
         <strong>{{ dashboardStats.reviews }}</strong>
         <span>我的评价</span>
       </div>
@@ -57,7 +57,7 @@
     </section>
 
     <section class="entry-grid">
-      <div class="entry-card card" @click="$router.push('/profile/activity')">我的互动</div>
+      <div class="entry-card card" @click="$router.push('/profile/activity?tab=browse')">我的互动</div>
       <div class="entry-card card" @click="$router.push('/orders')">我的订单</div>
       <div class="entry-card card" @click="activeMenu = 'preference'">偏好设置</div>
       <div class="entry-card card" @click="activeMenu = 'info'">账号资料</div>
