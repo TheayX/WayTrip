@@ -73,9 +73,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { searchSpots } from '@/api/spot'
 import { getImageUrl } from '@/utils/request'
+
+// 基础依赖与路由状态
+const route = useRoute()
+const router = useRouter()
 
 // 页面数据状态
 const keyword = ref('')
@@ -90,6 +95,7 @@ const total = ref(0)
 const handleSearch = () => {
   if (!keyword.value.trim()) return
   page.value = 1
+  router.replace({ path: '/search', query: { keyword: keyword.value.trim() } })
   doSearch()
 }
 
@@ -104,6 +110,14 @@ const doSearch = async () => {
   } catch (e) { /* ignore */ }
   loading.value = false
 }
+
+// 生命周期
+onMounted(() => {
+  if (typeof route.query.keyword === 'string' && route.query.keyword.trim()) {
+    keyword.value = route.query.keyword.trim()
+    handleSearch()
+  }
+})
 </script>
 
 <style lang="scss" scoped>
