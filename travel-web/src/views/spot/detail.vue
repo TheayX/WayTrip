@@ -161,6 +161,8 @@ import { getLocationSnapshot } from '@/utils/location'
 import { saveSpotFootprint } from '@/utils/footprint'
 import { getAvatarUrl, getImageUrl } from '@/utils/request'
 
+const SPOT_DETAIL_UPDATED_KEY = 'spot_detail_updated'
+
 // 基础依赖与路由状态
 const route = useRoute()
 const router = useRouter()
@@ -237,6 +239,22 @@ const previewImage = (idx) => {
   previewVisible.value = true
 }
 
+const syncSpotPreview = (data) => {
+  if (!data?.id) return
+
+  localStorage.setItem(SPOT_DETAIL_UPDATED_KEY, JSON.stringify({
+    id: data.id,
+    name: data.name,
+    coverImage: data.coverImage,
+    intro: data.intro || data.description || '',
+    regionName: data.regionName,
+    categoryName: data.categoryName,
+    price: data.price,
+    avgRating: data.avgRating,
+    isFavorite: data.isFavorite
+  }))
+}
+
 // 数据加载方法
 const fetchDetail = async () => {
   if (!spotId.value) {
@@ -250,6 +268,7 @@ const fetchDetail = async () => {
     spot.value = res.data || null
     if (spot.value) {
       saveSpotFootprint(spot.value)
+      syncSpotPreview(spot.value)
     }
   } catch (_error) {
     spot.value = null
@@ -356,10 +375,12 @@ const toggleFavorite = async () => {
     if (spot.value.isFavorite) {
       await removeFavorite(spot.value.id)
       spot.value.isFavorite = false
+      syncSpotPreview(spot.value)
       ElMessage.success('已取消收藏')
     } else {
       await addFavorite(spot.value.id)
       spot.value.isFavorite = true
+      syncSpotPreview(spot.value)
       ElMessage.success('收藏成功')
     }
   } catch (_error) {

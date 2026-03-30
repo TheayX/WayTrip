@@ -62,6 +62,8 @@ import { useRoute } from 'vue-router'
 import { getGuideList, getCategories } from '@/api/guide'
 import { getImageUrl } from '@/utils/request'
 
+const GUIDE_DETAIL_UPDATED_KEY = 'guide_detail_updated'
+
 // 基础依赖与路由状态
 const route = useRoute()
 
@@ -102,16 +104,29 @@ const selectCategory = (cat) => {
   fetchGuideList()
 }
 
+const applyUpdatedGuide = () => {
+  const raw = localStorage.getItem(GUIDE_DETAIL_UPDATED_KEY)
+  if (!raw) return
+
+  const updatedGuide = JSON.parse(raw)
+  const index = guideList.value.findIndex(item => item.id === updatedGuide.id)
+  if (index !== -1) {
+    guideList.value[index] = { ...guideList.value[index], ...updatedGuide }
+  }
+  localStorage.removeItem(GUIDE_DETAIL_UPDATED_KEY)
+}
+
 // 生命周期
-onMounted(() => {
+onMounted(async () => {
   if (typeof route.query.category === 'string' && route.query.category) {
     currentCategory.value = route.query.category
   }
   if (route.query.sortBy === 'time' || route.query.sortBy === 'category') {
     sortBy.value = route.query.sortBy
   }
-  fetchCategories()
-  fetchGuideList()
+  await fetchCategories()
+  await fetchGuideList()
+  applyUpdatedGuide()
 })
 </script>
 

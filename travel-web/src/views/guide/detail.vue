@@ -58,6 +58,8 @@ import { getGuideDetail } from '@/api/guide'
 import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
 
+const GUIDE_DETAIL_UPDATED_KEY = 'guide_detail_updated'
+
 // 基础依赖与路由状态
 const route = useRoute()
 
@@ -69,6 +71,17 @@ const fetchDetail = async () => {
   try {
     const res = await getGuideDetail(route.params.id)
     guide.value = res.data
+    if (guide.value?.id) {
+      localStorage.setItem(GUIDE_DETAIL_UPDATED_KEY, JSON.stringify({
+        id: guide.value.id,
+        title: guide.value.title,
+        coverImage: guide.value.coverImage,
+        summary: guide.value.summary || '',
+        category: guide.value.category,
+        viewCount: guide.value.viewCount,
+        createdAt: guide.value.createdAt
+      }))
+    }
   } catch (e) {
     ElMessage.error('获取攻略详情失败')
   }
