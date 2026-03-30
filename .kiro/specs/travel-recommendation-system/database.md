@@ -3,8 +3,8 @@
 ## 文档说明
 
 - 对齐基线：`travel-server/src/main/resources/db/schema.sql`
-- 更新时间：2026-03-26
-- 说明：本版按当前建表脚本、推荐实现与 Redis 使用现状同步
+- 更新时间：2026-03-30
+- 说明：本版按当前建表脚本、推荐实现、用户行为链路与四端重构后的使用现状同步
 
 ## 数据库基础信息
 
@@ -308,7 +308,7 @@ erDiagram
 
 ## Redis 使用现状
 
-当前 Redis 已不只用于“推荐矩阵缓存”，而是包含 2 类核心用途：
+当前 Redis 已不只用于“推荐矩阵缓存”，而是包含 3 类核心用途：
 
 1. 推荐配置与运行状态
 - `waytrip:recommendation:config:algorithm`
@@ -319,6 +319,9 @@ erDiagram
 2. 推荐结果与相似度缓存
 - `waytrip:recommendation:user:{userId}`
 - `waytrip:recommendation:similarity:{spotId}`
+
+3. 景点热度浏览去重
+- `waytrip:spot:heat:view:{spotId}:{userId}`
 
 当前 TTL 约定：
 
@@ -392,4 +395,4 @@ erDiagram
 
 - 当前数据库基线已从 13 张核心表扩展为 14 张，新增的 `user_spot_view` 已进入推荐主流程。
 - 推荐链路的“数据来源 + Redis 缓存 + 管理端调试”已经基本成型，数据库文档不能再只描述评分矩阵一层。
-- 当前数据库文档应以 `schema.sql` 为唯一真实来源，并同步考虑 `RecommendationServiceImpl` 的实际行为使用方式。
+- 当前数据库文档应以 `schema.sql` 为唯一真实来源，并同步考虑 `RecommendationServiceImpl` 与四端前端的实际使用方式。
