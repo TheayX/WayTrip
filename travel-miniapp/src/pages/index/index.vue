@@ -114,7 +114,7 @@ const markerIcon = '/static/tabbar/spot-active.png'
 const quickActions = [
   { id: 'spots', title: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
   { id: 'guides', title: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' },
-  { id: 'recommend', title: '个性推荐', icon: 'star-filled', theme: 'amber', action: 'recommend-spots' },
+  { id: 'recommend', title: '推荐景点', icon: 'star-filled', theme: 'amber', action: 'recommend-spots' },
   { id: 'nearby', title: '附近探索', icon: 'map-filled', theme: 'emerald', action: 'nearby-spots' }
 ]
 

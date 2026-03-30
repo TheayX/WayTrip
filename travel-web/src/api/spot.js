@@ -26,6 +26,24 @@ export const searchSpots = (keyword, page = 1, pageSize = 10) =>
 export const getSpotDetail = (spotId) => request.get(`/spots/${spotId}`)
 
 /**
+ * 获取我的浏览记录
+ * @param page
+ * @param pageSize
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const getViewHistory = (page = 1, pageSize = 20) =>
+  request.get('/spots/views', { params: { page, pageSize } })
+
+/**
+ * 获取相似景点推荐
+ * @param spotId
+ * @param limit
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const getSimilarSpots = (spotId, limit = 6) =>
+  request.get('/recommendations/similar', { params: { spotId, limit } })
+
+/**
  * 记录景点浏览
  * @param spotId
  * @param source

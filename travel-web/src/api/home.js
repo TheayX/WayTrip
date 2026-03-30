@@ -22,6 +22,16 @@ export const getHotSpots = (limit = 10) => request.get('/home/hot', { params: { 
 export const getRecommendations = (limit = 10) => request.get('/recommendations', { params: { limit } })
 
 /**
+ * 获取附近景点
+ * @param latitude
+ * @param longitude
+ * @param limit
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const getNearbySpots = (latitude, longitude, limit = 10) =>
+  request.get('/home/nearby', { params: { latitude, longitude, limit } })
+
+/**
  * 刷新推荐景点
  * @param limit
  * @returns {Promise<axios.AxiosResponse<any>>}

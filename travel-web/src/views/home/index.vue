@@ -1,26 +1,22 @@
 <!-- 首页 -->
 <template>
   <div class="home-page">
-    <!-- Hero 区域 -->
     <section class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">发现旅途之美</h1>
-        <p class="hero-subtitle">探索精选目的地，开启你的梦幻旅程</p>
-        <div class="hero-search" @click="router.push('/search')">
-          <el-icon><Search /></el-icon>
-          <span>搜索景点、目的地...</span>
+      <div class="hero-overlay">
+        <div class="page-container hero-inner">
+          <div class="hero-copy">
+            <p class="hero-eyebrow">WayTrip</p>
+            <h1 class="hero-title">发现旅途之美</h1>
+            <p class="hero-subtitle">把热门景点、个性推荐、附近探索和攻略入口集中到一个首页里。</p>
+            <div class="hero-search" @click="router.push('/search')">
+              <el-icon><Search /></el-icon>
+              <span>搜索景点、攻略...</span>
+            </div>
+          </div>
         </div>
       </div>
-      <!-- 轮播背景 -->
-      <el-carousel
-        class="hero-carousel"
-        height="480px"
-        :interval="5000"
-        :autoplay="true"
-        :pause-on-hover="false"
-        arrow="never"
-        indicator-position="none"
-      >
+
+      <el-carousel class="hero-carousel" height="500px" :interval="5000" autoplay :pause-on-hover="false" arrow="never" indicator-position="none">
         <el-carousel-item v-for="banner in banners" :key="banner.id">
           <div class="hero-slide" :class="{ clickable: !!banner.spotId }" @click="handleBannerClick(banner)">
             <img :src="getImageUrl(banner.imageUrl)" class="hero-bg" alt="" />
@@ -29,466 +25,618 @@
       </el-carousel>
     </section>
 
-    <div class="page-container">
-      <!-- 热门景点 -->
+    <div class="page-container home-content">
+      <section class="quick-grid">
+        <div v-for="item in quickActions" :key="item.id" class="quick-card card" @click="item.handler()">
+          <div class="quick-icon" :class="item.theme">
+            <el-icon><component :is="item.icon" /></el-icon>
+          </div>
+          <div>
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.desc }}</p>
+          </div>
+        </div>
+      </section>
+
       <section class="section">
         <div class="section-header">
-          <h2 class="section-title">🔥 热门景点</h2>
-          <el-button text type="primary" @click="$router.push('/spots')">查看全部 →</el-button>
+          <h2 class="section-title">附近探索</h2>
+          <el-button text type="primary" @click="goNearby">查看更多</el-button>
+        </div>
+        <div class="nearby-panel card">
+          <div class="nearby-copy">
+            <h3>{{ nearbyHeadline }}</h3>
+            <p>{{ nearbySummary }}</p>
+            <el-button type="primary" :loading="nearbyLoading" @click="goNearby">{{ nearbyActionText }}</el-button>
+          </div>
+          <div v-if="nearbySpots.length" class="nearby-list">
+            <article v-for="spot in nearbySpots.slice(0, 3)" :key="spot.id" class="nearby-item" @click="router.push(`/spots/${spot.id}?source=nearby`)">
+              <img :src="getImageUrl(spot.coverImage)" class="nearby-image" alt="" />
+              <div class="nearby-info">
+                <h4>{{ spot.name }}</h4>
+                <p>{{ spot.regionName || '附近区域' }}</p>
+                <span>{{ formatDistance(spot.distanceKm) }}</span>
+              </div>
+            </article>
+          </div>
+          <el-empty v-else description="暂未加载附近景点" :image-size="80" />
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">热门景点</h2>
+          <el-button text type="primary" @click="router.push('/spots?sortBy=heat')">查看全部</el-button>
         </div>
         <div v-if="hotSpots.length" class="hot-grid">
-          <div
-            v-for="spot in hotSpots"
-            :key="spot.id"
-            class="hot-card card"
-            @click="handleHotSpotClick(spot)"
-          >
-            <div class="hot-img-wrapper">
-              <img :src="getImageUrl(spot.coverImage)" class="hot-img" alt="" />
-              <div class="hot-overlay">
-                <span class="hot-price">¥{{ spot.price }} 起</span>
+          <article v-for="spot in hotSpots" :key="spot.id" class="hot-card card" @click="router.push(`/spots/${spot.id}?source=home`)">
+            <img :src="getImageUrl(spot.coverImage)" class="hot-image" alt="" />
+            <div class="hot-content">
+              <div class="hot-top">
+                <h3>{{ spot.name }}</h3>
+                <span class="price">¥{{ spot.price }}</span>
+              </div>
+              <div class="hot-bottom">
+                <span class="star-text">★ {{ spot.avgRating || '4.5' }}</span>
+                <span>{{ spot.regionName }}</span>
               </div>
             </div>
-            <div class="hot-info">
-              <h3 class="hot-name">{{ spot.name }}</h3>
-              <p class="hot-meta">
-                <span class="star-text">★ {{ spot.avgRating || '4.5' }}</span>
-                <span class="hot-region">{{ spot.regionName }}</span>
-              </p>
-            </div>
-          </div>
+          </article>
         </div>
         <el-empty v-else description="暂无热门景点" />
       </section>
 
-      <!-- 个性化推荐 -->
       <section class="section">
         <div class="section-header">
-          <h2 class="section-title">✨ {{ recommendationSectionTitle }}</h2>
-          <el-button text type="primary" :loading="refreshing" @click="handleRefresh">换一批</el-button>
+          <h2 class="section-title">{{ recommendationSectionTitle }}</h2>
+          <div class="section-actions">
+            <el-button text type="primary" @click="goRecommendations">查看更多</el-button>
+            <el-button v-if="userStore.isLoggedIn" text type="primary" :loading="refreshing" @click="handleRefresh">换一批</el-button>
+          </div>
         </div>
 
-        <!-- 偏好提示 -->
-        <div v-if="needPreference && userStore.isLoggedIn" class="preference-tip" @click="showPreferenceDialog = true">
-          <el-icon><Setting /></el-icon>
-          <span>设置偏好标签，获取更精准的推荐</span>
+        <div v-if="needPreference && userStore.isLoggedIn" class="preference-tip card" @click="showPreferencePopup">
+          <span>你还没有设置偏好，先选几类感兴趣的景点，推荐会更准确。</span>
           <el-icon><ArrowRight /></el-icon>
         </div>
 
-        <div class="recommend-list" v-if="recommendations.length">
-          <div
-            v-for="spot in recommendations"
-            :key="spot.id"
-            class="recommend-card card"
-            @click="$router.push(`/spots/${spot.id}?source=home`)"
-          >
-            <img :src="getImageUrl(spot.coverImage)" class="rec-img" alt="" />
-            <div class="rec-content">
-              <div class="rec-top">
-                <h3 class="rec-name">{{ spot.name }}</h3>
+        <div v-if="recommendations.length" class="recommend-list">
+          <article v-for="spot in recommendations.slice(0, 4)" :key="spot.id" class="recommend-card card" @click="router.push(`/spots/${spot.id}?source=home`)">
+            <img :src="getImageUrl(spot.coverImage)" class="recommend-image" alt="" />
+            <div class="recommend-content">
+              <div class="recommend-top">
+                <h3>{{ spot.name }}</h3>
                 <span class="star-text">★ {{ spot.avgRating || '4.5' }}</span>
               </div>
-              <p class="rec-desc">{{ spot.intro || '暂无介绍，点击查看详情...' }}</p>
-              <div class="rec-bottom">
-                <span class="tag">{{ spot.categoryName }}</span>
+              <p>{{ spot.intro || '暂无介绍，点击查看详情。' }}</p>
+              <div class="recommend-bottom">
+                <span class="tag">{{ spot.categoryName || '景点' }}</span>
                 <span class="price">¥{{ spot.price }}</span>
               </div>
             </div>
-          </div>
+          </article>
         </div>
-        <el-empty v-else :description="userStore.isLoggedIn ? '暂无推荐景点' : '登录后查看推荐景点'" />
+        <el-empty v-else :description="userStore.isLoggedIn ? '暂无推荐景点' : '登录后查看推荐景点'">
+          <el-button v-if="!userStore.isLoggedIn" type="primary" @click="router.push('/login')">去登录</el-button>
+        </el-empty>
       </section>
     </div>
 
-    <!-- 偏好设置弹窗 -->
-    <el-dialog v-model="showPreferenceDialog" title="选择你感兴趣的类型" width="480px" :close-on-click-modal="false">
+    <el-dialog v-model="preferenceVisible" title="选择你感兴趣的景点分类" width="520px" :close-on-click-modal="false">
       <div class="preference-tags">
         <el-check-tag
-          v-for="cat in categories"
-          :key="cat.id"
-          :checked="selectedCategories.includes(cat.id)"
-          @change="toggleCategory(cat.id)"
+          v-for="category in categories"
+          :key="category.id"
+          :checked="selectedCategories.includes(category.id)"
+          @change="toggleCategory(category.id)"
         >
-          {{ cat.name }}
+          {{ category.name }}
         </el-check-tag>
       </div>
       <template #footer>
-        <el-button @click="showPreferenceDialog = false">取消</el-button>
-        <el-button type="primary" :loading="savingPref" @click="savePreferences">确定</el-button>
+        <el-button @click="handleSkipColdStart">稍后再说</el-button>
+        <el-button type="primary" :loading="savingPref" @click="handleSavePreference">保存设置</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { getBanners, getHotSpots, getRecommendations, refreshRecommendations } from '@/api/home'
-import { getFilters } from '@/api/spot'
-import { setPreferences } from '@/api/user'
-import { getImageUrl } from '@/utils/request'
 import { ElMessage } from 'element-plus'
+import { Guide, MapLocation, Search, Star, Tickets } from '@element-plus/icons-vue'
+import { useUserStore } from '@/stores/user'
+import { getBanners, getHotSpots, getNearbySpots } from '@/api/home'
+import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
+import {
+  getColdStartGuideState,
+  markColdStartGuidePending,
+  markColdStartGuideSkipped
+} from '@/utils/cold-start-guide'
+import { getLocationSnapshot, getCurrentLocation } from '@/utils/location'
+import { getImageUrl } from '@/utils/request'
 
-// 基础依赖与路由状态
-const userStore = useUserStore()
+// 基础依赖与用户状态
 const router = useRouter()
+const userStore = useUserStore()
 
 // 页面数据状态
 const banners = ref([])
 const hotSpots = ref([])
-const recommendations = ref([])
-const categories = ref([])
-const selectedCategories = ref([])
-const showPreferenceDialog = ref(false)
-const savingPref = ref(false)
+const nearbySpots = ref([])
+const nearbyLoading = ref(false)
+const nearbyStatus = ref('idle')
 const refreshing = ref(false)
-const needPreference = ref(false)
-const recommendationType = ref('hot')
+const savingPref = ref(false)
+const {
+  recommendations,
+  needPreference,
+  categories,
+  selectedCategories,
+  preferenceVisible,
+  recommendType,
+  fetchRecommendationList,
+  refreshRecommendationList,
+  openPreferenceDialog,
+  savePreferences
+} = useRecommendationFeed(12)
 
 // 计算属性
-const RECOMMENDATION_TYPE_MAP = {
-  personalized: '个性推荐',
-  preference: '偏好推荐',
-  hot: '热门推荐'
+const recommendationSectionTitle = computed(() => (userStore.isLoggedIn ? recommendType.value : '推荐景点'))
+
+const nearbyHeadline = computed(() => {
+  if (nearbyLoading.value) return '定位中'
+  if (nearbyStatus.value === 'ready') return '附近可探索'
+  if (!userStore.isLoggedIn) return '登录后查看'
+  return '开启定位'
+})
+
+const nearbySummary = computed(() => {
+  if (nearbyLoading.value) return '正在获取你周边的景点'
+  if (nearbyStatus.value === 'ready' && nearbySpots.value.length) {
+    return `你附近有 ${nearbySpots.value.length} 个景点，最近约 ${formatDistance(nearbySpots.value[0].distanceKm)}`
+  }
+  if (!userStore.isLoggedIn) return '登录后可按距离浏览附近景点'
+  return '点击按钮后会调用浏览器定位并加载附近景点'
+})
+
+const nearbyActionText = computed(() => {
+  if (nearbyLoading.value) return '加载中'
+  if (!userStore.isLoggedIn) return '去登录'
+  return '查看附近'
+})
+
+const quickActions = computed(() => ([
+  { id: 'spots', title: '全部景点', desc: '按热度浏览热门景点', icon: MapLocation, theme: 'blue', handler: () => router.push('/spots?sortBy=heat') },
+  { id: 'guides', title: '游玩攻略', desc: '查看最新旅行攻略', icon: Guide, theme: 'orange', handler: () => router.push('/guides') },
+  { id: 'recommend', title: '个性推荐', desc: '集中浏览推荐结果', icon: Star, theme: 'amber', handler: () => goRecommendations() },
+  { id: 'nearby', title: '附近探索', desc: '查看离你最近的景点', icon: Tickets, theme: 'emerald', handler: () => goNearby() }
+]))
+
+// 工具方法
+const formatDistance = (value) => {
+  const distance = Number(value)
+  if (!Number.isFinite(distance)) return '-- km'
+  return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
 }
 
-const recommendType = computed(() =>
-  RECOMMENDATION_TYPE_MAP[recommendationType.value] || '个性推荐'
-)
+const maybeShowColdStartGuide = () => {
+  if (!userStore.isLoggedIn || !needPreference.value || preferenceVisible.value) return
 
-const recommendationSectionTitle = computed(() =>
-  userStore.isLoggedIn ? recommendType.value : '推荐景点'
-)
+  const currentUserId = userStore.userInfo?.id
+  const currentPreferenceIds = userStore.userInfo?.preferenceCategoryIds || []
+  if (!currentUserId || currentPreferenceIds.length) return
+
+  const state = getColdStartGuideState(currentUserId)
+  if (!state.pending && !state.completed && !state.skipped) {
+    markColdStartGuidePending(currentUserId)
+  }
+  if (state.skipped || state.completed) return
+
+  openPreferenceDialog()
+}
 
 // 数据加载方法
-const fetchBanners = async () => {
-  try {
-    const res = await getBanners()
-    banners.value = res.data?.list || []
-  } catch (e) { /* ignore */ }
+const fetchHomeBasics = async () => {
+  const [bannerRes, hotRes] = await Promise.all([
+    getBanners(),
+    getHotSpots(6)
+  ])
+  banners.value = bannerRes.data?.list || []
+  hotSpots.value = hotRes.data?.list || []
 }
 
-const fetchHotSpots = async () => {
+const fetchNearbyPreview = async (location) => {
+  if (!location) return
+  nearbyLoading.value = true
   try {
-    const res = await getHotSpots(8)
-    hotSpots.value = (res.data?.list || []).filter(spot => spot?.id)
-  } catch (e) { /* ignore */ }
+    const res = await getNearbySpots(location.latitude, location.longitude, 3)
+    nearbySpots.value = res.data?.list || []
+    nearbyStatus.value = nearbySpots.value.length ? 'ready' : 'empty'
+  } finally {
+    nearbyLoading.value = false
+  }
 }
 
-const fetchRecommendations = async () => {
-  try {
-    const res = await getRecommendations(6)
-    recommendations.value = res.data?.list || res.data || []
-    recommendationType.value = res.data?.type || 'hot'
-    needPreference.value = res.data?.needPreference || false
-  } catch (e) { /* ignore */ }
-}
+const tryLoadNearbyAutomatically = async () => {
+  if (!userStore.isLoggedIn) {
+    nearbySpots.value = []
+    nearbyStatus.value = 'idle'
+    return
+  }
 
-const fetchCategories = async () => {
-  try {
-    const res = await getFilters()
-    categories.value = res.data?.categories || []
-  } catch (e) { /* ignore */ }
+  const snapshot = await getLocationSnapshot()
+  if (snapshot.current) {
+    await fetchNearbyPreview(snapshot.current)
+  }
 }
 
 // 交互处理方法
-const handleRefresh = async () => {
-  refreshing.value = true
-  try {
-    const res = await refreshRecommendations(6)
-    recommendations.value = res.data?.list || res.data || []
-    recommendationType.value = res.data?.type || recommendationType.value
-  } catch (e) { /* ignore */ }
-  refreshing.value = false
-}
-
 const toggleCategory = (id) => {
-  const idx = selectedCategories.value.indexOf(id)
-  if (idx > -1) {
-    selectedCategories.value.splice(idx, 1)
+  const index = selectedCategories.value.indexOf(id)
+  if (index > -1) {
+    selectedCategories.value.splice(index, 1)
   } else {
     selectedCategories.value.push(id)
   }
 }
 
-const savePreferences = async () => {
+const showPreferencePopup = async () => {
+  await openPreferenceDialog()
+}
+
+const handleSkipColdStart = () => {
+  markColdStartGuideSkipped(userStore.userInfo?.id)
+  preferenceVisible.value = false
+}
+
+const handleSavePreference = async () => {
   savingPref.value = true
   try {
-    const categoryNames = selectedCategories.value
-      .map(id => categories.value.find(c => c.id === id)?.name)
-      .filter(Boolean)
-    await setPreferences(selectedCategories.value)
-    userStore.updatePreferences({
-      preferences: categoryNames,
-      preferenceCategoryIds: [...selectedCategories.value],
-      preferenceCategoryNames: categoryNames
-    })
-    showPreferenceDialog.value = false
-    ElMessage.success(selectedCategories.value.length ? '偏好设置成功，已切换到偏好推荐' : '已清空偏好，已切换到热门推荐')
-    await fetchRecommendations()
-  } catch (e) { /* ignore */ }
-  savingPref.value = false
+    await savePreferences()
+    ElMessage.success(selectedCategories.value.length ? '偏好设置成功' : '已清空偏好')
+    await handleRefresh()
+  } finally {
+    savingPref.value = false
+  }
+}
+
+const handleRefresh = async () => {
+  refreshing.value = true
+  try {
+    await refreshRecommendationList()
+    ElMessage.success('推荐已刷新')
+  } finally {
+    refreshing.value = false
+  }
 }
 
 const handleBannerClick = (banner) => {
-  if (!banner?.spotId) return
-  router.push(`/spots/${banner.spotId}?source=home`)
+  if (banner?.spotId) {
+    router.push(`/spots/${banner.spotId}?source=home`)
+  }
 }
 
-const handleHotSpotClick = (spot) => {
-  if (!spot?.id) {
-    ElMessage.warning('该热门景点数据不完整，暂时无法查看详情')
+const goRecommendations = () => {
+  if (!userStore.isLoggedIn) {
+    router.push('/login')
     return
   }
-  router.push(`/spots/${spot.id}?source=home`)
+  router.push('/recommendations')
+}
+
+const goNearby = async () => {
+  if (!userStore.isLoggedIn) {
+    router.push('/login')
+    return
+  }
+
+  if (!nearbySpots.value.length) {
+    try {
+      const location = await getCurrentLocation()
+      await fetchNearbyPreview(location)
+    } catch (_error) {
+      ElMessage.warning('请先允许浏览器定位，再查看附近景点')
+      return
+    }
+  }
+
+  router.push('/nearby')
 }
 
 // 生命周期
-onMounted(() => {
-  fetchBanners()
-  fetchHotSpots()
-  fetchRecommendations()
-  fetchCategories()
+onMounted(async () => {
+  await fetchHomeBasics()
+  await fetchRecommendationList()
+  maybeShowColdStartGuide()
+  await tryLoadNearbyAutomatically()
 })
 </script>
 
 <style lang="scss" scoped>
-/* ===== Hero ===== */
 .hero {
   position: relative;
-  height: 480px;
+  height: 500px;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 50%, #38bdf8 100%);
 }
 
-.hero-carousel {
-  position: absolute;
-  top: 0;
-  left: 0;
+.hero-carousel,
+.hero-slide,
+.hero-bg {
   width: 100%;
   height: 100%;
 }
 
 .hero-bg {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
-  filter: brightness(0.6);
-}
-
-.hero-content {
-  position: relative;
-  z-index: 2;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  text-align: center;
-  pointer-events: none;
-}
-
-.hero-title {
-  font-size: 48px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.hero-subtitle {
-  font-size: 20px;
-  margin-bottom: 32px;
-  opacity: 0.9;
-}
-
-.hero-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 32px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 28px;
-  color: #909399;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  pointer-events: auto;
-
-  &:hover {
-    background: #fff;
-    transform: scale(1.02);
-  }
-}
-
-.hero-slide {
-  width: 100%;
-  height: 100%;
+  filter: brightness(0.45);
 }
 
 .hero-slide.clickable {
   cursor: pointer;
 }
 
-/* ===== Section ===== */
-.section {
-  margin-top: 40px;
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.68), rgba(15, 23, 42, 0.24));
 }
 
-.section-header {
+.hero-inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.hero-copy {
+  max-width: 620px;
+  color: #fff;
+}
+
+.hero-eyebrow {
+  margin-bottom: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.hero-title {
+  font-size: 54px;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.hero-search {
+  margin-top: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #475569;
+  cursor: pointer;
+}
+
+.home-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-top: 28px;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.quick-card {
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  cursor: pointer;
+  align-items: center;
+}
+
+.quick-card h3 {
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.quick-card p {
+  color: #909399;
+  line-height: 1.6;
+}
+
+.quick-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.quick-icon.blue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.quick-icon.orange {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.quick-icon.amber {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.quick-icon.emerald {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-header,
+.section-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 12px;
 }
 
-/* ===== Hot Grid ===== */
+.nearby-panel {
+  padding: 22px;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.nearby-copy h3 {
+  margin-bottom: 12px;
+  font-size: 24px;
+}
+
+.nearby-copy p {
+  margin-bottom: 18px;
+  color: #606266;
+  line-height: 1.7;
+}
+
+.nearby-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.nearby-item {
+  background: #f8fafc;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.nearby-image {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.nearby-info {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nearby-info p,
+.nearby-info span {
+  color: #64748b;
+  font-size: 13px;
+}
+
 .hot-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 18px;
 }
 
-.hot-card {
+.hot-card,
+.recommend-card {
   cursor: pointer;
-  border-radius: 12px;
 }
 
-.hot-img-wrapper {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  border-radius: 12px 12px 0 0;
-}
-
-.hot-img {
+.hot-image {
   width: 100%;
-  height: 100%;
+  height: 210px;
   object-fit: cover;
-  transition: transform 0.3s;
-
-  .hot-card:hover & {
-    transform: scale(1.05);
-  }
 }
 
-.hot-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 8px 12px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+.hot-content {
+  padding: 16px;
 }
 
-.hot-price {
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.hot-info {
-  padding: 12px;
-}
-
-.hot-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.hot-meta {
+.hot-top,
+.hot-bottom,
+.recommend-top,
+.recommend-bottom {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 10px;
+}
+
+.hot-top h3,
+.recommend-top h3 {
+  font-size: 18px;
+}
+
+.hot-bottom {
+  margin-top: 12px;
   color: #909399;
 }
 
-/* ===== Recommend ===== */
+.preference-tip {
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #409eff;
+  cursor: pointer;
+}
+
 .recommend-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 18px;
 }
 
 .recommend-card {
   display: flex;
-  cursor: pointer;
-  border-radius: 12px;
-  overflow: hidden;
 }
 
-.rec-img {
-  width: 200px;
-  height: 160px;
+.recommend-image {
+  width: 210px;
+  height: 170px;
   object-fit: cover;
   flex-shrink: 0;
 }
 
-.rec-content {
+.recommend-content {
   flex: 1;
+  min-width: 0;
   padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-width: 0;
 }
 
-.rec-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.rec-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rec-desc {
-  font-size: 13px;
-  color: #909399;
+.recommend-content p {
+  color: #606266;
+  line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  line-height: 1.5;
-}
-
-.rec-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* ===== Preference ===== */
-.preference-tip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #ecf5ff;
-  border-radius: 8px;
-  color: #409eff;
-  cursor: pointer;
-  margin-bottom: 16px;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #d9ecff;
-  }
 }
 
 .preference-tags {
@@ -497,29 +645,39 @@ onMounted(() => {
   gap: 12px;
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
+  .quick-grid,
   .hot-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 
+  .nearby-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .nearby-list,
   .recommend-list {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .hot-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .hero-title {
-    font-size: 32px;
+    font-size: 36px;
   }
 
-  .hero-subtitle {
-    font-size: 16px;
+  .quick-grid,
+  .hot-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommend-card {
+    flex-direction: column;
+  }
+
+  .recommend-image {
+    width: 100%;
+    height: 220px;
   }
 }
 </style>
-
