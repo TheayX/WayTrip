@@ -210,7 +210,7 @@ const nearbyActionText = computed(() => {
 const quickActions = computed(() => ([
   { id: 'spots', title: '全部景点', desc: '按热度浏览热门景点', icon: MapLocation, theme: 'blue', handler: () => router.push('/spots?sortBy=heat') },
   { id: 'guides', title: '游玩攻略', desc: '查看最新旅行攻略', icon: Guide, theme: 'orange', handler: () => router.push('/guides') },
-  { id: 'recommend', title: '个性推荐', desc: '集中浏览推荐结果', icon: Star, theme: 'amber', handler: () => goRecommendations() },
+  { id: 'recommend', title: '推荐景点', desc: '集中浏览推荐结果', icon: Star, theme: 'amber', handler: () => goRecommendations() },
   { id: 'nearby', title: '附近探索', desc: '查看离你最近的景点', icon: Tickets, theme: 'emerald', handler: () => goNearby() }
 ]))
 

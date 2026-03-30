@@ -146,9 +146,16 @@
 </template>
 
 <script setup>
-import { computed, ref, reactive, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getSpotList, getFilters } from '@/api/spot'
 import { getImageUrl } from '@/utils/request'
+
+const SPOT_DETAIL_UPDATED_KEY = 'spot_detail_updated'
+
+// 基础依赖与路由状态
+const route = useRoute()
+const router = useRouter()
 
 // 页面数据状态
 const spotList = ref([])
@@ -216,6 +223,14 @@ const fetchSpotList = async () => {
 
 const handleFilter = () => {
   page.value = 1
+  router.replace({
+    path: '/spots',
+    query: {
+      ...(filters.regionId ? { regionId: filters.regionId } : {}),
+      ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
+      ...(filters.sortBy ? { sortBy: filters.sortBy } : {})
+    }
+  })
   fetchSpotList()
 }
 
@@ -290,10 +305,32 @@ const clearCategoryFilter = () => {
   handleFilter()
 }
 
+const applyUpdatedSpot = () => {
+  const raw = localStorage.getItem(SPOT_DETAIL_UPDATED_KEY)
+  if (!raw) return
+
+  const updatedSpot = JSON.parse(raw)
+  const index = spotList.value.findIndex(item => item.id === updatedSpot.id)
+  if (index !== -1) {
+    spotList.value[index] = { ...spotList.value[index], ...updatedSpot }
+  }
+  localStorage.removeItem(SPOT_DETAIL_UPDATED_KEY)
+}
+
 // 生命周期
-onMounted(() => {
-  fetchFilters()
-  fetchSpotList()
+onMounted(async () => {
+  if (typeof route.query.regionId === 'string') {
+    filters.regionId = route.query.regionId
+  }
+  if (typeof route.query.categoryId === 'string') {
+    filters.categoryId = route.query.categoryId
+  }
+  if (typeof route.query.sortBy === 'string') {
+    filters.sortBy = route.query.sortBy
+  }
+  await fetchFilters()
+  await fetchSpotList()
+  applyUpdatedSpot()
 })
 </script>
 
