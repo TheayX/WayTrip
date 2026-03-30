@@ -96,12 +96,17 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteReview, getMyReviews, submitReview } from '@/api/review'
 import { getFavoriteList, removeFavorite } from '@/api/favorite'
 import { getViewHistory } from '@/api/spot'
 import { getFootprints, setFootprints } from '@/utils/footprint'
 import { getImageUrl } from '@/utils/request'
+
+// 基础依赖与路由状态
+const route = useRoute()
+const router = useRouter()
 
 // 页面数据状态
 const activeTab = ref('browse')
@@ -165,6 +170,10 @@ const loadActiveTab = async () => {
 
 // 交互处理方法
 const handleTabChange = async () => {
+  router.replace({
+    path: '/profile/activity',
+    query: activeTab.value === 'browse' ? {} : { tab: activeTab.value }
+  })
   await loadActiveTab()
 }
 
@@ -210,6 +219,10 @@ const handleDeleteReview = async (item) => {
 
 // 生命周期
 onMounted(() => {
+  const tab = typeof route.query.tab === 'string' ? route.query.tab : 'browse'
+  if (['browse', 'favorite', 'review'].includes(tab)) {
+    activeTab.value = tab
+  }
   loadActiveTab()
 })
 </script>

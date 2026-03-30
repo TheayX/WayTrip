@@ -108,7 +108,7 @@
             </div>
           </div>
 
-          <div class="sidebar-card card">
+          <div ref="ratingSectionRef" class="sidebar-card card">
             <h3 class="sidebar-title">写评价</h3>
             <div class="rating-input">
               <span class="rating-label">评分：</span>
@@ -150,7 +150,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
@@ -188,6 +188,7 @@ const commentTotal = ref(0)
 const previewVisible = ref(false)
 const previewIndex = ref(0)
 const submittingRating = ref(false)
+const ratingSectionRef = ref(null)
 
 const ratingForm = reactive({
   score: 5,
@@ -454,6 +455,11 @@ onMounted(() => {
   getLocationSnapshot().then((snapshot) => {
     currentLocation.value = snapshot.current
   })
+  if (route.query.openReview === '1') {
+    nextTick(() => {
+      ratingSectionRef.value?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+    })
+  }
 })
 
 onUnmounted(() => {
