@@ -153,7 +153,7 @@ const handlePay = async () => {
     ElMessage.success('支付成功')
     fetchDetail()
   } catch (e) {
-    // ignore
+    // 用户取消支付确认或接口已提示失败原因时，这里保持静默。
   }
 }
 
@@ -165,7 +165,7 @@ const handleCancel = async () => {
     ElMessage.success('操作成功')
     fetchDetail()
   } catch (e) {
-    // ignore
+    // 用户取消确认或接口已提示失败原因时，这里不再重复弹窗。
   }
 }
 

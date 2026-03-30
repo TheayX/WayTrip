@@ -103,7 +103,7 @@ const fetchOrders = async () => {
     orderList.value = res.data?.list || res.data || []
     total.value = res.data?.total || 0
   } catch (e) {
-    // ignore
+    // 订单列表失败时保留当前筛选状态，避免界面闪回。
   }
   loading.value = false
 }
@@ -125,7 +125,7 @@ const handleCancel = async (order) => {
     ElMessage.success('操作成功')
     fetchOrders()
   } catch (e) {
-    // ignore
+    // 用户取消确认或接口已提示失败原因时，这里不再追加提示。
   }
 }
 
@@ -137,7 +137,7 @@ const handlePay = async (order) => {
     ElMessage.success('支付成功')
     fetchOrders()
   } catch (e) {
-    // ignore
+    // 用户取消支付确认或接口已提示失败原因时，这里保持静默。
   }
 }
 
