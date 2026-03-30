@@ -38,9 +38,6 @@
                   <el-dropdown-item command="orders">
                     <el-icon><Tickets /></el-icon>我的订单
                   </el-dropdown-item>
-                  <el-dropdown-item command="favorites">
-                    <el-icon><Star /></el-icon>我的收藏
-                  </el-dropdown-item>
                   <el-dropdown-item command="settings">
                     <el-icon><Setting /></el-icon>设置
                   </el-dropdown-item>
@@ -127,9 +124,6 @@ const handleCommand = (command) => {
       break
     case 'activity':
       router.push('/profile/activity')
-      break
-    case 'favorites':
-      router.push('/favorites')
       break
     case 'settings':
       router.push('/settings')

@@ -72,7 +72,9 @@ const fetchList = async () => {
     const res = await getFavoriteList(page.value, pageSize)
     favoriteList.value = res.data?.list || res.data || []
     total.value = res.data?.total || 0
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    // 收藏列表请求失败时保持当前界面状态，避免重复打断用户操作。
+  }
   loading.value = false
 }
 
@@ -83,7 +85,9 @@ const handleRemove = async (spotId) => {
     favoriteList.value = favoriteList.value.filter(item => item.id !== spotId)
     total.value--
     ElMessage.success('已取消收藏')
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    // 取消收藏失败时由接口层提示，这里不再重复弹窗。
+  }
 }
 
 // 生命周期

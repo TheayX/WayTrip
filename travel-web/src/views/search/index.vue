@@ -107,7 +107,9 @@ const doSearch = async () => {
     const res = await searchSpots(keyword.value, page.value, pageSize)
     results.value = res.data?.list || res.data || []
     total.value = res.data?.total || 0
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    // 搜索失败时保留关键词与结果区状态，方便用户继续重试。
+  }
   loading.value = false
 }
 
