@@ -477,6 +477,7 @@ const heatDialogVisible = ref(false)
 const heatSubmitting = ref(false)
 const heatFormRef = ref()
 const heatEditId = ref(null)
+const heatSpotDetail = ref(null)
 
 // 景点编辑表单
 const form = reactive({
@@ -699,8 +700,10 @@ const openSpotFromRoute = async () => {
 // 打开热度设置对话框
 const handleHeatEdit = async (row) => {
   heatEditId.value = row.id
+  heatSpotDetail.value = null
   try {
     const res = await getSpotDetail(row.id)
+    heatSpotDetail.value = res.data
     heatForm.avgRating = res.data.avgRating ?? 0
     heatForm.ratingCount = res.data.ratingCount ?? 0
     heatForm.heatLevel = res.data.heatLevel ?? 0
@@ -747,22 +750,24 @@ const handleParentCategoryChange = () => {
   form.categoryId = null
 }
 
-// 构建接口提交参数
-const buildSubmitPayload = () => ({
-  name: form.name,
-  description: form.description,
-  price: form.price,
-  openTime: form.openTime,
-  heatLevel: form.heatLevel,
-  address: form.address,
-  latitude: form.latitude,
-  longitude: form.longitude,
-  coverImage: form.coverImage,
-  regionId: form.regionPath?.length ? form.regionPath[form.regionPath.length - 1] : form.regionId,
-  categoryId: form.categoryId,
-  published: form.published,
-  images: form.images
+const buildSpotPayload = (source) => ({
+  name: source.name,
+  description: source.description,
+  price: source.price,
+  openTime: source.openTime,
+  heatLevel: source.heatLevel,
+  address: source.address,
+  latitude: source.latitude,
+  longitude: source.longitude,
+  coverImage: source.coverImage,
+  regionId: source.regionPath?.length ? source.regionPath[source.regionPath.length - 1] : source.regionId,
+  categoryId: source.categoryId,
+  published: source.published,
+  images: Array.isArray(source.images) ? source.images : []
 })
+
+// 构建接口提交参数
+const buildSubmitPayload = () => buildSpotPayload(form)
 
 // 提交景点表单
 const handleSubmit = async () => {
@@ -786,13 +791,19 @@ const handleSubmit = async () => {
 // 提交热度设置
 const handleHeatSubmit = async () => {
   await heatFormRef.value.validate()
+  if (!heatSpotDetail.value) {
+    ElMessage.error('景点详情加载失败，请重新打开热度设置')
+    return
+  }
   heatSubmitting.value = true
   try {
-    await updateSpot(heatEditId.value, {
+    await updateSpot(heatEditId.value, buildSpotPayload({
+      ...heatSpotDetail.value,
       heatLevel: heatForm.heatLevel
-    })
+    }))
     ElMessage.success('更新成功')
     heatDialogVisible.value = false
+    heatSpotDetail.value = null
     loadData()
   } finally {
     heatSubmitting.value = false
