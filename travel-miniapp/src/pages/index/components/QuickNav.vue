@@ -15,19 +15,15 @@
 </template>
 
 <script setup>
+import { featureThemeColorMap } from '@/constants/feature-navigation'
+
 defineProps({
   actions: { type: Array, default: () => [] }
 })
 defineEmits(['click'])
 
 const getThemeColor = (theme) => {
-  const map = {
-    blue: '#2563eb',
-    orange: '#f97316',
-    amber: '#d97706',
-    emerald: '#059669',
-  }
-  return map[theme] || '#4b5563'
+  return featureThemeColorMap[theme] || '#4b5563'
 }
 </script>
 
@@ -46,4 +42,5 @@ const getThemeColor = (theme) => {
 .theme-orange { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); }
 .theme-amber { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
 .theme-emerald { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
+.theme-purple { background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); }
 </style>
