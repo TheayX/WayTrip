@@ -1,7 +1,7 @@
 <template>
   <view class="budget-page">
     <view class="hero-card">
-      <text class="hero-title">穷游特惠</text>
+      <text class="hero-title">穷游玩法</text>
       <text class="hero-desc">先把预算压下来，再挑值得去的景点和攻略。</text>
       <view class="hero-stats">
         <view class="hero-stat">

@@ -25,15 +25,15 @@
       <view class="quick-panel">
         <view class="quick-card" @click="goSpotList">
           <view class="icon-orb bg-blue"><uni-icons type="location-filled" size="24" color="#2563eb" /></view>
-          <text class="quick-title">全部景点</text>
+          <text class="quick-title">景点大全</text>
         </view>
         <view class="quick-card" @click="goGuideList">
           <view class="icon-orb bg-orange"><uni-icons type="paperplane-filled" size="24" color="#ea580c" /></view>
-          <text class="quick-title">游玩攻略</text>
+          <text class="quick-title">出游攻略</text>
         </view>
         <view class="quick-card" @click="goRecommendationSpots">
           <view class="icon-orb bg-amber"><uni-icons type="star-filled" size="24" color="#d97706" /></view>
-          <text class="quick-title">推荐景点</text>
+          <text class="quick-title">个性推荐</text>
         </view>
       </view>
 
@@ -322,7 +322,7 @@ const goGuideList = () => {
 }
 
 const goRecommendationSpots = () => {
-  if (!promptLogin('登录后可查看推荐景点，是否现在去登录？')) return
+  if (!promptLogin('登录后可查看个性推荐，是否现在去登录？')) return
   uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 

@@ -4,7 +4,7 @@
       <image class="hero-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
       <view class="hero-overlay"></view>
       <view class="hero-content">
-        <text class="eyebrow">今日随机灵感</text>
+        <text class="eyebrow">随心一选</text>
         <text class="title">{{ spot.name }}</text>
         <text class="subtitle">{{ spot.regionName || '旅行目的地' }} · {{ spot.categoryName || '景点推荐' }}</text>
         <text class="desc">{{ spot.description || spot.intro || fallbackCopy }}</text>
@@ -24,7 +24,7 @@
 
     <view class="loading-card" v-else-if="loading">
       <view class="loading-orb"></view>
-      <text class="loading-title">正在打开旅行盲盒</text>
+      <text class="loading-title">正在随机选择景点</text>
       <text class="loading-desc">从现有景点里随机抽取一个目的地。</text>
     </view>
 

@@ -1,7 +1,7 @@
 <template>
   <view class="reviews-page">
     <view class="hero-card">
-      <text class="hero-title">真实口碑</text>
+      <text class="hero-title">游客口碑</text>
       <text class="hero-desc">先看真实游客怎么说，再决定要不要去。</text>
       <view class="hero-stats">
         <view class="hero-stat">
