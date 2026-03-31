@@ -26,13 +26,13 @@
         <view class="spot-content">
           <view class="spot-header">
             <text class="spot-title">{{ item.name }}</text>
-            <text class="spot-price">{{ formatPrice(item.price) }}</text>
+            <text class="spot-price">{{ formatBudgetPrice(item.price) }}</text>
           </view>
           <text class="spot-desc">{{ item.description || item.intro || '便宜也能玩得尽兴。' }}</text>
           <view class="spot-meta">
             <text class="meta-tag">{{ item.regionName || '区域待补充' }}</text>
             <text class="meta-tag">{{ item.categoryName || '景点' }}</text>
-            <text class="meta-rating">{{ formatRating(item.avgRating) }}</text>
+            <text class="meta-rating">{{ formatBudgetRating(item.avgRating) }}</text>
           </view>
         </view>
       </view>
@@ -79,6 +79,7 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { BUDGET_MAX_PRICE, fetchBudgetGuides, fetchBudgetSpots } from '@/services/feature'
 import { promptLogin } from '@/utils/auth'
+import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
 
 // 页面数据状态
@@ -97,16 +98,8 @@ const currentLoading = computed(() => (activeTab.value === 'spots' ? loadingSpot
 const currentLoadingText = computed(() => (activeTab.value === 'spots' ? '正在筛选低预算景点...' : '正在整理低预算攻略...'))
 
 // 工具方法
-const formatPrice = (value) => {
-  const num = Number(value)
-  if (!Number.isFinite(num)) return '价格待补充'
-  return num <= 0 ? '¥0 免费' : `¥${num}`
-}
-
-const formatRating = (value) => {
-  const num = Number(value)
-  return Number.isFinite(num) && num > 0 ? `${num.toFixed(1)} 分` : '暂无评分'
-}
+const formatBudgetPrice = (value) => formatFeaturePrice(value, { freeText: '¥0 免费' })
+const formatBudgetRating = (value) => formatFeatureRating(value)
 
 // 数据加载方法
 const loadBudgetSpots = async () => {

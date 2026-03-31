@@ -8,12 +8,19 @@
     <view class="group-card" v-for="group in featureGroups" :key="group.title">
       <text class="group-title">{{ group.title }}</text>
       <view class="grid-list">
-        <view class="grid-item" v-for="item in group.items" :key="item.id" @click="navigateTo(item.url)">
+        <view
+          class="grid-item"
+          :class="{ disabled: item.available === false }"
+          v-for="item in group.items"
+          :key="item.id"
+          @click="handleEntryClick(item)"
+        >
           <view class="grid-icon" :class="`theme-${item.theme}`">
-            <uni-icons :type="item.icon" size="24" :color="getThemeColor(item.theme)" />
+            <uni-icons :type="item.icon" size="24" :color="resolveThemeColor(item.theme)" />
           </view>
           <text class="grid-title">{{ item.title }}</text>
           <text class="grid-desc">{{ item.desc }}</text>
+          <text v-if="item.available === false" class="grid-badge">敬请期待</text>
         </view>
       </view>
     </view>
@@ -23,10 +30,18 @@
 <script setup>
 import { featureThemeColorMap, getMoreFeatureGroups } from '@/constants/feature-navigation'
 
-const getThemeColor = (theme) => featureThemeColorMap[theme] || '#4b5563'
+const resolveThemeColor = (theme) => featureThemeColorMap[theme] || '#4b5563'
 
 const navigateTo = (url) => {
   uni.navigateTo({ url })
+}
+
+const handleEntryClick = (item) => {
+  if (item.available === false || !item.url) {
+    uni.showToast({ title: '功能开发中', icon: 'none' })
+    return
+  }
+  navigateTo(item.url)
 }
 
 const featureGroups = getMoreFeatureGroups()
@@ -86,9 +101,14 @@ const featureGroups = getMoreFeatureGroups()
 }
 
 .grid-item {
+  position: relative;
   padding: 24rpx;
   border-radius: 28rpx;
   background: #f8fafc;
+}
+
+.grid-item.disabled {
+  opacity: 0.86;
 }
 
 .grid-icon {
@@ -114,6 +134,17 @@ const featureGroups = getMoreFeatureGroups()
   font-size: 23rpx;
   line-height: 1.6;
   color: #64748b;
+}
+
+.grid-badge {
+  position: absolute;
+  top: 18rpx;
+  right: 18rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  background: rgba(15, 23, 42, 0.06);
+  color: #64748b;
+  font-size: 20rpx;
 }
 
 .theme-blue { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }

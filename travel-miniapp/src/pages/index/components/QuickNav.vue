@@ -7,7 +7,7 @@
       @click="$emit('click', action)"
     >
       <view class="quick-icon" :class="`theme-${action.theme}`">
-        <uni-icons :type="action.icon" size="28" :color="getThemeColor(action.theme)" />
+        <uni-icons :type="action.icon" size="28" :color="resolveThemeColor(action.theme)" />
       </view>
       <text class="quick-title">{{ action.title }}</text>
     </view>
@@ -22,7 +22,7 @@ defineProps({
 })
 defineEmits(['click'])
 
-const getThemeColor = (theme) => {
+const resolveThemeColor = (theme) => {
   return featureThemeColorMap[theme] || '#4b5563'
 }
 </script>
