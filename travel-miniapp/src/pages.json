@@ -73,6 +73,12 @@
       }
     },
     {
+      "path": "pages/feature/recent-views/index",
+      "style": {
+        "navigationBarTitleText": "最近都在看"
+      }
+    },
+    {
       "path": "pages/feature/more/index",
       "style": {
         "navigationBarTitleText": "更多"

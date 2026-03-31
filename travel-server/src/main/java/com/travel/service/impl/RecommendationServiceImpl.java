@@ -5,6 +5,8 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.home.HotSpotResponse;
 import com.travel.dto.home.NearbySpotResponse;
+import com.travel.dto.home.RecentViewedSpotItem;
+import com.travel.dto.home.RecentViewedSpotResponse;
 import com.travel.dto.recommendation.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
@@ -698,6 +700,22 @@ public class RecommendationServiceImpl implements RecommendationService {
             return item;
         }).collect(Collectors.toList()));
 
+        return response;
+    }
+
+    @Override
+    public RecentViewedSpotResponse getRecentViewedSpots(Integer days, Integer limit) {
+        int safeDays = days == null || days <= 0 ? 14 : days;
+        int safeLimit = limit == null || limit <= 0 ? 12 : limit;
+
+        List<RecentViewedSpotItem> list = userSpotViewMapper.selectRecentViewedSpots(
+            LocalDateTime.now().minusDays(safeDays),
+            safeLimit
+        );
+
+        RecentViewedSpotResponse response = new RecentViewedSpotResponse();
+        response.setList(list);
+        response.setDays(safeDays);
         return response;
     }
 

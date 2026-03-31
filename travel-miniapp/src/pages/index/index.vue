@@ -484,6 +484,9 @@ const handleQuickAction = (action) => {
       }
       navigateConfiguredFeature('reviews')
       break
+    case 'recent-views':
+      navigateConfiguredFeature('recent-views')
+      break
     case 'more':
       navigateConfiguredFeature('more')
       break

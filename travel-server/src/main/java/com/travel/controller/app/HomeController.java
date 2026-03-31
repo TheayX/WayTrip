@@ -4,6 +4,7 @@ import com.travel.common.result.ApiResponse;
 import com.travel.dto.banner.BannerResponse;
 import com.travel.dto.home.HotSpotResponse;
 import com.travel.dto.home.NearbySpotResponse;
+import com.travel.dto.home.RecentViewedSpotResponse;
 import com.travel.service.SpotBannerService;
 import com.travel.service.RecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +37,14 @@ public class HomeController {
     public ApiResponse<HotSpotResponse> getHotSpots(
             @RequestParam(defaultValue = "10") Integer limit) {
         return ApiResponse.success(recommendationService.getHotSpots(limit));
+    }
+
+    @Operation(summary = "获取最近都在看")
+    @GetMapping("/recent-views")
+    public ApiResponse<RecentViewedSpotResponse> getRecentViewedSpots(
+            @RequestParam(defaultValue = "14") Integer days,
+            @RequestParam(defaultValue = "12") Integer limit) {
+        return ApiResponse.success(recommendationService.getRecentViewedSpots(days, limit));
     }
 
     @Operation(summary = "获取附近景点")

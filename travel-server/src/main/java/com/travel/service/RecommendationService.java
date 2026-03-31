@@ -2,6 +2,7 @@ package com.travel.service;
 
 import com.travel.dto.home.HotSpotResponse;
 import com.travel.dto.home.NearbySpotResponse;
+import com.travel.dto.home.RecentViewedSpotResponse;
 import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
 import com.travel.dto.recommendation.RecommendationResponse;
 import com.travel.dto.recommendation.SimilarityPreviewResponse;
@@ -62,6 +63,15 @@ public interface RecommendationService {
      * @return 热门景点结果
      */
     HotSpotResponse getHotSpots(Integer limit);
+
+    /**
+     * 获取最近都在看的景点。
+     *
+     * @param days 统计天数
+     * @param limit 返回条数上限
+     * @return 最近都在看结果
+     */
+    RecentViewedSpotResponse getRecentViewedSpots(Integer days, Integer limit);
 
     /**
      * 获取附近景点结果。

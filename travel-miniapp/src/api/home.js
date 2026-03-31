@@ -19,6 +19,16 @@ export const getHotSpots = (limit = 10) => {
 }
 
 /**
+ * 获取最近都在看
+ * @param days
+ * @param limit
+ * @returns {*}
+ */
+export const getRecentViewedSpots = (days = 14, limit = 12) => {
+  return get('/home/recent-views', { days, limit })
+}
+
+/**
  * 获取附近景点
  * @param latitude
  * @param longitude

@@ -1,4 +1,5 @@
 import { getBudgetGuideList } from '@/api/guide'
+import { getRecentViewedSpots } from '@/api/home'
 import { getReviewFeed } from '@/api/review'
 import { getSpotList } from '@/api/spot'
 
@@ -16,6 +17,8 @@ const BUDGET_SPOT_MAX_PAGES = 5
 const BUDGET_SPOT_LIMIT = 12
 const BUDGET_GUIDE_LIMIT = 8
 const REVIEW_PAGE_SIZE = 10
+const RECENT_VIEW_DAYS = 14
+const RECENT_VIEW_LIMIT = 12
 
 const toNumber = (value) => {
   const num = Number(value)
@@ -136,5 +139,17 @@ export const fetchReviewFeed = async () => {
   return {
     positive: positiveRes.data?.list || [],
     negative: negativeRes.data?.list || []
+  }
+}
+
+// 最近都在看走首页聚合接口，页面层只负责展示。
+export const fetchRecentViewedSpots = async ({
+  days = RECENT_VIEW_DAYS,
+  limit = RECENT_VIEW_LIMIT
+} = {}) => {
+  const res = await getRecentViewedSpots(days, limit)
+  return {
+    days: res.data?.days || days,
+    list: res.data?.list || []
   }
 }
