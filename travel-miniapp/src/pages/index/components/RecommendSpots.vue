@@ -48,7 +48,7 @@ import { getContentImageUrl } from '@/utils/request'
 
 defineProps({
   isLoggedIn: { type: Boolean, default: false },
-  title: { type: String, default: '推荐景点' },
+  title: { type: String, default: '个性推荐' },
   spots: { type: Array, default: () => [] }
 })
 defineEmits(['goLogin', 'refresh', 'more', 'click'])

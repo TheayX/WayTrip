@@ -1,11 +1,11 @@
-<!-- 推荐景点页 -->
+<!-- 个性推荐页 -->
 <template>
   <view class="recommend-page">
     <!-- 顶部区域 -->
     <view class="top-bar">
       <view>
         <text class="page-title">{{ recommendationPageTitle }}</text>
-        <text class="page-subtitle">集中浏览当前推荐景点</text>
+        <text class="page-subtitle">集中浏览当前个性推荐内容</text>
       </view>
       <text v-if="isLoggedIn" class="refresh-btn" @click="refreshList">刷新推荐</text>
     </view>
@@ -35,7 +35,7 @@
     </view>
 
     <view class="empty-state" v-else>
-      <text>{{ isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点' }}</text>
+      <text>{{ isLoggedIn ? '当前暂无个性推荐' : '登录后查看个性推荐' }}</text>
       <view v-if="!isLoggedIn" class="empty-actions">
         <text class="empty-link" @click="goLogin">去登录</text>
       </view>
@@ -114,12 +114,12 @@ const showPreferencePopup = async () => {
 }
 
 const goLogin = () => {
-  if (!promptLogin('登录后可查看推荐景点，是否现在去登录？')) {
+  if (!promptLogin('登录后可查看个性推荐，是否现在去登录？')) {
     return
   }
 }
 
-const recommendationPageTitle = computed(() => (isLoggedIn.value ? recommendType.value : '推荐景点'))
+const recommendationPageTitle = computed(() => (isLoggedIn.value ? recommendType.value : '个性推荐'))
 
 const handleLimitExceed = () => {
   uni.showToast({ title: '最多选择5个', icon: 'none' })

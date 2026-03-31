@@ -15,7 +15,7 @@
     {
       "path": "pages/recommendation/index",
       "style": {
-        "navigationBarTitleText": "推荐景点"
+        "navigationBarTitleText": "个性推荐"
       }
     },
     {
@@ -57,25 +57,25 @@
     {
       "path": "pages/feature/blindbox/index",
       "style": {
-        "navigationBarTitleText": "每日盲盒"
+        "navigationBarTitleText": "随心一选"
       }
     },
     {
       "path": "pages/feature/budget/index",
       "style": {
-        "navigationBarTitleText": "穷游特惠"
+        "navigationBarTitleText": "穷游玩法"
       }
     },
     {
       "path": "pages/feature/reviews/index",
       "style": {
-        "navigationBarTitleText": "真实口碑"
+        "navigationBarTitleText": "游客口碑"
       }
     },
     {
       "path": "pages/feature/recent-views/index",
       "style": {
-        "navigationBarTitleText": "最近都在看"
+        "navigationBarTitleText": "近期热看"
       }
     },
     {

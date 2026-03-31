@@ -115,7 +115,7 @@ const markerIcon = '/static/tabbar/spot-active.png'
 const homeQuickActions = getHomeQuickActions()
 
 // 计算属性
-const recommendationSectionTitle = computed(() => (isLoggedIn.value ? recommendType.value : '推荐景点'))
+const recommendationSectionTitle = computed(() => (isLoggedIn.value ? recommendType.value : '个性推荐'))
 const recommendPreview = computed(() => recommendations.value.slice(0, 4))
 const primaryPopularSpot = computed(() => popularSpots.value[0] || null)
 const remainingPopularSpots = computed(() => popularSpots.value.slice(1))
@@ -479,7 +479,7 @@ const handleQuickAction = (action) => {
       navigateConfiguredFeature('budget')
       break
     case 'reviews':
-      if (!promptLogin('登录后可查看真实口碑，是否现在去登录？')) {
+      if (!promptLogin('登录后可查看游客口碑，是否现在去登录？')) {
         return
       }
       navigateConfiguredFeature('reviews')
@@ -528,7 +528,7 @@ const goGuideList = () => {
 }
 
 const goRecommendationSpots = () => {
-  if (!promptLogin('登录后可查看推荐景点，是否现在去登录？')) {
+  if (!promptLogin('登录后可查看个性推荐，是否现在去登录？')) {
     return
   }
   uni.navigateTo({ url: '/pages/recommendation/index' })

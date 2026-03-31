@@ -1,7 +1,7 @@
 <template>
   <view class="recent-page">
     <view class="hero-card">
-      <text class="hero-title">最近都在看</text>
+      <text class="hero-title">近期热看</text>
       <text class="hero-desc">看看最近一段时间里，大家浏览更多的景点。</text>
       <view class="hero-stats">
         <view class="hero-stat">
@@ -36,7 +36,7 @@
     </view>
 
     <view class="loading-row" v-if="loading">
-      <text>正在整理最近都在看的景点...</text>
+      <text>正在整理近期热看的景点...</text>
     </view>
   </view>
 </template>
