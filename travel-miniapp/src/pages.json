@@ -55,31 +55,31 @@
       }
     },
     {
-      "path": "pages/feature/blindbox/index",
+      "path": "pages/random-pick/index",
       "style": {
         "navigationBarTitleText": "随心一选"
       }
     },
     {
-      "path": "pages/feature/budget/index",
+      "path": "pages/budget-travel/index",
       "style": {
         "navigationBarTitleText": "穷游玩法"
       }
     },
     {
-      "path": "pages/feature/reviews/index",
+      "path": "pages/traveler-reviews/index",
       "style": {
         "navigationBarTitleText": "游客口碑"
       }
     },
     {
-      "path": "pages/feature/recent-views/index",
+      "path": "pages/trending-views/index",
       "style": {
         "navigationBarTitleText": "近期热看"
       }
     },
     {
-      "path": "pages/feature/more/index",
+      "path": "pages/more/index",
       "style": {
         "navigationBarTitleText": "更多"
       }

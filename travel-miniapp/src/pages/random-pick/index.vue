@@ -12,11 +12,11 @@
         <view class="meta-row">
           <view class="meta-pill">
             <uni-icons type="star-filled" size="14" color="#f59e0b" />
-            <text>{{ formatBlindboxRating(spot.avgRating) }}</text>
+            <text>{{ formatRandomPickRating(spot.avgRating) }}</text>
           </view>
           <view class="meta-pill">
             <uni-icons type="wallet-filled" size="14" color="#7c3aed" />
-            <text>{{ formatBlindboxPrice(spot.price) }}</text>
+            <text>{{ formatRandomPickPrice(spot.price) }}</text>
           </view>
         </view>
       </view>
@@ -53,7 +53,7 @@
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { fetchBlindboxSpot } from '@/services/feature'
+import { fetchRandomPickSpot } from '@/services/random-pick'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
@@ -63,7 +63,7 @@ const spot = ref(null)
 const loading = ref(false)
 const lastSpotId = ref(null)
 
-const blindboxReasons = [
+const randomPickReasons = [
   '今天不纠结，直接把选择交给运气。',
   '这张卡片适合说走就走的冲动。',
   '换个平时不会主动点开的目的地，可能更有惊喜。',
@@ -71,16 +71,16 @@ const blindboxReasons = [
 ]
 
 const fallbackCopy = '给自己一个随机出发的理由，今天就去看看新的风景。'
-const randomReason = ref(blindboxReasons[0])
+const randomReason = ref(randomPickReasons[0])
 
 // 工具方法
 const getRandomReason = () => {
-  const index = Math.floor(Math.random() * blindboxReasons.length)
-  return blindboxReasons[index]
+  const index = Math.floor(Math.random() * randomPickReasons.length)
+  return randomPickReasons[index]
 }
 
-const formatBlindboxRating = (value) => formatFeatureRating(value)
-const formatBlindboxPrice = (value) => formatFeaturePrice(value)
+const formatRandomPickRating = (value) => formatFeatureRating(value)
+const formatRandomPickPrice = (value) => formatFeaturePrice(value)
 
 // 数据加载方法
 const drawSpot = async () => {
@@ -88,12 +88,12 @@ const drawSpot = async () => {
   loading.value = true
 
   try {
-    const nextSpot = await fetchBlindboxSpot({ excludeSpotId: lastSpotId.value })
+    const nextSpot = await fetchRandomPickSpot({ excludeSpotId: lastSpotId.value })
     spot.value = nextSpot || null
     lastSpotId.value = nextSpot?.id || null
     randomReason.value = getRandomReason()
   } catch (error) {
-    console.error('抽取盲盒景点失败', error)
+    console.error('加载随心一选失败', error)
     uni.showToast({ title: '抽取失败，请稍后重试', icon: 'none' })
   } finally {
     loading.value = false
@@ -106,7 +106,7 @@ const goDetail = () => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
-  uni.navigateTo({ url: `/pages/spot/detail?id=${spot.value.id}&source=blindbox` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${spot.value.id}&source=random-pick` })
 }
 
 onLoad(() => {

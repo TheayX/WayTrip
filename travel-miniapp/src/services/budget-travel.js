@@ -1,6 +1,4 @@
 import { getBudgetGuideList } from '@/api/guide'
-import { getRecentViewedSpots } from '@/api/home'
-import { getReviewFeed } from '@/api/review'
 import { getSpotList } from '@/api/spot'
 
 export const BUDGET_MAX_PRICE = 50
@@ -11,14 +9,10 @@ export const BUDGET_MODE_OPTIONS = [
   { label: '50 元以内', value: BUDGET_MODE_UNDER_50 }
 ]
 
-const BLINDBOX_PAGE_SIZE = 12
-const BLINDBOX_MAX_ATTEMPTS = 5
+const BUDGET_SPOT_PAGE_SIZE = 12
 const BUDGET_SPOT_MAX_PAGES = 5
 const BUDGET_SPOT_LIMIT = 12
 const BUDGET_GUIDE_LIMIT = 8
-const REVIEW_PAGE_SIZE = 10
-const RECENT_VIEW_DAYS = 14
-const RECENT_VIEW_LIMIT = 12
 
 const toNumber = (value) => {
   const num = Number(value)
@@ -54,33 +48,8 @@ const dedupeById = (list) => {
   return Array.from(map.values())
 }
 
-// 当前先复用景点列表做随机抽取，后续切正式盲盒接口时只改这里。
-export const fetchBlindboxSpot = async ({ excludeSpotId = null } = {}) => {
-  const countRes = await getSpotList({ page: 1, pageSize: 1, sortBy: 'heat' })
-  const total = countRes.data?.total || 0
-  if (!total) return null
-
-  const maxPage = Math.max(1, Math.ceil(total / BLINDBOX_PAGE_SIZE))
-  let nextSpot = null
-  let attempts = 0
-
-  while (!nextSpot && attempts < BLINDBOX_MAX_ATTEMPTS) {
-    const randomPage = Math.max(1, Math.ceil(Math.random() * maxPage))
-    const res = await getSpotList({ page: randomPage, pageSize: BLINDBOX_PAGE_SIZE, sortBy: 'heat' })
-    const list = (res.data?.list || []).filter(item => item?.id)
-    const candidates = list.filter(item => item.id !== excludeSpotId)
-    const pool = candidates.length ? candidates : list
-    if (pool.length) {
-      nextSpot = pool[Math.floor(Math.random() * pool.length)]
-    }
-    attempts += 1
-  }
-
-  return nextSpot
-}
-
-// 先基于现有景点列表封装预算筛选，后续改成后端过滤时页面不需要跟着改。
-export const fetchBudgetSpots = async ({
+// 景点预算筛选先基于现有景点列表实现，后续扩展后端参数时只改这里。
+export const fetchBudgetTravelSpots = async ({
   budgetMode = BUDGET_MODE_UNDER_50,
   maxPrice = BUDGET_MAX_PRICE,
   limit = BUDGET_SPOT_LIMIT,
@@ -91,7 +60,7 @@ export const fetchBudgetSpots = async ({
   let total = 0
 
   while (page <= maxPages && collected.length < limit) {
-    const res = await getSpotList({ page, pageSize: BLINDBOX_PAGE_SIZE, sortBy: 'heat' })
+    const res = await getSpotList({ page, pageSize: BUDGET_SPOT_PAGE_SIZE, sortBy: 'heat' })
     const list = res.data?.list || []
     total = res.data?.total || 0
     const matchedList = list.filter((item) => {
@@ -101,7 +70,7 @@ export const fetchBudgetSpots = async ({
       return isBudgetPrice(item.price, maxPrice)
     })
     collected.push(...matchedList)
-    if (page * BLINDBOX_PAGE_SIZE >= total) break
+    if (page * BUDGET_SPOT_PAGE_SIZE >= total) break
     page += 1
   }
 
@@ -114,8 +83,8 @@ export const fetchBudgetSpots = async ({
     .slice(0, limit)
 }
 
-// 攻略预算列表改成后端直出，页面层继续复用当前结构。
-export const fetchBudgetGuides = async ({
+// 攻略预算列表走后端直出，页面层继续复用当前结构。
+export const fetchBudgetTravelGuides = async ({
   budgetMode = BUDGET_MODE_UNDER_50,
   maxPrice = BUDGET_MAX_PRICE,
   limit = BUDGET_GUIDE_LIMIT
@@ -127,29 +96,4 @@ export const fetchBudgetGuides = async ({
     maxPrice
   })
   return res.data?.list || []
-}
-
-// 口碑流改成后端直出，避免前端逐景点聚合带来的漏数和空刷问题。
-export const fetchReviewFeed = async () => {
-  const [positiveRes, negativeRes] = await Promise.all([
-    getReviewFeed({ page: 1, pageSize: REVIEW_PAGE_SIZE, type: 'positive' }),
-    getReviewFeed({ page: 1, pageSize: REVIEW_PAGE_SIZE, type: 'negative' })
-  ])
-
-  return {
-    positive: positiveRes.data?.list || [],
-    negative: negativeRes.data?.list || []
-  }
-}
-
-// 最近都在看走首页聚合接口，页面层只负责展示。
-export const fetchRecentViewedSpots = async ({
-  days = RECENT_VIEW_DAYS,
-  limit = RECENT_VIEW_LIMIT
-} = {}) => {
-  const res = await getRecentViewedSpots(days, limit)
-  return {
-    days: res.data?.days || days,
-    list: res.data?.list || []
-  }
 }
