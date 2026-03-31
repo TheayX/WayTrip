@@ -4,12 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
-import com.travel.dto.auth.AdminLoginRequest;
-import com.travel.dto.auth.AdminLoginResponse;
+import com.travel.dto.auth.request.AdminLoginRequest;
+import com.travel.dto.auth.response.AdminLoginResponse;
 import com.travel.entity.Admin;
 import com.travel.mapper.AdminMapper;
 import com.travel.service.AdminAuthService;
-import com.travel.util.JwtUtil;
+import com.travel.util.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     // 持久层与安全依赖
 
     private final AdminMapper adminMapper;
-    private final JwtUtil jwtUtil;
+    private final JwtUtils jwtUtils;
     private final BCryptPasswordEncoder passwordEncoder;
 
     // 管理员认证流程
@@ -57,11 +57,11 @@ public class AdminAuthServiceImpl implements AdminAuthService {
                         .eq(Admin::getId, admin.getId())
                         .set(Admin::getLastLoginAt, LocalDateTime.now()));
 
-        String token = jwtUtil.generateAdminToken(admin.getId());
+        String token = jwtUtils.generateAdminToken(admin.getId());
 
         return AdminLoginResponse.builder()
                 .token(token)
-                .expiresIn(jwtUtil.getAdminExpirationSeconds())
+                .expiresIn(jwtUtils.getAdminExpirationSeconds())
                 .admin(AdminLoginResponse.AdminInfo.builder()
                         .id(admin.getId())
                         .username(admin.getUsername())

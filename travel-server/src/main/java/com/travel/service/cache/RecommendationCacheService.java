@@ -1,11 +1,11 @@
 package com.travel.service.cache;
 
-import com.travel.config.AppCacheProperties;
-import com.travel.config.RedisKeyManager;
-import com.travel.dto.recommendation.RecommendationAlgorithmConfigDTO;
-import com.travel.dto.recommendation.RecommendationCacheConfigDTO;
-import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
-import com.travel.dto.recommendation.RecommendationHeatConfigDTO;
+import com.travel.config.cache.AppCacheProperties;
+import com.travel.config.cache.RedisKeyManager;
+import com.travel.dto.recommendation.model.RecommendationAlgorithmConfigDTO;
+import com.travel.dto.recommendation.model.RecommendationCacheConfigDTO;
+import com.travel.dto.recommendation.model.RecommendationConfigBundleDTO;
+import com.travel.dto.recommendation.model.RecommendationHeatConfigDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;

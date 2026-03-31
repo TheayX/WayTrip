@@ -1,7 +1,8 @@
 package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.banner.*;
+import com.travel.dto.banner.request.AdminBannerRequest;
+import com.travel.dto.banner.response.AdminBannerListResponse;
 import com.travel.service.SpotBannerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

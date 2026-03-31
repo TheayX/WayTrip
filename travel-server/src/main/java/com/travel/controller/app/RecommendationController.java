@@ -1,10 +1,10 @@
 package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.recommendation.RecommendationResponse;
-import com.travel.dto.recommendation.SimilarityPreviewResponse;
+import com.travel.dto.recommendation.response.RecommendationResponse;
+import com.travel.dto.recommendation.response.SimilarityPreviewResponse;
 import com.travel.service.RecommendationService;
-import com.travel.util.UserContext;
+import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class RecommendationController {
     @GetMapping
     public ApiResponse<RecommendationResponse> getRecommendations(
             @RequestParam(defaultValue = "10") Integer limit) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(recommendationService.getRecommendations(userId, limit));
     }
 
@@ -33,7 +33,7 @@ public class RecommendationController {
     @PostMapping("/refresh")
     public ApiResponse<RecommendationResponse> refreshRecommendations(
             @RequestParam(defaultValue = "10") Integer limit) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(recommendationService.refreshRecommendations(userId, limit));
     }
 

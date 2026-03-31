@@ -3,7 +3,7 @@ package com.travel.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.travel.dto.guide.GuideBudgetQueryResult;
+import com.travel.dto.guide.model.GuideBudgetQueryResult;
 import com.travel.entity.Guide;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

@@ -2,7 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
-import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
+import com.travel.dto.recommendation.model.RecommendationConfigBundleDTO;
 import com.travel.entity.Order;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;

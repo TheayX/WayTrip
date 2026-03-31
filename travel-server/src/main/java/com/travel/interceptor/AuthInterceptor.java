@@ -2,8 +2,8 @@ package com.travel.interceptor;
 
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
-import com.travel.util.JwtUtil;
-import com.travel.util.UserContext;
+import com.travel.util.security.JwtUtils;
+import com.travel.util.web.UserContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     // Token 解析依赖
     @Autowired
-    private JwtUtil jwtUtil;
+    private JwtUtils jwtUtils;
 
     /**
      * 拦截请求并根据接口前缀写入当前用户上下文。
@@ -48,17 +48,17 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         try {
             if (isAdmin) {
-                Long adminId = jwtUtil.getAdminIdFromToken(token);
+                Long adminId = jwtUtils.getAdminIdFromToken(token);
                 if (adminId == null) {
                     throw new BusinessException(ResultCode.TOKEN_INVALID);
                 }
-                UserContext.setAdminId(adminId);
+                UserContextHolder.setAdminId(adminId);
             } else {
-                Long userId = jwtUtil.getUserIdFromToken(token);
+                Long userId = jwtUtils.getUserIdFromToken(token);
                 if (userId == null) {
                     throw new BusinessException(ResultCode.TOKEN_INVALID);
                 }
-                UserContext.setUserId(userId);
+                UserContextHolder.setUserId(userId);
             }
             return true;
         } catch (BusinessException e) {
@@ -71,7 +71,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, @Nullable Exception ex) {
-        UserContext.clear();
+        UserContextHolder.clear();
     }
 
     /**

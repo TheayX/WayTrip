@@ -1,7 +1,7 @@
 package com.travel.service;
 
-import com.travel.dto.auth.AdminLoginRequest;
-import com.travel.dto.auth.AdminLoginResponse;
+import com.travel.dto.auth.request.AdminLoginRequest;
+import com.travel.dto.auth.response.AdminLoginResponse;
 
 /**
  * 管理员认证服务接口。

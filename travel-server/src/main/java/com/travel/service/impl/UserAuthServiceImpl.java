@@ -4,16 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
-import com.travel.dto.auth.LoginResponse;
-import com.travel.dto.auth.WebLoginRequest;
-import com.travel.dto.auth.WebRegisterRequest;
-import com.travel.dto.auth.WxBindPhoneRequest;
-import com.travel.dto.auth.WxLoginResponse;
+import com.travel.dto.auth.response.LoginResponse;
+import com.travel.dto.auth.request.WebLoginRequest;
+import com.travel.dto.auth.request.WebRegisterRequest;
+import com.travel.dto.auth.request.WxBindPhoneRequest;
+import com.travel.dto.auth.response.WxLoginResponse;
 import com.travel.entity.User;
 import com.travel.mapper.UserMapper;
 import com.travel.service.UserAuthService;
-import com.travel.util.JwtUtil;
-import com.travel.util.WxApiUtil;
+import com.travel.util.security.JwtUtils;
+import com.travel.util.wechat.WxApiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,8 +36,8 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     // 持久层与外部能力依赖
     private final UserMapper userMapper;
-    private final JwtUtil jwtUtil;
-    private final WxApiUtil wxApiUtil;
+    private final JwtUtils jwtUtils;
+    private final WxApiClient wxApiClient;
     private final BCryptPasswordEncoder passwordEncoder;
 
     // 微信登录与绑定流程
@@ -45,7 +45,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Override
     @Transactional
     public WxLoginResponse wxLogin(String code) {
-        String openid = wxApiUtil.getOpenid(code);
+        String openid = wxApiClient.getOpenid(code);
         if (!StringUtils.hasText(openid)) {
             throw new BusinessException(ResultCode.WX_LOGIN_FAILED);
         }
@@ -75,12 +75,12 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
         userMapper.update(null, updateWrapper);
 
-        String token = jwtUtil.generateUserToken(user.getId());
+        String token = jwtUtils.generateUserToken(user.getId());
 
         return WxLoginResponse.builder()
                 .isNewUser(false)
                 .token(token)
-                .expiresIn(jwtUtil.getExpirationSeconds())
+                .expiresIn(jwtUtils.getExpirationSeconds())
                 .isReactivated(isReactivated)
                 .user(LoginResponse.UserInfo.builder()
                         .id(user.getId())
@@ -116,11 +116,11 @@ public class UserAuthServiceImpl implements UserAuthService {
         userMapper.insert(user);
         log.info("Web新用户注册: userId={}, phone={}", user.getId(), request.getPhone());
 
-        String token = jwtUtil.generateUserToken(user.getId());
+        String token = jwtUtils.generateUserToken(user.getId());
 
         return LoginResponse.builder()
                 .token(token)
-                .expiresIn(jwtUtil.getExpirationSeconds())
+                .expiresIn(jwtUtils.getExpirationSeconds())
                 .user(LoginResponse.UserInfo.builder()
                         .id(user.getId())
                         .nickname(user.getNickname())
@@ -170,11 +170,11 @@ public class UserAuthServiceImpl implements UserAuthService {
                         .set(User::getLastLoginAt, LocalDateTime.now())
                         .set(User::getIsDeleted, user.getIsDeleted()));
 
-        String token = jwtUtil.generateUserToken(user.getId());
+        String token = jwtUtils.generateUserToken(user.getId());
 
         return LoginResponse.builder()
                 .token(token)
-                .expiresIn(jwtUtil.getExpirationSeconds())
+                .expiresIn(jwtUtils.getExpirationSeconds())
                 .user(LoginResponse.UserInfo.builder()
                         .id(user.getId())
                         .nickname(user.getNickname())
@@ -197,10 +197,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                         .eq(User::getIsDeleted, 0)
         );
         if (existByOpenid != null) {
-            String token = jwtUtil.generateUserToken(existByOpenid.getId());
+            String token = jwtUtils.generateUserToken(existByOpenid.getId());
             return LoginResponse.builder()
                     .token(token)
-                    .expiresIn(jwtUtil.getExpirationSeconds())
+                    .expiresIn(jwtUtils.getExpirationSeconds())
                     .user(LoginResponse.UserInfo.builder()
                             .id(existByOpenid.getId())
                             .nickname(existByOpenid.getNickname())
@@ -232,11 +232,11 @@ public class UserAuthServiceImpl implements UserAuthService {
         userMapper.insert(newUser);
         log.info("微信新用户注册: userId={}, phone={}", newUser.getId(), request.getPhone());
 
-        String token = jwtUtil.generateUserToken(newUser.getId());
+        String token = jwtUtils.generateUserToken(newUser.getId());
 
         return LoginResponse.builder()
                 .token(token)
-                .expiresIn(jwtUtil.getExpirationSeconds())
+                .expiresIn(jwtUtils.getExpirationSeconds())
                 .user(LoginResponse.UserInfo.builder()
                         .id(newUser.getId())
                         .nickname(newUser.getNickname())
@@ -257,10 +257,10 @@ public class UserAuthServiceImpl implements UserAuthService {
                         .eq(User::getIsDeleted, 0)
         );
         if (existByOpenid != null) {
-            String token = jwtUtil.generateUserToken(existByOpenid.getId());
+            String token = jwtUtils.generateUserToken(existByOpenid.getId());
             return LoginResponse.builder()
                     .token(token)
-                    .expiresIn(jwtUtil.getExpirationSeconds())
+                    .expiresIn(jwtUtils.getExpirationSeconds())
                     .user(LoginResponse.UserInfo.builder()
                             .id(existByOpenid.getId())
                             .nickname(existByOpenid.getNickname())
@@ -304,11 +304,11 @@ public class UserAuthServiceImpl implements UserAuthService {
         userMapper.updateById(existUser);
         log.info("微信openid合并到已有账户: userId={}, phone={}", existUser.getId(), phone);
 
-        String token = jwtUtil.generateUserToken(existUser.getId());
+        String token = jwtUtils.generateUserToken(existUser.getId());
 
         return LoginResponse.builder()
                 .token(token)
-                .expiresIn(jwtUtil.getExpirationSeconds())
+                .expiresIn(jwtUtils.getExpirationSeconds())
                 .user(LoginResponse.UserInfo.builder()
                         .id(existUser.getId())
                         .nickname(existUser.getNickname())

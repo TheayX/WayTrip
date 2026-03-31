@@ -14,7 +14,7 @@ import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
-import com.travel.service.impl.UserServiceImpl;
+import com.travel.service.impl.UserProfileServiceImpl;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.BeforeAll;
@@ -77,7 +77,7 @@ class AdminUserControllerMaskingMvcTest {
         spotMapper = mock(SpotMapper.class);
         passwordEncoder = mock(BCryptPasswordEncoder.class);
 
-        UserServiceImpl userService = new UserServiceImpl(
+        UserProfileServiceImpl userService = new UserProfileServiceImpl(
                 userMapper,
                 orderMapper,
                 userSpotFavoriteMapper,

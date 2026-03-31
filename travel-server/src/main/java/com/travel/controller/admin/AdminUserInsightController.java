@@ -2,7 +2,12 @@ package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
-import com.travel.dto.user.*;
+import com.travel.dto.user.model.AdminUserFavoriteListItem;
+import com.travel.dto.user.model.AdminUserPreferenceListItem;
+import com.travel.dto.user.model.AdminUserViewListItem;
+import com.travel.dto.user.request.AdminUserFavoriteListRequest;
+import com.travel.dto.user.request.AdminUserPreferenceListRequest;
+import com.travel.dto.user.request.AdminUserViewListRequest;
 import com.travel.service.AdminUserInsightService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

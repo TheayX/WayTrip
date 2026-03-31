@@ -2,7 +2,11 @@ package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
-import com.travel.dto.spot.*;
+import com.travel.dto.spot.request.AdminSpotListRequest;
+import com.travel.dto.spot.request.AdminSpotUpsertRequest;
+import com.travel.dto.spot.response.AdminSpotDetailResponse;
+import com.travel.dto.spot.response.AdminSpotListResponse;
+import com.travel.dto.spot.response.SpotFilterResponse;
 import com.travel.service.ReviewService;
 import com.travel.service.SpotService;
 import io.swagger.v3.oas.annotations.Operation;

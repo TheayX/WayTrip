@@ -1,7 +1,7 @@
 package com.travel.service;
 
 import com.travel.common.result.PageResult;
-import com.travel.dto.spot.SpotListResponse;
+import com.travel.dto.spot.response.SpotListResponse;
 
 /**
  * 收藏服务接口。

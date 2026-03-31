@@ -19,7 +19,7 @@
     </resultMap>
 
     <!-- 景点详情页最新评论映射 -->
-    <resultMap id="CommentItemResultMap" type="com.travel.dto.spot.SpotDetailResponse$CommentItem">
+    <resultMap id="CommentItemResultMap" type="com.travel.dto.spot.response.SpotDetailResponse$CommentItem">
         <result column="id" property="id"/>
         <result column="user_id" property="userId"/>
         <result column="nickname" property="nickname"/>
@@ -117,7 +117,7 @@
     </select>
 
     <!-- 景点评分统计查询 -->
-    <select id="selectSpotRatingStats" resultType="com.travel.dto.review.SpotRatingStats">
+    <select id="selectSpotRatingStats" resultType="com.travel.dto.review.model.SpotRatingStats">
         SELECT COALESCE(ROUND(AVG(r.score), 1), 0.0) AS avgRating,
                COUNT(*) AS ratingCount
         FROM user_spot_review r

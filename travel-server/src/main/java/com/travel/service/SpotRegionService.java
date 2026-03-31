@@ -1,8 +1,8 @@
 package com.travel.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.travel.dto.region.AdminRegionRequest;
-import com.travel.dto.region.AdminRegionResponse;
+import com.travel.dto.region.request.AdminRegionRequest;
+import com.travel.dto.region.response.AdminRegionResponse;
 import com.travel.entity.SpotRegion;
 
 import java.util.List;

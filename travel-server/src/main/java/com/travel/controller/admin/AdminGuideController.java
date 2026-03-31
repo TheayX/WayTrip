@@ -2,9 +2,11 @@ package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
-import com.travel.dto.guide.*;
+import com.travel.dto.guide.request.AdminGuideListRequest;
+import com.travel.dto.guide.request.AdminGuideRequest;
+import com.travel.dto.guide.response.AdminGuideListResponse;
 import com.travel.service.GuideService;
-import com.travel.util.UserContext;
+import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +48,7 @@ public class AdminGuideController {
     @Operation(summary = "创建攻略")
     @PostMapping
     public ApiResponse<Map<String, Long>> createGuide(@Valid @RequestBody AdminGuideRequest request) {
-        Long adminId = UserContext.getAdminId();
+        Long adminId = UserContextHolder.getAdminId();
         Long id = guideService.createGuide(request, adminId);
         return ApiResponse.success(Map.of("id", id));
     }

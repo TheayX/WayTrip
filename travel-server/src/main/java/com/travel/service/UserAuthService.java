@@ -1,10 +1,10 @@
 package com.travel.service;
 
-import com.travel.dto.auth.LoginResponse;
-import com.travel.dto.auth.WebLoginRequest;
-import com.travel.dto.auth.WebRegisterRequest;
-import com.travel.dto.auth.WxBindPhoneRequest;
-import com.travel.dto.auth.WxLoginResponse;
+import com.travel.dto.auth.response.LoginResponse;
+import com.travel.dto.auth.request.WebLoginRequest;
+import com.travel.dto.auth.request.WebRegisterRequest;
+import com.travel.dto.auth.request.WxBindPhoneRequest;
+import com.travel.dto.auth.response.WxLoginResponse;
 
 /**
  * 用户认证服务接口。

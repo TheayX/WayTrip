@@ -2,15 +2,15 @@ package com.travel.web;
 
 import com.travel.common.exception.GlobalExceptionHandler;
 import com.travel.controller.app.UserAccountController;
-import com.travel.dto.auth.AdminLoginResponse;
-import com.travel.dto.auth.UserInfoResponse;
-import com.travel.dto.user.AdminUserListResponse;
+import com.travel.dto.auth.response.AdminLoginResponse;
+import com.travel.dto.auth.response.UserInfoResponse;
+import com.travel.dto.user.response.AdminUserListResponse;
 import com.travel.interceptor.AuthInterceptor;
 import com.travel.service.AdminAuthService;
 import com.travel.service.UserAccountService;
 import com.travel.service.UserAuthService;
-import com.travel.service.UserService;
-import com.travel.util.JwtUtil;
+import com.travel.service.UserProfileService;
+import com.travel.util.security.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -32,30 +32,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthInterceptorMvcTest {
 
     private MockMvc mockMvc;
-    private JwtUtil jwtUtil;
+    private JwtUtils jwtUtils;
     private UserAuthService userAuthService;
     private UserAccountService userAccountService;
     private AdminAuthService adminAuthService;
-    private UserService userService;
+    private UserProfileService userProfileService;
 
     /**
      * 构建带鉴权拦截器的 MockMvc 测试环境。
      */
     @BeforeEach
     void setUp() {
-        jwtUtil = new JwtUtil();
-        ReflectionTestUtils.setField(jwtUtil, "secret", "travel-recommendation-system-jwt-secret-2026");
-        ReflectionTestUtils.setField(jwtUtil, "expiration", 604800000L);
-        ReflectionTestUtils.setField(jwtUtil, "adminExpiration", 86400000L);
-        jwtUtil.init();
+        jwtUtils = new JwtUtils();
+        ReflectionTestUtils.setField(jwtUtils, "secret", "travel-recommendation-system-jwt-secret-2026");
+        ReflectionTestUtils.setField(jwtUtils, "expiration", 604800000L);
+        ReflectionTestUtils.setField(jwtUtils, "adminExpiration", 86400000L);
+        jwtUtils.init();
 
         AuthInterceptor authInterceptor = new AuthInterceptor();
-        ReflectionTestUtils.setField(authInterceptor, "jwtUtil", jwtUtil);
+        ReflectionTestUtils.setField(authInterceptor, "jwtUtil", jwtUtils);
 
         userAuthService = Mockito.mock(UserAuthService.class);
         userAccountService = Mockito.mock(UserAccountService.class);
         adminAuthService = Mockito.mock(AdminAuthService.class);
-        userService = Mockito.mock(UserService.class);
+        userProfileService = Mockito.mock(UserProfileService.class);
         Mockito.when(userAccountService.getUserInfo(1L)).thenReturn(
                 UserInfoResponse.builder()
                         .id(1L)
@@ -90,13 +90,13 @@ class AuthInterceptorMvcTest {
         listResponse.setTotal(1L);
         listResponse.setPage(1);
         listResponse.setPageSize(10);
-        Mockito.when(userService.getAdminUsers(Mockito.any())).thenReturn(listResponse);
+        Mockito.when(userProfileService.getAdminUsers(Mockito.any())).thenReturn(listResponse);
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(
                         new UserAccountController(userAccountService),
                         new com.travel.controller.app.AuthController(userAuthService),
-                        new com.travel.controller.admin.AdminUserController(userService),
+                        new com.travel.controller.admin.AdminUserController(userProfileService),
                         new com.travel.controller.admin.AdminAuthController(adminAuthService)
                 )
                 .addInterceptors(authInterceptor)
@@ -114,7 +114,7 @@ class AuthInterceptorMvcTest {
 
     @Test
     void protectedUserEndpoint_acceptsUserToken() throws Exception {
-        String token = jwtUtil.generateUserToken(1L);
+        String token = jwtUtils.generateUserToken(1L);
 
         mockMvc.perform(get("/api/v1/user/info")
                         .header("Authorization", "Bearer " + token)
@@ -127,7 +127,7 @@ class AuthInterceptorMvcTest {
 
     @Test
     void protectedUserEndpoint_rejectsAdminToken() throws Exception {
-        String token = jwtUtil.generateAdminToken(99L);
+        String token = jwtUtils.generateAdminToken(99L);
 
         mockMvc.perform(get("/api/v1/user/info")
                         .header("Authorization", "Bearer " + token)
@@ -138,7 +138,7 @@ class AuthInterceptorMvcTest {
 
     @Test
     void protectedAdminEndpoint_acceptsAdminToken() throws Exception {
-        String token = jwtUtil.generateAdminToken(99L);
+        String token = jwtUtils.generateAdminToken(99L);
 
         mockMvc.perform(get("/api/admin/v1/auth/info")
                         .header("Authorization", "Bearer " + token)
@@ -151,7 +151,7 @@ class AuthInterceptorMvcTest {
 
     @Test
     void adminUsers_rejectsUserToken() throws Exception {
-        String token = jwtUtil.generateUserToken(1L);
+        String token = jwtUtils.generateUserToken(1L);
 
         mockMvc.perform(get("/api/admin/v1/users")
                         .header("Authorization", "Bearer " + token)
@@ -162,7 +162,7 @@ class AuthInterceptorMvcTest {
 
     @Test
     void adminUsers_acceptsAdminToken_andDoesNotExposeOpenid() throws Exception {
-        String token = jwtUtil.generateAdminToken(99L);
+        String token = jwtUtils.generateAdminToken(99L);
 
         mockMvc.perform(get("/api/admin/v1/users")
                         .header("Authorization", "Bearer " + token)

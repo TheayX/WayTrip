@@ -3,7 +3,7 @@
 <mapper namespace="com.travel.mapper.UserSpotViewMapper">
 
     <!-- 最近都在看列表映射 -->
-    <resultMap id="RecentViewedSpotItemResultMap" type="com.travel.dto.home.RecentViewedSpotItem">
+    <resultMap id="RecentViewedSpotItemResultMap" type="com.travel.dto.home.model.RecentViewedSpotItem">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="cover_image" property="coverImage"/>
