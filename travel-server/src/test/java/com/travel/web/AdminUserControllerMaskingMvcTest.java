@@ -11,9 +11,12 @@ import com.travel.entity.UserSpotFavorite;
 import com.travel.enums.OrderStatus;
 import com.travel.mapper.OrderMapper;
 import com.travel.mapper.ReviewMapper;
+import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
+import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
+import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.impl.UserProfileServiceImpl;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
@@ -46,8 +49,11 @@ class AdminUserControllerMaskingMvcTest {
     private UserMapper userMapper;
     private OrderMapper orderMapper;
     private UserSpotFavoriteMapper userSpotFavoriteMapper;
+    private UserSpotViewMapper userSpotViewMapper;
+    private UserPreferenceMapper userPreferenceMapper;
     private ReviewMapper reviewMapper;
     private SpotMapper spotMapper;
+    private SpotCategoryMapper spotCategoryMapper;
     private BCryptPasswordEncoder passwordEncoder;
 
     /**
@@ -73,16 +79,22 @@ class AdminUserControllerMaskingMvcTest {
         userMapper = mock(UserMapper.class);
         orderMapper = mock(OrderMapper.class);
         userSpotFavoriteMapper = mock(UserSpotFavoriteMapper.class);
+        userSpotViewMapper = mock(UserSpotViewMapper.class);
+        userPreferenceMapper = mock(UserPreferenceMapper.class);
         reviewMapper = mock(ReviewMapper.class);
         spotMapper = mock(SpotMapper.class);
+        spotCategoryMapper = mock(SpotCategoryMapper.class);
         passwordEncoder = mock(BCryptPasswordEncoder.class);
 
         UserProfileServiceImpl userService = new UserProfileServiceImpl(
                 userMapper,
                 orderMapper,
                 userSpotFavoriteMapper,
+                userSpotViewMapper,
+                userPreferenceMapper,
                 reviewMapper,
                 spotMapper,
+                spotCategoryMapper,
                 passwordEncoder
         );
         AdminUserController controller = new AdminUserController(userService);

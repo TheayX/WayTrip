@@ -1,730 +1,102 @@
 package com.travel.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
-import com.travel.common.result.ResultCode;
-import com.travel.constant.SpotHeatLevelConstants;
-import com.travel.dto.recommendation.model.RecommendationConfigBundleDTO;
 import com.travel.dto.spot.request.AdminSpotListRequest;
 import com.travel.dto.spot.request.AdminSpotUpsertRequest;
 import com.travel.dto.spot.request.SpotListRequest;
-import com.travel.dto.spot.response.*;
-import com.travel.enums.OrderStatus;
-import com.travel.entity.*;
-import com.travel.mapper.*;
-import com.travel.service.RecommendationService;
+import com.travel.dto.spot.response.AdminSpotDetailResponse;
+import com.travel.dto.spot.response.AdminSpotListResponse;
+import com.travel.dto.spot.response.SpotDetailResponse;
+import com.travel.dto.spot.response.SpotFilterResponse;
+import com.travel.dto.spot.response.SpotListResponse;
+import com.travel.dto.spot.response.SpotViewHistoryResponse;
+import com.travel.service.SpotAdminService;
+import com.travel.service.SpotBehaviorService;
+import com.travel.service.SpotHeatService;
+import com.travel.service.SpotQueryService;
 import com.travel.service.SpotService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * 景点服务实现，负责用户端景点浏览、管理端维护与热度同步逻辑。
+ * 景点服务门面，统一承接 controller 调用并分发到具体子服务。
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SpotServiceImpl implements SpotService {
 
-    private static final DateTimeFormatter VIEW_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-    // 持久层与服务依赖
-
-    private final SpotMapper spotMapper;
-    private final SpotImageMapper spotImageMapper;
-    private final SpotRegionMapper spotRegionMapper;
-    private final SpotCategoryMapper spotCategoryMapper;
-    private final UserSpotFavoriteMapper userSpotFavoriteMapper;
-    private final ReviewMapper reviewMapper;
-    private final UserSpotViewMapper userSpotViewMapper;
-    private final OrderMapper orderMapper;
-    private final RecommendationService recommendationService;
-
-    // 用户端景点查询与行为上报
+    private final SpotQueryService spotQueryService;
+    private final SpotAdminService spotAdminService;
+    private final SpotBehaviorService spotBehaviorService;
+    private final SpotHeatService spotHeatService;
 
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
-        Page<Spot> page = new Page<>(request.getPage(), request.getPageSize());
-
-        LambdaQueryWrapper<Spot> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Spot::getIsPublished, 1);
-        wrapper.eq(Spot::getIsDeleted, 0);
-
-        if (request.getRegionId() != null) {
-            Set<Long> regionIds = findRegionAndChildrenIds(request.getRegionId());
-            if (regionIds.isEmpty() || regionIds.size() == 1) {
-                wrapper.eq(Spot::getRegionId, request.getRegionId());
-            } else {
-                wrapper.in(Spot::getRegionId, regionIds);
-            }
-        }
-        if (request.getCategoryId() != null) {
-            Set<Long> categoryIds = findCategoryAndChildrenIds(request.getCategoryId());
-            if (categoryIds.isEmpty()) {
-                wrapper.eq(Spot::getCategoryId, request.getCategoryId());
-            } else {
-                wrapper.in(Spot::getCategoryId, categoryIds);
-            }
-        }
-
-        // 未显式指定排序时，默认按热度分数返回。
-        String sortBy = request.getSortBy();
-        if ("rating".equals(sortBy)) {
-            wrapper.orderByDesc(Spot::getAvgRating);
-        } else if ("price_asc".equals(sortBy)) {
-            wrapper.orderByAsc(Spot::getPrice);
-        } else if ("price_desc".equals(sortBy)) {
-            wrapper.orderByDesc(Spot::getPrice);
-        } else {
-            wrapper.orderByDesc(Spot::getHeatScore);
-        }
-
-        Page<Spot> result = spotMapper.selectPage(page, wrapper);
-
-        List<SpotListResponse> list = result.getRecords().stream()
-                .map(this::convertToListResponse)
-                .collect(Collectors.toList());
-
-        return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
+        return spotQueryService.getSpotList(request);
     }
 
     @Override
     public PageResult<SpotListResponse> searchSpots(String keyword, Integer page, Integer pageSize) {
-        Page<Spot> pageObj = new Page<>(page, pageSize);
-
-        LambdaQueryWrapper<Spot> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Spot::getIsPublished, 1);
-        wrapper.eq(Spot::getIsDeleted, 0);
-        wrapper.and(w -> w.like(Spot::getName, keyword).or().like(Spot::getDescription, keyword));
-        wrapper.orderByDesc(Spot::getHeatScore);
-
-        Page<Spot> result = spotMapper.selectPage(pageObj, wrapper);
-
-        List<SpotListResponse> list = result.getRecords().stream()
-                .map(this::convertToListResponse)
-                .collect(Collectors.toList());
-
-        return PageResult.of(list, result.getTotal(), page, pageSize);
+        return spotQueryService.searchSpots(keyword, page, pageSize);
     }
 
     @Override
     public PageResult<SpotViewHistoryResponse> getViewHistory(Long userId, Integer page, Integer pageSize) {
-        if (userId == null) {
-            return PageResult.of(new ArrayList<>(), 0L, page, pageSize);
-        }
-
-        List<UserSpotView> views = userSpotViewMapper.selectList(
-                new LambdaQueryWrapper<UserSpotView>()
-                        .eq(UserSpotView::getUserId, userId)
-                        .orderByDesc(UserSpotView::getCreatedAt)
-                        .orderByDesc(UserSpotView::getId));
-
-        Map<Long, UserSpotView> latestBySpot = new LinkedHashMap<>();
-        for (UserSpotView view : views) {
-            if (view.getSpotId() == null || latestBySpot.containsKey(view.getSpotId())) {
-                continue;
-            }
-            latestBySpot.put(view.getSpotId(), view);
-        }
-
-        List<UserSpotView> latestViews = new ArrayList<>(latestBySpot.values());
-        if (latestViews.isEmpty()) {
-            return PageResult.of(new ArrayList<>(), 0L, page, pageSize);
-        }
-
-        Set<Long> spotIds = latestViews.stream()
-                .map(UserSpotView::getSpotId)
-                .collect(Collectors.toSet());
-        Map<Long, Spot> spotMap = spotMapper.selectBatchIds(spotIds).stream()
-                .filter(spot -> spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
-                .collect(Collectors.toMap(Spot::getId, spot -> spot));
-
-        List<SpotViewHistoryResponse> allItems = latestViews.stream()
-                .map(view -> {
-                    Spot spot = spotMap.get(view.getSpotId());
-                    if (spot == null) {
-                        return null;
-                    }
-                    return SpotViewHistoryResponse.builder()
-                            .id(spot.getId())
-                            .name(spot.getName())
-                            .coverImage(spot.getCoverImageUrl())
-                            .regionName(getRegionName(spot.getRegionId()))
-                            .categoryName(getCategoryName(spot.getCategoryId()))
-                            .viewedAt(view.getCreatedAt() == null ? null : view.getCreatedAt().format(VIEW_TIME_FORMATTER))
-                            .build();
-                })
-                .filter(java.util.Objects::nonNull)
-                .sorted(Comparator.comparing(SpotViewHistoryResponse::getViewedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-                .collect(Collectors.toList());
-
-        long total = allItems.size();
-        int safePage = page == null || page < 1 ? 1 : page;
-        int safePageSize = pageSize == null || pageSize < 1 ? 10 : pageSize;
-        int fromIndex = Math.min((safePage - 1) * safePageSize, allItems.size());
-        int toIndex = Math.min(fromIndex + safePageSize, allItems.size());
-
-        return PageResult.of(new ArrayList<>(allItems.subList(fromIndex, toIndex)), total, safePage, safePageSize);
-    }
-
-    @Override
-    public void recordView(Long spotId, Long userId, String source, Integer duration) {
-        if (userId == null) return;
-        try {
-            UserSpotView view = new UserSpotView();
-            view.setUserId(userId);
-            view.setSpotId(spotId);
-            view.setViewSource(source);
-            view.setViewDuration(duration != null ? duration : 0);
-            userSpotViewMapper.insert(view);
-            // 浏览行为会影响推荐结果，需要同步清理用户推荐缓存。
-            recommendationService.invalidateUserRecommendationCache(userId);
-        } catch (Exception e) {
-            log.warn("记录浏览行为失败: userId={}, spotId={}", userId, spotId, e);
-        }
+        return spotQueryService.getViewHistory(userId, page, pageSize);
     }
 
     @Override
     public SpotDetailResponse getSpotDetail(Long spotId, Long userId) {
-        Spot spot = spotMapper.selectById(spotId);
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
-        if (spot.getIsPublished() != 1) {
-            throw new BusinessException(ResultCode.SPOT_OFFLINE);
-        }
+        return spotQueryService.getSpotDetail(spotId, userId);
+    }
 
-        // 获取图片
-        List<SpotImage> images = spotImageMapper.selectList(
-                new LambdaQueryWrapper<SpotImage>()
-                        .eq(SpotImage::getSpotId, spotId)
-                        .eq(SpotImage::getIsDeleted, 0)
-                        .orderByAsc(SpotImage::getSortOrder));
-        List<String> imageUrls = images.stream().map(SpotImage::getImageUrl).collect(Collectors.toList());
-        if (StringUtils.hasText(spot.getCoverImageUrl())) {
-            imageUrls.add(0, spot.getCoverImageUrl());
-        }
-
-        // 获取地区和分类名称
-        String regionName = getRegionName(spot.getRegionId());
-        String categoryName = getCategoryName(spot.getCategoryId());
-
-        // 检查收藏状态
-        Boolean isFavorite = false;
-        Integer userRating = null;
-        if (userId != null) {
-            Long favoriteCount = userSpotFavoriteMapper.selectCount(
-                    new LambdaQueryWrapper<UserSpotFavorite>()
-                            .eq(UserSpotFavorite::getUserId, userId)
-                            .eq(UserSpotFavorite::getSpotId, spotId)
-                            .eq(UserSpotFavorite::getIsDeleted, 0));
-            isFavorite = favoriteCount > 0;
-
-            Review review = reviewMapper.selectOne(
-                    new LambdaQueryWrapper<Review>()
-                            .eq(Review::getUserId, userId)
-                            .eq(Review::getSpotId, spotId)
-                            .eq(Review::getIsDeleted, 0));
-            if (review != null) {
-                userRating = review.getScore();
-            }
-        }
-
-        // 详情页仅展示最新评论摘要，完整评价列表走评价接口分页查询。
-        List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5);
-
-        return SpotDetailResponse.builder()
-                .id(spot.getId())
-                .name(spot.getName())
-                .coverImage(spot.getCoverImageUrl())
-                .description(spot.getDescription())
-                .price(spot.getPrice())
-                .openTime(spot.getOpenTime())
-                .address(spot.getAddress())
-                .latitude(spot.getLatitude())
-                .longitude(spot.getLongitude())
-                .images(imageUrls)
-                .avgRating(spot.getAvgRating())
-                .ratingCount(spot.getRatingCount())
-                .regionName(regionName)
-                .categoryName(categoryName)
-                .isFavorite(isFavorite)
-                .userRating(userRating)
-                .latestComments(comments)
-                .build();
+    @Override
+    public void recordView(Long spotId, Long userId, String source, Integer duration) {
+        spotBehaviorService.recordView(spotId, userId, source, duration);
     }
 
     @Override
     public SpotFilterResponse getFilters() {
-        List<SpotRegion> regions = spotRegionMapper.selectList(
-                new LambdaQueryWrapper<SpotRegion>()
-                        .eq(SpotRegion::getIsDeleted, 0)
-                        .orderByAsc(SpotRegion::getSortOrder));
-        List<SpotCategory> categories = spotCategoryMapper.selectList(
-                new LambdaQueryWrapper<SpotCategory>()
-                        .eq(SpotCategory::getIsDeleted, 0)
-                        .orderByAsc(SpotCategory::getSortOrder)
-                        .orderByAsc(SpotCategory::getId));
-
-        List<SpotFilterResponse.FilterItem> regionItems = regions.stream()
-                .map(r -> SpotFilterResponse.FilterItem.builder()
-                        .id(r.getId())
-                        .name(r.getName())
-                        .parentId(r.getParentId())
-                        .children(new ArrayList<>())
-                        .build())
-                .collect(Collectors.toList());
-        List<SpotFilterResponse.FilterItem> categoryItems = categories.stream()
-                .map(this::convertCategoryFilterItem)
-                .collect(Collectors.toList());
-        List<SpotFilterResponse.FilterItem> regionTree = buildFilterTree(regionItems);
-        Set<Long> regionParentIds = regionItems.stream()
-                .map(SpotFilterResponse.FilterItem::getParentId)
-                .filter(parentId -> parentId != null && parentId > 0)
-                .collect(Collectors.toSet());
-        List<SpotFilterResponse.FilterItem> regionLeaves = regionItems.stream()
-                .filter(item -> !regionParentIds.contains(item.getId()))
-                .collect(Collectors.toList());
-
-        return SpotFilterResponse.builder()
-                .regions(regionLeaves)
-                .regionTree(regionTree)
-                .categories(categoryItems)
-                .categoryTree(buildFilterTree(categoryItems))
-                .build();
+        return spotQueryService.getFilters();
     }
-
-    // 筛选项与树结构组装
-
-    private SpotFilterResponse.FilterItem convertCategoryFilterItem(SpotCategory category) {
-        return SpotFilterResponse.FilterItem.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .parentId(category.getParentId())
-                .iconUrl(category.getIconUrl())
-                .children(new ArrayList<>())
-                .build();
-    }
-
-    private List<SpotFilterResponse.FilterItem> buildFilterTree(List<SpotFilterResponse.FilterItem> items) {
-        Map<Long, SpotFilterResponse.FilterItem> itemMap = items.stream()
-                .collect(Collectors.toMap(SpotFilterResponse.FilterItem::getId, item -> item));
-
-        List<SpotFilterResponse.FilterItem> roots = new ArrayList<>();
-        for (SpotFilterResponse.FilterItem item : items) {
-            Long parentId = item.getParentId();
-            if (parentId == null || parentId <= 0 || !itemMap.containsKey(parentId)) {
-                roots.add(item);
-                continue;
-            }
-            SpotFilterResponse.FilterItem parent = itemMap.get(parentId);
-            if (parent.getChildren() == null) {
-                parent.setChildren(new ArrayList<>());
-            }
-            parent.getChildren().add(item);
-        }
-
-        return roots;
-    }
-
-    // 管理端景点维护与热度同步
 
     @Override
     public PageResult<AdminSpotListResponse> getAdminSpotList(AdminSpotListRequest request) {
-        Page<Spot> page = new Page<>(request.getPage(), request.getPageSize());
-
-        LambdaQueryWrapper<Spot> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Spot::getIsDeleted, 0);
-
-        if (StringUtils.hasText(request.getKeyword())) {
-            wrapper.like(Spot::getName, request.getKeyword());
-        }
-        if (request.getRegionId() != null) {
-            Set<Long> regionIds = findRegionAndChildrenIds(request.getRegionId());
-            if (regionIds.isEmpty() || regionIds.size() == 1) {
-                wrapper.eq(Spot::getRegionId, request.getRegionId());
-            } else {
-                wrapper.in(Spot::getRegionId, regionIds);
-            }
-        }
-        if (request.getCategoryId() != null) {
-            Set<Long> categoryIds = findCategoryAndChildrenIds(request.getCategoryId());
-            if (categoryIds.isEmpty()) {
-                wrapper.eq(Spot::getCategoryId, request.getCategoryId());
-            } else {
-                wrapper.in(Spot::getCategoryId, categoryIds);
-            }
-        }
-        if (request.getPublished() != null) {
-            wrapper.eq(Spot::getIsPublished, request.getPublished());
-        }
-        wrapper.orderByAsc(Spot::getId);
-
-        Page<Spot> result = spotMapper.selectPage(page, wrapper);
-
-        List<AdminSpotListResponse> list = result.getRecords().stream()
-                .map(this::convertToAdminListResponse)
-                .collect(Collectors.toList());
-
-        return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
+        return spotAdminService.getAdminSpotList(request);
     }
 
     @Override
     public AdminSpotDetailResponse getAdminSpotDetail(Long spotId) {
-        Spot spot = spotMapper.selectById(spotId);
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
-
-        List<SpotImage> images = spotImageMapper.selectList(
-                new LambdaQueryWrapper<SpotImage>()
-                        .eq(SpotImage::getSpotId, spotId)
-                        .eq(SpotImage::getIsDeleted, 0));
-
-        AdminSpotDetailResponse response = new AdminSpotDetailResponse();
-        response.setName(spot.getName());
-        response.setDescription(spot.getDescription());
-        response.setPrice(spot.getPrice());
-        response.setOpenTime(spot.getOpenTime());
-        response.setAddress(spot.getAddress());
-        response.setLatitude(spot.getLatitude());
-        response.setLongitude(spot.getLongitude());
-        response.setCoverImage(spot.getCoverImageUrl());
-        response.setImages(images.stream().map(SpotImage::getImageUrl).collect(Collectors.toList()));
-        response.setRegionId(spot.getRegionId());
-        response.setCategoryId(spot.getCategoryId());
-        response.setPublished(spot.getIsPublished() == 1);
-        response.setAvgRating(spot.getAvgRating());
-        response.setRatingCount(spot.getRatingCount());
-        response.setHeatLevel(spot.getHeatLevel());
-        response.setHeatScore(spot.getHeatScore());
-
-        return response;
+        return spotAdminService.getAdminSpotDetail(spotId);
     }
 
     @Override
-    @Transactional
     public Long createSpot(AdminSpotUpsertRequest request) {
-        Spot spot = new Spot();
-        copyProperties(request, spot);
-        spotMapper.insert(spot);
-
-        // 保存图片
-        saveSpotImages(spot.getId(), request.getImages());
-
-        log.info("景点创建成功: spotId={}, name={}", spot.getId(), spot.getName());
-
-        return spot.getId();
+        return spotAdminService.createSpot(request);
     }
 
     @Override
-    @Transactional
     public void updateSpot(Long spotId, AdminSpotUpsertRequest request) {
-        Spot spot = spotMapper.selectById(spotId);
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
-
-        copyProperties(request, spot);
-        spotMapper.updateById(spot);
-
-        if (request.getImages() != null) {
-            // 更新图片
-            SpotImage deletedImage = new SpotImage();
-            deletedImage.setIsDeleted(1);
-            spotImageMapper.update(
-                    deletedImage,
-                    new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId));
-            saveSpotImages(spotId, request.getImages());
-        }
-
-        log.info("景点更新成功: spotId={}, name={}", spotId, request.getName());
+        spotAdminService.updateSpot(spotId, request);
     }
 
     @Override
     public void updatePublishStatus(Long spotId, Boolean published) {
-        Spot spot = spotMapper.selectById(spotId);
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
-        spot.setIsPublished(published ? 1 : 0);
-        spotMapper.updateById(spot);
-        log.info("景点发布状态变更: spotId={}, published={}", spotId, published);
+        spotAdminService.updatePublishStatus(spotId, published);
     }
 
     @Override
     public void deleteSpot(Long spotId) {
-        Spot spot = spotMapper.selectById(spotId);
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
-        spot.setIsDeleted(1);
-        spotMapper.updateById(spot);
-
-        SpotImage deletedImage = new SpotImage();
-        deletedImage.setIsDeleted(1);
-        spotImageMapper.update(
-                deletedImage,
-                new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId));
-
-        log.info("景点已删除: spotId={}, name={}", spotId, spot.getName());
+        spotAdminService.deleteSpot(spotId);
     }
 
     @Override
-    @Transactional
     public void refreshSpotHeat(Long spotId) {
-        Spot spot = spotMapper.selectById(spotId);
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
-        applyHeatScore(spot);
+        spotHeatService.refreshSpotHeat(spotId);
     }
 
     @Override
-    @Transactional
     public void refreshAllSpotHeat() {
-        List<Spot> spots = spotMapper.selectList(
-                new LambdaQueryWrapper<Spot>()
-                        .eq(Spot::getIsDeleted, 0)
-                        .select(Spot::getId, Spot::getHeatLevel));
-
-        for (Spot spot : spots) {
-            applyHeatScore(spot);
-        }
-    }
-
-    // 内部转换与层级查询方法
-
-    private SpotListResponse convertToListResponse(Spot spot) {
-        return SpotListResponse.builder()
-                .id(spot.getId())
-                .name(spot.getName())
-                .coverImage(spot.getCoverImageUrl())
-                .price(spot.getPrice())
-                .avgRating(spot.getAvgRating())
-                .ratingCount(spot.getRatingCount())
-                .regionName(getRegionName(spot.getRegionId()))
-                .categoryName(getCategoryName(spot.getCategoryId()))
-                .build();
-    }
-
-    private AdminSpotListResponse convertToAdminListResponse(Spot spot) {
-        return AdminSpotListResponse.builder()
-                .id(spot.getId())
-                .name(spot.getName())
-                .coverImage(spot.getCoverImageUrl())
-                .price(spot.getPrice())
-                .regionName(getRegionName(spot.getRegionId()))
-                .categoryName(getCategoryName(spot.getCategoryId()))
-                .avgRating(spot.getAvgRating())
-                .ratingCount(spot.getRatingCount())
-                .heatLevel(spot.getHeatLevel())
-                .heatScore(spot.getHeatScore())
-                .published(spot.getIsPublished() == 1)
-                .createdAt(spot.getCreatedAt())
-                .updatedAt(spot.getUpdatedAt())
-                .build();
-    }
-
-    private String getRegionName(Long regionId) {
-        if (regionId == null)
-            return null;
-        SpotRegion region = spotRegionMapper.selectById(regionId);
-        return region != null && region.getIsDeleted() == 0 ? region.getName() : null;
-    }
-
-    private String getCategoryName(Long categoryId) {
-        if (categoryId == null)
-            return null;
-        SpotCategory category = spotCategoryMapper.selectById(categoryId);
-        return category != null && category.getIsDeleted() == 0 ? category.getName() : null;
-    }
-
-    private Set<Long> findCategoryAndChildrenIds(Long categoryId) {
-        List<SpotCategory> categories = spotCategoryMapper.selectList(
-                new LambdaQueryWrapper<SpotCategory>()
-                        .eq(SpotCategory::getIsDeleted, 0)
-                        .select(SpotCategory::getId, SpotCategory::getParentId));
-
-        Map<Long, List<Long>> childrenMap = new HashMap<>();
-        for (SpotCategory category : categories) {
-            Long parentId = category.getParentId();
-            if (parentId != null && parentId > 0) {
-                childrenMap.computeIfAbsent(parentId, key -> new ArrayList<>()).add(category.getId());
-            }
-        }
-
-        Set<Long> allCategoryIds = new HashSet<>();
-        List<Long> stack = new ArrayList<>();
-        stack.add(categoryId);
-        while (!stack.isEmpty()) {
-            Long currentId = stack.remove(stack.size() - 1);
-            if (!allCategoryIds.add(currentId)) {
-                continue;
-            }
-            List<Long> children = childrenMap.get(currentId);
-            if (children != null && !children.isEmpty()) {
-                stack.addAll(children);
-            }
-        }
-
-        return allCategoryIds;
-    }
-
-    private Set<Long> findRegionAndChildrenIds(Long regionId) {
-        List<SpotRegion> regions = spotRegionMapper.selectList(
-                new LambdaQueryWrapper<SpotRegion>()
-                        .eq(SpotRegion::getIsDeleted, 0)
-                        .select(SpotRegion::getId, SpotRegion::getParentId));
-
-        Map<Long, List<Long>> childrenMap = new HashMap<>();
-        for (SpotRegion region : regions) {
-            Long parentId = region.getParentId();
-            if (parentId != null && parentId > 0) {
-                childrenMap.computeIfAbsent(parentId, key -> new ArrayList<>()).add(region.getId());
-            }
-        }
-
-        Set<Long> allRegionIds = new HashSet<>();
-        List<Long> stack = new ArrayList<>();
-        stack.add(regionId);
-        while (!stack.isEmpty()) {
-            Long currentId = stack.remove(stack.size() - 1);
-            if (!allRegionIds.add(currentId)) {
-                continue;
-            }
-            List<Long> children = childrenMap.get(currentId);
-            if (children != null && !children.isEmpty()) {
-                stack.addAll(children);
-            }
-        }
-
-        return allRegionIds;
-    }
-
-    private void copyProperties(AdminSpotUpsertRequest request, Spot spot) {
-        if (request.getName() != null) {
-            spot.setName(request.getName());
-        }
-        if (request.getDescription() != null) {
-            spot.setDescription(request.getDescription());
-        }
-        if (request.getPrice() != null) {
-            spot.setPrice(request.getPrice());
-        }
-        if (request.getOpenTime() != null) {
-            spot.setOpenTime(request.getOpenTime());
-        }
-        if (request.getAddress() != null) {
-            spot.setAddress(request.getAddress());
-        }
-        if (request.getLatitude() != null) {
-            spot.setLatitude(request.getLatitude());
-        }
-        if (request.getLongitude() != null) {
-            spot.setLongitude(request.getLongitude());
-        }
-        if (request.getCoverImage() != null) {
-            spot.setCoverImageUrl(request.getCoverImage());
-        }
-        if (request.getRegionId() != null) {
-            spot.setRegionId(request.getRegionId());
-        }
-        if (request.getCategoryId() != null) {
-            spot.setCategoryId(request.getCategoryId());
-        }
-        if (request.getPublished() != null) {
-            spot.setIsPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
-        }
-        if (request.getHeatLevel() != null) {
-            spot.setHeatLevel(request.getHeatLevel());
-        }
-    }
-
-    private void applyHeatScore(Spot spot) {
-        RecommendationConfigBundleDTO config = recommendationService.getConfig();
-        int totalHeatScore = SpotHeatLevelConstants.toBaseScore(spot.getHeatLevel())
-                + calculateBehaviorHeatScore(spot.getId(), config);
-        spotMapper.update(
-                null,
-                new UpdateWrapper<Spot>()
-                        .eq("id", spot.getId())
-                        .set("heat_score", totalHeatScore));
-        log.info("景点热度同步完成: spotId={}, heatLevel={}, heatScore={}", spot.getId(), spot.getHeatLevel(), totalHeatScore);
-    }
-
-    private int calculateBehaviorHeatScore(Long spotId, RecommendationConfigBundleDTO config) {
-        long viewCount = userSpotViewMapper.selectCount(
-                new LambdaQueryWrapper<UserSpotView>()
-                        .eq(UserSpotView::getSpotId, spotId)
-        );
-        long favoriteCount = userSpotFavoriteMapper.selectCount(
-                new LambdaQueryWrapper<UserSpotFavorite>()
-                        .eq(UserSpotFavorite::getSpotId, spotId)
-                        .eq(UserSpotFavorite::getIsDeleted, 0)
-        );
-        long reviewCount = reviewMapper.selectCount(
-                new LambdaQueryWrapper<Review>()
-                        .eq(Review::getSpotId, spotId)
-                        .eq(Review::getIsDeleted, 0)
-        );
-        long paidOrderCount = orderMapper.selectCount(
-                new LambdaQueryWrapper<Order>()
-                        .eq(Order::getSpotId, spotId)
-                        .eq(Order::getIsDeleted, 0)
-                        .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
-        );
-        long completedOrderCount = orderMapper.selectCount(
-                new LambdaQueryWrapper<Order>()
-                        .eq(Order::getSpotId, spotId)
-                        .eq(Order::getIsDeleted, 0)
-                        .eq(Order::getStatus, OrderStatus.COMPLETED.getCode())
-        );
-
-        int viewIncrement = positiveOrDefault(config.getHeat().getHeatViewIncrement(), 1);
-        int favoriteIncrement = positiveOrDefault(config.getHeat().getHeatFavoriteIncrement(), 3);
-        int reviewIncrement = positiveOrDefault(config.getHeat().getHeatReviewIncrement(), 2);
-        int paidIncrement = positiveOrDefault(config.getHeat().getHeatOrderPaidIncrement(), 5);
-        int completedIncrement = positiveOrDefault(config.getHeat().getHeatOrderCompletedIncrement(), 8);
-
-        return Math.toIntExact(
-                viewCount * (long) viewIncrement
-                        + favoriteCount * (long) favoriteIncrement
-                        + reviewCount * (long) reviewIncrement
-                        + paidOrderCount * (long) paidIncrement
-                        + completedOrderCount * (long) completedIncrement
-        );
-    }
-
-    private void saveSpotImages(Long spotId, List<String> images) {
-        if (images == null || images.isEmpty())
-            return;
-        for (int i = 0; i < images.size(); i++) {
-            SpotImage image = new SpotImage();
-            image.setSpotId(spotId);
-            image.setImageUrl(images.get(i));
-            image.setSortOrder(i + 1);
-            spotImageMapper.insert(image);
-        }
-    }
-
-    private int positiveOrDefault(Integer value, int fallback) {
-        return value != null && value > 0 ? value : fallback;
+        spotHeatService.refreshAllSpotHeat();
     }
 }

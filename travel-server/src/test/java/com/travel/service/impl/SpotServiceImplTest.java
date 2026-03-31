@@ -13,10 +13,7 @@ import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.UserSpotView;
 import com.travel.mapper.OrderMapper;
 import com.travel.mapper.ReviewMapper;
-import com.travel.mapper.SpotCategoryMapper;
-import com.travel.mapper.SpotImageMapper;
 import com.travel.mapper.SpotMapper;
-import com.travel.mapper.SpotRegionMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.RecommendationService;
@@ -69,15 +66,6 @@ class SpotServiceImplTest {
     private SpotMapper spotMapper;
 
     @Mock
-    private SpotImageMapper spotImageMapper;
-
-    @Mock
-    private SpotRegionMapper spotRegionMapper;
-
-    @Mock
-    private SpotCategoryMapper spotCategoryMapper;
-
-    @Mock
     private UserSpotFavoriteMapper userSpotFavoriteMapper;
 
     @Mock
@@ -92,15 +80,12 @@ class SpotServiceImplTest {
     @Mock
     private RecommendationService recommendationService;
 
-    private SpotServiceImpl spotService;
+    private SpotHeatServiceImpl spotHeatService;
 
     @BeforeEach
     void setUp() {
-        spotService = new SpotServiceImpl(
+        spotHeatService = new SpotHeatServiceImpl(
             spotMapper,
-            spotImageMapper,
-            spotRegionMapper,
-            spotCategoryMapper,
             userSpotFavoriteMapper,
             reviewMapper,
             userSpotViewMapper,
@@ -123,7 +108,7 @@ class SpotServiceImplTest {
         when(orderMapper.selectCount(any())).thenReturn(3L, 1L);
         when(recommendationService.getConfig()).thenReturn(new RecommendationConfigBundleDTO());
 
-        spotService.refreshSpotHeat(1L);
+        spotHeatService.refreshSpotHeat(1L);
 
         ArgumentCaptor<UpdateWrapper<Spot>> wrapperCaptor = ArgumentCaptor.forClass(UpdateWrapper.class);
         verify(spotMapper).update(isNull(), wrapperCaptor.capture());
@@ -144,7 +129,7 @@ class SpotServiceImplTest {
         when(spotMapper.selectList(any())).thenReturn(List.of(first, second));
         when(recommendationService.getConfig()).thenReturn(new RecommendationConfigBundleDTO());
 
-        spotService.refreshAllSpotHeat();
+        spotHeatService.refreshAllSpotHeat();
 
         ArgumentCaptor<UpdateWrapper<Spot>> wrapperCaptor = ArgumentCaptor.forClass(UpdateWrapper.class);
         verify(spotMapper, times(2)).update(isNull(), wrapperCaptor.capture());
