@@ -5,32 +5,32 @@
       <text class="hero-desc">看看最近一段时间里，大家浏览更多的景点。</text>
       <view class="hero-stats">
         <view class="hero-stat">
-          <text class="hero-stat-value">{{ recentViewedSpots.length }}</text>
+          <text class="hero-stat-value">{{ trendingSpots.length }}</text>
           <text class="hero-stat-label">热门景点</text>
         </view>
         <view class="hero-stat">
-          <text class="hero-stat-value">{{ recentViewDays }}</text>
+          <text class="hero-stat-value">{{ trendingDays }}</text>
           <text class="hero-stat-label">统计天数</text>
         </view>
       </view>
     </view>
 
-    <view class="spot-card" v-for="item in recentViewedSpots" :key="item.id" @click="goSpotDetail(item.id)">
+    <view class="spot-card" v-for="item in trendingSpots" :key="item.id" @click="goSpotDetail(item.id)">
       <image class="spot-image" :src="getImageUrl(item.coverImage)" mode="aspectFill" />
       <view class="spot-content">
         <view class="spot-header">
           <text class="spot-title">{{ item.name }}</text>
-          <text class="spot-price">{{ formatRecentViewPrice(item.price) }}</text>
+          <text class="spot-price">{{ formatTrendingPrice(item.price) }}</text>
         </view>
         <view class="spot-meta">
           <text class="meta-tag">{{ item.categoryName || '景点' }}</text>
           <text class="meta-tag">{{ item.viewCount || 0 }} 次浏览</text>
-          <text class="meta-rating">{{ formatRecentViewRating(item.avgRating) }}</text>
+          <text class="meta-rating">{{ formatTrendingRating(item.avgRating) }}</text>
         </view>
       </view>
     </view>
 
-    <view class="empty-card" v-if="!loading && !recentViewedSpots.length">
+    <view class="empty-card" v-if="!loading && !trendingSpots.length">
       <text class="empty-title">最近还没有可展示的浏览热点</text>
       <text class="empty-desc">等有更多浏览记录后，这里会自动更新。</text>
     </view>
@@ -44,28 +44,28 @@
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { fetchRecentViewedSpots } from '@/services/feature'
+import { fetchTrendingViewSpots } from '@/services/trending-views'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
 
-const recentViewedSpots = ref([])
-const recentViewDays = ref(14)
+const trendingSpots = ref([])
+const trendingDays = ref(14)
 const loading = ref(false)
 
-const formatRecentViewPrice = (value) => formatFeaturePrice(value, { freeText: '¥0 免费' })
-const formatRecentViewRating = (value) => formatFeatureRating(value)
+const formatTrendingPrice = (value) => formatFeaturePrice(value, { freeText: '¥0 免费' })
+const formatTrendingRating = (value) => formatFeatureRating(value)
 
-const loadRecentViewedSpots = async () => {
+const loadTrendingSpots = async () => {
   if (loading.value) return
   loading.value = true
 
   try {
-    const result = await fetchRecentViewedSpots()
-    recentViewedSpots.value = result.list
-    recentViewDays.value = result.days
+    const result = await fetchTrendingViewSpots()
+    trendingSpots.value = result.list
+    trendingDays.value = result.days
   } catch (error) {
-    console.error('加载最近都在看失败', error)
+    console.error('加载近期热看失败', error)
     uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
@@ -76,11 +76,11 @@ const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
-  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=recent-views` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=trending-views` })
 }
 
 onLoad(() => {
-  loadRecentViewedSpots()
+  loadTrendingSpots()
 })
 </script>
 

@@ -67,7 +67,7 @@
 
       <view class="empty-card" v-if="!loadingSpots && !budgetSpots.length">
         <text class="empty-title">暂时没找到低预算景点</text>
-        <text class="empty-desc">可以稍后再试，或去“更多”页浏览全部景点。</text>
+        <text class="empty-desc">可以稍后再试，或去“更多”页浏览景点大全。</text>
       </view>
     </view>
 
@@ -105,12 +105,18 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { BUDGET_MAX_PRICE, BUDGET_MODE_UNDER_50, BUDGET_MODE_FREE, BUDGET_MODE_OPTIONS, fetchBudgetGuides, fetchBudgetSpots } from '@/services/feature'
+import {
+  BUDGET_MAX_PRICE,
+  BUDGET_MODE_UNDER_50,
+  BUDGET_MODE_FREE,
+  BUDGET_MODE_OPTIONS,
+  fetchBudgetTravelGuides,
+  fetchBudgetTravelSpots
+} from '@/services/budget-travel'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
 
-// 页面数据状态
 const tabs = [
   { label: '景点', value: 'spots' },
   { label: '攻略', value: 'guides' }
@@ -123,7 +129,6 @@ const budgetGuides = ref([])
 const loadingSpots = ref(false)
 const loadingGuides = ref(false)
 
-// 计算属性
 const currentLoading = computed(() => (activeTab.value === 'spots' ? loadingSpots.value : loadingGuides.value))
 const currentLoadingText = computed(() => (activeTab.value === 'spots' ? '正在筛选低预算景点...' : '正在整理低预算攻略...'))
 const currentBudgetModeLabel = computed(() => (budgetMode.value === BUDGET_MODE_FREE ? '免费' : '50 元以内'))
@@ -136,22 +141,20 @@ const budgetSummaryText = computed(() => {
   return `当前已筛出 ${currentCount} 条${activeTab.value === 'spots' ? '景点' : '攻略'}结果。`
 })
 
-// 工具方法
 const formatBudgetPrice = (value) => formatFeaturePrice(value, { freeText: '¥0 免费' })
 const formatBudgetRating = (value) => formatFeatureRating(value)
 
-// 数据加载方法
 const loadBudgetSpots = async () => {
   if (loadingSpots.value) return
   loadingSpots.value = true
 
   try {
-    budgetSpots.value = await fetchBudgetSpots({
+    budgetSpots.value = await fetchBudgetTravelSpots({
       budgetMode: budgetMode.value,
       maxPrice: BUDGET_MAX_PRICE
     })
   } catch (error) {
-    console.error('加载穷游景点失败', error)
+    console.error('加载穷游玩法景点失败', error)
     uni.showToast({ title: '加载景点失败', icon: 'none' })
   } finally {
     loadingSpots.value = false
@@ -163,19 +166,18 @@ const loadBudgetGuides = async () => {
   loadingGuides.value = true
 
   try {
-    budgetGuides.value = await fetchBudgetGuides({
+    budgetGuides.value = await fetchBudgetTravelGuides({
       budgetMode: budgetMode.value,
       maxPrice: BUDGET_MAX_PRICE
     })
   } catch (error) {
-    console.error('加载穷游攻略失败', error)
+    console.error('加载穷游玩法攻略失败', error)
     uni.showToast({ title: '加载攻略失败', icon: 'none' })
   } finally {
     loadingGuides.value = false
   }
 }
 
-// 交互处理方法
 const switchTab = (value) => {
   activeTab.value = value
   if (value === 'spots') {
@@ -197,12 +199,11 @@ const switchBudgetMode = (value) => {
   loadBudgetGuides()
 }
 
-// 页面跳转方法
 const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
-  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=budget` })
+  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=budget-travel` })
 }
 
 const goGuideDetail = (id) => {
@@ -218,246 +219,38 @@ onLoad(() => {
 </script>
 
 <style scoped>
-.budget-page {
-  min-height: 100vh;
-  padding: 24rpx;
-  background: #f4f6fb;
-}
-
-.hero-card,
-.tab-bar,
-.spot-card,
-.guide-card,
-.empty-card {
-  background: #fff;
-  border-radius: 32rpx;
-  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
-}
-
-.hero-card {
-  padding: 32rpx 28rpx;
-  background: linear-gradient(135deg, #fff7ed 0%, #ffffff 56%, #fffbeb 100%);
-}
-
-.hero-title {
-  display: block;
-  font-size: 40rpx;
-  font-weight: 700;
-  color: #111827;
-}
-
-.hero-desc {
-  display: block;
-  margin-top: 14rpx;
-  font-size: 26rpx;
-  line-height: 1.7;
-  color: #64748b;
-}
-
-.hero-stats {
-  display: flex;
-  gap: 18rpx;
-  margin-top: 22rpx;
-}
-
-.hero-stat {
-  flex: 1;
-  padding: 18rpx 20rpx;
-  border-radius: 24rpx;
-  background: rgba(255, 255, 255, 0.72);
-}
-
-.hero-stat-value {
-  display: block;
-  font-size: 34rpx;
-  font-weight: 700;
-  color: #111827;
-}
-
-.hero-stat-label {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  color: #64748b;
-}
-
-.tab-bar {
-  display: flex;
-  gap: 12rpx;
-  margin-top: 24rpx;
-  padding: 10rpx;
-}
-
-.tab-item {
-  flex: 1;
-  height: 76rpx;
-  line-height: 76rpx;
-  text-align: center;
-  border-radius: 24rpx;
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #6b7280;
-}
-
-.tab-item.active {
-  background: #f97316;
-  color: #fff;
-}
-
-.filter-card {
-  margin-top: 18rpx;
-  padding: 20rpx 22rpx;
-  border-radius: 26rpx;
-  background: #ffffff;
-  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
-}
-
-.filter-options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12rpx;
-}
-
-.filter-chip {
-  min-width: 140rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  padding: 0 24rpx;
-  border-radius: 999rpx;
-  text-align: center;
-  background: #f8fafc;
-  font-size: 24rpx;
-  color: #64748b;
-}
-
-.filter-chip.active {
-  background: rgba(249, 115, 22, 0.12);
-  color: #ea580c;
-  font-weight: 600;
-}
-
-.summary-card {
-  margin-top: 18rpx;
-  padding: 22rpx 24rpx;
-  border-radius: 26rpx;
-  background: #ffffff;
-  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
-}
-
-.summary-title {
-  display: block;
-  font-size: 26rpx;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.summary-desc {
-  display: block;
-  margin-top: 10rpx;
-  font-size: 23rpx;
-  line-height: 1.7;
-  color: #64748b;
-}
-
-.content-section {
-  margin-top: 22rpx;
-}
-
-.section-tip {
-  margin-bottom: 20rpx;
-  font-size: 24rpx;
-  color: #94a3b8;
-}
-
-.spot-card,
-.guide-card {
-  overflow: hidden;
-  margin-bottom: 22rpx;
-}
-
-.spot-image,
-.guide-image {
-  width: 100%;
-  height: 280rpx;
-}
-
-.spot-content,
-.guide-content {
-  padding: 24rpx;
-}
-
-.spot-header,
-.guide-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16rpx;
-}
-
-.spot-title,
-.guide-title {
-  flex: 1;
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #111827;
-}
-
-.spot-price,
-.guide-price {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #ea580c;
-}
-
-.spot-desc,
-.guide-summary {
-  display: block;
-  margin-top: 14rpx;
-  font-size: 25rpx;
-  line-height: 1.7;
-  color: #64748b;
-}
-
-.spot-meta,
-.guide-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-  margin-top: 18rpx;
-}
-
-.meta-tag,
-.meta-rating {
-  padding: 8rpx 16rpx;
-  border-radius: 999rpx;
-  background: #f8fafc;
-  font-size: 22rpx;
-  color: #475569;
-}
-
-.empty-card {
-  padding: 36rpx 28rpx;
-}
-
-.empty-title {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.empty-desc {
-  display: block;
-  margin-top: 14rpx;
-  font-size: 25rpx;
-  line-height: 1.7;
-  color: #64748b;
-}
-
-.loading-row {
-  text-align: center;
-  padding: 16rpx 0 8rpx;
-  font-size: 24rpx;
-  color: #94a3b8;
-}
+.budget-page { min-height: 100vh; padding: 24rpx; background: #f4f6fb; }
+.hero-card, .tab-bar, .spot-card, .guide-card, .empty-card { background: #fff; border-radius: 32rpx; box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05); }
+.hero-card { padding: 32rpx 28rpx; background: linear-gradient(135deg, #fff7ed 0%, #ffffff 56%, #fffbeb 100%); }
+.hero-title { display: block; font-size: 40rpx; font-weight: 700; color: #111827; }
+.hero-desc { display: block; margin-top: 14rpx; font-size: 26rpx; line-height: 1.7; color: #64748b; }
+.hero-stats { display: flex; gap: 18rpx; margin-top: 22rpx; }
+.hero-stat { flex: 1; padding: 18rpx 20rpx; border-radius: 24rpx; background: rgba(255, 255, 255, 0.72); }
+.hero-stat-value { display: block; font-size: 34rpx; font-weight: 700; color: #111827; }
+.hero-stat-label { display: block; margin-top: 8rpx; font-size: 22rpx; color: #64748b; }
+.tab-bar { display: flex; gap: 12rpx; margin-top: 24rpx; padding: 10rpx; }
+.tab-item { flex: 1; height: 76rpx; line-height: 76rpx; text-align: center; border-radius: 24rpx; font-size: 28rpx; font-weight: 600; color: #6b7280; }
+.tab-item.active { background: #f97316; color: #fff; }
+.filter-card { margin-top: 18rpx; padding: 20rpx 22rpx; border-radius: 26rpx; background: #ffffff; box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05); }
+.filter-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12rpx; }
+.filter-chip { min-width: 140rpx; height: 64rpx; line-height: 64rpx; padding: 0 24rpx; border-radius: 999rpx; text-align: center; background: #f8fafc; font-size: 24rpx; color: #64748b; }
+.filter-chip.active { background: rgba(249, 115, 22, 0.12); color: #ea580c; font-weight: 600; }
+.summary-card { margin-top: 18rpx; padding: 22rpx 24rpx; border-radius: 26rpx; background: #ffffff; box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05); }
+.summary-title { display: block; font-size: 26rpx; font-weight: 700; color: #1f2937; }
+.summary-desc { display: block; margin-top: 10rpx; font-size: 23rpx; line-height: 1.7; color: #64748b; }
+.content-section { margin-top: 22rpx; }
+.section-tip { margin-bottom: 20rpx; font-size: 24rpx; color: #94a3b8; }
+.spot-card, .guide-card { overflow: hidden; margin-bottom: 22rpx; }
+.spot-image, .guide-image { width: 100%; height: 280rpx; }
+.spot-content, .guide-content { padding: 24rpx; }
+.spot-header, .guide-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16rpx; }
+.spot-title, .guide-title { flex: 1; font-size: 32rpx; font-weight: 700; color: #111827; }
+.spot-price, .guide-price { font-size: 30rpx; font-weight: 700; color: #ea580c; }
+.spot-desc, .guide-summary { display: block; margin-top: 14rpx; font-size: 25rpx; line-height: 1.7; color: #64748b; }
+.spot-meta, .guide-meta { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 18rpx; }
+.meta-tag, .meta-rating { padding: 8rpx 16rpx; border-radius: 999rpx; background: #f8fafc; font-size: 22rpx; color: #475569; }
+.empty-card { padding: 36rpx 28rpx; }
+.empty-title { display: block; font-size: 28rpx; font-weight: 700; color: #1f2937; }
+.empty-desc { display: block; margin-top: 14rpx; font-size: 25rpx; line-height: 1.7; color: #64748b; }
+.loading-row { text-align: center; padding: 16rpx 0 8rpx; font-size: 24rpx; color: #94a3b8; }
 </style>
