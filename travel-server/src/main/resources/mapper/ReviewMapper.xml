@@ -76,6 +76,27 @@
         ORDER BY r.updated_at DESC, r.created_at DESC
     </select>
 
+    <!-- 用户端口碑流分页查询 -->
+    <select id="selectReviewFeedPage" resultMap="ReviewResultMap">
+        SELECT r.*,
+               u.nickname,
+               u.avatar_url,
+               s.name AS spot_name,
+               s.cover_image_url
+        FROM user_spot_review r
+        LEFT JOIN user u ON r.user_id = u.id AND u.is_deleted = 0
+        INNER JOIN spot s
+            ON r.spot_id = s.id
+           AND s.is_deleted = 0
+           AND s.is_published = 1
+        WHERE r.is_deleted = 0
+          AND r.comment IS NOT NULL
+          AND r.comment != ''
+          AND r.score <![CDATA[>=]]> #{minScore}
+          AND r.score <![CDATA[<=]]> #{maxScore}
+        ORDER BY r.updated_at DESC, r.created_at DESC
+    </select>
+
     <!-- 景点详情页最新评论查询 -->
     <select id="selectLatestComments" resultMap="CommentItemResultMap">
         SELECT r.id,

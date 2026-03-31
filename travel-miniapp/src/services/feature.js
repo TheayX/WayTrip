@@ -1,5 +1,5 @@
-import { getGuideDetail, getGuideList } from '@/api/guide'
-import { getSpotReviews } from '@/api/review'
+import { getBudgetGuideList } from '@/api/guide'
+import { getReviewFeed } from '@/api/review'
 import { getSpotList } from '@/api/spot'
 
 export const BUDGET_MAX_PRICE = 50
@@ -15,10 +15,7 @@ const BLINDBOX_MAX_ATTEMPTS = 5
 const BUDGET_SPOT_MAX_PAGES = 5
 const BUDGET_SPOT_LIMIT = 12
 const BUDGET_GUIDE_LIMIT = 8
-const REVIEW_SOURCE_MAX_PAGES = 5
-const REVIEW_SOURCE_PAGE_SIZE = 12
 const REVIEW_PAGE_SIZE = 10
-const REVIEW_MIN_SOURCE_SPOT_COUNT = 12
 
 const toNumber = (value) => {
   const num = Number(value)
@@ -114,90 +111,30 @@ export const fetchBudgetSpots = async ({
     .slice(0, limit)
 }
 
-// 攻略预算筛选单独封装，后续无论切后端接口还是做分页，页面都不用重写。
+// 攻略预算列表改成后端直出，页面层继续复用当前结构。
 export const fetchBudgetGuides = async ({
   budgetMode = BUDGET_MODE_ALL,
   maxPrice = BUDGET_MAX_PRICE,
   limit = BUDGET_GUIDE_LIMIT
 } = {}) => {
-  const res = await getGuideList({ page: 1, pageSize: limit, sortBy: 'time' })
-  const guideList = res.data?.list || []
-
-  const detailList = await Promise.all(
-    guideList.map(async (guide) => {
-      try {
-        const detailRes = await getGuideDetail(guide.id)
-        const detail = detailRes.data
-        const relatedSpots = detail?.relatedSpots || []
-        const budgetSpots = relatedSpots.filter((spot) => {
-          if (budgetMode === BUDGET_MODE_FREE) {
-            return isFreePrice(spot.price)
-          }
-          return isBudgetPrice(spot.price, maxPrice)
-        })
-        if (!budgetSpots.length) return null
-
-        const numericPrices = budgetSpots
-          .map(spot => toPriceNumber(spot.price))
-          .filter(price => price !== null)
-        const minPrice = numericPrices.length ? Math.min(...numericPrices) : 0
-
-        return {
-          ...guide,
-          relatedCount: budgetSpots.length,
-          priceLabel: minPrice <= 0 ? '含免费景点' : `${minPrice} 元起`
-        }
-      } catch (error) {
-        console.error(`加载攻略详情失败: ${guide.id}`, error)
-        return null
-      }
-    })
-  )
-
-  return detailList.filter(Boolean)
+  const res = await getBudgetGuideList({
+    page: 1,
+    pageSize: limit,
+    priceMode: budgetMode,
+    maxPrice
+  })
+  return res.data?.list || []
 }
 
-// 口碑流先从景点列表前几页聚合评论，避免只查热门景点导致经常刷空。
+// 口碑流改成后端直出，避免前端逐景点聚合带来的漏数和空刷问题。
 export const fetchReviewFeedPreview = async () => {
-  const sourceSpots = []
-  let page = 1
-  let total = 0
-
-  while (page <= REVIEW_SOURCE_MAX_PAGES && sourceSpots.length < REVIEW_MIN_SOURCE_SPOT_COUNT) {
-    const res = await getSpotList({ page, pageSize: REVIEW_SOURCE_PAGE_SIZE, sortBy: 'heat' })
-    const list = res.data?.list || []
-    total = res.data?.total || 0
-    sourceSpots.push(...list.filter(item => item?.id))
-    if (page * REVIEW_SOURCE_PAGE_SIZE >= total) break
-    page += 1
-  }
-
-  const spotList = dedupeById(sourceSpots)
-
-  const reviewGroups = await Promise.all(
-    spotList.map(async (spot) => {
-      try {
-        const reviewRes = await getSpotReviews(spot.id, 1, REVIEW_PAGE_SIZE)
-        return reviewRes.data?.list || []
-      } catch (error) {
-        console.error(`加载景点评价失败: ${spot.id}`, error)
-        return []
-      }
-    })
-  )
-
-  const reviewList = dedupeById(
-    reviewGroups
-      .flat()
-      .filter(item => item?.comment && item.comment.trim())
-  ).sort((a, b) => {
-    const timeA = new Date(a.createdAt || 0).getTime()
-    const timeB = new Date(b.createdAt || 0).getTime()
-    return timeB - timeA
-  })
+  const [positiveRes, negativeRes] = await Promise.all([
+    getReviewFeed({ page: 1, pageSize: REVIEW_PAGE_SIZE, type: 'positive' }),
+    getReviewFeed({ page: 1, pageSize: REVIEW_PAGE_SIZE, type: 'negative' })
+  ])
 
   return {
-    positive: reviewList.filter(item => Number(item.score) >= 4),
-    negative: reviewList.filter(item => Number(item.score) <= 2)
+    positive: positiveRes.data?.list || [],
+    negative: negativeRes.data?.list || []
   }
 }

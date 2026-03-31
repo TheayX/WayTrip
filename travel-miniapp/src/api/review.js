@@ -31,6 +31,15 @@ export const getSpotReviews = (spotId, page = 1, pageSize = 10) => {
 }
 
 /**
+ * 获取真实口碑流（分页）
+ * @param params
+ * @returns {*}
+ */
+export const getReviewFeed = (params) => {
+  return get('/reviews/feed', params)
+}
+
+/**
  * 获取我的评论列表（分页）
  * @param page
  * @param pageSize

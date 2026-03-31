@@ -11,6 +11,15 @@ export const getGuideList = (params) => {
 }
 
 /**
+ * 获取穷游攻略列表
+ * @param params
+ * @returns {*}
+ */
+export const getBudgetGuideList = (params) => {
+  return get('/guides/budget', params)
+}
+
+/**
  * 获取攻略详情
  * @param guideId
  * @returns {*}

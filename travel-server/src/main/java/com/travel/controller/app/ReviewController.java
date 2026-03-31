@@ -2,6 +2,7 @@ package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
+import com.travel.dto.review.ReviewFeedRequest;
 import com.travel.dto.review.ReviewRequest;
 import com.travel.dto.review.ReviewResponse;
 import com.travel.service.ReviewService;
@@ -52,6 +53,12 @@ public class ReviewController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
         return ApiResponse.success(reviewService.getSpotReviews(spotId, page, pageSize));
+    }
+
+    @Operation(summary = "获取口碑流")
+    @GetMapping("/feed")
+    public ApiResponse<PageResult<ReviewResponse>> getReviewFeed(ReviewFeedRequest request) {
+        return ApiResponse.success(reviewService.getReviewFeed(request));
     }
 
     @Operation(summary = "获取当前用户的评价列表")

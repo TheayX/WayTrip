@@ -35,6 +35,13 @@ public interface ReviewMapper extends BaseMapper<Review> {
                                         @Param("spotName") String spotName);
 
     /**
+     * 分页查询口碑流。
+     */
+    IPage<Review> selectReviewFeedPage(Page<Review> page,
+                                       @Param("minScore") Integer minScore,
+                                       @Param("maxScore") Integer maxScore);
+
+    /**
      * 查询景点详情页展示的最新评论列表。
      */
     List<SpotDetailResponse.CommentItem> selectLatestComments(@Param("spotId") Long spotId, @Param("limit") int limit);

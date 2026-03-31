@@ -1,8 +1,12 @@
 package com.travel.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.dto.guide.GuideBudgetQueryResult;
 import com.travel.entity.Guide;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -18,4 +22,11 @@ public interface GuideMapper extends BaseMapper<Guide> {
      */
     @Select("SELECT DISTINCT category FROM guide WHERE is_deleted = 0 AND category IS NOT NULL AND category != '' ORDER BY category")
     List<String> selectDistinctCategories();
+
+    /**
+     * 分页查询穷游攻略列表。
+     */
+    IPage<GuideBudgetQueryResult> selectBudgetGuidePage(Page<GuideBudgetQueryResult> page,
+                                                        @Param("priceMode") String priceMode,
+                                                        @Param("maxPrice") Integer maxPrice);
 }

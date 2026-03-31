@@ -2,6 +2,7 @@ package com.travel.service;
 
 import com.travel.common.result.PageResult;
 import com.travel.dto.review.AdminReviewListRequest;
+import com.travel.dto.review.ReviewFeedRequest;
 import com.travel.dto.review.ReviewRequest;
 import com.travel.dto.review.ReviewResponse;
 
@@ -38,6 +39,14 @@ public interface ReviewService {
      * @return 景点评价分页结果
      */
     PageResult<ReviewResponse> getSpotReviews(Long spotId, Integer page, Integer pageSize);
+
+    /**
+     * 分页获取口碑流。
+     *
+     * @param request 口碑流查询参数
+     * @return 口碑流分页结果
+     */
+    PageResult<ReviewResponse> getReviewFeed(ReviewFeedRequest request);
 
     /**
      * 分页获取当前用户发布的评价列表。
