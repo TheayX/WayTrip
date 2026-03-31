@@ -22,6 +22,12 @@
       </view>
     </view>
 
+    <view class="loading-card" v-else-if="loading">
+      <view class="loading-orb"></view>
+      <text class="loading-title">正在打开旅行盲盒</text>
+      <text class="loading-desc">从现有景点里随机抽取一个目的地。</text>
+    </view>
+
     <view class="empty-card" v-else-if="!loading">
       <uni-icons type="info" size="28" color="#94a3b8" />
       <text class="empty-title">暂时没有抽到合适的景点</text>
@@ -213,7 +219,8 @@ onLoad(() => {
 
 .tips-card,
 .empty-card,
-.status-card {
+.status-card,
+.loading-card {
   margin-top: 24rpx;
   padding: 28rpx;
   background: rgba(255, 255, 255, 0.94);
@@ -234,6 +241,39 @@ onLoad(() => {
   display: block;
   margin-top: 14rpx;
   font-size: 26rpx;
+  line-height: 1.7;
+  color: #64748b;
+}
+
+.loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 44rpx;
+  padding-bottom: 44rpx;
+}
+
+.loading-orb {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, #7c3aed 0%, #c4b5fd 100%);
+  box-shadow: 0 18rpx 36rpx rgba(124, 58, 237, 0.22);
+}
+
+.loading-title {
+  display: block;
+  margin-top: 22rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.loading-desc {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 24rpx;
   line-height: 1.7;
   color: #64748b;
 }

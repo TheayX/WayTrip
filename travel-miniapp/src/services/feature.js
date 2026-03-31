@@ -4,6 +4,8 @@ import { getSpotReviews } from '@/api/review'
 import { getSpotList } from '@/api/spot'
 
 export const BUDGET_MAX_PRICE = 50
+export const BUDGET_MODE_ALL = 'budget'
+export const BUDGET_MODE_FREE = 'free'
 
 const BLINDBOX_PAGE_SIZE = 12
 const BLINDBOX_MAX_ATTEMPTS = 5
@@ -30,6 +32,11 @@ const toPriceNumber = (value) => {
 const isBudgetPrice = (value, maxPrice = BUDGET_MAX_PRICE) => {
   const price = toPriceNumber(value)
   return price !== null && price >= 0 && price <= maxPrice
+}
+
+const isFreePrice = (value) => {
+  const price = toPriceNumber(value)
+  return price !== null && price === 0
 }
 
 const dedupeById = (list) => {
@@ -69,6 +76,7 @@ export const fetchBlindboxSpot = async ({ excludeSpotId = null } = {}) => {
 
 // 先基于现有景点列表封装预算筛选，后续改成后端过滤时页面不需要跟着改。
 export const fetchBudgetSpots = async ({
+  budgetMode = BUDGET_MODE_ALL,
   maxPrice = BUDGET_MAX_PRICE,
   limit = BUDGET_SPOT_LIMIT,
   maxPages = BUDGET_SPOT_MAX_PAGES
@@ -81,7 +89,13 @@ export const fetchBudgetSpots = async ({
     const res = await getSpotList({ page, pageSize: BLINDBOX_PAGE_SIZE, sortBy: 'heat' })
     const list = res.data?.list || []
     total = res.data?.total || 0
-    collected.push(...list.filter(item => isBudgetPrice(item.price, maxPrice)))
+    const matchedList = list.filter((item) => {
+      if (budgetMode === BUDGET_MODE_FREE) {
+        return isFreePrice(item.price)
+      }
+      return isBudgetPrice(item.price, maxPrice)
+    })
+    collected.push(...matchedList)
     if (page * BLINDBOX_PAGE_SIZE >= total) break
     page += 1
   }
@@ -97,6 +111,7 @@ export const fetchBudgetSpots = async ({
 
 // 攻略预算筛选单独封装，后续无论切后端接口还是做分页，页面都不用重写。
 export const fetchBudgetGuides = async ({
+  budgetMode = BUDGET_MODE_ALL,
   maxPrice = BUDGET_MAX_PRICE,
   limit = BUDGET_GUIDE_LIMIT
 } = {}) => {
@@ -109,7 +124,12 @@ export const fetchBudgetGuides = async ({
         const detailRes = await getGuideDetail(guide.id)
         const detail = detailRes.data
         const relatedSpots = detail?.relatedSpots || []
-        const budgetSpots = relatedSpots.filter(spot => isBudgetPrice(spot.price, maxPrice))
+        const budgetSpots = relatedSpots.filter((spot) => {
+          if (budgetMode === BUDGET_MODE_FREE) {
+            return isFreePrice(spot.price)
+          }
+          return isBudgetPrice(spot.price, maxPrice)
+        })
         if (!budgetSpots.length) return null
 
         const numericPrices = budgetSpots

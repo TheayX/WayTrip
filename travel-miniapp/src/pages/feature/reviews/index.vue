@@ -32,6 +32,10 @@
       <text class="feed-note-text">当前版本先聚合热门景点的有效评论，页面结构保持信息流形态，后续可直接替换为全站评价接口。</text>
     </view>
 
+    <view class="action-row">
+      <view class="action-link" @click="refreshReviewFeed">刷新口碑流</view>
+    </view>
+
     <view class="review-card" v-for="item in activeReviews" :key="item.id" @click="goSpotDetail(item.spotId)">
       <view class="review-header">
         <view class="user-box">
@@ -100,6 +104,10 @@ const loadReviewFeed = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const refreshReviewFeed = () => {
+  loadReviewFeed()
 }
 
 // 页面跳转方法
@@ -223,6 +231,21 @@ onLoad(() => {
   font-size: 23rpx;
   line-height: 1.7;
   color: #64748b;
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18rpx;
+}
+
+.action-link {
+  padding: 12rpx 20rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #2563eb;
+  font-size: 24rpx;
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
 }
 
 .review-card {
