@@ -3,6 +3,16 @@
     <view class="hero-card">
       <text class="hero-title">真实口碑</text>
       <text class="hero-desc">先看真实游客怎么说，再决定要不要去。</text>
+      <view class="hero-stats">
+        <view class="hero-stat">
+          <text class="hero-stat-value">{{ positiveReviews.length }}</text>
+          <text class="hero-stat-label">高分种草</text>
+        </view>
+        <view class="hero-stat">
+          <text class="hero-stat-value">{{ negativeReviews.length }}</text>
+          <text class="hero-stat-label">真实避雷</text>
+        </view>
+      </view>
     </view>
 
     <view class="tab-bar">
@@ -15,6 +25,11 @@
       >
         {{ tab.label }}
       </view>
+    </view>
+
+    <view class="feed-note">
+      <text class="feed-note-title">当前口碑流说明</text>
+      <text class="feed-note-text">当前版本先聚合热门景点的有效评论，页面结构保持信息流形态，后续可直接替换为全站评价接口。</text>
     </view>
 
     <view class="review-card" v-for="item in activeReviews" :key="item.id" @click="goSpotDetail(item.spotId)">
@@ -122,6 +137,33 @@ onLoad(() => {
   background: linear-gradient(135deg, #eff6ff 0%, #ffffff 56%, #eef2ff 100%);
 }
 
+.hero-stats {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 22rpx;
+}
+
+.hero-stat {
+  flex: 1;
+  padding: 18rpx 20rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.hero-stat-value {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.hero-stat-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #64748b;
+}
+
 .hero-title {
   display: block;
   font-size: 40rpx;
@@ -158,6 +200,29 @@ onLoad(() => {
 .tab-item.active {
   background: #2563eb;
   color: #fff;
+}
+
+.feed-note {
+  margin-top: 22rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 26rpx;
+  background: #fff;
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
+}
+
+.feed-note-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.feed-note-text {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 23rpx;
+  line-height: 1.7;
+  color: #64748b;
 }
 
 .review-card {
