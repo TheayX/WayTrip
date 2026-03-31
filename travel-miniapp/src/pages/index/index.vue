@@ -10,7 +10,7 @@
       :banners="banners"
       @click="handleBannerClick"
     />
-    <QuickNav 
+    <QuickNav
       :actions="quickActions"
       @click="handleQuickAction"
     />
@@ -74,6 +74,7 @@ import QuickNav from './components/QuickNav.vue'
 import RecommendSpots from './components/RecommendSpots.vue'
 import NearbyAndHot from './components/NearbyAndHot.vue'
 import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
+import { getHomeQuickActions } from '@/constants/feature-navigation'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -111,12 +112,7 @@ const nearbySessionToken = ref('')
 // 常量配置
 const markerIcon = '/static/tabbar/spot-active.png'
 
-const quickActions = [
-  { id: 'spots', title: '全部景点', icon: 'location-filled', theme: 'blue', action: 'spot-list' },
-  { id: 'guides', title: '游玩攻略', icon: 'paperplane-filled', theme: 'orange', action: 'guide-list' },
-  { id: 'recommend', title: '推荐景点', icon: 'star-filled', theme: 'amber', action: 'recommend-spots' },
-  { id: 'nearby', title: '附近探索', icon: 'map-filled', theme: 'emerald', action: 'nearby-spots' }
-]
+const quickActions = getHomeQuickActions()
 
 // 计算属性
 const recommendationSectionTitle = computed(() => (isLoggedIn.value ? recommendType.value : '推荐景点'))
@@ -463,21 +459,30 @@ const handleBannerClick = (banner) => {
 }
 
 const handleQuickAction = (action) => {
-  switch (action.action) {
-    case 'spot-list':
+  switch (action.id) {
+    case 'spots':
       goSpotList()
       break
-    case 'guide-list':
+    case 'guides':
       goGuideList()
       break
-    case 'recommend-spots':
+    case 'recommend':
       goRecommendationSpots()
       break
-    case 'nearby-spots':
+    case 'nearby':
       handleNearbyCardClick()
       break
-    case 'pending':
-      uni.showToast({ title: '入口功能待补齐', icon: 'none' })
+    case 'blindbox':
+      goBlindBox()
+      break
+    case 'budget':
+      goBudgetPage()
+      break
+    case 'reviews':
+      goReviewWall()
+      break
+    case 'more':
+      goMoreFeatures()
       break
     default:
       break
@@ -521,6 +526,22 @@ const goRecommendationSpots = () => {
     return
   }
   uni.navigateTo({ url: '/pages/recommendation/index' })
+}
+
+const goBlindBox = () => {
+  uni.navigateTo({ url: '/pages/feature/blindbox/index' })
+}
+
+const goBudgetPage = () => {
+  uni.navigateTo({ url: '/pages/feature/budget/index' })
+}
+
+const goReviewWall = () => {
+  uni.navigateTo({ url: '/pages/feature/reviews/index' })
+}
+
+const goMoreFeatures = () => {
+  uni.navigateTo({ url: '/pages/feature/more/index' })
 }
 
 const goNearbyList = (position = nearbyLocation.value) => {

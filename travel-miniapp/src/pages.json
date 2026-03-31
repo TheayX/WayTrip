@@ -55,6 +55,30 @@
       }
     },
     {
+      "path": "pages/feature/blindbox/index",
+      "style": {
+        "navigationBarTitleText": "每日盲盒"
+      }
+    },
+    {
+      "path": "pages/feature/budget/index",
+      "style": {
+        "navigationBarTitleText": "穷游特惠"
+      }
+    },
+    {
+      "path": "pages/feature/reviews/index",
+      "style": {
+        "navigationBarTitleText": "真实口碑"
+      }
+    },
+    {
+      "path": "pages/feature/more/index",
+      "style": {
+        "navigationBarTitleText": "更多"
+      }
+    },
+    {
       "path": "pages/order/list",
       "style": {
         "navigationBarTitleText": "我的订单"
