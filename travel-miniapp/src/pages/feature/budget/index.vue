@@ -43,6 +43,11 @@
       </view>
     </view>
 
+    <view class="summary-card">
+      <text class="summary-title">{{ budgetSummaryTitle }}</text>
+      <text class="summary-desc">{{ budgetSummaryText }}</text>
+    </view>
+
     <view v-if="activeTab === 'spots'" class="content-section">
       <view class="section-tip">优先展示低价且热度更高的景点。</view>
       <view class="mode-card">
@@ -134,6 +139,15 @@ const loadingGuides = ref(false)
 // 计算属性
 const currentLoading = computed(() => (activeTab.value === 'spots' ? loadingSpots.value : loadingGuides.value))
 const currentLoadingText = computed(() => (activeTab.value === 'spots' ? '正在筛选低预算景点...' : '正在整理低预算攻略...'))
+const currentBudgetModeLabel = computed(() => (budgetMode.value === BUDGET_MODE_FREE ? '免费' : '50 元以内'))
+const budgetSummaryTitle = computed(() => `${currentBudgetModeLabel.value} · ${activeTab.value === 'spots' ? '景点' : '攻略'}`)
+const budgetSummaryText = computed(() => {
+  const currentCount = activeTab.value === 'spots' ? budgetSpots.value.length : budgetGuides.value.length
+  if (currentLoading.value) {
+    return `正在整理${currentBudgetModeLabel.value}内容，请稍候。`
+  }
+  return `当前已筛出 ${currentCount} 条${activeTab.value === 'spots' ? '景点' : '攻略'}结果，后续可继续扩展筛选和排序。`
+})
 
 // 工具方法
 const formatBudgetPrice = (value) => formatFeaturePrice(value, { freeText: '¥0 免费' })
@@ -349,6 +363,29 @@ onLoad(() => {
   background: rgba(249, 115, 22, 0.12);
   color: #ea580c;
   font-weight: 600;
+}
+
+.summary-card {
+  margin-top: 18rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 26rpx;
+  background: #ffffff;
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
+}
+
+.summary-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.summary-desc {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 23rpx;
+  line-height: 1.7;
+  color: #64748b;
 }
 
 .content-section {

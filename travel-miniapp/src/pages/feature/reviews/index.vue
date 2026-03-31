@@ -33,7 +33,7 @@
     </view>
 
     <view class="action-row">
-      <view class="action-link" @click="refreshReviewFeed">刷新口碑流</view>
+      <view class="action-link" :class="{ disabled: loading }" @click="refreshReviewFeed">{{ loading ? '刷新中...' : '刷新口碑流' }}</view>
     </view>
 
     <view class="review-card" v-for="item in activeReviews" :key="item.id" @click="goSpotDetail(item.spotId)">
@@ -59,8 +59,8 @@
     </view>
 
     <view class="empty-card" v-if="!loading && !activeReviews.length">
-      <text class="empty-title">暂时没有对应口碑内容</text>
-      <text class="empty-desc">当前版本先从热门景点评论里聚合，后续再切换成全站评价流。</text>
+      <text class="empty-title">{{ emptyStateTitle }}</text>
+      <text class="empty-desc">{{ emptyStateDesc }}</text>
     </view>
 
     <view class="loading-row" v-if="loading">
@@ -88,6 +88,13 @@ const loading = ref(false)
 
 // 计算属性
 const activeReviews = computed(() => (activeTab.value === 'positive' ? positiveReviews.value : negativeReviews.value))
+const emptyStateTitle = computed(() => (activeTab.value === 'positive' ? '暂时没有高分种草内容' : '暂时没有真实避雷内容'))
+const emptyStateDesc = computed(() => {
+  if (activeTab.value === 'positive') {
+    return '当前聚合范围内暂时没有高分评论，后续接全站评价流后会更完整。'
+  }
+  return '当前聚合范围内暂时没有低分评论，后续接全站评价流后会更完整。'
+})
 
 // 数据加载方法
 const loadReviewFeed = async () => {
@@ -107,6 +114,7 @@ const loadReviewFeed = async () => {
 }
 
 const refreshReviewFeed = () => {
+  if (loading.value) return
   loadReviewFeed()
 }
 
@@ -248,6 +256,10 @@ onLoad(() => {
   box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
 }
 
+.action-link.disabled {
+  opacity: 0.6;
+}
+
 .review-card {
   margin-top: 22rpx;
   padding: 26rpx;
@@ -319,6 +331,10 @@ onLoad(() => {
   font-size: 27rpx;
   line-height: 1.8;
   color: #334155;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
 }
 
 .review-footer {

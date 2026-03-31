@@ -58,6 +58,7 @@
         去看看
       </button>
     </view>
+    <text class="action-hint">后续接服务端盲盒接口时，这个页面会直接沿用当前结构继续增强。</text>
   </view>
 </template>
 
@@ -300,6 +301,14 @@ onLoad(() => {
   font-size: 24rpx;
   font-weight: 600;
   color: #1f2937;
+}
+
+.action-hint {
+  display: block;
+  margin-top: 18rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .action-bar {
