@@ -66,6 +66,7 @@ import { ref, reactive } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getOrderList, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 常量配置
 const tabs = [
@@ -163,7 +164,7 @@ const handlePay = (order) => {
 }
 
 const handleReview = (order) => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${order.spotId}&openReview=1&source=order` })
+  uni.navigateTo({ url: buildSpotDetailUrl(order.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }) })
 }
 
 // 生命周期

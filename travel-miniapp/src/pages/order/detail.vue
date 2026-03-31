@@ -81,6 +81,7 @@ import { ref, computed } from 'vue'
 import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
 import { getOrderDetail, payOrder, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 页面数据状态
 const order = ref(null)
@@ -176,7 +177,7 @@ const setupCountdown = () => {
 
 // 页面跳转方法
 const goSpot = () => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${order.value.spotId}&source=order` })
+  uni.navigateTo({ url: buildSpotDetailUrl(order.value.spotId, SPOT_DETAIL_SOURCE.ORDER) })
 }
 
 // 交互处理方法
@@ -209,7 +210,7 @@ const handleCancel = () => {
 }
 
 const handleReview = () => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${order.value.spotId}&openReview=1&source=order` })
+  uni.navigateTo({ url: buildSpotDetailUrl(order.value.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }) })
 }
 
 // 生命周期

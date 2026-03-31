@@ -20,7 +20,7 @@ public class UserSpotView {
     private Long spotId;
 
     /**
-     * 浏览来源：home/search/recommend/guide
+     * 浏览来源：home/search/recommendation/guide/detail 等原始页面来源
      */
     private String viewSource;
 

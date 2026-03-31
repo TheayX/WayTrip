@@ -59,6 +59,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { getGuideDetail } from '@/api/guide'
 import { guardLoginPage } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 页面数据状态
 const guide = ref(null)
@@ -99,7 +100,7 @@ const fetchGuideDetail = async () => {
 // 页面跳转方法
 const goSpotDetail = (id) => {
   uni.navigateTo({
-    url: `/pages/spot/detail?id=${id}&source=guide`
+    url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.GUIDE)
   })
 }
 

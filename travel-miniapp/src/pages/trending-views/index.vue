@@ -48,6 +48,7 @@ import { fetchTrendingViewSpots } from '@/services/trending-views'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 const trendingSpots = ref([])
 const trendingDays = ref(14)
@@ -76,7 +77,7 @@ const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
-  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=trending-views` })
+  uni.navigateTo({ url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.TRENDING_VIEWS) })
 }
 
 onLoad(() => {

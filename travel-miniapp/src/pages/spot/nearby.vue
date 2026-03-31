@@ -68,6 +68,7 @@ import { getNearbySpots } from '@/api/home'
 import { promptLogin } from '@/utils/auth'
 import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
 import { getContentImageUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 页面数据状态
@@ -260,7 +261,7 @@ const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
-  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=nearby` })
+  uni.navigateTo({ url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.NEARBY) })
 }
 
 // 生命周期

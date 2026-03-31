@@ -76,6 +76,7 @@ import NearbyAndHot from './components/NearbyAndHot.vue'
 import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getFeatureEntryById, getHomeEntryItems } from '@/constants/feature-entry-registry'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 
 // 基础依赖与用户状态
@@ -513,7 +514,7 @@ const goSpotDetail = (spotId) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
-  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=home` })
+  uni.navigateTo({ url: buildSpotDetailUrl(spotId, SPOT_DETAIL_SOURCE.HOME) })
 }
 
 const goSpotList = () => {

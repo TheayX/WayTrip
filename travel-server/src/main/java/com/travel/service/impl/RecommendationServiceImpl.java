@@ -981,16 +981,30 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private double getViewSourceFactor(String source, RecommendationAlgorithmConfigDTO config) {
-        if (source == null || source.isBlank()) {
-            return defaultDouble(config.getViewSourceFactorDetail(), 1.0);
-        }
-        return switch (source.trim().toLowerCase(Locale.ROOT)) {
+        return switch (normalizeViewSource(source)) {
             case "search" -> defaultDouble(config.getViewSourceFactorSearch(), 1.2);
-            case "recommend" -> defaultDouble(config.getViewSourceFactorRecommend(), 1.1);
+            case "recommendation" -> defaultDouble(config.getViewSourceFactorRecommendation(), 1.1);
             case "home" -> defaultDouble(config.getViewSourceFactorHome(), 0.9);
             case "guide" -> defaultDouble(config.getViewSourceFactorGuide(), 1.0);
-            case "detail" -> defaultDouble(config.getViewSourceFactorDetail(), 1.0);
             default -> defaultDouble(config.getViewSourceFactorDetail(), 1.0);
+        };
+    }
+
+    /**
+     * 浏览来源既要保留前端页面语义，也要归到推荐算法可识别的来源桶。
+     */
+    private String normalizeViewSource(String source) {
+        if (source == null || source.isBlank()) {
+            return "detail";
+        }
+        return switch (source.trim().toLowerCase(Locale.ROOT)) {
+            case "search" -> "search";
+            case "recommendation", "discover", "random-pick", "budget-travel",
+                    "traveler-reviews", "trending-views" -> "recommendation";
+            case "home" -> "home";
+            case "guide" -> "guide";
+            case "detail", "list", "nearby", "similar", "order", "footprint", "favorite", "review" -> "detail";
+            default -> "detail";
         };
     }
 
