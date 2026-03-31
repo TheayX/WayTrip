@@ -10,9 +10,9 @@
       :banners="banners"
       @click="handleBannerClick"
     />
-    <QuickNav
-      :actions="homeQuickActions"
-      @click="handleQuickAction"
+    <FeatureEntryGrid
+      :entries="homeEntryItems"
+      @click="handleFeatureEntryClick"
     />
     <NearbyAndHot 
       :hot-spots="popularSpots"
@@ -70,11 +70,11 @@ import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import HomeHeader from './components/HomeHeader.vue'
 import HomeBanner from './components/HomeBanner.vue'
-import QuickNav from './components/QuickNav.vue'
+import FeatureEntryGrid from './components/FeatureEntryGrid.vue'
 import RecommendSpots from './components/RecommendSpots.vue'
 import NearbyAndHot from './components/NearbyAndHot.vue'
 import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
-import { getFeatureEntryById, getHomeQuickActions } from '@/constants/feature-navigation'
+import { getFeatureEntryById, getHomeEntryItems } from '@/constants/feature-entry-registry'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -112,7 +112,7 @@ const nearbySessionToken = ref('')
 // 常量配置
 const markerIcon = '/static/tabbar/spot-active.png'
 
-const homeQuickActions = getHomeQuickActions()
+const homeEntryItems = getHomeEntryItems()
 
 // 计算属性
 const recommendationSectionTitle = computed(() => (isLoggedIn.value ? recommendType.value : '个性推荐'))
@@ -458,8 +458,8 @@ const handleBannerClick = (banner) => {
   }
 }
 
-const handleQuickAction = (action) => {
-  switch (action.id) {
+const handleFeatureEntryClick = (entry) => {
+  switch (entry.id) {
     case 'spots':
       goSpotList()
       break
@@ -473,22 +473,19 @@ const handleQuickAction = (action) => {
       handleNearbyCardClick()
       break
     case 'blindbox':
-      navigateConfiguredFeature('blindbox')
+      navigateFeatureEntry('blindbox')
       break
     case 'budget':
-      navigateConfiguredFeature('budget')
+      navigateFeatureEntry('budget')
       break
     case 'reviews':
       if (!promptLogin('登录后可查看游客口碑，是否现在去登录？')) {
         return
       }
-      navigateConfiguredFeature('reviews')
-      break
-    case 'recent-views':
-      navigateConfiguredFeature('recent-views')
+      navigateFeatureEntry('reviews')
       break
     case 'more':
-      navigateConfiguredFeature('more')
+      navigateFeatureEntry('more')
       break
     default:
       break
@@ -534,7 +531,7 @@ const goRecommendationSpots = () => {
   uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 
-const navigateConfiguredFeature = (id) => {
+const navigateFeatureEntry = (id) => {
   const featureEntry = getFeatureEntryById(id)
   if (!featureEntry?.url) return
   uni.navigateTo({ url: featureEntry.url })

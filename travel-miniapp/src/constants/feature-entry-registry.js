@@ -1,5 +1,5 @@
-// 功能入口主题色统一收口，避免首页和更多页各自维护一份。
-export const featureThemeColorMap = {
+// 功能入口主题色统一收口，避免不同页面各自维护一份。
+export const featureEntryThemeMap = {
   blue: '#2563eb',
   orange: '#f97316',
   amber: '#d97706',
@@ -7,7 +7,7 @@ export const featureThemeColorMap = {
   purple: '#7c3aed'
 }
 
-const featureEntries = [
+const featureEntryRegistry = [
   { id: 'spots', title: '景点大全', desc: '按区域和分类浏览', icon: 'location-filled', theme: 'blue', url: '/pages/spot/list?sortBy=heat', section: 'browse' },
   { id: 'guides', title: '出游攻略', desc: '看路线和游玩经验', icon: 'paperplane-filled', theme: 'orange', url: '/pages/guide/list?sortBy=time', section: 'browse' },
   { id: 'recommend', title: '个性推荐', desc: '查看个性化推荐', icon: 'star-filled', theme: 'amber', url: '/pages/recommendation/index', section: 'browse' },
@@ -23,25 +23,25 @@ const featureEntries = [
   { id: 'activity-zone', title: '活动专区', desc: '后续活动和限时专题入口', icon: 'notifications-filled', theme: 'purple', section: 'placeholder', available: false }
 ]
 
-export const homeQuickActionIds = ['spots', 'guides', 'recommend', 'nearby', 'blindbox', 'budget', 'reviews', 'more']
+const homeEntryIds = ['spots', 'guides', 'recommend', 'nearby', 'blindbox', 'budget', 'reviews', 'more']
 
-export const getFeatureEntryById = (id) => featureEntries.find(item => item.id === id) || null
+export const getFeatureEntryById = (id) => featureEntryRegistry.find(item => item.id === id) || null
 
-export const getHomeQuickActions = () => homeQuickActionIds
+export const getHomeEntryItems = () => homeEntryIds
   .map(id => getFeatureEntryById(id))
   .filter(Boolean)
 
-export const getMoreFeatureGroups = () => ([
+export const getMoreEntryGroups = () => ([
   {
     title: '常用浏览',
-    items: featureEntries.filter(item => item.section === 'browse')
+    items: featureEntryRegistry.filter(item => item.section === 'browse')
   },
   {
     title: '特色功能',
-    items: featureEntries.filter(item => item.section === 'feature' && item.id !== 'more')
+    items: featureEntryRegistry.filter(item => item.section === 'feature' && item.id !== 'more')
   },
   {
     title: '即将上线',
-    items: featureEntries.filter(item => item.section === 'placeholder')
+    items: featureEntryRegistry.filter(item => item.section === 'placeholder')
   }
 ])
