@@ -15,6 +15,7 @@ const featureEntries = [
   { id: 'blindbox', title: '每日盲盒', desc: '随机抽一个目的地', icon: 'gift-filled', theme: 'purple', url: '/pages/feature/blindbox/index', section: 'feature' },
   { id: 'budget', title: '穷游特惠', desc: '低预算景点和攻略', icon: 'wallet-filled', theme: 'orange', url: '/pages/feature/budget/index', section: 'feature' },
   { id: 'reviews', title: '真实口碑', desc: '看游客真实评价', icon: 'chatboxes-filled', theme: 'blue', url: '/pages/feature/reviews/index', section: 'feature' },
+  { id: 'recent-views', title: '最近都在看', desc: '看看最近浏览更高的景点', icon: 'eye-filled', theme: 'amber', url: '/pages/feature/recent-views/index', section: 'feature' },
   { id: 'more', title: '更多', desc: '功能总览和后续扩展', icon: 'grid-filled', theme: 'emerald', url: '/pages/feature/more/index', section: 'feature' },
   { id: 'city-topic', title: '城市专题', desc: '按城市整理主题玩法', icon: 'flag-filled', theme: 'blue', section: 'placeholder', available: false },
   { id: 'holiday-plan', title: '节假日玩法', desc: '节日和假期的出游专题', icon: 'calendar-filled', theme: 'orange', section: 'placeholder', available: false },

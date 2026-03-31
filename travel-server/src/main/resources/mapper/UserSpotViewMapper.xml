@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.travel.mapper.UserSpotViewMapper">
+
+    <!-- 最近都在看列表映射 -->
+    <resultMap id="RecentViewedSpotItemResultMap" type="com.travel.dto.home.RecentViewedSpotItem">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="price" property="price"/>
+        <result column="avg_rating" property="avgRating"/>
+        <result column="heat_score" property="heatScore"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="view_count" property="viewCount"/>
+    </resultMap>
+
+    <!-- 最近都在看查询 -->
+    <select id="selectRecentViewedSpots" resultMap="RecentViewedSpotItemResultMap">
+        SELECT s.id,
+               s.name,
+               s.cover_image_url AS cover_image,
+               s.price,
+               s.avg_rating,
+               s.heat_score,
+               c.name AS category_name,
+               COUNT(v.id) AS view_count
+        FROM user_spot_view v
+        INNER JOIN spot s
+            ON s.id = v.spot_id
+           AND s.is_deleted = 0
+           AND s.is_published = 1
+        LEFT JOIN spot_category c
+            ON c.id = s.category_id
+           AND c.is_deleted = 0
+        WHERE v.created_at <![CDATA[>=]]> #{startTime}
+        GROUP BY s.id, s.name, s.cover_image_url, s.price, s.avg_rating, s.heat_score, c.name
+        ORDER BY view_count DESC, s.heat_score DESC, s.id DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
