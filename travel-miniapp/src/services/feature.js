@@ -1,19 +1,24 @@
 import { getGuideDetail, getGuideList } from '@/api/guide'
-import { getHotSpots } from '@/api/home'
 import { getSpotReviews } from '@/api/review'
 import { getSpotList } from '@/api/spot'
 
 export const BUDGET_MAX_PRICE = 50
 export const BUDGET_MODE_ALL = 'budget'
 export const BUDGET_MODE_FREE = 'free'
+export const BUDGET_MODE_OPTIONS = [
+  { label: '免费', value: BUDGET_MODE_FREE },
+  { label: '50 元以内', value: BUDGET_MODE_ALL }
+]
 
 const BLINDBOX_PAGE_SIZE = 12
 const BLINDBOX_MAX_ATTEMPTS = 5
 const BUDGET_SPOT_MAX_PAGES = 5
 const BUDGET_SPOT_LIMIT = 12
 const BUDGET_GUIDE_LIMIT = 8
-const REVIEW_HOT_SPOT_LIMIT = 6
+const REVIEW_SOURCE_MAX_PAGES = 5
+const REVIEW_SOURCE_PAGE_SIZE = 12
 const REVIEW_PAGE_SIZE = 10
+const REVIEW_MIN_SOURCE_SPOT_COUNT = 12
 
 const toNumber = (value) => {
   const num = Number(value)
@@ -152,10 +157,22 @@ export const fetchBudgetGuides = async ({
   return detailList.filter(Boolean)
 }
 
-// 口碑流先复用热门景点评论聚合，后续切全站评价流接口时仍然只改这里。
+// 口碑流先从景点列表前几页聚合评论，避免只查热门景点导致经常刷空。
 export const fetchReviewFeedPreview = async () => {
-  const hotRes = await getHotSpots(REVIEW_HOT_SPOT_LIMIT)
-  const spotList = hotRes.data?.list || []
+  const sourceSpots = []
+  let page = 1
+  let total = 0
+
+  while (page <= REVIEW_SOURCE_MAX_PAGES && sourceSpots.length < REVIEW_MIN_SOURCE_SPOT_COUNT) {
+    const res = await getSpotList({ page, pageSize: REVIEW_SOURCE_PAGE_SIZE, sortBy: 'heat' })
+    const list = res.data?.list || []
+    total = res.data?.total || 0
+    sourceSpots.push(...list.filter(item => item?.id))
+    if (page * REVIEW_SOURCE_PAGE_SIZE >= total) break
+    page += 1
+  }
+
+  const spotList = dedupeById(sourceSpots)
 
   const reviewGroups = await Promise.all(
     spotList.map(async (spot) => {
