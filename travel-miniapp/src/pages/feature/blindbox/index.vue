@@ -33,6 +33,17 @@
       <text class="tips-text">{{ randomReason }}</text>
     </view>
 
+    <view class="status-card">
+      <view class="status-row">
+        <text class="status-label">当前模式</text>
+        <text class="status-value">纯随机一期版</text>
+      </view>
+      <view class="status-row">
+        <text class="status-label">当前状态</text>
+        <text class="status-value">{{ blindboxStatusText }}</text>
+      </view>
+    </view>
+
     <view class="action-bar">
       <button class="ghost-btn" :disabled="loading" @click="drawSpot">
         {{ loading ? '抽取中...' : '换一个' }}
@@ -46,6 +57,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { fetchBlindboxSpot } from '@/services/feature'
 import { promptLogin } from '@/utils/auth'
@@ -66,6 +78,13 @@ const blindboxReasons = [
 
 const fallbackCopy = '给自己一个随机出发的理由，今天就去看看新的风景。'
 const randomReason = ref(blindboxReasons[0])
+
+// 计算属性
+const blindboxStatusText = computed(() => {
+  if (loading.value) return '正在重新抽取'
+  if (spot.value?.id) return '已抽到一个可浏览景点'
+  return '暂未抽到结果'
+})
 
 // 工具方法
 const getRandomReason = () => {
@@ -193,7 +212,8 @@ onLoad(() => {
 }
 
 .tips-card,
-.empty-card {
+.empty-card,
+.status-card {
   margin-top: 24rpx;
   padding: 28rpx;
   background: rgba(255, 255, 255, 0.94);
@@ -216,6 +236,30 @@ onLoad(() => {
   font-size: 26rpx;
   line-height: 1.7;
   color: #64748b;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.status-row + .status-row {
+  margin-top: 18rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid rgba(148, 163, 184, 0.16);
+}
+
+.status-label {
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+.status-value {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .action-bar {

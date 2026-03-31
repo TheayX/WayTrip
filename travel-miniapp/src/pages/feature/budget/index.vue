@@ -4,6 +4,16 @@
       <text class="hero-title">穷游特惠</text>
       <text class="hero-desc">先把预算压下来，再挑值得去的景点和攻略。</text>
       <view class="hero-badge">当前口径：免费或 50 元以内</view>
+      <view class="hero-stats">
+        <view class="hero-stat">
+          <text class="hero-stat-value">{{ budgetSpots.length }}</text>
+          <text class="hero-stat-label">低预算景点</text>
+        </view>
+        <view class="hero-stat">
+          <text class="hero-stat-value">{{ budgetGuides.length }}</text>
+          <text class="hero-stat-label">低预算攻略</text>
+        </view>
+      </view>
     </view>
 
     <view class="tab-bar">
@@ -20,6 +30,10 @@
 
     <view v-if="activeTab === 'spots'" class="content-section">
       <view class="section-tip">优先展示低价且热度更高的景点。</view>
+      <view class="mode-card">
+        <text class="mode-title">景点模式</text>
+        <text class="mode-desc">当前先按热度抓取前几页景点，再按预算口径过滤，后续可直接切服务端预算筛选。</text>
+      </view>
 
       <view class="spot-card" v-for="item in budgetSpots" :key="item.id" @click="goSpotDetail(item.id)">
         <image class="spot-image" :src="getImageUrl(item.coverImage)" mode="aspectFill" />
@@ -45,6 +59,10 @@
 
     <view v-else class="content-section">
       <view class="section-tip">根据攻略关联景点的价格，先筛出更适合穷游的内容。</view>
+      <view class="mode-card">
+        <text class="mode-title">攻略模式</text>
+        <text class="mode-desc">当前先取攻略列表，再根据详情中的关联景点价格做预算判断，后续可换成后端直出列表。</text>
+      </view>
 
       <view class="guide-card" v-for="item in budgetGuides" :key="item.id" @click="goGuideDetail(item.id)">
         <image class="guide-image" :src="getImageUrl(item.coverImage)" mode="aspectFill" />
@@ -207,6 +225,33 @@ onLoad(() => {
   font-size: 22rpx;
 }
 
+.hero-stats {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 22rpx;
+}
+
+.hero-stat {
+  flex: 1;
+  padding: 18rpx 20rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.hero-stat-value {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.hero-stat-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #64748b;
+}
+
 .tab-bar {
   display: flex;
   gap: 12rpx;
@@ -238,6 +283,29 @@ onLoad(() => {
   margin-bottom: 20rpx;
   font-size: 24rpx;
   color: #94a3b8;
+}
+
+.mode-card {
+  margin-bottom: 20rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 26rpx;
+  background: #ffffff;
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
+}
+
+.mode-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.mode-desc {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 23rpx;
+  line-height: 1.7;
+  color: #64748b;
 }
 
 .spot-card,
