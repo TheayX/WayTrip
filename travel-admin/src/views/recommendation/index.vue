@@ -171,42 +171,52 @@
             <span>浏览行为修正</span>
           </div>
           <div class="section-desc">进一步修正浏览行为在 <code>r_ui</code> 中的贡献。实际浏览权重 = 基础浏览权重 × 来源因子 × 停留时长因子。</div>
+          <el-collapse class="source-bucket-note">
+            <el-collapse-item title="查看来源挡位说明" name="source-bucket">
+              <el-alert
+                type="info"
+                :closable="false"
+                show-icon
+                title="说明：数据库保留原始来源值；推荐计算时会把个性推荐、发现页、随心一选、穷游玩法、游客口碑、近期热看归到 recommendation 挡位，把列表、附近、订单、收藏、评价等归到 detail 挡位。"
+              />
+            </el-collapse-item>
+          </el-collapse>
 
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="首页来源因子">
+              <el-form-item label="首页挡位因子">
                 <el-input-number v-model="config.algorithm.viewSourceFactorHome" :min="0" :max="3" :step="0.1" :precision="2" />
-                <span class="form-tip">从首页进入详情页的浏览因子</span>
+                <span class="form-tip">算法挡位为 home 的浏览因子</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="搜索来源因子">
+              <el-form-item label="搜索挡位因子">
                 <el-input-number v-model="config.algorithm.viewSourceFactorSearch" :min="0" :max="3" :step="0.1" :precision="2" />
-                <span class="form-tip">从搜索结果进入详情页的浏览因子</span>
+                <span class="form-tip">算法挡位为 search 的浏览因子</span>
               </el-form-item>
             </el-col>
           </el-row>
 
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="推荐来源因子">
-                <el-input-number v-model="config.algorithm.viewSourceFactorRecommend" :min="0" :max="3" :step="0.1" :precision="2" />
-                <span class="form-tip">从推荐位进入详情页的浏览因子</span>
+              <el-form-item label="推荐挡位因子">
+                <el-input-number v-model="config.algorithm.viewSourceFactorRecommendation" :min="0" :max="3" :step="0.1" :precision="2" />
+                <span class="form-tip">算法挡位为 recommendation 的浏览因子</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="攻略来源因子">
+              <el-form-item label="攻略挡位因子">
                 <el-input-number v-model="config.algorithm.viewSourceFactorGuide" :min="0" :max="3" :step="0.1" :precision="2" />
-                <span class="form-tip">从攻略页进入详情页的浏览因子</span>
+                <span class="form-tip">算法挡位为 guide 的浏览因子</span>
               </el-form-item>
             </el-col>
           </el-row>
 
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="默认来源因子">
+              <el-form-item label="详情挡位因子">
                 <el-input-number v-model="config.algorithm.viewSourceFactorDetail" :min="0" :max="3" :step="0.1" :precision="2" />
-                <span class="form-tip">默认或二跳进入详情页的浏览因子</span>
+                <span class="form-tip">算法挡位为 detail 的浏览因子</span>
               </el-form-item>
             </el-col>
           </el-row>
@@ -355,9 +365,16 @@
             <span>在线分支切换与候选规模</span>
           </div>
           <div class="section-desc">控制用户什么时候进入协同过滤通道，以及个性化推荐、冷启动推荐各自拉多大的候选集。</div>
-          <div class="section-inline-note">
-            这些参数只影响在线推荐分支切换和候选规模，不需要重建相似度矩阵。
-          </div>
+          <el-collapse class="source-bucket-note">
+            <el-collapse-item title="查看生效范围说明" name="online-branch-scope">
+              <el-alert
+                type="info"
+                :closable="false"
+                show-icon
+                title="这些参数只影响在线推荐分支切换和候选规模，不需要重建相似度矩阵。"
+              />
+            </el-collapse-item>
+          </el-collapse>
 
           <el-row :gutter="24">
             <el-col :span="12">
@@ -1055,11 +1072,11 @@
               <el-descriptions-item label="评分因子">0.4</el-descriptions-item>
               <el-descriptions-item label="已付款权重">3.0</el-descriptions-item>
               <el-descriptions-item label="已完成权重">4.0</el-descriptions-item>
-              <el-descriptions-item label="首页来源因子">0.9</el-descriptions-item>
-              <el-descriptions-item label="搜索来源因子">1.2</el-descriptions-item>
-              <el-descriptions-item label="推荐来源因子">1.1</el-descriptions-item>
-              <el-descriptions-item label="攻略来源因子">1.0</el-descriptions-item>
-              <el-descriptions-item label="默认来源因子">1.0</el-descriptions-item>
+              <el-descriptions-item label="首页挡位因子">0.9</el-descriptions-item>
+              <el-descriptions-item label="搜索挡位因子">1.2</el-descriptions-item>
+              <el-descriptions-item label="推荐挡位因子">1.1</el-descriptions-item>
+              <el-descriptions-item label="攻略挡位因子">1.0</el-descriptions-item>
+              <el-descriptions-item label="详情挡位因子">1.0</el-descriptions-item>
               <el-descriptions-item label="短停留阈值">10 秒</el-descriptions-item>
               <el-descriptions-item label="中停留阈值">60 秒</el-descriptions-item>
               <el-descriptions-item label="长停留阈值">180 秒</el-descriptions-item>
@@ -1118,7 +1135,7 @@ const createDefaultConfig = () => ({
     weightOrderCompleted: 4.0,
     viewSourceFactorHome: 0.9,
     viewSourceFactorSearch: 1.2,
-    viewSourceFactorRecommend: 1.1,
+    viewSourceFactorRecommendation: 1.1,
     viewSourceFactorGuide: 1.0,
     viewSourceFactorDetail: 1.0,
     viewDurationShortThresholdSeconds: 10,
@@ -1156,7 +1173,7 @@ const matrixFieldPaths = [
   'algorithm.weightOrderCompleted',
   'algorithm.viewSourceFactorHome',
   'algorithm.viewSourceFactorSearch',
-  'algorithm.viewSourceFactorRecommend',
+  'algorithm.viewSourceFactorRecommendation',
   'algorithm.viewSourceFactorGuide',
   'algorithm.viewSourceFactorDetail',
   'algorithm.viewDurationShortThresholdSeconds',
@@ -1995,17 +2012,6 @@ onMounted(async () => {
     letter-spacing: 0.04em;
   }
 
-  .section-inline-note {
-    margin-bottom: 16px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    font-size: 12px;
-    line-height: 1.7;
-    color: #607086;
-  }
-
   .execution-brief {
     padding: 14px 16px;
     border-radius: 12px;
@@ -2441,6 +2447,10 @@ onMounted(async () => {
     .section-desc {
       font-size: 13px;
       color: #909399;
+      margin-bottom: 20px;
+    }
+
+    .source-bucket-note {
       margin-bottom: 20px;
     }
 

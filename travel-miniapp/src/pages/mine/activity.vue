@@ -22,7 +22,7 @@
             v-for="item in footprintList"
             :key="item.id"
             class="browse-card"
-            @click="goSpot(item.id, 'footprint')"
+            @click="goSpot(item.id, SPOT_DETAIL_SOURCE.FOOTPRINT)"
           >
             <image class="browse-image" :src="getContentImageUrl(item.coverImage)" mode="aspectFill" />
             <view class="browse-body">
@@ -45,7 +45,7 @@
             class="favorite-card"
             v-for="spot in favoriteList"
             :key="spot.id"
-            @click="goSpot(spot.id, 'favorite')"
+            @click="goSpot(spot.id, SPOT_DETAIL_SOURCE.FAVORITE)"
           >
             <image class="favorite-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
             <view class="favorite-body">
@@ -82,7 +82,7 @@
               <view class="review-actions">
                 <button class="ghost-btn" @tap="openEdit(item)">编辑</button>
                 <button class="danger-btn" @tap="handleDelete(item)">删除</button>
-                <button class="link-btn" @tap="goSpot(item.spotId, 'review')">查看景点</button>
+                <button class="link-btn" @tap="goSpot(item.spotId, SPOT_DETAIL_SOURCE.REVIEW)">查看景点</button>
               </view>
             </view>
           </view>
@@ -136,6 +136,7 @@ import { onShow, onLoad } from '@dcloudio/uni-app'
 import { getFavoriteList, removeFavorite } from '@/api/favorite'
 import { deleteReview, getMyReviews, submitReview } from '@/api/review'
 import { getViewHistory } from '@/api/spot'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 import { getContentImageUrl, getImageUrl } from '@/utils/request'
 
@@ -400,7 +401,7 @@ const handleDelete = (item) => {
 
 // 页面跳转方法
 const goSpot = (spotId, source) => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=${source}` })
+  uni.navigateTo({ url: buildSpotDetailUrl(spotId, source) })
 }
 
 // 生命周期

@@ -57,6 +57,7 @@ import { fetchRandomPickSpot } from '@/services/random-pick'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 页面数据状态
 const spot = ref(null)
@@ -106,7 +107,7 @@ const goDetail = () => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
-  uni.navigateTo({ url: `/pages/spot/detail?id=${spot.value.id}&source=random-pick` })
+  uni.navigateTo({ url: buildSpotDetailUrl(spot.value.id, SPOT_DETAIL_SOURCE.RANDOM_PICK) })
 }
 
 onLoad(() => {

@@ -163,6 +163,7 @@ import { deleteReview, submitReview } from '@/api/review'
 import { guardLoginPage } from '@/utils/auth'
 import { getLocationSnapshot } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 
 // 基础依赖与用户状态
@@ -171,7 +172,7 @@ const spotId = ref(null)
 const currentLocation = ref(null)
 const userStore = useUserStore()
 let enterTime = 0
-let viewSource = 'detail'
+let viewSource = SPOT_DETAIL_SOURCE.DETAIL
 
 // 计算属性
 const spotImages = computed(() => {
@@ -387,7 +388,7 @@ const goBuy = () => {
 }
 
 const goSimilarSpot = (id) => {
-  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=similar` })
+  uni.navigateTo({ url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.SIMILAR) })
 }
 
 const formatSimilarity = (value) => {
@@ -402,7 +403,7 @@ onLoad((options) => {
   }
 
   spotId.value = options.id
-  viewSource = options.source || 'detail'
+  viewSource = options.source || SPOT_DETAIL_SOURCE.DETAIL
   openReviewByQuery.value = options.openReview === '1'
   reviewPopupOpened.value = false
   syncCurrentLocation()

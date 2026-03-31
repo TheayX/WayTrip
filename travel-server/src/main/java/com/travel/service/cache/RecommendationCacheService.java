@@ -230,7 +230,7 @@ public class RecommendationCacheService {
             if (map.containsKey("weightOrderCompleted")) config.setWeightOrderCompleted(toDouble(map.get("weightOrderCompleted")));
             if (map.containsKey("viewSourceFactorHome")) config.setViewSourceFactorHome(toDouble(map.get("viewSourceFactorHome")));
             if (map.containsKey("viewSourceFactorSearch")) config.setViewSourceFactorSearch(toDouble(map.get("viewSourceFactorSearch")));
-            if (map.containsKey("viewSourceFactorRecommend")) config.setViewSourceFactorRecommend(toDouble(map.get("viewSourceFactorRecommend")));
+            if (map.containsKey("viewSourceFactorRecommendation")) config.setViewSourceFactorRecommendation(toDouble(map.get("viewSourceFactorRecommendation")));
             if (map.containsKey("viewSourceFactorGuide")) config.setViewSourceFactorGuide(toDouble(map.get("viewSourceFactorGuide")));
             if (map.containsKey("viewSourceFactorDetail")) config.setViewSourceFactorDetail(toDouble(map.get("viewSourceFactorDetail")));
             if (map.containsKey("viewDurationShortThresholdSeconds")) config.setViewDurationShortThresholdSeconds(toInt(map.get("viewDurationShortThresholdSeconds")));
@@ -353,7 +353,7 @@ public class RecommendationCacheService {
         if (source.getWeightOrderCompleted() != null) target.setWeightOrderCompleted(source.getWeightOrderCompleted());
         if (source.getViewSourceFactorHome() != null) target.setViewSourceFactorHome(source.getViewSourceFactorHome());
         if (source.getViewSourceFactorSearch() != null) target.setViewSourceFactorSearch(source.getViewSourceFactorSearch());
-        if (source.getViewSourceFactorRecommend() != null) target.setViewSourceFactorRecommend(source.getViewSourceFactorRecommend());
+        if (source.getViewSourceFactorRecommendation() != null) target.setViewSourceFactorRecommendation(source.getViewSourceFactorRecommendation());
         if (source.getViewSourceFactorGuide() != null) target.setViewSourceFactorGuide(source.getViewSourceFactorGuide());
         if (source.getViewSourceFactorDetail() != null) target.setViewSourceFactorDetail(source.getViewSourceFactorDetail());
         if (source.getViewDurationShortThresholdSeconds() != null) target.setViewDurationShortThresholdSeconds(source.getViewDurationShortThresholdSeconds());

@@ -117,7 +117,10 @@
           </template>
           <div class="summary-metric">累计浏览：{{ currentUser.viewCount || 0 }}</div>
           <div class="summary-line">最近浏览：{{ currentUser.viewSummary?.latestSpotName || '暂无' }}</div>
-          <div class="summary-line">主要来源：{{ getViewSourceLabel(currentUser.viewSummary?.topSource) }}</div>
+          <div class="summary-line">
+            主要来源：{{ getViewSourceLabel(currentUser.viewSummary?.topSource) }}
+            <span class="summary-line-muted">（{{ getSourceBucketLabel(currentUser.viewSummary?.topSource) }}）</span>
+          </div>
           <div class="summary-meta">
             平均停留：{{ currentUser.viewSummary?.averageDuration ?? 0 }} 秒
             <span class="summary-divider">|</span>
@@ -153,6 +156,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getUserList, getUserDetail, resetUserPassword } from '@/api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/utils/message-box'
+import { getSourceBucketLabel, getSourceLabel as resolveSourceLabel } from '@/constants/view-source'
 
 const router = useRouter()
 const route = useRoute()
@@ -175,15 +179,6 @@ const pagination = reactive({
 const detailVisible = ref(false)
 const currentUser = ref(null)
 
-// 浏览来源映射
-const viewSourceMap = {
-  home: '首页',
-  search: '搜索',
-  recommend: '推荐',
-  guide: '攻略',
-  detail: '详情'
-}
-
 // 格式化手机号显示
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
@@ -204,9 +199,7 @@ const formatDateTime = (value) => {
 }
 
 // 获取浏览来源文案
-const getViewSourceLabel = (value) => {
-  return viewSourceMap[value] || value || '暂无'
-}
+const getViewSourceLabel = (value) => resolveSourceLabel(value || '暂无')
 
 // 获取用户列表
 const fetchUserList = async () => {
@@ -364,6 +357,10 @@ watch(
   .summary-line {
     margin-top: 12px;
     color: #606266;
+  }
+
+  .summary-line-muted {
+    color: #909399;
   }
 
   .summary-meta {

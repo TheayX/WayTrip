@@ -146,6 +146,7 @@
 <script setup>
 import { onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { getSourceLabel } from '@/constants/view-source'
 import { getRecommendationStatus } from '@/api/recommendation'
 import { getFavoriteList, getPreferenceList, getViewList } from '@/api/user-insight'
 
@@ -295,18 +296,6 @@ const fetchBehaviorSummary = async () => {
     tag: preference?.preferenceTags?.[0] || '',
     updatedAt: preference?.updatedAt || ''
   })
-}
-
-// 获取来源文案
-const getSourceLabel = (value) => {
-  const sourceMap = {
-    home: '首页',
-    search: '搜索',
-    recommend: '推荐',
-    guide: '攻略',
-    detail: '详情'
-  }
-  return sourceMap[value] || value || '未知来源'
 }
 
 // 页面跳转

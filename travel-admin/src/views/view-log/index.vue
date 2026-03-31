@@ -27,6 +27,14 @@
         </el-card>
       </div>
 
+      <el-alert
+        class="source-alert"
+        type="info"
+        :closable="false"
+        show-icon
+        title="说明：这里展示的是数据库原始来源值；推荐算法计算时会再归并到首页、搜索、攻略、推荐、默认这几个来源挡位。"
+      />
+
       <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
         <el-form-item label="用户昵称">
@@ -97,7 +105,10 @@
         </el-table-column>
         <el-table-column label="来源" width="120">
           <template #default="{ row }">
-            <el-tag effect="light">{{ getSourceLabel(row.source) }}</el-tag>
+            <div class="source-cell">
+              <el-tag effect="light">{{ getSourceLabel(row.source) }}</el-tag>
+              <div class="source-bucket-text">{{ getSourceBucketLabel(row.source) }}</div>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="停留时长" width="120">
@@ -135,18 +146,10 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteView, getViewList } from '@/api/user-insight'
 import { isMessageBoxDismissed } from '@/utils/message-box'
 import { getResourceUrl } from '@/utils/resource'
+import { getSourceBucketLabel, getSourceLabel, sourceOptions } from '@/constants/view-source'
 
 const router = useRouter()
 const route = useRoute()
-
-// 来源选项
-const sourceOptions = [
-  { label: '首页', value: 'home' },
-  { label: '搜索', value: 'search' },
-  { label: '推荐', value: 'recommend' },
-  { label: '攻略', value: 'guide' },
-  { label: '详情', value: 'detail' }
-]
 
 // 列表状态
 const loading = ref(false)
@@ -185,11 +188,6 @@ const topSourceLabel = computed(() => {
   const topSource = Object.entries(sourceCounter).sort((a, b) => b[1] - a[1])[0]?.[0]
   return getSourceLabel(topSource)
 })
-
-// 获取来源文案
-const getSourceLabel = (source) => {
-  return sourceOptions.find(item => item.value === source)?.label || source || '未知'
-}
 
 // 获取浏览列表
 const fetchViewList = async () => {
@@ -315,6 +313,22 @@ watch(
 
 .view-log-page {
   @include userOps.page-shell;
+}
+
+.source-alert {
+  margin-bottom: 16px;
+}
+
+.source-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.source-bucket-text {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.4;
 }
 
 .spot-cell {

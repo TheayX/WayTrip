@@ -16,7 +16,7 @@ public class RecommendationAlgorithmConfigDTO {
 
     private Double viewSourceFactorHome = 0.9;
     private Double viewSourceFactorSearch = 1.2;
-    private Double viewSourceFactorRecommend = 1.1;
+    private Double viewSourceFactorRecommendation = 1.1;
     private Double viewSourceFactorGuide = 1.0;
     private Double viewSourceFactorDetail = 1.0;
 

@@ -66,6 +66,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { fetchTravelerReviewFeed } from '@/services/traveler-reviews'
 import { promptLogin } from '@/utils/auth'
 import { getAvatarUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 const tabs = [
   { label: '高分种草', value: 'positive' },
@@ -101,7 +102,7 @@ const goSpotDetail = (spotId) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
-  uni.navigateTo({ url: `/pages/spot/detail?id=${spotId}&source=traveler-reviews` })
+  uni.navigateTo({ url: buildSpotDetailUrl(spotId, SPOT_DETAIL_SOURCE.TRAVELER_REVIEWS) })
 }
 
 onLoad(() => {

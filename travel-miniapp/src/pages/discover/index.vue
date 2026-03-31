@@ -172,6 +172,7 @@ import { getGuideList, getCategories } from '@/api/guide'
 import { getSpotList, getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 常量配置
 const DISCOVER_STATE_KEY = 'discover_state'
@@ -328,7 +329,7 @@ const goRecommendationSpots = () => {
 
 const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) return
-  uni.navigateTo({ url: `/pages/spot/detail?id=${id}&source=discover` })
+  uni.navigateTo({ url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.DISCOVER) })
 }
 
 const goGuideDetail = (id) => {

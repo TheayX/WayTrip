@@ -338,7 +338,7 @@ CREATE TABLE `user_spot_view` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
   `spot_id` bigint unsigned NOT NULL COMMENT '景点ID',
-  `view_source` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'home' COMMENT '来源：home/search/recommend/guide',
+  `view_source` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'home' COMMENT '原始来源：home/search/recommendation/guide/detail 等页面来源',
   `view_duration` int DEFAULT '0' COMMENT '停留时长(秒)',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
