@@ -1,10 +1,10 @@
 package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.auth.AdminLoginRequest;
-import com.travel.dto.auth.AdminLoginResponse;
+import com.travel.dto.auth.request.AdminLoginRequest;
+import com.travel.dto.auth.response.AdminLoginResponse;
 import com.travel.service.AdminAuthService;
-import com.travel.util.UserContext;
+import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class AdminAuthController {
     @Operation(summary = "获取管理员信息")
     @GetMapping("/info")
     public ApiResponse<AdminLoginResponse.AdminInfo> getInfo() {
-        Long adminId = UserContext.getAdminId();
+        Long adminId = UserContextHolder.getAdminId();
         return ApiResponse.success(adminAuthService.getAdminInfo(adminId));
     }
 }

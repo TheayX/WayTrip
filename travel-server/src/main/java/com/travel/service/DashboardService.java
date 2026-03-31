@@ -1,6 +1,8 @@
 package com.travel.service;
 
-import com.travel.dto.dashboard.*;
+import com.travel.dto.dashboard.response.DashboardOverviewResponse;
+import com.travel.dto.dashboard.response.HotSpotsResponse;
+import com.travel.dto.dashboard.response.OrderTrendResponse;
 
 /**
  * 仪表盘服务接口。

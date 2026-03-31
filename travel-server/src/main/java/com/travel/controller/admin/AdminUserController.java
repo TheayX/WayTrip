@@ -1,8 +1,11 @@
 package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.user.*;
-import com.travel.service.UserService;
+import com.travel.dto.user.request.AdminUserListRequest;
+import com.travel.dto.user.request.ResetUserPasswordRequest;
+import com.travel.dto.user.response.AdminUserDetailResponse;
+import com.travel.dto.user.response.AdminUserListResponse;
+import com.travel.service.UserProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -19,25 +22,25 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class AdminUserController {
 
-    private final UserService userService;
+    private final UserProfileService userProfileService;
 
     @Operation(summary = "获取用户列表")
     @GetMapping
     public ApiResponse<AdminUserListResponse> getUsers(AdminUserListRequest request) {
-        return ApiResponse.success(userService.getAdminUsers(request));
+        return ApiResponse.success(userProfileService.getAdminUsers(request));
     }
 
     @Operation(summary = "获取用户详情")
     @GetMapping("/{id}")
     public ApiResponse<AdminUserDetailResponse> getUserDetail(@PathVariable("id") Long id) {
-        return ApiResponse.success(userService.getAdminUserDetail(id));
+        return ApiResponse.success(userProfileService.getAdminUserDetail(id));
     }
 
     @Operation(summary = "重置用户密码")
     @PutMapping("/{id}/password")
     public ApiResponse<Void> resetUserPassword(@PathVariable("id") Long id,
                                                 @Valid @RequestBody ResetUserPasswordRequest request) {
-        userService.resetUserPassword(id, request);
+        userProfileService.resetUserPassword(id, request);
         return ApiResponse.success();
     }
 }

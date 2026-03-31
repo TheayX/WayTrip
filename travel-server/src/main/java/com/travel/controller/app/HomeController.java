@@ -1,10 +1,10 @@
 package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.banner.BannerResponse;
-import com.travel.dto.home.HotSpotResponse;
-import com.travel.dto.home.NearbySpotResponse;
-import com.travel.dto.home.RecentViewedSpotResponse;
+import com.travel.dto.banner.response.BannerResponse;
+import com.travel.dto.home.response.HotSpotResponse;
+import com.travel.dto.home.response.NearbySpotResponse;
+import com.travel.dto.home.response.RecentViewedSpotResponse;
 import com.travel.service.SpotBannerService;
 import com.travel.service.RecommendationService;
 import io.swagger.v3.oas.annotations.Operation;

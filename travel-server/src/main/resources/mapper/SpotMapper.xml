@@ -69,7 +69,7 @@
     </select>
 
     <!-- 附近景点查询（按距离升序返回） -->
-    <select id="selectNearbySpots" resultType="com.travel.dto.home.NearbySpotResponse$SpotItem">
+    <select id="selectNearbySpots" resultType="com.travel.dto.home.response.NearbySpotResponse$SpotItem">
         SELECT
             s.id,
             s.name,

@@ -1,7 +1,10 @@
 package com.travel.service;
 
 import com.travel.common.result.PageResult;
-import com.travel.dto.spot.*;
+import com.travel.dto.spot.request.AdminSpotListRequest;
+import com.travel.dto.spot.request.AdminSpotUpsertRequest;
+import com.travel.dto.spot.request.SpotListRequest;
+import com.travel.dto.spot.response.*;
 
 /**
  * 景点服务接口。

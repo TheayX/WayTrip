@@ -2,10 +2,10 @@ package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
-import com.travel.dto.favorite.FavoriteRequest;
-import com.travel.dto.spot.SpotListResponse;
+import com.travel.dto.favorite.request.FavoriteRequest;
+import com.travel.dto.spot.response.SpotListResponse;
 import com.travel.service.FavoriteService;
-import com.travel.util.UserContext;
+import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class FavoriteController {
     @Operation(summary = "添加收藏")
     @PostMapping
     public ApiResponse<Void> addFavorite(@Valid @RequestBody FavoriteRequest request) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         favoriteService.addFavorite(userId, request.getSpotId());
         return ApiResponse.success();
     }
@@ -36,7 +36,7 @@ public class FavoriteController {
     @Operation(summary = "取消收藏")
     @DeleteMapping("/{spotId}")
     public ApiResponse<Void> removeFavorite(@PathVariable("spotId") Long spotId) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         favoriteService.removeFavorite(userId, spotId);
         return ApiResponse.success();
     }
@@ -44,7 +44,7 @@ public class FavoriteController {
     @Operation(summary = "检查收藏状态")
     @GetMapping("/check/{spotId}")
     public ApiResponse<Map<String, Boolean>> checkFavorite(@PathVariable("spotId") Long spotId) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         boolean isFavorite = favoriteService.isFavorite(userId, spotId);
         return ApiResponse.success(Map.of("isFavorite", isFavorite));
     }
@@ -54,7 +54,7 @@ public class FavoriteController {
     public ApiResponse<PageResult<SpotListResponse>> getFavoriteList(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(favoriteService.getFavoriteList(userId, page, pageSize));
     }
 }

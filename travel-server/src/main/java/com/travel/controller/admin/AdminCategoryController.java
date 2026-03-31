@@ -1,8 +1,8 @@
 package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.category.AdminCategoryRequest;
-import com.travel.dto.category.AdminCategoryResponse;
+import com.travel.dto.category.request.AdminCategoryRequest;
+import com.travel.dto.category.response.AdminCategoryResponse;
 import com.travel.service.SpotCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

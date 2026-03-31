@@ -2,9 +2,13 @@ package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
-import com.travel.dto.spot.*;
+import com.travel.dto.spot.request.SpotListRequest;
+import com.travel.dto.spot.response.SpotDetailResponse;
+import com.travel.dto.spot.response.SpotFilterResponse;
+import com.travel.dto.spot.response.SpotListResponse;
+import com.travel.dto.spot.response.SpotViewHistoryResponse;
 import com.travel.service.SpotService;
-import com.travel.util.UserContext;
+import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -41,14 +45,14 @@ public class SpotController {
     public ApiResponse<PageResult<SpotViewHistoryResponse>> getViewHistory(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(spotService.getViewHistory(userId, page, pageSize));
     }
 
     @Operation(summary = "获取景点详情")
     @GetMapping("/{spotId}")
     public ApiResponse<SpotDetailResponse> getSpotDetail(@PathVariable("spotId") Long spotId) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(spotService.getSpotDetail(spotId, userId));
     }
 
@@ -58,7 +62,7 @@ public class SpotController {
             @PathVariable("spotId") Long spotId,
             @RequestParam(defaultValue = "detail") String source,
             @RequestParam(defaultValue = "0") Integer duration) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         spotService.recordView(spotId, userId, source, duration);
         return ApiResponse.success(null);
     }

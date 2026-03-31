@@ -2,8 +2,8 @@ package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
-import com.travel.dto.review.AdminReviewListRequest;
-import com.travel.dto.review.ReviewResponse;
+import com.travel.dto.review.request.AdminReviewListRequest;
+import com.travel.dto.review.response.ReviewResponse;
 import com.travel.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

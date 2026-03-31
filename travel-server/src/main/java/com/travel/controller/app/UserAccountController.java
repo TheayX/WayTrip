@@ -1,9 +1,12 @@
 package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.auth.*;
+import com.travel.dto.auth.request.ChangePasswordRequest;
+import com.travel.dto.auth.request.PreferencesRequest;
+import com.travel.dto.auth.request.UpdateUserInfoRequest;
+import com.travel.dto.auth.response.UserInfoResponse;
 import com.travel.service.UserAccountService;
-import com.travel.util.UserContext;
+import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +28,14 @@ public class UserAccountController {
     @Operation(summary = "获取用户信息")
     @GetMapping("/info")
     public ApiResponse<UserInfoResponse> getUserInfo() {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(userAccountService.getUserInfo(userId));
     }
 
     @Operation(summary = "更新用户信息")
     @PutMapping("/info")
     public ApiResponse<Void> updateUserInfo(@Valid @RequestBody UpdateUserInfoRequest request) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         userAccountService.updateUserInfo(userId, request);
         return ApiResponse.success();
     }
@@ -40,7 +43,7 @@ public class UserAccountController {
     @Operation(summary = "设置偏好标签")
     @PostMapping("/preferences")
     public ApiResponse<Void> setPreferences(@Valid @RequestBody PreferencesRequest request) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         userAccountService.setPreferences(userId, request.getCategoryIds());
         return ApiResponse.success();
     }
@@ -48,7 +51,7 @@ public class UserAccountController {
     @Operation(summary = "修改密码")
     @PutMapping("/password")
     public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         userAccountService.changePassword(userId, request);
         return ApiResponse.success();
     }
@@ -56,7 +59,7 @@ public class UserAccountController {
     @Operation(summary = "注销账户")
     @DeleteMapping("/account")
     public ApiResponse<Void> deactivateAccount() {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         userAccountService.deactivateAccount(userId);
         return ApiResponse.success();
     }

@@ -1,13 +1,13 @@
 package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.admin.AdminCreateRequest;
-import com.travel.dto.admin.AdminListRequest;
-import com.travel.dto.admin.AdminListResponse;
-import com.travel.dto.admin.AdminResetPasswordRequest;
-import com.travel.dto.admin.AdminUpdateRequest;
-import com.travel.service.AdminService;
-import com.travel.util.UserContext;
+import com.travel.dto.admin.request.AdminCreateRequest;
+import com.travel.dto.admin.request.AdminListRequest;
+import com.travel.dto.admin.response.AdminListResponse;
+import com.travel.dto.admin.request.AdminResetPasswordRequest;
+import com.travel.dto.admin.request.AdminUpdateRequest;
+import com.travel.service.AdminManagerService;
+import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -25,39 +25,39 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminManagerController {
 
-    private final AdminService adminService;
+    private final AdminManagerService adminManagerService;
 
     @Operation(summary = "获取管理员列表")
     @GetMapping
     public ApiResponse<AdminListResponse> getAdminList(AdminListRequest request) {
-        return ApiResponse.success(adminService.getAdminList(request));
+        return ApiResponse.success(adminManagerService.getAdminList(request));
     }
 
     @Operation(summary = "创建管理员")
     @PostMapping
     public ApiResponse<Map<String, Long>> createAdmin(@Valid @RequestBody AdminCreateRequest request) {
-        Long id = adminService.createAdmin(request);
+        Long id = adminManagerService.createAdmin(request);
         return ApiResponse.success(Map.of("id", id));
     }
 
     @Operation(summary = "更新管理员信息")
     @PutMapping("/{id}")
     public ApiResponse<Void> updateAdmin(@PathVariable("id") Long id, @Valid @RequestBody AdminUpdateRequest request) {
-        adminService.updateAdmin(id, request, UserContext.getAdminId());
+        adminManagerService.updateAdmin(id, request, UserContextHolder.getAdminId());
         return ApiResponse.success();
     }
 
     @Operation(summary = "重置管理员密码")
     @PutMapping("/{id}/password")
     public ApiResponse<Void> resetPassword(@PathVariable("id") Long id, @Valid @RequestBody AdminResetPasswordRequest request) {
-        adminService.resetPassword(id, request);
+        adminManagerService.resetPassword(id, request);
         return ApiResponse.success();
     }
 
     @Operation(summary = "删除管理员")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteAdmin(@PathVariable("id") Long id) {
-        adminService.deleteAdmin(id, UserContext.getAdminId());
+        adminManagerService.deleteAdmin(id, UserContextHolder.getAdminId());
         return ApiResponse.success();
     }
 }

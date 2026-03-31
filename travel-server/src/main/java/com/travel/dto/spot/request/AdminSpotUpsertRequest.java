@@ -1,0 +1,50 @@
+package com.travel.dto.spot.request;
+
+import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ * 管理端景点新增或编辑请求参数对象。
+ */
+@Data
+public class AdminSpotUpsertRequest {
+
+    @NotBlank(message = "景点名称不能为空")
+    private String name;
+
+    private String description;
+
+    @NotNull(message = "门票价格不能为空")
+    private BigDecimal price;
+
+    private String openTime;
+
+    @NotBlank(message = "详细地址不能为空")
+    private String address;
+
+    @NotNull(message = "纬度不能为空")
+    private BigDecimal latitude;
+
+    @NotNull(message = "经度不能为空")
+    private BigDecimal longitude;
+
+    private String coverImage;
+
+    private List<String> images;
+
+    private Long regionId;
+
+    private Long categoryId;
+
+    private Boolean published = false;
+
+    @Min(value = 0, message = "热度档位不能小于0")
+    @Max(value = 3, message = "热度档位不能大于3")
+    private Integer heatLevel;
+}

@@ -1,12 +1,12 @@
 package com.travel.service;
 
-import com.travel.dto.home.HotSpotResponse;
-import com.travel.dto.home.NearbySpotResponse;
-import com.travel.dto.home.RecentViewedSpotResponse;
-import com.travel.dto.recommendation.RecommendationConfigBundleDTO;
-import com.travel.dto.recommendation.RecommendationResponse;
-import com.travel.dto.recommendation.SimilarityPreviewResponse;
-import com.travel.dto.recommendation.RecommendationStatusDTO;
+import com.travel.dto.home.response.HotSpotResponse;
+import com.travel.dto.home.response.NearbySpotResponse;
+import com.travel.dto.home.response.RecentViewedSpotResponse;
+import com.travel.dto.recommendation.model.RecommendationConfigBundleDTO;
+import com.travel.dto.recommendation.response.RecommendationResponse;
+import com.travel.dto.recommendation.response.SimilarityPreviewResponse;
+import com.travel.dto.recommendation.model.RecommendationStatusDTO;
 
 import java.math.BigDecimal;
 

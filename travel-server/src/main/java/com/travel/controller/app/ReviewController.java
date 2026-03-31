@@ -2,11 +2,11 @@ package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
-import com.travel.dto.review.ReviewFeedRequest;
-import com.travel.dto.review.ReviewRequest;
-import com.travel.dto.review.ReviewResponse;
+import com.travel.dto.review.request.ReviewFeedRequest;
+import com.travel.dto.review.request.ReviewRequest;
+import com.travel.dto.review.response.ReviewResponse;
 import com.travel.service.ReviewService;
-import com.travel.util.UserContext;
+import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,7 +34,7 @@ public class ReviewController {
     @Operation(summary = "提交评价")
     @PostMapping
     public ApiResponse<Void> submitReview(@Valid @RequestBody ReviewRequest request) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         reviewService.submitReview(userId, request);
         return ApiResponse.success();
     }
@@ -42,7 +42,7 @@ public class ReviewController {
     @Operation(summary = "获取用户对景点的评价")
     @GetMapping("/spot/{spotId}")
     public ApiResponse<ReviewResponse> getUserReview(@PathVariable("spotId") Long spotId) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(reviewService.getUserReview(userId, spotId));
     }
 
@@ -66,14 +66,14 @@ public class ReviewController {
     public ApiResponse<PageResult<ReviewResponse>> getMyReviews(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(reviewService.getUserReviews(userId, page, pageSize));
     }
 
     @Operation(summary = "删除自己的评价")
     @DeleteMapping("/{reviewId}")
     public ApiResponse<Void> deleteReview(@PathVariable("reviewId") Long reviewId) {
-        Long userId = UserContext.getUserId();
+        Long userId = UserContextHolder.getUserId();
         reviewService.deleteReview(userId, reviewId);
         return ApiResponse.success();
     }

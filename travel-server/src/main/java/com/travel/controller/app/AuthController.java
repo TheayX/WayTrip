@@ -1,7 +1,12 @@
 package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.auth.*;
+import com.travel.dto.auth.request.WebLoginRequest;
+import com.travel.dto.auth.request.WebRegisterRequest;
+import com.travel.dto.auth.request.WxBindPhoneRequest;
+import com.travel.dto.auth.request.WxLoginRequest;
+import com.travel.dto.auth.response.LoginResponse;
+import com.travel.dto.auth.response.WxLoginResponse;
 import com.travel.service.UserAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

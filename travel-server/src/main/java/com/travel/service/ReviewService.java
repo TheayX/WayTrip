@@ -1,10 +1,10 @@
 package com.travel.service;
 
 import com.travel.common.result.PageResult;
-import com.travel.dto.review.AdminReviewListRequest;
-import com.travel.dto.review.ReviewFeedRequest;
-import com.travel.dto.review.ReviewRequest;
-import com.travel.dto.review.ReviewResponse;
+import com.travel.dto.review.request.AdminReviewListRequest;
+import com.travel.dto.review.request.ReviewFeedRequest;
+import com.travel.dto.review.request.ReviewRequest;
+import com.travel.dto.review.response.ReviewResponse;
 
 /**
  * 评价服务接口。

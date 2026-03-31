@@ -1,7 +1,7 @@
 package com.travel.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.travel.dto.home.RecentViewedSpotItem;
+import com.travel.dto.home.model.RecentViewedSpotItem;
 import com.travel.entity.UserSpotView;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

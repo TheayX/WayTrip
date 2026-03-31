@@ -1,6 +1,8 @@
 package com.travel.service;
 
-import com.travel.dto.banner.*;
+import com.travel.dto.banner.request.AdminBannerRequest;
+import com.travel.dto.banner.response.AdminBannerListResponse;
+import com.travel.dto.banner.response.BannerResponse;
 
 /**
  * 景点轮播图服务接口。

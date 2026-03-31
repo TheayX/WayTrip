@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
-import com.travel.dto.spot.SpotListResponse;
+import com.travel.dto.spot.response.SpotListResponse;
 import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.SpotRegion;
 import com.travel.entity.Spot;
