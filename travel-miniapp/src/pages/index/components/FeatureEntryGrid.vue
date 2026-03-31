@@ -1,36 +1,36 @@
 <template>
-  <view class="quick-grid">
+  <view class="entry-grid">
     <view
-      v-for="action in actions"
-      :key="action.id"
-      class="quick-item"
-      @click="$emit('click', action)"
+      v-for="entry in entries"
+      :key="entry.id"
+      class="entry-item"
+      @click="$emit('click', entry)"
     >
-      <view class="quick-item-inner">
-        <view class="quick-icon" :class="`theme-${action.theme}`">
-          <uni-icons :type="action.icon" size="28" :color="resolveThemeColor(action.theme)" />
+      <view class="entry-item-inner">
+        <view class="entry-icon" :class="`theme-${entry.theme}`">
+          <uni-icons :type="entry.icon" size="28" :color="resolveThemeColor(entry.theme)" />
         </view>
-        <text class="quick-title">{{ action.title }}</text>
+        <text class="entry-title">{{ entry.title }}</text>
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { featureThemeColorMap } from '@/constants/feature-navigation'
+import { featureEntryThemeMap } from '@/constants/feature-entry-registry'
 
 defineProps({
-  actions: { type: Array, default: () => [] }
+  entries: { type: Array, default: () => [] }
 })
 defineEmits(['click'])
 
 const resolveThemeColor = (theme) => {
-  return featureThemeColorMap[theme] || '#4b5563'
+  return featureEntryThemeMap[theme] || '#4b5563'
 }
 </script>
 
 <style scoped>
-.quick-grid {
+.entry-grid {
   padding: 0 24rpx;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -39,11 +39,11 @@ const resolveThemeColor = (theme) => {
   margin-bottom: 32rpx;
 }
 
-.quick-item {
+.entry-item {
   min-width: 0;
 }
 
-.quick-item-inner {
+.entry-item-inner {
   height: 100%;
   min-height: 144rpx;
   padding: 20rpx 14rpx 16rpx;
@@ -56,7 +56,7 @@ const resolveThemeColor = (theme) => {
   text-align: center;
 }
 
-.quick-icon {
+.entry-icon {
   width: 92rpx;
   height: 92rpx;
   border-radius: 30rpx;
@@ -67,7 +67,7 @@ const resolveThemeColor = (theme) => {
   box-shadow: 0 6rpx 16rpx rgba(0,0,0,0.03);
 }
 
-.quick-title {
+.entry-title {
   font-size: 25rpx;
   font-weight: 600;
   color: #374151;

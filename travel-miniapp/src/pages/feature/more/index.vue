@@ -5,7 +5,7 @@
       <text class="hero-desc">首页保留高频特色入口，常用能力统一收在这里。</text>
     </view>
 
-    <view class="group-card" v-for="group in featureGroups" :key="group.title">
+    <view class="group-card" v-for="group in entryGroups" :key="group.title">
       <text class="group-title">{{ group.title }}</text>
       <view class="grid-list">
         <view
@@ -28,9 +28,9 @@
 </template>
 
 <script setup>
-import { featureThemeColorMap, getMoreFeatureGroups } from '@/constants/feature-navigation'
+import { featureEntryThemeMap, getMoreEntryGroups } from '@/constants/feature-entry-registry'
 
-const resolveThemeColor = (theme) => featureThemeColorMap[theme] || '#4b5563'
+const resolveThemeColor = (theme) => featureEntryThemeMap[theme] || '#4b5563'
 
 const navigateTo = (url) => {
   uni.navigateTo({ url })
@@ -44,7 +44,7 @@ const handleEntryClick = (item) => {
   navigateTo(item.url)
 }
 
-const featureGroups = getMoreFeatureGroups()
+const entryGroups = getMoreEntryGroups()
 </script>
 
 <style scoped>
