@@ -11,7 +11,6 @@
           <uni-icons :type="action.icon" size="28" :color="resolveThemeColor(action.theme)" />
         </view>
         <text class="quick-title">{{ action.title }}</text>
-        <text class="quick-desc">{{ action.desc }}</text>
       </view>
     </view>
   </view>
@@ -46,8 +45,8 @@ const resolveThemeColor = (theme) => {
 
 .quick-item-inner {
   height: 100%;
-  min-height: 184rpx;
-  padding: 20rpx 14rpx 18rpx;
+  min-height: 144rpx;
+  padding: 20rpx 14rpx 16rpx;
   border-radius: 32rpx;
   background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 10rpx 24rpx rgba(15, 23, 42, 0.04);
@@ -73,17 +72,6 @@ const resolveThemeColor = (theme) => {
   font-weight: 600;
   color: #374151;
   line-height: 1.35;
-}
-
-.quick-desc {
-  margin-top: 8rpx;
-  font-size: 20rpx;
-  line-height: 1.45;
-  color: #94a3b8;
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 
 .theme-blue { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }

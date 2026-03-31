@@ -479,6 +479,9 @@ const handleQuickAction = (action) => {
       navigateConfiguredFeature('budget')
       break
     case 'reviews':
+      if (!promptLogin('登录后可查看真实口碑，是否现在去登录？')) {
+        return
+      }
       navigateConfiguredFeature('reviews')
       break
     case 'more':

@@ -27,15 +27,6 @@
       </view>
     </view>
 
-    <view class="feed-note">
-      <text class="feed-note-title">当前口碑流说明</text>
-      <text class="feed-note-text">当前版本先聚合热门景点的有效评论，页面结构保持信息流形态，后续可直接替换为全站评价接口。</text>
-    </view>
-
-    <view class="action-row">
-      <view class="action-link" :class="{ disabled: loading }" @click="refreshReviewFeed">{{ loading ? '刷新中...' : '刷新口碑流' }}</view>
-    </view>
-
     <view class="review-card" v-for="item in activeReviews" :key="item.id" @click="goSpotDetail(item.spotId)">
       <view class="review-header">
         <view class="user-box">
@@ -71,7 +62,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { fetchReviewFeedPreview } from '@/services/feature'
 import { promptLogin } from '@/utils/auth'
 import { getAvatarUrl } from '@/utils/request'
@@ -91,9 +82,9 @@ const activeReviews = computed(() => (activeTab.value === 'positive' ? positiveR
 const emptyStateTitle = computed(() => (activeTab.value === 'positive' ? '暂时没有高分种草内容' : '暂时没有真实避雷内容'))
 const emptyStateDesc = computed(() => {
   if (activeTab.value === 'positive') {
-    return '当前聚合范围内暂时没有高分评论，后续接全站评价流后会更完整。'
+    return '当前没有高分评论内容。'
   }
-  return '当前聚合范围内暂时没有低分评论，后续接全站评价流后会更完整。'
+  return '当前没有低分评论内容。'
 })
 
 // 数据加载方法
@@ -113,11 +104,6 @@ const loadReviewFeed = async () => {
   }
 }
 
-const refreshReviewFeed = () => {
-  if (loading.value) return
-  loadReviewFeed()
-}
-
 // 页面跳转方法
 const goSpotDetail = (spotId) => {
   if (!spotId) return
@@ -128,6 +114,10 @@ const goSpotDetail = (spotId) => {
 }
 
 onLoad(() => {
+  loadReviewFeed()
+})
+
+onShow(() => {
   loadReviewFeed()
 })
 </script>
@@ -216,48 +206,6 @@ onLoad(() => {
 .tab-item.active {
   background: #2563eb;
   color: #fff;
-}
-
-.feed-note {
-  margin-top: 22rpx;
-  padding: 22rpx 24rpx;
-  border-radius: 26rpx;
-  background: #fff;
-  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
-}
-
-.feed-note-title {
-  display: block;
-  font-size: 26rpx;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.feed-note-text {
-  display: block;
-  margin-top: 10rpx;
-  font-size: 23rpx;
-  line-height: 1.7;
-  color: #64748b;
-}
-
-.action-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 18rpx;
-}
-
-.action-link {
-  padding: 12rpx 20rpx;
-  border-radius: 999rpx;
-  background: #ffffff;
-  color: #2563eb;
-  font-size: 24rpx;
-  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
-}
-
-.action-link.disabled {
-  opacity: 0.6;
 }
 
 .review-card {
