@@ -12,11 +12,11 @@
         <view class="meta-row">
           <view class="meta-pill">
             <uni-icons type="star-filled" size="14" color="#f59e0b" />
-            <text>{{ formatRating(spot.avgRating) }}</text>
+            <text>{{ formatBlindboxRating(spot.avgRating) }}</text>
           </view>
           <view class="meta-pill">
             <uni-icons type="wallet-filled" size="14" color="#7c3aed" />
-            <text>{{ formatPrice(spot.price) }}</text>
+            <text>{{ formatBlindboxPrice(spot.price) }}</text>
           </view>
         </view>
       </view>
@@ -49,6 +49,7 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { fetchBlindboxSpot } from '@/services/feature'
 import { promptLogin } from '@/utils/auth'
+import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
 
 // 页面数据状态
@@ -72,16 +73,8 @@ const getRandomReason = () => {
   return blindboxReasons[index]
 }
 
-const formatRating = (value) => {
-  const num = Number(value)
-  return Number.isFinite(num) && num > 0 ? `${num.toFixed(1)} 分` : '暂无评分'
-}
-
-const formatPrice = (value) => {
-  const num = Number(value)
-  if (!Number.isFinite(num)) return '价格待补充'
-  return num <= 0 ? '免费' : `¥${num}`
-}
+const formatBlindboxRating = (value) => formatFeatureRating(value)
+const formatBlindboxPrice = (value) => formatFeaturePrice(value)
 
 // 数据加载方法
 const drawSpot = async () => {

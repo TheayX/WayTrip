@@ -11,7 +11,7 @@
       @click="handleBannerClick"
     />
     <QuickNav
-      :actions="quickActions"
+      :actions="homeQuickActions"
       @click="handleQuickAction"
     />
     <NearbyAndHot 
@@ -74,7 +74,7 @@ import QuickNav from './components/QuickNav.vue'
 import RecommendSpots from './components/RecommendSpots.vue'
 import NearbyAndHot from './components/NearbyAndHot.vue'
 import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
-import { getHomeQuickActions } from '@/constants/feature-navigation'
+import { getFeatureEntryById, getHomeQuickActions } from '@/constants/feature-navigation'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
@@ -112,7 +112,7 @@ const nearbySessionToken = ref('')
 // 常量配置
 const markerIcon = '/static/tabbar/spot-active.png'
 
-const quickActions = getHomeQuickActions()
+const homeQuickActions = getHomeQuickActions()
 
 // 计算属性
 const recommendationSectionTitle = computed(() => (isLoggedIn.value ? recommendType.value : '推荐景点'))
@@ -473,16 +473,16 @@ const handleQuickAction = (action) => {
       handleNearbyCardClick()
       break
     case 'blindbox':
-      goBlindBox()
+      navigateConfiguredFeature('blindbox')
       break
     case 'budget':
-      goBudgetPage()
+      navigateConfiguredFeature('budget')
       break
     case 'reviews':
-      goReviewWall()
+      navigateConfiguredFeature('reviews')
       break
     case 'more':
-      goMoreFeatures()
+      navigateConfiguredFeature('more')
       break
     default:
       break
@@ -528,20 +528,10 @@ const goRecommendationSpots = () => {
   uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 
-const goBlindBox = () => {
-  uni.navigateTo({ url: '/pages/feature/blindbox/index' })
-}
-
-const goBudgetPage = () => {
-  uni.navigateTo({ url: '/pages/feature/budget/index' })
-}
-
-const goReviewWall = () => {
-  uni.navigateTo({ url: '/pages/feature/reviews/index' })
-}
-
-const goMoreFeatures = () => {
-  uni.navigateTo({ url: '/pages/feature/more/index' })
+const navigateConfiguredFeature = (id) => {
+  const featureEntry = getFeatureEntryById(id)
+  if (!featureEntry?.url) return
+  uni.navigateTo({ url: featureEntry.url })
 }
 
 const goNearbyList = (position = nearbyLocation.value) => {
