@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.travel.mapper.GuideMapper">
+
+    <!-- 穷游攻略列表结果映射 -->
+    <resultMap id="GuideBudgetQueryResultMap" type="com.travel.dto.guide.GuideBudgetQueryResult">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="category" property="category"/>
+        <result column="content" property="content"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="min_price" property="minPrice"/>
+        <result column="related_count" property="relatedCount"/>
+    </resultMap>
+
+    <!-- 穷游攻略分页查询 -->
+    <select id="selectBudgetGuidePage" resultMap="GuideBudgetQueryResultMap">
+        SELECT g.id,
+               g.title,
+               g.cover_image_url AS cover_image,
+               g.category,
+               g.content,
+               g.view_count,
+               g.created_at,
+               MIN(s.price) AS min_price,
+               COUNT(DISTINCT s.id) AS related_count
+        FROM guide g
+        INNER JOIN guide_spot_relation gsr
+            ON gsr.guide_id = g.id
+           AND gsr.is_deleted = 0
+        INNER JOIN spot s
+            ON s.id = gsr.spot_id
+           AND s.is_deleted = 0
+           AND s.is_published = 1
+        WHERE g.is_deleted = 0
+          AND g.is_published = 1
+        <choose>
+            <when test="priceMode == 'free'">
+                AND s.price = 0
+            </when>
+            <otherwise>
+                AND s.price &gt;= 0
+                AND s.price &lt;= #{maxPrice}
+            </otherwise>
+        </choose>
+        GROUP BY g.id, g.title, g.cover_image_url, g.category, g.content, g.view_count, g.created_at
+        ORDER BY min_price ASC, g.created_at DESC
+    </select>
+
+</mapper>

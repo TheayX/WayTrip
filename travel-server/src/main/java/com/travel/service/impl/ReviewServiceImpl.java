@@ -7,6 +7,7 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.review.AdminReviewListRequest;
+import com.travel.dto.review.ReviewFeedRequest;
 import com.travel.dto.review.ReviewRequest;
 import com.travel.dto.review.ReviewResponse;
 import com.travel.dto.review.SpotRatingStats;
@@ -110,6 +111,21 @@ public class ReviewServiceImpl implements ReviewService {
             .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), page, pageSize);
+    }
+
+    @Override
+    public PageResult<ReviewResponse> getReviewFeed(ReviewFeedRequest request) {
+        int minScore = "negative".equals(request.getType()) ? 0 : 4;
+        int maxScore = "negative".equals(request.getType()) ? 2 : 5;
+
+        Page<Review> pageObj = new Page<>(request.getPage(), request.getPageSize());
+        pageObj = (Page<Review>) reviewMapper.selectReviewFeedPage(pageObj, minScore, maxScore);
+
+        List<ReviewResponse> list = pageObj.getRecords().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+
+        return PageResult.of(list, pageObj.getTotal(), request.getPage(), request.getPageSize());
     }
 
     @Override

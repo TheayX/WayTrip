@@ -74,6 +74,21 @@ public class GuideServiceImpl implements GuideService {
     }
 
     @Override
+    public PageResult<GuideBudgetListResponse> getBudgetGuideList(GuideBudgetListRequest request) {
+        Page<GuideBudgetQueryResult> page = new Page<>(request.getPage(), request.getPageSize());
+        Page<GuideBudgetQueryResult> result = (Page<GuideBudgetQueryResult>) guideMapper.selectBudgetGuidePage(
+                page,
+                request.getPriceMode(),
+                request.getMaxPrice());
+
+        List<GuideBudgetListResponse> list = result.getRecords().stream()
+                .map(this::convertToBudgetListResponse)
+                .collect(Collectors.toList());
+
+        return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
+    }
+
+    @Override
     public GuideDetailResponse getGuideDetail(Long guideId) {
         Guide guide = guideMapper.selectById(guideId);
         if (guide == null || guide.getIsDeleted() == 1) {
@@ -304,6 +319,25 @@ public class GuideServiceImpl implements GuideService {
                 .build();
     }
 
+    private GuideBudgetListResponse convertToBudgetListResponse(GuideBudgetQueryResult guide) {
+        String summary = buildGuideSummary(guide.getContent());
+        String priceLabel = guide.getMinPrice() != null && guide.getMinPrice().compareTo(java.math.BigDecimal.ZERO) == 0
+                ? "含免费景点"
+                : String.format("%s 元起", guide.getMinPrice() == null ? 0 : guide.getMinPrice().stripTrailingZeros().toPlainString());
+
+        return GuideBudgetListResponse.builder()
+                .id(guide.getId())
+                .title(guide.getTitle())
+                .coverImage(guide.getCoverImage())
+                .category(guide.getCategory())
+                .summary(summary)
+                .viewCount(guide.getViewCount())
+                .createdAt(guide.getCreatedAt() != null ? guide.getCreatedAt().format(DATE_FORMATTER) : null)
+                .relatedCount(guide.getRelatedCount())
+                .priceLabel(priceLabel)
+                .build();
+    }
+
     // 攻略关联景点处理方法
     private List<GuideDetailResponse.RelatedSpot> getRelatedSpots(Long guideId) {
         List<GuideSpotRelation> guideSpots = guideSpotRelationMapper.selectList(
@@ -374,5 +408,16 @@ public class GuideServiceImpl implements GuideService {
             guideSpot.setIsDeleted(0);
             guideSpotRelationMapper.insert(guideSpot);
         }
+    }
+
+    private String buildGuideSummary(String content) {
+        if (content == null) {
+            return null;
+        }
+        String summary = content.replaceAll("<[^>]+>", "");
+        if (summary.length() > 100) {
+            return summary.substring(0, 100) + "...";
+        }
+        return summary;
     }
 }

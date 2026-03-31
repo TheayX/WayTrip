@@ -19,6 +19,14 @@ public interface GuideService {
      * @return 攻略分页结果
      */
     PageResult<GuideListResponse> getGuideList(GuideListRequest request);
+
+    /**
+     * 分页获取穷游攻略列表。
+     *
+     * @param request 穷游攻略查询参数
+     * @return 穷游攻略分页结果
+     */
+    PageResult<GuideBudgetListResponse> getBudgetGuideList(GuideBudgetListRequest request);
     
     /**
      * 获取攻略详情。

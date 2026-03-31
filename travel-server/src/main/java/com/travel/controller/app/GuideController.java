@@ -28,6 +28,12 @@ public class GuideController {
         return ApiResponse.success(guideService.getGuideList(request));
     }
 
+    @Operation(summary = "获取穷游攻略列表")
+    @GetMapping("/budget")
+    public ApiResponse<PageResult<GuideBudgetListResponse>> getBudgetGuideList(GuideBudgetListRequest request) {
+        return ApiResponse.success(guideService.getBudgetGuideList(request));
+    }
+
     @Operation(summary = "获取攻略详情")
     @GetMapping("/{guideId}")
     public ApiResponse<GuideDetailResponse> getGuideDetail(@PathVariable("guideId") Long guideId) {
