@@ -3,11 +3,11 @@ import { getReviewFeed } from '@/api/review'
 import { getSpotList } from '@/api/spot'
 
 export const BUDGET_MAX_PRICE = 50
-export const BUDGET_MODE_ALL = 'budget'
+export const BUDGET_MODE_UNDER_50 = 'under50'
 export const BUDGET_MODE_FREE = 'free'
 export const BUDGET_MODE_OPTIONS = [
   { label: '免费', value: BUDGET_MODE_FREE },
-  { label: '50 元以内', value: BUDGET_MODE_ALL }
+  { label: '50 元以内', value: BUDGET_MODE_UNDER_50 }
 ]
 
 const BLINDBOX_PAGE_SIZE = 12
@@ -78,7 +78,7 @@ export const fetchBlindboxSpot = async ({ excludeSpotId = null } = {}) => {
 
 // 先基于现有景点列表封装预算筛选，后续改成后端过滤时页面不需要跟着改。
 export const fetchBudgetSpots = async ({
-  budgetMode = BUDGET_MODE_ALL,
+  budgetMode = BUDGET_MODE_UNDER_50,
   maxPrice = BUDGET_MAX_PRICE,
   limit = BUDGET_SPOT_LIMIT,
   maxPages = BUDGET_SPOT_MAX_PAGES
@@ -113,7 +113,7 @@ export const fetchBudgetSpots = async ({
 
 // 攻略预算列表改成后端直出，页面层继续复用当前结构。
 export const fetchBudgetGuides = async ({
-  budgetMode = BUDGET_MODE_ALL,
+  budgetMode = BUDGET_MODE_UNDER_50,
   maxPrice = BUDGET_MAX_PRICE,
   limit = BUDGET_GUIDE_LIMIT
 } = {}) => {
@@ -127,7 +127,7 @@ export const fetchBudgetGuides = async ({
 }
 
 // 口碑流改成后端直出，避免前端逐景点聚合带来的漏数和空刷问题。
-export const fetchReviewFeedPreview = async () => {
+export const fetchReviewFeed = async () => {
   const [positiveRes, negativeRes] = await Promise.all([
     getReviewFeed({ page: 1, pageSize: REVIEW_PAGE_SIZE, type: 'positive' }),
     getReviewFeed({ page: 1, pageSize: REVIEW_PAGE_SIZE, type: 'negative' })
