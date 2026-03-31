@@ -31,7 +31,7 @@ export const getSpotReviews = (spotId, page = 1, pageSize = 10) => {
 }
 
 /**
- * 获取真实口碑流（分页）
+ * 获取游客口碑流（分页）
  * @param params
  * @returns {*}
  */

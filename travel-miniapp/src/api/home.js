@@ -19,7 +19,7 @@ export const getHotSpots = (limit = 10) => {
 }
 
 /**
- * 获取最近都在看
+ * 获取近期热看
  * @param days
  * @param limit
  * @returns {*}
@@ -40,7 +40,7 @@ export const getNearbySpots = (latitude, longitude, limit = 3) => {
 }
 
 /**
- * 获取推荐景点
+ * 获取个性推荐
  * @param limit
  * @returns {*}
  */
@@ -49,7 +49,7 @@ export const getRecommendations = (limit = 10) => {
 }
 
 /**
- * 刷新推荐景点
+ * 刷新个性推荐
  * @param limit
  * @returns {*}
  */
