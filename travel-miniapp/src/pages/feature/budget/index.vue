@@ -28,6 +28,21 @@
       </view>
     </view>
 
+    <view class="filter-card">
+      <text class="filter-title">预算口径</text>
+      <view class="filter-options">
+        <view
+          v-for="option in budgetModes"
+          :key="option.value"
+          class="filter-chip"
+          :class="{ active: budgetMode === option.value }"
+          @click="switchBudgetMode(option.value)"
+        >
+          {{ option.label }}
+        </view>
+      </view>
+    </view>
+
     <view v-if="activeTab === 'spots'" class="content-section">
       <view class="section-tip">优先展示低价且热度更高的景点。</view>
       <view class="mode-card">
@@ -95,7 +110,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { BUDGET_MAX_PRICE, fetchBudgetGuides, fetchBudgetSpots } from '@/services/feature'
+import { BUDGET_MAX_PRICE, BUDGET_MODE_ALL, BUDGET_MODE_FREE, fetchBudgetGuides, fetchBudgetSpots } from '@/services/feature'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
@@ -105,7 +120,12 @@ const tabs = [
   { label: '景点', value: 'spots' },
   { label: '攻略', value: 'guides' }
 ]
+const budgetModes = [
+  { label: '免费', value: BUDGET_MODE_FREE },
+  { label: '50 元以内', value: BUDGET_MODE_ALL }
+]
 const activeTab = ref('spots')
+const budgetMode = ref(BUDGET_MODE_ALL)
 const budgetSpots = ref([])
 const budgetGuides = ref([])
 const loadingSpots = ref(false)
@@ -125,7 +145,10 @@ const loadBudgetSpots = async () => {
   loadingSpots.value = true
 
   try {
-    budgetSpots.value = await fetchBudgetSpots({ maxPrice: BUDGET_MAX_PRICE })
+    budgetSpots.value = await fetchBudgetSpots({
+      budgetMode: budgetMode.value,
+      maxPrice: BUDGET_MAX_PRICE
+    })
   } catch (error) {
     console.error('加载穷游景点失败', error)
     uni.showToast({ title: '加载景点失败', icon: 'none' })
@@ -139,7 +162,10 @@ const loadBudgetGuides = async () => {
   loadingGuides.value = true
 
   try {
-    budgetGuides.value = await fetchBudgetGuides({ maxPrice: BUDGET_MAX_PRICE })
+    budgetGuides.value = await fetchBudgetGuides({
+      budgetMode: budgetMode.value,
+      maxPrice: BUDGET_MAX_PRICE
+    })
   } catch (error) {
     console.error('加载穷游攻略失败', error)
     uni.showToast({ title: '加载攻略失败', icon: 'none' })
@@ -152,6 +178,18 @@ const loadBudgetGuides = async () => {
 const switchTab = (value) => {
   activeTab.value = value
   if (value === 'spots') {
+    loadBudgetSpots()
+    return
+  }
+  loadBudgetGuides()
+}
+
+const switchBudgetMode = (value) => {
+  if (budgetMode.value === value) return
+  budgetMode.value = value
+  budgetSpots.value = []
+  budgetGuides.value = []
+  if (activeTab.value === 'spots') {
     loadBudgetSpots()
     return
   }
@@ -273,6 +311,44 @@ onLoad(() => {
 .tab-item.active {
   background: #f97316;
   color: #fff;
+}
+
+.filter-card {
+  margin-top: 18rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 26rpx;
+  background: #ffffff;
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
+}
+
+.filter-title {
+  display: block;
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+.filter-options {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 14rpx;
+}
+
+.filter-chip {
+  min-width: 140rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  text-align: center;
+  background: #f8fafc;
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+.filter-chip.active {
+  background: rgba(249, 115, 22, 0.12);
+  color: #ea580c;
+  font-weight: 600;
 }
 
 .content-section {
