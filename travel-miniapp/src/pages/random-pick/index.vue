@@ -1,5 +1,5 @@
 <template>
-  <view class="blindbox-page">
+  <view class="random-pick-page">
     <view class="hero-card" v-if="spot" @click="goDetail">
       <image class="hero-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
       <view class="hero-overlay"></view>
@@ -115,7 +115,7 @@ onLoad(() => {
 </script>
 
 <style scoped>
-.blindbox-page {
+.random-pick-page {
   min-height: 100vh;
   padding: 28rpx 24rpx 40rpx;
   background:

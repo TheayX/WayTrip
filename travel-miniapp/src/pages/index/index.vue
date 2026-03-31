@@ -472,8 +472,8 @@ const handleFeatureEntryClick = (entry) => {
     case 'nearby':
       handleNearbyCardClick()
       break
-    case 'blindbox':
-      navigateFeatureEntry('blindbox')
+    case 'random-pick':
+      navigateFeatureEntry('random-pick')
       break
     case 'budget':
       navigateFeatureEntry('budget')
