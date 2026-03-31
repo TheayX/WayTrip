@@ -286,21 +286,12 @@ public class GuideServiceImpl implements GuideService {
     // 响应转换与关联景点组装
 
     private GuideListResponse convertToListResponse(Guide guide) {
-        String summary = guide.getContent();
-        if (summary != null && summary.length() > 100) {
-            // 去除HTML标签并截取摘要
-            summary = summary.replaceAll("<[^>]+>", "");
-            if (summary.length() > 100) {
-                summary = summary.substring(0, 100) + "...";
-            }
-        }
-
         return GuideListResponse.builder()
                 .id(guide.getId())
                 .title(guide.getTitle())
                 .coverImage(guide.getCoverImageUrl())
                 .category(guide.getCategory())
-                .summary(summary)
+                .summary(buildGuideSummary(guide.getContent()))
                 .viewCount(guide.getViewCount())
                 .createdAt(guide.getCreatedAt().format(DATE_FORMATTER))
                 .build();

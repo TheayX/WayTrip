@@ -9,6 +9,6 @@ import lombok.Data;
 public class GuideBudgetListRequest {
     private Integer page = 1;
     private Integer pageSize = 8;
-    private String priceMode = "budget";
+    private String priceMode = "under50";
     private Integer maxPrice = 50;
 }

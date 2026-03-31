@@ -105,7 +105,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { BUDGET_MAX_PRICE, BUDGET_MODE_ALL, BUDGET_MODE_FREE, BUDGET_MODE_OPTIONS, fetchBudgetGuides, fetchBudgetSpots } from '@/services/feature'
+import { BUDGET_MAX_PRICE, BUDGET_MODE_UNDER_50, BUDGET_MODE_FREE, BUDGET_MODE_OPTIONS, fetchBudgetGuides, fetchBudgetSpots } from '@/services/feature'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
@@ -117,7 +117,7 @@ const tabs = [
 ]
 const budgetModes = BUDGET_MODE_OPTIONS
 const activeTab = ref('spots')
-const budgetMode = ref(BUDGET_MODE_ALL)
+const budgetMode = ref(BUDGET_MODE_UNDER_50)
 const budgetSpots = ref([])
 const budgetGuides = ref([])
 const loadingSpots = ref(false)

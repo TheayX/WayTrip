@@ -63,7 +63,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { fetchReviewFeedPreview } from '@/services/feature'
+import { fetchReviewFeed } from '@/services/feature'
 import { promptLogin } from '@/utils/auth'
 import { getAvatarUrl } from '@/utils/request'
 
@@ -93,7 +93,7 @@ const loadReviewFeed = async () => {
   loading.value = true
 
   try {
-    const reviewFeed = await fetchReviewFeedPreview()
+    const reviewFeed = await fetchReviewFeed()
     positiveReviews.value = reviewFeed.positive
     negativeReviews.value = reviewFeed.negative
   } catch (error) {
