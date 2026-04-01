@@ -130,12 +130,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         guide.setIsPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
         guideMapper.updateById(guide);
 
-        GuideSpotRelation deletedSpot = new GuideSpotRelation();
-        deletedSpot.setIsDeleted(1);
-        guideSpotRelationMapper.update(
-            deletedSpot,
-            new LambdaQueryWrapper<GuideSpotRelation>().eq(GuideSpotRelation::getGuideId, guideId)
-        );
+        markGuideSpotsDeleted(guideId);
         saveGuideSpots(guideId, request.getSpotIds());
         log.info("攻略更新成功: guideId={}, title={}", guideId, request.getTitle());
     }
@@ -155,12 +150,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         guide.setIsDeleted(1);
         guideMapper.updateById(guide);
 
-        GuideSpotRelation deletedSpot = new GuideSpotRelation();
-        deletedSpot.setIsDeleted(1);
-        guideSpotRelationMapper.update(
-            deletedSpot,
-            new LambdaQueryWrapper<GuideSpotRelation>().eq(GuideSpotRelation::getGuideId, guideId)
-        );
+        markGuideSpotsDeleted(guideId);
         log.info("攻略已删除: guideId={}, title={}", guideId, guide.getTitle());
     }
 
@@ -192,6 +182,18 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         option.setPublished(spot.getIsPublished());
         option.setIsDeleted(spot.getIsDeleted());
         return option;
+    }
+
+    /**
+     * 先将旧关联整体标记删除，再按当前请求重建有效关联，避免残留旧排序和脏数据。
+     */
+    private void markGuideSpotsDeleted(Long guideId) {
+        GuideSpotRelation deletedSpot = new GuideSpotRelation();
+        deletedSpot.setIsDeleted(1);
+        guideSpotRelationMapper.update(
+            deletedSpot,
+            new LambdaQueryWrapper<GuideSpotRelation>().eq(GuideSpotRelation::getGuideId, guideId)
+        );
     }
 
     private void saveGuideSpots(Long guideId, List<Long> spotIds) {
