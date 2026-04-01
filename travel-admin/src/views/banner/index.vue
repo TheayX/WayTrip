@@ -127,10 +127,10 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getBannerList, createBanner, updateBanner, deleteBanner, toggleBannerEnabled } from '@/api/banner'
-import { useUserStore } from '@/stores/user'
-import { isMessageBoxDismissed } from '@/utils/message-box'
-import { getAdminUploadUrl, getResourceUrl } from '@/utils/resource'
-import { fetchAllSpotOptions } from '@/utils/spot-options'
+import { useUserStore } from '@/app/store/user.js'
+import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
+import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
+import { fetchAllSpotOptions } from '@/modules/spot/composables/useSpotOptions.js'
 
 const userStore = useUserStore()
 

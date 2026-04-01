@@ -1,5 +1,5 @@
 // 旅游目的地相关接口
-import request from '@/utils/request'
+import request from '@/shared/api/request.js'
 
 /**
  * 获取目的地列表

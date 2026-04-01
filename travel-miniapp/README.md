@@ -58,7 +58,7 @@ travel-miniapp/
 例如：
 
 - `home.js`
-- `spot.js`
+- `api.js`
 - `guide.js`
 - `review.js`
 - `user.js`

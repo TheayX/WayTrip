@@ -184,7 +184,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder, cancelOrder } from '@/api/order'
-import { isMessageBoxDismissed } from '@/utils/message-box'
+import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 
 // 查询参数
 const searchForm = reactive({
