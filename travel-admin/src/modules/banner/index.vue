@@ -126,7 +126,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { getBannerList, createBanner, updateBanner, deleteBanner, toggleBannerEnabled } from '@/api/banner'
+import { getBannerList, createBanner, updateBanner, deleteBanner, toggleBannerEnabled } from '@/modules/banner/api.js'
 import { useUserStore } from '@/app/store/user.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'

@@ -137,7 +137,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete, Picture } from '@element-plus/icons-vue'
-import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
+import { getCategories, createCategory, updateCategory, deleteCategory } from '@/modules/category/api.js'
 import { useUserStore } from '@/app/store/user.js'
 import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
 
