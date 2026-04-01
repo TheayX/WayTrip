@@ -46,10 +46,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public UserInfoResponse getUserInfo(Long userId) {
-        User user = userMapper.selectById(userId);
-        if (user == null || user.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.TOKEN_INVALID);
-        }
+        User user = getActiveUser(userId);
 
         List<UserPreference> preferences = userPreferenceMapper.selectList(
                 new LambdaQueryWrapper<UserPreference>()
@@ -77,10 +74,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public void updateUserInfo(Long userId, UpdateUserInfoRequest request) {
-        User user = userMapper.selectById(userId);
-        if (user == null || user.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.TOKEN_INVALID);
-        }
+        User user = getActiveUser(userId);
 
         if (StringUtils.hasText(request.getNickname())) {
             user.setNickname(request.getNickname());
@@ -96,10 +90,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public void changePassword(Long userId, ChangePasswordRequest request) {
-        User user = userMapper.selectById(userId);
-        if (user == null || user.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.TOKEN_INVALID);
-        }
+        User user = getActiveUser(userId);
 
         if (StringUtils.hasText(user.getPassword())) {
             if (!StringUtils.hasText(request.getOldPassword())) {
@@ -118,10 +109,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public void deactivateAccount(Long userId) {
-        User user = userMapper.selectById(userId);
-        if (user == null || user.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.TOKEN_INVALID);
-        }
+        User user = getActiveUser(userId);
 
         user.setIsDeleted(1);
         userMapper.updateById(user);
@@ -176,6 +164,18 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     // 偏好校验与转换方法
+
+    /**
+     * 当前登录用户相关操作都要求账号仍然有效，统一收口 token 对应用户校验。
+     */
+    private User getActiveUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+        return user;
+    }
+
     private void validateCategoryIds(List<Long> categoryIds) {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return;

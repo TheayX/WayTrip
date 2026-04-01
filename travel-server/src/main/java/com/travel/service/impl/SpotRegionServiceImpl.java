@@ -54,10 +54,7 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateRegion(Long id, AdminRegionRequest request) {
-        SpotRegion region = getById(id);
-        if (region == null || region.getIsDeleted() == 1) {
-            throw new BusinessException(404, "地区不存在");
-        }
+        SpotRegion region = getActiveRegion(id);
         BeanUtils.copyProperties(Objects.requireNonNull(request), region);
         region.setId(id);
         updateById(region);
@@ -81,5 +78,16 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
         
         region.setIsDeleted(1);
         updateById(region);
+    }
+
+    /**
+     * 地区编辑必须命中有效节点，统一收口节点存在性判断。
+     */
+    private SpotRegion getActiveRegion(Long id) {
+        SpotRegion region = getById(id);
+        if (region == null || region.getIsDeleted() == 1) {
+            throw new BusinessException(404, "地区不存在");
+        }
+        return region;
     }
 }
