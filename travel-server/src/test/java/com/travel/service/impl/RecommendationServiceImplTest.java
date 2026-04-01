@@ -22,7 +22,10 @@ import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.cache.RecommendationCacheService;
 import com.travel.service.support.recommendation.RecommendationConfigSupport;
+import com.travel.service.support.recommendation.RecommendationColdStartSupport;
+import com.travel.service.support.recommendation.RecommendationInteractionSupport;
 import com.travel.service.support.recommendation.RecommendationMetadataSupport;
+import com.travel.service.support.recommendation.RecommendationSimilaritySupport;
 import com.travel.service.support.recommendation.RecommendationViewSourceClassifier;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
@@ -105,7 +108,23 @@ class RecommendationServiceImplTest {
             spotRegionMapper
         );
         RecommendationConfigSupport recommendationConfigSupport = new RecommendationConfigSupport(recommendationCacheService);
+        RecommendationSimilaritySupport recommendationSimilaritySupport = new RecommendationSimilaritySupport(
+            spotMapper,
+            recommendationCacheService,
+            recommendationMetadataSupport
+        );
         RecommendationViewSourceClassifier recommendationViewSourceClassifier = new RecommendationViewSourceClassifier();
+        RecommendationInteractionSupport recommendationInteractionSupport = new RecommendationInteractionSupport(
+            userSpotViewMapper,
+            userSpotFavoriteMapper,
+            reviewMapper,
+            orderMapper,
+            recommendationViewSourceClassifier
+        );
+        RecommendationColdStartSupport recommendationColdStartSupport = new RecommendationColdStartSupport(
+            spotMapper,
+            userPreferenceMapper
+        );
 
         recommendationService = new RecommendationServiceImpl(
             spotMapper,
@@ -119,6 +138,9 @@ class RecommendationServiceImplTest {
             recommendationCacheService,
             recommendationMetadataSupport,
             recommendationConfigSupport,
+            recommendationSimilaritySupport,
+            recommendationInteractionSupport,
+            recommendationColdStartSupport,
             recommendationViewSourceClassifier
         );
     }
