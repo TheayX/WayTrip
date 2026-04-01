@@ -1,68 +1,99 @@
 <template>
   <!-- 搜索筛选表单 -->
-  <el-form :inline="true" :model="queryParams" class="search-form premium-filter-bar" @submit.prevent>
-    <div class="filter-group">
-      <el-form-item label="关键词" class="filter-item">
-        <el-input
-          v-model="queryParams.keyword"
-          placeholder="搜索景点名称"
-          clearable
-          class="custom-input"
-          :prefix-icon="Search"
-          @keyup.enter="emitSearch"
-          @clear="emitSearch"
-        />
-      </el-form-item>
-      
-      <el-form-item label="地区" class="filter-item">
-        <el-cascader
-          v-model="uiFilters.regionPath"
-          :options="regionCascaderOptions"
-          :props="regionCascaderProps"
-          clearable
-          placeholder="全部分类"
-          class="custom-input"
-          @change="emitFilterChange"
-        />
-      </el-form-item>
-      
-      <el-form-item label="类别" class="filter-item">
-        <el-cascader
-          v-model="uiFilters.categoryPath"
-          :options="categoryCascaderOptions"
-          :props="categoryCascaderProps"
-          clearable
-          placeholder="全部类别"
-          class="custom-input"
-          @change="emitFilterChange"
-          @clear="emitFilterChange"
-        />
-      </el-form-item>
-      
-      <el-form-item label="发布状态" class="filter-item">
-        <el-select
-          v-model="uiFilters.published"
-          placeholder="全部状态"
-          clearable
-          class="custom-input status-select"
-          @change="emitFilterChange"
-          @clear="emitFilterChange"
-        >
-          <el-option label="已发布" value="1" />
-          <el-option label="未发布" value="0" />
-        </el-select>
-      </el-form-item>
-    </div>
+  <div class="search-form premium-filter-bar mb-6">
+    <el-form :inline="true" :model="queryParams" @submit.prevent>
+      <div class="flex-between">
+        <div class="filter-group flex gap-4">
+          <el-form-item class="filter-item mb-0">
+            <el-input
+              v-model="queryParams.keyword"
+              placeholder="搜索景点名称..."
+              clearable
+              class="custom-input search-input"
+              :prefix-icon="Search"
+              @keyup.enter="emitSearch"
+              @clear="emitSearch"
+              style="width: 260px;"
+            />
+          </el-form-item>
+          
+          <el-form-item class="filter-item mb-0" v-if="!showAdvanced">
+            <el-select
+              v-model="uiFilters.published"
+              placeholder="发布状态"
+              clearable
+              class="custom-input status-select"
+              style="width: 140px;"
+              @change="emitFilterChange"
+              @clear="emitFilterChange"
+            >
+              <el-option label="已发布" value="1" />
+              <el-option label="未发布" value="0" />
+            </el-select>
+          </el-form-item>
 
-    <div class="action-group">
-      <el-button type="primary" :icon="Search" @click="emitSearch" class="search-btn">搜索</el-button>
-      <el-button :icon="Refresh" @click="emitReset" class="reset-btn">重置</el-button>
-    </div>
-  </el-form>
+          <el-button type="primary" link @click="showAdvanced = !showAdvanced" class="ml-2 font-medium">
+            <el-icon class="mr-1"><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
+            {{ showAdvanced ? '收起筛选' : '更多筛选' }}
+          </el-button>
+        </div>
+
+        <div class="action-group flex gap-2">
+          <el-button type="primary" @click="emitSearch" class="modern-btn px-6">查询</el-button>
+          <el-button @click="emitReset" class="modern-btn-plain px-6">重置</el-button>
+        </div>
+      </div>
+
+      <!-- 高级筛选区域 -->
+      <el-collapse-transition>
+        <div v-show="showAdvanced" class="advanced-filters mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-4">
+          <el-form-item label="地区" class="filter-item mb-2">
+            <el-cascader
+              v-model="uiFilters.regionPath"
+              :options="regionCascaderOptions"
+              :props="regionCascaderProps"
+              clearable
+              placeholder="全国任意地区"
+              class="custom-input w-48"
+              @change="emitFilterChange"
+            />
+          </el-form-item>
+          
+          <el-form-item label="分类" class="filter-item mb-2">
+            <el-cascader
+              v-model="uiFilters.categoryPath"
+              :options="categoryCascaderOptions"
+              :props="categoryCascaderProps"
+              clearable
+              placeholder="全部分类"
+              class="custom-input w-48"
+              @change="emitFilterChange"
+              @clear="emitFilterChange"
+            />
+          </el-form-item>
+
+          <el-form-item label="发布状态" class="filter-item mb-2">
+            <el-select
+              v-model="uiFilters.published"
+              placeholder="全部状态"
+              clearable
+              class="custom-input status-select w-32"
+              @change="emitFilterChange"
+              @clear="emitFilterChange"
+            >
+              <el-option label="已发布" value="1" />
+              <el-option label="未发布" value="0" />
+            </el-select>
+          </el-form-item>
+        </div>
+      </el-collapse-transition>
+    </el-form>
+  </div>
 </template>
 
 <script setup>
-import { Search, Refresh } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import { Search, Refresh, Filter, CaretTop } from '@element-plus/icons-vue'
 
 const props = defineProps({
   queryParams: { type: Object, required: true },
@@ -75,6 +106,8 @@ const props = defineProps({
 
 const emit = defineEmits(['search', 'reset', 'filter-change'])
 
+const showAdvanced = ref(false)
+
 const emitSearch = () => emit('search')
 const emitReset = () => emit('reset')
 const emitFilterChange = () => emit('filter-change')
@@ -82,65 +115,43 @@ const emitFilterChange = () => emit('filter-change')
 
 <style lang="scss" scoped>
 .premium-filter-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 20px 24px 2px;
   background: #f8fafc;
   border-radius: 12px;
-  margin-bottom: 24px;
+  padding: 16px 24px;
   border: 1px solid #f1f5f9;
   transition: all 0.3s ease;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
     border-color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   }
 }
 
-.filter-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  flex: 1;
-}
+.flex { display: flex; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.mb-0 { margin-bottom: 0 !important; }
+.mb-2 { margin-bottom: 8px !important; }
+.mb-6 { margin-bottom: 24px; }
+.mt-4 { margin-top: 16px; }
+.pt-4 { padding-top: 16px; }
+.ml-2 { margin-left: 8px; }
+.mr-1 { margin-right: 4px; }
+.px-6 { padding-left: 24px; padding-right: 24px; }
+.border-t { border-top: 1px solid #f1f5f9; }
+.w-48 { width: 192px; }
+.w-32 { width: 128px; }
+.font-medium { font-weight: 500; }
 
-.filter-item {
-  margin-right: 0 !important;
-  margin-bottom: 16px !important;
+:deep(.el-input__wrapper) {
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background-color: white;
   
-  :deep(.el-form-item__label) {
-    font-weight: 500;
-    color: #475569;
-  }
-}
-
-.custom-input {
-  width: 200px;
-}
-
-.status-select {
-  width: 140px;
-}
-
-.action-group {
-  display: flex;
-  gap: 12px;
-  margin-left: 24px;
-  margin-bottom: 16px;
-}
-
-.search-btn {
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
-}
-
-.reset-btn {
-  border-color: #cbd5e1;
-  color: #475569;
   &:hover {
-    color: var(--el-color-primary);
-    border-color: var(--el-color-primary-light-5);
-    background-color: var(--el-color-primary-light-9);
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 }
 </style>

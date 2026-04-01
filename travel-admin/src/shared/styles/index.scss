@@ -364,3 +364,68 @@ html, body {
     margin-top: 4px;
   }
 }
+
+/* ─── 17. 边框发光悬浮表格 (Borderless Hover-Gradient Table) ─── */
+.borderless-table {
+  :deep(.el-table__inner-wrapper::before) {
+    display: none;
+  }
+  :deep(td.el-table__cell),
+  :deep(th.el-table__cell.is-leaf) {
+    border-bottom: 1px solid #f8fafc !important;
+  }
+  :deep(.el-table__row) {
+    transition: all 0.2s ease;
+    td {
+      padding: 12px 0;
+    }
+  }
+  :deep(.el-table__row:hover > td.el-table__cell) {
+    background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+  }
+}
+
+/* ─── 18. 胶囊指示灯标签 (Capsule Indicator Badge) ─── */
+.capsule-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+
+  &.status-capsule {
+    gap: 6px;
+    
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+  }
+
+  &.status-success {
+    background-color: #ecfdf5;
+    color: #059669;
+    .dot { background-color: #10b981; }
+  }
+  &.status-primary {
+    background-color: #eff6ff;
+    color: #2563eb;
+    .dot { background-color: #3b82f6; }
+  }
+  &.status-warning {
+    background-color: #fff7ed;
+    color: #ea580c;
+    .dot { background-color: #f97316; }
+  }
+  &.status-danger {
+    background-color: #fef2f2;
+    color: #dc2626;
+    .dot { background-color: #ef4444; }
+  }
+  &.status-neutral {
+    background-color: #f1f5f9;
+    color: #475569;
+    .dot { background-color: #94a3b8; }
+  }
+}
