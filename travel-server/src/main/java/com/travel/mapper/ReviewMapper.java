@@ -3,7 +3,7 @@ package com.travel.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.travel.dto.review.model.SpotRatingStats;
+import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.entity.Review;
 import org.apache.ibatis.annotations.Mapper;

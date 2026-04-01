@@ -1,7 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
-import com.travel.dto.recommendation.model.RecommendationAlgorithmConfigDTO;
+import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.response.RecommendationResponse;
 import com.travel.entity.Order;
 import com.travel.entity.Review;

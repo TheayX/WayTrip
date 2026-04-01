@@ -2,7 +2,7 @@ package com.travel.service.support.recommendation;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.home.response.HotSpotResponse;
-import com.travel.dto.recommendation.model.RecommendationAlgorithmConfigDTO;
+import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.response.RecommendationResponse;
 import com.travel.entity.Spot;
 import com.travel.entity.UserPreference;

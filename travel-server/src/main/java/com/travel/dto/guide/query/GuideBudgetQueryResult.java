@@ -1,4 +1,4 @@
-package com.travel.dto.guide.model;
+package com.travel.dto.guide.query;
 
 import lombok.Data;
 

@@ -1,6 +1,6 @@
 package com.travel.dto.home.response;
 
-import com.travel.dto.home.model.RecentViewedSpotItem;
+import com.travel.dto.home.item.RecentViewedSpotItem;
 import lombok.Data;
 
 import java.util.List;

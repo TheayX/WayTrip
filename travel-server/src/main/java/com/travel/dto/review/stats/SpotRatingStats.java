@@ -1,4 +1,4 @@
-package com.travel.dto.review.model;
+package com.travel.dto.review.stats;
 
 import lombok.Data;
 

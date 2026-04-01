@@ -1,7 +1,7 @@
 package com.travel.service.support.recommendation;
 
-import com.travel.dto.recommendation.model.RecommendationConfigBundleDTO;
-import com.travel.dto.recommendation.model.RecommendationStatusDTO;
+import com.travel.dto.recommendation.config.RecommendationConfigBundleDTO;
+import com.travel.dto.recommendation.response.RecommendationStatusDTO;
 import com.travel.service.cache.RecommendationCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
