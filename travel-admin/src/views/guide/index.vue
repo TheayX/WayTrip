@@ -163,9 +163,9 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getGuideList, getGuideDetail, createGuide, updateGuide, updatePublishStatus, deleteGuide, getCategories } from '@/api/guide'
-import { useUserStore } from '@/stores/user'
-import { getAdminUploadUrl, getResourceUrl } from '@/utils/resource'
-import { fetchAllSpotOptions } from '@/utils/spot-options'
+import { useUserStore } from '@/app/store/user.js'
+import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
+import { fetchAllSpotOptions } from '@/modules/spot/composables/useSpotOptions.js'
 
 const userStore = useUserStore()
 

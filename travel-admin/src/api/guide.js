@@ -1,5 +1,5 @@
 // 攻略相关接口
-import request from '@/utils/request'
+import request from '@/shared/api/request.js'
 
 /**
  * 获取攻略列表
