@@ -82,7 +82,7 @@ import {
   updateRecommendationMatrix,
   previewRecommendations,
   previewSimilarityNeighbors
-} from '@/modules/recommendation/api.js'
+} from '@/modules/recommendation/api/recommendation.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import {

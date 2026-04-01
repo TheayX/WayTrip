@@ -147,7 +147,7 @@
 import { onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSourceLabel } from '@/shared/constants/view-source.js'
-import { getRecommendationStatus } from '@/modules/recommendation/api.js'
+import { getRecommendationStatus } from '@/modules/recommendation/api/recommendation.js'
 import { getFavoriteList } from '@/modules/user-ops/api/favorite.js'
 import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
 import { getViewList } from '@/modules/user-ops/api/view-log.js'
