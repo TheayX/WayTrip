@@ -14,110 +14,33 @@
         </div>
       </template>
 
-      <!-- 搜索筛选表单 -->
-      <el-form :inline="true" :model="queryParams" class="search-form" @submit.prevent>
-        <el-form-item label="关键词">
-          <el-input
-            v-model="queryParams.keyword"
-            placeholder="景点名称"
-            clearable
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="地区">
-          <el-cascader
-            v-model="uiFilters.regionPath"
-            :options="regionCascaderOptions"
-            :props="regionCascaderProps"
-            clearable
-            style="width: 220px"
-            placeholder="全部"
-            @change="handleFilterChange"
-          />
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-cascader
-            v-model="uiFilters.categoryPath"
-            :options="categoryCascaderOptions"
-            :props="categoryCascaderProps"
-            clearable
-            style="width: 220px"
-            placeholder="全部"
-            @change="handleFilterChange"
-            @clear="handleFilterChange"
-          />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select
-            v-model="uiFilters.published"
-            placeholder="全部"
-            clearable
-            style="width: 140px"
-            @change="handleFilterChange"
-            @clear="handleFilterChange"
-          >
-            <el-option label="已发布" value="1" />
-            <el-option label="未发布" value="0" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+      <SpotFilterBar
+        :query-params="queryParams"
+        :ui-filters="uiFilters"
+        :region-cascader-options="regionCascaderOptions"
+        :category-cascader-options="categoryCascaderOptions"
+        :region-cascader-props="regionCascaderProps"
+        :category-cascader-props="categoryCascaderProps"
+        @search="handleSearch"
+        @reset="handleReset"
+        @filter-change="handleFilterChange"
+      />
 
-      <!-- 景点数据表格 -->
-      <el-table :data="tableData" v-loading="loading" stripe :row-class-name="getRowClassName">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="封面" width="100">
-          <template #default="{ row }">
-            <el-image :src="getImageUrl(row.coverImage)" style="width: 60px; height: 60px" fit="cover" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="name" label="名称" min-width="150" />
-        <el-table-column prop="regionName" label="地区" width="100" />
-        <el-table-column prop="categoryName" label="分类" width="100" />
-        <el-table-column prop="price" label="价格" width="100">
-          <template #default="{ row }">¥{{ row.price }}</template>
-        </el-table-column>
-        <el-table-column prop="avgRating" label="评分" width="80" />
-        <el-table-column prop="ratingCount" label="评价数" width="90" />
-        <el-table-column label="热度档位" width="110">
-          <template #default="{ row }">
-            <el-tag :type="getHeatLevelTagType(row.heatLevel)">
-              {{ getHeatLevelLabel(row.heatLevel) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="heatScore" label="热度" width="90" />
-        <el-table-column label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.published ? 'success' : 'info'">
-              {{ row.published ? '已发布' : '未发布' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="updatedAt" label="修改时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.updatedAt) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="320" fixed="right">
-          <template #default="{ row }">
-            <div class="table-actions">
-              <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-              <el-button link type="primary" @click="handleHeatEdit(row)">热度</el-button>
-              <el-button link type="primary" @click="handleRefreshSpotHeat(row)">同步热度</el-button>
-              <el-button link type="primary" @click="handleRefreshSpotRating(row)">同步评分</el-button>
-              <el-button link :type="row.published ? 'warning' : 'success'" @click="handleTogglePublish(row)">
-                {{ row.published ? '下架' : '发布' }}
-              </el-button>
-              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+      <SpotTable
+        :table-data="tableData"
+        :loading="loading"
+        :get-row-class-name="getRowClassName"
+        :get-image-url="getImageUrl"
+        :format-date="formatDate"
+        :get-heat-level-label="getHeatLevelLabel"
+        :get-heat-level-tag-type="getHeatLevelTagType"
+        @edit="handleEdit"
+        @heat-edit="handleHeatEdit"
+        @refresh-heat="handleRefreshSpotHeat"
+        @refresh-rating="handleRefreshSpotRating"
+        @toggle-publish="handleTogglePublish"
+        @delete="handleDelete"
+      />
 
       <!-- 分页器 -->
       <el-pagination
@@ -132,143 +55,40 @@
       />
     </el-card>
 
-    <!-- 新增/编辑景点对话框 -->
-    <el-dialog v-model="dialogVisible" :title="editId ? '编辑景点' : '新增景点'" width="700px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入景点名称" />
-        </el-form-item>
-        <el-form-item label="价格" prop="price">
-          <el-input-number v-model="form.price" :min="0" :precision="2" />
-        </el-form-item>
-        <el-form-item label="地区" prop="regionPath">
-          <el-cascader
-            v-model="form.regionPath"
-            :options="regionCascaderOptions"
-            :props="regionCascaderProps"
-            clearable
-            placeholder="请选择地区"
-          />
-        </el-form-item>
-        <el-form-item label="父分类" prop="parentCategoryId">
-          <el-select v-model="form.parentCategoryId" placeholder="请选择父分类" @change="handleParentCategoryChange">
-            <el-option v-for="item in parentCategoryOptions" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="子分类" prop="categoryId">
-          <el-select v-model="form.categoryId" placeholder="请选择子分类" :disabled="!form.parentCategoryId">
-            <el-option v-for="item in childCategoryOptions" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="地址" prop="address">
-          <el-input v-model="form.address" placeholder="请输入详细地址" />
-        </el-form-item>
-        <el-form-item label="经纬度">
-          <el-input-number v-model="form.latitude" placeholder="纬度" style="width: 150px" />
-          <el-input-number v-model="form.longitude" placeholder="经度" style="width: 150px; margin-left: 10px" />
-        </el-form-item>
-        <el-form-item label="开放时间">
-          <el-input v-model="form.openTime" placeholder="如：08:30-17:00" />
-        </el-form-item>
-        <el-form-item label="热度档位" prop="heatLevel">
-          <el-select v-model="form.heatLevel" placeholder="请选择热度档位">
-            <el-option
-              v-for="item in heatLevelOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="简介">
-          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入景点简介" />
-        </el-form-item>
-        <el-form-item label="封面图">
-          <div class="upload-container">
-            <el-upload
-              class="image-uploader"
-              :action="uploadUrl"
-              :headers="uploadHeaders"
-              :data="uploadData"
-              :show-file-list="false"
-              :on-success="handleUploadSuccess"
-              :on-error="handleUploadError"
-              :before-upload="beforeUpload"
-              accept="image/*"
-            >
-              <el-image
-                v-if="form.coverImage"
-                :src="getImageUrl(form.coverImage)"
-                fit="cover"
-                class="uploaded-image"
-              />
-              <div v-else class="upload-placeholder">
-                <el-icon><Plus /></el-icon>
-                <span>点击上传</span>
-              </div>
-            </el-upload>
-            <div class="upload-tip">支持 jpg、png 格式，大小不超过 5MB</div>
-          </div>
-        </el-form-item>
-        <el-form-item label="景点图片">
-          <div class="gallery-container">
-            <el-upload
-              class="gallery-uploader"
-              :action="uploadUrl"
-              :headers="uploadHeaders"
-              :data="uploadData"
-              :show-file-list="false"
-              :on-success="handleGalleryUploadSuccess"
-              :on-error="handleUploadError"
-              :before-upload="beforeUpload"
-              accept="image/*"
-            >
-              <el-button type="primary" plain>上传图片</el-button>
-            </el-upload>
-            <div class="gallery-list" v-if="form.images?.length">
-              <div class="gallery-item" v-for="(img, index) in form.images" :key="`${img}-${index}`">
-                <el-image :src="getImageUrl(img)" fit="cover" class="gallery-image" />
-                <el-button link type="danger" @click="removeGalleryImage(index)">删除</el-button>
-              </div>
-            </div>
-            <div class="upload-tip">可上传多张详情图，按当前顺序保存</div>
-          </div>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">确定</el-button>
-      </template>
-    </el-dialog>
+    <SpotFormDialog
+      ref="formDialogRef"
+      v-model:visible="dialogVisible"
+      :edit-id="editId"
+      :form="form"
+      :rules="rules"
+      :region-cascader-options="regionCascaderOptions"
+      :region-cascader-props="regionCascaderProps"
+      :parent-category-options="parentCategoryOptions"
+      :child-category-options="childCategoryOptions"
+      :heat-level-options="heatLevelOptions"
+      :upload-url="uploadUrl"
+      :upload-headers="uploadHeaders"
+      :upload-data="uploadData"
+      :before-upload="beforeUpload"
+      :handle-upload-success="handleUploadSuccess"
+      :handle-gallery-upload-success="handleGalleryUploadSuccess"
+      :handle-upload-error="handleUploadError"
+      :get-image-url="getImageUrl"
+      :submitting="submitting"
+      @submit="handleSubmit"
+      @parent-category-change="handleParentCategoryChange"
+      @remove-gallery-image="removeGalleryImage"
+    />
 
-    <!-- 热度设置对话框 -->
-    <el-dialog v-model="heatDialogVisible" title="热度设置" width="420px">
-      <el-form ref="heatFormRef" :model="heatForm" :rules="heatRules" label-width="110px">
-        <el-form-item label="当前评分">
-          <span>{{ heatForm.avgRating ?? 0 }}</span>
-        </el-form-item>
-        <el-form-item label="评价数">
-          <span>{{ heatForm.ratingCount ?? 0 }}</span>
-        </el-form-item>
-        <el-form-item label="当前总热度">
-          <span>{{ heatForm.heatScore ?? 0 }}</span>
-        </el-form-item>
-        <el-form-item label="热度档位" prop="heatLevel">
-          <el-select v-model="heatForm.heatLevel" style="width: 100%" placeholder="请选择热度档位">
-            <el-option
-              v-for="item in heatLevelOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="heatDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleHeatSubmit" :loading="heatSubmitting">确定</el-button>
-      </template>
-    </el-dialog>
+    <SpotHeatDialog
+      ref="heatDialogRef"
+      v-model:visible="heatDialogVisible"
+      :heat-form="heatForm"
+      :heat-rules="heatRules"
+      :heat-level-options="heatLevelOptions"
+      :heat-submitting="heatSubmitting"
+      @submit="handleHeatSubmit"
+    />
   </div>
 </template>
 
@@ -276,7 +96,10 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import SpotFilterBar from '@/modules/spot/components/SpotFilterBar.vue'
+import SpotTable from '@/modules/spot/components/SpotTable.vue'
+import SpotFormDialog from '@/modules/spot/components/SpotFormDialog.vue'
+import SpotHeatDialog from '@/modules/spot/components/SpotHeatDialog.vue'
 import {
   createSpot,
   deleteSpot,
@@ -472,10 +295,10 @@ const uiFilters = reactive({
 const dialogVisible = ref(false)
 const editId = ref(null)
 const submitting = ref(false)
-const formRef = ref()
+const formDialogRef = ref()
 const heatDialogVisible = ref(false)
 const heatSubmitting = ref(false)
-const heatFormRef = ref()
+const heatDialogRef = ref()
 const heatEditId = ref(null)
 const heatSpotDetail = ref(null)
 
@@ -771,7 +594,7 @@ const buildSubmitPayload = () => buildSpotPayload(form)
 
 // 提交景点表单
 const handleSubmit = async () => {
-  await formRef.value.validate()
+  await formDialogRef.value?.validate()
   submitting.value = true
   try {
     if (editId.value) {
@@ -790,7 +613,7 @@ const handleSubmit = async () => {
 
 // 提交热度设置
 const handleHeatSubmit = async () => {
-  await heatFormRef.value.validate()
+  await heatDialogRef.value?.validate()
   if (!heatSpotDetail.value) {
     ElMessage.error('景点详情加载失败，请重新打开热度设置')
     return
@@ -848,90 +671,9 @@ watch(
   gap: 12px;
 }
 
-.search-form {
-  margin-bottom: 20px;
-}
-
-.table-actions {
-  white-space: nowrap;
-}
-
 .pagination {
   margin-top: 20px;
   justify-content: flex-end;
-}
-
-.upload-container {
-  .image-uploader {
-    :deep(.el-upload) {
-      border: 1px dashed #d9d9d9;
-      border-radius: 6px;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.3s;
-
-      &:hover {
-        border-color: #409eff;
-      }
-    }
-  }
-
-  .uploaded-image {
-    width: 150px;
-    height: 150px;
-    display: block;
-  }
-
-  .upload-placeholder {
-    width: 150px;
-    height: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #8c939d;
-
-    .el-icon {
-      font-size: 28px;
-      margin-bottom: 8px;
-    }
-
-    span {
-      font-size: 12px;
-    }
-  }
-
-  .upload-tip {
-    font-size: 12px;
-    color: #909399;
-    margin-top: 8px;
-  }
-}
-
-.gallery-container {
-  width: 100%;
-}
-
-.gallery-list {
-  margin-top: 12px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
-}
-
-.gallery-item {
-  border: 1px solid #ebeef5;
-  border-radius: 6px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.gallery-image {
-  width: 100%;
-  height: 90px;
 }
 
 :deep(.spot-highlight-row) {
