@@ -29,25 +29,25 @@ const routes = [
       {
         path: 'category',
         name: 'Category',
-        component: () => import('@/views/category/index.vue'),
+        component: () => import('@/modules/category/index.vue'),
         meta: { title: '分类管理', icon: 'Menu', group: 'content' }
       },
       {
         path: 'region',
         name: 'Region',
-        component: () => import('@/views/region/index.vue'),
+        component: () => import('@/modules/region/index.vue'),
         meta: { title: '地区管理', icon: 'MapLocation', group: 'content' }
       },
       {
         path: 'guide',
         name: 'Guide',
-        component: () => import('@/views/guide/index.vue'),
+        component: () => import('@/modules/guide/index.vue'),
         meta: { title: '攻略管理', icon: 'Document', group: 'content' }
       },
       {
         path: 'order',
         name: 'Order',
-        component: () => import('@/views/order/index.vue'),
+        component: () => import('@/modules/order/index.vue'),
         meta: { title: '订单管理', icon: 'List', group: 'transaction' }
       },
       {
@@ -89,7 +89,7 @@ const routes = [
       {
         path: 'banner',
         name: 'Banner',
-        component: () => import('@/views/banner/index.vue'),
+        component: () => import('@/modules/banner/index.vue'),
         meta: { title: '轮播图管理', icon: 'Picture', group: 'content' }
       },
       {

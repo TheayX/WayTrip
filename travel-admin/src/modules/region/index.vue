@@ -93,7 +93,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
-import { getRegions, createRegion, updateRegion, deleteRegion } from '@/api/region'
+import { getRegions, createRegion, updateRegion, deleteRegion } from '@/modules/region/api.js'
 
 // 格式化日期
 const formatDate = (dateStr) => {
