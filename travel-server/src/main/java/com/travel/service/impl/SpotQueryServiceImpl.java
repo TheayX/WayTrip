@@ -21,7 +21,8 @@ import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.SpotQueryService;
-import com.travel.service.support.spot.SpotSupportService;
+import com.travel.service.support.spot.SpotResponseAssembler;
+import com.travel.service.support.spot.SpotTreeSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -49,7 +50,8 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final ReviewMapper reviewMapper;
     private final UserSpotViewMapper userSpotViewMapper;
-    private final SpotSupportService spotSupportService;
+    private final SpotResponseAssembler spotResponseAssembler;
+    private final SpotTreeSupport spotTreeSupport;
 
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
@@ -59,7 +61,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         wrapper.eq(Spot::getIsDeleted, 0);
 
         if (request.getRegionId() != null) {
-            Set<Long> regionIds = spotSupportService.findRegionAndChildrenIds(request.getRegionId());
+            Set<Long> regionIds = spotTreeSupport.findRegionAndChildrenIds(request.getRegionId());
             if (regionIds.isEmpty() || regionIds.size() == 1) {
                 wrapper.eq(Spot::getRegionId, request.getRegionId());
             } else {
@@ -67,7 +69,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
             }
         }
         if (request.getCategoryId() != null) {
-            Set<Long> categoryIds = spotSupportService.findCategoryAndChildrenIds(request.getCategoryId());
+            Set<Long> categoryIds = spotTreeSupport.findCategoryAndChildrenIds(request.getCategoryId());
             if (categoryIds.isEmpty()) {
                 wrapper.eq(Spot::getCategoryId, request.getCategoryId());
             } else {
@@ -88,7 +90,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
 
         Page<Spot> result = spotMapper.selectPage(page, wrapper);
         List<SpotListResponse> list = result.getRecords().stream()
-            .map(spotSupportService::convertToListResponse)
+            .map(spotResponseAssembler::toSpotListResponse)
             .collect(Collectors.toList());
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
@@ -104,7 +106,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
 
         Page<Spot> result = spotMapper.selectPage(pageObj, wrapper);
         List<SpotListResponse> list = result.getRecords().stream()
-            .map(spotSupportService::convertToListResponse)
+            .map(spotResponseAssembler::toSpotListResponse)
             .collect(Collectors.toList());
         return PageResult.of(list, result.getTotal(), page, pageSize);
     }
@@ -150,8 +152,8 @@ public class SpotQueryServiceImpl implements SpotQueryService {
                     .id(spot.getId())
                     .name(spot.getName())
                     .coverImage(spot.getCoverImageUrl())
-                    .regionName(spotSupportService.getRegionName(spot.getRegionId()))
-                    .categoryName(spotSupportService.getCategoryName(spot.getCategoryId()))
+                    .regionName(spotResponseAssembler.getRegionName(spot.getRegionId()))
+                    .categoryName(spotResponseAssembler.getCategoryName(spot.getCategoryId()))
                     .viewedAt(view.getCreatedAt() == null ? null : view.getCreatedAt().format(VIEW_TIME_FORMATTER))
                     .build();
             })
@@ -200,8 +202,8 @@ public class SpotQueryServiceImpl implements SpotQueryService {
             .images(imageUrls)
             .avgRating(spot.getAvgRating())
             .ratingCount(spot.getRatingCount())
-            .regionName(spotSupportService.getRegionName(spot.getRegionId()))
-            .categoryName(spotSupportService.getCategoryName(spot.getCategoryId()))
+            .regionName(spotResponseAssembler.getRegionName(spot.getRegionId()))
+            .categoryName(spotResponseAssembler.getCategoryName(spot.getCategoryId()))
             .isFavorite(interactionState.isFavorite())
             .userRating(interactionState.userRating())
             .latestComments(comments)
@@ -210,7 +212,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
 
     @Override
     public SpotFilterResponse getFilters() {
-        return spotSupportService.getFilters();
+        return spotTreeSupport.getFilters();
     }
 
     /**

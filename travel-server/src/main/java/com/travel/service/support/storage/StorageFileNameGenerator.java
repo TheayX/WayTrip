@@ -8,10 +8,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
- * 统一生成上传文件名，避免命名规则散落在业务代码里。
+ * 存储文件名生成器，统一生成上传落盘文件名。
  */
 @Component
-public class FileNameGenerator {
+public class StorageFileNameGenerator {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
