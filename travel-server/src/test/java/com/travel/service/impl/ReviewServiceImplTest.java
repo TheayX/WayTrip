@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.review.request.ReviewRequest;
-import com.travel.dto.review.model.SpotRatingStats;
+import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.mapper.ReviewMapper;

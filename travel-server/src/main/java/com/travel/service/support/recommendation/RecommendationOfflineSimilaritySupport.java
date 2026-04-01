@@ -1,8 +1,8 @@
 package com.travel.service.support.recommendation;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.travel.dto.recommendation.model.RecommendationAlgorithmConfigDTO;
-import com.travel.dto.recommendation.model.RecommendationCacheConfigDTO;
+import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
+import com.travel.dto.recommendation.config.RecommendationCacheConfigDTO;
 import com.travel.entity.Order;
 import com.travel.entity.Review;
 import com.travel.entity.UserSpotFavorite;

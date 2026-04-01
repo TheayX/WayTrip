@@ -117,7 +117,7 @@
     </select>
 
     <!-- 景点评分统计查询 -->
-    <select id="selectSpotRatingStats" resultType="com.travel.dto.review.model.SpotRatingStats">
+    <select id="selectSpotRatingStats" resultType="com.travel.dto.review.stats.SpotRatingStats">
         SELECT COALESCE(ROUND(AVG(r.score), 1), 0.0) AS avgRating,
                COUNT(*) AS ratingCount
         FROM user_spot_review r

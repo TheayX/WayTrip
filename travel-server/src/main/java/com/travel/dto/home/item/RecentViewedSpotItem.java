@@ -1,4 +1,4 @@
-package com.travel.dto.home.model;
+package com.travel.dto.home.item;
 
 import lombok.Data;
 

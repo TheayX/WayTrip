@@ -3,7 +3,7 @@
 <mapper namespace="com.travel.mapper.GuideMapper">
 
     <!-- 穷游攻略列表结果映射 -->
-    <resultMap id="GuideBudgetQueryResultMap" type="com.travel.dto.guide.model.GuideBudgetQueryResult">
+    <resultMap id="GuideBudgetQueryResultMap" type="com.travel.dto.guide.query.GuideBudgetQueryResult">
         <id column="id" property="id"/>
         <result column="title" property="title"/>
         <result column="cover_image" property="coverImage"/>

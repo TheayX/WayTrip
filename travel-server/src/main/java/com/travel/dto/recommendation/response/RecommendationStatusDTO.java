@@ -1,4 +1,4 @@
-package com.travel.dto.recommendation.model;
+package com.travel.dto.recommendation.response;
 
 import lombok.Data;
 

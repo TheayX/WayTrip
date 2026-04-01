@@ -3,10 +3,10 @@ package com.travel.service;
 import com.travel.dto.home.response.HotSpotResponse;
 import com.travel.dto.home.response.NearbySpotResponse;
 import com.travel.dto.home.response.RecentViewedSpotResponse;
-import com.travel.dto.recommendation.model.RecommendationConfigBundleDTO;
+import com.travel.dto.recommendation.config.RecommendationConfigBundleDTO;
 import com.travel.dto.recommendation.response.RecommendationResponse;
 import com.travel.dto.recommendation.response.SimilarityPreviewResponse;
-import com.travel.dto.recommendation.model.RecommendationStatusDTO;
+import com.travel.dto.recommendation.response.RecommendationStatusDTO;
 
 import java.math.BigDecimal;
 

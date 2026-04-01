@@ -1,9 +1,9 @@
 package com.travel.controller.admin;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.dto.recommendation.model.RecommendationConfigBundleDTO;
+import com.travel.dto.recommendation.config.RecommendationConfigBundleDTO;
 import com.travel.dto.recommendation.response.RecommendationResponse;
-import com.travel.dto.recommendation.model.RecommendationStatusDTO;
+import com.travel.dto.recommendation.response.RecommendationStatusDTO;
 import com.travel.dto.recommendation.response.SimilarityPreviewResponse;
 import com.travel.service.RecommendationService;
 import io.swagger.v3.oas.annotations.Operation;

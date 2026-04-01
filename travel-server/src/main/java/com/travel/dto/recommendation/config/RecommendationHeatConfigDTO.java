@@ -1,4 +1,4 @@
-package com.travel.dto.recommendation.model;
+package com.travel.dto.recommendation.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

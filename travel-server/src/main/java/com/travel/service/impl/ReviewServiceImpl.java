@@ -10,7 +10,7 @@ import com.travel.dto.review.request.AdminReviewListRequest;
 import com.travel.dto.review.request.ReviewFeedRequest;
 import com.travel.dto.review.request.ReviewRequest;
 import com.travel.dto.review.response.ReviewResponse;
-import com.travel.dto.review.model.SpotRatingStats;
+import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.entity.User;

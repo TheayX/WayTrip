@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.constant.SpotHeatLevelConstants;
-import com.travel.dto.recommendation.model.RecommendationConfigBundleDTO;
+import com.travel.dto.recommendation.config.RecommendationConfigBundleDTO;
 import com.travel.entity.Order;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;

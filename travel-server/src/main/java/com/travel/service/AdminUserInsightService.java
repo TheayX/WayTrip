@@ -1,9 +1,9 @@
 package com.travel.service;
 
 import com.travel.common.result.PageResult;
-import com.travel.dto.user.model.AdminUserFavoriteListItem;
-import com.travel.dto.user.model.AdminUserPreferenceListItem;
-import com.travel.dto.user.model.AdminUserViewListItem;
+import com.travel.dto.user.item.AdminUserFavoriteListItem;
+import com.travel.dto.user.item.AdminUserPreferenceListItem;
+import com.travel.dto.user.item.AdminUserViewListItem;
 import com.travel.dto.user.request.AdminUserFavoriteListRequest;
 import com.travel.dto.user.request.AdminUserPreferenceListRequest;
 import com.travel.dto.user.request.AdminUserViewListRequest;

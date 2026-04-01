@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
-import com.travel.dto.guide.model.GuideBudgetQueryResult;
+import com.travel.dto.guide.query.GuideBudgetQueryResult;
 import com.travel.dto.guide.request.GuideBudgetListRequest;
 import com.travel.dto.guide.request.GuideListRequest;
 import com.travel.dto.guide.response.GuideBudgetListResponse;
