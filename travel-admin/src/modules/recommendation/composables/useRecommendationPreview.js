@@ -6,6 +6,7 @@ import {
   updateRecommendationMatrix
 } from '@/modules/recommendation/api/recommendation.js'
 
+// 管理调试预览与相似邻居预览，避免页面层混入大段结果推导逻辑。
 export function useRecommendationPreview({ status, fetchStatus }) {
   const previewing = ref(false)
   const similarityPreviewing = ref(false)
@@ -28,6 +29,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     limit: 8
   })
 
+  // 统一生成可读调试文本，方便页面展示和后续对比不同请求结果。
   const debugOutput = computed(() => {
     if (!debugResult.value) return ''
 
@@ -68,6 +70,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
 
   const debugSections = computed(() => {
     if (!debugInfo.value) return []
+    // 只保留后端真正返回了数据的调试区块，避免页面出现空表格。
     const sections = [
       { key: 'interactions', title: '用户交互权重', items: debugInfo.value.userInteractions || [] },
       { key: 'candidates', title: '原始候选分数', items: debugInfo.value.candidateScores || [] },
@@ -271,6 +274,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     try {
       similarityMatrixPreviewing.value = true
       status.computing = true
+      // 先重建矩阵再读邻居，确保本次预览看到的是最新离线结果。
       await updateRecommendationMatrix()
       const res = await previewSimilarityNeighbors({ ...similarityForm })
       similarityResult.value = res.data || null

@@ -84,6 +84,7 @@ const immediateFieldPaths = [
 
 const cloneConfig = (value) => JSON.parse(JSON.stringify(value))
 
+// 管理推荐配置、矩阵状态和保存动作，避免配置页继续堆积状态型逻辑。
 export function useRecommendationConfig() {
   const config = reactive(createDefaultConfig())
   const savedConfig = ref(cloneConfig(createDefaultConfig()))
@@ -103,6 +104,7 @@ export function useRecommendationConfig() {
     Object.assign(config.cache, defaults.cache, nextConfig.cache || {})
   }
 
+  // 用字段路径比对配置差异，便于区分“即时生效”和“需重建矩阵”的改动。
   const getByPath = (target, path) => path.split('.').reduce((acc, key) => acc?.[key], target)
   const getChangedPaths = (paths) => paths.filter(path => getByPath(config, path) !== getByPath(savedConfig.value, path))
 
@@ -163,6 +165,7 @@ export function useRecommendationConfig() {
     try {
       const res = await getRecommendationConfig()
       if (res.data) {
+        // 服务端配置可能缺部分字段，这里始终回填默认值，避免表单出现 undefined。
         applyConfig(res.data)
         savedConfig.value = cloneConfig({
           algorithm: { ...config.algorithm },
@@ -198,6 +201,7 @@ export function useRecommendationConfig() {
       const immediateChangedCount = immediateChangedPaths.value.length
       await updateRecommendationConfig(payload)
       savedConfig.value = cloneConfig(payload)
+      // 保存成功后立刻刷新已保存快照，确保“待保存项”统计与页面状态一致。
       if (matrixChangedCount > 0 && immediateChangedCount > 0) {
         ElMessage.success('配置已保存：在线参数立即生效；离线矩阵参数需重建相似度矩阵后完全生效')
         return
@@ -244,6 +248,7 @@ export function useRecommendationConfig() {
       status.computing = true
       await updateRecommendationMatrix()
       ElMessage.success('相似度矩阵更新完成！')
+      // 重建完成后立即刷新状态，保证总览时间和覆盖数量同步更新。
       await fetchStatus()
     } catch (e) {
       if (!isMessageBoxDismissed(e)) {
