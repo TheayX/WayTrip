@@ -24,9 +24,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GuideServiceImpl implements GuideService {
 
+    // 查询与管理子服务
+
     private final GuideQueryService guideQueryService;
     private final GuideAdminService guideAdminService;
 
+    /**
+     * 门面层只负责分发，避免再次把查询细节回流到统一服务里。
+     */
     @Override
     public PageResult<GuideListResponse> getGuideList(GuideListRequest request) {
         return guideQueryService.getGuideList(request);
