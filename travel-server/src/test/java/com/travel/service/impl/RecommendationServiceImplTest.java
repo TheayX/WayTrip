@@ -21,10 +21,13 @@ import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.cache.RecommendationCacheService;
+import com.travel.service.support.recommendation.RecommendationCandidateSupport;
 import com.travel.service.support.recommendation.RecommendationConfigSupport;
 import com.travel.service.support.recommendation.RecommendationColdStartSupport;
+import com.travel.service.support.recommendation.RecommendationDebugSupport;
 import com.travel.service.support.recommendation.RecommendationInteractionSupport;
 import com.travel.service.support.recommendation.RecommendationMetadataSupport;
+import com.travel.service.support.recommendation.RecommendationResponseSupport;
 import com.travel.service.support.recommendation.RecommendationSimilaritySupport;
 import com.travel.service.support.recommendation.RecommendationViewSourceClassifier;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
@@ -125,6 +128,25 @@ class RecommendationServiceImplTest {
             spotMapper,
             userPreferenceMapper
         );
+        RecommendationResponseSupport recommendationResponseSupport = new RecommendationResponseSupport(
+            spotMapper,
+            recommendationMetadataSupport
+        );
+        RecommendationDebugSupport recommendationDebugSupport = new RecommendationDebugSupport(
+            userSpotViewMapper,
+            userSpotFavoriteMapper,
+            reviewMapper,
+            orderMapper,
+            recommendationMetadataSupport,
+            recommendationInteractionSupport
+        );
+        RecommendationCandidateSupport recommendationCandidateSupport = new RecommendationCandidateSupport(
+            spotMapper,
+            reviewMapper,
+            userSpotFavoriteMapper,
+            orderMapper,
+            recommendationDebugSupport
+        );
 
         recommendationService = new RecommendationServiceImpl(
             spotMapper,
@@ -140,8 +162,10 @@ class RecommendationServiceImplTest {
             recommendationConfigSupport,
             recommendationSimilaritySupport,
             recommendationInteractionSupport,
+            recommendationCandidateSupport,
             recommendationColdStartSupport,
-            recommendationViewSourceClassifier
+            recommendationResponseSupport,
+            recommendationDebugSupport
         );
     }
 
