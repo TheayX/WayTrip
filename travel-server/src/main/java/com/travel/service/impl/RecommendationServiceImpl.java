@@ -19,13 +19,9 @@ import com.travel.mapper.*;
 import com.travel.service.cache.RecommendationCacheService;
 import com.travel.service.RecommendationService;
 import com.travel.service.support.recommendation.RecommendationConfigSupport;
-import com.travel.service.support.recommendation.RecommendationCandidateSupport;
 import com.travel.service.support.recommendation.RecommendationColdStartSupport;
-import com.travel.service.support.recommendation.RecommendationDebugSupport;
-import com.travel.service.support.recommendation.RecommendationInteractionSupport;
-import com.travel.service.support.recommendation.RecommendationMetadataSupport;
-import com.travel.service.support.recommendation.RecommendationOfflineSimilaritySupport;
-import com.travel.service.support.recommendation.RecommendationResponseSupport;
+import com.travel.service.support.recommendation.RecommendationQuerySupport;
+import com.travel.service.support.recommendation.RecommendationScoreSupport;
 import com.travel.service.support.recommendation.RecommendationSimilaritySupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,15 +53,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final SpotRegionMapper spotRegionMapper;
     private final UserPreferenceMapper userPreferenceMapper;
     private final RecommendationCacheService recommendationCacheService;
-    private final RecommendationMetadataSupport recommendationMetadataSupport;
+    private final RecommendationQuerySupport recommendationQuerySupport;
     private final RecommendationConfigSupport recommendationConfigSupport;
     private final RecommendationSimilaritySupport recommendationSimilaritySupport;
-    private final RecommendationInteractionSupport recommendationInteractionSupport;
-    private final RecommendationCandidateSupport recommendationCandidateSupport;
-    private final RecommendationOfflineSimilaritySupport recommendationOfflineSimilaritySupport;
+    private final RecommendationScoreSupport recommendationScoreSupport;
     private final RecommendationColdStartSupport recommendationColdStartSupport;
-    private final RecommendationResponseSupport recommendationResponseSupport;
-    private final RecommendationDebugSupport recommendationDebugSupport;
 
     private final AtomicBoolean computing = new AtomicBoolean(false);
 
@@ -252,7 +244,7 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 构建单个用户的融合交互权重：Map<spotId, weight>。
      */
     private Map<Long, Double> buildUserInteractionWeights(Long userId, RecommendationAlgorithmConfigDTO config) {
-        return recommendationInteractionSupport.buildUserInteractionWeights(userId, config);
+        return recommendationScoreSupport.buildUserInteractionWeights(userId, config);
     }
 
 
@@ -409,22 +401,22 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, RecommendationHeatConfigDTO config, boolean debug) {
-        return recommendationCandidateSupport.applyHeatRerank(scoreMap, config, debug);
+        return recommendationScoreSupport.applyHeatRerank(scoreMap, config, debug);
     }
 
     private Long castToLong(Object value) {
-        return recommendationCandidateSupport.castToLong(value);
+        return recommendationScoreSupport.castToLong(value);
     }
 
     private Double castToDouble(Object value) {
-        return recommendationCandidateSupport.castToDouble(value);
+        return recommendationScoreSupport.castToDouble(value);
     }
 
     /**
      * 过滤用户已经交互过的景点。
      */
     private List<Long> filterInteractedSpots(Long userId, List<Long> spotIds) {
-        return recommendationCandidateSupport.filterInteractedSpots(userId, spotIds);
+        return recommendationScoreSupport.filterInteractedSpots(userId, spotIds);
     }
 
 
@@ -524,8 +516,8 @@ public class RecommendationServiceImpl implements RecommendationService {
                 return;
             }
 
-            RecommendationOfflineSimilaritySupport.OfflineMatrixSnapshot snapshot =
-                recommendationOfflineSimilaritySupport.buildOfflineInteractionMatrix(activeSpotIds, algorithmConfig);
+            RecommendationSimilaritySupport.OfflineMatrixSnapshot snapshot =
+                recommendationSimilaritySupport.buildOfflineInteractionMatrix(activeSpotIds, algorithmConfig);
             Map<Long, Map<Long, Double>> userItemMatrix = snapshot.userItemMatrix();
             Set<Long> allSpotIds = snapshot.allSpotIds();
 
@@ -537,16 +529,16 @@ public class RecommendationServiceImpl implements RecommendationService {
             log.info("交互矩阵构建完成：用户数={}，景点数={}", userItemMatrix.size(), allSpotIds.size());
 
             // ============ 第 2 步：预计算 IUF 所需的 |N(u)| ============
-            Map<Long, Integer> userActivityCount = recommendationOfflineSimilaritySupport.summarizeUserActivityCount(userItemMatrix);
+            Map<Long, Integer> userActivityCount = recommendationSimilaritySupport.summarizeUserActivityCount(userItemMatrix);
 
             // ============ 第 3 步：构建景点到用户的倒排索引 ============
             // Map<spotId, Set<userId>> 表示 N(i)
-            Map<Long, Set<Long>> spotUserSets = recommendationOfflineSimilaritySupport.buildSpotUserIndex(userItemMatrix);
+            Map<Long, Set<Long>> spotUserSets = recommendationSimilaritySupport.buildSpotUserIndex(userItemMatrix);
 
             // ============ 第 4 步：计算 IUF 加权相似度 ============
             int topK = defaultInt(algorithmConfig.getTopKNeighbors(), 20);
             int simTTL = defaultInt(cacheConfig.getSimilarityTTLHours(), 24);
-            recommendationOfflineSimilaritySupport.cacheSimilarityNeighbors(
+            recommendationSimilaritySupport.cacheSimilarityNeighbors(
                 allSpotIds,
                 spotUserSets,
                 userActivityCount,
@@ -555,7 +547,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             );
 
             // ============ 保存状态摘要 ============
-            recommendationOfflineSimilaritySupport.saveOfflineSummary(userItemMatrix.size(), allSpotIds.size());
+            recommendationSimilaritySupport.saveOfflineSummary(userItemMatrix.size(), allSpotIds.size());
 
             log.info(
                 "相似度矩阵更新完成：景点数={}，用户数={}，缓存时长={}小时，Top-K={}",
@@ -616,7 +608,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private RecommendationResponse buildRecommendationResponse(List<Long> spotIds, Map<Long, Double> scoreMap,
                                                                Integer limit, String type, Boolean needPreference,
                                                                RecommendationResponse.DebugInfo debugInfo) {
-        return recommendationResponseSupport.buildRecommendationResponse(
+        return recommendationQuerySupport.buildRecommendationResponse(
             spotIds,
             scoreMap,
             limit,
@@ -632,91 +624,91 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private Map<Long, String> getCategoryMap() {
-        return recommendationMetadataSupport.getCategoryMap();
+        return recommendationQuerySupport.getCategoryMap();
     }
 
     private Map<Long, String> getRegionMap() {
-        return recommendationMetadataSupport.getRegionMap();
+        return recommendationQuerySupport.getRegionMap();
     }
 
     private void logRecommendationPreview(Long userId, RecommendationResponse response, boolean refresh) {
-        recommendationDebugSupport.logRecommendationPreview(userId, response, refresh);
+        recommendationScoreSupport.logRecommendationPreview(userId, response, refresh);
     }
 
     // 调试信息组装与日志输出
 
     private RecommendationResponse.DebugInfo initDebugInfo(Long userId, Integer limit, boolean refresh) {
-        return recommendationDebugSupport.initDebugInfo(userId, limit, refresh);
+        return recommendationScoreSupport.initDebugInfo(userId, limit, refresh);
     }
 
     private void populateInteractionDebugInfo(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> userInteractions) {
-        recommendationDebugSupport.populateInteractionDebugInfo(debugInfo, userInteractions);
+        recommendationScoreSupport.populateInteractionDebugInfo(debugInfo, userInteractions);
     }
 
     private void populateBehaviorStats(RecommendationResponse.DebugInfo debugInfo, Long userId) {
-        recommendationDebugSupport.populateBehaviorStats(debugInfo, userId);
+        recommendationScoreSupport.populateBehaviorStats(debugInfo, userId);
     }
 
     private void populateBehaviorDetails(RecommendationResponse.DebugInfo debugInfo, Long userId,
                                          RecommendationAlgorithmConfigDTO config) {
-        recommendationDebugSupport.populateBehaviorDetails(debugInfo, userId, config);
+        recommendationScoreSupport.populateBehaviorDetails(debugInfo, userId, config);
     }
 
     private void populateScoreDebugEntries(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> scores, String description) {
-        recommendationDebugSupport.populateScoreDebugEntries(debugInfo, scores, description);
+        recommendationScoreSupport.populateScoreDebugEntries(debugInfo, scores, description);
     }
 
     private void populateFilteredScoresDebugEntries(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> scores, String description) {
-        recommendationDebugSupport.populateFilteredScoresDebugEntries(debugInfo, scores, description);
+        recommendationScoreSupport.populateFilteredScoresDebugEntries(debugInfo, scores, description);
     }
 
     private void populateRerankedScoreDebugEntries(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> scores, String description) {
-        recommendationDebugSupport.populateRerankedScoreDebugEntries(debugInfo, scores, description);
+        recommendationScoreSupport.populateRerankedScoreDebugEntries(debugInfo, scores, description);
     }
 
     private void populateFilteredOutDebugEntries(RecommendationResponse.DebugInfo debugInfo, List<Long> originalIds,
                                                  List<Long> filteredIds, String description) {
-        recommendationDebugSupport.populateFilteredOutDebugEntries(debugInfo, originalIds, filteredIds, description);
+        recommendationScoreSupport.populateFilteredOutDebugEntries(debugInfo, originalIds, filteredIds, description);
     }
 
     private List<RecommendationResponse.ResultContribution> buildResultContributions(
         Map<Long, Double> finalScores,
         Map<Long, List<RecommendationResponse.DebugEntry>> contributionMap
     ) {
-        return recommendationDebugSupport.buildResultContributions(finalScores, contributionMap);
+        return recommendationScoreSupport.buildResultContributions(finalScores, contributionMap);
     }
 
     private void logUserInteractionWeights(Long userId, Map<Long, Double> userInteractions, boolean debug) {
-        recommendationDebugSupport.logUserInteractionWeights(userId, userInteractions, debug);
+        recommendationScoreSupport.logUserInteractionWeights(userId, userInteractions, debug);
     }
 
     private void logScoreMap(String stage, Map<Long, Double> scoreMap, boolean debug) {
-        recommendationDebugSupport.logScoreMap(stage, scoreMap, debug);
+        recommendationScoreSupport.logScoreMap(stage, scoreMap, debug);
     }
 
     private void logFilteredRecommendations(Long userId, List<Long> originalIds, List<Long> filteredIds, boolean debug) {
-        recommendationDebugSupport.logFilteredRecommendations(userId, originalIds, filteredIds, debug);
+        recommendationScoreSupport.logFilteredRecommendations(userId, originalIds, filteredIds, debug);
     }
 
     private void logColdStartResult(Long userId, String type, List<Long> categoryIds, List<Long> spotIds, boolean debug) {
-        recommendationDebugSupport.logColdStartResult(userId, type, categoryIds, spotIds, debug);
+        recommendationScoreSupport.logColdStartResult(userId, type, categoryIds, spotIds, debug);
     }
 
     private void logHeatRerankDetails(Map<Long, Double> beforeScores, Map<Long, Double> afterScores,
                                       Map<Long, Integer> heatMap, double rerankFactor, int maxHeat) {
-        recommendationDebugSupport.logHeatRerankDetails(beforeScores, afterScores, heatMap, rerankFactor, maxHeat);
+        recommendationScoreSupport.logHeatRerankDetails(beforeScores, afterScores, heatMap, rerankFactor, maxHeat);
     }
 
     private String getSpotName(Long spotId) {
-        return recommendationMetadataSupport.getSpotName(spotId);
+        return recommendationQuerySupport.getSpotName(spotId);
     }
 
     private Map<Long, Double> orderScoresByIds(List<Long> orderedIds, Map<Long, Double> scoreMap) {
-        return recommendationCandidateSupport.orderScoresByIds(orderedIds, scoreMap);
+        return recommendationScoreSupport.orderScoresByIds(orderedIds, scoreMap);
     }
 
     private Map<Long, Double> castScoreMap(Map<?, ?> rawMap) {
-        return recommendationCandidateSupport.castScoreMap(rawMap);
+        return recommendationScoreSupport.castScoreMap(rawMap);
     }
 
     // ==================== 配置管理与状态查询 ====================

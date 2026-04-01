@@ -2,14 +2,17 @@ package com.travel.service.support.recommendation;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
+import com.travel.dto.recommendation.config.RecommendationHeatConfigDTO;
 import com.travel.dto.recommendation.response.RecommendationResponse;
 import com.travel.entity.Order;
 import com.travel.entity.Review;
+import com.travel.entity.Spot;
 import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.UserSpotView;
 import com.travel.enums.OrderStatus;
 import com.travel.mapper.OrderMapper;
 import com.travel.mapper.ReviewMapper;
+import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +22,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -29,23 +34,226 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 推荐调试支撑，集中处理调试信息组装和调试日志输出。
+ * 推荐分数支撑，集中处理用户行为权重、候选过滤重排与调试信息输出。
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RecommendationDebugSupport {
+public class RecommendationScoreSupport {
 
+    private final SpotMapper spotMapper;
     private final UserSpotViewMapper userSpotViewMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final ReviewMapper reviewMapper;
     private final OrderMapper orderMapper;
-    private final RecommendationMetadataSupport recommendationMetadataSupport;
-    private final RecommendationInteractionSupport recommendationInteractionSupport;
+    private final RecommendationQuerySupport recommendationQuerySupport;
+    private final RecommendationViewSourceClassifier recommendationViewSourceClassifier;
 
-    /**
-     * 初始化本次预览或调试请求的基础上下文，后续所有调试字段都挂在这里。
-     */
+    public Map<Long, Double> buildUserInteractionWeights(Long userId, RecommendationAlgorithmConfigDTO config) {
+        Map<Long, Double> weights = new HashMap<>();
+
+        userSpotViewMapper.selectList(
+            new LambdaQueryWrapper<UserSpotView>()
+                .eq(UserSpotView::getUserId, userId)
+                .select(UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
+        ).forEach(view -> mergeInteractionWeight(weights, view.getSpotId(), calculateViewWeight(view, config)));
+
+        userSpotFavoriteMapper.selectList(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+                .select(UserSpotFavorite::getSpotId)
+        ).forEach(favorite -> mergeInteractionWeight(weights, favorite.getSpotId(), config.getWeightFavorite()));
+
+        reviewMapper.selectList(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getIsDeleted, 0)
+                .select(Review::getSpotId, Review::getScore)
+        ).forEach(review -> mergeInteractionWeight(
+            weights,
+            review.getSpotId(),
+            review.getScore() * config.getWeightReviewFactor()
+        ));
+
+        orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
+                .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
+                .select(Order::getSpotId, Order::getStatus)
+        ).forEach(order -> {
+            double weight = order.getStatus() == OrderStatus.COMPLETED.getCode()
+                ? config.getWeightOrderCompleted()
+                : config.getWeightOrderPaid();
+            mergeInteractionWeight(weights, order.getSpotId(), weight);
+        });
+
+        return weights;
+    }
+
+    public double calculateViewWeight(UserSpotView view, RecommendationAlgorithmConfigDTO config) {
+        double baseWeight = config.getWeightView() == null ? 0.5 : config.getWeightView();
+        return baseWeight
+            * getViewSourceFactor(view.getViewSource(), config)
+            * getViewDurationFactor(view.getViewDuration(), config);
+    }
+
+    public void mergeInteractionWeight(Map<Long, Double> weights, Long spotId, Double weight) {
+        if (weights == null || spotId == null || weight == null || weight <= 0) {
+            return;
+        }
+        weights.merge(spotId, weight, Double::sum);
+    }
+
+    public Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, RecommendationHeatConfigDTO config, boolean debug) {
+        if (scoreMap == null || scoreMap.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        double rerankFactor = config.getHeatRerankFactor() == null ? 0.0 : config.getHeatRerankFactor();
+        if (rerankFactor <= 0) {
+            if (debug) {
+                log.info("跳过热度重排：原因=热度重排系数小于等于0，当前系数={}", rerankFactor);
+            }
+            return new LinkedHashMap<>(scoreMap);
+        }
+
+        List<Spot> spots = spotMapper.selectBatchIds(scoreMap.keySet());
+        Map<Long, Integer> heatMap = spots.stream()
+            .filter(spot -> spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
+            .collect(Collectors.toMap(Spot::getId, spot -> Optional.ofNullable(spot.getHeatScore()).orElse(0)));
+
+        int maxHeat = heatMap.values().stream().max(Integer::compareTo).orElse(0);
+        if (maxHeat <= 0) {
+            if (debug) {
+                log.info("跳过热度重排：原因=候选景点热度均为空或为0");
+            }
+            return new LinkedHashMap<>(scoreMap);
+        }
+
+        Map<Long, Double> rerankedScores = scoreMap.entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue() + rerankFactor * (heatMap.getOrDefault(entry.getKey(), 0) / (double) maxHeat),
+                (left, right) -> left,
+                LinkedHashMap::new
+            ))
+            .entrySet().stream()
+            .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (left, right) -> left,
+                LinkedHashMap::new
+            ));
+
+        if (debug) {
+            logHeatRerankDetails(scoreMap, rerankedScores, heatMap, rerankFactor, maxHeat);
+        }
+        return rerankedScores;
+    }
+
+    public List<Long> filterInteractedSpots(Long userId, List<Long> spotIds) {
+        if (spotIds == null || spotIds.isEmpty()) {
+            return spotIds;
+        }
+
+        Set<Long> ratedIds = reviewMapper.selectList(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getIsDeleted, 0)
+        ).stream().map(Review::getSpotId).collect(Collectors.toSet());
+
+        Set<Long> favoriteIds = userSpotFavoriteMapper.selectList(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+        ).stream().map(UserSpotFavorite::getSpotId).collect(Collectors.toSet());
+
+        Set<Long> orderedIds = orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
+                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
+        ).stream().map(Order::getSpotId).collect(Collectors.toSet());
+
+        Set<Long> excludeIds = new HashSet<>();
+        excludeIds.addAll(ratedIds);
+        excludeIds.addAll(favoriteIds);
+        excludeIds.addAll(orderedIds);
+
+        return spotIds.stream()
+            .filter(id -> !excludeIds.contains(id))
+            .collect(Collectors.toList());
+    }
+
+    public Map<Long, Double> orderScoresByIds(List<Long> orderedIds, Map<Long, Double> scoreMap) {
+        if (orderedIds == null || orderedIds.isEmpty() || scoreMap == null || scoreMap.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<Long, Double> orderedScores = new LinkedHashMap<>();
+        for (Long spotId : orderedIds) {
+            Double score = scoreMap.get(spotId);
+            if (score != null) {
+                orderedScores.put(spotId, score);
+            }
+        }
+        return orderedScores;
+    }
+
+    public Map<Long, Double> castScoreMap(Map<?, ?> rawMap) {
+        Map<Long, Double> scoreMap = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
+            Long spotId = castToLong(entry.getKey());
+            Double score = castToDouble(entry.getValue());
+            if (spotId != null && score != null) {
+                scoreMap.put(spotId, score);
+            }
+        }
+        return scoreMap;
+    }
+
+    public Long castToLong(Object value) {
+        if (value instanceof Long longValue) {
+            return longValue;
+        }
+        if (value instanceof Integer intValue) {
+            return intValue.longValue();
+        }
+        if (value instanceof Number numberValue) {
+            return numberValue.longValue();
+        }
+        if (value instanceof String stringValue && !stringValue.isBlank()) {
+            try {
+                return Long.parseLong(stringValue);
+            } catch (NumberFormatException e) {
+                log.warn("Redis Key 转 Long 失败：{}", stringValue);
+            }
+        }
+        return null;
+    }
+
+    public Double castToDouble(Object value) {
+        if (value instanceof Double doubleValue) {
+            return doubleValue;
+        }
+        if (value instanceof Float floatValue) {
+            return floatValue.doubleValue();
+        }
+        if (value instanceof Number numberValue) {
+            return numberValue.doubleValue();
+        }
+        if (value instanceof String stringValue && !stringValue.isBlank()) {
+            try {
+                return Double.parseDouble(stringValue);
+            } catch (NumberFormatException e) {
+                log.warn("Redis 值转 Double 失败：{}", stringValue);
+            }
+        }
+        return null;
+    }
+
     public RecommendationResponse.DebugInfo initDebugInfo(Long userId, Integer limit, boolean refresh) {
         RecommendationResponse.DebugInfo debugInfo = new RecommendationResponse.DebugInfo();
         debugInfo.setUserId(userId);
@@ -55,9 +263,6 @@ public class RecommendationDebugSupport {
         return debugInfo;
     }
 
-    /**
-     * 回填融合后的交互权重明细，便于核对用户行为是否被正确纳入推荐输入。
-     */
     public void populateInteractionDebugInfo(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> userInteractions) {
         if (debugInfo == null) {
             return;
@@ -66,9 +271,6 @@ public class RecommendationDebugSupport {
         debugInfo.setUserInteractions(toDebugEntries(userInteractions, "用户对该景点的融合交互权重"));
     }
 
-    /**
-     * 汇总四类行为的原始条数和去重后的景点数，帮助判断为何会触发冷启动。
-     */
     public void populateBehaviorStats(RecommendationResponse.DebugInfo debugInfo, Long userId) {
         if (debugInfo == null || userId == null) {
             return;
@@ -106,9 +308,6 @@ public class RecommendationDebugSupport {
         ));
     }
 
-    /**
-     * 展开每条原始行为对应的加权结果，便于定位单个景点分数来源。
-     */
     public void populateBehaviorDetails(RecommendationResponse.DebugInfo debugInfo, Long userId, RecommendationAlgorithmConfigDTO config) {
         if (debugInfo == null || userId == null) {
             return;
@@ -123,8 +322,8 @@ public class RecommendationDebugSupport {
         ).forEach(view -> details.add(new RecommendationResponse.BehaviorDetail(
             "浏览",
             view.getSpotId(),
-            recommendationMetadataSupport.getSpotName(view.getSpotId()),
-            recommendationInteractionSupport.calculateViewWeight(view, config),
+            recommendationQuerySupport.getSpotName(view.getSpotId()),
+            calculateViewWeight(view, config),
             String.format(
                 Locale.ROOT,
                 "来源=%s，停留=%s秒",
@@ -141,7 +340,7 @@ public class RecommendationDebugSupport {
         ).forEach(favorite -> details.add(new RecommendationResponse.BehaviorDetail(
             "收藏",
             favorite.getSpotId(),
-            recommendationMetadataSupport.getSpotName(favorite.getSpotId()),
+            recommendationQuerySupport.getSpotName(favorite.getSpotId()),
             defaultDouble(config.getWeightFavorite(), 1.0),
             "有效收藏记录"
         )));
@@ -154,7 +353,7 @@ public class RecommendationDebugSupport {
         ).forEach(review -> details.add(new RecommendationResponse.BehaviorDetail(
             "评分",
             review.getSpotId(),
-            recommendationMetadataSupport.getSpotName(review.getSpotId()),
+            recommendationQuerySupport.getSpotName(review.getSpotId()),
             review.getScore() * defaultDouble(config.getWeightReviewFactor(), 0.4),
             String.format(Locale.ROOT, "评分=%s，因子=%.2f", review.getScore(), defaultDouble(config.getWeightReviewFactor(), 0.4))
         )));
@@ -170,7 +369,7 @@ public class RecommendationDebugSupport {
             details.add(new RecommendationResponse.BehaviorDetail(
                 completed ? "订单(已完成)" : "订单(已支付)",
                 order.getSpotId(),
-                recommendationMetadataSupport.getSpotName(order.getSpotId()),
+                recommendationQuerySupport.getSpotName(order.getSpotId()),
                 completed ? defaultDouble(config.getWeightOrderCompleted(), 4.0) : defaultDouble(config.getWeightOrderPaid(), 3.0),
                 completed ? "订单状态=COMPLETED" : "订单状态=PAID"
             ));
@@ -213,7 +412,7 @@ public class RecommendationDebugSupport {
         Set<Long> filteredSet = new HashSet<>(filteredIds);
         List<RecommendationResponse.DebugEntry> removedItems = originalIds.stream()
             .filter(id -> !filteredSet.contains(id))
-            .map(id -> new RecommendationResponse.DebugEntry(id, recommendationMetadataSupport.getSpotName(id), null, description))
+            .map(id -> new RecommendationResponse.DebugEntry(id, recommendationQuerySupport.getSpotName(id), null, description))
             .collect(Collectors.toList());
         debugInfo.setFilteredOutItems(removedItems);
     }
@@ -229,7 +428,7 @@ public class RecommendationDebugSupport {
             .limit(20)
             .map(entry -> new RecommendationResponse.ResultContribution(
                 entry.getKey(),
-                recommendationMetadataSupport.getSpotName(entry.getKey()),
+                recommendationQuerySupport.getSpotName(entry.getKey()),
                 entry.getValue(),
                 contributionMap.getOrDefault(entry.getKey(), Collections.emptyList()).stream()
                     .sorted(Comparator.comparing(RecommendationResponse.DebugEntry::getScore, Comparator.nullsLast(Double::compareTo)).reversed())
@@ -325,7 +524,7 @@ public class RecommendationDebugSupport {
                     Locale.ROOT,
                     "{景点ID=%d,景点名称=%s,原始分数=%.4f,热度值=%d,热度加成=%.4f,重排后分数=%.4f}",
                     spotId,
-                    recommendationMetadataSupport.getSpotName(spotId),
+                    recommendationQuerySupport.getSpotName(spotId),
                     before,
                     heat,
                     after - before,
@@ -367,17 +566,45 @@ public class RecommendationDebugSupport {
                 Locale.ROOT,
                 "{相似景点ID=%d,相似景点名称=%s,相似度=%.6f}",
                 entry.getKey(),
-                recommendationMetadataSupport.getSpotName(entry.getKey()),
+                recommendationQuerySupport.getSpotName(entry.getKey()),
                 entry.getValue()
             ))
             .collect(Collectors.joining(", "));
         log.info(
             "离线矩阵更新：景点ID={}，景点名称={}，Top-K 相似邻居数={}，相似邻居明细=[{}]",
             spotId,
-            recommendationMetadataSupport.getSpotName(spotId),
+            recommendationQuerySupport.getSpotName(spotId),
             topSimilarities.size(),
             detail
         );
+    }
+
+    private double getViewSourceFactor(String source, RecommendationAlgorithmConfigDTO config) {
+        return switch (recommendationViewSourceClassifier.normalize(source)) {
+            case "search" -> defaultDouble(config.getViewSourceFactorSearch(), 1.2);
+            case "recommendation" -> defaultDouble(config.getViewSourceFactorRecommendation(), 1.1);
+            case "home" -> defaultDouble(config.getViewSourceFactorHome(), 0.9);
+            case "guide" -> defaultDouble(config.getViewSourceFactorGuide(), 1.0);
+            default -> defaultDouble(config.getViewSourceFactorDetail(), 1.0);
+        };
+    }
+
+    private double getViewDurationFactor(Integer duration, RecommendationAlgorithmConfigDTO config) {
+        int seconds = duration == null ? 0 : Math.max(duration, 0);
+        int shortThreshold = defaultInt(config.getViewDurationShortThresholdSeconds(), 10);
+        int mediumThreshold = Math.max(shortThreshold, defaultInt(config.getViewDurationMediumThresholdSeconds(), 60));
+        int longThreshold = Math.max(mediumThreshold, defaultInt(config.getViewDurationLongThresholdSeconds(), 180));
+
+        if (seconds < shortThreshold) {
+            return defaultDouble(config.getViewDurationFactorShort(), 0.6);
+        }
+        if (seconds < mediumThreshold) {
+            return defaultDouble(config.getViewDurationFactorMedium(), 1.0);
+        }
+        if (seconds < longThreshold) {
+            return defaultDouble(config.getViewDurationFactorLong(), 1.2);
+        }
+        return defaultDouble(config.getViewDurationFactorVeryLong(), 1.35);
     }
 
     private RecommendationResponse.BehaviorStat buildBehaviorStat(String behavior, List<Long> spotIds, String description) {
@@ -399,7 +626,7 @@ public class RecommendationDebugSupport {
             .limit(30)
             .map(entry -> new RecommendationResponse.DebugEntry(
                 entry.getKey(),
-                recommendationMetadataSupport.getSpotName(entry.getKey()),
+                recommendationQuerySupport.getSpotName(entry.getKey()),
                 entry.getValue(),
                 description
             ))
@@ -417,7 +644,7 @@ public class RecommendationDebugSupport {
                 Locale.ROOT,
                 "{景点ID=%d,景点名称=%s,分数=%.4f}",
                 entry.getKey(),
-                recommendationMetadataSupport.getSpotName(entry.getKey()),
+                recommendationQuerySupport.getSpotName(entry.getKey()),
                 entry.getValue()
             ))
             .collect(Collectors.joining(", "));
@@ -429,11 +656,15 @@ public class RecommendationDebugSupport {
         }
         return spotIds.stream()
             .limit(limit)
-            .map(spotId -> String.format(Locale.ROOT, "{景点ID=%d,景点名称=%s}", spotId, recommendationMetadataSupport.getSpotName(spotId)))
+            .map(spotId -> String.format(Locale.ROOT, "{景点ID=%d,景点名称=%s}", spotId, recommendationQuerySupport.getSpotName(spotId)))
             .collect(Collectors.joining(", "));
     }
 
     private double defaultDouble(Double value, double fallback) {
+        return value == null ? fallback : value;
+    }
+
+    private int defaultInt(Integer value, int fallback) {
         return value == null ? fallback : value;
     }
 }

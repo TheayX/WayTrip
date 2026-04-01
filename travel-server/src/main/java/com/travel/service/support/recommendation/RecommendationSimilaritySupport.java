@@ -1,31 +1,52 @@
 package com.travel.service.support.recommendation;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
+import com.travel.dto.recommendation.config.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.response.SimilarityPreviewResponse;
+import com.travel.entity.Order;
+import com.travel.entity.Review;
 import com.travel.entity.Spot;
+import com.travel.entity.UserSpotFavorite;
+import com.travel.entity.UserSpotView;
+import com.travel.enums.OrderStatus;
+import com.travel.mapper.OrderMapper;
+import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotMapper;
+import com.travel.mapper.UserSpotFavoriteMapper;
+import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.cache.RecommendationCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 推荐相似度支撑，集中处理相似景点读取、预览组装和相似度基础计算。
+ * 推荐相似度支撑，集中处理相似景点读取、预览组装和离线相似度矩阵更新。
  */
 @Component
 @RequiredArgsConstructor
 public class RecommendationSimilaritySupport {
 
     private final SpotMapper spotMapper;
+    private final UserSpotViewMapper userSpotViewMapper;
+    private final UserSpotFavoriteMapper userSpotFavoriteMapper;
+    private final ReviewMapper reviewMapper;
+    private final OrderMapper orderMapper;
     private final RecommendationCacheService recommendationCacheService;
-    private final RecommendationMetadataSupport recommendationMetadataSupport;
+    private final RecommendationQuerySupport recommendationQuerySupport;
+    private final RecommendationScoreSupport recommendationScoreSupport;
 
     @SuppressWarnings("unchecked")
     public Map<Long, Double> getSimilarSpots(Long spotId) {
@@ -36,8 +57,8 @@ public class RecommendationSimilaritySupport {
 
         Map<Long, Double> similarities = new HashMap<>();
         for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
-            Long similarSpotId = castToLong(entry.getKey());
-            Double similarity = castToDouble(entry.getValue());
+            Long similarSpotId = recommendationScoreSupport.castToLong(entry.getKey());
+            Double similarity = recommendationScoreSupport.castToDouble(entry.getValue());
             if (similarSpotId != null && similarity != null) {
                 similarities.put(similarSpotId, similarity);
             }
@@ -80,7 +101,7 @@ public class RecommendationSimilaritySupport {
 
         SimilarityPreviewResponse response = new SimilarityPreviewResponse();
         response.setSpotId(spotId);
-        response.setSpotName(recommendationMetadataSupport.getSpotName(spotId));
+        response.setSpotName(recommendationQuerySupport.getSpotName(spotId));
         response.setTotalNeighbors(similarities.size());
         response.setLastUpdateTime(lastUpdateTime);
 
@@ -89,8 +110,8 @@ public class RecommendationSimilaritySupport {
             return response;
         }
 
-        Map<Long, String> categoryMap = recommendationMetadataSupport.getCategoryMap();
-        Map<Long, String> regionMap = recommendationMetadataSupport.getRegionMap();
+        Map<Long, String> categoryMap = recommendationQuerySupport.getCategoryMap();
+        Map<Long, String> regionMap = recommendationQuerySupport.getRegionMap();
         Map<Long, Spot> spotMap = spotMapper.selectBatchIds(neighborIds).stream()
             .collect(Collectors.toMap(Spot::getId, spot -> spot));
 
@@ -110,43 +131,169 @@ public class RecommendationSimilaritySupport {
         return response;
     }
 
-    private Long castToLong(Object value) {
-        if (value instanceof Long longValue) {
-            return longValue;
-        }
-        if (value instanceof Integer intValue) {
-            return intValue.longValue();
-        }
-        if (value instanceof Number numberValue) {
-            return numberValue.longValue();
-        }
-        if (value instanceof String stringValue) {
-            try {
-                return Long.parseLong(stringValue);
-            } catch (NumberFormatException ignored) {
-                return null;
+    /**
+     * 读取全量行为并构建离线交互矩阵，供后续相似度批量计算复用。
+     */
+    public OfflineMatrixSnapshot buildOfflineInteractionMatrix(Set<Long> activeSpotIds, RecommendationAlgorithmConfigDTO algorithmConfig) {
+        Map<Long, Map<Long, Double>> userItemMatrix = new HashMap<>();
+        Set<Long> allSpotIds = new HashSet<>();
+
+        List<UserSpotView> allViews = userSpotViewMapper.selectList(
+            new LambdaQueryWrapper<UserSpotView>()
+                .select(UserSpotView::getUserId, UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
+        );
+        for (UserSpotView view : allViews) {
+            if (!activeSpotIds.contains(view.getSpotId())) {
+                continue;
             }
+            recommendationScoreSupport.mergeInteractionWeight(
+                userItemMatrix.computeIfAbsent(view.getUserId(), key -> new HashMap<>()),
+                view.getSpotId(),
+                recommendationScoreSupport.calculateViewWeight(view, algorithmConfig)
+            );
+            allSpotIds.add(view.getSpotId());
         }
-        return null;
+
+        List<UserSpotFavorite> allFavorites = userSpotFavoriteMapper.selectList(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+                .select(UserSpotFavorite::getUserId, UserSpotFavorite::getSpotId)
+        );
+        for (UserSpotFavorite favorite : allFavorites) {
+            if (!activeSpotIds.contains(favorite.getSpotId())) {
+                continue;
+            }
+            recommendationScoreSupport.mergeInteractionWeight(
+                userItemMatrix.computeIfAbsent(favorite.getUserId(), key -> new HashMap<>()),
+                favorite.getSpotId(),
+                algorithmConfig.getWeightFavorite() == null ? 1.0 : algorithmConfig.getWeightFavorite()
+            );
+            allSpotIds.add(favorite.getSpotId());
+        }
+
+        List<Review> allRatings = reviewMapper.selectList(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getIsDeleted, 0)
+                .select(Review::getUserId, Review::getSpotId, Review::getScore)
+        );
+        for (Review review : allRatings) {
+            if (!activeSpotIds.contains(review.getSpotId())) {
+                continue;
+            }
+            recommendationScoreSupport.mergeInteractionWeight(
+                userItemMatrix.computeIfAbsent(review.getUserId(), key -> new HashMap<>()),
+                review.getSpotId(),
+                review.getScore() * (algorithmConfig.getWeightReviewFactor() == null ? 0.4 : algorithmConfig.getWeightReviewFactor())
+            );
+            allSpotIds.add(review.getSpotId());
+        }
+
+        List<Order> allOrders = orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getIsDeleted, 0)
+                .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
+                .select(Order::getUserId, Order::getSpotId, Order::getStatus)
+        );
+        for (Order order : allOrders) {
+            if (!activeSpotIds.contains(order.getSpotId())) {
+                continue;
+            }
+            recommendationScoreSupport.mergeInteractionWeight(
+                userItemMatrix.computeIfAbsent(order.getUserId(), key -> new HashMap<>()),
+                order.getSpotId(),
+                order.getStatus() == OrderStatus.COMPLETED.getCode()
+                    ? (algorithmConfig.getWeightOrderCompleted() == null ? 4.0 : algorithmConfig.getWeightOrderCompleted())
+                    : (algorithmConfig.getWeightOrderPaid() == null ? 3.0 : algorithmConfig.getWeightOrderPaid())
+            );
+            allSpotIds.add(order.getSpotId());
+        }
+
+        recommendationScoreSupport.logUserItemMatrixSamples(userItemMatrix);
+        return new OfflineMatrixSnapshot(userItemMatrix, allSpotIds);
     }
 
-    private Double castToDouble(Object value) {
-        if (value instanceof Double doubleValue) {
-            return doubleValue;
+    public Map<Long, Integer> summarizeUserActivityCount(Map<Long, Map<Long, Double>> userItemMatrix) {
+        Map<Long, Integer> userActivityCount = new HashMap<>();
+        for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
+            userActivityCount.put(entry.getKey(), entry.getValue().size());
         }
-        if (value instanceof Float floatValue) {
-            return floatValue.doubleValue();
-        }
-        if (value instanceof Number numberValue) {
-            return numberValue.doubleValue();
-        }
-        if (value instanceof String stringValue) {
-            try {
-                return Double.parseDouble(stringValue);
-            } catch (NumberFormatException ignored) {
-                return null;
+        recommendationScoreSupport.logUserActivitySamples(userActivityCount);
+        return userActivityCount;
+    }
+
+    public Map<Long, Set<Long>> buildSpotUserIndex(Map<Long, Map<Long, Double>> userItemMatrix) {
+        Map<Long, Set<Long>> spotUserSets = new HashMap<>();
+        for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
+            Long userId = entry.getKey();
+            for (Long spotId : entry.getValue().keySet()) {
+                spotUserSets.computeIfAbsent(spotId, key -> new HashSet<>()).add(userId);
             }
         }
-        return null;
+        return spotUserSets;
+    }
+
+    public void cacheSimilarityNeighbors(
+        Set<Long> allSpotIds,
+        Map<Long, Set<Long>> spotUserSets,
+        Map<Long, Integer> userActivityCount,
+        RecommendationAlgorithmConfigDTO algorithmConfig,
+        RecommendationCacheConfigDTO cacheConfig
+    ) {
+        List<Long> spotIdList = new ArrayList<>(allSpotIds);
+        int topK = algorithmConfig.getTopKNeighbors() == null ? 20 : Math.max(algorithmConfig.getTopKNeighbors(), 1);
+        int simTTL = cacheConfig.getSimilarityTTLHours() == null ? 24 : cacheConfig.getSimilarityTTLHours();
+
+        for (int i = 0; i < spotIdList.size(); i++) {
+            Long spotI = spotIdList.get(i);
+            Set<Long> usersI = spotUserSets.getOrDefault(spotI, Collections.emptySet());
+            if (usersI.isEmpty()) {
+                continue;
+            }
+
+            Map<Long, Double> similarities = new HashMap<>();
+            for (int j = 0; j < spotIdList.size(); j++) {
+                if (i == j) {
+                    continue;
+                }
+
+                Long spotJ = spotIdList.get(j);
+                Set<Long> usersJ = spotUserSets.getOrDefault(spotJ, Collections.emptySet());
+                if (usersJ.isEmpty()) {
+                    continue;
+                }
+
+                double similarity = computeIUFSimilarity(usersI, usersJ, userActivityCount);
+                if (similarity > 0) {
+                    similarities.put(spotJ, similarity);
+                }
+            }
+
+            Map<Long, Double> topSimilarities = similarities.entrySet().stream()
+                .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+                .limit(topK)
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue,
+                    (left, right) -> left,
+                    LinkedHashMap::new
+                ));
+
+            recommendationCacheService.saveSimilarity(spotI, Objects.requireNonNull(topSimilarities), simTTL);
+            recommendationScoreSupport.logSpotSimilaritySummary(spotI, topSimilarities);
+        }
+    }
+
+    public void saveOfflineSummary(int totalUsers, int totalSpots) {
+        Map<String, Object> statusMap = new HashMap<>();
+        statusMap.put("lastUpdateTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        statusMap.put("totalUsers", totalUsers);
+        statusMap.put("totalSpots", totalSpots);
+        recommendationCacheService.saveStatus(statusMap);
+    }
+
+    public record OfflineMatrixSnapshot(
+        Map<Long, Map<Long, Double>> userItemMatrix,
+        Set<Long> allSpotIds
+    ) {
     }
 }
