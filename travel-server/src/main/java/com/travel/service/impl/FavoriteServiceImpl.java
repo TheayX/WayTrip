@@ -44,10 +44,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public void addFavorite(Long userId, Long spotId) {
         // 只允许收藏仍然可见的景点，避免脏数据进入收藏列表。
-        Spot spot = spotMapper.selectById(spotId);
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
+        Spot spot = getAvailableSpot(spotId);
         if (spot.getIsPublished() != 1) {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
@@ -131,6 +128,18 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     // 响应转换与名称补全
+
+    /**
+     * 收藏操作只允许命中仍然存在的景点，统一收口景点可见性校验。
+     */
+    private Spot getAvailableSpot(Long spotId) {
+        Spot spot = spotMapper.selectById(spotId);
+        if (spot == null || spot.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
+        }
+        return spot;
+    }
+
     private SpotListResponse convertToListResponse(Spot spot) {
         return SpotListResponse.builder()
                 .id(spot.getId())

@@ -54,10 +54,7 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCategory(Long id, AdminCategoryRequest request) {
-        SpotCategory category = getById(id);
-        if (category == null || category.getIsDeleted() == 1) {
-            throw new BusinessException(404, "分类不存在");
-        }
+        SpotCategory category = getActiveCategory(id);
         BeanUtils.copyProperties(Objects.requireNonNull(request), category);
         category.setId(id);
         updateById(category);
@@ -81,5 +78,16 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
         
         category.setIsDeleted(1);
         updateById(category);
+    }
+
+    /**
+     * 分类编辑必须命中有效节点，统一收口节点存在性判断。
+     */
+    private SpotCategory getActiveCategory(Long id) {
+        SpotCategory category = getById(id);
+        if (category == null || category.getIsDeleted() == 1) {
+            throw new BusinessException(404, "分类不存在");
+        }
+        return category;
     }
 }

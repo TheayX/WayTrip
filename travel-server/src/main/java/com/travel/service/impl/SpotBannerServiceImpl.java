@@ -93,10 +93,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
 
     @Override
     public void updateBanner(Long id, AdminBannerRequest request) {
-        SpotBanner banner = spotBannerMapper.selectById(id);
-        if (banner == null || banner.getIsDeleted() == 1) {
-            throw new RuntimeException("轮播图不存在");
-        }
+        SpotBanner banner = getActiveBanner(id);
 
         banner.setImageUrl(request.getImageUrl());
         banner.setSpotId(request.getSpotId());
@@ -108,10 +105,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
 
     @Override
     public void deleteBanner(Long id) {
-        SpotBanner banner = spotBannerMapper.selectById(id);
-        if (banner == null || banner.getIsDeleted() == 1) {
-            throw new RuntimeException("轮播图不存在");
-        }
+        SpotBanner banner = getActiveBanner(id);
         banner.setIsDeleted(1);
         spotBannerMapper.updateById(banner);
         log.info("轮播图已删除: bannerId={}", id);
@@ -119,10 +113,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
 
     @Override
     public void toggleEnabled(Long id) {
-        SpotBanner banner = spotBannerMapper.selectById(id);
-        if (banner == null || banner.getIsDeleted() == 1) {
-            throw new RuntimeException("轮播图不存在");
-        }
+        SpotBanner banner = getActiveBanner(id);
 
         banner.setIsEnabled(banner.getIsEnabled() == 1 ? 0 : 1);
         spotBannerMapper.updateById(banner);
@@ -130,6 +121,17 @@ public class SpotBannerServiceImpl implements SpotBannerService {
     }
 
     // 内部转换与补充方法
+
+    /**
+     * 管理端编辑、删除和启停都要求轮播图仍然有效，统一收口存在性校验。
+     */
+    private SpotBanner getActiveBanner(Long id) {
+        SpotBanner banner = spotBannerMapper.selectById(id);
+        if (banner == null || banner.getIsDeleted() == 1) {
+            throw new RuntimeException("轮播图不存在");
+        }
+        return banner;
+    }
 
     private Map<Long, String> getSpotNameMap(List<SpotBanner> banners) {
         List<Long> spotIds = banners.stream()
