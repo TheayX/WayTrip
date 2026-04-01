@@ -1,44 +1,50 @@
 <template>
-  <!-- 景点数据表格 -->
-  <el-table :data="tableData" v-loading="loading" stripe class="premium-table" :row-class-name="getRowClassName">
-    <el-table-column prop="id" label="ID" width="70" />
-    <el-table-column label="封面" width="90">
+  <el-table
+    :data="tableData"
+    v-loading="loading"
+    class="premium-table borderless-table"
+    :row-class-name="getRowClassName"
+    @selection-change="handleSelectionChange"
+  >
+    <el-table-column type="selection" width="50" align="center" />
+    <el-table-column prop="id" label="ID" width="70" align="center" />
+    <el-table-column label="封面" width="90" align="center">
       <template #default="{ row }">
         <el-image :src="getImageUrl(row.coverImage)" class="cover-img" fit="cover" />
       </template>
     </el-table-column>
-    <el-table-column prop="name" label="名称" min-width="160" show-overflow-tooltip>
+    <el-table-column prop="name" label="名称" min-width="180" show-overflow-tooltip align="left">
       <template #default="{ row }">
-        <span class="spot-name">{{ row.name }}</span>
+        <el-button link type="primary" class="spot-name-link" @click="emit('view', row)">{{ row.name }}</el-button>
       </template>
     </el-table-column>
-    <el-table-column prop="regionName" label="地区" width="110" />
-    <el-table-column prop="categoryName" label="分类" width="110">
+    <el-table-column prop="regionName" label="地区" width="110" align="left" />
+    <el-table-column prop="categoryName" label="分类" width="110" align="center">
       <template #default="{ row }">
         <el-tag effect="plain" type="info" size="small">{{ row.categoryName }}</el-tag>
       </template>
     </el-table-column>
-    <el-table-column prop="price" label="价格" width="100">
+    <el-table-column prop="price" label="价格" width="100" align="left">
       <template #default="{ row }">
         <span class="price-text">¥{{ row.price }}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="avgRating" label="评分" width="80">
+    <el-table-column prop="avgRating" label="评分" width="90" align="center">
       <template #default="{ row }">
         <span class="rating-text"><el-icon color="#f59e0b"><StarFilled /></el-icon> {{ row.avgRating || '暂无' }}</span>
       </template>
     </el-table-column>
-    <el-table-column label="热度档位" width="110">
+    <el-table-column label="热度" width="100" align="center">
       <template #default="{ row }">
-        <el-tag :type="getHeatLevelTagType(row.heatLevel)" effect="light" class="round-tag">
+        <el-tag :type="getHeatLevelTagType(row.heatLevel)" effect="light" class="round-tag capsule-badge">
           {{ getHeatLevelLabel(row.heatLevel) }}
         </el-tag>
       </template>
     </el-table-column>
     <el-table-column label="状态" width="100" align="center">
       <template #default="{ row }">
-        <div class="status-indicator">
-          <span class="status-dot" :class="row.published ? 'is-success' : 'is-info'"></span>
+        <div class="capsule-badge status-capsule" :class="row.published ? 'status-success' : 'status-neutral'">
+          <span class="dot"></span>
           {{ row.published ? '已上架' : '未上架' }}
         </div>
       </template>
@@ -84,8 +90,12 @@ defineProps({
 })
 
 const emit = defineEmits([
-  'edit', 'heat-edit', 'refresh-heat', 'refresh-rating', 'toggle-publish', 'delete'
+  'selection-change', 'edit', 'view', 'heat-edit', 'refresh-heat', 'refresh-rating', 'toggle-publish', 'delete'
 ])
+
+const handleSelectionChange = (selection) => {
+  emit('selection-change', selection)
+}
 
 const handleCommand = (command, row) => {
   switch (command) {
@@ -99,22 +109,19 @@ const handleCommand = (command, row) => {
 </script>
 
 <style lang="scss" scoped>
-.premium-table {
-  border-radius: 8px;
-  overflow: hidden;
-  --el-table-border-color: #f1f5f9;
-}
-
 .cover-img {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.spot-name {
+.spot-name-link {
   font-weight: 600;
-  color: #1f2937;
+  color: #1e293b;
+  &:hover {
+    color: var(--el-color-primary);
+  }
 }
 
 .price-text {
@@ -123,53 +130,70 @@ const handleCommand = (command, row) => {
 }
 
 .rating-text {
+  font-weight: 600;
+  color: #1e293b;
   display: flex;
   align-items: center;
   gap: 4px;
-  font-weight: 500;
 }
 
-.round-tag {
-  border-radius: 12px;
-  padding: 0 10px;
+.borderless-table {
+  :deep(.el-table__inner-wrapper::before) {
+    display: none;
+  }
+  :deep(td.el-table__cell),
+  :deep(th.el-table__cell.is-leaf) {
+    border-bottom: 1px solid #f8fafc;
+  }
+  :deep(.el-table__row) {
+    transition: all 0.2s ease;
+    td {
+      padding: 12px 0;
+    }
+  }
+  :deep(.el-table__row:hover > td.el-table__cell) {
+    background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+  }
 }
 
-.status-indicator {
-  display: flex;
+/* 胶囊便签样式 */
+.capsule-badge {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #4b5563;
-  
-  .status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+
+  &.status-capsule {
+    gap: 6px;
     
-    &.is-success { background-color: #10b981; box-shadow: 0 0 0 2px #d1fae5; }
-    &.is-info { background-color: #9ca3af; box-shadow: 0 0 0 2px #f3f4f6; }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+  }
+
+  &.status-success {
+    background-color: #ecfdf5;
+    color: #059669;
+    .dot { background-color: #10b981; }
+  }
+
+  &.status-neutral {
+    background-color: #f1f5f9;
+    color: #475569;
+    .dot { background-color: #94a3b8; }
   }
 }
 
 .table-actions {
   display: flex;
   align-items: center;
+  gap: 4px;
   justify-content: center;
-  gap: 12px;
 }
 
-.more-actions {
-  margin-left: 8px;
-  .more-btn {
-    font-weight: 500;
-  }
-}
-
-.danger-text {
-  color: #ef4444 !important;
-}
-.success-text {
-  color: #10b981 !important;
-}
+.danger-text { color: #ef4444 !important; }
+.success-text { color: #10b981 !important; }
 </style>

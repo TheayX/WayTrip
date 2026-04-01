@@ -58,49 +58,48 @@
       </el-form>
 
       <!-- 订单列表 -->
-      <el-table :data="orderList" v-loading="loading" stripe>
-        <el-table-column prop="orderNo" label="订单号" width="180" />
-        <el-table-column prop="spotName" label="景点名称" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="userNickname" label="用户" width="120" />
-        <el-table-column label="金额" width="130">
+      <el-table :data="orderList" v-loading="loading" class="borderless-table">
+        <el-table-column prop="orderNo" label="订单号" width="180" align="left" />
+        <el-table-column prop="spotName" label="景点名称" min-width="180" show-overflow-tooltip align="left" />
+        <el-table-column prop="userNickname" label="用户" width="120" align="left" />
+        <el-table-column label="支付金额" width="130" align="left">
           <template #default="{ row }">
             <span class="price">¥{{ row.totalPrice }}</span>
             <span class="quantity">({{ row.quantity }}张)</span>
           </template>
         </el-table-column>
-        <el-table-column prop="visitDate" label="游玩日期" width="110" />
-        <el-table-column label="联系人" width="150">
+        <el-table-column prop="visitDate" label="游玩日期" width="110" align="center" />
+        <el-table-column label="联系人" width="150" align="left">
           <template #default="{ row }">
             <div>{{ row.contactName }}</div>
             <div class="text-gray">{{ row.contactPhone }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="110" align="center">
           <template #default="{ row }">
-            <div class="status-badge">
-              <span class="status-dot" :class="'status-' + row.status"></span>
+            <div class="capsule-badge status-capsule" :class="'status-' + (getStatusType(row.status) === 'info' ? 'neutral' : getStatusType(row.status))">
+              <span class="dot"></span>
               {{ row.statusText }}
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="下单时间" width="160" />
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column prop="createdAt" label="下单时间" width="160" align="center" />
+        <el-table-column label="操作" width="200" fixed="right" align="center">
           <template #default="{ row }">
             <div class="table-actions">
               <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
-              <el-dropdown trigger="click" @command="(cmd) => handleAction(cmd, row)">
-                <el-button type="primary" link>
-                  更多 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item v-if="row.status === 'paid'" command="complete" class="s-success">完成订单</el-dropdown-item>
-                    <el-dropdown-item v-if="row.status === 'paid'" command="refund" class="s-danger">退款订单</el-dropdown-item>
-                    <el-dropdown-item v-if="row.status === 'pending'" command="cancel" class="s-danger">取消订单</el-dropdown-item>
-                    <el-dropdown-item v-if="row.status === 'completed'" command="reopen">撤销完成</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+              
+              <!-- 根据状态显示不同动作 -->
+              <template v-if="row.status === 'paid'">
+                <el-button type="success" link @click="handleComplete(row)">完成</el-button>
+                <el-button type="danger" link @click="handleRefund(row)">退款</el-button>
+              </template>
+              <template v-if="row.status === 'pending'">
+                <el-button type="danger" link @click="handleCancel(row)">取消</el-button>
+              </template>
+              <template v-if="row.status === 'completed'">
+                <el-button type="warning" link @click="handleReopen(row)">撤销完成</el-button>
+              </template>
             </div>
           </template>
         </el-table-column>
@@ -273,30 +272,12 @@ onMounted(() => { fetchOrderList() })
   .text-gray { color: #94a3b8; font-size: 12px; margin-top: 2px; }
   .price-large { color: #ef4444; font-size: 20px; font-weight: 700; }
 
-  .status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-
-      &.status-pending  { background: #f59e0b; box-shadow: 0 0 0 2px #fef3c7; }
-      &.status-paid     { background: #3b82f6; box-shadow: 0 0 0 2px #dbeafe; }
-      &.status-completed{ background: #10b981; box-shadow: 0 0 0 2px #d1fae5; }
-      &.status-cancelled{ background: #94a3b8; box-shadow: 0 0 0 2px #f1f5f9; }
-      &.status-refunded { background: #ef4444; box-shadow: 0 0 0 2px #fee2e2; }
-    }
-  }
-
   .table-actions {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 4px;
+    justify-content: flex-start;
   }
 }
 
