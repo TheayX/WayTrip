@@ -44,10 +44,7 @@ public class SpotHeatServiceImpl implements SpotHeatService {
     @Override
     @Transactional
     public void refreshSpotHeat(Long spotId) {
-        Spot spot = spotMapper.selectById(spotId);
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
+        Spot spot = getActiveSpot(spotId);
         applyHeatScore(spot);
     }
 
@@ -76,6 +73,17 @@ public class SpotHeatServiceImpl implements SpotHeatService {
                 .set("heat_score", totalHeatScore)
         );
         log.info("景点热度同步完成: spotId={}, heatLevel={}, heatScore={}", spot.getId(), spot.getHeatLevel(), totalHeatScore);
+    }
+
+    /**
+     * 单景点热度刷新要求景点仍然有效，统一收口存在性校验。
+     */
+    private Spot getActiveSpot(Long spotId) {
+        Spot spot = spotMapper.selectById(spotId);
+        if (spot == null || spot.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
+        }
+        return spot;
     }
 
     private int calculateBehaviorHeatScore(Long spotId, RecommendationConfigBundleDTO config) {

@@ -57,13 +57,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
         );
         response.setTotalOrders((long) allOrders.size());
-        response.setTotalRevenue(allOrders.stream()
-            .filter(o -> {
-                OrderStatus s = OrderStatus.fromCode(o.getStatus());
-                return s != null && s.hasRevenue();
-            })
-            .map(Order::getTotalAmount)
-            .reduce(BigDecimal.ZERO, BigDecimal::add));
+        response.setTotalRevenue(sumRevenue(allOrders));
 
         // 今日统计统一按自然日零点切分。
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
@@ -75,13 +69,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
         );
         response.setTodayOrders((long) todayOrders.size());
-        response.setTodayRevenue(todayOrders.stream()
-            .filter(o -> {
-                OrderStatus s = OrderStatus.fromCode(o.getStatus());
-                return s != null && s.hasRevenue();
-            })
-            .map(Order::getTotalAmount)
-            .reduce(BigDecimal.ZERO, BigDecimal::add));
+        response.setTodayRevenue(sumRevenue(todayOrders));
 
         response.setTodayNewUsers(userMapper.selectCount(
             new LambdaQueryWrapper<User>()
@@ -121,13 +109,7 @@ public class DashboardServiceImpl implements DashboardService {
             OrderTrendResponse.TrendItem item = new OrderTrendResponse.TrendItem();
             item.setDate(dateStr);
             item.setOrderCount((long) dayOrders.size());
-            item.setRevenue(dayOrders.stream()
-                .filter(o -> {
-                    OrderStatus s = OrderStatus.fromCode(o.getStatus());
-                    return s != null && s.hasRevenue();
-                })
-                .map(Order::getTotalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
+            item.setRevenue(sumRevenue(dayOrders));
             list.add(item);
         }
 
@@ -173,13 +155,7 @@ public class DashboardServiceImpl implements DashboardService {
                 item.setId(spotId);
                 item.setName(spot != null ? spot.getName() : "未知景点");
                 item.setOrderCount((long) spotOrders.size());
-                item.setRevenue(spotOrders.stream()
-                    .filter(o -> {
-                        OrderStatus s = OrderStatus.fromCode(o.getStatus());
-                        return s != null && s.hasRevenue();
-                    })
-                    .map(Order::getTotalAmount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add));
+                item.setRevenue(sumRevenue(spotOrders));
                 item.setAvgRating(spot != null ? spot.getAvgRating() : BigDecimal.ZERO);
                 return item;
             })
@@ -190,5 +166,18 @@ public class DashboardServiceImpl implements DashboardService {
         HotSpotsResponse response = new HotSpotsResponse();
         response.setList(list);
         return response;
+    }
+
+    /**
+     * 仪表板多个指标都复用同一套营收口径，统一收口后避免某处漏掉状态过滤。
+     */
+    private BigDecimal sumRevenue(List<Order> orders) {
+        return orders.stream()
+            .filter(order -> {
+                OrderStatus status = OrderStatus.fromCode(order.getStatus());
+                return status != null && status.hasRevenue();
+            })
+            .map(Order::getTotalAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
