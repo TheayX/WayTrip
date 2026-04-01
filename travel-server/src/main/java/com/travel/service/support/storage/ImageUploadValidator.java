@@ -4,10 +4,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * 上传文件校验器，集中处理通用校验逻辑。
+ * 图片上传校验器，集中处理图片上传的通用校验逻辑。
  */
 @Component
-public class FileValidator {
+public class ImageUploadValidator {
 
     public String validateImage(MultipartFile file, int maxSizeMB) {
         if (file.isEmpty()) {

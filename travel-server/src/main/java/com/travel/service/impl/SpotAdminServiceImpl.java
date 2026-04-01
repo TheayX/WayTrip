@@ -14,7 +14,9 @@ import com.travel.entity.SpotImage;
 import com.travel.mapper.SpotImageMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.SpotAdminService;
-import com.travel.service.support.spot.SpotSupportService;
+import com.travel.service.support.spot.SpotResponseAssembler;
+import com.travel.service.support.spot.SpotTreeSupport;
+import com.travel.service.support.spot.SpotWriteSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +37,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
 
     private final SpotMapper spotMapper;
     private final SpotImageMapper spotImageMapper;
-    private final SpotSupportService spotSupportService;
+    private final SpotResponseAssembler spotResponseAssembler;
+    private final SpotTreeSupport spotTreeSupport;
+    private final SpotWriteSupport spotWriteSupport;
 
     @Override
     public PageResult<AdminSpotListResponse> getAdminSpotList(AdminSpotListRequest request) {
@@ -47,7 +51,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
             wrapper.like(Spot::getName, request.getKeyword());
         }
         if (request.getRegionId() != null) {
-            Set<Long> regionIds = spotSupportService.findRegionAndChildrenIds(request.getRegionId());
+            Set<Long> regionIds = spotTreeSupport.findRegionAndChildrenIds(request.getRegionId());
             if (regionIds.isEmpty() || regionIds.size() == 1) {
                 wrapper.eq(Spot::getRegionId, request.getRegionId());
             } else {
@@ -55,7 +59,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
             }
         }
         if (request.getCategoryId() != null) {
-            Set<Long> categoryIds = spotSupportService.findCategoryAndChildrenIds(request.getCategoryId());
+            Set<Long> categoryIds = spotTreeSupport.findCategoryAndChildrenIds(request.getCategoryId());
             if (categoryIds.isEmpty()) {
                 wrapper.eq(Spot::getCategoryId, request.getCategoryId());
             } else {
@@ -69,7 +73,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
 
         Page<Spot> result = spotMapper.selectPage(page, wrapper);
         List<AdminSpotListResponse> list = result.getRecords().stream()
-            .map(spotSupportService::convertToAdminListResponse)
+            .map(spotResponseAssembler::toAdminSpotListResponse)
             .collect(Collectors.toList());
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
@@ -108,9 +112,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     @Transactional
     public Long createSpot(AdminSpotUpsertRequest request) {
         Spot spot = new Spot();
-        spotSupportService.copyProperties(request, spot);
+        spotWriteSupport.copyUpsertRequest(request, spot);
         spotMapper.insert(spot);
-        spotSupportService.saveSpotImages(spot.getId(), request.getImages());
+        spotWriteSupport.saveSpotImages(spot.getId(), request.getImages());
         log.info("景点创建成功: spotId={}, name={}", spot.getId(), spot.getName());
         return spot.getId();
     }
@@ -119,12 +123,12 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     @Transactional
     public void updateSpot(Long spotId, AdminSpotUpsertRequest request) {
         Spot spot = getExistingSpot(spotId);
-        spotSupportService.copyProperties(request, spot);
+        spotWriteSupport.copyUpsertRequest(request, spot);
         spotMapper.updateById(spot);
 
         if (request.getImages() != null) {
             markSpotImagesDeleted(spotId);
-            spotSupportService.saveSpotImages(spotId, request.getImages());
+            spotWriteSupport.saveSpotImages(spotId, request.getImages());
         }
 
         log.info("景点更新成功: spotId={}, name={}", spotId, request.getName());

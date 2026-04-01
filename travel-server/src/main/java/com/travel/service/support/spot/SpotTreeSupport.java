@@ -1,16 +1,10 @@
 package com.travel.service.support.spot;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.travel.dto.spot.request.AdminSpotUpsertRequest;
-import com.travel.dto.spot.response.AdminSpotListResponse;
 import com.travel.dto.spot.response.SpotFilterResponse;
-import com.travel.dto.spot.response.SpotListResponse;
-import com.travel.entity.Spot;
 import com.travel.entity.SpotCategory;
-import com.travel.entity.SpotImage;
 import com.travel.entity.SpotRegion;
 import com.travel.mapper.SpotCategoryMapper;
-import com.travel.mapper.SpotImageMapper;
 import com.travel.mapper.SpotRegionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,62 +18,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 景点服务通用支撑，集中放查询和管理共用的转换、树组装和层级查找逻辑。
+ * 景点树形支撑，集中处理分类地区树组装和层级 ID 查找。
  */
 @Component
 @RequiredArgsConstructor
-public class SpotSupportService {
+public class SpotTreeSupport {
 
-    private final SpotImageMapper spotImageMapper;
     private final SpotRegionMapper spotRegionMapper;
     private final SpotCategoryMapper spotCategoryMapper;
-
-    public SpotListResponse convertToListResponse(Spot spot) {
-        return SpotListResponse.builder()
-            .id(spot.getId())
-            .name(spot.getName())
-            .coverImage(spot.getCoverImageUrl())
-            .price(spot.getPrice())
-            .avgRating(spot.getAvgRating())
-            .ratingCount(spot.getRatingCount())
-            .regionName(getRegionName(spot.getRegionId()))
-            .categoryName(getCategoryName(spot.getCategoryId()))
-            .build();
-    }
-
-    public AdminSpotListResponse convertToAdminListResponse(Spot spot) {
-        return AdminSpotListResponse.builder()
-            .id(spot.getId())
-            .name(spot.getName())
-            .coverImage(spot.getCoverImageUrl())
-            .price(spot.getPrice())
-            .regionName(getRegionName(spot.getRegionId()))
-            .categoryName(getCategoryName(spot.getCategoryId()))
-            .avgRating(spot.getAvgRating())
-            .ratingCount(spot.getRatingCount())
-            .heatLevel(spot.getHeatLevel())
-            .heatScore(spot.getHeatScore())
-            .published(spot.getIsPublished() == 1)
-            .createdAt(spot.getCreatedAt())
-            .updatedAt(spot.getUpdatedAt())
-            .build();
-    }
-
-    public String getRegionName(Long regionId) {
-        if (regionId == null) {
-            return null;
-        }
-        SpotRegion region = spotRegionMapper.selectById(regionId);
-        return region != null && region.getIsDeleted() == 0 ? region.getName() : null;
-    }
-
-    public String getCategoryName(Long categoryId) {
-        if (categoryId == null) {
-            return null;
-        }
-        SpotCategory category = spotCategoryMapper.selectById(categoryId);
-        return category != null && category.getIsDeleted() == 0 ? category.getName() : null;
-    }
 
     public Set<Long> findCategoryAndChildrenIds(Long categoryId) {
         List<SpotCategory> categories = spotCategoryMapper.selectList(
@@ -158,58 +104,6 @@ public class SpotSupportService {
             .categories(categoryItems)
             .categoryTree(buildFilterTree(categoryItems))
             .build();
-    }
-
-    public void copyProperties(AdminSpotUpsertRequest request, Spot spot) {
-        if (request.getName() != null) {
-            spot.setName(request.getName());
-        }
-        if (request.getDescription() != null) {
-            spot.setDescription(request.getDescription());
-        }
-        if (request.getPrice() != null) {
-            spot.setPrice(request.getPrice());
-        }
-        if (request.getOpenTime() != null) {
-            spot.setOpenTime(request.getOpenTime());
-        }
-        if (request.getAddress() != null) {
-            spot.setAddress(request.getAddress());
-        }
-        if (request.getLatitude() != null) {
-            spot.setLatitude(request.getLatitude());
-        }
-        if (request.getLongitude() != null) {
-            spot.setLongitude(request.getLongitude());
-        }
-        if (request.getCoverImage() != null) {
-            spot.setCoverImageUrl(request.getCoverImage());
-        }
-        if (request.getRegionId() != null) {
-            spot.setRegionId(request.getRegionId());
-        }
-        if (request.getCategoryId() != null) {
-            spot.setCategoryId(request.getCategoryId());
-        }
-        if (request.getPublished() != null) {
-            spot.setIsPublished(Boolean.TRUE.equals(request.getPublished()) ? 1 : 0);
-        }
-        if (request.getHeatLevel() != null) {
-            spot.setHeatLevel(request.getHeatLevel());
-        }
-    }
-
-    public void saveSpotImages(Long spotId, List<String> images) {
-        if (images == null || images.isEmpty()) {
-            return;
-        }
-        for (int i = 0; i < images.size(); i++) {
-            SpotImage image = new SpotImage();
-            image.setSpotId(spotId);
-            image.setImageUrl(images.get(i));
-            image.setSortOrder(i + 1);
-            spotImageMapper.insert(image);
-        }
     }
 
     private SpotFilterResponse.FilterItem convertCategoryFilterItem(SpotCategory category) {

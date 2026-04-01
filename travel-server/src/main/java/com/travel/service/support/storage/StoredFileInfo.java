@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-public class StoredFile {
+public class StoredFileInfo {
 
     private final String filename;
     private final String url;

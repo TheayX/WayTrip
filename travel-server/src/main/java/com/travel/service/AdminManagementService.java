@@ -11,7 +11,7 @@ import com.travel.dto.admin.request.AdminUpdateRequest;
  * <p>
  * 定义管理员列表查询、创建、更新、删除和密码重置能力。
  */
-public interface AdminManagerService {
+public interface AdminManagementService {
 
     /**
      * 分页获取管理员列表。

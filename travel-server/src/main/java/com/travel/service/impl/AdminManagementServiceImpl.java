@@ -11,7 +11,7 @@ import com.travel.dto.admin.request.AdminResetPasswordRequest;
 import com.travel.dto.admin.request.AdminUpdateRequest;
 import com.travel.entity.Admin;
 import com.travel.mapper.AdminMapper;
-import com.travel.service.AdminManagerService;
+import com.travel.service.AdminManagementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AdminManagerServiceImpl implements AdminManagerService {
+public class AdminManagementServiceImpl implements AdminManagementService {
 
     // 持久层与安全依赖
 

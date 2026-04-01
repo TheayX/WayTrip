@@ -1,9 +1,9 @@
 package com.travel.service;
 
 import com.travel.common.result.ApiResponse;
-import com.travel.service.support.storage.FileValidator;
+import com.travel.service.support.storage.ImageUploadValidator;
 import com.travel.service.support.storage.LocalFileStorageService;
-import com.travel.service.support.storage.StoredFile;
+import com.travel.service.support.storage.StoredFileInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class FileUploadService {
 
-    private final FileValidator fileValidator;
+    private final ImageUploadValidator imageUploadValidator;
     private final LocalFileStorageService localFileStorageService;
 
     /**
@@ -59,13 +59,13 @@ public class FileUploadService {
         String directory,
         String filenamePrefix
     ) {
-        String validationMessage = fileValidator.validateImage(file, maxSizeMB);
+        String validationMessage = imageUploadValidator.validateImage(file, maxSizeMB);
         if (validationMessage != null) {
             return ApiResponse.error(60001, validationMessage);
         }
 
         try {
-            StoredFile storedFile = localFileStorageService.store(file, directory, filenamePrefix, tag);
+            StoredFileInfo storedFile = localFileStorageService.store(file, directory, filenamePrefix, tag);
             return successResponse(logPrefix, storedFile);
         } catch (IOException e) {
             log.error("{}上传失败", logPrefix, e);
@@ -73,7 +73,7 @@ public class FileUploadService {
         }
     }
 
-    private ApiResponse<Map<String, String>> successResponse(String logPrefix, StoredFile storedFile) {
+    private ApiResponse<Map<String, String>> successResponse(String logPrefix, StoredFileInfo storedFile) {
         Map<String, String> result = new HashMap<>();
         result.put("url", storedFile.getUrl());
         result.put("filename", storedFile.getFilename());

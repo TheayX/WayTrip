@@ -18,12 +18,12 @@ public class LocalFileStorageService {
     @Value("${upload.path:./uploads}")
     private String uploadPath;
 
-    private final FileNameGenerator fileNameGenerator;
-    private final FileValidator fileValidator;
+    private final StorageFileNameGenerator storageFileNameGenerator;
+    private final ImageUploadValidator imageUploadValidator;
 
-    public StoredFile store(MultipartFile file, String directory, String prefix, String tag) throws IOException {
-        String extension = fileValidator.getExtension(file.getOriginalFilename());
-        String filename = fileNameGenerator.generate(prefix, tag, extension);
+    public StoredFileInfo store(MultipartFile file, String directory, String prefix, String tag) throws IOException {
+        String extension = imageUploadValidator.getExtension(file.getOriginalFilename());
+        String filename = storageFileNameGenerator.generate(prefix, tag, extension);
 
         File uploadDir = new File(uploadPath, directory);
         if (!uploadDir.exists()) {
@@ -33,7 +33,7 @@ public class LocalFileStorageService {
         File destFile = new File(uploadDir, filename);
         file.transferTo(destFile.getAbsoluteFile());
 
-        return StoredFile.builder()
+        return StoredFileInfo.builder()
             .filename(filename)
             .url("/uploads/" + directory + "/" + filename)
             .absolutePath(destFile.getAbsolutePath())
