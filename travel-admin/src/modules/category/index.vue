@@ -340,103 +340,74 @@ onMounted(() => {
 <style lang="scss" scoped>
 .category-page {
   .left-card {
-    min-height: 500px;
-    
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
+    min-height: 520px;
     .parent-list {
       list-style: none;
       padding: 0;
       margin: 0;
-      
       .list-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 12px 16px;
-        margin-bottom: 8px;
-        border-radius: 4px;
+        margin-bottom: 4px;
+        border-radius: 10px;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.2s ease;
         border: 1px solid transparent;
-        
         &:hover {
-          background-color: #f5f7fa;
-          .item-actions {
-            opacity: 1;
-          }
+          background-color: #f8fafc;
+          .item-actions { opacity: 1; }
         }
-        
         &.active {
-          background-color: #ecf5ff;
-          color: #409eff;
-          border-color: #b3d8ff;
-          font-weight: bold;
+          background-color: var(--el-color-primary-light-9);
+          color: var(--el-color-primary);
+          border-color: var(--el-color-primary-light-7);
+          font-weight: 600;
         }
-
         .item-actions {
           opacity: 0;
-          transition: opacity 0.3s;
+          transition: opacity 0.2s;
           display: flex;
           gap: 12px;
-          
           .action-icon {
-            color: #909399;
-            font-size: 16px;
-            
-            &:hover {
-              color: #409eff;
-            }
-            &.danger:hover {
-              color: #f56c6c;
-            }
+            color: #94a3b8;
+            font-size: 15px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            &:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
+            &.danger:hover { color: #ef4444; background: #fef2f2; }
           }
         }
       }
     }
   }
-
   .right-card {
-    min-height: 500px;
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    min-height: 520px;
   }
 }
-
 .upload-container {
   .avatar-uploader {
     :deep(.el-upload) {
-      border: 1px dashed #d9d9d9;
-      border-radius: 6px;
+      border: 2px dashed #e2e8f0;
+      border-radius: 12px;
       cursor: pointer;
-      position: relative;
       overflow: hidden;
       width: 80px;
       height: 80px;
-      
-      &:hover {
-        border-color: #409eff;
-      }
-      
+      transition: all 0.3s;
+      &:hover { border-color: var(--el-color-primary); background: #f8fafc; }
       .avatar-uploader-icon {
-        font-size: 28px;
-        color: #8c939d;
-        width: 80px;
-        height: 80px;
+        font-size: 24px;
+        color: #94a3b8;
+        width: 80px; height: 80px;
         line-height: 80px;
         text-align: center;
       }
-      
       .avatar {
-        width: 80px;
-        height: 80px;
+        width: 80px; height: 80px;
         display: block;
         object-fit: contain;
       }
@@ -444,19 +415,18 @@ onMounted(() => {
   }
   .upload-tip {
     font-size: 12px;
-    color: #909399;
-    margin-top: 5px;
+    color: #94a3b8;
+    margin-top: 8px;
   }
 }
-
 .image-slot {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100%;
-  background: #f5f7fa;
-  color: #909399;
+  width: 100%; height: 100%;
+  background: #f8fafc;
+  color: #94a3b8;
   font-size: 20px;
+  border-radius: 8px;
 }
 </style>

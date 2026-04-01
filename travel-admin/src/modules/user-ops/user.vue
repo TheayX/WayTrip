@@ -318,55 +318,47 @@ watch(
 
 <style lang="scss" scoped>
 .user-page {
-  .search-form {
-    margin-bottom: 20px;
-  }
-
-  .pagination-wrapper {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
-
   .recent-orders {
-    margin-top: 20px;
-
+    margin-top: 24px;
     h4 {
-      margin-bottom: 10px;
-      color: #333;
+      margin-bottom: 12px;
+      color: #0f172a;
+      font-weight: 600;
     }
   }
 
   .summary-grid {
-    margin-top: 20px;
+    margin-top: 24px;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
+    gap: 16px;
   }
 
   .summary-card {
     min-height: 180px;
+    border-radius: 16px !important;
+    border: 1px solid #f1f5f9 !important;
   }
 
   .summary-metric {
-    font-size: 20px;
-    font-weight: 600;
-    color: #303133;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
   }
 
   .summary-line {
     margin-top: 12px;
-    color: #606266;
+    color: #475569;
   }
 
   .summary-line-muted {
-    color: #909399;
+    color: #94a3b8;
   }
 
   .summary-meta {
     margin-top: 12px;
     font-size: 12px;
-    color: #909399;
+    color: #94a3b8;
     line-height: 1.6;
   }
 
@@ -379,11 +371,12 @@ watch(
 
   .summary-empty {
     margin-top: 12px;
-    color: #909399;
+    color: #94a3b8;
   }
 
   .summary-divider {
     margin: 0 6px;
+    color: #e2e8f0;
   }
 }
 

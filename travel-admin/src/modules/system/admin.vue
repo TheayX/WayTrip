@@ -340,20 +340,6 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .admin-page {
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .search-form {
-    margin-bottom: 20px;
-  }
-
-  .pagination-wrapper {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
+  /* All core styles handled by global design system */
 }
 </style>

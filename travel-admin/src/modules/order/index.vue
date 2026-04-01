@@ -1,8 +1,7 @@
 <!-- 订单管理页面 -->
 <template>
   <div class="order-page">
-    <el-card  shadow="hover">
-      <!-- 卡片头部 -->
+    <el-card shadow="hover">
       <template #header>
         <div class="card-header">
           <span>订单管理</span>
@@ -63,7 +62,7 @@
         <el-table-column prop="orderNo" label="订单号" width="180" />
         <el-table-column prop="spotName" label="景点名称" min-width="150" show-overflow-tooltip />
         <el-table-column prop="userNickname" label="用户" width="120" />
-        <el-table-column label="金额" width="120">
+        <el-table-column label="金额" width="130">
           <template #default="{ row }">
             <span class="price">¥{{ row.totalPrice }}</span>
             <span class="quantity">({{ row.quantity }}张)</span>
@@ -78,39 +77,30 @@
         </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ row.statusText }}</el-tag>
+            <div class="status-badge">
+              <span class="status-dot" :class="'status-' + row.status"></span>
+              {{ row.statusText }}
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="下单时间" width="170" />
-        <el-table-column prop="updatedAt" label="修改时间" width="170" />
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column prop="createdAt" label="下单时间" width="160" />
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
-            <div style="white-space: nowrap;">
+            <div class="table-actions">
               <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
-              <el-button
-                v-if="row.status === 'paid'"
-                type="success"
-                link
-                @click="handleComplete(row)"
-              >完成</el-button>
-              <el-button
-                v-if="row.status === 'paid'"
-                type="danger"
-                link
-                @click="handleRefund(row)"
-              >退款</el-button>
-              <el-button
-                v-if="row.status === 'pending'"
-                type="danger"
-                link
-                @click="handleCancel(row)"
-              >取消</el-button>
-              <el-button
-                v-if="row.status === 'completed'"
-                type="warning"
-                link
-                @click="handleReopen(row)"
-              >撤销完成</el-button>
+              <el-dropdown trigger="click" @command="(cmd) => handleAction(cmd, row)">
+                <el-button type="primary" link>
+                  更多 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item v-if="row.status === 'paid'" command="complete" class="s-success">完成订单</el-dropdown-item>
+                    <el-dropdown-item v-if="row.status === 'paid'" command="refund" class="s-danger">退款订单</el-dropdown-item>
+                    <el-dropdown-item v-if="row.status === 'pending'" command="cancel" class="s-danger">取消订单</el-dropdown-item>
+                    <el-dropdown-item v-if="row.status === 'completed'" command="reopen">撤销完成</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </template>
         </el-table-column>
@@ -131,7 +121,7 @@
     </el-card>
 
     <!-- 订单详情对话框 -->
-    <el-dialog v-model="detailVisible" title="订单详情" width="600px">
+    <el-dialog v-model="detailVisible" title="订单详情" width="620px">
       <el-descriptions :column="2" border v-if="currentOrder">
         <el-descriptions-item label="订单号" :span="2">{{ currentOrder.orderNo }}</el-descriptions-item>
         <el-descriptions-item label="景点名称" :span="2">{{ currentOrder.spotName }}</el-descriptions-item>
@@ -148,33 +138,17 @@
         <el-descriptions-item label="联系电话">{{ currentOrder.contactPhone }}</el-descriptions-item>
         <el-descriptions-item label="下单时间" :span="2">{{ currentOrder.createdAt }}</el-descriptions-item>
         <el-descriptions-item label="修改时间" :span="2">{{ currentOrder.updatedAt }}</el-descriptions-item>
-        <el-descriptions-item label="支付时间" v-if="currentOrder.paidAt" :span="2">{{ currentOrder.paidAt }}</el-descriptions-item>
-        <el-descriptions-item label="完成时间" v-if="currentOrder.completedAt" :span="2">{{ currentOrder.completedAt }}</el-descriptions-item>
-        <el-descriptions-item label="取消时间" v-if="currentOrder.cancelledAt" :span="2">{{ currentOrder.cancelledAt }}</el-descriptions-item>
-        <el-descriptions-item label="退款时间" v-if="currentOrder.refundedAt" :span="2">{{ currentOrder.refundedAt }}</el-descriptions-item>
+        <el-descriptions-item v-if="currentOrder.paidAt" label="支付时间" :span="2">{{ currentOrder.paidAt }}</el-descriptions-item>
+        <el-descriptions-item v-if="currentOrder.completedAt" label="完成时间" :span="2">{{ currentOrder.completedAt }}</el-descriptions-item>
+        <el-descriptions-item v-if="currentOrder.cancelledAt" label="取消时间" :span="2">{{ currentOrder.cancelledAt }}</el-descriptions-item>
+        <el-descriptions-item v-if="currentOrder.refundedAt" label="退款时间" :span="2">{{ currentOrder.refundedAt }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
         <el-button @click="detailVisible = false">关闭</el-button>
-        <el-button
-          v-if="currentOrder?.status === 'paid'"
-          type="primary"
-          @click="handleComplete(currentOrder)"
-        >完成订单</el-button>
-        <el-button
-          v-if="currentOrder?.status === 'paid'"
-          type="danger"
-          @click="handleRefund(currentOrder)"
-        >退款订单</el-button>
-        <el-button
-          v-if="currentOrder?.status === 'pending'"
-          type="danger"
-          @click="handleCancel(currentOrder)"
-        >取消订单</el-button>
-        <el-button
-          v-if="currentOrder?.status === 'completed'"
-          type="warning"
-          @click="handleReopen(currentOrder)"
-        >撤销完成</el-button>
+        <el-button v-if="currentOrder?.status === 'paid'" type="success" @click="handleComplete(currentOrder)">完成订单</el-button>
+        <el-button v-if="currentOrder?.status === 'paid'" type="danger" @click="handleRefund(currentOrder)">退款订单</el-button>
+        <el-button v-if="currentOrder?.status === 'pending'" type="danger" @click="handleCancel(currentOrder)">取消订单</el-button>
+        <el-button v-if="currentOrder?.status === 'completed'" type="warning" @click="handleReopen(currentOrder)">撤销完成</el-button>
       </template>
     </el-dialog>
   </div>
@@ -183,39 +157,22 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder, cancelOrder } from '@/modules/order/api.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 
-// 查询参数
-const searchForm = reactive({
-  orderNo: '',
-  spotName: '',
-  status: ''
-})
+const searchForm = reactive({ orderNo: '', spotName: '', status: '' })
 const dateRange = ref([])
-
-// 列表状态
 const loading = ref(false)
 const orderList = ref([])
-const pagination = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0
-})
-
-// 对话框与表单状态
+const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
 const detailVisible = ref(false)
 const currentOrder = ref(null)
 
-// 获取订单列表
 const fetchOrderList = async () => {
   loading.value = true
   try {
-    const params = {
-      ...searchForm,
-      page: pagination.page,
-      pageSize: pagination.pageSize
-    }
+    const params = { ...searchForm, page: pagination.page, pageSize: pagination.pageSize }
     if (dateRange.value?.length === 2) {
       params.startDate = dateRange.value[0]
       params.endDate = dateRange.value[1]
@@ -230,13 +187,7 @@ const fetchOrderList = async () => {
   }
 }
 
-// 搜索操作
-const handleSearch = () => {
-  pagination.page = 1
-  fetchOrderList()
-}
-
-// 重置搜索条件
+const handleSearch = () => { pagination.page = 1; fetchOrderList() }
 const handleReset = () => {
   searchForm.orderNo = ''
   searchForm.spotName = ''
@@ -245,19 +196,15 @@ const handleReset = () => {
   handleSearch()
 }
 
-// 获取状态标签类型
 const getStatusType = (status) => {
-  const types = {
-    pending: 'warning',
-    paid: 'primary',
-    cancelled: 'info',
-    refunded: 'danger',
-    completed: 'success'
-  }
-  return types[status] || 'info'
+  return { pending: 'warning', paid: 'primary', cancelled: 'info', refunded: 'danger', completed: 'success' }[status] || 'info'
 }
 
-// 打开订单详情对话框
+const handleAction = (command, row) => {
+  const map = { complete: handleComplete, refund: handleRefund, cancel: handleCancel, reopen: handleReopen }
+  map[command]?.(row)
+}
+
 const handleDetail = async (row) => {
   try {
     const res = await getOrderDetail(row.id)
@@ -268,112 +215,91 @@ const handleDetail = async (row) => {
   }
 }
 
-// 完成订单
 const handleComplete = async (row) => {
   try {
-    await ElMessageBox.confirm('确认将此订单标记为已完成？', '提示', {
-      type: 'warning'
-    })
+    await ElMessageBox.confirm('确认将此订单标记为已完成？', '提示', { type: 'warning' })
     await completeOrder(row.id)
     ElMessage.success('订单已完成')
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {
-    if (!isMessageBoxDismissed(e)) {
-      ElMessage.error('操作失败')
-    }
+    if (!isMessageBoxDismissed(e)) ElMessage.error('操作失败')
   }
 }
 
-// 退款订单
 const handleRefund = async (row) => {
   try {
-    await ElMessageBox.confirm('确认将此订单标记为已退款？', '提示', {
-      type: 'warning'
-    })
+    await ElMessageBox.confirm('确认将此订单标记为已退款？', '提示', { type: 'warning' })
     await refundOrder(row.id)
     ElMessage.success('订单已退款')
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {
-    if (!isMessageBoxDismissed(e)) {
-      ElMessage.error('操作失败')
-    }
+    if (!isMessageBoxDismissed(e)) ElMessage.error('操作失败')
   }
 }
 
-// 取消订单
 const handleCancel = async (row) => {
   try {
-    await ElMessageBox.confirm('确认取消此未支付订单？', '提示', {
-      type: 'warning'
-    })
+    await ElMessageBox.confirm('确认取消此未支付订单？', '提示', { type: 'warning' })
     await cancelOrder(row.id)
     ElMessage.success('订单已取消')
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {
-    if (!isMessageBoxDismissed(e)) {
-      ElMessage.error('操作失败')
-    }
+    if (!isMessageBoxDismissed(e)) ElMessage.error('操作失败')
   }
 }
 
-// 恢复为已支付
 const handleReopen = async (row) => {
   try {
-    await ElMessageBox.confirm('确认撤销此订单的完成状态？', '警示', {
-      type: 'warning'
-    })
+    await ElMessageBox.confirm('确认撤销此订单的完成状态？', '提示', { type: 'warning' })
     await reopenOrder(row.id)
     ElMessage.success('订单已撤销完成')
     detailVisible.value = false
     fetchOrderList()
   } catch (e) {
-    if (!isMessageBoxDismissed(e)) {
-      ElMessage.error('操作失败')
-    }
+    if (!isMessageBoxDismissed(e)) ElMessage.error('操作失败')
   }
 }
 
-// 页面初始化
-onMounted(() => {
-  fetchOrderList()
-})
+onMounted(() => { fetchOrderList() })
 </script>
 
 <style lang="scss" scoped>
 .order-page {
-  .search-form {
-    margin-bottom: 20px;
-  }
+  .price { color: #ef4444; font-weight: 700; font-size: 14px; }
+  .quantity { color: #94a3b8; font-size: 12px; margin-left: 6px; }
+  .text-gray { color: #94a3b8; font-size: 12px; margin-top: 2px; }
+  .price-large { color: #ef4444; font-size: 20px; font-weight: 700; }
 
-  .price {
-    color: #f56c6c;
-    font-weight: bold;
-  }
-
-  .quantity {
-    color: #909399;
-    font-size: 12px;
-    margin-left: 4px;
-  }
-
-  .text-gray {
-    color: #909399;
-    font-size: 12px;
-  }
-
-  .pagination-wrapper {
-    margin-top: 20px;
+  .status-badge {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+
+      &.status-pending  { background: #f59e0b; box-shadow: 0 0 0 2px #fef3c7; }
+      &.status-paid     { background: #3b82f6; box-shadow: 0 0 0 2px #dbeafe; }
+      &.status-completed{ background: #10b981; box-shadow: 0 0 0 2px #d1fae5; }
+      &.status-cancelled{ background: #94a3b8; box-shadow: 0 0 0 2px #f1f5f9; }
+      &.status-refunded { background: #ef4444; box-shadow: 0 0 0 2px #fee2e2; }
+    }
   }
 
-  .price-large {
-    color: #f56c6c;
-    font-size: 18px;
-    font-weight: bold;
+  .table-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 }
+
+:deep(.s-success) { color: #10b981 !important; }
+:deep(.s-danger)  { color: #ef4444 !important; }
 </style>

@@ -8,48 +8,44 @@
   .insight-stat-row {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 16px;
+    margin-bottom: 24px;
   }
 
   .insight-stat-card {
-    border-radius: 12px;
-    border: 1px solid #e7edf7;
-    background: linear-gradient(135deg, #fbfdff 0%, #f3f8ff 100%);
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    background: #ffffff;
+    transition: box-shadow 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
 
     :deep(.el-card__body) {
-      padding: 18px !important;
+      padding: 20px !important;
     }
   }
 
   .insight-stat-label {
     font-size: 13px;
-    color: #909399;
+    color: #94a3b8;
+    font-weight: 500;
   }
 
   .insight-stat-value {
     margin-top: 10px;
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     line-height: 1.2;
-    color: #303133;
+    color: #0f172a;
   }
 
   .insight-stat-desc {
-    margin-top: 8px;
+    margin-top: 10px;
     font-size: 12px;
     line-height: 1.6;
-    color: #7b8794;
-  }
-
-  .search-form {
-    margin-bottom: 20px;
-  }
-
-  .pagination-wrapper {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
+    color: #94a3b8;
   }
 
   @media (max-width: 900px) {

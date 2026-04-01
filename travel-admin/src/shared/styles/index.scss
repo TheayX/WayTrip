@@ -1,51 +1,62 @@
-/* 全局样式文件 */
+/* ═══════════════════════════════════════════════════════
+   WayTrip Admin — 全局设计系统 (Design System)
+   极简主义 · 现代化 · 高级感
+   ═══════════════════════════════════════════════════════ */
 
+/* ─── 1. CSS 变量体系 (Design Tokens) ─── */
 :root {
-  /* 核心主题色 (雅致商务蓝) */
-  --el-color-primary: #2563eb;
+  /* 核心主题色 (品牌蓝) */
+  --el-color-primary: #3b82f6;
   --el-color-primary-light-3: #60a5fa;
   --el-color-primary-light-5: #93c5fd;
   --el-color-primary-light-7: #bfdbfe;
   --el-color-primary-light-8: #dbeafe;
   --el-color-primary-light-9: #eff6ff;
-  --el-color-primary-dark-2: #1d4ed8;
+  --el-color-primary-dark-2: #2563eb;
 
-  /* 状态颜色增强质感 */
+  /* 状态色系 */
   --el-color-success: #10b981;
   --el-color-warning: #f59e0b;
   --el-color-danger: #ef4444;
-  --el-color-info: #6b7280;
+  --el-color-info: #64748b;
 
-  /* 更具包容感的全局圆角 */
+  /* 圆角体系 */
   --el-border-radius-base: 8px;
   --el-border-radius-small: 6px;
   --el-border-radius-round: 20px;
-  
-  /* 更新字体与边框色系 */
-  --el-text-color-primary: #1f2937;
-  --el-text-color-regular: #4b5563;
-  --el-text-color-secondary: #9ca3af;
-  --el-border-color-light: #e5e7eb;
-  --el-border-color-lighter: #f3f4f6;
+  --radius-card: 16px;
+  --radius-input: 8px;
 
-  /* 输入框视觉优化 */
-  --el-input-bg-color: #f9fafb;
-  --el-input-border-color: #e5e7eb;
+  /* 文字色系 */
+  --el-text-color-primary: #0f172a;
+  --el-text-color-regular: #475569;
+  --el-text-color-secondary: #94a3b8;
+  --el-text-color-placeholder: #cbd5e1;
+  --el-border-color-light: #e2e8f0;
+  --el-border-color-lighter: #f1f5f9;
+
+  /* 输入框 */
+  --el-input-bg-color: #f8fafc;
+  --el-input-border-color: #e2e8f0;
   --el-input-focus-border-color: var(--el-color-primary);
 
-  /* 表格系统 */
-  --el-table-header-bg-color: #f1f5f9;
+  /* 表格 */
+  --el-table-header-bg-color: #f8fafc;
   --el-table-header-text-color: #475569;
   --el-table-border-color: #f1f5f9;
   --el-table-bg-color: #ffffff;
   --el-table-tr-bg-color: #ffffff;
 
-  /* 卡片基础系统 */
-  --el-card-border-color: transparent;
-  --el-card-border-radius: 12px;
+  /* 卡片 */
+  --el-card-border-color: #f1f5f9;
+  --el-card-border-radius: var(--radius-card);
   --el-card-bg-color: #ffffff;
+
+  /* 页面背景 */
+  --bg-page: #f3f4f6;
 }
 
+/* ─── 2. 全局基础重置 ─── */
 * {
   margin: 0;
   padding: 0;
@@ -55,19 +66,20 @@
 html, body {
   height: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f3f4f6;
+  background-color: var(--bg-page);
   color: var(--el-text-color-primary);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 优雅全局滚动条 */
+/* ─── 3. 优雅滚动条 ─── */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background-color: #94a3b8;
@@ -76,44 +88,34 @@ html, body {
   background-color: transparent;
 }
 
-/* 1. 卡片统一规范增强 (涵盖所有页面) */
+/* ═══════════════════════════════════════════════════════
+   组件覆盖层 (Component Overrides)
+   ═══════════════════════════════════════════════════════ */
+
+/* ─── 4. 卡片 (el-card) ─── */
 .el-card {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
-  border: none !important;
+  border-radius: var(--radius-card) !important;
+  border: 1px solid var(--el-card-border-color) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
   transition: box-shadow 0.3s ease;
 
   &:hover {
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
   }
 }
 
 .el-card__header {
-  border-bottom: 1px solid #f0f2f5 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
   padding: 20px 24px !important;
 
-  /* 注入左侧竖线蓝条 & 粗体标题 */
   .card-header, > div:first-child {
     font-size: 16px;
     font-weight: 600;
-    color: #1f2f3d;
-    position: relative;
-    padding-left: 12px;
+    color: var(--el-text-color-primary);
     display: flex;
     justify-content: space-between;
     align-items: center;
     line-height: 1.5;
-    
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 4px;
-      height: 16px;
-      background: var(--el-color-primary);
-      border-radius: 2px;
-    }
   }
 }
 
@@ -121,38 +123,46 @@ html, body {
   padding: 24px !important;
 }
 
-/* 2. 表格与操作列高度统一 */
+/* ─── 5. 表格 (el-table) ─── */
 .el-table {
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  margin-top: 10px;
+  margin-top: 4px;
+  --el-table-border-color: transparent;
 
   th.el-table__cell {
     font-weight: 600;
-    font-size: 14px;
-    height: 52px;
-    background-color: var(--el-table-header-bg-color) !important;
+    font-size: 13px;
+    height: 48px;
+    color: #64748b;
+    background-color: #f8fafc !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
-  
+
   td.el-table__cell {
-    padding: 12px 0;
+    padding: 14px 0;
+    border-bottom: 1px solid #f8fafc !important;
   }
-  
-  /* 操作列的文字按钮强化点击区和反馈 */
-  .el-button--link {
+
+  /* 行悬停高亮 */
+  .el-table__body tr:hover > td.el-table__cell {
+    background-color: #f8fafc !important;
+  }
+
+  /* 操作按钮 */
+  .el-button--link, .el-button.is-link {
     font-weight: 500;
-    padding: 6px 12px;
+    padding: 4px 10px;
     border-radius: 6px;
-    margin: 0 4px;
-    background-color: transparent;
+    margin: 0 2px;
     transition: background-color 0.2s, color 0.2s;
-    text-decoration: none !important;
 
     &:hover {
       background-color: var(--el-color-primary-light-9);
     }
-    
+
     &.el-button--danger:hover {
       background-color: #fef2f2;
       color: var(--el-color-danger);
@@ -169,41 +179,46 @@ html, body {
 }
 
 .el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
-  background: #f8fafc;
+  background: #fafbfd;
 }
 
-/* 3. 搜索表单框风格统一 */
+/* ─── 6. 搜索过滤栏 (search-form) ─── */
 .search-form, .el-form--inline.search-form {
-  background: #f8f9fa;
-  padding: 20px 24px 2px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  border: 1px solid #f0f2f5;
-  transition: box-shadow 0.3s, border-color 0.3s;
+  background: #f8fafc;
+  padding: 20px 24px 4px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
 
   &:hover {
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.02);
-    border-color: #e4e7ed;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    border-color: #e2e8f0;
   }
 
   .el-form-item {
-    margin-right: 24px;
-    margin-bottom: 18px;
+    margin-right: 20px;
+    margin-bottom: 16px;
+  }
+
+  .el-form-item__label {
+    font-weight: 500;
+    color: #475569;
   }
 }
 
-/* 4. 分页器统一 */
+/* ─── 7. 分页器 ─── */
 .pagination-wrapper, .pagination {
   margin-top: 24px;
   display: flex;
   justify-content: flex-end;
   padding-top: 20px;
-  border-top: 1px dashed #ebeef5;
+  border-top: 1px solid #f1f5f9;
 }
 
 .el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
   background-color: var(--el-color-primary);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .el-pagination.is-background .el-pager li {
@@ -211,26 +226,26 @@ html, body {
   font-weight: 600;
 }
 
-/* 5. 所有的主动作按钮优化 (渐变与浮动质感) */
+/* ─── 8. 按钮 (el-button) ─── */
 .el-button {
   font-weight: 500;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .el-button--primary:not(.is-link):not(.is-plain):not(.el-button--text) {
-  background: linear-gradient(135deg, var(--el-color-primary) 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   border: none;
   &:hover, &:focus {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
   }
 }
 
-/* 6. 弹窗的高斯与厚重视感 */
+/* ─── 9. 对话框 (el-dialog) ─── */
 .el-overlay .el-dialog {
-  border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-card);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
 
@@ -242,9 +257,9 @@ html, body {
 }
 
 .el-dialog__title {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 17px;
-  color: #111827;
+  color: #0f172a;
 }
 
 .el-dialog__body {
@@ -256,10 +271,11 @@ html, body {
   border-top: 1px solid var(--el-border-color-lighter);
 }
 
-/* 7. 输入框等表单元素微调 */
+/* ─── 10. 输入框 ─── */
 .el-input__wrapper, .el-select__wrapper {
   box-shadow: 0 0 0 1px var(--el-input-border-color) inset !important;
   background-color: var(--el-input-bg-color);
+  border-radius: var(--radius-input);
   transition: box-shadow 0.3s, background-color 0.3s;
 }
 
@@ -268,9 +284,83 @@ html, body {
   box-shadow: 0 0 0 1px var(--el-input-focus-border-color) inset !important;
 }
 
-/* 8. 标签圆滑度 */
+/* ─── 11. 标签 (el-tag) ─── */
 .el-tag {
   border-radius: 6px;
   border: none;
   font-weight: 500;
+}
+
+/* ─── 12. 状态标签（Pill 风格覆盖） ─── */
+.el-tag--success {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+.el-tag--warning {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+.el-tag--danger {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+.el-tag--info {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+.el-tag--primary {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+/* ─── 13. Descriptions 信息卡 ─── */
+.el-descriptions {
+  .el-descriptions__label {
+    font-weight: 500;
+    color: #64748b;
+    background-color: #f8fafc !important;
+  }
+  .el-descriptions__content {
+    color: #0f172a;
+  }
+}
+
+/* ─── 14. Switch 开关 ─── */
+.el-switch.is-checked .el-switch__core {
+  background-color: var(--el-color-success);
+  border-color: var(--el-color-success);
+}
+
+/* ─── 15. 下拉菜单 ─── */
+.el-dropdown-menu {
+  border-radius: 12px !important;
+  padding: 6px !important;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1) !important;
+
+  .el-dropdown-menu__item {
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    margin: 2px 0;
+  }
+}
+
+/* ─── 16. 全局页面标题包裹器 ─── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .page-subtitle {
+    color: #64748b;
+    font-size: 14px;
+    margin-top: 4px;
+  }
 }
