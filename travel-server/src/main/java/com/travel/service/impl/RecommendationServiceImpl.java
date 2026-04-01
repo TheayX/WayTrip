@@ -19,6 +19,9 @@ import com.travel.enums.OrderStatus;
 import com.travel.mapper.*;
 import com.travel.service.cache.RecommendationCacheService;
 import com.travel.service.RecommendationService;
+import com.travel.service.support.recommendation.RecommendationConfigSupport;
+import com.travel.service.support.recommendation.RecommendationMetadataSupport;
+import com.travel.service.support.recommendation.RecommendationViewSourceClassifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,6 +53,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final SpotRegionMapper spotRegionMapper;
     private final UserPreferenceMapper userPreferenceMapper;
     private final RecommendationCacheService recommendationCacheService;
+    private final RecommendationMetadataSupport recommendationMetadataSupport;
+    private final RecommendationConfigSupport recommendationConfigSupport;
+    private final RecommendationViewSourceClassifier recommendationViewSourceClassifier;
 
     private final AtomicBoolean computing = new AtomicBoolean(false);
 
@@ -993,18 +999,7 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 浏览来源既要保留前端页面语义，也要归到推荐算法可识别的来源桶。
      */
     private String normalizeViewSource(String source) {
-        if (source == null || source.isBlank()) {
-            return "detail";
-        }
-        return switch (source.trim().toLowerCase(Locale.ROOT)) {
-            case "search" -> "search";
-            case "recommendation", "discover", "random-pick", "budget-travel",
-                    "traveler-reviews", "trending-views" -> "recommendation";
-            case "home" -> "home";
-            case "guide" -> "guide";
-            case "detail", "list", "nearby", "similar", "order", "footprint", "favorite", "review" -> "detail";
-            default -> "detail";
-        };
+        return recommendationViewSourceClassifier.normalize(source);
     }
 
     private double getViewDurationFactor(Integer duration, RecommendationAlgorithmConfigDTO config) {
@@ -1124,13 +1119,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private Map<Long, String> getCategoryMap() {
-        return categoryMapper.selectList(new LambdaQueryWrapper<SpotCategory>().eq(SpotCategory::getIsDeleted, 0)).stream()
-            .collect(Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
+        return recommendationMetadataSupport.getCategoryMap();
     }
 
     private Map<Long, String> getRegionMap() {
-        return spotRegionMapper.selectList(new LambdaQueryWrapper<SpotRegion>().eq(SpotRegion::getIsDeleted, 0)).stream()
-            .collect(Collectors.toMap(SpotRegion::getId, SpotRegion::getName));
+        return recommendationMetadataSupport.getRegionMap();
     }
 
     private void logRecommendationPreview(Long userId, RecommendationResponse response, boolean refresh) {
@@ -1550,11 +1543,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private String getSpotName(Long spotId) {
-        if (spotId == null) {
-            return "未知景点";
-        }
-        Spot spot = spotMapper.selectById(spotId);
-        return spot == null || spot.getName() == null ? "未知景点" : spot.getName();
+        return recommendationMetadataSupport.getSpotName(spotId);
     }
 
     private Map<Long, Double> orderScoresByIds(List<Long> orderedIds, Map<Long, Double> scoreMap) {
@@ -1587,29 +1576,18 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public RecommendationConfigBundleDTO getConfig() {
-        return recommendationCacheService.loadConfig();
+        return recommendationConfigSupport.getConfig();
     }
 
     @Override
     public void updateConfig(RecommendationConfigBundleDTO config) {
-        recommendationCacheService.saveConfig(config);
+        recommendationConfigSupport.updateConfig(config);
         log.info("推荐算法配置已更新 {}", config);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public RecommendationStatusDTO getStatus() {
-        RecommendationStatusDTO status = new RecommendationStatusDTO();
-        status.setComputing(computing.get());
-
-        Object cached = recommendationCacheService.getStatus();
-        if (cached instanceof Map<?, ?> map) {
-            status.setLastUpdateTime(map.get("lastUpdateTime") != null ? map.get("lastUpdateTime").toString() : null);
-            status.setTotalUsers(map.get("totalUsers") instanceof Number n ? n.intValue() : null);
-            status.setTotalSpots(map.get("totalSpots") instanceof Number n ? n.intValue() : null);
-        }
-
-        return status;
+        return recommendationConfigSupport.buildStatus(computing.get());
     }
 
     @Override

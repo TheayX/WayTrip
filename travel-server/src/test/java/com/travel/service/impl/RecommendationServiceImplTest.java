@@ -21,6 +21,9 @@ import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.cache.RecommendationCacheService;
+import com.travel.service.support.recommendation.RecommendationConfigSupport;
+import com.travel.service.support.recommendation.RecommendationMetadataSupport;
+import com.travel.service.support.recommendation.RecommendationViewSourceClassifier;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.BeforeAll;
@@ -96,6 +99,14 @@ class RecommendationServiceImplTest {
      */
     @BeforeEach
     void setUp() {
+        RecommendationMetadataSupport recommendationMetadataSupport = new RecommendationMetadataSupport(
+            spotMapper,
+            categoryMapper,
+            spotRegionMapper
+        );
+        RecommendationConfigSupport recommendationConfigSupport = new RecommendationConfigSupport(recommendationCacheService);
+        RecommendationViewSourceClassifier recommendationViewSourceClassifier = new RecommendationViewSourceClassifier();
+
         recommendationService = new RecommendationServiceImpl(
             spotMapper,
             reviewMapper,
@@ -105,7 +116,10 @@ class RecommendationServiceImplTest {
             categoryMapper,
             spotRegionMapper,
             userPreferenceMapper,
-            recommendationCacheService
+            recommendationCacheService,
+            recommendationMetadataSupport,
+            recommendationConfigSupport,
+            recommendationViewSourceClassifier
         );
     }
 
