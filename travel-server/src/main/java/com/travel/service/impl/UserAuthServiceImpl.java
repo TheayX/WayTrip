@@ -197,19 +197,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                         .eq(User::getIsDeleted, 0)
         );
         if (existByOpenid != null) {
-            String token = jwtUtils.generateUserToken(existByOpenid.getId());
-            return LoginResponse.builder()
-                    .token(token)
-                    .expiresIn(jwtUtils.getExpirationSeconds())
-                    .user(LoginResponse.UserInfo.builder()
-                            .id(existByOpenid.getId())
-                            .nickname(existByOpenid.getNickname())
-                            .avatar(existByOpenid.getAvatarUrl())
-                            .phone(existByOpenid.getPhone())
-                            .isNewUser(false)
-                            .isMerged(false)
-                            .build())
-                    .build();
+            return buildExistingUserLoginResponse(existByOpenid, false);
         }
 
         User existUser = userMapper.selectOne(
@@ -257,19 +245,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                         .eq(User::getIsDeleted, 0)
         );
         if (existByOpenid != null) {
-            String token = jwtUtils.generateUserToken(existByOpenid.getId());
-            return LoginResponse.builder()
-                    .token(token)
-                    .expiresIn(jwtUtils.getExpirationSeconds())
-                    .user(LoginResponse.UserInfo.builder()
-                            .id(existByOpenid.getId())
-                            .nickname(existByOpenid.getNickname())
-                            .avatar(existByOpenid.getAvatarUrl())
-                            .phone(existByOpenid.getPhone())
-                            .isNewUser(false)
-                            .isMerged(false)
-                            .build())
-                    .build();
+            return buildExistingUserLoginResponse(existByOpenid, false);
         }
 
         User existUser = userMapper.selectOne(
@@ -304,19 +280,25 @@ public class UserAuthServiceImpl implements UserAuthService {
         userMapper.updateById(existUser);
         log.info("微信openid合并到已有账户: userId={}, phone={}", existUser.getId(), phone);
 
-        String token = jwtUtils.generateUserToken(existUser.getId());
+        return buildExistingUserLoginResponse(existUser, true);
+    }
 
+    /**
+     * 微信绑定流程里如果账号已存在，则统一返回已登录用户响应，避免多处分支重复组装。
+     */
+    private LoginResponse buildExistingUserLoginResponse(User user, boolean merged) {
+        String token = jwtUtils.generateUserToken(user.getId());
         return LoginResponse.builder()
-                .token(token)
-                .expiresIn(jwtUtils.getExpirationSeconds())
-                .user(LoginResponse.UserInfo.builder()
-                        .id(existUser.getId())
-                        .nickname(existUser.getNickname())
-                        .avatar(existUser.getAvatarUrl())
-                        .phone(existUser.getPhone())
-                        .isNewUser(false)
-                        .isMerged(true)
-                        .build())
-                .build();
+            .token(token)
+            .expiresIn(jwtUtils.getExpirationSeconds())
+            .user(LoginResponse.UserInfo.builder()
+                .id(user.getId())
+                .nickname(user.getNickname())
+                .avatar(user.getAvatarUrl())
+                .phone(user.getPhone())
+                .isNewUser(false)
+                .isMerged(merged)
+                .build())
+            .build();
     }
 }

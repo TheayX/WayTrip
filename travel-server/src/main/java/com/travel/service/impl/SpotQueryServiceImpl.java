@@ -183,32 +183,8 @@ public class SpotQueryServiceImpl implements SpotQueryService {
                 .eq(SpotImage::getIsDeleted, 0)
                 .orderByAsc(SpotImage::getSortOrder)
         );
-        List<String> imageUrls = images.stream().map(SpotImage::getImageUrl).collect(Collectors.toList());
-        if (StringUtils.hasText(spot.getCoverImageUrl())) {
-            imageUrls.add(0, spot.getCoverImageUrl());
-        }
-
-        Boolean isFavorite = false;
-        Integer userRating = null;
-        if (userId != null) {
-            Long favoriteCount = userSpotFavoriteMapper.selectCount(
-                new LambdaQueryWrapper<UserSpotFavorite>()
-                    .eq(UserSpotFavorite::getUserId, userId)
-                    .eq(UserSpotFavorite::getSpotId, spotId)
-                    .eq(UserSpotFavorite::getIsDeleted, 0)
-            );
-            isFavorite = favoriteCount > 0;
-
-            Review review = reviewMapper.selectOne(
-                new LambdaQueryWrapper<Review>()
-                    .eq(Review::getUserId, userId)
-                    .eq(Review::getSpotId, spotId)
-                    .eq(Review::getIsDeleted, 0)
-            );
-            if (review != null) {
-                userRating = review.getScore();
-            }
-        }
+        List<String> imageUrls = buildSpotImageUrls(spot, images);
+        UserInteractionState interactionState = loadUserInteractionState(userId, spotId);
 
         List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5);
         return SpotDetailResponse.builder()
@@ -226,8 +202,8 @@ public class SpotQueryServiceImpl implements SpotQueryService {
             .ratingCount(spot.getRatingCount())
             .regionName(spotSupportService.getRegionName(spot.getRegionId()))
             .categoryName(spotSupportService.getCategoryName(spot.getCategoryId()))
-            .isFavorite(isFavorite)
-            .userRating(userRating)
+            .isFavorite(interactionState.isFavorite())
+            .userRating(interactionState.userRating())
             .latestComments(comments)
             .build();
     }
@@ -235,5 +211,44 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     @Override
     public SpotFilterResponse getFilters() {
         return spotSupportService.getFilters();
+    }
+
+    /**
+     * 详情页图片优先保留封面在首位，避免后台上传顺序影响首屏展示。
+     */
+    private List<String> buildSpotImageUrls(Spot spot, List<SpotImage> images) {
+        List<String> imageUrls = images.stream().map(SpotImage::getImageUrl).collect(Collectors.toList());
+        if (StringUtils.hasText(spot.getCoverImageUrl())) {
+            imageUrls.add(0, spot.getCoverImageUrl());
+        }
+        return imageUrls;
+    }
+
+    /**
+     * 聚合当前用户对景点的收藏和评分状态，减少详情方法里的查询噪音。
+     */
+    private UserInteractionState loadUserInteractionState(Long userId, Long spotId) {
+        if (userId == null) {
+            return new UserInteractionState(false, null);
+        }
+
+        Long favoriteCount = userSpotFavoriteMapper.selectCount(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getSpotId, spotId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+        );
+
+        Review review = reviewMapper.selectOne(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getSpotId, spotId)
+                .eq(Review::getIsDeleted, 0)
+        );
+
+        return new UserInteractionState(favoriteCount > 0, review == null ? null : review.getScore());
+    }
+
+    private record UserInteractionState(boolean isFavorite, Integer userRating) {
     }
 }

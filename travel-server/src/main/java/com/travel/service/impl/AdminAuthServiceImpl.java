@@ -33,12 +33,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
     @Override
     public AdminLoginResponse adminLogin(AdminLoginRequest request) {
-        Admin admin = adminMapper.selectOne(
-                new LambdaQueryWrapper<Admin>()
-                        .eq(Admin::getUsername, request.getUsername())
-                        .eq(Admin::getIsDeleted, 0)
-        );
-
+        Admin admin = findActiveAdminByUsername(request.getUsername());
         if (admin == null) {
             throw new BusinessException(ResultCode.ADMIN_LOGIN_FAILED);
         }
@@ -62,11 +57,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         return AdminLoginResponse.builder()
                 .token(token)
                 .expiresIn(jwtUtils.getAdminExpirationSeconds())
-                .admin(AdminLoginResponse.AdminInfo.builder()
-                        .id(admin.getId())
-                        .username(admin.getUsername())
-                        .realName(admin.getRealName())
-                        .build())
+                .admin(buildAdminInfo(admin))
                 .build();
     }
 
@@ -77,10 +68,25 @@ public class AdminAuthServiceImpl implements AdminAuthService {
             throw new BusinessException(ResultCode.TOKEN_INVALID);
         }
 
+        return buildAdminInfo(admin);
+    }
+
+    /**
+     * 登录时只允许命中未删除管理员账号，避免后续鉴权分支重复拼装查询条件。
+     */
+    private Admin findActiveAdminByUsername(String username) {
+        return adminMapper.selectOne(
+            new LambdaQueryWrapper<Admin>()
+                .eq(Admin::getUsername, username)
+                .eq(Admin::getIsDeleted, 0)
+        );
+    }
+
+    private AdminLoginResponse.AdminInfo buildAdminInfo(Admin admin) {
         return AdminLoginResponse.AdminInfo.builder()
-                .id(admin.getId())
-                .username(admin.getUsername())
-                .realName(admin.getRealName())
-                .build();
+            .id(admin.getId())
+            .username(admin.getUsername())
+            .realName(admin.getRealName())
+            .build();
     }
 }
