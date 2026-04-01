@@ -8,22 +8,37 @@
       <div class="login-left">
         <div class="left-content">
           <div class="brand">
-            <el-icon class="logo-icon"><Position /></el-icon>
-            <span class="logo-text">WayTrip·微旅</span>
+            <div class="brand-icon">✨</div>
+            <span class="brand-text">WayTrip</span>
           </div>
           <h2 class="slogan">探索世界<br/>记录美好瞬间</h2>
-          <p class="desc">一个现代化的旅游服务管理平台</p>
+          <p class="desc">现代化的旅游服务运营管理平台</p>
+          <div class="feature-list">
+            <div class="feature-item">
+              <span class="feature-dot"></span>
+              <span>智能推荐引擎</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-dot"></span>
+              <span>全链路订单管理</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-dot"></span>
+              <span>用户行为分析</span>
+            </div>
+          </div>
         </div>
         <div class="circles">
           <div class="circle circle-1"></div>
           <div class="circle circle-2"></div>
+          <div class="circle circle-3"></div>
         </div>
       </div>
       <!-- 右侧登录表单 -->
       <div class="login-right">
         <div class="form-wrapper">
           <h2 class="title">欢迎回来</h2>
-          <p class="subtitle">请登录您的管理端账号</p>
+          <p class="subtitle">请登录您的管理端账号以继续</p>
           <el-form ref="formRef" :model="form" :rules="rules" @keyup.enter="handleLogin" size="large" class="login-form">
             <el-form-item prop="username">
               <el-input v-model="form.username" placeholder="用户名" prefix-icon="User" />
@@ -33,10 +48,11 @@
             </el-form-item>
             <el-form-item>
               <el-button type="primary" :loading="loading" class="login-btn" @click="handleLogin">
-                登录
+                {{ loading ? '登录中...' : '登 录' }}
               </el-button>
             </el-form-item>
           </el-form>
+          <div class="footer-text">WayTrip Admin Console © 2026</div>
         </div>
       </div>
     </div>
@@ -49,13 +65,11 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { ElMessage } from 'element-plus'
 
-// 基础状态
 const router = useRouter()
 const userStore = useUserStore()
 const formRef = ref()
 const loading = ref(false)
 
-// 登录表单
 const form = reactive({
   username: '',
   password: ''
@@ -66,7 +80,6 @@ const rules = {
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }
 
-// 提交登录
 const handleLogin = async () => {
   if (!formRef.value) return
   await formRef.value.validate()
@@ -90,62 +103,53 @@ const handleLogin = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f3f4f6;
+  background-color: #0f172a;
   position: relative;
   overflow: hidden;
 
   .login-bg {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     z-index: 1;
 
     &::before, &::after {
       content: '';
       position: absolute;
       border-radius: 50%;
-      filter: blur(80px);
+      filter: blur(120px);
       z-index: 2;
     }
-
     &::before {
-      width: 600px;
-      height: 600px;
-      background: rgba(64, 158, 255, 0.3);
-      top: -100px;
-      left: -100px;
+      width: 700px; height: 700px;
+      background: rgba(59, 130, 246, 0.15);
+      top: -200px; left: -200px;
     }
-
     &::after {
-      width: 500px;
-      height: 500px;
-      background: rgba(103, 194, 58, 0.2);
-      bottom: -100px;
-      right: -100px;
+      width: 600px; height: 600px;
+      background: rgba(139, 92, 246, 0.12);
+      bottom: -200px; right: -200px;
     }
   }
 }
 
 .login-box {
-  width: 900px;
-  height: 500px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  width: 960px;
+  height: 560px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
   display: flex;
   overflow: hidden;
   z-index: 10;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 
   .login-left {
     width: 45%;
-    background: linear-gradient(135deg, #409EFF 0%, #3a7bd5 100%);
-    padding: 40px;
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+    padding: 48px 40px;
     color: white;
     display: flex;
     flex-direction: column;
@@ -161,56 +165,75 @@ const handleLogin = async () => {
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 60px;
-      font-size: 24px;
-      font-weight: 600;
+      gap: 12px;
+      margin-bottom: 48px;
 
-      .logo-icon {
+      .brand-icon {
         font-size: 28px;
-        background: rgba(255, 255, 255, 0.2);
-        padding: 8px;
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.15);
+        width: 48px; height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+      }
+      .brand-text {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 1px;
       }
     }
 
     .slogan {
-      font-size: 32px;
+      font-size: 30px;
       line-height: 1.4;
-      margin-bottom: 20px;
-      font-weight: 600;
+      margin-bottom: 16px;
+      font-weight: 700;
       letter-spacing: 2px;
     }
 
     .desc {
-      font-size: 15px;
-      color: rgba(255, 255, 255, 0.8);
-      letter-spacing: 1px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 32px;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.85);
+      }
+
+      .feature-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: #a5f3fc;
+        box-shadow: 0 0 0 3px rgba(165, 243, 252, 0.3);
+      }
     }
 
     .circles {
       .circle {
         position: absolute;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.06);
       }
-      .circle-1 {
-        width: 300px;
-        height: 300px;
-        top: -100px;
-        right: -100px;
-      }
-      .circle-2 {
-        width: 200px;
-        height: 200px;
-        bottom: -50px;
-        left: -50px;
-      }
+      .circle-1 { width: 300px; height: 300px; top: -100px; right: -100px; }
+      .circle-2 { width: 200px; height: 200px; bottom: -60px; left: -60px; }
+      .circle-3 { width: 100px; height: 100px; top: 60%; right: 20%; background: rgba(255,255,255,0.04); }
     }
   }
 
   .login-right {
     width: 55%;
+    background: #ffffff;
     padding: 50px 60px;
     display: flex;
     align-items: center;
@@ -218,57 +241,65 @@ const handleLogin = async () => {
 
     .form-wrapper {
       width: 100%;
-      max-width: 320px;
+      max-width: 340px;
 
       .title {
-        font-size: 26px;
-        font-weight: 600;
-        color: #1f2937;
+        font-size: 28px;
+        font-weight: 700;
+        color: #0f172a;
         margin-bottom: 8px;
       }
 
       .subtitle {
-        color: #6b7280;
+        color: #94a3b8;
         font-size: 14px;
         margin-bottom: 40px;
       }
 
       .login-form {
         :deep(.el-input__wrapper) {
-          border-radius: 8px;
-          box-shadow: 0 0 0 1px #e5e7eb inset;
-          background-color: #f9fafb;
+          border-radius: 10px;
+          box-shadow: 0 0 0 1px #e2e8f0 inset;
+          background-color: #f8fafc;
           transition: all 0.3s ease;
 
           &.is-focus, &:hover {
-            box-shadow: 0 0 0 1px #409EFF inset;
+            box-shadow: 0 0 0 1px #3b82f6 inset;
             background-color: #fff;
           }
         }
 
         :deep(.el-input__inner) {
-          height: 44px;
+          height: 46px;
         }
 
         .login-btn {
           width: 100%;
-          height: 44px;
-          border-radius: 8px;
+          height: 46px;
+          border-radius: 10px;
           font-size: 16px;
-          margin-top: 10px;
-          background: linear-gradient(135deg, #409EFF 0%, #3a7bd5 100%);
+          font-weight: 600;
+          margin-top: 12px;
+          background: linear-gradient(135deg, #3b82f6, #6366f1);
           border: none;
-          transition: transform 0.2s, box-shadow 0.2s;
+          letter-spacing: 2px;
+          transition: all 0.3s;
 
           &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
           }
-          
           &:active {
-            transform: translateY(1px);
+            transform: translateY(0);
           }
         }
+      }
+
+      .footer-text {
+        text-align: center;
+        margin-top: 40px;
+        font-size: 12px;
+        color: #cbd5e1;
       }
     }
   }

@@ -166,15 +166,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .review-page {
-  .search-form {
-    margin-bottom: 20px;
-  }
-
-  .pagination-wrapper {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
+  /* Global design system handles search-form and pagination-wrapper */
 }
 
 .user-cell,
@@ -187,12 +179,14 @@ onMounted(() => {
 .spot-cover {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: 10px;
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
 .score-text {
-  color: #e6a23c;
-  font-weight: 600;
+  color: #f59e0b;
+  font-weight: 700;
+  font-size: 14px;
 }
 </style>

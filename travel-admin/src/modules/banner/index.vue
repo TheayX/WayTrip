@@ -313,58 +313,35 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.banner-page {
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
 .upload-container {
   .image-uploader {
     :deep(.el-upload) {
-      border: 1px dashed #d9d9d9;
-      border-radius: 6px;
+      border: 2px dashed #e2e8f0;
+      border-radius: 12px;
       cursor: pointer;
-      position: relative;
       overflow: hidden;
-      transition: border-color 0.3s;
-
-      &:hover {
-        border-color: #409eff;
-      }
+      transition: all 0.3s;
+      &:hover { border-color: var(--el-color-primary); background: #f8fafc; }
     }
   }
-
   .uploaded-image {
-    width: 200px;
-    height: 100px;
+    width: 200px; height: 100px;
     display: block;
+    border-radius: 8px;
   }
-
   .upload-placeholder {
-    width: 200px;
-    height: 100px;
+    width: 200px; height: 100px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #8c939d;
-    
-    .el-icon {
-      font-size: 28px;
-      margin-bottom: 8px;
-    }
-
-    span {
-      font-size: 12px;
-    }
+    color: #94a3b8;
+    .el-icon { font-size: 28px; margin-bottom: 8px; }
+    span { font-size: 12px; }
   }
-
   .upload-tip {
     font-size: 12px;
-    color: #909399;
+    color: #94a3b8;
     margin-top: 8px;
   }
 }

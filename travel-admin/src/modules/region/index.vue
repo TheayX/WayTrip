@@ -261,73 +261,52 @@ onMounted(() => {
 <style lang="scss" scoped>
 .region-page {
   .left-card {
-    min-height: 500px;
-    
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
+    min-height: 520px;
     .parent-list {
       list-style: none;
       padding: 0;
       margin: 0;
-      
       .list-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 12px 16px;
-        margin-bottom: 8px;
-        border-radius: 4px;
+        margin-bottom: 4px;
+        border-radius: 10px;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.2s ease;
         border: 1px solid transparent;
-        
         &:hover {
-          background-color: #f5f7fa;
-          .item-actions {
-            opacity: 1;
-          }
+          background-color: #f8fafc;
+          .item-actions { opacity: 1; }
         }
-        
         &.active {
-          background-color: #ecf5ff;
-          color: #409eff;
-          border-color: #b3d8ff;
-          font-weight: bold;
+          background-color: var(--el-color-primary-light-9);
+          color: var(--el-color-primary);
+          border-color: var(--el-color-primary-light-7);
+          font-weight: 600;
         }
-
         .item-actions {
           opacity: 0;
-          transition: opacity 0.3s;
+          transition: opacity 0.2s;
           display: flex;
           gap: 12px;
-          
           .action-icon {
-            color: #909399;
-            font-size: 16px;
-            
-            &:hover {
-              color: #409eff;
-            }
-            &.danger:hover {
-              color: #f56c6c;
-            }
+            color: #94a3b8;
+            font-size: 15px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            &:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
+            &.danger:hover { color: #ef4444; background: #fef2f2; }
           }
         }
       }
     }
   }
-
   .right-card {
-    min-height: 500px;
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    min-height: 520px;
   }
 }
 </style>
