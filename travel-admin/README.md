@@ -1,164 +1,230 @@
 # travel-admin
 
+WayTrip 管理端项目。
+
+当前项目已经完成目录重构，采用轻量业务模块化结构。后续开发默认在这套结构上继续演进，不再回退到旧的全局平铺写法。
+
+## 技术栈
+
+- Vue 3
+- Vite
+- Element Plus
+- Pinia
+- Vue Router
+- SCSS
+
+## 启动与构建
+
+安装依赖：
+
+```bash
+npm install
+```
+
+本地开发：
+
+```bash
+npm run dev
+```
+
+生产构建：
+
+```bash
+npm run build
+```
+
 ## 目录结构
 
-当前管理端采用轻量业务模块化结构，只保留三层：
+当前源码目录只保留三层：
 
 ```text
 src/
-  app/      应用壳层
-  shared/   真正公共能力
-  modules/  业务模块
+├─ app/                              应用壳层
+│  ├─ layout/                        布局
+│  ├─ router/                        路由
+│  └─ store/                         全局状态
+├─ shared/                           共享层
+│  ├─ api/                           公共请求能力
+│  ├─ constants/                     全局常量
+│  ├─ lib/                           通用工具
+│  └─ styles/                        全局样式
+└─ modules/                          业务模块层
+   ├─ banner/                        轮播图管理
+   ├─ category/                      分类管理
+   ├─ dashboard/                     运营概览
+   ├─ guide/                         攻略管理
+   ├─ order/                         订单管理
+   ├─ recommendation/                推荐系统
+   │  ├─ api/                        推荐系统接口
+   │  ├─ components/                 推荐系统页面组件
+   │  └─ composables/                推荐系统页面逻辑
+   ├─ region/                        地区管理
+   ├─ spot/                          景点管理
+   │  ├─ components/                 景点页面组件
+   │  └─ composables/                景点模块逻辑
+   ├─ system/                        系统管理
+   │  └─ api/                        系统接口
+   └─ user-ops/                      用户运营
+      └─ api/                        用户运营接口
 ```
 
-### `src/app`
+## 分层职责
 
-只放应用入口和壳层代码：
+### `app`
 
-- `main.js`
-- `App.vue`
-- `layout/`
-- `router/`
-- `store/`
+只放应用壳层代码：
 
-这里不放具体业务页面。
+- 入口文件
+- 根组件
+- 后台布局
+- 路由
+- 全局登录态
 
-### `src/shared`
+这里不放具体业务页面，也不放业务接口。
 
-只放跨业务复用的公共能力：
+### `shared`
 
-- `api/`：请求实例
-- `constants/`：全局常量
-- `lib/`：通用工具
-- `styles/`：全局样式
+只放真正跨业务复用的公共能力：
 
-如果文件带明显业务语义，不要放到 `shared`。
+- 请求实例
+- 全局常量
+- 通用工具
+- 全局样式
 
-### `src/modules`
+如果一个文件带明显业务语义，就不要放在 `shared`。
 
-按业务域组织代码。每个模块内部自收口，不再把页面、接口、样式分散到全局目录。
+### `modules`
 
-当前模块包括：
+按业务域组织代码。  
+每个模块内部自己收口页面、接口、局部样式和页面逻辑，避免再次出现全局 `views / api / utils / styles` 平铺。
 
-- `banner`
-- `category`
-- `dashboard`
-- `guide`
-- `order`
-- `recommendation`
-- `region`
-- `spot`
-- `system`
-- `user-ops`
-
-## 命名约定
+## 命名规范
 
 ### 目录命名
 
-- 目录统一使用小写。
-- 多单词目录使用 `kebab-case`，如 `user-ops`。
+- 目录统一使用小写
+- 多单词目录统一使用 `kebab-case`
+
+示例：
+
+- `user-ops`
+- `view-source`
 
 ### 页面文件命名
 
-- 单页面模块：使用 `index.vue`，如 `modules/spot/index.vue`
-- 多页面模块：使用语义文件名，如 `login.vue`、`admin.vue`、`overview.vue`
+- 单页面模块：`index.vue + api.js`
+- 多页面模块：语义页面名 + `api/`
 
-不要在同一模块里混用无意义的页面名。
+示例：
+
+- `modules/spot/index.vue`
+- `modules/order/index.vue`
+- `modules/system/login.vue`
+- `modules/recommendation/config.vue`
 
 ### 组件文件命名
 
 - 组件统一使用 `PascalCase`
-- 组件名要带业务语义，不要使用模糊命名
+- 组件名必须带业务语义
 
 示例：
 
 - `SpotFormDialog.vue`
-- `RecommendationDebugCard.vue`
+- `RecommendationExecutionCard.vue`
 
-### 组合式函数命名
+### composable 文件命名
 
-- 统一使用 `useXxx` 格式
-- 文件名使用 `PascalCase` 语义前缀 + `use`
+- 统一使用 `useXxx.js`
+- 名称必须说明职责
 
 示例：
 
 - `useSpotOptions.js`
+- `useRecommendationConfig.js`
 
 ### 接口文件命名
 
-- 单页面简单模块：模块根下直接使用 `api.js`
+- 单页面简单模块：模块根目录直接 `api.js`
 - 多页面或接口较多的模块：使用 `api/` 目录拆分
 
 示例：
 
-- `modules/spot/api.js`
+- `modules/banner/api.js`
 - `modules/system/api/auth.js`
-- `modules/user-ops/api/view-log.js`
+- `modules/recommendation/api/recommendation.js`
 
-## 新增代码规则
+## 开发约定
 
-### 1. 先判断归属，再新建文件
+### 1. 新增代码先判断归属
 
-新增代码前先判断它属于：
+新增文件前先判断它属于：
 
 - 应用壳层
-- 公共层
+- 共享层
 - 某个业务模块
 
-不要为了省事把业务代码塞进 `shared`。
+不要为了图省事把业务代码放进 `shared`。
 
-### 2. 简单模块不硬拆
+### 2. 简单模块保持轻量
 
-页面规模可控时，保持：
+简单模块保持：
 
 ```text
 module/
-  index.vue
   api.js
+  index.vue
 ```
 
-不要为了“看起来规范”提前拆出一堆空目录。
+不要为了“看起来规范”提前拆很多空目录。
 
-### 3. 复杂模块再拆分
+### 3. 复杂模块按需拆分
 
-当页面明显变大时，再按需要拆：
+当页面明显膨胀时，再往模块内拆：
 
 - `components/`
 - `composables/`
 - `api/`
 
-拆分目标是降低维护成本，不是为了追求层级数量。
+拆分的目标是降低维护成本，不是为了增加层级数量。
 
-### 4. 不保留旧结构兼容写法
+### 4. 不再回退到旧结构
 
-重构后不再新增这类旧路径：
+重构完成后，不再新增以下旧目录语义：
 
 - `src/views`
 - `src/api`
 - `src/utils`
+- `src/styles`
 
-也不要为了兼容旧结构再做一层中转文件。
+也不再保留旧结构中转文件、兼容层、临时过渡写法。
 
 ### 5. 样式就近放置
 
 - 全局样式放 `shared/styles`
 - 模块私有样式放模块内部
 
-如果样式只服务某一个模块，就不要继续挂在全局目录。
+如果样式只服务一个模块，就不要挂到全局目录。
 
-## 当前项目的推荐做法
+### 6. 注释要求
 
-### 适合继续保持的写法
+- 新增注释统一使用中文
+- 只在关键逻辑、特殊分支、易误解位置补充简洁说明
+- 注释重点解释“为什么这样做”，不要翻译代码
+- 非明确清理任务下，不要随意删除原有注释
 
-- `spot`、`recommendation` 这类复杂模块，继续在模块内拆组件
-- `banner`、`category`、`region` 这类简单模块，继续保持轻量结构
-- `user-ops`、`system` 这种多页面模块，继续用语义页面名和 `api/` 目录
+## 开发建议
 
-### 不建议再做的事
+- 复杂模块在模块内按需拆分，简单模块保持轻量结构
+- 多页面模块继续使用语义页面名和 `api/`
+- 不再引入旧的全局平铺目录，也不保留兼容层
 
-- 不要重新引入全局 `views/api/utils` 平铺结构
-- 不要为了统一而把所有简单模块强拆成很多层
-- 不要保留“新旧结构并存”的过渡代码
+## 修改前自检
+
+1. 新文件是否放到了正确层级
+2. 命名是否符合当前规则
+3. 是否引入了不必要的兼容层或中转层
+4. 新增关键逻辑是否补了中文注释
+5. 构建是否通过
 
 ## 一句话原则
 
