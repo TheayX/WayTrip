@@ -44,6 +44,9 @@ public class RecommendationDebugSupport {
     private final RecommendationMetadataSupport recommendationMetadataSupport;
     private final RecommendationInteractionSupport recommendationInteractionSupport;
 
+    /**
+     * 初始化本次预览或调试请求的基础上下文，后续所有调试字段都挂在这里。
+     */
     public RecommendationResponse.DebugInfo initDebugInfo(Long userId, Integer limit, boolean refresh) {
         RecommendationResponse.DebugInfo debugInfo = new RecommendationResponse.DebugInfo();
         debugInfo.setUserId(userId);
@@ -53,6 +56,9 @@ public class RecommendationDebugSupport {
         return debugInfo;
     }
 
+    /**
+     * 回填融合后的交互权重明细，便于核对用户行为是否被正确纳入推荐输入。
+     */
     public void populateInteractionDebugInfo(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> userInteractions) {
         if (debugInfo == null) {
             return;
@@ -61,6 +67,9 @@ public class RecommendationDebugSupport {
         debugInfo.setUserInteractions(toDebugEntries(userInteractions, "用户对该景点的融合交互权重"));
     }
 
+    /**
+     * 汇总四类行为的原始条数和去重后的景点数，帮助判断为何会触发冷启动。
+     */
     public void populateBehaviorStats(RecommendationResponse.DebugInfo debugInfo, Long userId) {
         if (debugInfo == null || userId == null) {
             return;
@@ -98,6 +107,9 @@ public class RecommendationDebugSupport {
         ));
     }
 
+    /**
+     * 展开每条原始行为对应的加权结果，便于定位单个景点分数来源。
+     */
     public void populateBehaviorDetails(RecommendationResponse.DebugInfo debugInfo, Long userId, RecommendationAlgorithmConfigDTO config) {
         if (debugInfo == null || userId == null) {
             return;
