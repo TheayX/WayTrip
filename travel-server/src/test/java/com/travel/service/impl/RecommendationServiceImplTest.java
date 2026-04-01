@@ -21,14 +21,10 @@ import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.cache.RecommendationCacheService;
-import com.travel.service.support.recommendation.RecommendationCandidateSupport;
 import com.travel.service.support.recommendation.RecommendationConfigSupport;
 import com.travel.service.support.recommendation.RecommendationColdStartSupport;
-import com.travel.service.support.recommendation.RecommendationDebugSupport;
-import com.travel.service.support.recommendation.RecommendationInteractionSupport;
-import com.travel.service.support.recommendation.RecommendationMetadataSupport;
-import com.travel.service.support.recommendation.RecommendationOfflineSimilaritySupport;
-import com.travel.service.support.recommendation.RecommendationResponseSupport;
+import com.travel.service.support.recommendation.RecommendationQuerySupport;
+import com.travel.service.support.recommendation.RecommendationScoreSupport;
 import com.travel.service.support.recommendation.RecommendationSimilaritySupport;
 import com.travel.service.support.recommendation.RecommendationViewSourceClassifier;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
@@ -106,57 +102,35 @@ class RecommendationServiceImplTest {
      */
     @BeforeEach
     void setUp() {
-        RecommendationMetadataSupport recommendationMetadataSupport = new RecommendationMetadataSupport(
+        RecommendationQuerySupport recommendationQuerySupport = new RecommendationQuerySupport(
             spotMapper,
             categoryMapper,
             spotRegionMapper
         );
         RecommendationConfigSupport recommendationConfigSupport = new RecommendationConfigSupport(recommendationCacheService);
-        RecommendationSimilaritySupport recommendationSimilaritySupport = new RecommendationSimilaritySupport(
-            spotMapper,
-            recommendationCacheService,
-            recommendationMetadataSupport
-        );
         RecommendationViewSourceClassifier recommendationViewSourceClassifier = new RecommendationViewSourceClassifier();
-        RecommendationInteractionSupport recommendationInteractionSupport = new RecommendationInteractionSupport(
+        RecommendationScoreSupport recommendationScoreSupport = new RecommendationScoreSupport(
+            spotMapper,
             userSpotViewMapper,
             userSpotFavoriteMapper,
             reviewMapper,
             orderMapper,
+            recommendationQuerySupport,
             recommendationViewSourceClassifier
+        );
+        RecommendationSimilaritySupport recommendationSimilaritySupport = new RecommendationSimilaritySupport(
+            spotMapper,
+            userSpotViewMapper,
+            userSpotFavoriteMapper,
+            reviewMapper,
+            orderMapper,
+            recommendationCacheService,
+            recommendationQuerySupport,
+            recommendationScoreSupport
         );
         RecommendationColdStartSupport recommendationColdStartSupport = new RecommendationColdStartSupport(
             spotMapper,
             userPreferenceMapper
-        );
-        RecommendationResponseSupport recommendationResponseSupport = new RecommendationResponseSupport(
-            spotMapper,
-            recommendationMetadataSupport
-        );
-        RecommendationDebugSupport recommendationDebugSupport = new RecommendationDebugSupport(
-            userSpotViewMapper,
-            userSpotFavoriteMapper,
-            reviewMapper,
-            orderMapper,
-            recommendationMetadataSupport,
-            recommendationInteractionSupport
-        );
-        RecommendationCandidateSupport recommendationCandidateSupport = new RecommendationCandidateSupport(
-            spotMapper,
-            reviewMapper,
-            userSpotFavoriteMapper,
-            orderMapper,
-            recommendationDebugSupport
-        );
-        RecommendationOfflineSimilaritySupport recommendationOfflineSimilaritySupport = new RecommendationOfflineSimilaritySupport(
-            userSpotViewMapper,
-            userSpotFavoriteMapper,
-            reviewMapper,
-            orderMapper,
-            recommendationInteractionSupport,
-            recommendationSimilaritySupport,
-            recommendationDebugSupport,
-            recommendationCacheService
         );
 
         recommendationService = new RecommendationServiceImpl(
@@ -169,15 +143,11 @@ class RecommendationServiceImplTest {
             spotRegionMapper,
             userPreferenceMapper,
             recommendationCacheService,
-            recommendationMetadataSupport,
+            recommendationQuerySupport,
             recommendationConfigSupport,
             recommendationSimilaritySupport,
-            recommendationInteractionSupport,
-            recommendationCandidateSupport,
-            recommendationOfflineSimilaritySupport,
-            recommendationColdStartSupport,
-            recommendationResponseSupport,
-            recommendationDebugSupport
+            recommendationScoreSupport,
+            recommendationColdStartSupport
         );
     }
 
