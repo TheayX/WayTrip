@@ -83,13 +83,7 @@ public class GuideQueryServiceImpl implements GuideQueryService {
 
     @Override
     public GuideDetailResponse getGuideDetail(Long guideId) {
-        Guide guide = guideMapper.selectById(guideId);
-        if (guide == null || guide.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.GUIDE_NOT_FOUND);
-        }
-        if (guide.getIsPublished() != 1) {
-            throw new BusinessException(ResultCode.GUIDE_OFFLINE);
-        }
+        Guide guide = getPublishedGuide(guideId);
 
         int nextViewCount = (guide.getViewCount() == null ? 0 : guide.getViewCount()) + 1;
         guide.setViewCount(nextViewCount);
@@ -185,5 +179,19 @@ public class GuideQueryServiceImpl implements GuideQueryService {
             return summary.substring(0, 100) + "...";
         }
         return summary;
+    }
+
+    /**
+     * 用户端攻略详情只允许访问已发布且未删除的内容，统一收口详情前置校验。
+     */
+    private Guide getPublishedGuide(Long guideId) {
+        Guide guide = guideMapper.selectById(guideId);
+        if (guide == null || guide.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.GUIDE_NOT_FOUND);
+        }
+        if (guide.getIsPublished() != 1) {
+            throw new BusinessException(ResultCode.GUIDE_OFFLINE);
+        }
+        return guide;
     }
 }
