@@ -1,4 +1,4 @@
-package com.travel.dto.auth.response;
+package com.travel.dto.user.response;
 
 import lombok.Builder;
 import lombok.Data;

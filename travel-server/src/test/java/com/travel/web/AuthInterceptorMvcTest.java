@@ -3,7 +3,7 @@ package com.travel.web;
 import com.travel.common.exception.GlobalExceptionHandler;
 import com.travel.controller.app.UserAccountController;
 import com.travel.dto.auth.response.AdminLoginResponse;
-import com.travel.dto.auth.response.UserInfoResponse;
+import com.travel.dto.user.response.UserInfoResponse;
 import com.travel.dto.user.response.AdminUserListResponse;
 import com.travel.interceptor.AuthInterceptor;
 import com.travel.service.AdminAuthService;

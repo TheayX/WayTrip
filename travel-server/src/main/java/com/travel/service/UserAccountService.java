@@ -2,7 +2,7 @@ package com.travel.service;
 
 import com.travel.dto.auth.request.ChangePasswordRequest;
 import com.travel.dto.auth.request.UpdateUserInfoRequest;
-import com.travel.dto.auth.response.UserInfoResponse;
+import com.travel.dto.user.response.UserInfoResponse;
 
 import java.util.List;
 

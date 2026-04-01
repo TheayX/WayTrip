@@ -5,7 +5,7 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.auth.request.ChangePasswordRequest;
 import com.travel.dto.auth.request.UpdateUserInfoRequest;
-import com.travel.dto.auth.response.UserInfoResponse;
+import com.travel.dto.user.response.UserInfoResponse;
 import com.travel.entity.SpotCategory;
 import com.travel.entity.User;
 import com.travel.entity.UserPreference;
