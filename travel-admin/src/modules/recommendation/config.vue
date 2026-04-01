@@ -72,6 +72,7 @@
 import { onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import RecommendationStatusCards from '@/modules/recommendation/components/RecommendationStatusCards.vue'
+import RecommendationConfigCard from '@/modules/recommendation/components/RecommendationConfigCard.vue'
 import RecommendationExecutionCard from '@/modules/recommendation/components/RecommendationExecutionCard.vue'
 import RecommendationDebugCard from '@/modules/recommendation/components/RecommendationDebugCard.vue'
 import RecommendationHelpCard from '@/modules/recommendation/components/RecommendationHelpCard.vue'
