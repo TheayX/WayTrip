@@ -23,7 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/v1/admins")
 @RequiredArgsConstructor
-public class AdminManagerController {
+public class AdminManagementController {
 
     private final AdminManagementService adminManagementService;
 

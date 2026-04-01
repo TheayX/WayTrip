@@ -27,6 +27,9 @@ public class SpotTreeSupport {
     private final SpotRegionMapper spotRegionMapper;
     private final SpotCategoryMapper spotCategoryMapper;
 
+    /**
+     * 分类筛选既要支持父分类，也要支持子分类一并命中。
+     */
     public Set<Long> findCategoryAndChildrenIds(Long categoryId) {
         List<SpotCategory> categories = spotCategoryMapper.selectList(
             new LambdaQueryWrapper<SpotCategory>()
@@ -45,6 +48,9 @@ public class SpotTreeSupport {
         return collectTreeIds(categoryId, childrenMap);
     }
 
+    /**
+     * 地区筛选与分类筛选保持同样的层级展开规则。
+     */
     public Set<Long> findRegionAndChildrenIds(Long regionId) {
         List<SpotRegion> regions = spotRegionMapper.selectList(
             new LambdaQueryWrapper<SpotRegion>()
@@ -63,6 +69,9 @@ public class SpotTreeSupport {
         return collectTreeIds(regionId, childrenMap);
     }
 
+    /**
+     * 统一组装筛选树，保证用户端和后台读取到的层级结构口径一致。
+     */
     public SpotFilterResponse getFilters() {
         List<SpotRegion> regions = spotRegionMapper.selectList(
             new LambdaQueryWrapper<SpotRegion>()

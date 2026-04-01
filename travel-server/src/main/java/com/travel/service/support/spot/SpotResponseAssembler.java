@@ -20,6 +20,9 @@ public class SpotResponseAssembler {
     private final SpotRegionMapper spotRegionMapper;
     private final SpotCategoryMapper spotCategoryMapper;
 
+    /**
+     * 用户端列表项保持轻量字段，避免装配逻辑散落在查询服务里。
+     */
     public SpotListResponse toSpotListResponse(Spot spot) {
         return SpotListResponse.builder()
             .id(spot.getId())
@@ -33,6 +36,9 @@ public class SpotResponseAssembler {
             .build();
     }
 
+    /**
+     * 管理端列表项补齐后台关注字段，和用户端响应装配分开处理。
+     */
     public AdminSpotListResponse toAdminSpotListResponse(Spot spot) {
         return AdminSpotListResponse.builder()
             .id(spot.getId())
@@ -51,6 +57,9 @@ public class SpotResponseAssembler {
             .build();
     }
 
+    /**
+     * 名称补齐统一走这里，避免查询层重复直接访问字典表。
+     */
     public String getRegionName(Long regionId) {
         if (regionId == null) {
             return null;
@@ -59,6 +68,9 @@ public class SpotResponseAssembler {
         return region != null && region.getIsDeleted() == 0 ? region.getName() : null;
     }
 
+    /**
+     * 分类名称读取与地区保持同一入口，减少装配代码分叉。
+     */
     public String getCategoryName(Long categoryId) {
         if (categoryId == null) {
             return null;

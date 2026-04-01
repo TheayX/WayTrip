@@ -18,6 +18,9 @@ public class SpotWriteSupport {
 
     private final SpotImageMapper spotImageMapper;
 
+    /**
+     * 后台新增和更新共用同一套字段映射，避免写入口径在两处漂移。
+     */
     public void copyUpsertRequest(AdminSpotUpsertRequest request, Spot spot) {
         if (request.getName() != null) {
             spot.setName(request.getName());
@@ -57,6 +60,9 @@ public class SpotWriteSupport {
         }
     }
 
+    /**
+     * 图片写入统一按顺序落库，保证前端回显顺序和后台提交顺序一致。
+     */
     public void saveSpotImages(Long spotId, List<String> images) {
         if (images == null || images.isEmpty()) {
             return;

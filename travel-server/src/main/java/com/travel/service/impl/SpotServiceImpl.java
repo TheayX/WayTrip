@@ -25,11 +25,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SpotServiceImpl implements SpotService {
 
+    // 查询、管理、行为和热度子服务
+
     private final SpotQueryService spotQueryService;
     private final SpotAdminService spotAdminService;
     private final SpotBehaviorService spotBehaviorService;
     private final SpotHeatService spotHeatService;
 
+    /**
+     * 门面层只负责按职责分发，避免景点模块重新退回到“大而全”实现类。
+     */
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
         return spotQueryService.getSpotList(request);

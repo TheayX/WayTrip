@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RecommendationTask {
+public class RecommendationMatrixRefreshTask {
 
     // 服务依赖
 
