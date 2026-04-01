@@ -1,68 +1,7 @@
 <!-- 推荐引擎配置页面 -->
 <template>
   <div class="recommendation-page">
-    <!-- 状态卡片 -->
-    <el-row :gutter="24" class="status-row">
-      <el-col :span="6">
-        <el-card shadow="hover" class="status-card" :body-style="{ padding: '0px' }">
-          <div class="status-card-content engine-bg">
-            <div class="status-info">
-              <div class="status-label">引擎状态</div>
-              <div class="status-value">
-                <el-tag :type="status.computing ? 'warning' : 'success'" effect="dark" round>
-                  {{ status.computing ? '计算中...' : '就绪' }}
-                </el-tag>
-              </div>
-            </div>
-            <div class="status-icon">
-              <el-icon><Cpu /></el-icon>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card shadow="hover" class="status-card" :body-style="{ padding: '0px' }">
-          <div class="status-card-content time-bg">
-            <div class="status-info">
-              <div class="status-label">上次更新</div>
-              <div class="status-value small">{{ status.lastUpdateTime || '暂无记录' }}</div>
-            </div>
-            <div class="status-icon">
-              <el-icon><Timer /></el-icon>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card shadow="hover" class="status-card" :body-style="{ padding: '0px' }">
-          <div class="status-card-content users-bg">
-            <div class="status-info">
-              <div class="status-label">覆盖用户</div>
-              <div class="status-value">{{ status.totalUsers ?? '-' }}</div>
-            </div>
-            <div class="status-icon">
-              <el-icon><User /></el-icon>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card shadow="hover" class="status-card" :body-style="{ padding: '0px' }">
-          <div class="status-card-content spots-bg">
-            <div class="status-info">
-              <div class="status-label">覆盖景点</div>
-              <div class="status-value">{{ status.totalSpots ?? '-' }}</div>
-            </div>
-            <div class="status-icon">
-              <el-icon><Location /></el-icon>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <RecommendationStatusCards :status="status" />
 
     <el-row :gutter="24" class="workspace-row">
       <el-col :xl="16" :lg="15" :md="24">
@@ -426,90 +365,17 @@
       </el-col>
 
       <el-col :xl="8" :lg="9" :md="24">
-        <el-card ref="executionCardRef" shadow="hover" class="execution-card">
-          <template #header>
-            <div class="card-header">
-              <div class="title-section">
-                <span class="title">执行区</span>
-                <el-tag effect="plain" type="warning" round>先保存，再重建矩阵</el-tag>
-              </div>
-            </div>
-          </template>
-
-          <div class="execution-stack">
-            <div class="execution-intro">
-              配置修改会立即影响新的推荐请求；相似度矩阵只有在手动更新或定时任务执行后，才会按新参数重算。
-            </div>
-
-            <div class="execution-brief">
-              <div class="execution-brief-title">执行建议</div>
-              <div class="execution-brief-text">
-                修改交互权重、浏览行为修正、近邻数量 K、相似度矩阵 TTL 后，保存配置还不够，还需要手动重建相似度矩阵；热度同步权重、在线候选和用户缓存参数保存后会直接影响新请求。
-              </div>
-            </div>
-
-            <div class="matrix-action-callout" :class="{ pending: matrixChangeSummary.needsRebuild }">
-              <div class="matrix-action-title">
-                <span>重建相似度矩阵</span>
-                <el-tag
-                  size="small"
-                  effect="plain"
-                  :type="matrixChangeSummary.needsRebuild ? 'warning' : 'success'"
-                  round
-                >
-                  {{ matrixChangeSummary.needsRebuild ? '存在待重建改动' : '当前无需重建' }}
-                </el-tag>
-              </div>
-              <div class="matrix-action-text">
-                只有交互权重、浏览细化因子、TopK 和矩阵缓存相关参数会影响离线相似度矩阵。热度同步权重、缓存时长和冷启动参数不需要执行这个操作。
-              </div>
-            </div>
-
-            <div class="execution-actions">
-              <el-button @click="handleResetConfig" round>
-                <el-icon><RefreshLeft /></el-icon>
-                恢复默认
-              </el-button>
-              <el-button type="primary" @click="handleSaveConfig" :loading="saving" round>
-                <el-icon><Check /></el-icon>
-                保存配置
-              </el-button>
-              <el-button color="#722ed1" @click="handleUpdateMatrix" :loading="updatingMatrix" round>
-                <el-icon><Refresh /></el-icon>
-                重建相似度矩阵
-              </el-button>
-            </div>
-
-            <div class="execution-grid">
-              <div class="execution-metric">
-                <div class="execution-metric-label">推荐缓存 TTL</div>
-                <div class="execution-metric-value">{{ config.cache.userRecTTLMinutes }} 分钟</div>
-                <div class="execution-metric-desc">用户推荐结果缓存时长</div>
-              </div>
-              <div class="execution-metric">
-                <div class="execution-metric-label">矩阵缓存 TTL</div>
-                <div class="execution-metric-value">{{ config.cache.similarityTTLHours }} 小时</div>
-                <div class="execution-metric-desc">景点相似度矩阵缓存时长</div>
-              </div>
-              <div class="execution-metric">
-                <div class="execution-metric-label">当前矩阵覆盖</div>
-                <div class="execution-metric-value">{{ status.totalSpots ?? '-' }} 个景点</div>
-                <div class="execution-metric-desc">最近一次离线矩阵计算涉及的景点数量</div>
-              </div>
-            </div>
-
-            <div class="execution-notes">
-              <div class="execution-note">
-                <div class="execution-note-title">推荐链路</div>
-                <div class="execution-note-text">行为权重决定候选分数，热度同步权重影响热门排序和最终轻量重排。</div>
-              </div>
-              <div class="execution-note">
-                <div class="execution-note-title">缓存链路</div>
-                <div class="execution-note-text">推荐结果和相似度矩阵都在 Redis 中缓存，但更新节奏不同。</div>
-              </div>
-            </div>
-          </div>
-        </el-card>
+        <RecommendationExecutionCard
+          ref="executionCardRef"
+          :status="status"
+          :config="config"
+          :matrix-change-summary="matrixChangeSummary"
+          :saving="saving"
+          :updating-matrix="updatingMatrix"
+          @reset-config="handleResetConfig"
+          @save-config="handleSaveConfig"
+          @update-matrix="handleUpdateMatrix"
+        />
       </el-col>
     </el-row>
 
@@ -828,286 +694,22 @@
       </el-tabs>
     </el-card>
 
-    <!-- 使用说明 -->
-    <el-card shadow="hover" class="help-card">
-      <template #header>
-        <div class="card-header">
-          <span class="title">说明与调参指南</span>
-        </div>
-      </template>
-
-      <div class="help-intro">
-        这部分保留给排查和调参时查阅。日常使用可以先看上面的配置区、执行区和预览区；只有在需要确认公式、字段来源、矩阵机制或默认值时，再展开下面的内容。
-      </div>
-
-      <el-collapse v-model="activeCollapse">
-        <el-collapse-item title="先看什么" name="quick-start">
-          <div class="help-content">
-            <div class="strategy-grid">
-              <div class="strategy-item">
-                <div class="strategy-title">只想改推荐倾向</div>
-                <div class="strategy-desc">先看“离线矩阵构建”，这里决定用户历史行为如何进入相似度计算。</div>
-              </div>
-              <div class="strategy-item">
-                <div class="strategy-title">只想改候选范围</div>
-                <div class="strategy-desc">看“在线推荐与候选控制”，这些参数保存后会直接影响新请求。</div>
-              </div>
-              <div class="strategy-item">
-                <div class="strategy-title">只想改热门排序</div>
-                <div class="strategy-desc">看“热度与排序”，这部分不影响离线相似度矩阵。</div>
-              </div>
-              <div class="strategy-item">
-                <div class="strategy-title">只想改缓存表现</div>
-                <div class="strategy-desc">看“用户推荐缓存”和右侧执行区，不需要改算法参数。</div>
-              </div>
-            </div>
-            <el-alert type="info" :closable="false" style="margin-top: 16px">
-              <template #title>
-                一个简单判断：改完后如果你希望“景点之间的相似关系”变了，就需要重建相似度矩阵；如果只是影响在线排序、候选规模或缓存，一般保存后就会生效。
-              </template>
-            </el-alert>
-          </div>
-        </el-collapse-item>
-
-        <el-collapse-item title="核心算法公式" name="formula">
-          <div class="help-content">
-            <p>本系统基于 <strong>ItemCF（基于物品的协同过滤）</strong> 算法，核心公式如下：</p>
-            <div class="formula-block">
-              <div class="formula-title">公式 1：IUF 加权余弦相似度</div>
-              <div class="formula-surface formula-surface--left">
-                <math display="block" xmlns="http://www.w3.org/1998/Math/MathML">
-                  <mrow>
-                    <msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub>
-                    <mo>=</mo>
-                    <mfrac>
-                      <mrow>
-                        <munderover>
-                          <mo>&#x2211;</mo>
-                          <mrow>
-                            <mi>u</mi>
-                            <mo>&#x2208;</mo>
-                            <mi>N</mi><mo>(</mo><mi>i</mi><mo>)</mo>
-                            <mo>&#x2229;</mo>
-                            <mi>N</mi><mo>(</mo><mi>j</mi><mo>)</mo>
-                          </mrow>
-                          <mrow />
-                        </munderover>
-                        <mfrac>
-                          <mn>1</mn>
-                          <mrow>
-                            <mi>log</mi>
-                            <mo>(</mo>
-                            <mn>1</mn>
-                            <mo>+</mo>
-                            <mo>|</mo><mi>N</mi><mo>(</mo><mi>u</mi><mo>)</mo><mo>|</mo>
-                            <mo>)</mo>
-                          </mrow>
-                        </mfrac>
-                      </mrow>
-                      <msqrt>
-                        <mrow>
-                          <mo>|</mo><mi>N</mi><mo>(</mo><mi>i</mi><mo>)</mo><mo>|</mo>
-                          <mo>&#x22C5;</mo>
-                          <mo>|</mo><mi>N</mi><mo>(</mo><mi>j</mi><mo>)</mo><mo>|</mo>
-                        </mrow>
-                      </msqrt>
-                    </mfrac>
-                  </mrow>
-                </math>
-              </div>
-              <div class="formula-symbols">
-                <p><code>w<sub>ij</sub></code>：景点 <code>i</code> 与景点 <code>j</code> 的相似度</p>
-                <p><code>N(i)</code>：与景点 <code>i</code> 发生过交互的用户集合</p>
-                <p><code>N(j)</code>：与景点 <code>j</code> 发生过交互的用户集合</p>
-                <p><code>N(u)</code>：用户 <code>u</code> 历史交互过的景点集合，<code>|N(u)|</code> 为交互景点总数</p>
-              </div>
-            </div>
-            <div class="formula-block">
-              <div class="formula-title">公式 2：预测评分</div>
-              <div class="formula-surface formula-surface--left">
-                <math display="block" xmlns="http://www.w3.org/1998/Math/MathML">
-                  <mrow>
-                    <msub><mi>P</mi><mrow><mi>u</mi><mi>j</mi></mrow></msub>
-                    <mo>=</mo>
-                    <mrow>
-                      <munderover>
-                        <mo>&#x2211;</mo>
-                        <mrow>
-                          <mi>i</mi>
-                          <mo>&#x2208;</mo>
-                          <mi>N</mi><mo>(</mo><mi>u</mi><mo>)</mo>
-                          <mo>&#x2229;</mo>
-                          <mi>S</mi><mo>(</mo><mi>j</mi><mo>,</mo><mi>K</mi><mo>)</mo>
-                        </mrow>
-                        <mrow />
-                      </munderover>
-                      <msub><mi>w</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub>
-                      <mo>&#x22C5;</mo>
-                      <msub><mi>r</mi><mrow><mi>u</mi><mi>i</mi></mrow></msub>
-                    </mrow>
-                  </mrow>
-                </math>
-              </div>
-              <div class="formula-symbols">
-                <p><code>P<sub>uj</sub></code>：用户 <code>u</code> 对景点 <code>j</code> 的预测兴趣分数</p>
-                <p><code>w<sub>ji</sub></code>：景点 <code>j</code> 与景点 <code>i</code> 的相似度</p>
-                <p><code>r<sub>ui</sub></code>：用户 <code>u</code> 对景点 <code>i</code> 的历史交互权重</p>
-                <p><code>S(j, K)</code>：与景点 <code>j</code> 最相似的前 <code>K</code> 个景点集合</p>
-              </div>
-            </div>
-          </div>
-        </el-collapse-item>
-
-        <el-collapse-item title="行为权重说明" name="weights">
-          <div class="help-content">
-            <el-table :data="weightExplanations" stripe style="width: 100%">
-              <el-table-column prop="behavior" label="行为类型" width="120" />
-              <el-table-column prop="param" label="参数名" width="200" />
-              <el-table-column prop="default" label="默认值" width="100" />
-              <el-table-column prop="description" label="说明" />
-            </el-table>
-            <el-alert type="info" :closable="false" style="margin-top: 16px">
-              <template #title>
-                同一景点上多种行为按加权求和聚合。例如用户先浏览(0.5)再收藏(1.0)，最终权重为 1.5。
-              </template>
-            </el-alert>
-          </div>
-        </el-collapse-item>
-
-        <el-collapse-item title="数据库字段说明" name="data-fields">
-          <div class="help-content">
-            <div class="data-field-group">
-              <div class="data-field-title">离线矩阵主体字段</div>
-              <el-table :data="cfDataFieldReferences" stripe style="width: 100%">
-                <el-table-column prop="table" label="表" width="180" />
-                <el-table-column label="涉及字段" min-width="260">
-                  <template #default="{ row }">
-                    <div class="field-pill-list">
-                      <span v-for="field in row.fields" :key="field" class="field-pill">{{ field }}</span>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="usage" label="用途" min-width="220" />
-                <el-table-column prop="phase" label="算法阶段" width="180" />
-              </el-table>
-            </div>
-
-            <div class="data-field-group">
-              <div class="data-field-title">冷启动与热门排序字段</div>
-              <el-table :data="coldStartDataFieldReferences" stripe style="width: 100%">
-                <el-table-column prop="table" label="表" width="180" />
-                <el-table-column label="涉及字段" min-width="260">
-                  <template #default="{ row }">
-                    <div class="field-pill-list">
-                      <span v-for="field in row.fields" :key="field" class="field-pill">{{ field }}</span>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="usage" label="用途" min-width="220" />
-                <el-table-column prop="phase" label="算法阶段" width="180" />
-              </el-table>
-            </div>
-            <el-alert type="info" :closable="false" style="margin-top: 16px">
-              <template #title>
-                协同过滤主体只读取这些业务表字段；管理端调参改的是算法参数，不会改动原始业务数据。
-              </template>
-            </el-alert>
-          </div>
-        </el-collapse-item>
-
-        <el-collapse-item title="调参策略建议" name="strategy">
-          <div class="help-content">
-            <div class="strategy-grid">
-              <div class="strategy-item">
-                <div class="strategy-title">场景：推荐过于保守</div>
-                <div class="strategy-desc">降低 <code>minInteractionsForCF</code>（如 3→2），让更多用户进入协同过滤通道。</div>
-              </div>
-              <div class="strategy-item">
-                <div class="strategy-title">场景：推荐不够多样</div>
-                <div class="strategy-desc">增大 <code>topKNeighbors</code>（如 20→30），让每个景点关联更多近邻。</div>
-              </div>
-              <div class="strategy-item">
-                <div class="strategy-title">场景：浏览行为干扰大</div>
-                <div class="strategy-desc">降低 <code>weightView</code>（如 0.5→0.2），减少浏览行为对推荐的影响。</div>
-              </div>
-              <div class="strategy-item">
-                <div class="strategy-title">场景：偏向成交转化</div>
-                <div class="strategy-desc">提高 <code>weightOrderCompleted</code> 和 <code>weightOrderPaid</code>，让购买行为主导推荐。</div>
-              </div>
-            </div>
-          </div>
-        </el-collapse-item>
-
-        <el-collapse-item title="矩阵更新机制" name="matrix">
-          <div class="help-content">
-            <ul>
-              <li><strong>自动更新：</strong>每天凌晨 3:00 定时任务自动重新计算相似度矩阵。</li>
-              <li><strong>手动更新：</strong>点击上方「重建相似度矩阵」按钮可立即触发重算（请求会阻塞到计算完成）。</li>
-              <li><strong>什么时候要重建：</strong>交互权重、浏览行为修正、近邻数量 K、相似度矩阵 TTL 这类离线参数改完后，需要手动触发或等待下次定时任务才会用新参数重算。</li>
-              <li><strong>什么时候不用重建：</strong>热度、在线候选控制、用户推荐缓存这类参数保存后会直接影响新的推荐请求。</li>
-              <li><strong>并发保护：</strong>同一时间只允许一次矩阵计算，重复触发会被跳过。</li>
-            </ul>
-          </div>
-        </el-collapse-item>
-
-        <el-collapse-item title="调试与预览说明" name="debugging">
-          <div class="help-content">
-            <ul>
-              <li><strong>推荐调试预览 - 刷新：</strong>会跳过当前用户已有的推荐结果缓存，按当前数据重新计算该用户推荐结果，更适合排查“现在为什么推荐这些景点”。</li>
-              <li><strong>缓存副作用：</strong>如果对某个用户执行“刷新”，该用户原有的推荐缓存会被删除并立即写入新的结果，相当于提前更新了这个用户当前可命中的推荐缓存。</li>
-              <li><strong>推荐调试预览 - 缓存：</strong>优先查看该用户当前命中的缓存结果，更接近用户端此刻可能拿到的返回内容。</li>
-              <li><strong>刷新与重建矩阵的区别：</strong>调试预览里的“刷新”只会重算当前用户的推荐结果，不会重算底层相似度矩阵；要更新离线相似关系，仍然要用上方“重建相似度矩阵”。</li>
-              <li><strong>相似邻居 - 缓存预览：</strong>直接查看当前矩阵缓存里的邻居结果，适合确认 Redis 中现有的相似关系。</li>
-              <li><strong>相似邻居 - 更新预览：</strong>会先执行一次矩阵更新，再展示该景点的最新相似邻居，适合在调完参数后立即验证离线矩阵效果。</li>
-              <li><strong>联调建议：</strong>如果刚改了影响相似度计算的参数，建议先“重建相似度矩阵”，再看“更新预览”或“推荐调试预览 - 刷新”，这样看到的结果更一致。</li>
-            </ul>
-          </div>
-        </el-collapse-item>
-
-        <el-collapse-item title="默认配置参考" name="defaults">
-          <div class="help-content">
-            <el-descriptions border :column="2">
-              <el-descriptions-item label="浏览权重">0.5</el-descriptions-item>
-              <el-descriptions-item label="收藏权重">1.0</el-descriptions-item>
-              <el-descriptions-item label="评分因子">0.4</el-descriptions-item>
-              <el-descriptions-item label="已付款权重">3.0</el-descriptions-item>
-              <el-descriptions-item label="已完成权重">4.0</el-descriptions-item>
-              <el-descriptions-item label="首页挡位因子">0.9</el-descriptions-item>
-              <el-descriptions-item label="搜索挡位因子">1.2</el-descriptions-item>
-              <el-descriptions-item label="推荐挡位因子">1.1</el-descriptions-item>
-              <el-descriptions-item label="攻略挡位因子">1.0</el-descriptions-item>
-              <el-descriptions-item label="详情挡位因子">1.0</el-descriptions-item>
-              <el-descriptions-item label="短停留阈值">10 秒</el-descriptions-item>
-              <el-descriptions-item label="中停留阈值">60 秒</el-descriptions-item>
-              <el-descriptions-item label="长停留阈值">180 秒</el-descriptions-item>
-              <el-descriptions-item label="短停留因子">0.6</el-descriptions-item>
-              <el-descriptions-item label="普通停留因子">1.0</el-descriptions-item>
-              <el-descriptions-item label="较长停留因子">1.2</el-descriptions-item>
-              <el-descriptions-item label="超长停留因子">1.35</el-descriptions-item>
-              <el-descriptions-item label="浏览热度加分">1</el-descriptions-item>
-              <el-descriptions-item label="收藏热度加分">3</el-descriptions-item>
-              <el-descriptions-item label="评价热度加分">2</el-descriptions-item>
-              <el-descriptions-item label="支付热度加分">5</el-descriptions-item>
-              <el-descriptions-item label="完成热度加分">8</el-descriptions-item>
-              <el-descriptions-item label="浏览去重窗口">30 分钟</el-descriptions-item>
-              <el-descriptions-item label="热度重排系数">0.05</el-descriptions-item>
-              <el-descriptions-item label="最少交互数">3</el-descriptions-item>
-              <el-descriptions-item label="近邻数量 K">20</el-descriptions-item>
-              <el-descriptions-item label="个性化扩容倍数">2</el-descriptions-item>
-              <el-descriptions-item label="冷启动扩容倍数">3</el-descriptions-item>
-              <el-descriptions-item label="矩阵 TTL">24 小时</el-descriptions-item>
-              <el-descriptions-item label="推荐缓存 TTL">60 分钟</el-descriptions-item>
-            </el-descriptions>
-          </div>
-        </el-collapse-item>
-      </el-collapse>
-    </el-card>
+    <RecommendationHelpCard
+      :active-collapse="activeCollapse"
+      :weight-explanations="weightExplanations"
+      :cf-data-field-references="cfDataFieldReferences"
+      :cold-start-data-field-references="coldStartDataFieldReferences"
+      @update:active-collapse="activeCollapse = $event"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive, computed, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import RecommendationStatusCards from '@/modules/recommendation/components/RecommendationStatusCards.vue'
+import RecommendationExecutionCard from '@/modules/recommendation/components/RecommendationExecutionCard.vue'
+import RecommendationHelpCard from '@/modules/recommendation/components/RecommendationHelpCard.vue'
 import {
   getRecommendationConfig,
   updateRecommendationConfig,
@@ -1119,7 +721,6 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import {
-  Cpu, Timer, User, Location, RefreshLeft, Check, Refresh,
   DataLine, Setting, Clock
 } from '@element-plus/icons-vue'
 
