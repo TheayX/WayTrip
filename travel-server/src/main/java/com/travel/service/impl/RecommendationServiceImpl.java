@@ -20,7 +20,10 @@ import com.travel.mapper.*;
 import com.travel.service.cache.RecommendationCacheService;
 import com.travel.service.RecommendationService;
 import com.travel.service.support.recommendation.RecommendationConfigSupport;
+import com.travel.service.support.recommendation.RecommendationColdStartSupport;
+import com.travel.service.support.recommendation.RecommendationInteractionSupport;
 import com.travel.service.support.recommendation.RecommendationMetadataSupport;
+import com.travel.service.support.recommendation.RecommendationSimilaritySupport;
 import com.travel.service.support.recommendation.RecommendationViewSourceClassifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +58,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final RecommendationCacheService recommendationCacheService;
     private final RecommendationMetadataSupport recommendationMetadataSupport;
     private final RecommendationConfigSupport recommendationConfigSupport;
+    private final RecommendationSimilaritySupport recommendationSimilaritySupport;
+    private final RecommendationInteractionSupport recommendationInteractionSupport;
+    private final RecommendationColdStartSupport recommendationColdStartSupport;
     private final RecommendationViewSourceClassifier recommendationViewSourceClassifier;
 
     private final AtomicBoolean computing = new AtomicBoolean(false);
@@ -242,55 +248,7 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 构建单个用户的融合交互权重：Map<spotId, weight>。
      */
     private Map<Long, Double> buildUserInteractionWeights(Long userId, RecommendationAlgorithmConfigDTO config) {
-        Map<Long, Double> weights = new HashMap<>();
-
-        // 浏览行为。
-        List<UserSpotView> views = userSpotViewMapper.selectList(
-            new LambdaQueryWrapper<UserSpotView>()
-                .eq(UserSpotView::getUserId, userId)
-                .select(UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
-        );
-        for (UserSpotView v : views) {
-            mergeInteractionWeight(weights, v.getSpotId(), calculateViewWeight(v, config));
-        }
-
-        // 收藏行为。
-        List<UserSpotFavorite> favorites = userSpotFavoriteMapper.selectList(
-            new LambdaQueryWrapper<UserSpotFavorite>()
-                .eq(UserSpotFavorite::getUserId, userId)
-                .eq(UserSpotFavorite::getIsDeleted, 0)
-                .select(UserSpotFavorite::getSpotId)
-        );
-        for (UserSpotFavorite f : favorites) {
-            mergeInteractionWeight(weights, f.getSpotId(), config.getWeightFavorite());
-        }
-
-        // 评分行为。
-        List<Review> reviews = reviewMapper.selectList(
-            new LambdaQueryWrapper<Review>()
-                .eq(Review::getUserId, userId)
-                .eq(Review::getIsDeleted, 0)
-                .select(Review::getSpotId, Review::getScore)
-        );
-        for (Review r : reviews) {
-            double w = r.getScore() * config.getWeightReviewFactor();
-            mergeInteractionWeight(weights, r.getSpotId(), w);
-        }
-
-        // 已支付和已完成订单。
-        List<Order> orders = orderMapper.selectList(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getUserId, userId)
-                .eq(Order::getIsDeleted, 0)
-                .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
-                .select(Order::getSpotId, Order::getStatus)
-        );
-        for (Order o : orders) {
-            double w = o.getStatus() == OrderStatus.COMPLETED.getCode() ? config.getWeightOrderCompleted() : config.getWeightOrderPaid();
-            mergeInteractionWeight(weights, o.getSpotId(), w);
-        }
-
-        return weights;
+        return recommendationInteractionSupport.buildUserInteractionWeights(userId, config);
     }
 
 
@@ -300,135 +258,54 @@ public class RecommendationServiceImpl implements RecommendationService {
                                                    boolean stable,
                                                    RecommendationResponse.DebugInfo debugInfo) {
         RecommendationAlgorithmConfigDTO algorithmConfig = safeAlgorithmConfig(recommendationCacheService.loadConfig());
-        List<Long> categoryIds = getUserPreferenceCategoryIds(userId);
-
-        // 如果用户设置了偏好标签，则优先按偏好推荐。
-        if (!categoryIds.isEmpty()) {
-            int coldStartLimit = refresh ? Math.max(limit * getColdStartExpandFactor(algorithmConfig), limit) : limit;
-            List<Spot> spots = spotMapper.selectList(
-                new LambdaQueryWrapper<Spot>()
-                    .eq(Spot::getIsPublished, 1)
-                    .in(Spot::getCategoryId, categoryIds)
-                    .eq(Spot::getIsDeleted, 0)
-                    .orderByDesc(Spot::getHeatScore)
-                    .last("LIMIT " + coldStartLimit)
-            );
-
-            LinkedHashSet<Long> recommendedSpotIds = spots.stream()
-                .map(Spot::getId)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-            if (recommendedSpotIds.size() < limit) {
-                recommendedSpotIds.addAll(getHotFallbackSpotIds(recommendedSpotIds, coldStartLimit));
-            }
-
-            List<Long> spotIds = new ArrayList<>(recommendedSpotIds);
-            if (refresh && !stable) {
-                spotIds = rotateRecommendations(spotIds, limit);
-            }
-            if (debugInfo != null) {
-                debugInfo.setTriggerReason("交互不足，但存在用户偏好标签");
-                debugInfo.setFinalCount(Math.min(spotIds.size(), limit));
-                List<String> notes = new ArrayList<>();
-                notes.add("当前结果来自偏好冷启动链路。");
-                if (spots.size() < limit) {
-                    notes.add("偏好分类景点不足，已使用热门景点补齐结果数量。");
-                } else {
-                    notes.add("请检查用户偏好标签与返回景点分类是否匹配。");
-                }
-                debugInfo.setNotes(notes);
-                debugInfo.setExtra(Map.of("categoryIds", categoryIds));
-            }
-            logColdStartResult(userId, "preference", categoryIds, spotIds, debug);
-            return buildRecommendationResponse(spotIds, limit, "preference", false, debugInfo);
-        }
-
-        // 没有偏好标签时，回退到热门结果并提示设置偏好。
         HotSpotResponse hotSpots = getHotSpots(refresh ? Math.max(limit * getColdStartExpandFactor(algorithmConfig), limit) : limit);
-        List<HotSpotResponse.SpotItem> hotSpotList = new ArrayList<>(hotSpots.getList());
-        if (refresh && !stable) {
-            rotateSpotItems(hotSpotList, limit);
-        }
-        if (debugInfo != null) {
-            debugInfo.setTriggerReason("交互不足且没有偏好标签");
-            debugInfo.setFinalCount(Math.min(hotSpotList.size(), limit));
-            debugInfo.setNotes(List.of(
-                "当前结果来自热门兜底链路。",
-                "请检查热度分数、上架状态和冷启动策略。"
-            ));
-        }
-        logColdStartResult(
+        return recommendationColdStartSupport.handleColdStart(
             userId,
-            "hot",
-            Collections.emptyList(),
-            hotSpotList.stream().map(HotSpotResponse.SpotItem::getId).collect(Collectors.toList()),
-            debug
+            limit,
+            refresh,
+            debug,
+            stable,
+            debugInfo,
+            algorithmConfig,
+            hotSpots,
+            ignored -> getColdStartExpandFactor(algorithmConfig),
+            this::rotateRecommendations,
+            this::rotateSpotItems,
+            spotIds -> buildRecommendationResponse(spotIds, limit, "preference", false, debugInfo),
+            hotSpotList -> {
+                RecommendationResponse response = new RecommendationResponse();
+                response.setType("hot");
+                response.setNeedPreference(true);
+                response.setDebugInfo(debugInfo);
+                response.setList(hotSpotList.stream()
+                    .limit(limit)
+                    .map(item -> {
+                        RecommendationResponse.SpotItem spotItem = new RecommendationResponse.SpotItem();
+                        spotItem.setId(item.getId());
+                        spotItem.setName(item.getName());
+                        spotItem.setCoverImage(item.getCoverImage());
+                        spotItem.setPrice(item.getPrice());
+                        spotItem.setAvgRating(item.getAvgRating());
+                        spotItem.setCategoryName(item.getCategoryName());
+                        return spotItem;
+                    })
+                    .collect(Collectors.toList()));
+                return response;
+            },
+            context -> logColdStartResult(context.userId(), context.type(), context.categoryIds(), context.spotIds(), context.debug())
         );
-        RecommendationResponse response = new RecommendationResponse();
-        response.setType("hot");
-        response.setNeedPreference(true);
-        response.setDebugInfo(debugInfo);
-        response.setList(hotSpotList.stream()
-            .limit(limit)
-            .map(item -> {
-                RecommendationResponse.SpotItem spotItem = new RecommendationResponse.SpotItem();
-                spotItem.setId(item.getId());
-                spotItem.setName(item.getName());
-                spotItem.setCoverImage(item.getCoverImage());
-                spotItem.setPrice(item.getPrice());
-                spotItem.setAvgRating(item.getAvgRating());
-                spotItem.setCategoryName(item.getCategoryName());
-                return spotItem;
-            })
-            .collect(Collectors.toList()));
-        return response;
     }
 
     private List<Long> getHotFallbackSpotIds(Collection<Long> excludedSpotIds, int limit) {
-        if (limit <= 0) {
-            return Collections.emptyList();
-        }
-
-        LambdaQueryWrapper<Spot> queryWrapper = new LambdaQueryWrapper<Spot>()
-            .eq(Spot::getIsPublished, 1)
-            .eq(Spot::getIsDeleted, 0);
-        if (excludedSpotIds != null && !excludedSpotIds.isEmpty()) {
-            queryWrapper.notIn(Spot::getId, excludedSpotIds);
-        }
-        queryWrapper.orderByDesc(Spot::getHeatScore)
-            .last("LIMIT " + limit);
-
-        return spotMapper.selectList(queryWrapper).stream()
-            .map(Spot::getId)
-            .collect(Collectors.toList());
+        return recommendationColdStartSupport.getHotFallbackSpotIds(excludedSpotIds, limit);
     }
 
     private List<Long> getUserPreferenceCategoryIds(Long userId) {
-        List<UserPreference> preferences = userPreferenceMapper.selectList(
-            new LambdaQueryWrapper<UserPreference>()
-                .eq(UserPreference::getUserId, userId)
-                .eq(UserPreference::getIsDeleted, 0)
-        );
-        if (preferences.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return preferences.stream()
-            .map(UserPreference::getTag)
-            .map(this::parsePreferenceCategoryId)
-            .filter(Objects::nonNull)
-            .distinct()
-            .collect(Collectors.toList());
+        return recommendationColdStartSupport.getUserPreferenceCategoryIds(userId);
     }
 
     private Long parsePreferenceCategoryId(String tag) {
-        if (tag == null || tag.isBlank()) {
-            return null;
-        }
-        try {
-            return Long.parseLong(tag.trim());
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
+        return recommendationColdStartSupport.parsePreferenceCategoryId(tag);
     }
 
     /**
@@ -485,7 +362,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             Double rui = entry.getValue(); // 融合后的交互权重
 
             // 读取 Top-K 相似景点。
-            Map<Long, Double> similarities = getSimilarSpots(spotId);
+            Map<Long, Double> similarities = recommendationSimilaritySupport.getSimilarSpots(spotId);
             
             for (Map.Entry<Long, Double> simEntry : similarities.entrySet()) {
                 Long similarSpotId = simEntry.getKey();
@@ -573,27 +450,6 @@ public class RecommendationServiceImpl implements RecommendationService {
             logHeatRerankDetails(scoreMap, rerankedScores, heatMap, rerankFactor, maxHeat);
         }
         return rerankedScores;
-    }
-
-    /**
-     * 从 Redis 读取相似景点。
-     */
-    @SuppressWarnings("unchecked")
-    private Map<Long, Double> getSimilarSpots(Long spotId) {
-        Object cached = recommendationCacheService.getSimilarity(spotId);
-        if (!(cached instanceof Map<?, ?> rawMap) || rawMap.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Map<Long, Double> similarities = new HashMap<>();
-        for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
-            Long similarSpotId = castToLong(entry.getKey());
-            Double similarity = castToDouble(entry.getValue());
-            if (similarSpotId != null && similarity != null) {
-                similarities.put(similarSpotId, similarity);
-            }
-        }
-        return similarities;
     }
 
     private Long castToLong(Object value) {
@@ -765,7 +621,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             RecommendationAlgorithmConfigDTO algorithmConfig = safeAlgorithmConfig(config);
             RecommendationCacheConfigDTO cacheConfig = safeCacheConfig(config);
             log.info("开始更新相似度矩阵");
-            Set<Long> activeSpotIds = getActiveSpotIds();
+            Set<Long> activeSpotIds = recommendationSimilaritySupport.getActiveSpotIds();
             if (activeSpotIds.isEmpty()) {
                 log.info("没有有效上架景点，跳过相似度矩阵更新");
                 return;
@@ -893,7 +749,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     if (usersJ.isEmpty()) continue;
 
                     // 计算 IUF 加权相似度。
-                    double similarity = computeIUFSimilarity(usersI, usersJ, userActivityCount);
+                    double similarity = recommendationSimilaritySupport.computeIUFSimilarity(usersI, usersJ, userActivityCount);
 
                     if (similarity > 0) {
                         similarities.put(spotJ, similarity);
@@ -935,54 +791,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
     }
 
-    private Set<Long> getActiveSpotIds() {
-        return spotMapper.selectList(
-                new LambdaQueryWrapper<Spot>()
-                        .eq(Spot::getIsPublished, 1)
-                        .eq(Spot::getIsDeleted, 0)
-                        .select(Spot::getId)
-        ).stream()
-                .map(Spot::getId)
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * 计算 IUF 加权余弦相似度。
-     *
-     * @param usersI 与景点 i 交互过的用户集合，即 N(i)
-     * @param usersJ 与景点 j 交互过的用户集合，即 N(j)
-     * @param userActivityCount 每个用户的总交互景点数，即 |N(u)|
-     */
-    private double computeIUFSimilarity(Set<Long> usersI, Set<Long> usersJ,
-                                         Map<Long, Integer> userActivityCount) {
-        // 优先遍历较小集合，减少计算量。
-        Set<Long> smaller = usersI.size() < usersJ.size() ? usersI : usersJ;
-        Set<Long> larger = smaller == usersI ? usersJ : usersI;
-
-        double iufSum = 0.0;
-        for (Long userId : smaller) {
-            if (larger.contains(userId)) {
-                int nu = userActivityCount.getOrDefault(userId, 1);
-                iufSum += 1.0 / Math.log(1 + nu);
-            }
-        }
-
-        if (iufSum == 0) return 0;
-
-        double denominator = Math.sqrt(usersI.size()) * Math.sqrt(usersJ.size());
-        return iufSum / denominator;
-    }
-
     private double calculateViewWeight(UserSpotView view, RecommendationAlgorithmConfigDTO config) {
-        double baseWeight = config.getWeightView() == null ? 0.5 : config.getWeightView();
-        return baseWeight * getViewSourceFactor(view.getViewSource(), config) * getViewDurationFactor(view.getViewDuration(), config);
+        return recommendationInteractionSupport.calculateViewWeight(view, config);
     }
 
     private void mergeInteractionWeight(Map<Long, Double> weights, Long spotId, Double weight) {
-        if (weights == null || spotId == null || weight == null || weight <= 0) {
-            return;
-        }
-        weights.merge(spotId, weight, Double::sum);
+        recommendationInteractionSupport.mergeInteractionWeight(weights, spotId, weight);
     }
 
     private double getViewSourceFactor(String source, RecommendationAlgorithmConfigDTO config) {
@@ -1592,40 +1406,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public SimilarityPreviewResponse previewSimilarityNeighbors(Long spotId, Integer limit) {
-        int safeLimit = limit == null || limit <= 0 ? 10 : limit;
-        Map<Long, Double> similarities = getSimilarSpots(spotId);
-        List<Long> neighborIds = similarities.keySet().stream().limit(safeLimit).collect(Collectors.toList());
-
-        SimilarityPreviewResponse response = new SimilarityPreviewResponse();
-        response.setSpotId(spotId);
-        response.setSpotName(getSpotName(spotId));
-        response.setTotalNeighbors(similarities.size());
-        response.setLastUpdateTime(getStatus().getLastUpdateTime());
-
-        if (neighborIds.isEmpty()) {
-            response.setNeighbors(Collections.emptyList());
-            return response;
-        }
-
-        Map<Long, String> categoryMap = getCategoryMap();
-        Map<Long, String> regionMap = getRegionMap();
-        Map<Long, Spot> spotMap = spotMapper.selectBatchIds(neighborIds).stream()
-            .collect(Collectors.toMap(Spot::getId, spot -> spot));
-
-        response.setNeighbors(neighborIds.stream().map(id -> {
-            SimilarityPreviewResponse.NeighborItem item = new SimilarityPreviewResponse.NeighborItem();
-            Spot spot = spotMap.get(id);
-            item.setSpotId(id);
-            item.setSpotName(spot == null ? "未知景点" : spot.getName());
-            item.setCoverImage(spot == null ? null : spot.getCoverImageUrl());
-            item.setPrice(spot == null ? null : spot.getPrice());
-            item.setAvgRating(spot == null ? null : spot.getAvgRating());
-            item.setCategoryName(spot == null ? null : categoryMap.get(spot.getCategoryId()));
-            item.setRegionName(spot == null ? null : regionMap.get(spot.getRegionId()));
-            item.setSimilarity(similarities.get(id));
-            return item;
-        }).collect(Collectors.toList()));
-        return response;
+        return recommendationSimilaritySupport.buildSimilarityPreview(spotId, limit, getStatus().getLastUpdateTime());
     }
 }
 
