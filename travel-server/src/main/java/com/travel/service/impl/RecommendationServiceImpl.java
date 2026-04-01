@@ -25,6 +25,7 @@ import com.travel.service.support.recommendation.RecommendationColdStartSupport;
 import com.travel.service.support.recommendation.RecommendationDebugSupport;
 import com.travel.service.support.recommendation.RecommendationInteractionSupport;
 import com.travel.service.support.recommendation.RecommendationMetadataSupport;
+import com.travel.service.support.recommendation.RecommendationOfflineSimilaritySupport;
 import com.travel.service.support.recommendation.RecommendationResponseSupport;
 import com.travel.service.support.recommendation.RecommendationSimilaritySupport;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final RecommendationSimilaritySupport recommendationSimilaritySupport;
     private final RecommendationInteractionSupport recommendationInteractionSupport;
     private final RecommendationCandidateSupport recommendationCandidateSupport;
+    private final RecommendationOfflineSimilaritySupport recommendationOfflineSimilaritySupport;
     private final RecommendationColdStartSupport recommendationColdStartSupport;
     private final RecommendationResponseSupport recommendationResponseSupport;
     private final RecommendationDebugSupport recommendationDebugSupport;
@@ -524,82 +526,10 @@ public class RecommendationServiceImpl implements RecommendationService {
                 return;
             }
 
-            // ============ 第 1 步：构建全量用户-景点交互矩阵 ============
-            // Map<userId, Map<spotId, weight>>
-            Map<Long, Map<Long, Double>> userItemMatrix = new HashMap<>();
-            Set<Long> allSpotIds = new HashSet<>();
-
-            // 1a. 浏览行为
-            List<UserSpotView> allViews = userSpotViewMapper.selectList(
-                new LambdaQueryWrapper<UserSpotView>()
-                    .select(UserSpotView::getUserId, UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
-            );
-            log.info("离线矩阵更新：已读取浏览行为 {} 条", allViews.size());
-            for (UserSpotView v : allViews) {
-                if (!activeSpotIds.contains(v.getSpotId())) continue;
-                mergeInteractionWeight(
-                    userItemMatrix.computeIfAbsent(v.getUserId(), k -> new HashMap<>()),
-                    v.getSpotId(),
-                    calculateViewWeight(v, algorithmConfig)
-                );
-                allSpotIds.add(v.getSpotId());
-            }
-
-            // 1b. 收藏行为
-            List<UserSpotFavorite> allFavorites = userSpotFavoriteMapper.selectList(
-                new LambdaQueryWrapper<UserSpotFavorite>()
-                    .eq(UserSpotFavorite::getIsDeleted, 0)
-                    .select(UserSpotFavorite::getUserId, UserSpotFavorite::getSpotId)
-            );
-            log.info("离线矩阵更新：已读取收藏行为 {} 条", allFavorites.size());
-            for (UserSpotFavorite f : allFavorites) {
-                if (!activeSpotIds.contains(f.getSpotId())) continue;
-                mergeInteractionWeight(
-                    userItemMatrix.computeIfAbsent(f.getUserId(), k -> new HashMap<>()),
-                    f.getSpotId(),
-                    defaultDouble(algorithmConfig.getWeightFavorite(), 1.0)
-                );
-                allSpotIds.add(f.getSpotId());
-            }
-
-            // 1c. 评分行为
-            List<Review> allRatings = reviewMapper.selectList(
-                new LambdaQueryWrapper<Review>()
-                    .eq(Review::getIsDeleted, 0)
-                    .select(Review::getUserId, Review::getSpotId, Review::getScore)
-            );
-            log.info("离线矩阵更新：已读取评分行为 {} 条", allRatings.size());
-            for (Review r : allRatings) {
-                if (!activeSpotIds.contains(r.getSpotId())) continue;
-                double w = r.getScore() * defaultDouble(algorithmConfig.getWeightReviewFactor(), 0.4);
-                mergeInteractionWeight(
-                    userItemMatrix.computeIfAbsent(r.getUserId(), k -> new HashMap<>()),
-                    r.getSpotId(),
-                    w
-                );
-                allSpotIds.add(r.getSpotId());
-            }
-
-            // 1d. 已支付和已完成订单
-            List<Order> allOrders = orderMapper.selectList(
-                new LambdaQueryWrapper<Order>()
-                    .eq(Order::getIsDeleted, 0)
-                    .in(Order::getStatus, OrderStatus.PAID.getCode(), OrderStatus.COMPLETED.getCode())
-                    .select(Order::getUserId, Order::getSpotId, Order::getStatus)
-            );
-            log.info("离线矩阵更新：已读取订单行为 {} 条", allOrders.size());
-            for (Order o : allOrders) {
-                if (!activeSpotIds.contains(o.getSpotId())) continue;
-                double w = o.getStatus() == OrderStatus.COMPLETED.getCode()
-                    ? defaultDouble(algorithmConfig.getWeightOrderCompleted(), 4.0)
-                    : defaultDouble(algorithmConfig.getWeightOrderPaid(), 3.0);
-                mergeInteractionWeight(
-                    userItemMatrix.computeIfAbsent(o.getUserId(), k -> new HashMap<>()),
-                    o.getSpotId(),
-                    w
-                );
-                allSpotIds.add(o.getSpotId());
-            }
+            RecommendationOfflineSimilaritySupport.OfflineMatrixSnapshot snapshot =
+                recommendationOfflineSimilaritySupport.buildUserItemMatrix(activeSpotIds, algorithmConfig);
+            Map<Long, Map<Long, Double>> userItemMatrix = snapshot.userItemMatrix();
+            Set<Long> allSpotIds = snapshot.allSpotIds();
 
             if (userItemMatrix.isEmpty()) {
                 log.info("没有交互数据，跳过相似度矩阵更新");
@@ -607,74 +537,27 @@ public class RecommendationServiceImpl implements RecommendationService {
             }
 
             log.info("交互矩阵构建完成：用户数={}，景点数={}", userItemMatrix.size(), allSpotIds.size());
-            logUserItemMatrixSamples(userItemMatrix);
 
             // ============ 第 2 步：预计算 IUF 所需的 |N(u)| ============
-            Map<Long, Integer> userActivityCount = new HashMap<>();
-            for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
-                userActivityCount.put(entry.getKey(), entry.getValue().size());
-            }
-            logUserActivitySamples(userActivityCount);
+            Map<Long, Integer> userActivityCount = recommendationOfflineSimilaritySupport.buildUserActivityCount(userItemMatrix);
 
             // ============ 第 3 步：构建景点到用户的倒排索引 ============
             // Map<spotId, Set<userId>> 表示 N(i)
-            Map<Long, Set<Long>> spotUserSets = new HashMap<>();
-            for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
-                Long userId = entry.getKey();
-                for (Long spotId : entry.getValue().keySet()) {
-                    spotUserSets.computeIfAbsent(spotId, k -> new HashSet<>()).add(userId);
-                }
-            }
+            Map<Long, Set<Long>> spotUserSets = recommendationOfflineSimilaritySupport.buildSpotUserSets(userItemMatrix);
 
             // ============ 第 4 步：计算 IUF 加权相似度 ============
-            List<Long> spotIdList = new ArrayList<>(allSpotIds);
             int topK = defaultInt(algorithmConfig.getTopKNeighbors(), 20);
             int simTTL = defaultInt(cacheConfig.getSimilarityTTLHours(), 24);
-
-            for (int i = 0; i < spotIdList.size(); i++) {
-                Long spotI = spotIdList.get(i);
-                Set<Long> usersI = spotUserSets.getOrDefault(spotI, Collections.emptySet());
-                if (usersI.isEmpty()) continue;
-
-                Map<Long, Double> similarities = new HashMap<>();
-
-                for (int j = 0; j < spotIdList.size(); j++) {
-                    if (i == j) continue;
-
-                    Long spotJ = spotIdList.get(j);
-                    Set<Long> usersJ = spotUserSets.getOrDefault(spotJ, Collections.emptySet());
-                    if (usersJ.isEmpty()) continue;
-
-                    // 计算 IUF 加权相似度。
-                    double similarity = recommendationSimilaritySupport.computeIUFSimilarity(usersI, usersJ, userActivityCount);
-
-                    if (similarity > 0) {
-                        similarities.put(spotJ, similarity);
-                    }
-                }
-
-                // 仅保留 Top-K 相似景点。
-                Map<Long, Double> topSimilarities = similarities.entrySet().stream()
-                    .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
-                    .limit(topK)
-                    .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new
-                    ));
-
-                // 写入 Redis 缓存。
-                recommendationCacheService.saveSimilarity(spotI, java.util.Objects.requireNonNull(topSimilarities), simTTL);
-                logSpotSimilaritySummary(spotI, topSimilarities);
-            }
+            recommendationOfflineSimilaritySupport.persistSimilarityMatrix(
+                allSpotIds,
+                spotUserSets,
+                userActivityCount,
+                algorithmConfig,
+                cacheConfig
+            );
 
             // ============ 保存状态摘要 ============
-            Map<String, Object> statusMap = new HashMap<>();
-            statusMap.put("lastUpdateTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-            statusMap.put("totalUsers", userItemMatrix.size());
-            statusMap.put("totalSpots", allSpotIds.size());
-            recommendationCacheService.saveStatus(statusMap);
+            recommendationOfflineSimilaritySupport.saveOfflineStatus(userItemMatrix.size(), allSpotIds.size());
 
             log.info(
                 "相似度矩阵更新完成：景点数={}，用户数={}，缓存时长={}小时，Top-K={}",
@@ -686,14 +569,6 @@ public class RecommendationServiceImpl implements RecommendationService {
         } finally {
             computing.set(false);
         }
-    }
-
-    private double calculateViewWeight(UserSpotView view, RecommendationAlgorithmConfigDTO config) {
-        return recommendationInteractionSupport.calculateViewWeight(view, config);
-    }
-
-    private void mergeInteractionWeight(Map<Long, Double> weights, Long spotId, Double weight) {
-        recommendationInteractionSupport.mergeInteractionWeight(weights, spotId, weight);
     }
 
     private double defaultDouble(Double value, double fallback) {
@@ -832,18 +707,6 @@ public class RecommendationServiceImpl implements RecommendationService {
     private void logHeatRerankDetails(Map<Long, Double> beforeScores, Map<Long, Double> afterScores,
                                       Map<Long, Integer> heatMap, double rerankFactor, int maxHeat) {
         recommendationDebugSupport.logHeatRerankDetails(beforeScores, afterScores, heatMap, rerankFactor, maxHeat);
-    }
-
-    private void logUserItemMatrixSamples(Map<Long, Map<Long, Double>> userItemMatrix) {
-        recommendationDebugSupport.logUserItemMatrixSamples(userItemMatrix);
-    }
-
-    private void logUserActivitySamples(Map<Long, Integer> userActivityCount) {
-        recommendationDebugSupport.logUserActivitySamples(userActivityCount);
-    }
-
-    private void logSpotSimilaritySummary(Long spotId, Map<Long, Double> topSimilarities) {
-        recommendationDebugSupport.logSpotSimilaritySummary(spotId, topSimilarities);
     }
 
     private String getSpotName(Long spotId) {

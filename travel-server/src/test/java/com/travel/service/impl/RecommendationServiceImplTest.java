@@ -27,6 +27,7 @@ import com.travel.service.support.recommendation.RecommendationColdStartSupport;
 import com.travel.service.support.recommendation.RecommendationDebugSupport;
 import com.travel.service.support.recommendation.RecommendationInteractionSupport;
 import com.travel.service.support.recommendation.RecommendationMetadataSupport;
+import com.travel.service.support.recommendation.RecommendationOfflineSimilaritySupport;
 import com.travel.service.support.recommendation.RecommendationResponseSupport;
 import com.travel.service.support.recommendation.RecommendationSimilaritySupport;
 import com.travel.service.support.recommendation.RecommendationViewSourceClassifier;
@@ -147,6 +148,16 @@ class RecommendationServiceImplTest {
             orderMapper,
             recommendationDebugSupport
         );
+        RecommendationOfflineSimilaritySupport recommendationOfflineSimilaritySupport = new RecommendationOfflineSimilaritySupport(
+            userSpotViewMapper,
+            userSpotFavoriteMapper,
+            reviewMapper,
+            orderMapper,
+            recommendationInteractionSupport,
+            recommendationSimilaritySupport,
+            recommendationDebugSupport,
+            recommendationCacheService
+        );
 
         recommendationService = new RecommendationServiceImpl(
             spotMapper,
@@ -163,6 +174,7 @@ class RecommendationServiceImplTest {
             recommendationSimilaritySupport,
             recommendationInteractionSupport,
             recommendationCandidateSupport,
+            recommendationOfflineSimilaritySupport,
             recommendationColdStartSupport,
             recommendationResponseSupport,
             recommendationDebugSupport
