@@ -4,7 +4,7 @@ import com.travel.common.result.ApiResponse;
 import com.travel.dto.auth.request.ChangePasswordRequest;
 import com.travel.dto.auth.request.PreferencesRequest;
 import com.travel.dto.auth.request.UpdateUserInfoRequest;
-import com.travel.dto.auth.response.UserInfoResponse;
+import com.travel.dto.user.response.UserInfoResponse;
 import com.travel.service.UserAccountService;
 import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
