@@ -123,12 +123,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         spotMapper.updateById(spot);
 
         if (request.getImages() != null) {
-            SpotImage deletedImage = new SpotImage();
-            deletedImage.setIsDeleted(1);
-            spotImageMapper.update(
-                deletedImage,
-                new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId)
-            );
+            markSpotImagesDeleted(spotId);
             spotSupportService.saveSpotImages(spotId, request.getImages());
         }
 
@@ -149,13 +144,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         spot.setIsDeleted(1);
         spotMapper.updateById(spot);
 
-        SpotImage deletedImage = new SpotImage();
-        deletedImage.setIsDeleted(1);
-        spotImageMapper.update(
-            deletedImage,
-            new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId)
-        );
-
+        markSpotImagesDeleted(spotId);
         log.info("景点已删除: spotId={}, name={}", spotId, spot.getName());
     }
 
@@ -165,5 +154,17 @@ public class SpotAdminServiceImpl implements SpotAdminService {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
         }
         return spot;
+    }
+
+    /**
+     * 更新图片时统一先软删旧记录，避免历史图片残留在当前景点下继续生效。
+     */
+    private void markSpotImagesDeleted(Long spotId) {
+        SpotImage deletedImage = new SpotImage();
+        deletedImage.setIsDeleted(1);
+        spotImageMapper.update(
+            deletedImage,
+            new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId)
+        );
     }
 }
