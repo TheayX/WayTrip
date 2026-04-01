@@ -70,10 +70,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public AdminUserDetailResponse getAdminUserDetail(Long userId) {
-        User user = userMapper.selectById(userId);
-        if (user == null || user.getIsDeleted() == 1) {
-            throw new RuntimeException("用户不存在");
-        }
+        User user = getExistingUser(userId);
 
         AdminUserDetailResponse response = new AdminUserDetailResponse();
         response.setId(user.getId());
@@ -85,25 +82,10 @@ public class UserProfileServiceImpl implements UserProfileService {
         response.setUpdatedAt(user.getUpdatedAt());
 
         // 详情页需要聚合订单、收藏和评价数量。
-        response.setOrderCount(Math.toIntExact(orderMapper.selectCount(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getUserId, userId)
-                .eq(Order::getIsDeleted, 0)
-        )));
-        response.setFavoriteCount(Math.toIntExact(userSpotFavoriteMapper.selectCount(
-            new LambdaQueryWrapper<UserSpotFavorite>()
-                .eq(UserSpotFavorite::getUserId, userId)
-                .eq(UserSpotFavorite::getIsDeleted, 0)
-        )));
-        response.setRatingCount(Math.toIntExact(reviewMapper.selectCount(
-            new LambdaQueryWrapper<Review>()
-                .eq(Review::getUserId, userId)
-                .eq(Review::getIsDeleted, 0)
-        )));
-        response.setViewCount(Math.toIntExact(userSpotViewMapper.selectCount(
-            new LambdaQueryWrapper<UserSpotView>()
-                .eq(UserSpotView::getUserId, userId)
-        )));
+        response.setOrderCount(countOrders(userId));
+        response.setFavoriteCount(countFavorites(userId));
+        response.setRatingCount(countRatings(userId));
+        response.setViewCount(countViews(userId));
 
         response.setPreferenceSummary(buildPreferenceSummary(userId));
         response.setFavoriteSummary(buildFavoriteSummary(userId));
@@ -119,15 +101,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         );
 
         // 订单表中仅保存景点 ID，展示时补充景点名称。
-        java.util.Set<Long> spotIds = recentOrders.stream()
-            .map(Order::getSpotId)
-            .collect(java.util.stream.Collectors.toSet());
-        java.util.Map<Long, String> spotNameMap = new java.util.HashMap<>();
-        if (!spotIds.isEmpty()) {
-            spotMapper.selectBatchIds(spotIds).forEach(spot -> 
-                spotNameMap.put(spot.getId(), spot.getName())
-            );
-        }
+        java.util.Map<Long, String> spotNameMap = buildSpotNameMap(
+            recentOrders.stream().map(Order::getSpotId).collect(java.util.stream.Collectors.toSet())
+        );
 
         response.setRecentOrders(recentOrders.stream().map(order -> {
             AdminUserDetailResponse.RecentOrder ro = new AdminUserDetailResponse.RecentOrder();
@@ -245,6 +221,59 @@ public class UserProfileServiceImpl implements UserProfileService {
         return orderStatus != null ? orderStatus.getKey() : "unknown";
     }
 
+    /**
+     * 用户详情和密码重置都要求目标用户必须存在，统一收口存在性校验。
+     */
+    private User getExistingUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new RuntimeException("用户不存在");
+        }
+        return user;
+    }
+
+    private int countOrders(Long userId) {
+        return Math.toIntExact(orderMapper.selectCount(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
+        ));
+    }
+
+    private int countFavorites(Long userId) {
+        return Math.toIntExact(userSpotFavoriteMapper.selectCount(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getUserId, userId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+        ));
+    }
+
+    private int countRatings(Long userId) {
+        return Math.toIntExact(reviewMapper.selectCount(
+            new LambdaQueryWrapper<Review>()
+                .eq(Review::getUserId, userId)
+                .eq(Review::getIsDeleted, 0)
+        ));
+    }
+
+    private int countViews(Long userId) {
+        return Math.toIntExact(userSpotViewMapper.selectCount(
+            new LambdaQueryWrapper<UserSpotView>()
+                .eq(UserSpotView::getUserId, userId)
+        ));
+    }
+
+    /**
+     * 最近订单摘要只需要景点名称，统一按景点 ID 批量补齐，避免零散查询。
+     */
+    private java.util.Map<Long, String> buildSpotNameMap(java.util.Set<Long> spotIds) {
+        java.util.Map<Long, String> spotNameMap = new java.util.HashMap<>();
+        if (!spotIds.isEmpty()) {
+            spotMapper.selectBatchIds(spotIds).forEach(spot -> spotNameMap.put(spot.getId(), spot.getName()));
+        }
+        return spotNameMap;
+    }
+
     private Long parseCategoryId(String tag) {
         try {
             return Long.parseLong(tag);
@@ -265,31 +294,16 @@ public class UserProfileServiceImpl implements UserProfileService {
         item.setUpdatedAt(user.getUpdatedAt());
 
         // 列表页同步返回关键统计项，减少前端二次查询。
-        item.setOrderCount(Math.toIntExact(orderMapper.selectCount(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getUserId, user.getId())
-                .eq(Order::getIsDeleted, 0)
-        )));
-        item.setFavoriteCount(Math.toIntExact(userSpotFavoriteMapper.selectCount(
-            new LambdaQueryWrapper<UserSpotFavorite>()
-                .eq(UserSpotFavorite::getUserId, user.getId())
-                .eq(UserSpotFavorite::getIsDeleted, 0)
-        )));
-        item.setRatingCount(Math.toIntExact(reviewMapper.selectCount(
-            new LambdaQueryWrapper<Review>()
-                .eq(Review::getUserId, user.getId())
-                .eq(Review::getIsDeleted, 0)
-        )));
+        item.setOrderCount(countOrders(user.getId()));
+        item.setFavoriteCount(countFavorites(user.getId()));
+        item.setRatingCount(countRatings(user.getId()));
 
         return item;
     }
 
     @Override
     public void resetUserPassword(Long userId, ResetUserPasswordRequest request) {
-        User user = userMapper.selectById(userId);
-        if (user == null || user.getIsDeleted() == 1) {
-            throw new RuntimeException("用户不存在");
-        }
+        User user = getExistingUser(userId);
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userMapper.updateById(user);
         log.info("用户密码已重置: userId={}", userId);

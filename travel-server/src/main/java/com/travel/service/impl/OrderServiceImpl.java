@@ -114,17 +114,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDetailResponse getOrderDetail(Long userId, Long orderId) {
-        Order order = orderMapper.selectOne(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getId, orderId)
-                .eq(Order::getUserId, userId)
-                .eq(Order::getIsDeleted, 0)
-        );
-
-        if (order == null) {
-            throw new RuntimeException("订单不存在");
-        }
-
+        Order order = getUserOrder(userId, orderId);
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
     }
@@ -132,16 +122,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDetailResponse payOrder(Long userId, Long orderId, String idempotentKey) {
-        Order order = orderMapper.selectOne(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getId, orderId)
-                .eq(Order::getUserId, userId)
-                .eq(Order::getIsDeleted, 0)
-        );
-
-        if (order == null) {
-            throw new RuntimeException("订单不存在");
-        }
+        Order order = getUserOrder(userId, orderId);
 
         // 支付接口按幂等返回，避免重复请求造成前端报错。
         if (order.getStatus() == OrderStatus.PAID.getCode()) {
@@ -167,16 +148,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDetailResponse cancelOrder(Long userId, Long orderId) {
-        Order order = orderMapper.selectOne(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getId, orderId)
-                .eq(Order::getUserId, userId)
-                .eq(Order::getIsDeleted, 0)
-        );
-
-        if (order == null) {
-            throw new RuntimeException("订单不存在");
-        }
+        Order order = getUserOrder(userId, orderId);
 
         // 取消接口同样按幂等返回，兼容用户重复点击。
         if (order.getStatus() == OrderStatus.CANCELLED.getCode()) {
@@ -216,12 +188,7 @@ public class OrderServiceImpl implements OrderService {
                 new LambdaQueryWrapper<Spot>().like(Spot::getName, request.getSpotName())
             );
             if (matchingSpots.isEmpty()) {
-                AdminOrderListResponse response = new AdminOrderListResponse();
-                response.setList(Collections.emptyList());
-                response.setTotal(0L);
-                response.setPage(request.getPage());
-                response.setPageSize(request.getPageSize());
-                return response;
+                return buildEmptyAdminOrderListResponse(request.getPage(), request.getPageSize());
             }
             Set<Long> spotIds = matchingSpots.stream()
                 .map(Spot::getId)
@@ -262,10 +229,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDetailResponse getAdminOrderDetail(Long orderId) {
-        Order order = orderMapper.selectById(orderId);
-        if (order == null || order.getIsDeleted() == 1) {
-            throw new RuntimeException("订单不存在");
-        }
+        Order order = getExistingOrder(orderId);
         fillSpotInfoSingle(order);
         return buildOrderDetail(order);
     }
@@ -273,10 +237,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDetailResponse completeOrder(Long orderId) {
-        Order order = orderMapper.selectById(orderId);
-        if (order == null || order.getIsDeleted() == 1) {
-            throw new RuntimeException("订单不存在");
-        }
+        Order order = getExistingOrder(orderId);
         if (order.getStatus() == OrderStatus.COMPLETED.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
@@ -296,10 +257,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDetailResponse refundOrder(Long orderId) {
-        Order order = orderMapper.selectById(orderId);
-        if (order == null || order.getIsDeleted() == 1) {
-            throw new RuntimeException("订单不存在");
-        }
+        Order order = getExistingOrder(orderId);
         if (order.getStatus() == OrderStatus.REFUNDED.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
@@ -319,10 +277,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDetailResponse cancelOrderByAdmin(Long orderId) {
-        Order order = orderMapper.selectById(orderId);
-        if (order == null || order.getIsDeleted() == 1) {
-            throw new RuntimeException("订单不存在");
-        }
+        Order order = getExistingOrder(orderId);
         if (order.getStatus() == OrderStatus.CANCELLED.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
@@ -342,10 +297,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDetailResponse reopenOrder(Long orderId) {
-        Order order = orderMapper.selectById(orderId);
-        if (order == null || order.getIsDeleted() == 1) {
-            throw new RuntimeException("订单不存在");
-        }
+        Order order = getExistingOrder(orderId);
         if (order.getStatus() != OrderStatus.COMPLETED.getCode()) {
             throw new RuntimeException("订单状态不允许恢复");
         }
@@ -364,6 +316,42 @@ public class OrderServiceImpl implements OrderService {
     }
 
     // 内部状态转换与响应组装
+
+    /**
+     * 用户端订单操作统一按用户维度加载订单，避免遗漏 is_deleted 过滤条件。
+     */
+    private Order getUserOrder(Long userId, Long orderId) {
+        Order order = orderMapper.selectOne(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getId, orderId)
+                .eq(Order::getUserId, userId)
+                .eq(Order::getIsDeleted, 0)
+        );
+        if (order == null) {
+            throw new RuntimeException("订单不存在");
+        }
+        return order;
+    }
+
+    /**
+     * 管理端统一按主键加载有效订单，收口后台状态流转前的存在性校验。
+     */
+    private Order getExistingOrder(Long orderId) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || order.getIsDeleted() == 1) {
+            throw new RuntimeException("订单不存在");
+        }
+        return order;
+    }
+
+    private AdminOrderListResponse buildEmptyAdminOrderListResponse(Integer page, Integer pageSize) {
+        AdminOrderListResponse response = new AdminOrderListResponse();
+        response.setList(Collections.emptyList());
+        response.setTotal(0L);
+        response.setPage(page);
+        response.setPageSize(pageSize);
+        return response;
+    }
 
     private String generateOrderNo() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));

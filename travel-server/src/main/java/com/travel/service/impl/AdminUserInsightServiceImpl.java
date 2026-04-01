@@ -60,7 +60,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             ).stream().map(UserPreference::getUserId).collect(Collectors.toSet());
 
             if (matchedUserIds.isEmpty()) {
-                return PageResult.of(Collections.emptyList(), 0, request.getPage(), request.getPageSize());
+                return emptyPageResult(request.getPage(), request.getPageSize());
             }
             userWrapper.in(User::getId, matchedUserIds);
         }
@@ -132,18 +132,18 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
 
         Set<Long> userIds = resolveUserIdsByNickname(request.getNickname());
         if (userIds != null) {
-          if (userIds.isEmpty()) {
-              return PageResult.of(Collections.emptyList(), 0, request.getPage(), request.getPageSize());
-          }
-          wrapper.in(UserSpotFavorite::getUserId, userIds);
+            if (userIds.isEmpty()) {
+                return emptyPageResult(request.getPage(), request.getPageSize());
+            }
+            wrapper.in(UserSpotFavorite::getUserId, userIds);
         }
 
         Set<Long> spotIds = resolveSpotIdsByName(request.getSpotName());
         if (spotIds != null) {
-          if (spotIds.isEmpty()) {
-              return PageResult.of(Collections.emptyList(), 0, request.getPage(), request.getPageSize());
-          }
-          wrapper.in(UserSpotFavorite::getSpotId, spotIds);
+            if (spotIds.isEmpty()) {
+                return emptyPageResult(request.getPage(), request.getPageSize());
+            }
+            wrapper.in(UserSpotFavorite::getSpotId, spotIds);
         }
 
         if (request.getStartDate() != null) {
@@ -183,7 +183,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         Set<Long> userIds = resolveUserIdsByNickname(request.getNickname());
         if (userIds != null) {
             if (userIds.isEmpty()) {
-                return PageResult.of(Collections.emptyList(), 0, request.getPage(), request.getPageSize());
+                return emptyPageResult(request.getPage(), request.getPageSize());
             }
             wrapper.in(UserSpotView::getUserId, userIds);
         }
@@ -191,7 +191,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         Set<Long> spotIds = resolveSpotIdsByName(request.getSpotName());
         if (spotIds != null) {
             if (spotIds.isEmpty()) {
-                return PageResult.of(Collections.emptyList(), 0, request.getPage(), request.getPageSize());
+                return emptyPageResult(request.getPage(), request.getPageSize());
             }
             wrapper.in(UserSpotView::getSpotId, spotIds);
         }
@@ -320,5 +320,12 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
 
     private String formatDateTime(LocalDateTime dateTime) {
         return dateTime == null ? null : DATE_TIME_FORMATTER.format(dateTime);
+    }
+
+    /**
+     * 后台筛选在前置条件已经判定无结果时，统一返回空分页结构，避免散落重复代码。
+     */
+    private <T> PageResult<T> emptyPageResult(Integer page, Integer pageSize) {
+        return PageResult.of(Collections.emptyList(), 0, page, pageSize);
     }
 }

@@ -51,10 +51,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void submitReview(Long userId, ReviewRequest request) {
-        Spot spot = spotMapper.selectById(request.getSpotId());
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
+        Spot spot = getAvailableSpot(request.getSpotId());
         if (spot.getIsPublished() != 1) {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
@@ -184,10 +181,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void refreshSpotRating(Long spotId) {
-        Spot spot = spotMapper.selectById(spotId);
-        if (spot == null || spot.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
-        }
+        getAvailableSpot(spotId);
         updateSpotAvgRating(spotId);
     }
 
@@ -208,10 +202,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void deleteReviewByAdmin(Long reviewId) {
-        Review review = reviewMapper.selectById(reviewId);
-        if (review == null || review.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.REVIEW_NOT_FOUND);
-        }
+        Review review = getActiveReview(reviewId);
 
         review.setIsDeleted(1);
         reviewMapper.updateById(review);
@@ -221,6 +212,28 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // 景点评分同步与响应转换
+
+    /**
+     * 评价相关操作统一要求景点处于有效状态，避免不同入口各自散落相同校验。
+     */
+    private Spot getAvailableSpot(Long spotId) {
+        Spot spot = spotMapper.selectById(spotId);
+        if (spot == null || spot.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.SPOT_NOT_FOUND);
+        }
+        return spot;
+    }
+
+    /**
+     * 管理端删除和用户删除都要求评价仍然有效，统一收口存在性判断。
+     */
+    private Review getActiveReview(Long reviewId) {
+        Review review = reviewMapper.selectById(reviewId);
+        if (review == null || review.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.REVIEW_NOT_FOUND);
+        }
+        return review;
+    }
 
     private void updateSpotAvgRating(Long spotId) {
         SpotRatingStats stats = reviewMapper.selectSpotRatingStats(spotId);
