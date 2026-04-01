@@ -50,7 +50,10 @@ public class RecommendationOfflineSimilaritySupport {
     /**
      * 离线构建用户-景点交互矩阵，并返回参与计算的景点集合。
      */
-    public OfflineMatrixSnapshot buildUserItemMatrix(Set<Long> activeSpotIds, RecommendationAlgorithmConfigDTO algorithmConfig) {
+    /**
+     * 读取全量行为并构建离线交互矩阵，供后续相似度批量计算复用。
+     */
+    public OfflineMatrixSnapshot buildOfflineInteractionMatrix(Set<Long> activeSpotIds, RecommendationAlgorithmConfigDTO algorithmConfig) {
         Map<Long, Map<Long, Double>> userItemMatrix = new HashMap<>();
         Set<Long> allSpotIds = new HashSet<>();
 
@@ -132,7 +135,10 @@ public class RecommendationOfflineSimilaritySupport {
         return new OfflineMatrixSnapshot(userItemMatrix, allSpotIds);
     }
 
-    public Map<Long, Integer> buildUserActivityCount(Map<Long, Map<Long, Double>> userItemMatrix) {
+    /**
+     * 汇总每个用户参与过的景点数，作为 IUF 加权计算的活跃度输入。
+     */
+    public Map<Long, Integer> summarizeUserActivityCount(Map<Long, Map<Long, Double>> userItemMatrix) {
         Map<Long, Integer> userActivityCount = new HashMap<>();
         for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
             userActivityCount.put(entry.getKey(), entry.getValue().size());
@@ -141,7 +147,10 @@ public class RecommendationOfflineSimilaritySupport {
         return userActivityCount;
     }
 
-    public Map<Long, Set<Long>> buildSpotUserSets(Map<Long, Map<Long, Double>> userItemMatrix) {
+    /**
+     * 把用户-景点矩阵转换为景点到用户的倒排索引，便于两两景点计算共同用户集合。
+     */
+    public Map<Long, Set<Long>> buildSpotUserIndex(Map<Long, Map<Long, Double>> userItemMatrix) {
         Map<Long, Set<Long>> spotUserSets = new HashMap<>();
         for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
             Long userId = entry.getKey();
@@ -152,7 +161,10 @@ public class RecommendationOfflineSimilaritySupport {
         return spotUserSets;
     }
 
-    public void persistSimilarityMatrix(
+    /**
+     * 根据倒排索引批量计算 Top-K 相似邻居，并写入相似度缓存。
+     */
+    public void cacheSimilarityNeighbors(
         Set<Long> allSpotIds,
         Map<Long, Set<Long>> spotUserSets,
         Map<Long, Integer> userActivityCount,
@@ -203,7 +215,10 @@ public class RecommendationOfflineSimilaritySupport {
         }
     }
 
-    public void saveOfflineStatus(int totalUsers, int totalSpots) {
+    /**
+     * 保存本次离线更新的摘要状态，供后台查看最近一次矩阵构建情况。
+     */
+    public void saveOfflineSummary(int totalUsers, int totalSpots) {
         Map<String, Object> statusMap = new HashMap<>();
         statusMap.put("lastUpdateTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         statusMap.put("totalUsers", totalUsers);

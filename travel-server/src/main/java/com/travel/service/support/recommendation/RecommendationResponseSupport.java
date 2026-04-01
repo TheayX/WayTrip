@@ -21,6 +21,9 @@ public class RecommendationResponseSupport {
     private final SpotMapper spotMapper;
     private final RecommendationMetadataSupport recommendationMetadataSupport;
 
+    /**
+     * 按推荐结果顺序补齐景点元数据，并组装统一的推荐响应对象。
+     */
     public RecommendationResponse buildRecommendationResponse(
         List<Long> spotIds,
         Map<Long, Double> scoreMap,

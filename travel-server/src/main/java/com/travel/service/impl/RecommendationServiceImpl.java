@@ -527,7 +527,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             }
 
             RecommendationOfflineSimilaritySupport.OfflineMatrixSnapshot snapshot =
-                recommendationOfflineSimilaritySupport.buildUserItemMatrix(activeSpotIds, algorithmConfig);
+                recommendationOfflineSimilaritySupport.buildOfflineInteractionMatrix(activeSpotIds, algorithmConfig);
             Map<Long, Map<Long, Double>> userItemMatrix = snapshot.userItemMatrix();
             Set<Long> allSpotIds = snapshot.allSpotIds();
 
@@ -539,16 +539,16 @@ public class RecommendationServiceImpl implements RecommendationService {
             log.info("交互矩阵构建完成：用户数={}，景点数={}", userItemMatrix.size(), allSpotIds.size());
 
             // ============ 第 2 步：预计算 IUF 所需的 |N(u)| ============
-            Map<Long, Integer> userActivityCount = recommendationOfflineSimilaritySupport.buildUserActivityCount(userItemMatrix);
+            Map<Long, Integer> userActivityCount = recommendationOfflineSimilaritySupport.summarizeUserActivityCount(userItemMatrix);
 
             // ============ 第 3 步：构建景点到用户的倒排索引 ============
             // Map<spotId, Set<userId>> 表示 N(i)
-            Map<Long, Set<Long>> spotUserSets = recommendationOfflineSimilaritySupport.buildSpotUserSets(userItemMatrix);
+            Map<Long, Set<Long>> spotUserSets = recommendationOfflineSimilaritySupport.buildSpotUserIndex(userItemMatrix);
 
             // ============ 第 4 步：计算 IUF 加权相似度 ============
             int topK = defaultInt(algorithmConfig.getTopKNeighbors(), 20);
             int simTTL = defaultInt(cacheConfig.getSimilarityTTLHours(), 24);
-            recommendationOfflineSimilaritySupport.persistSimilarityMatrix(
+            recommendationOfflineSimilaritySupport.cacheSimilarityNeighbors(
                 allSpotIds,
                 spotUserSets,
                 userActivityCount,
@@ -557,7 +557,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             );
 
             // ============ 保存状态摘要 ============
-            recommendationOfflineSimilaritySupport.saveOfflineStatus(userItemMatrix.size(), allSpotIds.size());
+            recommendationOfflineSimilaritySupport.saveOfflineSummary(userItemMatrix.size(), allSpotIds.size());
 
             log.info(
                 "相似度矩阵更新完成：景点数={}，用户数={}，缓存时长={}小时，Top-K={}",

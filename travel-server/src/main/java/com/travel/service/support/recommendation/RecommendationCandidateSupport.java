@@ -38,6 +38,9 @@ public class RecommendationCandidateSupport {
     private final OrderMapper orderMapper;
     private final RecommendationDebugSupport recommendationDebugSupport;
 
+    /**
+     * 按热度对协同过滤候选进行轻量重排，避免结果完全忽略全站热度信号。
+     */
     public Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, RecommendationHeatConfigDTO config, boolean debug) {
         if (scoreMap == null || scoreMap.isEmpty()) {
             return Collections.emptyMap();
@@ -123,6 +126,9 @@ public class RecommendationCandidateSupport {
             .collect(Collectors.toList());
     }
 
+    /**
+     * 按既定景点顺序重排分数 Map，保证返回顺序和候选顺序一致。
+     */
     public Map<Long, Double> orderScoresByIds(List<Long> orderedIds, Map<Long, Double> scoreMap) {
         if (orderedIds == null || orderedIds.isEmpty() || scoreMap == null || scoreMap.isEmpty()) {
             return Collections.emptyMap();
@@ -137,6 +143,9 @@ public class RecommendationCandidateSupport {
         return orderedScores;
     }
 
+    /**
+     * 将缓存中的原始推荐分数字典转换为 Long-Double 结构，供推荐结果直接复用。
+     */
     public Map<Long, Double> castScoreMap(Map<?, ?> rawMap) {
         Map<Long, Double> scoreMap = new LinkedHashMap<>();
         for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
