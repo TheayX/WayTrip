@@ -1,19 +1,38 @@
 <template>
   <div class="dashboard premium-dashboard">
-    <div class="dashboard-header flex-between mb-6">
-      <div class="welcome-text">
-        <h2 class="title text-2xl font-bold m-0 text-gray-800">业务数据中心</h2>
-        <p class="subtitle text-sm text-gray-400 mt-2">全面监控业务流转与运营健康度</p>
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">Business Overview</p>
+        <h1 class="page-title">业务数据中心</h1>
+        <p class="page-subtitle">集中查看核心指标、趋势变化与运营入口，不在首页承载复杂处理动作。</p>
       </div>
-      <div class="actions">
-        <el-button type="primary" class="modern-btn" @click="fetchData">
+      <div class="hero-actions">
+        <el-button type="primary" :loading="loading" @click="fetchData">
           <el-icon class="mr-1"><RefreshRight /></el-icon> 刷新数据
         </el-button>
       </div>
+    </section>
+
+    <div v-if="errorMessage" class="dashboard-error">
+      <el-result icon="error" title="仪表盘数据加载失败" :sub-title="errorMessage">
+        <template #extra>
+          <el-button type="primary" :loading="loading" @click="fetchData">重新加载</el-button>
+        </template>
+      </el-result>
     </div>
 
-    <!-- 顶部：四大趋势指标卡 -->
-    <el-row :gutter="20" class="trend-cards mb-6">
+    <template v-else>
+      <el-alert
+        v-if="partialWarning"
+        class="dashboard-alert mb-6"
+        type="warning"
+        show-icon
+        :closable="false"
+        :title="partialWarning"
+      />
+
+      <!-- 顶部：四大趋势指标卡 -->
+      <el-row v-loading="loading" :gutter="20" class="trend-cards mb-6">
       <el-col :span="6">
         <el-card shadow="hover" class="trend-card bg-gradient-to-br from-blue-50 to-white border-blue-100">
           <div class="flex justify-between items-start mb-2">
@@ -87,8 +106,8 @@
       </el-col>
     </el-row>
 
-    <!-- 中部：趋势 + 今日概览 -->
-    <el-row :gutter="20">
+      <!-- 中部：趋势 + 今日概览 -->
+      <el-row v-loading="loading" :gutter="20">
       <el-col :span="16">
         <el-card shadow="hover" class="border-0 mb-6">
            <template #header>
@@ -199,28 +218,52 @@
       </el-col>
     </el-row>
 
-    <el-row :gutter="20" class="mt-6">
-      <el-col :span="24">
-        <el-card shadow="hover" class="border-0 timeline-card">
+      <el-row :gutter="20" class="mt-6">
+        <el-col :span="16">
+          <el-card shadow="hover" class="border-0 workbench-card">
+            <template #header>
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-gray-800">运营入口</span>
+                <el-tag size="small" type="primary" effect="light" round>总览跳转</el-tag>
+              </div>
+            </template>
+            <div class="workbench-grid">
+              <button
+                v-for="item in workbenchEntries"
+                :key="item.title"
+                type="button"
+                class="workbench-entry"
+                @click="goTo(item.path)"
+              >
+                <div class="workbench-entry-head">
+                  <span class="workbench-entry-title">{{ item.title }}</span>
+                  <el-tag size="small" effect="plain" :type="item.tagType" round>{{ item.tag }}</el-tag>
+                </div>
+                <div class="workbench-entry-desc">{{ item.desc }}</div>
+                <div class="workbench-entry-action">{{ item.action }}</div>
+              </button>
+            </div>
+          </el-card>
+        </el-col>
+
+        <el-col :span="8">
+          <el-card shadow="hover" class="border-0 timeline-card">
           <template #header>
             <div class="flex justify-between items-center">
-              <span class="font-bold text-gray-800">业务流转动态墙</span>
-              <el-tag size="small" type="success" effect="light" round>实时</el-tag>
+              <span class="font-bold text-gray-800">运营提示</span>
+              <el-tag size="small" type="success" effect="light" round>建议</el-tag>
             </div>
           </template>
-          <div class="timeline-container px-2 py-4 h-[320px] overflow-y-auto">
-            <el-timeline>
-              <el-timeline-item v-for="(activity, index) in timelineActivities" :key="index" :type="activity.type" :color="activity.color" :size="activity.size" :timestamp="activity.timestamp" placement="top">
-                <el-card shadow="never" class="timeline-item-card border-none bg-gray-50 rounded-xl">
-                  <h4 class="text-sm font-bold text-gray-800 m-0 mb-1">{{ activity.title }}</h4>
-                  <p class="text-xs text-gray-500 m-0">{{ activity.desc }}</p>
-                </el-card>
-              </el-timeline-item>
-            </el-timeline>
+          <div class="tips-list">
+            <div v-for="item in dashboardTips" :key="item.title" class="tips-item">
+              <div class="tips-title">{{ item.title }}</div>
+              <div class="tips-desc">{{ item.desc }}</div>
+            </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
+    </template>
   </div>
 </template>
 
@@ -244,6 +287,9 @@ const router = useRouter()
 const charts = []
 let mainLineChart = null
 let hasTrendAnimated = false
+const loading = ref(false)
+const errorMessage = ref('')
+const partialWarning = ref('')
 const trendRevealActive = ref(false)
 const trendMode = ref('weekday')
 const selectedRange = ref(0)
@@ -268,15 +314,55 @@ const overview = ref({
 const hotSpots = ref([])
 const heatmapYear = ref(new Date().getFullYear())
 
-const timelineActivities = ref([
-  { title: '新订单产生', desc: '用户 "李小明" 预订了 "九寨沟风景区" 门票 (¥240.00)', timestamp: '刚刚', type: 'primary', color: '#3b82f6', size: 'large' },
-  { title: '用户发表攻略', desc: '用户 "背包客" 发布了长篇攻略《三亚湾五日游防坑指南》', timestamp: '5分钟前', color: '#10b981' },
-  { title: '景点上新', desc: '管理员 "System" 上架了新景点 "环球影城全天票"', timestamp: '半小时前', color: '#8b5cf6' },
-  { title: '大额订单付款', desc: '用户 "张**" 支付了订单 #2024040188219 (¥3,200.00)', timestamp: '1小时前', type: 'warning', color: '#f59e0b' },
-  { title: '系统通告', desc: '推荐引擎矩阵已根据最新数据完成自动重排计算', timestamp: '2小时前', color: '#64748b' },
-  { title: '新订单产生', desc: '用户 "王五" 预订了 "故宫博物院" 门票 (¥60.00)', timestamp: '3小时前', color: '#3b82f6' },
-  { title: '异常拦截', desc: '系统成功拦截一次异常的退款请求', timestamp: '4小时前', color: '#ef4444' }
-])
+const workbenchEntries = [
+  {
+    title: '订单中心',
+    desc: '查看订单状态流转、排查取消单与人工处理入口。',
+    action: '进入订单工作台',
+    path: '/order',
+    tag: '交易运营',
+    tagType: 'warning'
+  },
+  {
+    title: '景点管理',
+    desc: '回看热门景点的基础信息、上下架状态与内容完整度。',
+    action: '进入景点列表',
+    path: '/spot',
+    tag: '内容管理',
+    tagType: 'success'
+  },
+  {
+    title: '攻略管理',
+    desc: '查看最近内容产出，快速进入攻略编辑与审核链路。',
+    action: '进入攻略管理',
+    path: '/guide',
+    tag: '内容运营',
+    tagType: 'primary'
+  },
+  {
+    title: '推荐配置',
+    desc: '检查推荐策略与执行状态，确认首页结果是否需要干预。',
+    action: '进入推荐配置',
+    path: '/recommendation/config',
+    tag: '推荐系统',
+    tagType: 'info'
+  }
+]
+
+const dashboardTips = [
+  {
+    title: '先看趋势再进详情',
+    desc: '当收入和订单趋势背离时，优先进入订单中心排查取消和退款类状态。'
+  },
+  {
+    title: '热门景点异常要回看内容',
+    desc: '如果热门景点数据突然波动，先检查景点上架状态和攻略内容是否被修改。'
+  },
+  {
+    title: '推荐调整不要在首页完成',
+    desc: '仪表盘只做发现问题和跳转处理，具体参数修改统一进入推荐配置页。'
+  }
+]
 
 const initSparklines = () => {
   const configs = [
@@ -587,41 +673,61 @@ const playTrendRevealAnimation = () => {
   trendRevealActive.value = true
 }
 
-const fetchOverviewData = async () => {
-  const response = await getOverview()
-  overview.value = {
-    ...overview.value,
-    ...(response.data || {})
-  }
-  updateSparklines()
-}
-
-const fetchHotSpotsData = async () => {
-  const response = await getHotSpots(6)
-  hotSpots.value = response.data?.list || []
-}
-
-const fetchHeatmapData = async () => {
-  const response = await getOrderHeatmap(heatmapYear.value)
-  updateHeatmap(response.data?.year || heatmapYear.value, response.data?.list || [])
-}
-
 const fetchData = async () => {
-  const [trendResponse, overviewResponse, hotSpotsResponse, heatmapResponse] = await Promise.all([
+  loading.value = true
+  errorMessage.value = ''
+  partialWarning.value = ''
+
+  const results = await Promise.allSettled([
     getOrderTrend(selectedRange.value, trendMode.value),
     getOverview(),
     getHotSpots(6),
     getOrderHeatmap(heatmapYear.value)
   ])
-  overview.value = {
-    ...overview.value,
-    ...(overviewResponse.data || {})
+
+  const [trendResult, overviewResult, hotSpotsResult, heatmapResult] = results
+  const failedSections = []
+
+  if (trendResult.status === 'fulfilled') {
+    updateMainLineChart(trendResult.value.data?.list || [])
+    mainLineChart?.resize()
+  } else {
+    updateMainLineChart([])
+    failedSections.push('趋势图')
   }
-  hotSpots.value = hotSpotsResponse.data?.list || []
-  updateSparklines()
-  updateMainLineChart(trendResponse.data?.list || [])
-  updateHeatmap(heatmapResponse.data?.year || heatmapYear.value, heatmapResponse.data?.list || [])
-  mainLineChart?.resize()
+
+  if (overviewResult.status === 'fulfilled') {
+    overview.value = {
+      ...overview.value,
+      ...(overviewResult.value.data || {})
+    }
+    updateSparklines()
+  } else {
+    failedSections.push('概览指标')
+  }
+
+  if (hotSpotsResult.status === 'fulfilled') {
+    hotSpots.value = hotSpotsResult.value.data?.list || []
+  } else {
+    hotSpots.value = []
+    failedSections.push('热门景点')
+  }
+
+  if (heatmapResult.status === 'fulfilled') {
+    updateHeatmap(heatmapResult.value.data?.year || heatmapYear.value, heatmapResult.value.data?.list || [])
+  } else {
+    updateHeatmap(heatmapYear.value, [])
+    failedSections.push('订单热力图')
+  }
+
+  if (failedSections.length === results.length) {
+    const firstError = results.find(item => item.status === 'rejected')
+    errorMessage.value = firstError?.reason?.response?.data?.message || firstError?.reason?.message || '请稍后重试或检查接口返回。'
+  } else if (failedSections.length) {
+    partialWarning.value = `部分区块未成功刷新：${failedSections.join('、')}。当前页面已保留可用数据。`
+  }
+
+  loading.value = false
 }
 
 const handleTrendModeChange = () => {
@@ -643,6 +749,10 @@ const goToSpot = (spot) => {
       spotId: String(spot.id)
     }
   })
+}
+
+const goTo = (path) => {
+  router.push(path)
 }
 
 onMounted(() => {
@@ -705,6 +815,49 @@ onUnmounted(() => {
 .m-0 { margin: 0; }
 .overflow-y-auto { overflow-y: auto; }
 .mt-6 { margin-top: 24px; }
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.page-kicker {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+}
+
+.dashboard-error {
+  padding: 12px 0 4px;
+}
+
+.dashboard-alert {
+  margin-bottom: 4px;
+}
 
 .trend-card {
   border-radius: 16px;
@@ -910,27 +1063,97 @@ onUnmounted(() => {
   color: #64748b;
 }
 
-.timeline-container {
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
+.workbench-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.workbench-entry {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid #e7edf7;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.workbench-entry:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.28);
+}
+
+.workbench-entry-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.workbench-entry-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.workbench-entry-desc {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #5b6475;
+}
+
+.workbench-entry-action {
+  margin-top: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #245bdb;
+}
+
+.tips-list {
+  display: grid;
+  gap: 12px;
+}
+
+.tips-item {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.tips-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #253046;
+}
+
+.tips-desc {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #607086;
+}
+
+@media (max-width: 1200px) {
+  .workbench-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-.timeline-item-card {
-  transition: all 0.3s ease;
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+@media (max-width: 960px) {
+  .page-hero {
+    flex-direction: column;
   }
-}
 
-:deep(.el-timeline-item__node--large) {
-  width: 16px;
-  height: 16px;
-  left: -2px;
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions :deep(.el-button) {
+    width: 100%;
+  }
 }
 </style>
