@@ -12,21 +12,12 @@
       </div>
     </section>
 
-    <!-- 状态摘要卡片 -->
-    <section class="summary-grid" v-loading="summaryLoading">
-      <button
-        v-for="card in summaryCards"
-        :key="card.key"
-        type="button"
-        class="summary-card"
-        :class="{ active: currentTab === card.key }"
-        @click="handleTabChange(card.key)"
-      >
-        <div class="summary-label">{{ card.label }}</div>
-        <div class="summary-value">{{ card.value }}</div>
-        <div class="summary-hint">{{ card.hint }}</div>
-      </button>
-    </section>
+    <OrderSummaryCards
+      :loading="summaryLoading"
+      :current-tab="currentTab"
+      :cards="summaryCards"
+      @change-tab="handleTabChange"
+    />
 
     <el-card shadow="never" class="workspace-card">
       <div class="workspace-head">
@@ -39,86 +30,17 @@
         </el-tabs>
       </div>
 
-      <!-- 搜索筛选表单 -->
-      <div class="filter-panel">
-        <el-form :model="searchForm" @submit.prevent>
-          <div class="filter-row">
-            <div class="filter-main">
-              <el-form-item class="filter-item mb-0">
-                <el-input
-                  v-model="searchForm.orderNo"
-                  placeholder="搜索订单号"
-                  clearable
-                  class="filter-input"
-                  @keyup.enter="handleSearch"
-                  @clear="handleSearch"
-                />
-              </el-form-item>
-              <el-form-item class="filter-item mb-0">
-                <el-input
-                  v-model="searchForm.spotName"
-                  placeholder="搜索景点名称"
-                  clearable
-                  class="filter-input"
-                  @keyup.enter="handleSearch"
-                  @clear="handleSearch"
-                />
-              </el-form-item>
-              <el-form-item class="filter-item mb-0">
-                <el-select
-                  v-model="searchForm.status"
-                  placeholder="全部状态"
-                  clearable
-                  class="filter-select"
-                  :disabled="currentTab !== 'all'"
-                  @change="handleSearch"
-                  @clear="handleSearch"
-                >
-                  <el-option label="待支付" value="pending" />
-                  <el-option label="已支付" value="paid" />
-                  <el-option label="已取消" value="cancelled" />
-                  <el-option label="已退款" value="refunded" />
-                  <el-option label="已完成" value="completed" />
-                </el-select>
-              </el-form-item>
-              <el-button type="primary" link class="toggle-btn" @click="showAdvanced = !showAdvanced">
-                {{ showAdvanced ? '收起筛选' : '更多筛选' }}
-              </el-button>
-            </div>
-
-            <div class="filter-actions">
-              <el-button type="primary" @click="handleSearch">查询</el-button>
-              <el-button @click="handleReset">重置</el-button>
-            </div>
-          </div>
-
-          <el-alert
-            v-if="currentTab !== 'all'"
-            type="info"
-            :closable="false"
-            class="scope-alert"
-            :title="`${getTabMeta(currentTab).label}工作区已限定订单状态，需精确筛选时请切回“全部”。`"
-          />
-
-          <!-- 低频条件默认折叠，避免页面顶部持续过厚 -->
-          <el-collapse-transition>
-            <div v-show="showAdvanced" class="advanced-panel">
-              <el-form-item label="下单时间" class="filter-item mb-0">
-                <el-date-picker
-                  v-model="dateRange"
-                  type="daterange"
-                  range-separator="至"
-                  start-placeholder="开始日期"
-                  end-placeholder="结束日期"
-                  value-format="YYYY-MM-DD"
-                  class="date-picker"
-                  @change="handleSearch"
-                />
-              </el-form-item>
-            </div>
-          </el-collapse-transition>
-        </el-form>
-      </div>
+      <OrderFilterBar
+        :current-tab="currentTab"
+        :tab-label="getTabMeta(currentTab).label"
+        :search-form="searchForm"
+        :date-range="dateRange"
+        :show-advanced="showAdvanced"
+        @search="handleSearch"
+        @reset="handleReset"
+        @toggle-advanced="showAdvanced = !showAdvanced"
+        @update:date-range="dateRange = $event"
+      />
 
       <div v-if="errorMessage" class="error-state">
         <el-result icon="error" title="订单数据加载失败" :sub-title="errorMessage">
@@ -129,7 +51,6 @@
       </div>
 
       <template v-else>
-        <!-- 订单列表 -->
         <el-table :data="orderList" v-loading="loading" class="order-table" empty-text="当前条件下暂无匹配订单">
           <el-table-column label="订单号" width="200" align="left">
             <template #default="{ row }">
@@ -178,7 +99,6 @@
           </el-table-column>
         </el-table>
 
-        <!-- 分页器 -->
         <div class="pagination-wrapper">
           <el-pagination
             v-model:current-page="pagination.page"
@@ -193,106 +113,17 @@
       </template>
     </el-card>
 
-    <!-- 订单详情抽屉 -->
-    <el-drawer
-      v-model="detailVisible"
-      title="订单详情"
-      size="520px"
-      class="order-detail-drawer"
-    >
-      <div v-loading="detailLoading" class="detail-container">
-        <template v-if="currentOrder">
-          <section class="detail-hero">
-            <div class="detail-header">
-              <div>
-                <p class="detail-order-no">{{ currentOrder.orderNo }}</p>
-                <h3 class="detail-spot-name">{{ currentOrder.spotName }}</h3>
-              </div>
-              <el-tag effect="light" round :type="getStatusTagType(currentOrder.status)">
-                {{ currentOrder.statusText }}
-              </el-tag>
-            </div>
-
-            <el-image
-              v-if="currentOrder.spotImage"
-              :src="currentOrder.spotImage"
-              fit="cover"
-              class="detail-cover"
-            />
-
-            <div class="detail-stats">
-              <div class="detail-stat-card">
-                <span class="detail-stat-label">总金额</span>
-                <strong class="price-large">¥{{ formatCurrency(currentOrder.totalPrice) }}</strong>
-              </div>
-              <div class="detail-stat-card">
-                <span class="detail-stat-label">游玩日期</span>
-                <strong>{{ currentOrder.visitDate || '--' }}</strong>
-              </div>
-            </div>
-          </section>
-
-          <section class="detail-section">
-            <h4 class="section-title">订单基础信息</h4>
-            <el-descriptions :column="1" border class="detail-descriptions">
-              <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
-              <el-descriptions-item label="下单时间">{{ currentOrder.createdAt || '--' }}</el-descriptions-item>
-              <el-descriptions-item label="更新时间">{{ currentOrder.updatedAt || '--' }}</el-descriptions-item>
-            </el-descriptions>
-          </section>
-
-          <section class="detail-section">
-            <h4 class="section-title">景点与游玩信息</h4>
-            <el-descriptions :column="1" border class="detail-descriptions">
-              <el-descriptions-item label="景点名称">{{ currentOrder.spotName || '--' }}</el-descriptions-item>
-              <el-descriptions-item label="单价">¥{{ formatCurrency(currentOrder.unitPrice) }}</el-descriptions-item>
-              <el-descriptions-item label="数量">{{ currentOrder.quantity || '--' }} 张</el-descriptions-item>
-              <el-descriptions-item label="总价">¥{{ formatCurrency(currentOrder.totalPrice) }}</el-descriptions-item>
-              <el-descriptions-item label="游玩日期">{{ currentOrder.visitDate || '--' }}</el-descriptions-item>
-            </el-descriptions>
-          </section>
-
-          <section class="detail-section">
-            <h4 class="section-title">联系人信息</h4>
-            <el-descriptions :column="1" border class="detail-descriptions">
-              <el-descriptions-item label="联系人">{{ currentOrder.contactName || '--' }}</el-descriptions-item>
-              <el-descriptions-item label="联系电话">{{ currentOrder.contactPhone || '--' }}</el-descriptions-item>
-            </el-descriptions>
-          </section>
-
-          <section class="detail-section">
-            <h4 class="section-title">关键时间节点</h4>
-            <el-timeline class="detail-timeline">
-              <el-timeline-item timestamp="下单时间" :hollow="!currentOrder.createdAt">
-                {{ currentOrder.createdAt || '--' }}
-              </el-timeline-item>
-              <el-timeline-item timestamp="支付时间" :hollow="!currentOrder.paidAt">
-                {{ currentOrder.paidAt || '--' }}
-              </el-timeline-item>
-              <el-timeline-item timestamp="完成时间" :hollow="!currentOrder.completedAt">
-                {{ currentOrder.completedAt || '--' }}
-              </el-timeline-item>
-              <el-timeline-item timestamp="取消时间" :hollow="!currentOrder.cancelledAt">
-                {{ currentOrder.cancelledAt || '--' }}
-              </el-timeline-item>
-              <el-timeline-item timestamp="退款时间" :hollow="!currentOrder.refundedAt">
-                {{ currentOrder.refundedAt || '--' }}
-              </el-timeline-item>
-            </el-timeline>
-          </section>
-        </template>
-      </div>
-
-      <template #footer>
-        <div class="drawer-footer">
-          <el-button @click="detailVisible = false">关闭</el-button>
-          <el-button v-if="currentOrder?.status === 'pending'" type="danger" @click="handleCancel(currentOrder)">取消订单</el-button>
-          <el-button v-if="currentOrder?.status === 'paid'" type="success" @click="handleComplete(currentOrder)">完成订单</el-button>
-          <el-button v-if="currentOrder?.status === 'paid'" type="danger" plain @click="handleRefund(currentOrder)">退款订单</el-button>
-          <el-button v-if="currentOrder?.status === 'completed'" type="warning" @click="handleReopen(currentOrder)">撤销完成</el-button>
-        </div>
-      </template>
-    </el-drawer>
+    <OrderDetailDrawer
+      v-model:visible="detailVisible"
+      :loading="detailLoading"
+      :detail="currentOrder"
+      :format-currency="formatCurrency"
+      :get-status-tag-type="getStatusTagType"
+      @complete="handleComplete"
+      @refund="handleRefund"
+      @cancel="handleCancel"
+      @reopen="handleReopen"
+    />
   </div>
 </template>
 
@@ -302,6 +133,9 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder, cancelOrder } from '@/modules/order/api.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
+import OrderFilterBar from '@/modules/order/components/OrderFilterBar.vue'
+import OrderSummaryCards from '@/modules/order/components/OrderSummaryCards.vue'
+import OrderDetailDrawer from '@/modules/order/components/OrderDetailDrawer.vue'
 
 const router = useRouter()
 
@@ -612,12 +446,6 @@ onMounted(() => {
     font-size: 12px;
     margin-top: 2px;
   }
-
-  .price-large {
-    color: #dc2626;
-    font-size: 24px;
-    font-weight: 700;
-  }
 }
 
 .page-hero,
@@ -658,52 +486,6 @@ onMounted(() => {
   color: #64748b;
 }
 
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-}
-
-.summary-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  padding: 18px 20px;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: #cbd5e1;
-    transform: translateY(-1px);
-  }
-
-  &.active {
-    border-color: #2563eb;
-    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
-  }
-}
-
-.summary-label {
-  color: #64748b;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.summary-value {
-  margin-top: 12px;
-  color: #0f172a;
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.summary-hint {
-  margin-top: 8px;
-  color: #94a3b8;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
 .workspace-card {
   border: none;
   border-radius: 20px;
@@ -715,71 +497,6 @@ onMounted(() => {
 
 .workspace-tabs {
   margin-top: -6px;
-}
-
-.filter-panel {
-  margin-top: 16px;
-  margin-bottom: 20px;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  background: #f8fafc;
-  padding: 16px 18px;
-}
-
-.filter-row,
-.filter-main,
-.filter-actions,
-.table-actions,
-.detail-header,
-.detail-stats,
-.drawer-footer {
-  display: flex;
-  gap: 12px;
-}
-
-.filter-row {
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.filter-main {
-  flex-wrap: wrap;
-  align-items: center;
-  flex: 1;
-}
-
-.filter-actions,
-.drawer-footer {
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.filter-item {
-  margin-bottom: 0;
-}
-
-.filter-input,
-.filter-select {
-  width: 220px;
-}
-
-.toggle-btn {
-  font-weight: 600;
-}
-
-.scope-alert {
-  margin-top: 14px;
-}
-
-.advanced-panel {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.date-picker {
-  width: 260px;
 }
 
 .error-state {
@@ -814,97 +531,15 @@ onMounted(() => {
 }
 
 .table-actions {
+  display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
   justify-content: flex-start;
 }
 
-.detail-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.detail-hero {
-  border-radius: 18px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid #e2e8f0;
-  padding: 18px;
-}
-
-.detail-order-no {
-  margin: 0 0 6px;
-  color: #64748b;
-  font-size: 13px;
-}
-
-.detail-spot-name {
-  margin: 0;
-  color: #0f172a;
-  font-size: 20px;
-}
-
-.detail-cover {
-  width: 100%;
-  height: 180px;
-  margin-top: 16px;
-  border-radius: 14px;
-}
-
-.detail-stats {
-  margin-top: 16px;
-}
-
-.detail-stat-card {
-  flex: 1;
-  min-width: 0;
-  border-radius: 14px;
-  background: #ffffff;
-  padding: 14px 16px;
-  border: 1px solid #e2e8f0;
-}
-
-.detail-stat-label {
-  display: block;
-  color: #64748b;
-  font-size: 12px;
-  margin-bottom: 6px;
-}
-
-.detail-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.section-title {
-  margin: 0;
-  padding-left: 10px;
-  border-left: 4px solid var(--el-color-primary);
-  color: #0f172a;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.detail-timeline {
-  margin: 4px 0 0;
-}
-
-.drawer-footer {
-  width: 100%;
-}
-
 :deep(.workspace-tabs .el-tabs__header) {
   margin: 0;
-}
-
-:deep(.filter-panel .el-input__wrapper),
-:deep(.filter-panel .el-select__wrapper),
-:deep(.filter-panel .el-date-editor.el-input__wrapper) {
-  border-radius: 10px;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 :deep(.order-table th.el-table__cell) {
@@ -917,46 +552,19 @@ onMounted(() => {
   background: #f8fbff;
 }
 
-:deep(.detail-descriptions .el-descriptions__label) {
-  width: 100px;
-  background: #f8fafc !important;
-  color: #64748b;
-  font-weight: 500;
-}
-
-:deep(.detail-descriptions .el-descriptions__cell) {
-  padding: 12px 16px !important;
-}
-
 @media (max-width: 960px) {
   .page-hero,
-  .workspace-head,
-  .filter-row {
+  .workspace-head {
     flex-direction: column;
   }
 
-  .workspace-tabs {
-    width: 100%;
-  }
-
-  .filter-actions,
+  .workspace-tabs,
   .hero-actions {
     width: 100%;
   }
 
-  .filter-actions :deep(.el-button),
   .hero-actions :deep(.el-button) {
     width: 100%;
-  }
-
-  .filter-input,
-  .filter-select,
-  .date-picker {
-    width: 100%;
-  }
-
-  .detail-stats {
-    flex-direction: column;
   }
 }
 </style>
