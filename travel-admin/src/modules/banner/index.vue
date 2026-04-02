@@ -1,59 +1,89 @@
 <!-- 轮播图管理页面 -->
 <template>
   <div class="banner-page">
-    <el-card  shadow="hover">
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">Content Workspace</p>
+        <h1 class="page-title">轮播图管理</h1>
+        <p class="page-subtitle">维护首页轮播内容、关联景点与展示顺序。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button :loading="loading" @click="fetchBannerList">刷新数据</el-button>
+      </div>
+    </section>
+
+    <el-card shadow="hover">
       <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
           <span>轮播图管理</span>
-          <el-button type="primary" @click="handleAdd">新增轮播图</el-button>
+          <div class="header-actions">
+            <el-button type="primary" @click="handleAdd">新增轮播图</el-button>
+          </div>
         </div>
       </template>
 
+      <div v-if="errorMessage" class="error-state">
+        <el-result icon="error" title="轮播图数据加载失败" :sub-title="errorMessage">
+          <template #extra>
+            <el-button type="primary" @click="fetchBannerList">重新加载</el-button>
+          </template>
+        </el-result>
+      </div>
+
       <!-- 轮播图列表 -->
-      <el-table :data="bannerList" v-loading="loading" stripe>
+      <el-table v-else :data="bannerList" v-loading="loading" class="banner-table borderless-table" empty-text="当前暂无轮播图数据">
         <el-table-column label="预览" width="200">
           <template #default="{ row }">
-            <el-image 
-              :src="getImageUrl(row.imageUrl)" 
+            <el-image
+              :src="getImageUrl(row.imageUrl)"
               :preview-src-list="[getImageUrl(row.imageUrl)]"
               fit="cover"
-              style="width: 160px; height: 80px; border-radius: 4px;"
+              class="banner-preview"
             />
           </template>
         </el-table-column>
         <el-table-column prop="spotName" label="关联景点" min-width="180" align="left">
           <template #default="{ row }">
             <div class="spot-name-cell">
-              <el-button v-if="row.spotId && row.spotName" link type="primary" class="spot-name-link" @click="handleOpenSpot(row)">
-                {{ row.spotName }}
-              </el-button>
-              <span v-else>无</span>
+              <template v-if="row.spotId && row.spotName">
+                <el-button link type="primary" class="spot-name-link" @click="handleOpenSpot(row)">
+                  {{ row.spotName }}
+                </el-button>
+              </template>
+              <template v-else>
+                <span class="text-muted">未关联景点</span>
+              </template>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="sortOrder" label="排序" width="100" />
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="sortOrder" label="排序" width="100" align="center" />
+        <el-table-column label="状态" width="120" align="center">
           <template #default="{ row }">
-            <el-switch 
-              :model-value="row.enabled === 1"
-              @change="handleToggle(row)"
-            />
+            <div class="banner-status">
+              <el-tag effect="light" round :type="row.enabled === 1 ? 'success' : 'info'">
+                {{ row.enabled === 1 ? '已启用' : '未启用' }}
+              </el-tag>
+              <el-switch
+                :model-value="row.enabled === 1"
+                @change="handleToggle(row)"
+              />
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="170">
+        <el-table-column prop="createdAt" label="创建时间" width="170" align="center">
           <template #default="{ row }">
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column prop="updatedAt" label="修改时间" width="170">
+        <el-table-column prop="updatedAt" label="修改时间" width="170" align="center">
           <template #default="{ row }">
             {{ formatDate(row.updatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right" align="center">
           <template #default="{ row }">
-            <div style="white-space: nowrap;">
+            <div class="table-actions">
               <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
               <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
             </div>
@@ -63,62 +93,72 @@
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog 
-      v-model="dialogVisible" 
+    <el-dialog
+      v-model="dialogVisible"
       :title="isEdit ? '编辑轮播图' : '新增轮播图'"
       width="500px"
     >
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
-        <el-form-item label="轮播图片" prop="imageUrl">
-          <div class="upload-container">
-            <el-upload
-              class="image-uploader"
-              :action="uploadUrl"
-              :headers="uploadHeaders"
-              :data="{ tag: 'banner' }"
-              :show-file-list="false"
-              :on-success="handleUploadSuccess"
-              :on-error="handleUploadError"
-              :before-upload="beforeUpload"
-              accept="image/*"
-            >
-              <el-image 
-                v-if="form.imageUrl" 
-                :src="getImageUrl(form.imageUrl)" 
-                fit="cover"
-                class="uploaded-image"
-              />
-              <div v-else class="upload-placeholder">
-                <el-icon><Plus /></el-icon>
-                <span>点击上传</span>
-              </div>
-            </el-upload>
-            <div class="upload-tip">支持 jpg、png 格式，大小不超过 5MB</div>
+        <div class="form-section">
+          <div class="form-section-head">
+            <h3 class="form-section-title">基础信息</h3>
+            <p class="form-section-desc">维护轮播图片、展示顺序与启用状态。</p>
           </div>
-        </el-form-item>
-        <el-form-item label="关联景点">
-          <el-select 
-            v-model="form.spotId" 
-            placeholder="请选择景点（可选）" 
-            clearable
-            filterable
-            style="width: 100%"
-          >
-            <el-option 
-              v-for="spot in spotList" 
-              :key="spot.id" 
-              :label="spot.name" 
-              :value="spot.id" 
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="排序">
-          <el-input-number v-model="form.sortOrder" :min="1" :max="999" />
-          <div class="form-tip">默认取最后一位；如填写已有序号，系统会自动顺延后续轮播图。</div>
-        </el-form-item>
-        <el-form-item label="启用状态">
-          <el-switch v-model="form.enabled" :active-value="1" :inactive-value="0" />
-        </el-form-item>
+
+          <el-form-item label="轮播图片" prop="imageUrl">
+            <div class="upload-container">
+              <el-upload
+                class="image-uploader"
+                :action="uploadUrl"
+                :headers="uploadHeaders"
+                :data="{ tag: 'banner' }"
+                :show-file-list="false"
+                :on-success="handleUploadSuccess"
+                :on-error="handleUploadError"
+                :before-upload="beforeUpload"
+                accept="image/*"
+              >
+                <el-image
+                  v-if="form.imageUrl"
+                  :src="getImageUrl(form.imageUrl)"
+                  fit="cover"
+                  class="uploaded-image"
+                />
+                <div v-else class="upload-placeholder">
+                  <el-icon><Plus /></el-icon>
+                  <span>点击上传</span>
+                </div>
+              </el-upload>
+              <div class="upload-tip">支持 jpg、png 格式，大小不超过 5MB</div>
+            </div>
+          </el-form-item>
+
+          <el-form-item label="关联景点">
+            <el-select
+              v-model="form.spotId"
+              placeholder="请选择景点（可选）"
+              clearable
+              filterable
+              style="width: 100%"
+            >
+              <el-option
+                v-for="spot in spotList"
+                :key="spot.id"
+                :label="spot.name"
+                :value="spot.id"
+              />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="排序">
+            <el-input-number v-model="form.sortOrder" :min="1" :max="999" />
+            <div class="form-tip">默认取最后一位；如填写已有序号，系统会自动顺延后续轮播图。</div>
+          </el-form-item>
+
+          <el-form-item label="启用状态">
+            <el-switch v-model="form.enabled" :active-value="1" :inactive-value="0" />
+          </el-form-item>
+        </div>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -162,6 +202,7 @@ const formatDate = (dateStr) => {
 const loading = ref(false)
 const bannerList = ref([])
 const spotList = ref([])
+const errorMessage = ref('')
 
 // 对话框与表单状态
 const dialogVisible = ref(false)
@@ -222,11 +263,13 @@ const handleUploadError = () => {
 // 加载轮播图列表
 const fetchBannerList = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     const res = await getBannerList()
     bannerList.value = res.data.list || []
   } catch (e) {
-    console.error('获取轮播图列表失败', e)
+    bannerList.value = []
+    errorMessage.value = e?.response?.data?.message || e?.message || '请稍后重试或检查接口返回。'
   } finally {
     loading.value = false
   }
@@ -338,6 +381,121 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.banner-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.page-kicker {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-actions,
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.error-state {
+  padding: 8px 0 16px;
+}
+
+.banner-preview {
+  width: 160px;
+  height: 80px;
+  border-radius: 8px;
+}
+
+.banner-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.text-muted {
+  color: #94a3b8;
+}
+
+.banner-table {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:deep(.banner-table th.el-table__cell) {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+}
+
+:deep(.borderless-table .el-table__inner-wrapper::before) {
+  display: none;
+}
+
+:deep(.borderless-table td.el-table__cell),
+:deep(.borderless-table th.el-table__cell.is-leaf) {
+  border-bottom: 1px solid #f8fafc;
+}
+
+:deep(.banner-table .el-table__row:hover > td.el-table__cell) {
+  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+}
+
+.form-section {
+  padding: 4px 4px 0;
+}
+
+.form-section-head {
+  margin-bottom: 16px;
+}
+
+.form-section-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.form-section-desc {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .upload-container {
   .image-uploader {
     :deep(.el-upload) {
@@ -403,5 +561,19 @@ onMounted(() => {
 
 :deep(.spot-name-link .el-button__text) {
   text-align: left;
+}
+
+@media (max-width: 960px) {
+  .page-hero {
+    flex-direction: column;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions :deep(.el-button) {
+    width: 100%;
+  }
 }
 </style>

@@ -1,6 +1,17 @@
 <!-- 地区管理页面 -->
 <template>
   <div class="region-page">
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">Content Workspace</p>
+        <h1 class="page-title">地区管理</h1>
+        <p class="page-subtitle">维护一级地区与二级地区，统一内容地域维度。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button :loading="loading1 || loading2" @click="handleRefresh">刷新数据</el-button>
+      </div>
+    </section>
+
     <el-row :gutter="20">
       <!-- 左侧：一级地区 -->
       <el-col :span="6">
@@ -12,7 +23,15 @@
             </div>
           </template>
           
-          <ul class="parent-list" v-loading="loading1">
+          <div v-if="errorMessage" class="panel-error">
+            <el-result icon="error" title="地区数据加载失败" :sub-title="errorMessage">
+              <template #extra>
+                <el-button type="primary" @click="handleRefresh">重新加载</el-button>
+              </template>
+            </el-result>
+          </div>
+
+          <ul v-else class="parent-list" v-loading="loading1">
             <li 
               v-for="item in level1List" 
               :key="item.id" 
@@ -40,7 +59,7 @@
             </div>
           </template>
 
-          <el-table :data="level2List" v-loading="loading2" stripe>
+          <el-table :data="level2List" v-loading="loading2" class="content-table borderless-table">
             <el-table-column prop="name" label="地区名称" />
             <el-table-column prop="sortOrder" label="排序" width="100" />
             <el-table-column prop="createdAt" label="创建时间" width="180">
@@ -108,6 +127,7 @@ const loading2 = ref(false)
 const level1List = ref([])
 const level2List = ref([])
 const activeParentId = ref(null)
+const errorMessage = ref('')
 
 // 对话框与表单状态
 const dialogVisible = ref(false)
@@ -141,6 +161,7 @@ const getNextSortOrder = (list) => {
 // 加载一级地区
 const fetchLevel1 = async () => {
   loading1.value = true
+  errorMessage.value = ''
   try {
     const res = await getRegions({ parentId: 0 })
     level1List.value = res.data || []
@@ -151,7 +172,10 @@ const fetchLevel1 = async () => {
       level2List.value = []
     }
   } catch (e) {
-    console.error('获取一级地区失败', e)
+    level1List.value = []
+    level2List.value = []
+    activeParentId.value = null
+    errorMessage.value = e?.response?.data?.message || e?.message || '请稍后重试或检查接口返回。'
   } finally {
     loading1.value = false
   }
@@ -170,10 +194,15 @@ const fetchLevel2 = async (parentId) => {
     const res = await getRegions({ parentId })
     level2List.value = res.data || []
   } catch (e) {
-    console.error('获取二级地区失败', e)
+    level2List.value = []
+    ElMessage.error(e?.response?.data?.message || e?.message || '获取二级地区失败')
   } finally {
     loading2.value = false
   }
+}
+
+const handleRefresh = () => {
+  fetchLevel1()
 }
 
 // 一级地区相关操作
@@ -267,6 +296,39 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .region-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  .page-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 4px 2px;
+  }
+
+  .page-kicker {
+    margin: 0 0 6px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .page-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 30px;
+    line-height: 1.2;
+  }
+
+  .page-subtitle {
+    margin: 8px 0 0;
+    color: #64748b;
+  }
+
   .left-card {
     min-height: 520px;
     .parent-list {
@@ -316,10 +378,52 @@ onMounted(() => {
     min-height: 520px;
   }
 }
+
+.panel-error {
+  padding: 12px 0;
+}
+
+.content-table {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:deep(.content-table th.el-table__cell) {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+}
+
+:deep(.borderless-table .el-table__inner-wrapper::before) {
+  display: none;
+}
+
+:deep(.borderless-table td.el-table__cell),
+:deep(.borderless-table th.el-table__cell.is-leaf) {
+  border-bottom: 1px solid #f8fafc;
+}
+
+:deep(.content-table .el-table__row:hover > td.el-table__cell) {
+  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+}
 .form-tip {
   margin-top: 8px;
   font-size: 12px;
   line-height: 1.5;
   color: #94a3b8;
+}
+
+@media (max-width: 960px) {
+  .region-page .page-hero {
+    flex-direction: column;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions :deep(.el-button) {
+    width: 100%;
+  }
 }
 </style>
