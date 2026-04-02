@@ -264,7 +264,7 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-@use '@/modules/user-ops/user-ops.scss' as userOps;
+@use '../styles/user-ops' as userOps;
 
 .preference-page {
   @include userOps.page-shell;

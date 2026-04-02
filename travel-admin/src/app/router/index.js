@@ -6,7 +6,7 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/modules/system/login.vue'),
+    component: () => import('@/modules/system/pages/login.vue'),
     meta: { title: '登录', requiresAuth: false }
   },
   {
@@ -23,13 +23,13 @@ const routes = [
       {
         path: 'spot',
         name: 'Spot',
-        component: () => import('@/modules/spot/index.vue'),
+        component: () => import('@/modules/spot/pages/index.vue'),
         meta: { title: '景点管理', icon: 'Location', group: 'content' }
       },
       {
         path: 'guide',
         name: 'Guide',
-        component: () => import('@/modules/guide/index.vue'),
+        component: () => import('@/modules/guide/pages/index.vue'),
         meta: { title: '攻略管理', icon: 'Document', group: 'content' }
       },
       {
@@ -53,55 +53,55 @@ const routes = [
       {
         path: 'order',
         name: 'Order',
-        component: () => import('@/modules/order/index.vue'),
+        component: () => import('@/modules/order/pages/index.vue'),
         meta: { title: '订单中心', icon: 'List', group: 'transaction' }
       },
       {
         path: 'user',
         name: 'User',
-        component: () => import('@/modules/user-ops/user.vue'),
+        component: () => import('@/modules/user-ops/pages/user.vue'),
         meta: { title: '用户管理', icon: 'User', group: 'user-ops' }
       },
       {
         path: 'review',
         name: 'Review',
-        component: () => import('@/modules/user-ops/review.vue'),
+        component: () => import('@/modules/user-ops/pages/review.vue'),
         meta: { title: '评价管理', icon: 'ChatDotRound', group: 'user-ops' }
       },
       {
         path: 'favorite',
         name: 'Favorite',
-        component: () => import('@/modules/user-ops/favorite.vue'),
+        component: () => import('@/modules/user-ops/pages/favorite.vue'),
         meta: { title: '用户收藏', icon: 'Star', group: 'user-ops' }
       },
       {
         path: 'preference',
         name: 'Preference',
-        component: () => import('@/modules/user-ops/preference.vue'),
+        component: () => import('@/modules/user-ops/pages/preference.vue'),
         meta: { title: '用户偏好', icon: 'CollectionTag', group: 'user-ops' }
       },
       {
         path: 'view-log',
         name: 'ViewLog',
-        component: () => import('@/modules/user-ops/view-log.vue'),
+        component: () => import('@/modules/user-ops/pages/view-log.vue'),
         meta: { title: '浏览行为', icon: 'View', group: 'user-ops' }
       },
       {
         path: 'admin',
         name: 'Admin',
-        component: () => import('@/modules/system/admin.vue'),
+        component: () => import('@/modules/system/pages/admin.vue'),
         meta: { title: '管理员管理', icon: 'UserFilled', group: 'system' }
       },
       {
         path: 'recommendation',
         name: 'RecommendationOverview',
-        component: () => import('@/modules/recommendation/overview.vue'),
+        component: () => import('@/modules/recommendation/pages/overview.vue'),
         meta: { title: '推荐总览', icon: 'MagicStick', group: 'recommendation' }
       },
       {
         path: 'recommendation/config',
         name: 'Recommendation',
-        component: () => import('@/modules/recommendation/config.vue'),
+        component: () => import('@/modules/recommendation/pages/config.vue'),
         meta: { title: '推荐配置', icon: 'MagicStick', group: 'recommendation' }
       }
     ]
