@@ -1,8 +1,37 @@
 <!-- 推荐系统总览页 -->
 <template>
   <div class="recommendation-overview-page">
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">Recommendation Overview</p>
+        <h1 class="page-title">推荐系统总览</h1>
+        <p class="page-subtitle">查看推荐链路状态、最近行为摘要和相关工作台入口，不在总览页直接修改参数。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button type="primary" :loading="loading" @click="loadPageData">刷新数据</el-button>
+      </div>
+    </section>
+
+    <div v-if="errorMessage" class="error-state">
+      <el-result icon="error" title="推荐总览加载失败" :sub-title="errorMessage">
+        <template #extra>
+          <el-button type="primary" :loading="loading" @click="loadPageData">重新加载</el-button>
+        </template>
+      </el-result>
+    </div>
+
+    <template v-else>
+      <el-alert
+        v-if="partialWarning"
+        class="page-alert"
+        type="warning"
+        show-icon
+        :closable="false"
+        :title="partialWarning"
+      />
+
     <!-- 状态卡片 -->
-    <div class="hero-grid">
+    <div v-loading="loading" class="hero-grid">
       <el-card shadow="hover" class="hero-card hero-card-engine">
         <div class="hero-label">引擎状态</div>
         <div class="hero-value">{{ status.computing ? '计算中' : '就绪' }}</div>
@@ -25,7 +54,7 @@
       </el-card>
     </div>
 
-    <el-row :gutter="24" class="content-row">
+    <el-row v-loading="loading" :gutter="24" class="content-row">
       <el-col :xl="16" :lg="15" :md="24">
         <el-card shadow="hover">
           <!-- 工作台入口 -->
@@ -140,11 +169,12 @@
         </el-card>
       </el-col>
     </el-row>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSourceLabel } from '@/shared/constants/view-source.js'
 import { getRecommendationStatus } from '@/modules/recommendation/api/recommendation.js'
@@ -153,6 +183,9 @@ import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
 import { getViewList } from '@/modules/user-ops/api/view-log.js'
 
 const router = useRouter()
+const loading = ref(false)
+const errorMessage = ref('')
+const partialWarning = ref('')
 
 // 推荐状态
 const status = reactive({
@@ -300,6 +333,30 @@ const fetchBehaviorSummary = async () => {
   })
 }
 
+const loadPageData = async () => {
+  loading.value = true
+  errorMessage.value = ''
+  partialWarning.value = ''
+
+  const results = await Promise.allSettled([
+    fetchStatus(),
+    fetchBehaviorSummary()
+  ])
+
+  const failedSections = []
+  if (results[0].status === 'rejected') failedSections.push('推荐状态')
+  if (results[1].status === 'rejected') failedSections.push('行为摘要')
+
+  if (failedSections.length === results.length) {
+    const firstError = results.find(item => item.status === 'rejected')
+    errorMessage.value = firstError?.reason?.response?.data?.message || firstError?.reason?.message || '请稍后重试或检查接口返回。'
+  } else if (failedSections.length) {
+    partialWarning.value = `部分区块未成功刷新：${failedSections.join('、')}。当前页面已保留可用数据。`
+  }
+
+  loading.value = false
+}
+
 // 页面跳转
 const goTo = (path) => {
   router.push(path)
@@ -307,13 +364,53 @@ const goTo = (path) => {
 
 // 页面初始化
 onMounted(async () => {
-  fetchStatus()
-  fetchBehaviorSummary()
+  loadPageData()
 })
 </script>
 
 <style lang="scss" scoped>
 .recommendation-overview-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  .page-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 4px 2px;
+  }
+
+  .page-kicker {
+    margin: 0 0 6px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .page-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 30px;
+    line-height: 1.2;
+  }
+
+  .page-subtitle {
+    margin: 8px 0 0;
+    color: #64748b;
+  }
+
+  .error-state {
+    padding: 12px 0 4px;
+  }
+
+  .page-alert {
+    margin-bottom: 4px;
+  }
+
   .hero-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -566,6 +663,18 @@ onMounted(async () => {
   }
 
   @media (max-width: 768px) {
+    .page-hero {
+      flex-direction: column;
+    }
+
+    .hero-actions {
+      width: 100%;
+    }
+
+    .hero-actions :deep(.el-button) {
+      width: 100%;
+    }
+
     .hero-grid,
     .entry-grid,
     .summary-grid {
