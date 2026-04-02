@@ -63,6 +63,7 @@ public class DashboardServiceImpl implements DashboardService {
 
         // 今日统计统一按自然日零点切分。
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        LocalDateTime yesterdayStart = LocalDate.now().minusDays(1).atStartOfDay();
         
         List<Order> todayOrders = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
@@ -73,11 +74,43 @@ public class DashboardServiceImpl implements DashboardService {
         response.setTodayOrders((long) todayOrders.size());
         response.setTodayRevenue(sumRevenue(todayOrders));
 
+        List<Order> yesterdayOrders = orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getIsDeleted, 0)
+                .ge(Order::getCreatedAt, yesterdayStart)
+                .lt(Order::getCreatedAt, todayStart)
+                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
+        );
+        response.setYesterdayOrders((long) yesterdayOrders.size());
+        response.setYesterdayRevenue(sumRevenue(yesterdayOrders));
+
         response.setTodayNewUsers(userMapper.selectCount(
             new LambdaQueryWrapper<User>()
                 .eq(User::getIsDeleted, 0)
                 .ge(User::getCreatedAt, todayStart)
         ));
+        response.setYesterdayNewUsers(userMapper.selectCount(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getIsDeleted, 0)
+                .ge(User::getCreatedAt, yesterdayStart)
+                .lt(User::getCreatedAt, todayStart)
+        ));
+
+        response.setTodayNewSpots(spotMapper.selectCount(
+            new LambdaQueryWrapper<Spot>()
+                .eq(Spot::getIsPublished, 1)
+                .eq(Spot::getIsDeleted, 0)
+                .ge(Spot::getCreatedAt, todayStart)
+        ));
+        response.setYesterdayNewSpots(spotMapper.selectCount(
+            new LambdaQueryWrapper<Spot>()
+                .eq(Spot::getIsPublished, 1)
+                .eq(Spot::getIsDeleted, 0)
+                .ge(Spot::getCreatedAt, yesterdayStart)
+                .lt(Spot::getCreatedAt, todayStart)
+        ));
+
+        appendRecentSeries(response);
 
         return response;
     }
@@ -202,6 +235,59 @@ public class DashboardServiceImpl implements DashboardService {
             case SATURDAY -> "周六";
             case SUNDAY -> "周日";
         };
+    }
+
+    /**
+     * 顶部卡片使用最近 10 天真实序列，统一在概览接口返回，避免前端再做多次拼装请求。
+     */
+    private void appendRecentSeries(DashboardOverviewResponse response) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(9);
+        LocalDateTime startTime = startDate.atStartOfDay();
+
+        List<Order> recentOrders = orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getIsDeleted, 0)
+                .ge(Order::getCreatedAt, startTime)
+                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
+        );
+        List<User> recentUsers = userMapper.selectList(
+            new LambdaQueryWrapper<User>()
+                .eq(User::getIsDeleted, 0)
+                .ge(User::getCreatedAt, startTime)
+        );
+        List<Spot> recentSpots = spotMapper.selectList(
+            new LambdaQueryWrapper<Spot>()
+                .eq(Spot::getIsPublished, 1)
+                .eq(Spot::getIsDeleted, 0)
+                .ge(Spot::getCreatedAt, startTime)
+        );
+
+        Map<LocalDate, List<Order>> orderMap = recentOrders.stream()
+            .collect(Collectors.groupingBy(order -> order.getCreatedAt().toLocalDate()));
+        Map<LocalDate, Long> userMap = recentUsers.stream()
+            .collect(Collectors.groupingBy(user -> user.getCreatedAt().toLocalDate(), Collectors.counting()));
+        Map<LocalDate, Long> spotMap = recentSpots.stream()
+            .collect(Collectors.groupingBy(spot -> spot.getCreatedAt().toLocalDate(), Collectors.counting()));
+
+        List<BigDecimal> revenueSeries = new ArrayList<>();
+        List<Long> orderSeries = new ArrayList<>();
+        List<Long> userSeries = new ArrayList<>();
+        List<Long> spotSeries = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            LocalDate date = startDate.plusDays(i);
+            List<Order> dayOrders = orderMap.getOrDefault(date, Collections.emptyList());
+            revenueSeries.add(sumRevenue(dayOrders));
+            orderSeries.add((long) dayOrders.size());
+            userSeries.add(userMap.getOrDefault(date, 0L));
+            spotSeries.add(spotMap.getOrDefault(date, 0L));
+        }
+
+        response.setRecentRevenueSeries(revenueSeries);
+        response.setRecentOrderSeries(orderSeries);
+        response.setRecentUserSeries(userSeries);
+        response.setRecentSpotSeries(spotSeries);
     }
 
     // 热门景点统计

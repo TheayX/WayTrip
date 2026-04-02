@@ -14,78 +14,81 @@
 
     <!-- 顶部：四大趋势指标卡 -->
     <el-row :gutter="20" class="trend-cards mb-6">
-      <!-- 收入 -->
       <el-col :span="6">
         <el-card shadow="hover" class="trend-card bg-gradient-to-br from-blue-50 to-white border-blue-100">
           <div class="flex justify-between items-start mb-2">
             <div>
               <p class="text-sm text-gray-500 mb-1">今日收入</p>
-              <h3 class="text-2xl font-bold text-gray-800">¥8,459.00</h3>
+              <h3 class="text-2xl font-bold text-gray-800">¥{{ formatCurrency(overview.todayRevenue) }}</h3>
             </div>
             <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
               <el-icon><Money /></el-icon>
             </div>
           </div>
-          <p class="text-xs text-green-500 font-medium mb-3">+12.5% 较昨日</p>
+          <p class="text-xs font-medium mb-3" :class="getDeltaClass(overview.todayRevenue, overview.yesterdayRevenue)">
+            {{ formatDelta(overview.todayRevenue, overview.yesterdayRevenue) }} 较昨日
+          </p>
           <div ref="sparklineRevenue" class="sparkline h-12 w-full"></div>
         </el-card>
       </el-col>
 
-      <!-- 活跃用户 -->
       <el-col :span="6">
         <el-card shadow="hover" class="trend-card bg-gradient-to-br from-purple-50 to-white border-purple-100">
           <div class="flex justify-between items-start mb-2">
             <div>
-              <p class="text-sm text-gray-500 mb-1">活跃用户</p>
-              <h3 class="text-2xl font-bold text-gray-800">1,245</h3>
+              <p class="text-sm text-gray-500 mb-1">今日新增用户</p>
+              <h3 class="text-2xl font-bold text-gray-800">{{ formatInteger(overview.todayNewUsers) }}</h3>
             </div>
             <div class="p-2 bg-purple-100 text-purple-600 rounded-lg">
               <el-icon><User /></el-icon>
             </div>
           </div>
-          <p class="text-xs text-green-500 font-medium mb-3">+5.2% 较昨日</p>
+          <p class="text-xs font-medium mb-3" :class="getDeltaClass(overview.todayNewUsers, overview.yesterdayNewUsers)">
+            {{ formatDelta(overview.todayNewUsers, overview.yesterdayNewUsers) }} 较昨日
+          </p>
           <div ref="sparklineUsers" class="sparkline h-12 w-full"></div>
         </el-card>
       </el-col>
 
-      <!-- 新增景点 -->
       <el-col :span="6">
         <el-card shadow="hover" class="trend-card bg-gradient-to-br from-emerald-50 to-white border-emerald-100">
           <div class="flex justify-between items-start mb-2">
             <div>
-              <p class="text-sm text-gray-500 mb-1">新增景点</p>
-              <h3 class="text-2xl font-bold text-gray-800">32</h3>
+              <p class="text-sm text-gray-500 mb-1">今日新增景点</p>
+              <h3 class="text-2xl font-bold text-gray-800">{{ formatInteger(overview.todayNewSpots) }}</h3>
             </div>
             <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
               <el-icon><Location /></el-icon>
             </div>
           </div>
-          <p class="text-xs text-gray-400 font-medium mb-3">当月累计新增</p>
+          <p class="text-xs font-medium mb-3" :class="getDeltaClass(overview.todayNewSpots, overview.yesterdayNewSpots)">
+            {{ formatDelta(overview.todayNewSpots, overview.yesterdayNewSpots) }} 较昨日
+          </p>
           <div ref="sparklineSpots" class="sparkline h-12 w-full"></div>
         </el-card>
       </el-col>
 
-      <!-- 订单数 -->
       <el-col :span="6">
         <el-card shadow="hover" class="trend-card bg-gradient-to-br from-orange-50 to-white border-orange-100">
           <div class="flex justify-between items-start mb-2">
             <div>
               <p class="text-sm text-gray-500 mb-1">今日订单</p>
-              <h3 class="text-2xl font-bold text-gray-800">156</h3>
+              <h3 class="text-2xl font-bold text-gray-800">{{ formatInteger(overview.todayOrders) }}</h3>
             </div>
             <div class="p-2 bg-orange-100 text-orange-600 rounded-lg">
               <el-icon><ShoppingCart /></el-icon>
             </div>
           </div>
-          <p class="text-xs text-red-500 font-medium mb-3">-2.1% 较昨日</p>
+          <p class="text-xs font-medium mb-3" :class="getDeltaClass(overview.todayOrders, overview.yesterdayOrders)">
+            {{ formatDelta(overview.todayOrders, overview.yesterdayOrders) }} 较昨日
+          </p>
           <div ref="sparklineOrders" class="sparkline h-12 w-full"></div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 中部：业务流转动态墙 + 行为热力图 -->
+    <!-- 中部：趋势 + 今日概览 -->
     <el-row :gutter="20">
-      <!-- 左侧：行为热力图 -->
       <el-col :span="16">
         <el-card shadow="hover" class="border-0 mb-6">
            <template #header>
@@ -132,16 +135,80 @@
         </el-card>
       </el-col>
 
-      <!-- 右侧：实时日志轴 -->
       <el-col :span="8">
-        <el-card shadow="hover" class="border-0 timeline-card h-full">
+        <el-card shadow="hover" class="border-0 mb-6">
+          <template #header>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-gray-800">今日概览</span>
+              <el-tag size="small" type="primary" effect="light" round>真实数据</el-tag>
+            </div>
+          </template>
+          <div class="today-overview">
+            <div class="today-overview-item">
+              <span class="overview-label">累计营收</span>
+              <span class="overview-value">¥{{ formatCurrency(overview.totalRevenue) }}</span>
+            </div>
+            <div class="today-overview-item">
+              <span class="overview-label">累计订单</span>
+              <span class="overview-value">{{ formatInteger(overview.totalOrders) }}</span>
+            </div>
+            <div class="today-overview-item">
+              <span class="overview-label">累计用户</span>
+              <span class="overview-value">{{ formatInteger(overview.totalUsers) }}</span>
+            </div>
+            <div class="today-overview-item">
+              <span class="overview-label">已发布景点</span>
+              <span class="overview-value">{{ formatInteger(overview.totalSpots) }}</span>
+            </div>
+            <div class="today-overview-tip">
+              昨日收入 ¥{{ formatCurrency(overview.yesterdayRevenue) }}，昨日订单 {{ formatInteger(overview.yesterdayOrders) }}
+            </div>
+          </div>
+        </el-card>
+
+        <el-card shadow="hover" class="border-0">
+          <template #header>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-gray-800">热门景点</span>
+              <el-tag size="small" type="warning" effect="light" round>真实数据</el-tag>
+            </div>
+          </template>
+          <div class="hot-spots-list">
+            <button
+              v-for="(spot, index) in hotSpots"
+              :key="spot.id"
+              type="button"
+              class="hot-spot-item"
+              @click="goToSpot(spot)"
+            >
+              <div class="hot-spot-rank" :class="`rank-${Math.min(index + 1, 4)}`">{{ index + 1 }}</div>
+              <div class="hot-spot-body">
+                <div class="hot-spot-header">
+                  <span class="hot-spot-name">{{ spot.name }}</span>
+                  <span class="hot-spot-revenue">¥{{ formatCurrency(spot.revenue) }}</span>
+                </div>
+                <div class="hot-spot-meta">
+                  <span>订单 {{ formatInteger(spot.orderCount) }}</span>
+                  <span>评分 {{ formatRating(spot.avgRating) }}</span>
+                </div>
+              </div>
+            </button>
+            <el-empty v-if="!hotSpots.length" description="暂无热门景点数据" :image-size="72" />
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20" class="mt-6">
+      <el-col :span="24">
+        <el-card shadow="hover" class="border-0 timeline-card">
           <template #header>
             <div class="flex justify-between items-center">
               <span class="font-bold text-gray-800">业务流转动态墙</span>
               <el-tag size="small" type="success" effect="light" round>实时</el-tag>
             </div>
           </template>
-          <div class="timeline-container px-2 py-4 h-[550px] overflow-y-auto">
+          <div class="timeline-container px-2 py-4 h-[320px] overflow-y-auto">
             <el-timeline>
               <el-timeline-item v-for="(activity, index) in timelineActivities" :key="index" :type="activity.type" :color="activity.color" :size="activity.size" :timestamp="activity.timestamp" placement="top">
                 <el-card shadow="never" class="timeline-item-card border-none bg-gray-50 rounded-xl">
@@ -159,9 +226,10 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { Money, User, Location, ShoppingCart, RefreshRight } from '@element-plus/icons-vue'
-import { getOrderTrend } from './api.js'
+import { getHotSpots, getOrderTrend, getOverview } from './api.js'
 
 // Refs for charts
 const sparklineRevenue = ref(null)
@@ -171,6 +239,7 @@ const sparklineOrders = ref(null)
 const heatmapRef = ref(null)
 const mainLineChartRef = ref(null)
 const trendChartShellRef = ref(null)
+const router = useRouter()
 
 const charts = []
 let mainLineChart = null
@@ -178,9 +247,25 @@ let hasTrendAnimated = false
 const trendRevealActive = ref(false)
 const trendMode = ref('weekday')
 const selectedRange = ref(0)
-
-// Mock Data
-const generateSparklineData = () => Array.from({length: 10}, () => Math.floor(Math.random() * 100) + 20)
+const overview = ref({
+  totalUsers: 0,
+  totalSpots: 0,
+  totalOrders: 0,
+  totalRevenue: 0,
+  todayOrders: 0,
+  todayRevenue: 0,
+  todayNewUsers: 0,
+  todayNewSpots: 0,
+  yesterdayOrders: 0,
+  yesterdayRevenue: 0,
+  yesterdayNewUsers: 0,
+  yesterdayNewSpots: 0,
+  recentRevenueSeries: [],
+  recentUserSeries: [],
+  recentSpotSeries: [],
+  recentOrderSeries: []
+})
+const hotSpots = ref([])
 
 const timelineActivities = ref([
   { title: '新订单产生', desc: '用户 "李小明" 预订了 "九寨沟风景区" 门票 (¥240.00)', timestamp: '刚刚', type: 'primary', color: '#3b82f6', size: 'large' },
@@ -204,19 +289,58 @@ const initSparklines = () => {
     if (!cfg.ref.value) return
     const chart = echarts.init(cfg.ref.value)
     charts.push(chart)
-    chart.setOption({
-      grid: { left: 0, right: 0, top: 0, bottom: 0 },
-      xAxis: { type: 'category', show: false },
-      yAxis: { type: 'value', show: false },
-      series: [{
-        data: generateSparklineData(),
-        type: 'line',
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { color: cfg.color, width: 2 },
-        areaStyle: { color: cfg.areaColor }
-      }]
-    })
+    chart.setOption(buildSparklineOption([], cfg.color, cfg.areaColor))
+  })
+}
+
+const buildSparklineOption = (data, color, areaColor) => ({
+  animationDuration: 600,
+  animationEasing: 'linear',
+  grid: { left: 0, right: 0, top: 0, bottom: 0 },
+  xAxis: { type: 'category', show: false, data: data.map((_, index) => index) },
+  yAxis: { type: 'value', show: false },
+  series: [{
+    data,
+    type: 'line',
+    smooth: true,
+    showSymbol: false,
+    lineStyle: { color, width: 2 },
+    areaStyle: { color: areaColor }
+  }]
+})
+
+const updateSparklines = () => {
+  const targets = [
+    {
+      ref: sparklineRevenue.value,
+      data: (overview.value.recentRevenueSeries || []).map(item => Number(item || 0)),
+      color: '#3b82f6',
+      areaColor: 'rgba(59, 130, 246, 0.1)'
+    },
+    {
+      ref: sparklineUsers.value,
+      data: (overview.value.recentUserSeries || []).map(item => Number(item || 0)),
+      color: '#8b5cf6',
+      areaColor: 'rgba(139, 92, 246, 0.1)'
+    },
+    {
+      ref: sparklineSpots.value,
+      data: (overview.value.recentSpotSeries || []).map(item => Number(item || 0)),
+      color: '#10b981',
+      areaColor: 'rgba(16, 185, 129, 0.1)'
+    },
+    {
+      ref: sparklineOrders.value,
+      data: (overview.value.recentOrderSeries || []).map(item => Number(item || 0)),
+      color: '#f97316',
+      areaColor: 'rgba(249, 115, 22, 0.1)'
+    }
+  ]
+
+  targets.forEach((item) => {
+    const chart = charts.find(target => target.getDom() === item.ref)
+    if (!chart) return
+    chart.setOption(buildSparklineOption(item.data, item.color, item.areaColor), true)
   })
 }
 
@@ -289,6 +413,28 @@ const initMainLineChart = () => {
 }
 
 const formatMoney = (value) => Number(value || 0)
+const formatCurrency = (value) => Number(value || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatInteger = (value) => Number(value || 0).toLocaleString('zh-CN')
+const formatRating = (value) => Number(value || 0).toFixed(1)
+
+const formatDelta = (current, previous) => {
+  const currentValue = Number(current || 0)
+  const previousValue = Number(previous || 0)
+  if (previousValue === 0) {
+    if (currentValue === 0) return '0.0%'
+    return '+100.0%'
+  }
+  const diff = ((currentValue - previousValue) / previousValue) * 100
+  const sign = diff > 0 ? '+' : ''
+  return `${sign}${diff.toFixed(1)}%`
+}
+
+const getDeltaClass = (current, previous) => {
+  const diff = Number(current || 0) - Number(previous || 0)
+  if (diff > 0) return 'text-green-500'
+  if (diff < 0) return 'text-red-500'
+  return 'text-gray-400'
+}
 
 const formatAxisLabel = (label) => {
   if (trendMode.value === 'weekday') return label
@@ -431,9 +577,33 @@ const playTrendRevealAnimation = () => {
   trendRevealActive.value = true
 }
 
+const fetchOverviewData = async () => {
+  const response = await getOverview()
+  overview.value = {
+    ...overview.value,
+    ...(response.data || {})
+  }
+  updateSparklines()
+}
+
+const fetchHotSpotsData = async () => {
+  const response = await getHotSpots(6)
+  hotSpots.value = response.data?.list || []
+}
+
 const fetchData = async () => {
-  const response = await getOrderTrend(selectedRange.value, trendMode.value)
-  updateMainLineChart(response.data?.list || [])
+  const [trendResponse, overviewResponse, hotSpotsResponse] = await Promise.all([
+    getOrderTrend(selectedRange.value, trendMode.value),
+    getOverview(),
+    getHotSpots(6)
+  ])
+  overview.value = {
+    ...overview.value,
+    ...(overviewResponse.data || {})
+  }
+  hotSpots.value = hotSpotsResponse.data?.list || []
+  updateSparklines()
+  updateMainLineChart(trendResponse.data?.list || [])
   mainLineChart?.resize()
 }
 
@@ -445,6 +615,17 @@ const handleTrendModeChange = () => {
 
 const handleResize = () => {
   charts.forEach(c => c.resize())
+}
+
+const goToSpot = (spot) => {
+  if (!spot?.id) return
+  router.push({
+    path: '/spot',
+    query: {
+      keyword: spot.name,
+      spotId: String(spot.id)
+    }
+  })
 }
 
 onMounted(() => {
@@ -506,6 +687,7 @@ onUnmounted(() => {
 .w-full { width: 100%; }
 .m-0 { margin: 0; }
 .overflow-y-auto { overflow-y: auto; }
+.mt-6 { margin-top: 24px; }
 
 .trend-card {
   border-radius: 16px;
@@ -580,6 +762,135 @@ onUnmounted(() => {
   to {
     clip-path: inset(0 0 0 0);
   }
+}
+
+.today-overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.today-overview-item {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e5edf5;
+}
+
+.overview-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.overview-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.today-overview-tip {
+  grid-column: 1 / -1;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hot-spots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 280px;
+}
+
+.hot-spot-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.hot-spot-item:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.hot-spot-rank {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.rank-1 {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.rank-2 {
+  color: #374151;
+  background: #e5e7eb;
+}
+
+.rank-3 {
+  color: #9a3412;
+  background: #fed7aa;
+}
+
+.hot-spot-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.hot-spot-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.hot-spot-name {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hot-spot-revenue {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.hot-spot-meta {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: #64748b;
 }
 
 .timeline-container {
