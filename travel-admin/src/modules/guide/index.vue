@@ -1,6 +1,17 @@
 <!-- 攻略管理页面 -->
 <template>
   <div class="guide-page">
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">Content Workspace</p>
+        <h1 class="page-title">攻略管理</h1>
+        <p class="page-subtitle">集中处理攻略内容、发布状态与关联景点维护。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button :loading="loading" @click="loadData">刷新数据</el-button>
+      </div>
+    </section>
+
     <el-card shadow="hover">
       <template #header>
         <div class="card-header">
@@ -11,48 +22,25 @@
         </div>
       </template>
 
-      <el-form :inline="true" :model="queryParams" class="search-form" @submit.prevent>
-        <el-form-item label="关键词">
-          <el-input
-            v-model="queryParams.keyword"
-            placeholder="攻略标题"
-            clearable
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-select
-            v-model="queryParams.category"
-            placeholder="全部分类"
-            clearable
-            style="width: 200px"
-            @change="handleSearch"
-            @clear="handleSearch"
-          >
-            <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="发布状态">
-          <el-select
-            v-model="uiFilters.published"
-            placeholder="全部状态"
-            clearable
-            style="width: 140px"
-            @change="handleFilterChange"
-            @clear="handleFilterChange"
-          >
-            <el-option label="已发布" value="1" />
-            <el-option label="未发布" value="0" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+      <GuideFilterBar
+        :query-params="queryParams"
+        :ui-filters="uiFilters"
+        :categories="categories"
+        @search="handleSearch"
+        @reset="handleReset"
+        @filter-change="handleFilterChange"
+      />
+
+      <div v-if="errorMessage" class="error-state">
+        <el-result icon="error" title="攻略数据加载失败" :sub-title="errorMessage">
+          <template #extra>
+            <el-button type="primary" @click="loadData">重新加载</el-button>
+          </template>
+        </el-result>
+      </div>
 
       <GuideTable
+        v-else
         :table-data="tableData"
         :loading="loading"
         :get-image-url="getImageUrl"
@@ -132,6 +120,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import GuideFilterBar from '@/modules/guide/components/GuideFilterBar.vue'
 import GuideTable from '@/modules/guide/components/GuideTable.vue'
 import GuideFormDrawer from '@/modules/guide/components/GuideFormDrawer.vue'
 import GuideDetailDrawer from '@/modules/guide/components/GuideDetailDrawer.vue'
@@ -207,6 +196,7 @@ const total = ref(0)
 const categories = ref([])
 const spotList = ref([])
 const spotOptions = ref([])
+const errorMessage = ref('')
 const selectedGuides = ref([])
 const dialogVisible = ref(false)
 const drawerVisible = ref(false)
@@ -216,6 +206,7 @@ const activeGuideId = ref(null)
 const autoOpenedGuideId = ref(null)
 const guideDetail = ref(null)
 const formDrawerRef = ref()
+const skipNextRouteLoad = ref(false)
 
 const queryParams = reactive({
   page: 1,
@@ -285,11 +276,16 @@ const loadSpots = async () => {
 
 const loadData = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     const res = await getGuideList(queryParams)
     tableData.value = res.data.list || []
     total.value = res.data.total || 0
     await openGuideFromRoute()
+  } catch (error) {
+    tableData.value = []
+    total.value = 0
+    errorMessage.value = error?.response?.data?.message || error?.message || '请稍后重试或检查接口返回。'
   } finally {
     loading.value = false
   }
@@ -324,7 +320,19 @@ const syncRouteQuery = (guideId = activeGuideId.value) => {
   if (guideId) {
     nextQuery.guideId = String(guideId)
   }
-  router.replace({ path: route.path, query: nextQuery })
+  const currentQuery = {}
+  if (typeof route.query.keyword === 'string' && route.query.keyword) {
+    currentQuery.keyword = route.query.keyword
+  }
+  if (typeof route.query.guideId === 'string' && route.query.guideId) {
+    currentQuery.guideId = route.query.guideId
+  }
+  const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
+  if (changed) {
+    skipNextRouteLoad.value = true
+    router.replace({ path: route.path, query: nextQuery })
+  }
+  return changed
 }
 
 const normalizeRouteGuideId = (value) => {
@@ -435,7 +443,10 @@ const buildSubmitPayload = () => ({
   spotIds: Array.isArray(form.spotIds) ? form.spotIds : []
 })
 
-const handleSubmit = async () => {
+const handleSubmit = async (options = {}) => {
+  if (typeof options.published === 'boolean') {
+    form.published = options.published
+  }
   await formDrawerRef.value?.validate()
   submitting.value = true
   try {
@@ -479,45 +490,69 @@ const handleSelectionChange = (selection) => {
   selectedGuides.value = selection
 }
 
-const handleBatchPublish = async (status) => {
-  if (!selectedGuides.value.length) return
-  const action = status ? '发布' : '下架'
-  await ElMessageBox.confirm(`确定要批量${action}选中的 ${selectedGuides.value.length} 篇攻略吗？`, '提示', { type: 'warning' })
+// 批量操作统一汇总执行结果，避免逐条串行导致等待时间过长且失败反馈不清晰。
+const runBatchAction = async ({ rows, requestFactory, successMessage, afterSuccess }) => {
+  if (!rows.length) {
+    return
+  }
+
   loading.value = true
   try {
-    for (const item of selectedGuides.value) {
-      if (item.published !== status) {
-        await updatePublishStatus(item.id, status)
-      }
+    const results = await Promise.allSettled(rows.map((item) => requestFactory(item)))
+    const successCount = results.filter((item) => item.status === 'fulfilled').length
+    const failedCount = results.length - successCount
+
+    if (failedCount === 0) {
+      ElMessage.success(successMessage)
+    } else if (successCount > 0) {
+      ElMessage.warning(`已成功 ${successCount} 项，失败 ${failedCount} 项`)
+    } else {
+      ElMessage.error('批量操作失败')
     }
-    ElMessage.success(`批量${action}成功`)
+
+    if (typeof afterSuccess === 'function') {
+      afterSuccess()
+    }
+
     selectedGuides.value = []
-    loadData()
+    await loadData()
   } finally {
     loading.value = false
   }
 }
 
+const handleBatchPublish = async (status) => {
+  if (!selectedGuides.value.length) return
+  const action = status ? '发布' : '下架'
+  await ElMessageBox.confirm(`确定要批量${action}选中的 ${selectedGuides.value.length} 篇攻略吗？`, '提示', { type: 'warning' })
+  const targetRows = selectedGuides.value.filter((item) => item.published !== status)
+  if (!targetRows.length) {
+    ElMessage.info(`选中攻略均已${status ? '发布' : '下架'}`)
+    return
+  }
+  await runBatchAction({
+    rows: targetRows,
+    requestFactory: (item) => updatePublishStatus(item.id, status),
+    successMessage: `批量${action}成功`
+  })
+}
+
 const handleBatchDelete = async () => {
   if (!selectedGuides.value.length) return
   await ElMessageBox.confirm(`确定要批量删除选中的 ${selectedGuides.value.length} 篇攻略吗？(此操作不可恢复)`, '警告', { type: 'error' })
-  loading.value = true
-  try {
-    for (const item of selectedGuides.value) {
-      await deleteGuide(item.id)
+  await runBatchAction({
+    rows: selectedGuides.value,
+    requestFactory: (item) => deleteGuide(item.id),
+    successMessage: '批量删除成功',
+    afterSuccess: () => {
+      if (selectedGuides.value.some((item) => item.id === activeGuideId.value)) {
+        activeGuideId.value = null
+        guideDetail.value = null
+        drawerVisible.value = false
+        syncRouteQuery(null)
+      }
     }
-    ElMessage.success('批量删除成功')
-    if (selectedGuides.value.some((item) => item.id === activeGuideId.value)) {
-      activeGuideId.value = null
-      guideDetail.value = null
-      drawerVisible.value = false
-      syncRouteQuery(null)
-    }
-    selectedGuides.value = []
-    loadData()
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 watch(
@@ -535,12 +570,51 @@ watch(
   () => [route.query.keyword, route.query.guideId],
   () => {
     applyRouteQuery()
+    if (skipNextRouteLoad.value) {
+      skipNextRouteLoad.value = false
+      return
+    }
     loadData()
   }
 )
 </script>
 
 <style lang="scss" scoped>
+.guide-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.page-kicker {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -552,13 +626,13 @@ watch(
   gap: 12px;
 }
 
-.search-form {
-  margin-bottom: 16px;
-}
-
 .pagination {
   margin-top: 20px;
   justify-content: flex-end;
+}
+
+.error-state {
+  padding: 8px 0 16px;
 }
 
 :deep(.guide-highlight-row) {
@@ -566,6 +640,20 @@ watch(
 
   td {
     background-color: #fdf6ec !important;
+  }
+}
+
+@media (max-width: 960px) {
+  .page-hero {
+    flex-direction: column;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions :deep(.el-button) {
+    width: 100%;
   }
 }
 </style>
