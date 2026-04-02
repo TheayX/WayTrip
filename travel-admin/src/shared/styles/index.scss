@@ -410,6 +410,40 @@ html, body {
   margin-bottom: 4px;
 }
 
+.el-empty {
+  padding: 20px 0;
+
+  .el-empty__description p {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+.el-loading-mask {
+  background: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(2px);
+}
+
+.el-loading-spinner {
+  .circular {
+    width: 34px;
+    height: 34px;
+  }
+
+  .path {
+    stroke: var(--el-color-primary);
+  }
+
+  .el-loading-text {
+    margin-top: 10px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+}
+
 @media (max-width: 960px) {
   .page-hero {
     flex-direction: column;

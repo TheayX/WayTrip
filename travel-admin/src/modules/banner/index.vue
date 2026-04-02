@@ -32,7 +32,14 @@
       </div>
 
       <!-- 轮播图列表 -->
-      <el-table v-else :data="bannerList" v-loading="loading" class="banner-table borderless-table" empty-text="当前暂无轮播图数据">
+      <el-table
+        v-else
+        :data="bannerList"
+        v-loading="loading"
+        element-loading-text="正在加载轮播图数据..."
+        class="banner-table borderless-table"
+        empty-text="当前暂无轮播图数据"
+      >
         <el-table-column label="预览" width="200">
           <template #default="{ row }">
             <el-image

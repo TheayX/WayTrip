@@ -32,7 +32,7 @@
       />
 
       <!-- 顶部：四大趋势指标卡 -->
-      <el-row v-loading="loading" :gutter="20" class="trend-cards mb-6">
+      <el-row v-loading="loading" element-loading-text="正在加载概览数据..." :gutter="20" class="trend-cards mb-6">
       <el-col :span="6">
         <el-card shadow="hover" class="trend-card bg-gradient-to-br from-blue-50 to-white border-blue-100">
           <div class="flex justify-between items-start mb-2">
@@ -107,7 +107,7 @@
     </el-row>
 
       <!-- 中部：趋势 + 今日概览 -->
-      <el-row v-loading="loading" :gutter="20">
+      <el-row v-loading="loading" element-loading-text="正在加载趋势与榜单..." :gutter="20">
       <el-col :span="16">
         <el-card shadow="hover" class="border-0 mb-6">
            <template #header>
@@ -822,35 +822,6 @@ onUnmounted(() => {
   gap: 20px;
 }
 
-.page-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 4px 2px;
-}
-
-.page-kicker {
-  margin: 0 0 6px;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.page-title {
-  margin: 0;
-  color: #0f172a;
-  font-size: 30px;
-  line-height: 1.2;
-}
-
-.page-subtitle {
-  margin: 8px 0 0;
-  color: #64748b;
-}
-
 .dashboard-error {
   padding: 12px 0 4px;
 }
@@ -1144,10 +1115,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 960px) {
-  .page-hero {
-    flex-direction: column;
-  }
-
   .hero-actions {
     width: 100%;
   }

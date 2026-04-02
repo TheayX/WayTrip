@@ -31,7 +31,7 @@
             </el-result>
           </div>
 
-          <ul v-else class="parent-list" v-loading="loading1">
+          <ul v-else class="parent-list" v-loading="loading1" element-loading-text="正在加载地区数据...">
             <li 
               v-for="item in level1List" 
               :key="item.id" 
@@ -44,7 +44,7 @@
                 <el-icon @click.stop="handleDeleteLevel1(item)" class="action-icon danger"><Delete /></el-icon>
               </div>
             </li>
-            <el-empty v-if="level1List.length === 0" description="暂无一级地区" :image-size="60" />
+            <el-empty v-if="level1List.length === 0" description="当前暂无一级地区数据" :image-size="60" />
           </ul>
         </el-card>
       </el-col>
@@ -59,7 +59,12 @@
             </div>
           </template>
 
-          <el-table :data="level2List" v-loading="loading2" class="content-table borderless-table">
+          <el-table
+            :data="level2List"
+            v-loading="loading2"
+            element-loading-text="正在加载地区数据..."
+            class="content-table borderless-table"
+          >
             <el-table-column prop="name" label="地区名称" />
             <el-table-column prop="sortOrder" label="排序" width="100" />
             <el-table-column prop="createdAt" label="创建时间" width="180">
@@ -76,7 +81,7 @@
               </template>
             </el-table-column>
             <template #empty>
-              <el-empty description="请选择左侧一级地区，或该地区下暂无子地区" />
+              <el-empty description="请先选择左侧一级地区，或当前暂无子地区数据" />
             </template>
           </el-table>
         </el-card>

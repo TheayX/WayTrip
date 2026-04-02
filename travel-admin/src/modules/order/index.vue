@@ -51,7 +51,13 @@
       </div>
 
       <template v-else>
-        <el-table :data="orderList" v-loading="loading" class="order-table" empty-text="当前条件下暂无匹配订单">
+        <el-table
+          :data="orderList"
+          v-loading="loading"
+          element-loading-text="正在加载订单数据..."
+          class="order-table"
+          empty-text="当前条件下暂无匹配订单"
+        >
           <el-table-column label="订单号" width="200" align="left">
             <template #default="{ row }">
               <el-button link type="primary" class="order-link" @click="handleDetail(row)">
@@ -448,7 +454,6 @@ onMounted(() => {
   }
 }
 
-.page-hero,
 .workspace-head {
   display: flex;
   justify-content: space-between;
@@ -456,31 +461,10 @@ onMounted(() => {
   gap: 16px;
 }
 
-.page-hero {
-  padding: 4px 2px;
-}
-
-.page-kicker {
-  margin: 0 0 6px;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.page-title,
 .workspace-title {
   margin: 0;
   color: #0f172a;
 }
-
-.page-title {
-  font-size: 30px;
-  line-height: 1.2;
-}
-
-.page-subtitle,
 .workspace-subtitle {
   margin: 8px 0 0;
   color: #64748b;
@@ -497,10 +481,6 @@ onMounted(() => {
 
 .workspace-tabs {
   margin-top: -6px;
-}
-
-.error-state {
-  padding: 20px 0 8px;
 }
 
 .order-table {
@@ -553,7 +533,6 @@ onMounted(() => {
 }
 
 @media (max-width: 960px) {
-  .page-hero,
   .workspace-head {
     flex-direction: column;
   }
