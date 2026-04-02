@@ -2,94 +2,144 @@
   <el-drawer
     :model-value="visible"
     :title="editId ? '编辑攻略' : '新增攻略'"
-    size="760px"
+    size="960px"
     class="guide-form-drawer"
     destroy-on-close
     @update:model-value="emitVisible"
   >
     <div class="drawer-content-wrapper flex flex-col h-full">
-      <div class="form-container flex-1 overflow-y-auto p-6">
-        <el-form ref="formRef" :model="form" :rules="rules" label-position="top" class="custom-form">
-          <div class="section-card">
-            <h3 class="section-title">基础信息</h3>
+      <div class="drawer-body flex flex-1 min-h-0">
+        <aside class="section-nav">
+          <div class="section-nav-title">录入导航</div>
+          <button
+            v-for="section in sections"
+            :key="section.key"
+            type="button"
+            class="section-nav-item"
+            :class="{ active: activeSection === section.key }"
+            @click="scrollToSection(section.key)"
+          >
+            <span class="section-nav-name">{{ section.label }}</span>
+            <span class="section-nav-hint">{{ section.hint }}</span>
+          </button>
+        </aside>
 
-            <el-row :gutter="24">
-              <el-col :span="16">
-                <el-form-item label="攻略标题" prop="title">
-                  <el-input v-model="form.title" placeholder="请输入攻略标题" size="large" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item label="攻略分类" prop="category">
-                  <el-select v-model="form.category" placeholder="请选择分类" allow-create filterable class="w-full" size="large">
-                    <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
-                  </el-select>
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <el-form-item label="封面图">
-              <div class="upload-container">
-                <el-upload
-                  class="image-uploader"
-                  :action="uploadUrl"
-                  :headers="uploadHeaders"
-                  :data="uploadData"
-                  :show-file-list="false"
-                  :on-success="handleUploadSuccess"
-                  :on-error="handleUploadError"
-                  :before-upload="beforeUpload"
-                  accept="image/*"
-                >
-                  <template #trigger>
-                    <div v-if="form.coverImage" class="uploaded-mask-wrapper">
-                      <el-image :src="getImageUrl(form.coverImage)" fit="cover" class="uploaded-image" />
-                      <div class="hover-mask"><el-icon><Edit /></el-icon> 更换封面</div>
-                    </div>
-                    <div v-else class="upload-placeholder">
-                      <el-icon><Plus /></el-icon>
-                      <span class="mt-2">点击上传封面</span>
-                    </div>
-                  </template>
-                </el-upload>
-                <div class="upload-tip mt-2">推荐尺寸 800x600，支持 jpg/png 格式，大小不超过 5MB</div>
+        <div ref="formContainerRef" class="form-container flex-1 overflow-y-auto p-6">
+          <el-form ref="formRef" :model="form" :rules="rules" label-position="top" class="custom-form">
+            <div :ref="setSectionRef('basic')" class="section-card section-anchor">
+              <div class="section-head">
+                <div>
+                  <h3 class="section-title">基础信息</h3>
+                  <p class="section-desc">先确定标题、分类、封面与发布状态。</p>
+                </div>
+                <el-tag effect="light" type="info">必填优先</el-tag>
               </div>
-            </el-form-item>
-          </div>
 
-          <div class="section-card">
-            <h3 class="section-title">关联景点</h3>
-            <el-form-item label="关联景点">
-              <el-select v-model="form.spotIds" multiple filterable collapse-tags collapse-tags-tooltip placeholder="请选择关联景点" class="w-full" size="large">
-                <el-option
-                  v-for="spot in mergedSpotOptions"
-                  :key="spot.id"
-                  :label="spot.isDeleted === 1 ? `${spot.name}（已删除）` : (spot.published ? spot.name : `${spot.name}（已下架）`)"
-                  :value="spot.id"
-                  :disabled="spot.isDeleted === 1"
+              <el-row :gutter="24">
+                <el-col :span="16">
+                  <el-form-item label="攻略标题" prop="title">
+                    <el-input v-model="form.title" placeholder="请输入攻略标题" size="large" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item label="攻略分类" prop="category">
+                    <el-select v-model="form.category" placeholder="请选择分类" allow-create filterable class="w-full" size="large">
+                      <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row :gutter="24">
+                <el-col :span="14">
+                  <el-form-item label="封面图">
+                    <div class="upload-container">
+                      <el-upload
+                        class="image-uploader"
+                        :action="uploadUrl"
+                        :headers="uploadHeaders"
+                        :data="uploadData"
+                        :show-file-list="false"
+                        :on-success="handleUploadSuccess"
+                        :on-error="handleUploadError"
+                        :before-upload="beforeUpload"
+                        accept="image/*"
+                      >
+                        <template #trigger>
+                          <div v-if="form.coverImage" class="uploaded-mask-wrapper">
+                            <el-image :src="getImageUrl(form.coverImage)" fit="cover" class="uploaded-image" />
+                            <div class="hover-mask"><el-icon><Edit /></el-icon> 更换封面</div>
+                          </div>
+                          <div v-else class="upload-placeholder">
+                            <el-icon><Plus /></el-icon>
+                            <span class="mt-2">点击上传封面</span>
+                          </div>
+                        </template>
+                      </el-upload>
+                      <div class="upload-tip mt-2">推荐尺寸 800x600，支持 jpg/png 格式，大小不超过 5MB</div>
+                    </div>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="10">
+                  <div class="publish-panel">
+                    <h4 class="publish-title">发布设置</h4>
+                    <p class="publish-desc">先决定当前内容是保存为草稿，还是直接进入已发布状态。</p>
+                    <el-radio-group v-model="form.published" class="publish-group">
+                      <el-radio :value="false">草稿</el-radio>
+                      <el-radio :value="true">已发布</el-radio>
+                    </el-radio-group>
+                  </div>
+                </el-col>
+              </el-row>
+            </div>
+
+            <div :ref="setSectionRef('spots')" class="section-card section-anchor">
+              <div class="section-head">
+                <div>
+                  <h3 class="section-title">关联景点</h3>
+                  <p class="section-desc">把攻略和景点建立关联，方便内容推荐与详情跳转。</p>
+                </div>
+                <el-tag effect="light" type="success">可选增强</el-tag>
+              </div>
+              <el-form-item label="关联景点">
+                <el-select v-model="form.spotIds" multiple filterable collapse-tags collapse-tags-tooltip placeholder="请选择关联景点" class="w-full" size="large">
+                  <el-option
+                    v-for="spot in mergedSpotOptions"
+                    :key="spot.id"
+                    :label="spot.isDeleted === 1 ? `${spot.name}（已删除）` : (spot.published ? spot.name : `${spot.name}（已下架）`)"
+                    :value="spot.id"
+                    :disabled="spot.isDeleted === 1"
+                  />
+                </el-select>
+              </el-form-item>
+            </div>
+
+            <div :ref="setSectionRef('content')" class="section-card section-anchor">
+              <div class="section-head">
+                <div>
+                  <h3 class="section-title">正文内容</h3>
+                  <p class="section-desc">正文尽量按段落录入，便于后续替换为更强的编辑器组件。</p>
+                </div>
+                <el-tag effect="light" type="warning">核心内容</el-tag>
+              </div>
+              <el-form-item label="攻略正文" prop="content">
+                <el-input
+                  v-model="form.content"
+                  type="textarea"
+                  :rows="18"
+                  resize="vertical"
+                  placeholder="请输入攻略内容，支持粘贴 HTML 或纯文本"
                 />
-              </el-select>
-            </el-form-item>
-          </div>
-
-          <div class="section-card">
-            <h3 class="section-title">正文内容</h3>
-            <el-form-item label="攻略正文" prop="content">
-              <el-input
-                v-model="form.content"
-                type="textarea"
-                :rows="18"
-                resize="vertical"
-                placeholder="请输入攻略内容，支持粘贴 HTML 或纯文本"
-              />
-            </el-form-item>
-          </div>
-        </el-form>
+              </el-form-item>
+            </div>
+          </el-form>
+        </div>
       </div>
 
       <div class="drawer-footer px-6 py-4 bg-white border-t border-gray-100 flex justify-end items-center gap-3">
         <el-button @click="emitVisible(false)">取消</el-button>
-        <el-button type="primary" @click="submit" :loading="submitting">确认保存</el-button>
+        <el-button @click="submit(false)" :loading="submitting">保存草稿</el-button>
+        <el-button type="primary" @click="submit(true)" :loading="submitting">保存并发布</el-button>
       </div>
     </div>
   </el-drawer>
@@ -97,7 +147,7 @@
 
 <script setup>
 import { Edit, Plus } from '@element-plus/icons-vue'
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 
 defineProps({
   visible: { type: Boolean, required: true },
@@ -119,13 +169,38 @@ defineProps({
 const emit = defineEmits(['update:visible', 'submit'])
 
 const formRef = ref()
+const formContainerRef = ref()
+const activeSection = ref('basic')
+const sectionRefs = new Map()
+const sections = [
+  { key: 'basic', label: '基础信息', hint: '标题、分类、封面、发布状态' },
+  { key: 'spots', label: '关联景点', hint: '补齐内容与景点关联' },
+  { key: 'content', label: '正文内容', hint: '录入主体内容' }
+]
 
 const emitVisible = (value) => {
   emit('update:visible', value)
 }
 
-const submit = () => {
-  emit('submit')
+const setSectionRef = (key) => (el) => {
+  if (el) {
+    sectionRefs.set(key, el)
+  } else {
+    sectionRefs.delete(key)
+  }
+}
+
+const scrollToSection = async (key) => {
+  activeSection.value = key
+  await nextTick()
+  const target = sectionRefs.get(key)
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+const submit = (published) => {
+  emit('submit', { published })
 }
 
 defineExpose({
@@ -145,6 +220,7 @@ defineExpose({
 .flex-col { flex-direction: column; }
 .flex-1 { flex: 1; min-height: 0; }
 .h-full { height: 100%; }
+.min-h-0 { min-height: 0; }
 .overflow-y-auto { overflow-y: auto; }
 .p-6 { padding: 24px; }
 .px-6 { padding-left: 24px; padding-right: 24px; }
@@ -160,6 +236,65 @@ defineExpose({
 .border-t { border-top: 1px solid #f1f5f9; }
 .border-gray-100 { border-color: #f1f5f9; }
 
+.drawer-body {
+  min-height: 0;
+}
+
+.section-nav {
+  width: 220px;
+  padding: 24px 16px 24px 24px;
+  border-right: 1px solid #f1f5f9;
+  background: #fbfdff;
+}
+
+.section-nav-title {
+  margin-bottom: 14px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.section-nav-item {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  & + & {
+    margin-top: 10px;
+  }
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
+
+  &.active {
+    border-color: var(--el-color-primary);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.08);
+  }
+}
+
+.section-nav-name {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.section-nav-hint {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .section-card {
   margin-bottom: 24px;
   padding: 24px;
@@ -168,11 +303,30 @@ defineExpose({
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
 }
 
+.section-anchor {
+  scroll-margin-top: 24px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
 .section-title {
-  margin: 0 0 20px;
+  margin: 0;
   font-size: 18px;
   font-weight: 700;
   color: #1e293b;
+}
+
+.section-desc {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .custom-form {
@@ -186,6 +340,34 @@ defineExpose({
   :deep(.el-textarea__inner) {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
+}
+
+.publish-panel {
+  height: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.publish-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.publish-desc {
+  margin: 8px 0 16px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.publish-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .upload-container {
@@ -254,6 +436,19 @@ defineExpose({
   .upload-tip {
     font-size: 12px;
     color: #94a3b8;
+  }
+}
+
+@media (max-width: 960px) {
+  .drawer-body {
+    flex-direction: column;
+  }
+
+  .section-nav {
+    width: 100%;
+    padding: 16px 24px 0;
+    border-right: none;
+    border-bottom: 1px solid #f1f5f9;
   }
 }
 </style>
