@@ -1,5 +1,5 @@
 <template>
-  <div class="favorite-page">
+  <div class="favorite-page admin-page-shell">
     <section class="page-hero">
       <div>
         <p class="page-kicker">User Operations</p>
@@ -78,7 +78,7 @@
         </el-form-item>
       </el-form>
 
-      <div v-if="errorMessage" class="error-state">
+      <div v-if="errorMessage" class="error-state page-error-state">
         <el-result icon="error" title="用户收藏加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchFavoriteList">重新加载</el-button>

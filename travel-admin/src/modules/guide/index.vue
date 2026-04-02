@@ -1,6 +1,6 @@
 <!-- 攻略管理页面 -->
 <template>
-  <div class="guide-page">
+  <div class="guide-page admin-page-shell">
     <section class="page-hero">
       <div>
         <p class="page-kicker">Content Workspace</p>
@@ -31,7 +31,7 @@
         @filter-change="handleFilterChange"
       />
 
-      <div v-if="errorMessage" class="error-state">
+      <div v-if="errorMessage" class="error-state page-error-state">
         <el-result icon="error" title="攻略管理加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="loadData">重新加载</el-button>

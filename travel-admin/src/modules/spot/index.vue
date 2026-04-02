@@ -1,6 +1,6 @@
 <!-- 景点管理页面 -->
 <template>
-  <div class="spot-page">
+  <div class="spot-page admin-page-shell">
     <section class="page-hero">
       <div>
         <p class="page-kicker">Content Workspace</p>

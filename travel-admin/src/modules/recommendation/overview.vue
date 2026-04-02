@@ -1,6 +1,6 @@
 <!-- 推荐系统总览页 -->
 <template>
-  <div class="recommendation-overview-page">
+  <div class="recommendation-overview-page admin-page-shell">
     <section class="page-hero">
       <div>
         <p class="page-kicker">Recommendation Overview</p>
@@ -12,7 +12,7 @@
       </div>
     </section>
 
-    <div v-if="errorMessage" class="error-state">
+    <div v-if="errorMessage" class="error-state page-error-state">
       <el-result icon="error" title="推荐总览加载失败" :sub-title="errorMessage">
         <template #extra>
           <el-button type="primary" :loading="loading" @click="loadPageData">重新加载</el-button>
@@ -23,7 +23,7 @@
     <template v-else>
       <el-alert
         v-if="partialWarning"
-        class="page-alert"
+        class="page-alert page-status-alert"
         type="warning"
         show-icon
         :closable="false"

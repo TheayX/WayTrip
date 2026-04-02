@@ -1,6 +1,6 @@
 <!-- 推荐引擎配置页面 -->
 <template>
-  <div class="recommendation-page">
+  <div class="recommendation-page admin-page-shell">
     <section class="page-hero">
       <div>
         <p class="page-kicker">Recommendation Workspace</p>
@@ -33,6 +33,7 @@
 
       <el-alert
         v-if="pageError"
+        class="page-status-alert"
         type="error"
         show-icon
         :closable="false"
@@ -40,6 +41,7 @@
       />
       <el-alert
         v-else-if="pageWarning"
+        class="page-status-alert"
         type="warning"
         show-icon
         :closable="false"
@@ -47,7 +49,7 @@
       />
     </div>
 
-    <div v-if="pageError" class="error-state">
+    <div v-if="pageError" class="error-state page-error-state">
       <el-result icon="error" title="推荐配置加载失败" :sub-title="pageError">
         <template #extra>
           <el-button type="primary" :loading="pageLoading" @click="loadPageData">重新加载</el-button>
