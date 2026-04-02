@@ -2,6 +2,7 @@ package com.travel.service;
 
 import com.travel.dto.dashboard.response.DashboardOverviewResponse;
 import com.travel.dto.dashboard.response.HotSpotsResponse;
+import com.travel.dto.dashboard.response.OrderHeatmapResponse;
 import com.travel.dto.dashboard.response.OrderTrendResponse;
 
 /**
@@ -26,6 +27,14 @@ public interface DashboardService {
      * @return 订单趋势数据
      */
     OrderTrendResponse getOrderTrend(Integer days, String mode);
+
+    /**
+     * 获取按天聚合的订单热力图统计。
+     *
+     * @param year 统计年份
+     * @return 订单热力图数据
+     */
+    OrderHeatmapResponse getOrderHeatmap(Integer year);
 
     /**
      * 获取热门景点统计结果。

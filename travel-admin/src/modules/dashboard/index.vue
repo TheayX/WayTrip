@@ -229,7 +229,7 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { Money, User, Location, ShoppingCart, RefreshRight } from '@element-plus/icons-vue'
-import { getHotSpots, getOrderTrend, getOverview } from './api.js'
+import { getHotSpots, getOrderHeatmap, getOrderTrend, getOverview } from './api.js'
 
 // Refs for charts
 const sparklineRevenue = ref(null)
@@ -266,6 +266,7 @@ const overview = ref({
   recentOrderSeries: []
 })
 const hotSpots = ref([])
+const heatmapYear = ref(new Date().getFullYear())
 
 const timelineActivities = ref([
   { title: '新订单产生', desc: '用户 "李小明" 预订了 "九寨沟风景区" 门票 (¥240.00)', timestamp: '刚刚', type: 'primary', color: '#3b82f6', size: 'large' },
@@ -344,27 +345,11 @@ const updateSparklines = () => {
   })
 }
 
-const getVirtualData = (year) => {
-  const date = +echarts.time.parse(year + '-01-01');
-  const end = +echarts.time.parse(+year + 1 + '-01-01');
-  const dayTime = 3600 * 24 * 1000;
-  const data = [];
-  for (let time = date; time < end; time += dayTime) {
-    data.push([
-      echarts.time.format(time, '{yyyy}-{MM}-{dd}', false),
-      Math.floor(Math.random() * 100) // Dummy order count
-    ]);
-  }
-  return data;
-}
-
 const initHeatmap = () => {
   if (!heatmapRef.value) return
   const chart = echarts.init(heatmapRef.value)
   charts.push(chart)
-  
-  const year = new Date().getFullYear().toString()
-  
+
   chart.setOption({
     tooltip: {
       position: 'top',
@@ -386,7 +371,7 @@ const initHeatmap = () => {
       left: 30,
       right: 30,
       cellSize: ['auto', 16],
-      range: year,
+      range: String(heatmapYear.value),
       itemStyle: {
         borderWidth: 2,
         borderColor: '#fff',
@@ -400,7 +385,32 @@ const initHeatmap = () => {
     series: {
       type: 'heatmap',
       coordinateSystem: 'calendar',
-      data: getVirtualData(year)
+      data: []
+    }
+  })
+}
+
+const updateHeatmap = (year, list) => {
+  const chart = charts.find(target => target.getDom() === heatmapRef.value)
+  if (!chart) return
+  const maxValue = Math.max(...list.map(item => Number(item.orderCount || 0)), 0)
+  chart.setOption({
+    visualMap: {
+      min: 0,
+      max: Math.max(maxValue, 1),
+      calculable: false,
+      show: false,
+      inRange: {
+        color: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39']
+      }
+    },
+    calendar: {
+      range: String(year)
+    },
+    series: {
+      type: 'heatmap',
+      coordinateSystem: 'calendar',
+      data: list.map(item => [item.date, Number(item.orderCount || 0)])
     }
   })
 }
@@ -591,11 +601,17 @@ const fetchHotSpotsData = async () => {
   hotSpots.value = response.data?.list || []
 }
 
+const fetchHeatmapData = async () => {
+  const response = await getOrderHeatmap(heatmapYear.value)
+  updateHeatmap(response.data?.year || heatmapYear.value, response.data?.list || [])
+}
+
 const fetchData = async () => {
-  const [trendResponse, overviewResponse, hotSpotsResponse] = await Promise.all([
+  const [trendResponse, overviewResponse, hotSpotsResponse, heatmapResponse] = await Promise.all([
     getOrderTrend(selectedRange.value, trendMode.value),
     getOverview(),
-    getHotSpots(6)
+    getHotSpots(6),
+    getOrderHeatmap(heatmapYear.value)
   ])
   overview.value = {
     ...overview.value,
@@ -604,6 +620,7 @@ const fetchData = async () => {
   hotSpots.value = hotSpotsResponse.data?.list || []
   updateSparklines()
   updateMainLineChart(trendResponse.data?.list || [])
+  updateHeatmap(heatmapResponse.data?.year || heatmapYear.value, heatmapResponse.data?.list || [])
   mainLineChart?.resize()
 }
 

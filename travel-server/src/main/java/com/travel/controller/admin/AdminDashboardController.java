@@ -3,6 +3,7 @@ package com.travel.controller.admin;
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.dashboard.response.DashboardOverviewResponse;
 import com.travel.dto.dashboard.response.HotSpotsResponse;
+import com.travel.dto.dashboard.response.OrderHeatmapResponse;
 import com.travel.dto.dashboard.response.OrderTrendResponse;
 import com.travel.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,5 +41,12 @@ public class AdminDashboardController {
     public ApiResponse<HotSpotsResponse> getHotSpots(
             @RequestParam(defaultValue = "10") Integer limit) {
         return ApiResponse.success(dashboardService.getHotSpots(limit));
+    }
+
+    @Operation(summary = "获取订单热力图")
+    @GetMapping("/order-heatmap")
+    public ApiResponse<OrderHeatmapResponse> getOrderHeatmap(
+            @RequestParam(required = false) Integer year) {
+        return ApiResponse.success(dashboardService.getOrderHeatmap(year));
     }
 }

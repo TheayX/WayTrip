@@ -27,3 +27,12 @@ export function getOrderTrend(days = 7, mode = 'weekday') {
 export function getHotSpots(limit = 10) {
   return request.get('/dashboard/hot-spots', { params: { limit } })
 }
+
+/**
+ * 获取订单热力图数据
+ * @param year
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export function getOrderHeatmap(year) {
+  return request.get('/dashboard/order-heatmap', { params: { year } })
+}

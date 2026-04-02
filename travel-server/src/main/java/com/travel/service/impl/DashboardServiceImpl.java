@@ -3,6 +3,7 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.dashboard.response.DashboardOverviewResponse;
 import com.travel.dto.dashboard.response.HotSpotsResponse;
+import com.travel.dto.dashboard.response.OrderHeatmapResponse;
 import com.travel.dto.dashboard.response.OrderTrendResponse;
 import com.travel.entity.*;
 import com.travel.enums.OrderStatus;
@@ -142,6 +143,39 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         return buildRangeTrendResponse(normalizedDays, orders);
+    }
+
+    @Override
+    public OrderHeatmapResponse getOrderHeatmap(Integer year) {
+        int targetYear = year == null ? LocalDate.now().getYear() : year;
+        LocalDate startDate = LocalDate.of(targetYear, 1, 1);
+        LocalDate endDate = startDate.withMonth(12).withDayOfMonth(31);
+
+        List<Order> orders = orderMapper.selectList(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getIsDeleted, 0)
+                .ge(Order::getCreatedAt, startDate.atStartOfDay())
+                .lt(Order::getCreatedAt, endDate.plusDays(1).atStartOfDay())
+                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
+        );
+
+        Map<LocalDate, Long> orderMap = orders.stream()
+            .collect(Collectors.groupingBy(order -> order.getCreatedAt().toLocalDate(), Collectors.counting()));
+
+        List<OrderHeatmapResponse.HeatmapItem> list = new ArrayList<>();
+        long totalDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        for (long i = 0; i < totalDays; i++) {
+            LocalDate date = startDate.plusDays(i);
+            list.add(new OrderHeatmapResponse.HeatmapItem(
+                date.format(DateTimeFormatter.ISO_DATE),
+                orderMap.getOrDefault(date, 0L)
+            ));
+        }
+
+        OrderHeatmapResponse response = new OrderHeatmapResponse();
+        response.setYear(targetYear);
+        response.setList(list);
+        return response;
     }
 
     /**
