@@ -22,9 +22,10 @@ public interface DashboardService {
      * 获取订单趋势统计。
      *
      * @param days 统计天数
+     * @param mode 统计口径：range-按日期连续统计，weekday-按星期聚合统计
      * @return 订单趋势数据
      */
-    OrderTrendResponse getOrderTrend(Integer days);
+    OrderTrendResponse getOrderTrend(Integer days, String mode);
 
     /**
      * 获取热门景点统计结果。

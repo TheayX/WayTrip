@@ -89,8 +89,28 @@
       <el-col :span="16">
         <el-card shadow="hover" class="border-0 mb-6">
            <template #header>
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center trend-toolbar">
               <span class="font-bold text-gray-800">订单与收入趋势</span>
+              <div class="trend-controls">
+                <div class="control-group">
+                  <span class="control-label">统计方式</span>
+                  <el-radio-group v-model="trendMode" size="small" @change="handleTrendModeChange">
+                    <el-radio-button label="weekday">按星期分布</el-radio-button>
+                    <el-radio-button label="range">按日期趋势</el-radio-button>
+                  </el-radio-group>
+                </div>
+                <div class="control-divider"></div>
+                <div class="control-group">
+                  <span class="control-label">时间范围</span>
+                  <el-radio-group v-model="selectedRange" size="small" @change="fetchData">
+                    <el-radio-button :label="7">7天</el-radio-button>
+                    <el-radio-button :label="30">30天</el-radio-button>
+                    <el-radio-button :label="180">半年</el-radio-button>
+                    <el-radio-button :label="365">一年</el-radio-button>
+                    <el-radio-button :label="0">上线至今</el-radio-button>
+                  </el-radio-group>
+                </div>
+              </div>
             </div>
           </template>
           <div ref="mainLineChartRef" class="w-full" style="height: 300px;"></div>
@@ -135,6 +155,7 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import { Money, User, Location, ShoppingCart, RefreshRight } from '@element-plus/icons-vue'
+import { getOrderTrend } from './api.js'
 
 // Refs for charts
 const sparklineRevenue = ref(null)
@@ -145,6 +166,8 @@ const heatmapRef = ref(null)
 const mainLineChartRef = ref(null)
 
 const charts = []
+const trendMode = ref('weekday')
+const selectedRange = ref(0)
 
 // Mock Data
 const generateSparklineData = () => Array.from({length: 10}, () => Math.floor(Math.random() * 100) + 20)
@@ -252,25 +275,99 @@ const initMainLineChart = () => {
   if (!mainLineChartRef.value) return
   const chart = echarts.init(mainLineChartRef.value)
   charts.push(chart)
-  
+}
+
+const formatMoney = (value) => Number(value || 0)
+
+const formatAxisLabel = (label) => {
+  if (trendMode.value === 'weekday') return label
+  const [, month, day] = `${label}`.split('-')
+  return month && day ? `${month}-${day}` : label
+}
+
+const updateMainLineChart = (list) => {
+  const chart = charts.find(item => item.getDom() === mainLineChartRef.value)
+  if (!chart) return
+
   chart.setOption({
-    tooltip: { trigger: 'axis', backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: '#e2e8f0', textStyle: { color: '#1e293b' } },
-    legend: { data: ['订单量', '收入(百元)'], bottom: 0 },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#e2e8f0',
+      textStyle: { color: '#1e293b' },
+      formatter(params) {
+        const current = list[params[0]?.dataIndex]
+        if (!current) return ''
+        return [
+          current.date,
+          `${params[0].marker}订单量：${current.orderCount}`,
+          `${params[1].marker}收入：¥${formatMoney(current.revenue).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        ].join('<br/>')
+      }
+    },
+    legend: { data: ['订单量', '收入'], bottom: 0 },
     grid: { left: '2%', right: '2%', top: '5%', bottom: '15%', containLabel: true },
-    xAxis: { type: 'category', boundaryGap: false, data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], axisLine: { lineStyle: { color: '#e2e8f0' } } },
-    yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } } },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: list.map(item => formatAxisLabel(item.date)),
+      axisLine: { lineStyle: { color: '#e2e8f0' } }
+    },
+    yAxis: [
+      {
+        type: 'value',
+        name: '订单量',
+        splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }
+      },
+      {
+        type: 'value',
+        name: '收入',
+        axisLabel: {
+          formatter(value) {
+            return `¥${Number(value).toLocaleString('zh-CN')}`
+          }
+        }
+      }
+    ],
     series: [
-      { name: '订单量', type: 'line', smooth: true, data: [120, 132, 101, 134, 90, 230, 210], itemStyle: { color: '#3b82f6' }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset:0, color:'rgba(59, 130, 246, 0.3)'}, {offset:1, color:'rgba(59, 130, 246, 0)'}]) } },
-      { name: '收入(百元)', type: 'line', smooth: true, data: [220, 182, 191, 234, 290, 330, 310], itemStyle: { color: '#10b981' } }
+      {
+        name: '订单量',
+        type: 'line',
+        smooth: true,
+        data: list.map(item => Number(item.orderCount || 0)),
+        yAxisIndex: 0,
+        itemStyle: { color: '#3b82f6' },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
+            { offset: 1, color: 'rgba(59, 130, 246, 0)' }
+          ])
+        }
+      },
+      {
+        name: '收入',
+        type: 'line',
+        smooth: true,
+        data: list.map(item => formatMoney(item.revenue)),
+        yAxisIndex: 1,
+        itemStyle: { color: '#10b981' }
+      }
     ]
   })
 }
 
-const fetchData = () => {
-  // Simulate fetch
+const fetchData = async () => {
+  const response = await getOrderTrend(selectedRange.value, trendMode.value)
+  updateMainLineChart(response.data?.list || [])
   setTimeout(() => {
     window.dispatchEvent(new Event('resize'))
   }, 100)
+}
+
+const handleTrendModeChange = () => {
+  // 两种统计方式切换时回到各自最常用的默认时间范围，避免口径混淆。
+  selectedRange.value = trendMode.value === 'weekday' ? 0 : 7
+  fetchData()
 }
 
 const handleResize = () => {
@@ -283,6 +380,7 @@ onMounted(() => {
     initHeatmap()
     initMainLineChart()
     window.addEventListener('resize', handleResize)
+    fetchData()
   })
 })
 
@@ -354,6 +452,44 @@ onUnmounted(() => {
 .from-purple-50 { --tw-gradient-from: #faf5ff; --tw-gradient-stops: var(--tw-gradient-from), #fff; }
 .from-emerald-50 { --tw-gradient-from: #ecfdf5; --tw-gradient-stops: var(--tw-gradient-from), #fff; }
 .from-orange-50 { --tw-gradient-from: #fff7ed; --tw-gradient-stops: var(--tw-gradient-from), #fff; }
+
+.trend-toolbar {
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.trend-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 16px;
+  border: 1px solid #d9e3ef;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.control-label {
+  font-size: 12px;
+  color: #475569;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.control-divider {
+  width: 1px;
+  height: 40px;
+  background: #dbe3ee;
+}
 
 .timeline-container {
   &::-webkit-scrollbar {

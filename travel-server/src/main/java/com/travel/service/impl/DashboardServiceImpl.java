@@ -13,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -81,18 +83,73 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public OrderTrendResponse getOrderTrend(Integer days) {
-        if (days == null || days <= 0) days = 7;
+    public OrderTrendResponse getOrderTrend(Integer days, String mode) {
+        if (!"range".equalsIgnoreCase(mode) && !"weekday".equalsIgnoreCase(mode)) {
+            mode = "weekday";
+        }
 
+        Integer normalizedDays = days;
+        if (normalizedDays == null) {
+            normalizedDays = "weekday".equalsIgnoreCase(mode) ? 0 : 7;
+        }
+
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
+            .eq(Order::getIsDeleted, 0)
+            .ne(Order::getStatus, OrderStatus.CANCELLED.getCode());
+
+        if (normalizedDays > 0) {
+            LocalDate startDate = LocalDate.now().minusDays(normalizedDays - 1L);
+            queryWrapper.ge(Order::getCreatedAt, startDate.atStartOfDay());
+        }
+
+        List<Order> orders = orderMapper.selectList(queryWrapper);
+
+        if ("weekday".equalsIgnoreCase(mode)) {
+            return buildWeekdayTrendResponse(orders);
+        }
+
+        return buildRangeTrendResponse(normalizedDays, orders);
+    }
+
+    /**
+     * 周内聚合默认使用周一到周日固定顺序，避免和最近 7 天口径混淆。
+     */
+    private OrderTrendResponse buildWeekdayTrendResponse(List<Order> orders) {
+        Map<DayOfWeek, List<Order>> ordersByWeekday = orders.stream()
+            .collect(Collectors.groupingBy(order -> order.getCreatedAt().getDayOfWeek()));
+
+        List<OrderTrendResponse.TrendItem> list = new ArrayList<>();
+        DayOfWeek[] weekdayOrder = {
+            DayOfWeek.MONDAY,
+            DayOfWeek.TUESDAY,
+            DayOfWeek.WEDNESDAY,
+            DayOfWeek.THURSDAY,
+            DayOfWeek.FRIDAY,
+            DayOfWeek.SATURDAY,
+            DayOfWeek.SUNDAY
+        };
+
+        for (DayOfWeek dayOfWeek : weekdayOrder) {
+            List<Order> dayOrders = ordersByWeekday.getOrDefault(dayOfWeek, Collections.emptyList());
+            OrderTrendResponse.TrendItem item = new OrderTrendResponse.TrendItem();
+            item.setDate(resolveWeekdayLabel(dayOfWeek));
+            item.setOrderCount((long) dayOrders.size());
+            item.setRevenue(sumRevenue(dayOrders));
+            list.add(item);
+        }
+
+        OrderTrendResponse response = new OrderTrendResponse();
+        response.setList(list);
+        return response;
+    }
+
+    /**
+     * 日期区间统计按自然日补齐空值，保证折线在任意跨度下连续。
+     */
+    private OrderTrendResponse buildRangeTrendResponse(Integer days, List<Order> orders) {
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(days - 1);
-
-        List<Order> orders = orderMapper.selectList(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getIsDeleted, 0)
-                .ge(Order::getCreatedAt, startDate.atStartOfDay())
-                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
-        );
+        LocalDate startDate = resolveRangeStartDate(days, orders, endDate);
+        long totalDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
 
         // 先按日期聚合，再补齐空日期，保证前端折线连续。
         Map<String, List<Order>> ordersByDate = orders.stream()
@@ -101,7 +158,7 @@ public class DashboardServiceImpl implements DashboardService {
             ));
 
         List<OrderTrendResponse.TrendItem> list = new ArrayList<>();
-        for (int i = 0; i < days; i++) {
+        for (long i = 0; i < totalDays; i++) {
             LocalDate date = startDate.plusDays(i);
             String dateStr = date.format(DateTimeFormatter.ISO_DATE);
             List<Order> dayOrders = ordersByDate.getOrDefault(dateStr, Collections.emptyList());
@@ -116,6 +173,35 @@ public class DashboardServiceImpl implements DashboardService {
         OrderTrendResponse response = new OrderTrendResponse();
         response.setList(list);
         return response;
+    }
+
+    /**
+     * 日期趋势支持固定天数，也支持从首笔订单到今天的完整区间。
+     */
+    private LocalDate resolveRangeStartDate(Integer days, List<Order> orders, LocalDate endDate) {
+        if (days != null && days > 0) {
+            return endDate.minusDays(days - 1L);
+        }
+
+        return orders.stream()
+            .map(order -> order.getCreatedAt().toLocalDate())
+            .min(LocalDate::compareTo)
+            .orElse(endDate);
+    }
+
+    /**
+     * 仪表盘展示统一使用中文星期文案，避免周统计与近 7 天被误读为同一概念。
+     */
+    private String resolveWeekdayLabel(DayOfWeek dayOfWeek) {
+        return switch (dayOfWeek) {
+            case MONDAY -> "周一";
+            case TUESDAY -> "周二";
+            case WEDNESDAY -> "周三";
+            case THURSDAY -> "周四";
+            case FRIDAY -> "周五";
+            case SATURDAY -> "周六";
+            case SUNDAY -> "周日";
+        };
     }
 
     // 热门景点统计

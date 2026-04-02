@@ -30,8 +30,9 @@ public class AdminDashboardController {
     @Operation(summary = "获取订单趋势")
     @GetMapping("/order-trend")
     public ApiResponse<OrderTrendResponse> getOrderTrend(
-            @RequestParam(defaultValue = "7") Integer days) {
-        return ApiResponse.success(dashboardService.getOrderTrend(days));
+            @RequestParam(defaultValue = "7") Integer days,
+            @RequestParam(defaultValue = "weekday") String mode) {
+        return ApiResponse.success(dashboardService.getOrderTrend(days, mode));
     }
 
     @Operation(summary = "获取热门景点")
