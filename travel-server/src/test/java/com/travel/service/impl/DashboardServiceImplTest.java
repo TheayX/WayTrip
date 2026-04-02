@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.travel.dto.dashboard.response.OrderTrendResponse;
+import com.travel.dto.dashboard.response.OrderHeatmapResponse;
 import com.travel.entity.Order;
 import com.travel.enums.OrderStatus;
 import com.travel.mapper.OrderMapper;
@@ -95,6 +96,25 @@ class DashboardServiceImplTest {
         assertEquals(1L, response.getList().get(0).getOrderCount());
         assertEquals(today.toString(), response.getList().get(2).getDate());
         assertEquals(1L, response.getList().get(2).getOrderCount());
+    }
+
+    @Test
+    void getOrderHeatmap_shouldFillWholeYear_whenSomeDatesHaveNoOrders() {
+        Order firstOrder = buildOrder(1L, LocalDate.of(2026, 1, 2).atTime(10, 0), "50.00");
+        Order secondOrder = buildOrder(2L, LocalDate.of(2026, 12, 31).atTime(15, 0), "70.00");
+
+        when(orderMapper.selectList(any())).thenReturn(List.of(firstOrder, secondOrder));
+
+        OrderHeatmapResponse response = dashboardService.getOrderHeatmap(2026);
+
+        assertEquals(2026, response.getYear());
+        assertEquals(365, response.getList().size());
+        assertEquals("2026-01-01", response.getList().get(0).getDate());
+        assertEquals(0L, response.getList().get(0).getOrderCount());
+        assertEquals("2026-01-02", response.getList().get(1).getDate());
+        assertEquals(1L, response.getList().get(1).getOrderCount());
+        assertEquals("2026-12-31", response.getList().get(364).getDate());
+        assertEquals(1L, response.getList().get(364).getOrderCount());
     }
 
     /**
