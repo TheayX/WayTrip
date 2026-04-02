@@ -1,6 +1,6 @@
 <!-- 分类管理页面 -->
 <template>
-  <div class="category-page">
+  <div class="category-page admin-page-shell">
     <section class="page-hero">
       <div>
         <p class="page-kicker">Content Workspace</p>
@@ -23,7 +23,7 @@
             </div>
           </template>
           
-          <div v-if="errorMessage" class="panel-error">
+          <div v-if="errorMessage" class="panel-error page-error-state">
             <el-result icon="error" title="分类管理加载失败" :sub-title="errorMessage">
               <template #extra>
                 <el-button type="primary" @click="handleRefresh">重新加载</el-button>

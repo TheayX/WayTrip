@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard premium-dashboard">
+  <div class="dashboard premium-dashboard admin-page-shell">
     <section class="page-hero">
       <div>
         <p class="page-kicker">Business Overview</p>
@@ -13,7 +13,7 @@
       </div>
     </section>
 
-    <div v-if="errorMessage" class="dashboard-error">
+    <div v-if="errorMessage" class="dashboard-error page-error-state">
       <el-result icon="error" title="仪表盘数据加载失败" :sub-title="errorMessage">
         <template #extra>
           <el-button type="primary" :loading="loading" @click="fetchData">重新加载</el-button>
@@ -24,7 +24,7 @@
     <template v-else>
       <el-alert
         v-if="partialWarning"
-        class="dashboard-alert mb-6"
+        class="dashboard-alert page-status-alert mb-6"
         type="warning"
         show-icon
         :closable="false"

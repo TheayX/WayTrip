@@ -1,6 +1,6 @@
 <!-- 订单中心页面 -->
 <template>
-  <div class="order-page">
+  <div class="order-page admin-page-shell">
     <section class="page-hero">
       <div>
         <p class="page-kicker">Transaction Workspace</p>
@@ -42,7 +42,7 @@
         @update:date-range="dateRange = $event"
       />
 
-      <div v-if="errorMessage" class="error-state">
+      <div v-if="errorMessage" class="error-state page-error-state">
         <el-result icon="error" title="订单中心加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchOrderList">重新加载</el-button>

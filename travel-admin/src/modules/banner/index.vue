@@ -1,6 +1,6 @@
 <!-- 轮播图管理页面 -->
 <template>
-  <div class="banner-page">
+  <div class="banner-page admin-page-shell">
     <section class="page-hero">
       <div>
         <p class="page-kicker">Content Workspace</p>
@@ -23,7 +23,7 @@
         </div>
       </template>
 
-      <div v-if="errorMessage" class="error-state">
+      <div v-if="errorMessage" class="error-state page-error-state">
         <el-result icon="error" title="轮播图管理加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchBannerList">重新加载</el-button>
