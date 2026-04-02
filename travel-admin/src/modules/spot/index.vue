@@ -328,6 +328,7 @@ const heatSpotDetail = ref(null)
 const selectedSpots = ref([])
 const drawerVisible = ref(false)
 const spotDetail = ref(null)
+const skipNextRouteLoad = ref(false)
 
 // 景点编辑表单
 const form = reactive({
@@ -465,7 +466,13 @@ const syncRouteQuery = () => {
   if (queryParams.keyword) {
     nextQuery.keyword = queryParams.keyword
   }
-  router.replace({ path: route.path, query: nextQuery })
+  const currentQuery = route.query.keyword ? { keyword: route.query.keyword } : {}
+  const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
+  if (changed) {
+    skipNextRouteLoad.value = true
+    router.replace({ path: route.path, query: nextQuery })
+  }
+  return changed
 }
 
 const normalizeRouteSpotId = (value) => {
@@ -692,37 +699,57 @@ const handleView = async (row) => {
   }
 }
 
-const handleBatchPublish = async (status) => {
-  if (!selectedSpots.value.length) return
-  const action = status ? '发布' : '下架'
-  await ElMessageBox.confirm(`确定要批量${action}选中的 ${selectedSpots.value.length} 个景点吗？`, '提示', { type: 'warning' })
+// 批量操作统一汇总执行结果，避免逐条串行导致等待时间过长且失败反馈不清晰。
+const runBatchAction = async ({ rows, requestFactory, successMessage }) => {
+  if (!rows.length) {
+    return
+  }
+
   loading.value = true
   try {
-    for (const item of selectedSpots.value) {
-      if (item.published !== status) {
-        await updatePublishStatus(item.id, status)
-      }
+    const results = await Promise.allSettled(rows.map((item) => requestFactory(item)))
+    const successCount = results.filter((item) => item.status === 'fulfilled').length
+    const failedCount = results.length - successCount
+
+    if (failedCount === 0) {
+      ElMessage.success(successMessage)
+    } else if (successCount > 0) {
+      ElMessage.warning(`已成功 ${successCount} 项，失败 ${failedCount} 项`)
+    } else {
+      ElMessage.error('批量操作失败')
     }
-    ElMessage.success(`批量${action}成功`)
-    loadData()
+
+    selectedSpots.value = []
+    await loadData()
   } finally {
     loading.value = false
   }
 }
 
+const handleBatchPublish = async (status) => {
+  if (!selectedSpots.value.length) return
+  const action = status ? '发布' : '下架'
+  await ElMessageBox.confirm(`确定要批量${action}选中的 ${selectedSpots.value.length} 个景点吗？`, '提示', { type: 'warning' })
+  const targetRows = selectedSpots.value.filter((item) => item.published !== status)
+  if (!targetRows.length) {
+    ElMessage.info(`选中景点均已${status ? '上架' : '下架'}`)
+    return
+  }
+  await runBatchAction({
+    rows: targetRows,
+    requestFactory: (item) => updatePublishStatus(item.id, status),
+    successMessage: `批量${action}成功`
+  })
+}
+
 const handleBatchDelete = async () => {
   if (!selectedSpots.value.length) return
   await ElMessageBox.confirm(`确定要批量删除选中的 ${selectedSpots.value.length} 个景点吗？(此操作不可恢复)`, '警告', { type: 'error' })
-  loading.value = true
-  try {
-    for (const item of selectedSpots.value) {
-      await deleteSpot(item.id)
-    }
-    ElMessage.success('批量删除成功')
-    loadData()
-  } finally {
-    loading.value = false
-  }
+  await runBatchAction({
+    rows: selectedSpots.value,
+    requestFactory: (item) => deleteSpot(item.id),
+    successMessage: '批量删除成功'
+  })
 }
 
 
@@ -730,6 +757,10 @@ watch(
   () => [route.query.keyword, route.query.spotId],
   () => {
     applyRouteQuery()
+    if (skipNextRouteLoad.value) {
+      skipNextRouteLoad.value = false
+      return
+    }
     loadData()
   }
 )
