@@ -1,0 +1,120 @@
+<template>
+  <div class="guide-rich-editor">
+    <div ref="toolbarRef" class="editor-toolbar"></div>
+    <div ref="editorRef" class="editor-content"></div>
+  </div>
+</template>
+
+<script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import E from 'wangeditor'
+
+const props = defineProps({
+  modelValue: { type: String, default: '' },
+  placeholder: { type: String, default: '请输入攻略内容' }
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const toolbarRef = ref(null)
+const editorRef = ref(null)
+let editor = null
+
+const syncEditorHtml = (html) => {
+  if (!editor) {
+    return
+  }
+  if (editor.txt.html() !== (html || '')) {
+    editor.txt.html(html || '')
+  }
+}
+
+const createEditor = async () => {
+  await nextTick()
+  if (!toolbarRef.value || !editorRef.value) {
+    return
+  }
+
+  editor = new E(toolbarRef.value, editorRef.value)
+  editor.config.placeholder = props.placeholder
+  editor.config.zIndex = 10
+  editor.config.menus = [
+    'head',
+    'bold',
+    'fontSize',
+    'fontName',
+    'italic',
+    'underline',
+    'strikeThrough',
+    'foreColor',
+    'backColor',
+    'link',
+    'list',
+    'justify',
+    'quote',
+    'image',
+    'table',
+    'code',
+    'undo',
+    'redo'
+  ]
+  // 攻略内容以 HTML 存储，便于后续在详情页直接富文本展示。
+  editor.config.onchange = (html) => {
+    emit('update:modelValue', html)
+  }
+  editor.create()
+  syncEditorHtml(props.modelValue)
+}
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    syncEditorHtml(value)
+  }
+)
+
+onMounted(() => {
+  createEditor()
+})
+
+onBeforeUnmount(() => {
+  if (editor) {
+    editor.destroy()
+    editor = null
+  }
+})
+</script>
+
+<style lang="scss" scoped>
+.guide-rich-editor {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.editor-toolbar {
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.editor-content {
+  min-height: 360px;
+  padding: 0;
+}
+
+:deep(.w-e-text-container) {
+  min-height: 360px !important;
+  background: #ffffff;
+}
+
+:deep(.w-e-text) {
+  padding: 12px 14px !important;
+  line-height: 1.8;
+  color: #334155;
+}
+
+:deep(.w-e-menu) {
+  z-index: 11 !important;
+}
+</style>
