@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">User Operations</p>
         <h1 class="page-title">评价管理</h1>
-        <p class="page-subtitle">处理用户评价内容，快速定位景点并执行违规删除。</p>
+        <p class="page-subtitle">查看用户评价内容，快速定位景点并处理违规评价。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchReviewList">刷新数据</el-button>
@@ -49,7 +49,7 @@
       </el-form>
 
       <div v-if="errorMessage" class="error-state">
-        <el-result icon="error" title="评价数据加载失败" :sub-title="errorMessage">
+        <el-result icon="error" title="评价管理加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchReviewList">重新加载</el-button>
           </template>
@@ -186,7 +186,7 @@ const handleOpenSpot = (row) => {
 // 删除评价
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除这条评价吗？删除后会同步更新景点评分。', '提示', {
+    await ElMessageBox.confirm('确定要删除这条评价吗？删除后会同步更新景点评分。', '删除确认', {
       type: 'warning'
     })
     await deleteReview(row.id)

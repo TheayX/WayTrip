@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">Transaction Workspace</p>
         <h1 class="page-title">订单中心</h1>
-        <p class="page-subtitle">统一处理订单查询、状态流转与订单追踪。</p>
+        <p class="page-subtitle">统一处理订单查询、状态流转和订单跟踪。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading || summaryLoading" @click="handleRefresh">刷新数据</el-button>
@@ -43,7 +43,7 @@
       />
 
       <div v-if="errorMessage" class="error-state">
-        <el-result icon="error" title="订单数据加载失败" :sub-title="errorMessage">
+        <el-result icon="error" title="订单中心加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchOrderList">重新加载</el-button>
           </template>

@@ -4,7 +4,7 @@
     <section class="page-hero">
       <div>
         <p class="page-kicker">Recommendation Workspace</p>
-        <h1 class="page-title">推荐配置工作台</h1>
+        <h1 class="page-title">推荐配置</h1>
         <p class="page-subtitle">左侧维护参数配置，右侧处理保存与矩阵执行，下方进行调试预览和结果验证。</p>
       </div>
       <div class="hero-actions">

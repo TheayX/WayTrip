@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">Content Workspace</p>
         <h1 class="page-title">地区管理</h1>
-        <p class="page-subtitle">维护一级地区与二级地区，统一内容地域维度。</p>
+        <p class="page-subtitle">维护地区层级结构，统一内容展示的地域维度。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading1 || loading2" @click="handleRefresh">刷新数据</el-button>
@@ -24,7 +24,7 @@
           </template>
           
           <div v-if="errorMessage" class="panel-error">
-            <el-result icon="error" title="地区数据加载失败" :sub-title="errorMessage">
+            <el-result icon="error" title="地区管理加载失败" :sub-title="errorMessage">
               <template #extra>
                 <el-button type="primary" @click="handleRefresh">重新加载</el-button>
               </template>
@@ -54,7 +54,7 @@
         <el-card shadow="never" class="right-card">
           <template #header>
             <div class="card-header">
-              <span>二级地区管理</span>
+              <span>二级地区</span>
               <el-button type="primary" @click="handleAddLevel2" :disabled="!activeParentId">新增二级地区</el-button>
             </div>
           </template>
@@ -224,7 +224,7 @@ const handleEditLevel1 = (row) => {
 
 const handleDeleteLevel1 = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除该一级地区吗？如有子地区请先删除子地区。', '提示', { type: 'warning' })
+    await ElMessageBox.confirm('确定要删除该一级地区吗？如有子地区请先删除子地区。', '删除确认', { type: 'warning' })
     await deleteRegion(row.id)
     ElMessage.success('删除成功')
     if (activeParentId.value === row.id) {
@@ -253,7 +253,7 @@ const handleEditLevel2 = (row) => {
 
 const handleDeleteLevel2 = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除该二级地区吗？', '提示', { type: 'warning' })
+    await ElMessageBox.confirm('确定要删除该二级地区吗？', '删除确认', { type: 'warning' })
     await deleteRegion(row.id)
     ElMessage.success('删除成功')
     fetchLevel2(activeParentId.value)

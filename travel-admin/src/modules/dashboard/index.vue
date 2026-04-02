@@ -3,8 +3,8 @@
     <section class="page-hero">
       <div>
         <p class="page-kicker">Business Overview</p>
-        <h1 class="page-title">业务数据中心</h1>
-        <p class="page-subtitle">集中查看核心指标、趋势变化与运营入口，不在首页承载复杂处理动作。</p>
+        <h1 class="page-title">运营概览</h1>
+        <p class="page-subtitle">集中查看核心指标、趋势变化与业务入口，用总览视角发现问题并跳转处理。</p>
       </div>
       <div class="hero-actions">
         <el-button type="primary" :loading="loading" @click="fetchData">
@@ -320,13 +320,13 @@ const workbenchEntries = [
     desc: '查看订单状态流转、排查取消单与人工处理入口。',
     action: '进入订单工作台',
     path: '/order',
-    tag: '交易运营',
+    tag: '交易管理',
     tagType: 'warning'
   },
   {
     title: '景点管理',
     desc: '回看热门景点的基础信息、上下架状态与内容完整度。',
-    action: '进入景点列表',
+    action: '进入景点管理',
     path: '/spot',
     tag: '内容管理',
     tagType: 'success'

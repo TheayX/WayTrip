@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">Content Workspace</p>
         <h1 class="page-title">攻略管理</h1>
-        <p class="page-subtitle">集中处理攻略内容、发布状态与关联景点维护。</p>
+        <p class="page-subtitle">维护攻略内容、发布状态和关联景点信息。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="loadData">刷新数据</el-button>
@@ -32,7 +32,7 @@
       />
 
       <div v-if="errorMessage" class="error-state">
-        <el-result icon="error" title="攻略数据加载失败" :sub-title="errorMessage">
+        <el-result icon="error" title="攻略管理加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="loadData">重新加载</el-button>
           </template>
@@ -467,14 +467,14 @@ const handleSubmit = async (options = {}) => {
 
 const handleTogglePublish = async (row) => {
   const action = row.published ? '下架' : '发布'
-  await ElMessageBox.confirm(`确定要${action}该攻略吗？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(`确定要${action}该攻略吗？`, '状态确认', { type: 'warning' })
   await updatePublishStatus(row.id, !row.published)
   ElMessage.success(`${action}成功`)
   loadData()
 }
 
 const handleDelete = async (row) => {
-  await ElMessageBox.confirm('确定要删除该攻略吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm('确定要删除该攻略吗？', '删除确认', { type: 'warning' })
   await deleteGuide(row.id)
   ElMessage.success('删除成功')
   if (activeGuideId.value === row.id) {
@@ -524,7 +524,7 @@ const runBatchAction = async ({ rows, requestFactory, successMessage, afterSucce
 const handleBatchPublish = async (status) => {
   if (!selectedGuides.value.length) return
   const action = status ? '发布' : '下架'
-  await ElMessageBox.confirm(`确定要批量${action}选中的 ${selectedGuides.value.length} 篇攻略吗？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(`确定要批量${action}选中的 ${selectedGuides.value.length} 篇攻略吗？`, '状态确认', { type: 'warning' })
   const targetRows = selectedGuides.value.filter((item) => item.published !== status)
   if (!targetRows.length) {
     ElMessage.info(`选中攻略均已${status ? '发布' : '下架'}`)
@@ -539,7 +539,7 @@ const handleBatchPublish = async (status) => {
 
 const handleBatchDelete = async () => {
   if (!selectedGuides.value.length) return
-  await ElMessageBox.confirm(`确定要批量删除选中的 ${selectedGuides.value.length} 篇攻略吗？(此操作不可恢复)`, '警告', { type: 'error' })
+  await ElMessageBox.confirm(`确定要批量删除选中的 ${selectedGuides.value.length} 篇攻略吗？(此操作不可恢复)`, '删除确认', { type: 'error' })
   await runBatchAction({
     rows: selectedGuides.value,
     requestFactory: (item) => deleteGuide(item.id),

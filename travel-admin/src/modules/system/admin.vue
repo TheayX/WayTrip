@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">System Management</p>
         <h1 class="page-title">管理员管理</h1>
-        <p class="page-subtitle">维护后台管理员账号，控制基础访问状态与密码重置。</p>
+        <p class="page-subtitle">维护后台管理员账号、启用状态和密码重置操作。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchData">刷新数据</el-button>
@@ -53,7 +53,7 @@
       </el-form>
 
       <div v-if="errorMessage" class="error-state">
-        <el-result icon="error" title="管理员数据加载失败" :sub-title="errorMessage">
+        <el-result icon="error" title="管理员管理加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchData">重新加载</el-button>
           </template>
@@ -346,7 +346,7 @@ const handleResetPassword = async () => {
 
 // 删除管理员
 const handleDelete = async (row) => {
-  await ElMessageBox.confirm(`确定删除管理员「${row.username}」吗？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(`确定删除管理员「${row.username}」吗？`, '删除确认', { type: 'warning' })
   await deleteAdmin(row.id)
   ElMessage.success('删除成功')
   fetchData()
