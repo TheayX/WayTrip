@@ -108,7 +108,8 @@
           </el-select>
         </el-form-item>
         <el-form-item label="排序">
-          <el-input-number v-model="form.sortOrder" :min="0" :max="999" />
+          <el-input-number v-model="form.sortOrder" :min="1" :max="999" />
+          <div class="form-tip">默认取最后一位；如填写已有序号，系统会自动顺延后续轮播图。</div>
         </el-form-item>
         <el-form-item label="启用状态">
           <el-switch v-model="form.enabled" :active-value="1" :inactive-value="0" />
@@ -165,9 +166,15 @@ const currentId = ref(null)
 const form = reactive({
   imageUrl: '',
   spotId: null,
-  sortOrder: 0,
+  sortOrder: 1,
   enabled: 1
 })
+
+// 默认排序取当前轮播图列表最后一位，减少手工维护成本。
+const getNextSortOrder = () => {
+  const maxSortOrder = bannerList.value.reduce((max, item) => Math.max(max, Number(item.sortOrder) || 0), 0)
+  return maxSortOrder + 1
+}
 
 // 表单校验规则
 const rules = {
@@ -234,7 +241,7 @@ const handleAdd = () => {
   Object.assign(form, {
     imageUrl: '',
     spotId: null,
-    sortOrder: 0,
+    sortOrder: getNextSortOrder(),
     enabled: 1
   })
   dialogVisible.value = true
@@ -344,5 +351,11 @@ onMounted(() => {
     color: #94a3b8;
     margin-top: 8px;
   }
+}
+.form-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #94a3b8;
 }
 </style>
