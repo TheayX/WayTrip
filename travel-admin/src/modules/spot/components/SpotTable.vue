@@ -60,6 +60,7 @@
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
+                <el-dropdown-item command="detail">查看详情</el-dropdown-item>
                 <el-dropdown-item command="heat">热度设置</el-dropdown-item>
                 <el-dropdown-item command="sync-heat">同步热度</el-dropdown-item>
                 <el-dropdown-item command="sync-rating">同步评分</el-dropdown-item>
@@ -99,6 +100,7 @@ const handleSelectionChange = (selection) => {
 
 const handleCommand = (command, row) => {
   switch (command) {
+    case 'detail': emit('view', row); break;
     case 'heat': emit('heat-edit', row); break;
     case 'sync-heat': emit('refresh-heat', row); break;
     case 'sync-rating': emit('refresh-rating', row); break;

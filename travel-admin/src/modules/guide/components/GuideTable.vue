@@ -4,7 +4,9 @@
     v-loading="loading"
     class="premium-table borderless-table"
     :row-class-name="getRowClassName"
+    @selection-change="handleSelectionChange"
   >
+    <el-table-column type="selection" width="50" align="center" />
     <el-table-column prop="id" label="ID" width="70" align="center" />
     <el-table-column label="封面" width="90" align="center">
       <template #default="{ row }">
@@ -80,7 +82,11 @@ defineProps({
   getRowClassName: { type: Function, required: true }
 })
 
-const emit = defineEmits(['view', 'edit', 'toggle-publish', 'delete'])
+const emit = defineEmits(['selection-change', 'view', 'edit', 'toggle-publish', 'delete'])
+
+const handleSelectionChange = (selection) => {
+  emit('selection-change', selection)
+}
 
 const handleCommand = (command, row) => {
   switch (command) {
