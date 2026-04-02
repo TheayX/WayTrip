@@ -12,10 +12,11 @@ export function getOverview() {
 /**
  * 获取订单趋势数据
  * @param days
+ * @param mode
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export function getOrderTrend(days = 7) {
-  return request.get('/dashboard/order-trend', { params: { days } })
+export function getOrderTrend(days = 7, mode = 'weekday') {
+  return request.get('/dashboard/order-trend', { params: { days, mode } })
 }
 
 /**
