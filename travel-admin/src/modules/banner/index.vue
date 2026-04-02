@@ -22,12 +22,14 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="spotName" label="关联景点" min-width="150">
+        <el-table-column prop="spotName" label="关联景点" min-width="180" align="left">
           <template #default="{ row }">
-            <el-button v-if="row.spotId && row.spotName" link type="primary" @click="handleOpenSpot(row)">
-              {{ row.spotName }}
-            </el-button>
-            <span v-else>无</span>
+            <div class="spot-name-cell">
+              <el-button v-if="row.spotId && row.spotName" link type="primary" class="spot-name-link" @click="handleOpenSpot(row)">
+                {{ row.spotName }}
+              </el-button>
+              <span v-else>无</span>
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="sortOrder" label="排序" width="100" />
@@ -373,5 +375,33 @@ onMounted(() => {
   font-size: 12px;
   line-height: 1.5;
   color: #94a3b8;
+}
+
+.spot-name-cell {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.spot-name-link {
+  padding: 0;
+  min-width: 0;
+  height: auto;
+  justify-content: flex-start;
+  font-weight: 600;
+  color: #1e293b;
+
+  &:hover {
+    color: var(--el-color-primary);
+  }
+}
+
+:deep(.spot-name-link.el-button.is-link) {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+:deep(.spot-name-link .el-button__text) {
+  text-align: left;
 }
 </style>

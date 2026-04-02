@@ -84,9 +84,8 @@
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="收藏时间" width="170" />
-        <el-table-column label="操作" width="190" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleOpenViewLog(row)">浏览行为</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -212,17 +211,6 @@ const handleOpenSpot = (row) => {
     query: {
       keyword: row.spotName || '',
       spotId: row.spotId || ''
-    }
-  })
-}
-
-// 跳转浏览行为页
-const handleOpenViewLog = (row) => {
-  router.push({
-    path: '/view-log',
-    query: {
-      nickname: row.nickname || '',
-      spotName: row.spotName || ''
     }
   })
 }
