@@ -38,6 +38,40 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, 'src')
       }
     },
+    build: {
+      rollupOptions: {
+        output: {
+          // 按依赖域拆包，降低首屏主包体积，避免后台各模块共享大依赖全部堆进同一 chunk。
+          manualChunks(id) {
+            if (!id.includes('node_modules')) {
+              return
+            }
+
+            if (id.includes('node_modules/vue/') || id.includes('node_modules/@vue/') || id.includes('node_modules/vue-router/') || id.includes('node_modules/pinia/')) {
+              return 'vue-vendor'
+            }
+
+            if (id.includes('node_modules/element-plus/') || id.includes('node_modules/@element-plus/')) {
+              return 'element-plus'
+            }
+
+            if (id.includes('node_modules/echarts/')) {
+              return 'echarts'
+            }
+
+            if (id.includes('node_modules/wangeditor/')) {
+              return 'editor'
+            }
+
+            if (id.includes('node_modules/axios/')) {
+              return 'network'
+            }
+
+            return 'vendor'
+          }
+        }
+      }
+    },
     // 开发服务器配置
     server: {
       port: 3000,
