@@ -18,13 +18,13 @@
         <el-button link type="primary" class="spot-name-link" @click="emit('view', row)">{{ row.name }}</el-button>
       </template>
     </el-table-column>
-    <el-table-column prop="regionName" label="地区" width="110" align="left" />
+    <el-table-column prop="regionName" label="地区" width="110" align="center" />
     <el-table-column prop="categoryName" label="分类" width="110" align="center">
       <template #default="{ row }">
         <el-tag effect="plain" type="info" size="small">{{ row.categoryName }}</el-tag>
       </template>
     </el-table-column>
-    <el-table-column prop="price" label="价格" width="100" align="left">
+    <el-table-column prop="price" label="价格" width="100" align="center">
       <template #default="{ row }">
         <span class="price-text">¥{{ row.price }}</span>
       </template>
@@ -117,6 +117,7 @@ const handleCommand = (command, row) => {
 }
 
 .spot-name-link {
+  margin-left: -20px;
   font-weight: 600;
   color: #1e293b;
   &:hover {
@@ -125,16 +126,23 @@ const handleCommand = (command, row) => {
 }
 
 .price-text {
+  display: inline-block;
+  min-width: 56px;
   font-weight: 600;
   color: #ef4444;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .rating-text {
   font-weight: 600;
   color: #1e293b;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  min-width: 56px;
+  font-variant-numeric: tabular-nums;
 }
 
 .borderless-table {
