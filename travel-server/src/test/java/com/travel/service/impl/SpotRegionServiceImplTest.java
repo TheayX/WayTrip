@@ -15,6 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +69,23 @@ class SpotRegionServiceImplTest {
         SpotRegion updatedCurrent = updateCaptor.getAllValues().get(2);
         assertEquals(20L, updatedCurrent.getParentId());
         assertEquals(2, updatedCurrent.getSortOrder());
+    }
+
+    @Test
+    void deleteRegion_shouldCompactFollowingSiblings_whenDeleteSucceeds() {
+        SpotRegion current = buildRegion(2L, 10L, 2);
+        SpotRegion following = buildRegion(3L, 10L, 3);
+
+        when(spotRegionMapper.selectById(2L)).thenReturn(current);
+        when(spotRegionMapper.selectCount(any())).thenReturn(0L);
+        when(spotRegionMapper.updateById(any())).thenReturn(1);
+        when(spotRegionMapper.selectList(any())).thenReturn(List.of(current, following));
+
+        spotRegionService.deleteRegion(2L);
+
+        verify(spotRegionMapper).updateById(argThat(item -> item.getId().equals(2L) && item.getIsDeleted() == 1));
+        verify(spotRegionMapper).updateById(argThat(item -> item.getId().equals(3L) && item.getSortOrder() == 2));
+        assertEquals(2, following.getSortOrder());
     }
 
     /**

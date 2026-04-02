@@ -82,8 +82,11 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
             throw new BusinessException(400, "该地区下还存在子地区，请先删除子地区");
         }
         
+        int removedSortOrder = safeSortOrder(region.getSortOrder());
+        Long parentId = region.getParentId();
         region.setIsDeleted(1);
         updateById(region);
+        compactSortOrdersAfterRemoval(parentId, id, removedSortOrder);
     }
 
     /**
