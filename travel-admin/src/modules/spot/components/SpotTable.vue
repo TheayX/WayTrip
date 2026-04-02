@@ -117,12 +117,24 @@ const handleCommand = (command, row) => {
 }
 
 .spot-name-link {
-  margin-left: -20px;
+  padding: 0;
+  min-width: 0;
+  height: auto;
   font-weight: 600;
   color: #1e293b;
   &:hover {
     color: var(--el-color-primary);
   }
+}
+
+:deep(.spot-name-link.el-button.is-link) {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+:deep(.spot-name-link .el-button__text) {
+  display: inline-block;
+  text-align: left;
 }
 
 .price-text {
