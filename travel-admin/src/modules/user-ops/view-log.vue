@@ -115,9 +115,8 @@
           <template #default="{ row }">{{ row.duration || 0 }} 秒</template>
         </el-table-column>
         <el-table-column prop="createdAt" label="浏览时间" width="170" />
-        <el-table-column label="操作" width="190" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleOpenFavorite(row)">查看收藏</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -263,17 +262,6 @@ const handleOpenSpot = (row) => {
     query: {
       keyword: row.spotName || '',
       spotId: row.spotId || ''
-    }
-  })
-}
-
-// 跳转收藏页
-const handleOpenFavorite = (row) => {
-  router.push({
-    path: '/favorite',
-    query: {
-      nickname: row.nickname || '',
-      spotName: row.spotName || ''
     }
   })
 }

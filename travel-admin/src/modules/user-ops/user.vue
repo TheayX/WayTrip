@@ -45,14 +45,23 @@
         <el-table-column prop="ratingCount" label="评价数" width="100" />
         <el-table-column prop="createdAt" label="注册时间" width="170" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" />
-        <el-table-column label="操作" width="300" fixed="right">
+        <el-table-column label="操作" width="190" fixed="right" align="center">
           <template #default="{ row }">
-            <div style="white-space: nowrap;">
-              <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
-              <el-button type="primary" link @click="handleOpenPreference(row)">偏好</el-button>
-              <el-button type="primary" link @click="handleOpenFavorite(row)">收藏</el-button>
-              <el-button type="primary" link @click="handleOpenViewLog(row)">浏览</el-button>
+            <div class="table-actions">
               <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
+              <el-dropdown trigger="click" @command="(command) => handleCommand(command, row)">
+                <el-button link type="primary">
+                  更多 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="detail">查看详情</el-dropdown-item>
+                    <el-dropdown-item command="preference">用户偏好</el-dropdown-item>
+                    <el-dropdown-item command="favorite">用户收藏</el-dropdown-item>
+                    <el-dropdown-item command="view-log">浏览行为</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </template>
         </el-table-column>
@@ -153,6 +162,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ArrowDown } from '@element-plus/icons-vue'
 import { getUserList, getUserDetail, resetUserPassword } from '@/modules/user-ops/api/user.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
@@ -266,6 +276,23 @@ const handleOpenViewLog = (row) => {
   openUserOpsPage('/view-log', row)
 }
 
+const handleCommand = (command, row) => {
+  switch (command) {
+    case 'detail':
+      handleDetail(row)
+      break
+    case 'preference':
+      handleOpenPreference(row)
+      break
+    case 'favorite':
+      handleOpenFavorite(row)
+      break
+    case 'view-log':
+      handleOpenViewLog(row)
+      break
+  }
+}
+
 // 打开用户详情对话框
 const handleDetail = async (row) => {
   try {
@@ -377,6 +404,13 @@ watch(
   .summary-divider {
     margin: 0 6px;
     color: #e2e8f0;
+  }
+
+  .table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
 }
 

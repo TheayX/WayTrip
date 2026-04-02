@@ -42,45 +42,48 @@
       </el-form>
 
       <!-- 数据表格 -->
-      <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="username" label="用户名" min-width="140" />
-        <el-table-column prop="realName" label="姓名" min-width="140" />
-        <el-table-column label="状态" width="100">
+      <el-table :data="tableData" v-loading="loading" stripe class="borderless-table">
+        <el-table-column prop="id" label="ID" width="80" align="center" />
+        <el-table-column prop="username" label="用户名" min-width="140" align="left" />
+        <el-table-column prop="realName" label="姓名" min-width="140" align="left" />
+        <el-table-column label="状态" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'info'">
+            <div class="capsule-badge status-capsule" :class="row.status === 1 ? 'status-success' : 'status-neutral'">
+              <span class="dot"></span>
               {{ row.status === 1 ? '启用' : '禁用' }}
-            </el-tag>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="lastLoginAt" label="最近登录" width="180">
+        <el-table-column prop="lastLoginAt" label="最近登录" width="180" align="center">
           <template #default="{ row }">
             {{ formatDate(row.lastLoginAt) || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180">
+        <el-table-column prop="createdAt" label="创建时间" width="180" align="center">
           <template #default="{ row }">
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column prop="updatedAt" label="修改时间" width="180">
+        <el-table-column prop="updatedAt" label="修改时间" width="180" align="center">
           <template #default="{ row }">
             {{ formatDate(row.updatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="250" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right" align="center">
           <template #default="{ row }">
-            <div style="white-space: nowrap;">
-              <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
+            <div class="table-actions">
               <el-button link type="warning" @click="handleOpenPasswordDialog(row)">重置密码</el-button>
-              <el-button
-                  link
-                  type="danger"
-                  :disabled="isCurrentAdmin(row)"
-                  @click="handleDelete(row)"
-              >
-                删除
-              </el-button>
+              <el-dropdown trigger="click" @command="(command) => handleCommand(command, row)">
+                <el-button link type="primary">
+                  更多 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="edit">编辑管理员</el-dropdown-item>
+                    <el-dropdown-item command="delete" divided class="danger-text" :disabled="isCurrentAdmin(row)">删除管理员</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </template>
         </el-table-column>
@@ -143,6 +146,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 import { useUserStore } from '@/app/store/user.js'
 import { createAdmin, deleteAdmin, getAdminList, resetAdminPassword, updateAdmin } from '@/modules/system/api/admin.js'
 
@@ -323,6 +327,19 @@ const handleDelete = async (row) => {
   fetchData()
 }
 
+const handleCommand = (command, row) => {
+  switch (command) {
+    case 'edit':
+      handleEdit(row)
+      break
+    case 'delete':
+      if (!isCurrentAdmin(row)) {
+        handleDelete(row)
+      }
+      break
+  }
+}
+
 // 判断是否为当前登录管理员
 const isCurrentAdmin = (row) => row.id === currentAdminId.value
 
@@ -340,6 +357,64 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .admin-page {
-  /* All core styles handled by global design system */
+  .table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+}
+
+.borderless-table {
+  :deep(.el-table__inner-wrapper::before) {
+    display: none;
+  }
+
+  :deep(td.el-table__cell),
+  :deep(th.el-table__cell.is-leaf) {
+    border-bottom: 1px solid #f8fafc;
+  }
+}
+
+.capsule-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+
+  &.status-capsule {
+    gap: 6px;
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+  }
+
+  &.status-success {
+    background-color: #ecfdf5;
+    color: #059669;
+
+    .dot {
+      background-color: #10b981;
+    }
+  }
+
+  &.status-neutral {
+    background-color: #f1f5f9;
+    color: #475569;
+
+    .dot {
+      background-color: #94a3b8;
+    }
+  }
+}
+
+.danger-text {
+  color: #ef4444 !important;
 }
 </style>

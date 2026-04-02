@@ -60,7 +60,11 @@
       <!-- 订单列表 -->
       <el-table :data="orderList" v-loading="loading" class="borderless-table">
         <el-table-column prop="orderNo" label="订单号" width="180" align="left" />
-        <el-table-column prop="spotName" label="景点名称" min-width="180" show-overflow-tooltip align="left" />
+        <el-table-column label="景点名称" min-width="180" show-overflow-tooltip align="left">
+          <template #default="{ row }">
+            <el-button link type="primary" class="spot-link" @click="handleOpenSpot(row)">{{ row.spotName }}</el-button>
+          </template>
+        </el-table-column>
         <el-table-column prop="userNickname" label="用户" width="120" align="left" />
         <el-table-column label="支付金额" width="130" align="left">
           <template #default="{ row }">
@@ -155,11 +159,12 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowDown } from '@element-plus/icons-vue'
 import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder, cancelOrder } from '@/modules/order/api.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 
+const router = useRouter()
 const searchForm = reactive({ orderNo: '', spotName: '', status: '' })
 const dateRange = ref([])
 const loading = ref(false)
@@ -202,6 +207,16 @@ const getStatusType = (status) => {
 const handleAction = (command, row) => {
   const map = { complete: handleComplete, refund: handleRefund, cancel: handleCancel, reopen: handleReopen }
   map[command]?.(row)
+}
+
+const handleOpenSpot = (row) => {
+  router.push({
+    path: '/spot',
+    query: {
+      keyword: row.spotName || '',
+      spotId: row.spotId || ''
+    }
+  })
 }
 
 const handleDetail = async (row) => {
@@ -279,6 +294,19 @@ onMounted(() => { fetchOrderList() })
     gap: 4px;
     justify-content: flex-start;
   }
+}
+
+.spot-link {
+  padding: 0;
+  min-width: 0;
+  height: auto;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+:deep(.spot-link.el-button.is-link) {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 :deep(.s-success) { color: #10b981 !important; }
