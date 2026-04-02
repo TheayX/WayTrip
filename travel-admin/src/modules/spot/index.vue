@@ -1,6 +1,17 @@
 <!-- 景点管理页面 -->
 <template>
   <div class="spot-page">
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">Content Workspace</p>
+        <h1 class="page-title">景点管理</h1>
+        <p class="page-subtitle">维护景点基础信息、分类地区归属、热度评分和上下架状态。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button :loading="loading" @click="loadData">刷新数据</el-button>
+      </div>
+    </section>
+
     <el-card  shadow="hover">
       <!-- 卡片头部 -->
       <template #header>
@@ -767,6 +778,41 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+.spot-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.page-kicker {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -788,6 +834,20 @@ watch(
 
   td {
     background-color: #fdf6ec !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-hero {
+    flex-direction: column;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions :deep(.el-button) {
+    width: 100%;
   }
 }
 </style>
