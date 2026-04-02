@@ -58,6 +58,7 @@
         :get-image-url="getImageUrl"
         :format-date="formatDate"
         :get-row-class-name="getRowClassName"
+        @selection-change="handleSelectionChange"
         @view="handleView"
         @edit="handleEdit"
         @toggle-publish="handleTogglePublish"
@@ -101,6 +102,29 @@
       :get-image-url="getImageUrl"
       :format-date="formatDate"
     />
+
+    <transition name="el-zoom-in-bottom">
+      <div
+        v-show="selectedGuides.length > 0"
+        class="floating-action-bar flex items-center shadow-lg"
+        style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; border-radius: 9999px; overflow: hidden; display: flex; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);"
+      >
+        <div
+          class="px-4 py-3 bg-gray-800 text-white rounded-l-full font-medium shadow-none outline-none"
+          style="background-color: #1f2937; color: white; padding: 12px 16px;"
+        >
+          已选择 <span class="text-primary font-bold px-1" style="color: var(--el-color-primary)">{{ selectedGuides.length }}</span> 项
+        </div>
+        <div
+          class="bg-white px-4 py-2 rounded-r-full border text-gray-700 shadow-none outline-none flex items-center gap-2"
+          style="background: white; padding: 8px 16px; border-left: none; gap: 8px; display: flex;"
+        >
+          <el-button type="success" size="small" @click="handleBatchPublish(true)">批量发布</el-button>
+          <el-button type="warning" size="small" @click="handleBatchPublish(false)">批量下架</el-button>
+          <el-button type="danger" size="small" @click="handleBatchDelete">批量删除</el-button>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -183,6 +207,7 @@ const total = ref(0)
 const categories = ref([])
 const spotList = ref([])
 const spotOptions = ref([])
+const selectedGuides = ref([])
 const dialogVisible = ref(false)
 const drawerVisible = ref(false)
 const submitting = ref(false)
@@ -448,6 +473,51 @@ const handleDelete = async (row) => {
     syncRouteQuery(null)
   }
   loadData()
+}
+
+const handleSelectionChange = (selection) => {
+  selectedGuides.value = selection
+}
+
+const handleBatchPublish = async (status) => {
+  if (!selectedGuides.value.length) return
+  const action = status ? '发布' : '下架'
+  await ElMessageBox.confirm(`确定要批量${action}选中的 ${selectedGuides.value.length} 篇攻略吗？`, '提示', { type: 'warning' })
+  loading.value = true
+  try {
+    for (const item of selectedGuides.value) {
+      if (item.published !== status) {
+        await updatePublishStatus(item.id, status)
+      }
+    }
+    ElMessage.success(`批量${action}成功`)
+    selectedGuides.value = []
+    loadData()
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleBatchDelete = async () => {
+  if (!selectedGuides.value.length) return
+  await ElMessageBox.confirm(`确定要批量删除选中的 ${selectedGuides.value.length} 篇攻略吗？(此操作不可恢复)`, '警告', { type: 'error' })
+  loading.value = true
+  try {
+    for (const item of selectedGuides.value) {
+      await deleteGuide(item.id)
+    }
+    ElMessage.success('批量删除成功')
+    if (selectedGuides.value.some((item) => item.id === activeGuideId.value)) {
+      activeGuideId.value = null
+      guideDetail.value = null
+      drawerVisible.value = false
+      syncRouteQuery(null)
+    }
+    selectedGuides.value = []
+    loadData()
+  } finally {
+    loading.value = false
+  }
 }
 
 watch(
