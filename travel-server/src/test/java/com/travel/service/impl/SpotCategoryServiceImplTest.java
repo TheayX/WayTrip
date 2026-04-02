@@ -15,6 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -86,6 +87,23 @@ class SpotCategoryServiceImplTest {
         verify(spotCategoryMapper, times(2)).updateById(any());
         assertEquals(3, second.getSortOrder());
         assertEquals(2, current.getSortOrder());
+    }
+
+    @Test
+    void deleteCategory_shouldCompactFollowingSiblings_whenDeleteSucceeds() {
+        SpotCategory current = buildCategory(2L, 0L, 2);
+        SpotCategory following = buildCategory(3L, 0L, 3);
+
+        when(spotCategoryMapper.selectById(2L)).thenReturn(current);
+        when(spotCategoryMapper.selectCount(any())).thenReturn(0L);
+        when(spotCategoryMapper.updateById(any())).thenReturn(1);
+        when(spotCategoryMapper.selectList(any())).thenReturn(List.of(current, following));
+
+        spotCategoryService.deleteCategory(2L);
+
+        verify(spotCategoryMapper).updateById(argThat(item -> item.getId().equals(2L) && item.getIsDeleted() == 1));
+        verify(spotCategoryMapper).updateById(argThat(item -> item.getId().equals(3L) && item.getSortOrder() == 2));
+        assertEquals(2, following.getSortOrder());
     }
 
     /**

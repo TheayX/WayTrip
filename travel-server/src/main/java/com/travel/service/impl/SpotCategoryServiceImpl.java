@@ -82,8 +82,11 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
             throw new BusinessException(400, "该分类下还存在子分类，请先删除子分类");
         }
         
+        int removedSortOrder = safeSortOrder(category.getSortOrder());
+        Long parentId = category.getParentId();
         category.setIsDeleted(1);
         updateById(category);
+        compactSortOrdersAfterRemoval(parentId, id, removedSortOrder);
     }
 
     /**
