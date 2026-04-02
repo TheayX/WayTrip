@@ -1,16 +1,16 @@
 <!-- 攻略管理页面 -->
 <template>
   <div class="guide-page">
-    <el-card shadow="never">
-      <!-- 卡片头部 -->
+    <el-card shadow="hover">
       <template #header>
         <div class="card-header">
           <span>攻略列表</span>
-          <el-button type="primary" @click="handleAdd">新增攻略</el-button>
+          <div class="header-actions">
+            <el-button type="primary" @click="handleAdd">新增攻略</el-button>
+          </div>
         </div>
       </template>
-      
-      <!-- 搜索筛选表单 -->
+
       <el-form :inline="true" :model="queryParams" class="search-form" @submit.prevent>
         <el-form-item label="关键词">
           <el-input
@@ -22,12 +22,26 @@
           />
         </el-form-item>
         <el-form-item label="分类">
-          <el-select v-model="queryParams.category" placeholder="全部" clearable style="width: 200px" @change="handleSearch" @clear="handleSearch">
+          <el-select
+            v-model="queryParams.category"
+            placeholder="全部分类"
+            clearable
+            style="width: 200px"
+            @change="handleSearch"
+            @clear="handleSearch"
+          >
             <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="uiFilters.published" placeholder="全部" clearable style="width: 140px" @change="handleFilterChange" @clear="handleFilterChange">
+        <el-form-item label="发布状态">
+          <el-select
+            v-model="uiFilters.published"
+            placeholder="全部状态"
+            clearable
+            style="width: 140px"
+            @change="handleFilterChange"
+            @clear="handleFilterChange"
+          >
             <el-option label="已发布" value="1" />
             <el-option label="未发布" value="0" />
           </el-select>
@@ -38,141 +52,86 @@
         </el-form-item>
       </el-form>
 
-      <!-- 数据表格 -->
-      <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="封面" width="100">
-          <template #default="{ row }">
-            <el-image :src="getImageUrl(row.coverImage)" style="width: 60px; height: 60px" fit="cover" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="title" label="标题" min-width="200" />
-        <el-table-column prop="category" label="分类" width="120" />
-        <el-table-column prop="viewCount" label="浏览量" width="100" />
-        <el-table-column label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.published ? 'success' : 'info'">
-              {{ row.published ? '已发布' : '未发布' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.createdAt) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="updatedAt" label="修改时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.updatedAt) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
-          <template #default="{ row }">
-            <div style="white-space: nowrap;">
-              <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-              <el-button link :type="row.published ? 'warning' : 'success'" @click="handleTogglePublish(row)">
-                {{ row.published ? '下架' : '发布' }}
-              </el-button>
-              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+      <GuideTable
+        :table-data="tableData"
+        :loading="loading"
+        :get-image-url="getImageUrl"
+        :format-date="formatDate"
+        :get-row-class-name="getRowClassName"
+        @view="handleView"
+        @edit="handleEdit"
+        @toggle-publish="handleTogglePublish"
+        @delete="handleDelete"
+      />
 
-      <!-- 分页器 -->
       <el-pagination
         v-model:current-page="queryParams.page"
         v-model:page-size="queryParams.pageSize"
         :total="total"
         :page-sizes="[10, 20, 50]"
         layout="total, sizes, prev, pager, next"
+        class="pagination"
         @size-change="loadData"
         @current-change="loadData"
-        class="pagination"
       />
     </el-card>
 
-    <!-- 新增/编辑对话框 -->
-    <el-dialog v-model="dialogVisible" :title="editId ? '编辑攻略' : '新增攻略'" width="900px" top="5vh">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="标题" prop="title">
-          <el-input v-model="form.title" placeholder="请输入攻略标题" />
-        </el-form-item>
-        <el-form-item label="分类" prop="category">
-          <el-select v-model="form.category" placeholder="请选择分类" allow-create filterable>
-            <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="封面图">
-          <div class="upload-container">
-            <el-upload
-              class="image-uploader"
-              :action="uploadUrl"
-              :headers="uploadHeaders"
-              :data="uploadData"
-              :show-file-list="false"
-              :on-success="handleUploadSuccess"
-              :on-error="handleUploadError"
-              :before-upload="beforeUpload"
-              accept="image/*"
-            >
-              <el-image 
-                v-if="form.coverImage" 
-                :src="getImageUrl(form.coverImage)" 
-                fit="cover"
-                class="uploaded-image"
-              />
-              <div v-else class="upload-placeholder">
-                <el-icon><Plus /></el-icon>
-                <span>点击上传</span>
-              </div>
-            </el-upload>
-            <div class="upload-tip">支持 jpg、png 格式，大小不超过 5MB</div>
-          </div>
-        </el-form-item>
-        <el-form-item label="关联景点">
-          <el-select v-model="form.spotIds" multiple placeholder="请选择关联景点" style="width: 100%">
-            <el-option
-              v-for="spot in mergedSpotOptions"
-              :key="spot.id"
-              :label="spot.isDeleted === 1 ? `${spot.name}（已删除）` : (spot.published ? spot.name : `${spot.name}（已下架）`)"
-              :value="spot.id"
-              :disabled="spot.isDeleted === 1"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="内容" prop="content">
-          <el-input 
-            v-model="form.content" 
-            type="textarea" 
-            :rows="15" 
-            placeholder="请输入攻略内容（支持HTML）" 
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">确定</el-button>
-      </template>
-    </el-dialog>
+    <GuideFormDrawer
+      ref="formDrawerRef"
+      v-model:visible="dialogVisible"
+      :edit-id="editId"
+      :form="form"
+      :rules="rules"
+      :categories="categories"
+      :merged-spot-options="mergedSpotOptions"
+      :upload-url="uploadUrl"
+      :upload-headers="uploadHeaders"
+      :upload-data="uploadData"
+      :before-upload="beforeUpload"
+      :handle-upload-success="handleUploadSuccess"
+      :handle-upload-error="handleUploadError"
+      :get-image-url="getImageUrl"
+      :submitting="submitting"
+      @submit="handleSubmit"
+    />
+
+    <GuideDetailDrawer
+      v-model:visible="drawerVisible"
+      :detail="guideDetail"
+      :get-image-url="getImageUrl"
+      :format-date="formatDate"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
-import { getGuideList, getGuideDetail, createGuide, updateGuide, updatePublishStatus, deleteGuide, getCategories } from '@/modules/guide/api.js'
+import GuideTable from '@/modules/guide/components/GuideTable.vue'
+import GuideFormDrawer from '@/modules/guide/components/GuideFormDrawer.vue'
+import GuideDetailDrawer from '@/modules/guide/components/GuideDetailDrawer.vue'
+import {
+  createGuide,
+  deleteGuide,
+  getCategories,
+  getGuideDetail,
+  getGuideList,
+  updateGuide,
+  updatePublishStatus
+} from '@/modules/guide/api.js'
 import { useUserStore } from '@/app/store/user.js'
 import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
 import { fetchAllSpotOptions } from '@/modules/spot/composables/useSpotOptions.js'
 
+const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 // 上传相关配置
 const uploadUrl = computed(() => getAdminUploadUrl('image'))
 const uploadHeaders = computed(() => ({
-  'Authorization': `Bearer ${userStore.token}`
+  Authorization: `Bearer ${userStore.token}`
 }))
 const uploadData = computed(() => ({
   tag: form.title || ''
@@ -189,29 +148,33 @@ const beforeUpload = (file) => {
   const isLt5M = file.size / 1024 / 1024 < 5
 
   if (!isImage) {
-    ElMessage.error('只能上传图片文件!')
+    ElMessage.error('只能上传图片文件')
     return false
   }
   if (!isLt5M) {
-    ElMessage.error('图片大小不能超过 5MB!')
+    ElMessage.error('图片大小不能超过 5MB')
     return false
   }
   return true
 }
 
-// 上传成功
+// 上传成功后回填封面，保持抽屉内即时可见。
 const handleUploadSuccess = (response) => {
   if (response.code === 0) {
     form.coverImage = response.data.url
     ElMessage.success('上传成功')
-  } else {
-    ElMessage.error(response.message || '上传失败')
+    return
   }
+  ElMessage.error(response.message || '上传失败')
 }
 
-// 上传失败
 const handleUploadError = () => {
   ElMessage.error('上传失败，请重试')
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return dateStr.replace('T', ' ').substring(0, 19)
 }
 
 const loading = ref(false)
@@ -220,25 +183,14 @@ const total = ref(0)
 const categories = ref([])
 const spotList = ref([])
 const spotOptions = ref([])
-
-// 合并可选景点和编辑态回填景点
-const mergedSpotOptions = computed(() => {
-  const map = new Map()
-  spotList.value.forEach(spot => {
-    map.set(spot.id, {
-      id: spot.id,
-      name: spot.name,
-      published: spot.published,
-      isDeleted: spot.isDeleted
-    })
-  })
-  spotOptions.value.forEach(spot => {
-    if (!map.has(spot.id)) {
-      map.set(spot.id, spot)
-    }
-  })
-  return Array.from(map.values())
-})
+const dialogVisible = ref(false)
+const drawerVisible = ref(false)
+const submitting = ref(false)
+const editId = ref(null)
+const activeGuideId = ref(null)
+const autoOpenedGuideId = ref(null)
+const guideDetail = ref(null)
+const formDrawerRef = ref()
 
 const queryParams = reactive({
   page: 1,
@@ -247,37 +199,52 @@ const queryParams = reactive({
   category: '',
   published: null
 })
+
 const uiFilters = reactive({
   published: ''
 })
-
-// 对话框与表单状态
-const dialogVisible = ref(false)
-const editId = ref(null)
-const submitting = ref(false)
-const formRef = ref()
 
 const form = reactive({
   title: '',
   category: '',
   coverImage: '',
   content: '',
+  published: false,
   spotIds: []
 })
 
 const rules = {
   title: [{ required: true, message: '请输入攻略标题', trigger: 'blur' }],
+  category: [{ required: true, message: '请选择或输入攻略分类', trigger: 'change' }],
   content: [{ required: true, message: '请输入攻略内容', trigger: 'blur' }]
 }
 
-// 页面初始化
-onMounted(() => {
-  loadCategories()
-  loadSpots()
-  loadData()
+// 合并列表景点和编辑回显景点，避免旧关联缺失时无法展示。
+const mergedSpotOptions = computed(() => {
+  const map = new Map()
+  spotList.value.forEach((spot) => {
+    map.set(spot.id, {
+      id: spot.id,
+      name: spot.name,
+      published: spot.published,
+      isDeleted: spot.isDeleted
+    })
+  })
+  spotOptions.value.forEach((spot) => {
+    if (!map.has(spot.id)) {
+      map.set(spot.id, spot)
+    }
+  })
+  return Array.from(map.values())
 })
 
-// 加载攻略分类
+onMounted(async () => {
+  applyRouteQuery()
+  await loadCategories()
+  await loadSpots()
+  await loadData()
+})
+
 const loadCategories = async () => {
   try {
     const res = await getCategories()
@@ -285,37 +252,30 @@ const loadCategories = async () => {
   } catch (e) {}
 }
 
-// 加载景点选项
 const loadSpots = async () => {
   try {
     spotList.value = await fetchAllSpotOptions()
   } catch (e) {}
 }
 
-// 加载攻略列表
 const loadData = async () => {
   loading.value = true
   try {
     const res = await getGuideList(queryParams)
-    tableData.value = res.data.list
-    total.value = res.data.total
+    tableData.value = res.data.list || []
+    total.value = res.data.total || 0
+    await openGuideFromRoute()
   } finally {
     loading.value = false
   }
 }
 
-// 格式化日期
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  return dateStr.replace('T', ' ').substring(0, 19)
-}
-
-// 搜索操作
 const handleSearch = () => {
   queryParams.page = 1
-  queryParams.published = uiFilters.published == null || uiFilters.published === ''
+  queryParams.published = uiFilters.published === '' || uiFilters.published == null
     ? null
     : Number(uiFilters.published)
+  syncRouteQuery()
   loadData()
 }
 
@@ -323,7 +283,6 @@ const handleFilterChange = () => {
   handleSearch()
 }
 
-// 重置搜索条件
 const handleReset = () => {
   queryParams.keyword = ''
   queryParams.category = ''
@@ -332,45 +291,144 @@ const handleReset = () => {
   handleSearch()
 }
 
-// 新增攻略
+const syncRouteQuery = (guideId = activeGuideId.value) => {
+  const nextQuery = {}
+  if (queryParams.keyword) {
+    nextQuery.keyword = queryParams.keyword
+  }
+  if (guideId) {
+    nextQuery.guideId = String(guideId)
+  }
+  router.replace({ path: route.path, query: nextQuery })
+}
+
+const normalizeRouteGuideId = (value) => {
+  const guideId = Number(value)
+  return Number.isInteger(guideId) && guideId > 0 ? guideId : null
+}
+
+const applyRouteQuery = () => {
+  queryParams.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
+  const nextGuideId = normalizeRouteGuideId(route.query.guideId)
+  if (nextGuideId !== activeGuideId.value) {
+    autoOpenedGuideId.value = null
+  }
+  activeGuideId.value = nextGuideId
+}
+
+const getRowClassName = ({ row }) => {
+  return Number(row.id) === activeGuideId.value ? 'guide-highlight-row' : ''
+}
+
+const resetForm = () => {
+  Object.assign(form, {
+    title: '',
+    category: '',
+    coverImage: '',
+    content: '',
+    published: false,
+    spotIds: []
+  })
+  spotOptions.value = []
+}
+
 const handleAdd = () => {
   editId.value = null
-  Object.assign(form, { title: '', category: '', coverImage: '', content: '', spotIds: [] })
+  resetForm()
   dialogVisible.value = true
 }
 
-// 编辑攻略
 const handleEdit = async (row) => {
   editId.value = row.id
   try {
     const res = await getGuideDetail(row.id)
-    Object.assign(form, res.data)
+    Object.assign(form, {
+      title: res.data.title,
+      category: res.data.category,
+      coverImage: res.data.coverImage,
+      content: res.data.content,
+      published: res.data.published,
+      spotIds: Array.isArray(res.data.spotIds) ? [...res.data.spotIds] : []
+    })
     spotOptions.value = res.data.spotOptions || []
     dialogVisible.value = true
-  } catch (e) {}
+  } catch (e) {
+    ElMessage.error('获取攻略详情失败')
+  }
 }
 
-// 提交攻略表单
+// 详情抽屉复用详情接口，并补齐列表态字段供展示使用。
+const openGuideDetail = async (row) => {
+  const res = await getGuideDetail(row.id)
+  guideDetail.value = {
+    ...res.data,
+    id: row.id,
+    title: row.title,
+    category: res.data.category || row.category,
+    coverImage: res.data.coverImage || row.coverImage,
+    published: res.data.published ?? row.published,
+    viewCount: row.viewCount,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    spotOptions: res.data.spotOptions || []
+  }
+  drawerVisible.value = true
+}
+
+const handleView = async (row) => {
+  try {
+    activeGuideId.value = row.id
+    syncRouteQuery(row.id)
+    await openGuideDetail(row)
+  } catch (e) {
+    ElMessage.error('无法获取攻略详情')
+  }
+}
+
+const openGuideFromRoute = async () => {
+  if (!activeGuideId.value || autoOpenedGuideId.value === activeGuideId.value) {
+    return
+  }
+  const targetRow = tableData.value.find((item) => Number(item.id) === activeGuideId.value)
+  if (!targetRow) {
+    return
+  }
+  autoOpenedGuideId.value = activeGuideId.value
+  try {
+    await openGuideDetail(targetRow)
+  } catch (e) {
+    autoOpenedGuideId.value = null
+  }
+}
+
+const buildSubmitPayload = () => ({
+  title: form.title,
+  category: form.category,
+  coverImage: form.coverImage,
+  content: form.content,
+  published: form.published,
+  spotIds: Array.isArray(form.spotIds) ? form.spotIds : []
+})
+
 const handleSubmit = async () => {
-  await formRef.value.validate()
+  await formDrawerRef.value?.validate()
   submitting.value = true
   try {
     if (editId.value) {
-      await updateGuide(editId.value, form)
+      await updateGuide(editId.value, buildSubmitPayload())
       ElMessage.success('更新成功')
     } else {
-      await createGuide(form)
+      await createGuide(buildSubmitPayload())
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false
-    loadData()
-    loadCategories()
+    await loadData()
+    await loadCategories()
   } finally {
     submitting.value = false
   }
 }
 
-// 切换发布状态
 const handleTogglePublish = async (row) => {
   const action = row.published ? '下架' : '发布'
   await ElMessageBox.confirm(`确定要${action}该攻略吗？`, '提示', { type: 'warning' })
@@ -379,46 +437,65 @@ const handleTogglePublish = async (row) => {
   loadData()
 }
 
-// 删除攻略
 const handleDelete = async (row) => {
   await ElMessageBox.confirm('确定要删除该攻略吗？', '提示', { type: 'warning' })
   await deleteGuide(row.id)
   ElMessage.success('删除成功')
+  if (activeGuideId.value === row.id) {
+    activeGuideId.value = null
+    guideDetail.value = null
+    drawerVisible.value = false
+    syncRouteQuery(null)
+  }
   loadData()
 }
+
+watch(
+  () => drawerVisible.value,
+  (visible) => {
+    if (!visible) {
+      activeGuideId.value = null
+      guideDetail.value = null
+      syncRouteQuery(null)
+    }
+  }
+)
+
+watch(
+  () => [route.query.keyword, route.query.guideId],
+  () => {
+    applyRouteQuery()
+    loadData()
+  }
+)
 </script>
 
 <style lang="scss" scoped>
-.upload-container {
-  .image-uploader {
-    :deep(.el-upload) {
-      border: 2px dashed #e2e8f0;
-      border-radius: 12px;
-      cursor: pointer;
-      overflow: hidden;
-      transition: all 0.3s;
-      &:hover { border-color: var(--el-color-primary); background: #f8fafc; }
-    }
-  }
-  .uploaded-image {
-    width: 150px; height: 150px;
-    display: block;
-    border-radius: 8px;
-  }
-  .upload-placeholder {
-    width: 150px; height: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-    .el-icon { font-size: 28px; margin-bottom: 8px; }
-    span { font-size: 12px; }
-  }
-  .upload-tip {
-    font-size: 12px;
-    color: #94a3b8;
-    margin-top: 8px;
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.search-form {
+  margin-bottom: 16px;
+}
+
+.pagination {
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+:deep(.guide-highlight-row) {
+  --el-table-tr-bg-color: #fdf6ec;
+
+  td {
+    background-color: #fdf6ec !important;
   }
 }
 </style>
