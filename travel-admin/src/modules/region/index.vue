@@ -77,6 +77,7 @@
         
         <el-form-item label="排序" prop="sortOrder">
           <el-input-number v-model="form.sortOrder" :min="1" :max="999" />
+          <div class="form-tip">默认取当前层级最后一位；如填写已有序号，系统会自动顺延后续地区。</div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -131,6 +132,12 @@ const dialogTitle = computed(() => {
   return isEdit.value ? `编辑${levelStr}` : `新增${levelStr}`
 })
 
+// 当前层级默认排序取现有最大值后一位，减少手工调整成本。
+const getNextSortOrder = (list) => {
+  const maxSortOrder = list.reduce((max, item) => Math.max(max, Number(item.sortOrder) || 0), 0)
+  return maxSortOrder + 1
+}
+
 // 加载一级地区
 const fetchLevel1 = async () => {
   loading1.value = true
@@ -174,7 +181,7 @@ const handleAddLevel1 = () => {
   isEdit.value = false
   isLevel2.value = false
   currentId.value = null
-  Object.assign(form, { name: '', parentId: 0, sortOrder: 1 })
+  Object.assign(form, { name: '', parentId: 0, sortOrder: getNextSortOrder(level1List.value) })
   dialogVisible.value = true
 }
 
@@ -203,7 +210,7 @@ const handleAddLevel2 = () => {
   isEdit.value = false
   isLevel2.value = true
   currentId.value = null
-  Object.assign(form, { name: '', parentId: activeParentId.value, sortOrder: 1 })
+  Object.assign(form, { name: '', parentId: activeParentId.value, sortOrder: getNextSortOrder(level2List.value) })
   dialogVisible.value = true
 }
 
@@ -293,7 +300,7 @@ onMounted(() => {
           gap: 12px;
           .action-icon {
             color: #94a3b8;
-            font-size: 15px;
+            font-size: 30px;
             cursor: pointer;
             padding: 4px;
             border-radius: 6px;
@@ -308,5 +315,11 @@ onMounted(() => {
   .right-card {
     min-height: 520px;
   }
+}
+.form-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #94a3b8;
 }
 </style>
