@@ -212,35 +212,6 @@ onMounted(() => {
   gap: 20px;
 }
 
-.page-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 4px 2px;
-}
-
-.page-kicker {
-  margin: 0 0 6px;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.page-title {
-  margin: 0;
-  color: #0f172a;
-  font-size: 30px;
-  line-height: 1.2;
-}
-
-.page-subtitle {
-  margin: 8px 0 0;
-  color: #64748b;
-}
-
 .user-cell,
 .spot-cell {
   display: flex;
@@ -260,10 +231,6 @@ onMounted(() => {
   color: #f59e0b;
   font-weight: 700;
   font-size: 14px;
-}
-
-.error-state {
-  padding: 8px 0 16px;
 }
 
 .review-table {
@@ -290,17 +257,4 @@ onMounted(() => {
   background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
 }
 
-@media (max-width: 960px) {
-  .page-hero {
-    flex-direction: column;
-  }
-
-  .hero-actions {
-    width: 100%;
-  }
-
-  .hero-actions :deep(.el-button) {
-    width: 100%;
-  }
-}
 </style>
