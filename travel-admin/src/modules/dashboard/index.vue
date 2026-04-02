@@ -113,7 +113,13 @@
               </div>
             </div>
           </template>
-          <div ref="mainLineChartRef" class="w-full" style="height: 300px;"></div>
+          <div
+            ref="trendChartShellRef"
+            class="trend-chart-shell"
+            :class="{ 'is-revealing': trendRevealActive }"
+          >
+            <div ref="mainLineChartRef" class="w-full" style="height: 300px;"></div>
+          </div>
         </el-card>
 
         <el-card shadow="hover" class="border-0">
@@ -164,8 +170,12 @@ const sparklineSpots = ref(null)
 const sparklineOrders = ref(null)
 const heatmapRef = ref(null)
 const mainLineChartRef = ref(null)
+const trendChartShellRef = ref(null)
 
 const charts = []
+let mainLineChart = null
+let hasTrendAnimated = false
+const trendRevealActive = ref(false)
 const trendMode = ref('weekday')
 const selectedRange = ref(0)
 
@@ -273,8 +283,9 @@ const initHeatmap = () => {
 
 const initMainLineChart = () => {
   if (!mainLineChartRef.value) return
-  const chart = echarts.init(mainLineChartRef.value)
-  charts.push(chart)
+  if (mainLineChart) return
+  mainLineChart = echarts.init(mainLineChartRef.value)
+  charts.push(mainLineChart)
 }
 
 const formatMoney = (value) => Number(value || 0)
@@ -286,10 +297,11 @@ const formatAxisLabel = (label) => {
 }
 
 const updateMainLineChart = (list) => {
-  const chart = charts.find(item => item.getDom() === mainLineChartRef.value)
-  if (!chart) return
+  if (!mainLineChartRef.value) return
+  initMainLineChart()
+  if (!mainLineChart) return
 
-  chart.setOption({
+  const option = {
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -336,6 +348,11 @@ const updateMainLineChart = (list) => {
         smooth: true,
         data: list.map(item => Number(item.orderCount || 0)),
         yAxisIndex: 0,
+        showSymbol: false,
+        animationDuration: hasTrendAnimated ? 300 : 900,
+        animationDelay: (_, index) => hasTrendAnimated ? 0 : index * 80,
+        animationEasing: 'linear',
+        animationEasingUpdate: 'linear',
         itemStyle: { color: '#3b82f6' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -350,18 +367,74 @@ const updateMainLineChart = (list) => {
         smooth: true,
         data: list.map(item => formatMoney(item.revenue)),
         yAxisIndex: 1,
+        showSymbol: false,
+        animationDuration: hasTrendAnimated ? 300 : 900,
+        animationDelay: (_, index) => hasTrendAnimated ? 0 : index * 80,
+        animationEasing: 'linear',
+        animationEasingUpdate: 'linear',
         itemStyle: { color: '#10b981' }
       }
-    ]
-  })
+    ],
+    animationDuration: hasTrendAnimated ? 300 : 900,
+    animationDurationUpdate: 300,
+    animationEasing: 'linear',
+    animationEasingUpdate: 'linear'
+  }
+
+  if (!hasTrendAnimated) {
+    const labels = list.map(item => formatAxisLabel(item.date))
+    const zeroOrderData = labels.map(() => 0)
+    const zeroRevenueData = labels.map(() => 0)
+
+    mainLineChart.clear()
+    mainLineChart.setOption({
+      tooltip: option.tooltip,
+      legend: option.legend,
+      grid: option.grid,
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: labels,
+        axisLine: { lineStyle: { color: '#e2e8f0' } }
+      },
+      yAxis: option.yAxis,
+      series: [
+        {
+          ...option.series[0],
+          data: zeroOrderData
+        },
+        {
+          ...option.series[1],
+          data: zeroRevenueData
+        }
+      ],
+      animation: false
+    }, true)
+
+    requestAnimationFrame(() => {
+      mainLineChart?.setOption(option)
+      hasTrendAnimated = true
+      playTrendRevealAnimation()
+    })
+    return
+  }
+
+  mainLineChart.setOption(option)
+  playTrendRevealAnimation()
+}
+
+const playTrendRevealAnimation = () => {
+  const shell = trendChartShellRef.value
+  if (!shell) return
+  trendRevealActive.value = false
+  void shell.offsetWidth
+  trendRevealActive.value = true
 }
 
 const fetchData = async () => {
   const response = await getOrderTrend(selectedRange.value, trendMode.value)
   updateMainLineChart(response.data?.list || [])
-  setTimeout(() => {
-    window.dispatchEvent(new Event('resize'))
-  }, 100)
+  mainLineChart?.resize()
 }
 
 const handleTrendModeChange = () => {
@@ -378,7 +451,6 @@ onMounted(() => {
   nextTick(() => {
     initSparklines()
     initHeatmap()
-    initMainLineChart()
     window.addEventListener('resize', handleResize)
     fetchData()
   })
@@ -387,6 +459,8 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   charts.forEach(c => c.dispose())
+  mainLineChart = null
+  hasTrendAnimated = false
 })
 </script>
 
@@ -489,6 +563,23 @@ onUnmounted(() => {
   width: 1px;
   height: 40px;
   background: #dbe3ee;
+}
+
+.trend-chart-shell {
+  overflow: hidden;
+}
+
+.trend-chart-shell.is-revealing {
+  animation: trend-reveal 900ms linear;
+}
+
+@keyframes trend-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
 }
 
 .timeline-container {
