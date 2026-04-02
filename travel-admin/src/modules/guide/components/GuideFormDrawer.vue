@@ -118,17 +118,14 @@
               <div class="section-head">
                 <div>
                   <h3 class="section-title">正文内容</h3>
-                  <p class="section-desc">正文尽量按段落录入，便于后续替换为更强的编辑器组件。</p>
+                  <p class="section-desc">正文支持富文本排版，适合直接维护标题、段落、引用和图片说明。</p>
                 </div>
                 <el-tag effect="light" type="warning">核心内容</el-tag>
               </div>
               <el-form-item label="攻略正文" prop="content">
-                <el-input
+                <GuideRichEditor
                   v-model="form.content"
-                  type="textarea"
-                  :rows="18"
-                  resize="vertical"
-                  placeholder="请输入攻略内容，支持粘贴 HTML 或纯文本"
+                  placeholder="请输入攻略内容，支持直接粘贴富文本或从纯文本开始编辑"
                 />
               </el-form-item>
             </div>
@@ -148,6 +145,7 @@
 <script setup>
 import { Edit, Plus } from '@element-plus/icons-vue'
 import { nextTick, ref } from 'vue'
+import GuideRichEditor from '@/modules/guide/components/GuideRichEditor.vue'
 
 defineProps({
   visible: { type: Boolean, required: true },
