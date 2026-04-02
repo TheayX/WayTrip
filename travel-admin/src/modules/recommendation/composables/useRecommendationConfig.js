@@ -173,8 +173,10 @@ export function useRecommendationConfig() {
           cache: { ...config.cache }
         })
       }
+      return res
     } catch (e) {
       console.error('获取配置失败', e)
+      throw e
     }
   }
 
@@ -184,8 +186,10 @@ export function useRecommendationConfig() {
       if (res.data) {
         Object.assign(status, res.data)
       }
+      return res
     } catch (e) {
       console.error('获取状态失败', e)
+      throw e
     }
   }
 
