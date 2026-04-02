@@ -784,35 +784,6 @@ watch(
   gap: 20px;
 }
 
-.page-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 4px 2px;
-}
-
-.page-kicker {
-  margin: 0 0 6px;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.page-title {
-  margin: 0;
-  color: #0f172a;
-  font-size: 30px;
-  line-height: 1.2;
-}
-
-.page-subtitle {
-  margin: 8px 0 0;
-  color: #64748b;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -837,17 +808,4 @@ watch(
   }
 }
 
-@media (max-width: 768px) {
-  .page-hero {
-    flex-direction: column;
-  }
-
-  .hero-actions {
-    width: 100%;
-  }
-
-  .hero-actions :deep(.el-button) {
-    width: 100%;
-  }
-}
 </style>
