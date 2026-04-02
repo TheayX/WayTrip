@@ -24,7 +24,10 @@
         </el-table-column>
         <el-table-column prop="spotName" label="关联景点" min-width="150">
           <template #default="{ row }">
-            {{ row.spotName || '无' }}
+            <el-button v-if="row.spotId && row.spotName" link type="primary" @click="handleOpenSpot(row)">
+              {{ row.spotName }}
+            </el-button>
+            <span v-else>无</span>
           </template>
         </el-table-column>
         <el-table-column prop="sortOrder" label="排序" width="100" />
@@ -125,6 +128,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getBannerList, createBanner, updateBanner, deleteBanner, toggleBannerEnabled } from '@/modules/banner/api.js'
@@ -133,6 +137,7 @@ import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
 import { fetchAllSpotOptions } from '@/modules/spot/composables/useSpotOptions.js'
 
+const router = useRouter()
 const userStore = useUserStore()
 
 // 上传相关配置
@@ -294,6 +299,17 @@ const handleToggle = async (row) => {
   } catch (e) {
     ElMessage.error('操作失败')
   }
+}
+
+// 跳转景点页，并复用景点管理页的自动定位与详情打开能力。
+const handleOpenSpot = (row) => {
+  router.push({
+    path: '/spot',
+    query: {
+      keyword: row.spotName || '',
+      spotId: row.spotId || ''
+    }
+  })
 }
 
 // 删除轮播图

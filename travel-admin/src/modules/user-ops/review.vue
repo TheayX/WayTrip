@@ -57,7 +57,9 @@
                 class="spot-cover"
                 preview-disabled
               />
-              <span>{{ row.spotName || `景点 #${row.spotId}` }}</span>
+              <el-button link type="primary" @click="handleOpenSpot(row)">
+                {{ row.spotName || `景点 #${row.spotId}` }}
+              </el-button>
             </div>
           </template>
         </el-table-column>
@@ -94,9 +96,12 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteReview, getReviewList } from '@/modules/user-ops/api/review.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
+
+const router = useRouter()
 
 // 列表状态
 const loading = ref(false)
@@ -140,6 +145,17 @@ const handleReset = () => {
   searchForm.nickname = ''
   searchForm.spotName = ''
   handleSearch()
+}
+
+// 跳转景点页，并复用景点管理页的自动定位与详情打开能力。
+const handleOpenSpot = (row) => {
+  router.push({
+    path: '/spot',
+    query: {
+      keyword: row.spotName || '',
+      spotId: row.spotId || ''
+    }
+  })
 }
 
 // 删除评价
