@@ -16,7 +16,7 @@
       <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
-          <span>景点列表</span>
+          <span>景点管理</span>
           <div class="header-actions">
             <el-button @click="handleRefreshAllRatings" :loading="refreshingAllRatings">同步全部评分</el-button>
             <el-button @click="handleRefreshAllHeats" :loading="refreshingAllHeats">同步全部热度</el-button>
@@ -681,7 +681,7 @@ const handleHeatSubmit = async () => {
 // 切换发布状态
 const handleTogglePublish = async (row) => {
   const action = row.published ? '下架' : '发布'
-  await ElMessageBox.confirm(`确定要${action}该景点吗？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(`确定要${action}该景点吗？`, '状态确认', { type: 'warning' })
   await updatePublishStatus(row.id, !row.published)
   ElMessage.success(`${action}成功`)
   loadData()
@@ -689,7 +689,7 @@ const handleTogglePublish = async (row) => {
 
 // 删除景点
 const handleDelete = async (row) => {
-  await ElMessageBox.confirm('确定要删除该景点吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm('确定要删除该景点吗？', '删除确认', { type: 'warning' })
   await deleteSpot(row.id)
   ElMessage.success('删除成功')
   loadData()
@@ -740,7 +740,7 @@ const runBatchAction = async ({ rows, requestFactory, successMessage }) => {
 const handleBatchPublish = async (status) => {
   if (!selectedSpots.value.length) return
   const action = status ? '发布' : '下架'
-  await ElMessageBox.confirm(`确定要批量${action}选中的 ${selectedSpots.value.length} 个景点吗？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(`确定要批量${action}选中的 ${selectedSpots.value.length} 个景点吗？`, '状态确认', { type: 'warning' })
   const targetRows = selectedSpots.value.filter((item) => item.published !== status)
   if (!targetRows.length) {
     ElMessage.info(`选中景点均已${status ? '上架' : '下架'}`)
@@ -755,7 +755,7 @@ const handleBatchPublish = async (status) => {
 
 const handleBatchDelete = async () => {
   if (!selectedSpots.value.length) return
-  await ElMessageBox.confirm(`确定要批量删除选中的 ${selectedSpots.value.length} 个景点吗？(此操作不可恢复)`, '警告', { type: 'error' })
+  await ElMessageBox.confirm(`确定要批量删除选中的 ${selectedSpots.value.length} 个景点吗？(此操作不可恢复)`, '删除确认', { type: 'error' })
   await runBatchAction({
     rows: selectedSpots.value,
     requestFactory: (item) => deleteSpot(item.id),

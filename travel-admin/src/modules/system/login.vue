@@ -20,7 +20,7 @@
             </div>
             <div class="feature-item">
               <span class="feature-dot"></span>
-              <span>全链路订单管理</span>
+              <span>订单中心协同处理</span>
             </div>
             <div class="feature-item">
               <span class="feature-dot"></span>

@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">Content Workspace</p>
         <h1 class="page-title">轮播图管理</h1>
-        <p class="page-subtitle">维护首页轮播内容、关联景点与展示顺序。</p>
+        <p class="page-subtitle">维护首页轮播内容、关联景点和展示顺序。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchBannerList">刷新数据</el-button>
@@ -24,7 +24,7 @@
       </template>
 
       <div v-if="errorMessage" class="error-state">
-        <el-result icon="error" title="轮播图数据加载失败" :sub-title="errorMessage">
+        <el-result icon="error" title="轮播图管理加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchBannerList">重新加载</el-button>
           </template>
@@ -360,7 +360,7 @@ const handleOpenSpot = (row) => {
 // 删除轮播图
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除该轮播图吗？', '提示', {
+    await ElMessageBox.confirm('确定要删除该轮播图吗？', '删除确认', {
       type: 'warning'
     })
     await deleteBanner(row.id)

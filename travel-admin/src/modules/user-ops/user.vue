@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">User Operations</p>
         <h1 class="page-title">用户管理</h1>
-        <p class="page-subtitle">查看用户画像、行为摘要与用户运营入口。</p>
+        <p class="page-subtitle">查看用户基础信息、行为摘要和运营关联入口。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchUserList">刷新数据</el-button>
@@ -39,7 +39,7 @@
       </el-form>
 
       <div v-if="errorMessage" class="error-state">
-        <el-result icon="error" title="用户数据加载失败" :sub-title="errorMessage">
+        <el-result icon="error" title="用户管理加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchUserList">重新加载</el-button>
           </template>

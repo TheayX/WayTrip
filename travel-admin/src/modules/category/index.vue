@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">Content Workspace</p>
         <h1 class="page-title">分类管理</h1>
-        <p class="page-subtitle">维护一级分类与二级分类，统一景点与攻略内容归类结构。</p>
+        <p class="page-subtitle">维护内容分类层级，统一景点与攻略的归类结构。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading1 || loading2" @click="handleRefresh">刷新数据</el-button>
@@ -24,7 +24,7 @@
           </template>
           
           <div v-if="errorMessage" class="panel-error">
-            <el-result icon="error" title="分类数据加载失败" :sub-title="errorMessage">
+            <el-result icon="error" title="分类管理加载失败" :sub-title="errorMessage">
               <template #extra>
                 <el-button type="primary" @click="handleRefresh">重新加载</el-button>
               </template>
@@ -62,7 +62,7 @@
         <el-card shadow="never" class="right-card">
           <template #header>
             <div class="card-header">
-              <span>二级分类管理</span>
+              <span>二级分类</span>
               <el-button type="primary" @click="handleAddLevel2" :disabled="!activeParentId">新增二级分类</el-button>
             </div>
           </template>
@@ -287,7 +287,7 @@ const handleEditLevel1 = (row) => {
 
 const handleDeleteLevel1 = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除该一级分类吗？如有子分类请先删除子分类。', '提示', { type: 'warning' })
+    await ElMessageBox.confirm('确定要删除该一级分类吗？如有子分类请先删除子分类。', '删除确认', { type: 'warning' })
     await deleteCategory(row.id)
     ElMessage.success('删除成功')
     if (activeParentId.value === row.id) {
@@ -316,7 +316,7 @@ const handleEditLevel2 = (row) => {
 
 const handleDeleteLevel2 = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除该二级分类吗？', '提示', { type: 'warning' })
+    await ElMessageBox.confirm('确定要删除该二级分类吗？', '删除确认', { type: 'warning' })
     await deleteCategory(row.id)
     ElMessage.success('删除成功')
     fetchLevel2(activeParentId.value)

@@ -4,7 +4,7 @@
       <div>
         <p class="page-kicker">User Operations</p>
         <h1 class="page-title">用户收藏</h1>
-        <p class="page-subtitle">查看用户收藏记录，快速回跳到用户与景点。</p>
+        <p class="page-subtitle">查看用户收藏行为，快速回跳到用户与景点。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchFavoriteList">刷新数据</el-button>
@@ -79,7 +79,7 @@
       </el-form>
 
       <div v-if="errorMessage" class="error-state">
-        <el-result icon="error" title="收藏数据加载失败" :sub-title="errorMessage">
+        <el-result icon="error" title="用户收藏加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchFavoriteList">重新加载</el-button>
           </template>
@@ -253,7 +253,7 @@ const handleOpenSpot = (row) => {
 // 删除收藏
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除这条收藏记录吗？', '提示', { type: 'warning' })
+    await ElMessageBox.confirm('确定要删除这条收藏记录吗？', '删除确认', { type: 'warning' })
     await deleteFavorite(row.id)
     ElMessage.success('删除成功')
     fetchFavoriteList()

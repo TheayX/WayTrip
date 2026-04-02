@@ -4,7 +4,7 @@
     <section class="page-hero">
       <div>
         <p class="page-kicker">Recommendation Overview</p>
-        <h1 class="page-title">推荐系统总览</h1>
+        <h1 class="page-title">推荐总览</h1>
         <p class="page-subtitle">查看推荐链路状态、最近行为摘要和相关工作台入口，不在总览页直接修改参数。</p>
       </div>
       <div class="hero-actions">

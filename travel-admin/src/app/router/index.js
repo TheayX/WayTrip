@@ -27,6 +27,18 @@ const routes = [
         meta: { title: '景点管理', icon: 'Location', group: 'content' }
       },
       {
+        path: 'guide',
+        name: 'Guide',
+        component: () => import('@/modules/guide/index.vue'),
+        meta: { title: '攻略管理', icon: 'Document', group: 'content' }
+      },
+      {
+        path: 'banner',
+        name: 'Banner',
+        component: () => import('@/modules/banner/index.vue'),
+        meta: { title: '轮播图管理', icon: 'Picture', group: 'content' }
+      },
+      {
         path: 'category',
         name: 'Category',
         component: () => import('@/modules/category/index.vue'),
@@ -39,16 +51,10 @@ const routes = [
         meta: { title: '地区管理', icon: 'MapLocation', group: 'content' }
       },
       {
-        path: 'guide',
-        name: 'Guide',
-        component: () => import('@/modules/guide/index.vue'),
-        meta: { title: '攻略管理', icon: 'Document', group: 'content' }
-      },
-      {
         path: 'order',
         name: 'Order',
         component: () => import('@/modules/order/index.vue'),
-        meta: { title: '订单管理', icon: 'List', group: 'transaction' }
+        meta: { title: '订单中心', icon: 'List', group: 'transaction' }
       },
       {
         path: 'user',
@@ -63,16 +69,16 @@ const routes = [
         meta: { title: '评价管理', icon: 'ChatDotRound', group: 'user-ops' }
       },
       {
-        path: 'preference',
-        name: 'Preference',
-        component: () => import('@/modules/user-ops/preference.vue'),
-        meta: { title: '用户偏好', icon: 'CollectionTag', group: 'user-ops' }
-      },
-      {
         path: 'favorite',
         name: 'Favorite',
         component: () => import('@/modules/user-ops/favorite.vue'),
         meta: { title: '用户收藏', icon: 'Star', group: 'user-ops' }
+      },
+      {
+        path: 'preference',
+        name: 'Preference',
+        component: () => import('@/modules/user-ops/preference.vue'),
+        meta: { title: '用户偏好', icon: 'CollectionTag', group: 'user-ops' }
       },
       {
         path: 'view-log',
@@ -85,12 +91,6 @@ const routes = [
         name: 'Admin',
         component: () => import('@/modules/system/admin.vue'),
         meta: { title: '管理员管理', icon: 'UserFilled', group: 'system' }
-      },
-      {
-        path: 'banner',
-        name: 'Banner',
-        component: () => import('@/modules/banner/index.vue'),
-        meta: { title: '轮播图管理', icon: 'Picture', group: 'content' }
       },
       {
         path: 'recommendation',

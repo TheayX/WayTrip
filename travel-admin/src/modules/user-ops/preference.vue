@@ -4,7 +4,7 @@
       <div>
         <p class="page-kicker">User Operations</p>
         <h1 class="page-title">用户偏好</h1>
-        <p class="page-subtitle">查看用户画像标签与偏好分类分布。</p>
+        <p class="page-subtitle">查看用户画像标签和偏好分类分布。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchPreferenceList">刷新数据</el-button>
@@ -70,7 +70,7 @@
       </el-form>
 
       <div v-if="errorMessage" class="error-state">
-        <el-result icon="error" title="偏好数据加载失败" :sub-title="errorMessage">
+        <el-result icon="error" title="用户偏好加载失败" :sub-title="errorMessage">
           <template #extra>
             <el-button type="primary" @click="fetchPreferenceList">重新加载</el-button>
           </template>
