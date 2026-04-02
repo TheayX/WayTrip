@@ -1,5 +1,16 @@
 <template>
   <div class="view-log-page">
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">User Operations</p>
+        <h1 class="page-title">浏览行为</h1>
+        <p class="page-subtitle">查看用户浏览记录、来源分布与停留时长。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button :loading="loading" @click="fetchViewList">刷新数据</el-button>
+      </div>
+    </section>
+
     <el-card shadow="hover">
       <!-- 卡片头部 -->
       <template #header>
@@ -87,8 +98,16 @@
         </el-form-item>
       </el-form>
 
+      <div v-if="errorMessage" class="error-state">
+        <el-result icon="error" title="浏览数据加载失败" :sub-title="errorMessage">
+          <template #extra>
+            <el-button type="primary" @click="fetchViewList">重新加载</el-button>
+          </template>
+        </el-result>
+      </div>
+
       <!-- 浏览列表 -->
-      <el-table :data="tableData" v-loading="loading" stripe>
+      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table">
         <el-table-column prop="id" label="记录ID" width="90" />
         <el-table-column label="用户昵称" width="160">
           <template #default="{ row }">
@@ -149,11 +168,13 @@ import { getSourceBucketLabel, getSourceLabel, sourceOptions } from '@/shared/co
 
 const router = useRouter()
 const route = useRoute()
+const skipNextRouteLoad = ref(false)
 
 // 列表状态
 const loading = ref(false)
 const tableData = ref([])
 const dateRange = ref([])
+const errorMessage = ref('')
 
 // 查询参数
 const searchForm = reactive({
@@ -191,6 +212,7 @@ const topSourceLabel = computed(() => {
 // 获取浏览列表
 const fetchViewList = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     const params = {
       ...searchForm,
@@ -204,6 +226,10 @@ const fetchViewList = async () => {
     const res = await getViewList(params)
     tableData.value = res.data.list || []
     pagination.total = res.data.total || 0
+  } catch (error) {
+    tableData.value = []
+    pagination.total = 0
+    errorMessage.value = error?.response?.data?.message || error?.message || '请稍后重试或检查接口返回。'
   } finally {
     loading.value = false
   }
@@ -235,7 +261,17 @@ const syncRouteQuery = () => {
     nextQuery.startDate = dateRange.value[0]
     nextQuery.endDate = dateRange.value[1]
   }
-  router.replace({ path: route.path, query: nextQuery })
+  const currentQuery = {}
+  if (typeof route.query.nickname === 'string' && route.query.nickname) currentQuery.nickname = route.query.nickname
+  if (typeof route.query.spotName === 'string' && route.query.spotName) currentQuery.spotName = route.query.spotName
+  if (typeof route.query.source === 'string' && route.query.source) currentQuery.source = route.query.source
+  if (typeof route.query.startDate === 'string' && route.query.startDate) currentQuery.startDate = route.query.startDate
+  if (typeof route.query.endDate === 'string' && route.query.endDate) currentQuery.endDate = route.query.endDate
+  const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
+  if (changed) {
+    skipNextRouteLoad.value = true
+    router.replace({ path: route.path, query: nextQuery })
+  }
 }
 
 // 回填路由参数
@@ -290,6 +326,10 @@ watch(
   () => route.query,
   () => {
     applyRouteQuery()
+    if (skipNextRouteLoad.value) {
+      skipNextRouteLoad.value = false
+      return
+    }
     fetchViewList()
   },
   { deep: true }
@@ -303,8 +343,41 @@ watch(
   @include userOps.page-shell;
 }
 
+.page-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.page-kicker {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+}
+
 .source-alert {
   margin-bottom: 16px;
+}
+
+.error-state {
+  padding: 8px 0 16px;
 }
 
 .source-cell {
@@ -330,5 +403,43 @@ watch(
   height: 48px;
   border-radius: 8px;
   flex-shrink: 0;
+}
+
+.ops-table {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:deep(.ops-table th.el-table__cell) {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+}
+
+:deep(.borderless-table .el-table__inner-wrapper::before) {
+  display: none;
+}
+
+:deep(.borderless-table td.el-table__cell),
+:deep(.borderless-table th.el-table__cell.is-leaf) {
+  border-bottom: 1px solid #f8fafc;
+}
+
+:deep(.ops-table .el-table__row:hover > td.el-table__cell) {
+  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+}
+
+@media (max-width: 960px) {
+  .page-hero {
+    flex-direction: column;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions :deep(.el-button) {
+    width: 100%;
+  }
 }
 </style>

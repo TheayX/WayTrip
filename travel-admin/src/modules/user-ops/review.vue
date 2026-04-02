@@ -1,7 +1,18 @@
 <!-- 评价管理页面 -->
 <template>
   <div class="review-page">
-    <el-card  shadow="hover">
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">User Operations</p>
+        <h1 class="page-title">评价管理</h1>
+        <p class="page-subtitle">处理用户评价内容，快速定位景点并执行违规删除。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button :loading="loading" @click="fetchReviewList">刷新数据</el-button>
+      </div>
+    </section>
+
+    <el-card shadow="hover">
       <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
@@ -37,8 +48,16 @@
         </el-form-item>
       </el-form>
 
+      <div v-if="errorMessage" class="error-state">
+        <el-result icon="error" title="评价数据加载失败" :sub-title="errorMessage">
+          <template #extra>
+            <el-button type="primary" @click="fetchReviewList">重新加载</el-button>
+          </template>
+        </el-result>
+      </div>
+
       <!-- 评价列表 -->
-      <el-table :data="reviewList" v-loading="loading" stripe>
+      <el-table v-else :data="reviewList" v-loading="loading" class="review-table borderless-table">
         <el-table-column label="用户" min-width="180">
           <template #default="{ row }">
             <div class="user-cell">
@@ -106,6 +125,7 @@ const router = useRouter()
 // 列表状态
 const loading = ref(false)
 const reviewList = ref([])
+const errorMessage = ref('')
 
 // 查询参数
 const searchForm = reactive({
@@ -123,6 +143,7 @@ const pagination = reactive({
 // 获取评价列表
 const fetchReviewList = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     const res = await getReviewList({
       ...searchForm,
@@ -131,6 +152,10 @@ const fetchReviewList = async () => {
     })
     reviewList.value = res.data.list || []
     pagination.total = res.data.total || 0
+  } catch (error) {
+    reviewList.value = []
+    pagination.total = 0
+    errorMessage.value = error?.response?.data?.message || error?.message || '请稍后重试或检查接口返回。'
   } finally {
     loading.value = false
   }
@@ -182,7 +207,38 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .review-page {
-  /* Global design system handles search-form and pagination-wrapper */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.page-kicker {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
 }
 
 .user-cell,
@@ -204,5 +260,47 @@ onMounted(() => {
   color: #f59e0b;
   font-weight: 700;
   font-size: 14px;
+}
+
+.error-state {
+  padding: 8px 0 16px;
+}
+
+.review-table {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:deep(.review-table th.el-table__cell) {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+}
+
+:deep(.borderless-table .el-table__inner-wrapper::before) {
+  display: none;
+}
+
+:deep(.borderless-table td.el-table__cell),
+:deep(.borderless-table th.el-table__cell.is-leaf) {
+  border-bottom: 1px solid #f8fafc;
+}
+
+:deep(.review-table .el-table__row:hover > td.el-table__cell) {
+  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+}
+
+@media (max-width: 960px) {
+  .page-hero {
+    flex-direction: column;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions :deep(.el-button) {
+    width: 100%;
+  }
 }
 </style>

@@ -1,5 +1,16 @@
 <template>
   <div class="preference-page">
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">User Operations</p>
+        <h1 class="page-title">用户偏好</h1>
+        <p class="page-subtitle">查看用户画像标签与偏好分类分布。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button :loading="loading" @click="fetchPreferenceList">刷新数据</el-button>
+      </div>
+    </section>
+
     <el-card shadow="hover">
       <!-- 卡片头部 -->
       <template #header>
@@ -58,8 +69,16 @@
         </el-form-item>
       </el-form>
 
+      <div v-if="errorMessage" class="error-state">
+        <el-result icon="error" title="偏好数据加载失败" :sub-title="errorMessage">
+          <template #extra>
+            <el-button type="primary" @click="fetchPreferenceList">重新加载</el-button>
+          </template>
+        </el-result>
+      </div>
+
       <!-- 偏好列表 -->
-      <el-table :data="tableData" v-loading="loading" stripe>
+      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table">
         <el-table-column prop="userId" label="用户ID" width="90" />
         <el-table-column prop="nickname" label="用户昵称" min-width="140" />
         <el-table-column prop="phone" label="手机号" width="150">
@@ -101,11 +120,13 @@ import { getFilters } from '@/modules/spot/api.js'
 
 const router = useRouter()
 const route = useRoute()
+const skipNextRouteLoad = ref(false)
 
 // 列表状态
 const loading = ref(false)
 const tableData = ref([])
 const categoryOptions = ref([])
+const errorMessage = ref('')
 
 // 查询参数
 const searchForm = reactive({
@@ -168,6 +189,7 @@ const fetchFilters = async () => {
 // 获取偏好列表
 const fetchPreferenceList = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     const res = await getPreferenceList({
       ...searchForm,
@@ -176,6 +198,10 @@ const fetchPreferenceList = async () => {
     })
     tableData.value = res.data.list || []
     pagination.total = res.data.total || 0
+  } catch (error) {
+    tableData.value = []
+    pagination.total = 0
+    errorMessage.value = error?.response?.data?.message || error?.message || '请稍后重试或检查接口返回。'
   } finally {
     loading.value = false
   }
@@ -200,7 +226,14 @@ const syncRouteQuery = () => {
   const nextQuery = {}
   if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
   if (searchForm.categoryId != null) nextQuery.categoryId = String(searchForm.categoryId)
-  router.replace({ path: route.path, query: nextQuery })
+  const currentQuery = {}
+  if (typeof route.query.nickname === 'string' && route.query.nickname) currentQuery.nickname = route.query.nickname
+  if (typeof route.query.categoryId === 'string' && route.query.categoryId) currentQuery.categoryId = route.query.categoryId
+  const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
+  if (changed) {
+    skipNextRouteLoad.value = true
+    router.replace({ path: route.path, query: nextQuery })
+  }
 }
 
 // 回填路由参数
@@ -220,6 +253,10 @@ watch(
   () => route.query,
   () => {
     applyRouteQuery()
+    if (skipNextRouteLoad.value) {
+      skipNextRouteLoad.value = false
+      return
+    }
     fetchPreferenceList()
   },
   { deep: true }
@@ -233,6 +270,39 @@ watch(
   @include userOps.page-shell;
 }
 
+.page-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.page-kicker {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+}
+
+.error-state {
+  padding: 8px 0 16px;
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -241,5 +311,43 @@ watch(
 
 .empty-text {
   color: #909399;
+}
+
+.ops-table {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:deep(.ops-table th.el-table__cell) {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+}
+
+:deep(.borderless-table .el-table__inner-wrapper::before) {
+  display: none;
+}
+
+:deep(.borderless-table td.el-table__cell),
+:deep(.borderless-table th.el-table__cell.is-leaf) {
+  border-bottom: 1px solid #f8fafc;
+}
+
+:deep(.ops-table .el-table__row:hover > td.el-table__cell) {
+  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+}
+
+@media (max-width: 960px) {
+  .page-hero {
+    flex-direction: column;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions :deep(.el-button) {
+    width: 100%;
+  }
 }
 </style>

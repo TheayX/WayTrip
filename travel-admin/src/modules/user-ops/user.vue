@@ -1,7 +1,18 @@
 <!-- 用户管理页面 -->
 <template>
   <div class="user-page">
-    <el-card  shadow="hover">
+    <section class="page-hero">
+      <div>
+        <p class="page-kicker">User Operations</p>
+        <h1 class="page-title">用户管理</h1>
+        <p class="page-subtitle">查看用户画像、行为摘要与用户运营入口。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button :loading="loading" @click="fetchUserList">刷新数据</el-button>
+      </div>
+    </section>
+
+    <el-card shadow="hover">
       <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
@@ -27,8 +38,16 @@
         </el-form-item>
       </el-form>
 
+      <div v-if="errorMessage" class="error-state">
+        <el-result icon="error" title="用户数据加载失败" :sub-title="errorMessage">
+          <template #extra>
+            <el-button type="primary" @click="fetchUserList">重新加载</el-button>
+          </template>
+        </el-result>
+      </div>
+
       <!-- 用户列表 -->
-      <el-table :data="userList" v-loading="loading" stripe>
+      <el-table v-else :data="userList" v-loading="loading" class="user-table borderless-table">
         <el-table-column label="头像" width="80">
           <template #default="{ row }">
             <el-avatar :src="row.avatar" :size="40">{{ row.nickname?.charAt(0) }}</el-avatar>
@@ -170,6 +189,7 @@ import { getSourceBucketLabel, getSourceLabel as resolveSourceLabel } from '@/sh
 
 const router = useRouter()
 const route = useRoute()
+const skipNextRouteLoad = ref(false)
 
 // 查询参数
 const searchForm = reactive({
@@ -179,6 +199,7 @@ const searchForm = reactive({
 // 列表状态
 const loading = ref(false)
 const userList = ref([])
+const errorMessage = ref('')
 const pagination = reactive({
   page: 1,
   pageSize: 10,
@@ -214,6 +235,7 @@ const getViewSourceLabel = (value) => resolveSourceLabel(value || '暂无')
 // 获取用户列表
 const fetchUserList = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     const res = await getUserList({
       ...searchForm,
@@ -223,7 +245,9 @@ const fetchUserList = async () => {
     userList.value = res.data.list || []
     pagination.total = res.data.total
   } catch (e) {
-    console.error('获取用户列表失败', e)
+    userList.value = []
+    pagination.total = 0
+    errorMessage.value = e?.response?.data?.message || e?.message || '请稍后重试或检查接口返回。'
   } finally {
     loading.value = false
   }
@@ -247,7 +271,12 @@ const syncRouteQuery = () => {
   if (searchForm.nickname) {
     nextQuery.nickname = searchForm.nickname
   }
-  router.replace({ path: route.path, query: nextQuery })
+  const currentQuery = route.query.nickname ? { nickname: route.query.nickname } : {}
+  const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
+  if (changed) {
+    skipNextRouteLoad.value = true
+    router.replace({ path: route.path, query: nextQuery })
+  }
 }
 
 const applyRouteQuery = () => {
@@ -338,6 +367,10 @@ watch(
   () => route.query.nickname,
   () => {
     applyRouteQuery()
+    if (skipNextRouteLoad.value) {
+      skipNextRouteLoad.value = false
+      return
+    }
     fetchUserList()
   }
 )
@@ -345,6 +378,39 @@ watch(
 
 <style lang="scss" scoped>
 .user-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  .page-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 4px 2px;
+  }
+
+  .page-kicker {
+    margin: 0 0 6px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .page-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 30px;
+    line-height: 1.2;
+  }
+
+  .page-subtitle {
+    margin: 8px 0 0;
+    color: #64748b;
+  }
+
   .recent-orders {
     margin-top: 24px;
     h4 {
@@ -414,8 +480,48 @@ watch(
   }
 }
 
+.error-state {
+  padding: 8px 0 16px;
+}
+
+.user-table {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:deep(.user-table th.el-table__cell) {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+}
+
+:deep(.borderless-table .el-table__inner-wrapper::before) {
+  display: none;
+}
+
+:deep(.borderless-table td.el-table__cell),
+:deep(.borderless-table th.el-table__cell.is-leaf) {
+  border-bottom: 1px solid #f8fafc;
+}
+
+:deep(.user-table .el-table__row:hover > td.el-table__cell) {
+  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+}
+
 @media (max-width: 900px) {
   .user-page {
+    .page-hero {
+      flex-direction: column;
+    }
+
+    .hero-actions {
+      width: 100%;
+    }
+
+    .hero-actions :deep(.el-button) {
+      width: 100%;
+    }
+
     .summary-grid {
       grid-template-columns: 1fr;
     }
