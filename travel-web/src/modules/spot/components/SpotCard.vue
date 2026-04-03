@@ -10,20 +10,21 @@
     </div>
     <div class="spot-content">
       <div class="spot-head">
-        <h3 class="spot-name">{{ spot.name }}</h3>
+        <span class="tag-chip plain">{{ spot.regionName || '地区待补充' }}</span>
         <div class="price-box">
           <span class="symbol">¥</span>
           <span class="num">{{ spot.price }}</span>
           <span class="suffix">起</span>
         </div>
       </div>
+      <h3 class="spot-name">{{ spot.name }}</h3>
       <div class="spot-tags">
-        <span class="tag-chip plain">{{ spot.regionName || '地区待补充' }}</span>
         <span class="tag-chip">{{ spot.categoryName || '分类待补充' }}</span>
+        <span class="tag-chip subtle">{{ spot.avgRating ? `评分 ${spot.avgRating}` : '评分待补充' }}</span>
       </div>
       <div class="spot-footer">
         <span class="spot-meta">查看详情</span>
-        <span class="spot-rating">评分 {{ spot.avgRating || '-' }}</span>
+        <span class="spot-rating">立即浏览</span>
       </div>
     </div>
   </article>
@@ -97,7 +98,7 @@ defineEmits(['select'])
 }
 
 .spot-name {
-  flex: 1;
+  margin-top: 14px;
   font-size: 20px;
   font-weight: 700;
   line-height: 1.3;
@@ -126,6 +127,11 @@ defineEmits(['select'])
 .tag-chip.plain {
   background: #f3f4f6;
   color: #475569;
+}
+
+.tag-chip.subtle {
+  background: #fffdf7;
+  color: #8a6a2f;
 }
 
 .spot-footer {

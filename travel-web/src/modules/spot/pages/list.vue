@@ -3,7 +3,7 @@
   <div class="page-container spot-list-page">
     <section class="search-strip premium-card" @click="$router.push('/search')">
       <el-icon><Search /></el-icon>
-      <span>搜索景点名称 / 城市 / 分类</span>
+      <span>搜索景点名称、城市或分类</span>
     </section>
 
     <SpotListToolbar
@@ -22,7 +22,7 @@
     />
 
     <section class="active-filters premium-card" v-if="activeFilterTags.length">
-      <p class="filter-kicker">Active Filters</p>
+      <p class="filter-kicker">当前已选</p>
       <div class="tag-row">
         <span v-for="tag in activeFilterTags" :key="tag" class="tag-chip">{{ tag }}</span>
       </div>
@@ -233,7 +233,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #64748b;
+  color: #475569;
   cursor: pointer;
 }
 
@@ -262,8 +262,8 @@ onMounted(async () => {
   min-height: 32px;
   padding: 0 12px;
   border-radius: 999px;
-  background: #e8f1ff;
-  color: #2563eb;
+  background: #f8fafc;
+  color: #334155;
   font-size: 13px;
   font-weight: 600;
 }

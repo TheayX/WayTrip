@@ -2,16 +2,16 @@
 <template>
   <section class="state-card premium-card">
     <div class="state-main">
-      <p class="state-kicker">Spot Directory</p>
+      <p class="state-kicker">景点探索</p>
       <h2 class="state-title">景点列表</h2>
       <p class="state-desc">{{ description }}</p>
     </div>
     <div class="state-actions">
-      <el-button text :type="sortBy === 'heat' ? 'primary' : 'default'" @click="$emit('sort-change', 'heat')">综合热度</el-button>
-      <el-button text :type="sortBy === 'rating' ? 'primary' : 'default'" @click="$emit('sort-change', 'rating')">评分最高</el-button>
-      <el-button text :type="sortBy === 'price_asc' ? 'primary' : 'default'" @click="$emit('sort-change', 'price_asc')">价格最低</el-button>
-      <el-button text :type="sortBy === 'price_desc' ? 'primary' : 'default'" @click="$emit('sort-change', 'price_desc')">价格最高</el-button>
-      <el-button text @click="$emit('reset')">重置</el-button>
+      <button type="button" class="sort-chip" :class="{ active: sortBy === 'heat' }" @click="$emit('sort-change', 'heat')">综合热度</button>
+      <button type="button" class="sort-chip" :class="{ active: sortBy === 'rating' }" @click="$emit('sort-change', 'rating')">评分最高</button>
+      <button type="button" class="sort-chip" :class="{ active: sortBy === 'price_asc' }" @click="$emit('sort-change', 'price_asc')">价格最低</button>
+      <button type="button" class="sort-chip" :class="{ active: sortBy === 'price_desc' }" @click="$emit('sort-change', 'price_desc')">价格最高</button>
+      <button type="button" class="sort-chip subtle" @click="$emit('reset')">重置</button>
     </div>
   </section>
 </template>
@@ -68,6 +68,32 @@ defineEmits(['sort-change', 'reset'])
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.sort-chip {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.sort-chip.active {
+  border-color: rgba(200, 169, 91, 0.45);
+  background: #fffdf7;
+  color: #8a6a2f;
+}
+
+.sort-chip.subtle {
+  color: #64748b;
 }
 
 @media (max-width: 992px) {
