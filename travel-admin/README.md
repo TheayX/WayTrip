@@ -51,7 +51,7 @@ src/
 └─ modules/                          业务模块层
    ├─ banner/                        轮播图管理
    ├─ category/                      分类管理
-   ├─ dashboard/                     运营概览
+   ├─ overview/                      运营概览
    ├─ region/                        地区管理
    ├─ spot/                          景点管理
    ├─ guide/                         攻略管理
@@ -119,13 +119,16 @@ feature-module/
 ### 页面文件命名
 
 - 轻模块：模块根目录 `index.vue + api.js`
-- 中等及以上模块：`pages/` 下放页面文件，按需搭配 `components/`、`composables/`、`api/`
+- 进入 `pages/` 的列表页：统一使用 `xxx-list.vue`
+- 配置页、总览页、登录页等非列表页：使用语义化页面名
 
 示例：
 
 - `modules/banner/index.vue`
-- `modules/spot/pages/index.vue`
-- `modules/order/pages/index.vue`
+- `modules/spot/pages/spot-list.vue`
+- `modules/guide/pages/guide-list.vue`
+- `modules/order/pages/order-center.vue`
+- `modules/user-ops/pages/user-list.vue`
 - `modules/system/pages/login.vue`
 - `modules/recommendation/pages/config.vue`
 
@@ -226,6 +229,7 @@ module/
 
 - 复杂模块在模块内按需拆分，简单模块保持轻量结构
 - 多页面模块继续使用语义页面名和 `api/`
+- 列表页统一使用 `xxx-list.vue`，避免进入 `pages/` 后继续保留无语义的 `index.vue`
 - 不再引入旧的全局平铺目录，也不保留兼容层
 
 ## 修改前自检

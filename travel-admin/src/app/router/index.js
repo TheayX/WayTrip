@@ -17,19 +17,19 @@ const routes = [
       {
         path: 'dashboard',
         name: 'Dashboard',
-        component: () => import('@/modules/dashboard/index.vue'),
+        component: () => import('@/modules/overview/index.vue'),
         meta: { title: '运营概览', icon: 'Odometer', group: 'dashboard' }
       },
       {
         path: 'spot',
         name: 'Spot',
-        component: () => import('@/modules/spot/pages/index.vue'),
+        component: () => import('@/modules/spot/pages/spot-list.vue'),
         meta: { title: '景点管理', icon: 'Location', group: 'content' }
       },
       {
         path: 'guide',
         name: 'Guide',
-        component: () => import('@/modules/guide/pages/index.vue'),
+        component: () => import('@/modules/guide/pages/guide-list.vue'),
         meta: { title: '攻略管理', icon: 'Document', group: 'content' }
       },
       {
@@ -53,43 +53,43 @@ const routes = [
       {
         path: 'order',
         name: 'Order',
-        component: () => import('@/modules/order/pages/index.vue'),
+        component: () => import('@/modules/order/pages/order-center.vue'),
         meta: { title: '订单中心', icon: 'List', group: 'transaction' }
       },
       {
         path: 'user',
         name: 'User',
-        component: () => import('@/modules/user-ops/pages/user.vue'),
+        component: () => import('@/modules/user-ops/pages/user-list.vue'),
         meta: { title: '用户管理', icon: 'User', group: 'user-ops' }
       },
       {
         path: 'review',
         name: 'Review',
-        component: () => import('@/modules/user-ops/pages/review.vue'),
+        component: () => import('@/modules/user-ops/pages/review-list.vue'),
         meta: { title: '评价管理', icon: 'ChatDotRound', group: 'user-ops' }
       },
       {
         path: 'favorite',
         name: 'Favorite',
-        component: () => import('@/modules/user-ops/pages/favorite.vue'),
+        component: () => import('@/modules/user-ops/pages/favorite-list.vue'),
         meta: { title: '用户收藏', icon: 'Star', group: 'user-ops' }
       },
       {
         path: 'preference',
         name: 'Preference',
-        component: () => import('@/modules/user-ops/pages/preference.vue'),
+        component: () => import('@/modules/user-ops/pages/preference-list.vue'),
         meta: { title: '用户偏好', icon: 'CollectionTag', group: 'user-ops' }
       },
       {
         path: 'view-log',
         name: 'ViewLog',
-        component: () => import('@/modules/user-ops/pages/view-log.vue'),
+        component: () => import('@/modules/user-ops/pages/view-log-list.vue'),
         meta: { title: '浏览行为', icon: 'View', group: 'user-ops' }
       },
       {
         path: 'admin',
         name: 'Admin',
-        component: () => import('@/modules/system/pages/admin.vue'),
+        component: () => import('@/modules/system/pages/admin-list.vue'),
         meta: { title: '管理员管理', icon: 'UserFilled', group: 'system' }
       },
       {
