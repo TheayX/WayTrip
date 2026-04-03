@@ -11,6 +11,7 @@ const publicRoutes = [
   { path: 'budget-travel', name: ROUTE_NAMES.budgetTravel, component: () => import('@/modules/budget-travel/index.vue'), meta: { title: '穷游玩法' } },
   { path: 'traveler-reviews', name: ROUTE_NAMES.travelerReviews, component: () => import('@/modules/traveler-reviews/index.vue'), meta: { title: '游客口碑' } },
   { path: 'trending-views', name: ROUTE_NAMES.trendingViews, component: () => import('@/modules/trending-views/index.vue'), meta: { title: '近期热看' } },
+  { path: 'more', name: ROUTE_NAMES.more, component: () => import('@/modules/more/index.vue'), meta: { title: '更多功能' } },
   { path: 'spots', name: ROUTE_NAMES.spotList, component: () => import('@/modules/spot/pages/list.vue'), meta: { title: '景点列表' } },
   { path: 'spots/:id', name: ROUTE_NAMES.spotDetail, component: () => import('@/modules/spot/pages/detail.vue'), meta: { title: '景点详情' } },
   { path: 'guides', name: ROUTE_NAMES.guideList, component: () => import('@/modules/guide/pages/list.vue'), meta: { title: '攻略列表' } },

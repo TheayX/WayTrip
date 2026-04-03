@@ -13,6 +13,7 @@ export const APP_ROUTE_PATHS = {
   budgetTravel: '/budget-travel',
   travelerReviews: '/traveler-reviews',
   trendingViews: '/trending-views',
+  more: '/more',
   spots: '/spots',
   guides: '/guides',
   search: '/search'

@@ -17,6 +17,7 @@
               <el-button class="hero-budget-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.budgetTravel)">低预算出游</el-button>
               <el-button class="hero-review-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.travelerReviews)">看看口碑</el-button>
               <el-button class="hero-trending-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.trendingViews)">近期热看</el-button>
+              <el-button class="hero-more-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.more)">更多功能</el-button>
             </div>
           </div>
         </div>
@@ -460,6 +461,11 @@ onMounted(async () => {
 }
 
 .hero-trending-btn {
+  border-radius: 999px;
+  padding-inline: 24px;
+}
+
+.hero-more-btn {
   border-radius: 999px;
   padding-inline: 24px;
 }
