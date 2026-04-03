@@ -1,14 +1,14 @@
 <template>
-  <view class="entry-grid">
-    <view
-      v-for="entry in entries"
-      :key="entry.id"
-      class="entry-item"
-      @click="$emit('click', entry)"
-    >
-      <view class="entry-item-inner">
+  <view class="entry-grid-shell">
+    <view class="entry-grid">
+      <view
+        v-for="entry in entries"
+        :key="entry.id"
+        class="entry-item"
+        @click="$emit('click', entry)"
+      >
         <view class="entry-icon" :class="`theme-${entry.theme}`">
-          <uni-icons :type="entry.icon" size="28" :color="resolveThemeColor(entry.theme)" />
+          <uni-icons :type="entry.icon" size="24" :color="resolveThemeColor(entry.theme)" />
         </view>
         <text class="entry-title">{{ entry.title }}</text>
       </view>
@@ -30,45 +30,45 @@ const resolveThemeColor = (theme) => {
 </script>
 
 <style scoped>
+.entry-grid-shell {
+  margin: 10rpx 32rpx 32rpx;
+  padding: 14rpx 18rpx 6rpx;
+  border-radius: 36rpx;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(18rpx);
+}
+
 .entry-grid {
-  padding: 0 24rpx;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16rpx;
-  margin-top: 10rpx;
-  margin-bottom: 32rpx;
+  gap: 10rpx 8rpx;
 }
 
 .entry-item {
   min-width: 0;
-}
-
-.entry-item-inner {
-  height: 100%;
-  min-height: 144rpx;
-  padding: 20rpx 14rpx 16rpx;
-  border-radius: 32rpx;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 10rpx 24rpx rgba(15, 23, 42, 0.04);
+  min-height: 116rpx;
+  padding: 12rpx 10rpx 12rpx;
+  border-radius: 24rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
 .entry-icon {
-  width: 92rpx;
-  height: 92rpx;
-  border-radius: 30rpx;
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14rpx;
-  box-shadow: 0 6rpx 16rpx rgba(0,0,0,0.03);
+  margin-bottom: 10rpx;
 }
 
 .entry-title {
-  font-size: 25rpx;
+  font-size: 23rpx;
   font-weight: 600;
   color: #374151;
   line-height: 1.35;

@@ -1,42 +1,43 @@
 /**
- * Uni-app 全局样式变量 - Apple iOS 风格
+ * Uni-app 全局样式变量 - WayTrip MiniApp
+ * 极简主义 · 现代化 · 高级感
  */
 
-/* Apple iOS Color System */
-$uni-color-primary: #007AFF;   /* iOS Blue */
-$uni-color-success: #34C759;   /* iOS Green */
-$uni-color-warning: #FF9500;   /* iOS Orange */
-$uni-color-error: #FF3B30;     /* iOS Red */
+$uni-color-primary: #2563eb;
+$uni-color-success: #16a34a;
+$uni-color-warning: #d97706;
+$uni-color-error: #dc2626;
 
-/* 背景颜色 */
-$uni-bg-color: #F2F2F7;        /* iOS System Gray 6 (背景灰) */
-$uni-bg-color-card: #FFFFFF;   /* 卡片白 */
-$uni-bg-color-grey: #E5E5EA;   /* iOS 分割线/次要背景 */
+$uni-bg-color: #f4f6fb;
+$uni-bg-color-card: #ffffff;
+$uni-bg-color-grey: #eef2f7;
 
-/* 文字颜色 */
-$uni-text-title: #000000;      /* 纯黑标题 */
-$uni-text-color: #1C1C1E;      /* 主要文字 */
-$uni-text-color-inverse: #FFFFFF;
-$uni-text-secondary: #8E8E93;  /* 次要文字灰 */
-$uni-text-color-grey: #8E8E93;
-$uni-text-color-placeholder: #C7C7CC;
+$uni-text-title: #0f172a;
+$uni-text-color: #1e293b;
+$uni-text-color-inverse: #ffffff;
+$uni-text-secondary: #64748b;
+$uni-text-color-grey: #64748b;
+$uni-text-color-placeholder: #94a3b8;
 
-/* 边框颜色 */
-$uni-border-color: #E5E5EA;
+$uni-border-color: #e2e8f0;
 
-/* 字体大小 */
 $uni-font-size-sm: 24rpx;
 $uni-font-size-base: 28rpx;
 $uni-font-size-lg: 32rpx;
 
-/* 间距 */
 $uni-spacing-sm: 16rpx;
 $uni-spacing-base: 24rpx;
 $uni-spacing-lg: 32rpx;
 
-/* 圆角 - iOS 大圆角 */
-$uni-border-radius-sm: 12rpx;
-$uni-border-radius-base: 20rpx;
-$uni-border-radius-lg: 24rpx;
-$uni-border-radius-card: 32rpx; /* 卡片大圆角 */
+$uni-border-radius-sm: 16rpx;
+$uni-border-radius-base: 24rpx;
+$uni-border-radius-lg: 32rpx;
+$uni-border-radius-card: 36rpx;
 $uni-border-radius-circle: 50%;
+
+page {
+  background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.08), transparent 32%),
+    linear-gradient(180deg, #f8faff 0%, #f4f6fb 100%);
+  color: $uni-text-color;
+}
