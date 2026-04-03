@@ -9,7 +9,7 @@
     />
 
     <section class="category-bar premium-card">
-      <p class="category-kicker">Categories</p>
+      <p class="category-kicker">攻略主题</p>
       <div class="category-tags">
         <el-check-tag :checked="currentCategory === ''" @change="selectCategory('')">全部</el-check-tag>
         <el-check-tag
