@@ -14,6 +14,24 @@
             <router-link to="/discover" class="nav-link" active-class="active">发现</router-link>
             <router-link to="/spots" class="nav-link" active-class="active">景点</router-link>
             <router-link to="/guides" class="nav-link" active-class="active">攻略</router-link>
+            <el-dropdown trigger="hover" placement="bottom-start" @command="handleFeatureCommand">
+              <button type="button" class="nav-link nav-link-button" :class="{ active: isFeatureMenuActive }">
+                <span>特色功能</span>
+                <el-icon class="nav-link-arrow"><ArrowDown /></el-icon>
+              </button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-for="item in featureMenuItems"
+                    :key="item.path"
+                    :command="item.path"
+                  >
+                    <el-icon><component :is="item.icon" /></el-icon>
+                    <span>{{ item.label }}</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </nav>
         </div>
         <div class="navbar-right">
@@ -97,14 +115,30 @@ import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/shared/api/client.js'
+import { ArrowDown, ChatDotRound, Discount, Grid, MagicStick, Stopwatch } from '@element-plus/icons-vue'
 
 // 基础依赖与路由状态
 const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
+const featureRouteNames = [
+  ROUTE_NAMES.randomPick,
+  ROUTE_NAMES.budgetTravel,
+  ROUTE_NAMES.travelerReviews,
+  ROUTE_NAMES.trendingViews,
+  ROUTE_NAMES.more
+]
+const featureMenuItems = [
+  { label: '随心一选', path: APP_ROUTE_PATHS.randomPick, icon: MagicStick },
+  { label: '穷游玩法', path: APP_ROUTE_PATHS.budgetTravel, icon: Discount },
+  { label: '游客口碑', path: APP_ROUTE_PATHS.travelerReviews, icon: ChatDotRound },
+  { label: '近期热看', path: APP_ROUTE_PATHS.trendingViews, icon: Stopwatch },
+  { label: '更多功能', path: APP_ROUTE_PATHS.more, icon: Grid }
+]
 
 // 计算属性
 const isHomeActive = computed(() => route.name === ROUTE_NAMES.home)
+const isFeatureMenuActive = computed(() => featureRouteNames.includes(route.name))
 const hiddenBackRoutes = [ROUTE_NAMES.home, ROUTE_NAMES.login, ROUTE_NAMES.register]
 const showBackBar = computed(() => !hiddenBackRoutes.includes(route.name))
 
@@ -116,6 +150,11 @@ const handleBack = () => {
   }
 
   router.push('/')
+}
+
+const handleFeatureCommand = (path) => {
+  if (!path) return
+  router.push(path)
 }
 
 const handleCommand = (command) => {
@@ -201,12 +240,18 @@ const handleCommand = (command) => {
 }
 
 .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
   padding: 8px 16px;
   font-size: 15px;
   color: #606266;
   border-radius: 8px;
   transition: all 0.2s;
   text-decoration: none;
+  background: transparent;
+  cursor: pointer;
 
   &:hover {
     color: #409eff;
@@ -218,6 +263,14 @@ const handleCommand = (command) => {
     font-weight: 600;
     background: #ecf5ff;
   }
+}
+
+.nav-link-button {
+  font-family: inherit;
+}
+
+.nav-link-arrow {
+  font-size: 12px;
 }
 
 .navbar-right {

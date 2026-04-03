@@ -13,11 +13,6 @@
                 <el-icon><Search /></el-icon>
                 <span>搜索景点</span>
               </div>
-              <el-button class="hero-random-btn" size="large" @click="router.push(APP_ROUTE_PATHS.randomPick)">试试手气</el-button>
-              <el-button class="hero-budget-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.budgetTravel)">低预算出游</el-button>
-              <el-button class="hero-review-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.travelerReviews)">看看口碑</el-button>
-              <el-button class="hero-trending-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.trendingViews)">近期热看</el-button>
-              <el-button class="hero-more-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.more)">更多功能</el-button>
             </div>
           </div>
         </div>
@@ -443,31 +438,6 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.92);
   color: #475569;
   cursor: pointer;
-}
-
-.hero-random-btn {
-  border-radius: 999px;
-  padding-inline: 24px;
-}
-
-.hero-budget-btn {
-  border-radius: 999px;
-  padding-inline: 24px;
-}
-
-.hero-review-btn {
-  border-radius: 999px;
-  padding-inline: 24px;
-}
-
-.hero-trending-btn {
-  border-radius: 999px;
-  padding-inline: 24px;
-}
-
-.hero-more-btn {
-  border-radius: 999px;
-  padding-inline: 24px;
 }
 
 .home-content {
