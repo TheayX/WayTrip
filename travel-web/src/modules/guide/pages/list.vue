@@ -6,17 +6,12 @@
       <el-breadcrumb-item>旅行攻略</el-breadcrumb-item>
     </el-breadcrumb>
 
-    <section class="state-card card">
-      <div class="state-main">
-        <h2 class="state-title">攻略列表</h2>
-        <p class="state-desc">{{ currentStateText }}</p>
-      </div>
-      <div class="state-actions">
-        <el-button text :type="sortBy === 'time' ? 'primary' : 'default'" @click="changeSort('time')">最新优先</el-button>
-        <el-button text :type="sortBy === 'category' ? 'primary' : 'default'" @click="changeSort('category')">分类排序</el-button>
-        <el-button text @click="resetFilters">重置</el-button>
-      </div>
-    </section>
+    <GuideListToolbar
+      :description="currentStateText"
+      :sort-by="sortBy"
+      @sort-change="changeSort"
+      @reset="resetFilters"
+    />
 
     <section class="category-bar card">
       <el-check-tag :checked="currentCategory === ''" @change="selectCategory('')">全部</el-check-tag>
@@ -31,22 +26,12 @@
     </section>
 
     <section v-loading="loading" class="guide-grid">
-      <article
+      <GuideCard
         v-for="guide in guideList"
         :key="guide.id"
-        class="guide-card card"
-        @click="$router.push(`/guides/${guide.id}`)"
-      >
-        <img :src="getImageUrl(guide.coverImage)" class="guide-image" alt="" />
-        <div class="guide-content">
-          <h3 class="guide-title">{{ guide.title }}</h3>
-          <p class="guide-summary">{{ guide.summary || '带上好心情，发现更多旅行灵感。' }}</p>
-          <div class="guide-meta">
-            <span class="tag">{{ guide.category || '攻略' }}</span>
-            <span class="guide-views">👁 {{ guide.viewCount || 0 }}</span>
-          </div>
-        </div>
-      </article>
+        :guide="guide"
+        @select="$router.push(`/guides/${guide.id}`)"
+      />
     </section>
 
     <el-empty v-if="!loading && guideList.length === 0" description="暂无攻略">
@@ -68,8 +53,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import GuideCard from '@/modules/guide/components/GuideCard.vue'
+import GuideListToolbar from '@/modules/guide/components/GuideListToolbar.vue'
 import { getGuideList, getCategories } from '@/modules/guide/api.js'
-import { getImageUrl } from '@/shared/api/client.js'
 
 const GUIDE_DETAIL_UPDATED_KEY = 'guide_detail_updated'
 
@@ -182,30 +168,6 @@ onMounted(async () => {
   gap: 18px;
 }
 
-.state-card {
-  padding: 22px;
-}
-
-.state-main {
-  margin-bottom: 16px;
-}
-
-.state-title {
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.state-desc {
-  color: #909399;
-  line-height: 1.7;
-}
-
-.state-actions {
-  display: flex;
-  gap: 8px;
-}
-
 .category-bar {
   padding: 18px;
   display: flex;
@@ -218,47 +180,6 @@ onMounted(async () => {
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   min-height: 200px;
-}
-
-.guide-card {
-  cursor: pointer;
-}
-
-.guide-image {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-}
-
-.guide-content {
-  padding: 16px;
-}
-
-.guide-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-
-.guide-summary {
-  color: #606266;
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin-bottom: 12px;
-}
-
-.guide-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.guide-views {
-  color: #909399;
-  font-size: 13px;
 }
 
 .pagination {
