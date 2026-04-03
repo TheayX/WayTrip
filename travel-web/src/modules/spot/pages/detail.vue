@@ -24,25 +24,12 @@
             <p class="desc-text">{{ spot.description || '暂无简介' }}</p>
           </div>
 
-          <div v-if="similarSpots.length" class="info-section card">
-            <div class="section-header-row">
-              <h2 class="section-label">看了又看</h2>
-              <span class="section-hint">{{ similarUpdateTime ? `更新于 ${similarUpdateTime}` : '相似景点' }}</span>
-            </div>
-            <div class="similar-list">
-              <article v-for="item in similarSpots" :key="item.spotId" class="similar-item" @click="router.push(`/spots/${item.spotId}?source=similar`)">
-                <img :src="getImageUrl(item.coverImage)" class="similar-image" alt="" />
-                <div class="similar-content">
-                  <h3>{{ item.spotName }}</h3>
-                  <p>{{ item.regionName || '周边景点' }} · {{ item.categoryName || '推荐' }}</p>
-                  <div class="similar-bottom">
-                    <span class="price">¥{{ item.price || 0 }}</span>
-                    <span class="similar-score">相似度 {{ formatSimilarity(item.similarity) }}</span>
-                  </div>
-                </div>
-              </article>
-            </div>
-          </div>
+          <SpotSimilarSection
+            :items="similarSpots"
+            :update-time="similarUpdateTime"
+            :format-similarity="formatSimilarity"
+            @select="router.push(`/spots/${$event.spotId}?source=similar`)"
+          />
 
           <div class="info-section card">
             <div class="section-header-row">
@@ -78,54 +65,18 @@
           </div>
         </div>
 
-        <div class="detail-sidebar">
-          <div class="sidebar-card card">
-            <h1 class="spot-name">{{ spot.name }}</h1>
-            <div class="spot-meta">
-              <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
-              <span class="meta-count">({{ spot.ratingCount || 0 }}条评价)</span>
-              <el-divider direction="vertical" />
-              <span>{{ spot.regionName }} / {{ spot.categoryName }}</span>
-            </div>
-            <div class="spot-price-row">
-              <span class="big-price">¥{{ spot.price }}</span>
-              <span class="price-label">/人</span>
-            </div>
-            <el-button type="primary" size="large" class="buy-btn" @click="handleBuy">立即购票</el-button>
-            <el-button :type="spot.isFavorite ? 'warning' : 'default'" size="large" class="fav-btn" @click="toggleFavorite">
-              {{ spot.isFavorite ? '已收藏' : '收藏' }}
-            </el-button>
-          </div>
-
-          <div class="sidebar-card card">
-            <div class="detail-item">
-              <span class="detail-label">开放时间</span>
-              <span class="detail-value">{{ spot.openTime || '暂无信息' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">景点地址</span>
-              <span class="detail-value">{{ spot.address || '暂无信息' }}{{ distanceText ? ` · 距你 ${distanceText}` : '' }}</span>
-            </div>
-          </div>
-
-          <div ref="ratingSectionRef" class="sidebar-card card">
-            <h3 class="sidebar-title">写评价</h3>
-            <div class="rating-input">
-              <span class="rating-label">评分：</span>
-              <el-rate v-model="ratingForm.score" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" />
-            </div>
-            <el-input
-              v-model="ratingForm.comment"
-              type="textarea"
-              :rows="3"
-              placeholder="分享你的旅行体验..."
-              maxlength="500"
-              show-word-limit
-            />
-            <el-button type="primary" class="submit-rating-btn" :loading="submittingRating" @click="handleSubmitRating">
-              提交评价
-            </el-button>
-          </div>
+        <div ref="ratingSectionRef">
+          <SpotDetailSidebar
+            :spot="spot"
+            :distance-text="distanceText"
+            :rating-form="ratingForm"
+            :submitting-rating="submittingRating"
+            @buy="handleBuy"
+            @toggle-favorite="toggleFavorite"
+            @submit-rating="handleSubmitRating"
+            @update:score="ratingForm.score = $event"
+            @update:comment="ratingForm.comment = $event"
+          />
         </div>
       </div>
     </div>
@@ -154,6 +105,8 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/modules/account/store/user.js'
+import SpotDetailSidebar from '@/modules/spot/components/SpotDetailSidebar.vue'
+import SpotSimilarSection from '@/modules/spot/components/SpotSimilarSection.vue'
 import { getSpotDetail, getSimilarSpots, recordSpotView } from '@/modules/spot/api.js'
 import { addFavorite, removeFavorite } from '@/modules/favorite/api.js'
 import { deleteReview, getSpotReviews, submitReview } from '@/modules/review/api.js'
@@ -482,14 +435,6 @@ onUnmounted(() => {
   min-width: 0;
 }
 
-.detail-sidebar {
-  width: 360px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 .image-carousel {
   border-radius: 12px;
   overflow: hidden;
@@ -542,57 +487,6 @@ onUnmounted(() => {
   white-space: pre-wrap;
 }
 
-.similar-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-.similar-item {
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 12px;
-  background: #f8fafc;
-  cursor: pointer;
-}
-
-.similar-image {
-  width: 120px;
-  height: 90px;
-  border-radius: 10px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.similar-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.similar-content h3 {
-  margin-bottom: 8px;
-  font-size: 15px;
-}
-
-.similar-content p {
-  color: #909399;
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-.similar-bottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-}
-
-.similar-score {
-  color: #409eff;
-  font-size: 12px;
-}
-
 .comment-list {
   display: flex;
   flex-direction: column;
@@ -643,108 +537,6 @@ onUnmounted(() => {
   color: #c0c4cc;
 }
 
-.sidebar-card {
-  padding: 20px;
-  border-radius: 12px;
-}
-
-.spot-name {
-  font-size: 22px;
-  font-weight: 700;
-  color: #303133;
-  margin-bottom: 8px;
-}
-
-.spot-meta {
-  font-size: 13px;
-  color: #909399;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.meta-count {
-  color: #c0c4cc;
-}
-
-.spot-price-row {
-  margin-bottom: 16px;
-}
-
-.big-price {
-  font-size: 32px;
-  font-weight: 700;
-  color: #f56c6c;
-}
-
-.price-label {
-  font-size: 14px;
-  color: #909399;
-}
-
-.buy-btn {
-  width: 100%;
-  height: 44px;
-  font-size: 16px;
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.fav-btn {
-  width: 100%;
-  height: 40px;
-  border-radius: 8px;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.detail-label {
-  font-size: 14px;
-  color: #909399;
-  flex-shrink: 0;
-}
-
-.detail-value {
-  font-size: 14px;
-  color: #303133;
-  text-align: right;
-}
-
-.sidebar-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.rating-input {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.rating-label {
-  font-size: 14px;
-  color: #606266;
-}
-
-.submit-rating-btn {
-  width: 100%;
-  margin-top: 12px;
-  border-radius: 8px;
-}
-
 .invalid-state {
   padding: 48px 0;
 }
@@ -752,14 +544,6 @@ onUnmounted(() => {
 @media (max-width: 992px) {
   .detail-layout {
     flex-direction: column;
-  }
-
-  .detail-sidebar {
-    width: 100%;
-  }
-
-  .similar-list {
-    grid-template-columns: 1fr;
   }
 }
 </style>

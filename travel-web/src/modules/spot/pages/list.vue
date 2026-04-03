@@ -11,75 +11,32 @@
       <span>搜索景点名称 / 城市</span>
     </section>
 
-    <section class="state-card card">
-      <div class="state-main">
-        <h2 class="state-title">景点列表</h2>
-        <p class="state-desc">{{ currentStateText }}</p>
-      </div>
-      <div class="state-actions">
-        <el-button text :type="filters.sortBy === 'heat' ? 'primary' : 'default'" @click="changeSort('heat')">综合热度</el-button>
-        <el-button text :type="filters.sortBy === 'rating' ? 'primary' : 'default'" @click="changeSort('rating')">评分最高</el-button>
-        <el-button text :type="filters.sortBy === 'price_asc' ? 'primary' : 'default'" @click="changeSort('price_asc')">价格最低</el-button>
-        <el-button text :type="filters.sortBy === 'price_desc' ? 'primary' : 'default'" @click="changeSort('price_desc')">价格最高</el-button>
-        <el-button text @click="resetFilters">重置</el-button>
-      </div>
-    </section>
+    <SpotListToolbar
+      :description="currentStateText"
+      :sort-by="filters.sortBy"
+      @sort-change="changeSort"
+      @reset="resetFilters"
+    />
 
-    <section class="filter-bar card">
-      <div class="filter-row">
-        <div class="filter-group">
-          <span class="filter-label">地区</span>
-          <el-select v-model="filters.regionId" clearable placeholder="全部地区" @change="handleFilter">
-            <el-option label="全部地区" value="" />
-            <el-option v-for="item in flatRegions" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">分类</span>
-          <el-select v-model="filters.categoryId" clearable placeholder="全部分类" @change="handleFilter">
-            <el-option label="全部分类" value="" />
-            <el-option v-for="item in flatCategories" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </div>
-      </div>
-    </section>
+    <SpotFilterBar
+      v-model:region-id="filters.regionId"
+      v-model:category-id="filters.categoryId"
+      :regions="flatRegions"
+      :categories="flatCategories"
+      @change="handleFilter"
+    />
 
     <section class="active-filters" v-if="activeFilterTags.length">
       <span v-for="tag in activeFilterTags" :key="tag" class="tag-chip">{{ tag }}</span>
     </section>
 
     <section v-loading="loading" class="spot-grid">
-      <article
+      <SpotCard
         v-for="spot in spotList"
         :key="spot.id"
-        class="spot-card card"
-        @click="$router.push(`/spots/${spot.id}?source=list`)"
-      >
-        <div class="spot-image-box">
-          <img :src="getImageUrl(spot.coverImage)" class="spot-image" alt="" />
-          <div v-if="spot.avgRating" class="rating-badge">
-            <span class="score">{{ spot.avgRating }}</span>
-            <span class="unit">分</span>
-          </div>
-        </div>
-        <div class="spot-content">
-          <h3 class="spot-name">{{ spot.name }}</h3>
-          <div class="spot-tags">
-            <span class="tag-chip plain">{{ spot.regionName || '地区待补充' }}</span>
-            <span class="tag-chip">{{ spot.categoryName || '分类待补充' }}</span>
-          </div>
-          <div class="spot-footer">
-            <div class="price-box">
-              <span class="symbol">¥</span>
-              <span class="num">{{ spot.price }}</span>
-              <span class="suffix">起</span>
-            </div>
-            <div class="meta-box">
-              <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
-            </div>
-          </div>
-        </div>
-      </article>
+        :spot="spot"
+        @select="router.push(`/spots/${spot.id}?source=list`)"
+      />
     </section>
 
     <el-empty v-if="!loading && spotList.length === 0" description="暂无相关景点">
@@ -102,8 +59,10 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
+import SpotCard from '@/modules/spot/components/SpotCard.vue'
+import SpotFilterBar from '@/modules/spot/components/SpotFilterBar.vue'
+import SpotListToolbar from '@/modules/spot/components/SpotListToolbar.vue'
 import { getSpotList, getFilters } from '@/modules/spot/api.js'
-import { getImageUrl } from '@/shared/api/client.js'
 
 const SPOT_DETAIL_UPDATED_KEY = 'spot_detail_updated'
 
@@ -279,53 +238,6 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-.state-card {
-  padding: 22px;
-}
-
-.state-main {
-  margin-bottom: 16px;
-}
-
-.state-title {
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.state-desc {
-  color: #909399;
-  line-height: 1.7;
-}
-
-.state-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.filter-bar {
-  padding: 18px;
-}
-
-.filter-row {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.filter-group {
-  flex: 1 1 260px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.filter-label {
-  white-space: nowrap;
-  color: #606266;
-}
-
 .active-filters {
   display: flex;
   flex-wrap: wrap;
@@ -352,88 +264,6 @@ onMounted(async () => {
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   min-height: 200px;
-}
-
-.spot-card {
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.spot-image-box {
-  position: relative;
-}
-
-.spot-image {
-  width: 100%;
-  height: 240px;
-  object-fit: cover;
-}
-
-.rating-badge {
-  position: absolute;
-  left: 14px;
-  bottom: 14px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.score {
-  color: #f59e0b;
-  font-weight: 700;
-}
-
-.unit {
-  color: #64748b;
-  font-size: 12px;
-}
-
-.spot-content {
-  padding: 16px;
-}
-
-.spot-name {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.spot-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.spot-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.price-box {
-  display: flex;
-  align-items: baseline;
-  color: #ef4444;
-}
-
-.symbol {
-  font-size: 14px;
-}
-
-.num {
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.suffix,
-.meta-box {
-  color: #909399;
-  font-size: 13px;
 }
 
 .pagination {
