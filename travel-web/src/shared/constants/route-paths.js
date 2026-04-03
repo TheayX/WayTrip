@@ -10,6 +10,7 @@ export const APP_ROUTE_PATHS = {
   recommendations: '/recommendations',
   nearby: '/nearby',
   randomPick: '/random-pick',
+  budgetTravel: '/budget-travel',
   spots: '/spots',
   guides: '/guides',
   search: '/search'
