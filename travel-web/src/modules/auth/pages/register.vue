@@ -4,7 +4,7 @@
     <div class="register-card">
       <div class="register-header">
         <span class="logo-icon">✈</span>
-        <h1>注册 WayTrip</h1>
+        <h1>注册 {{ APP_NAME }}</h1>
         <p>{{ step === 1 ? '创建账号，探索世界' : '完善个人资料（可跳过）' }}</p>
       </div>
 
@@ -67,6 +67,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { prepareRegister, register } from '@/modules/auth/api.js'
 import { uploadAvatar, updateUserInfo } from '@/modules/account/api.js'
+import { APP_NAME } from '@/shared/constants/app.js'
 import { getAvatarUrl } from '@/shared/api/client.js'
 import { ElMessage } from 'element-plus'
 
@@ -170,7 +171,7 @@ const doRegister = async (options = {}) => {
       }
     }
 
-    ElMessage.success('注册成功，欢迎来到 WayTrip！')
+    ElMessage.success(`注册成功，欢迎来到 ${APP_NAME}！`)
     router.push('/')
   } catch (e) {
     // 注册失败（如手机号已注册），回到第一步修改

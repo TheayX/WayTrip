@@ -23,6 +23,7 @@
 <script setup>
 import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { APP_NAME } from '@/shared/constants/app.js'
 import { clearFootprints } from '@/shared/lib/footprint.js'
 import { clearLocationCache } from '@/shared/lib/location.js'
 
@@ -34,7 +35,7 @@ const contactService = () => {
 }
 
 const showAbout = () => {
-  ElMessageBox.alert('WayTrip v1.0.0\n基于协同过滤的个性化旅游推荐。', '关于我们', {
+  ElMessageBox.alert(`${APP_NAME} v1.0.0\n基于协同过滤的个性化旅游推荐。`, '关于我们', {
     confirmButtonText: '知道了'
   })
 }

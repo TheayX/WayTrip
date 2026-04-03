@@ -4,7 +4,7 @@
     <header class="auth-header">
       <router-link to="/" class="brand">
         <span class="brand-icon">✈</span>
-        <span class="brand-text">WayTrip</span>
+        <span class="brand-text">{{ APP_NAME }}</span>
       </router-link>
     </header>
 
@@ -15,6 +15,10 @@
     </main>
   </div>
 </template>
+
+<script setup>
+import { APP_NAME } from '@/shared/constants/app.js'
+</script>
 
 <style lang="scss" scoped>
 .auth-layout {

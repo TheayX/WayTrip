@@ -110,6 +110,7 @@ import SpotSimilarSection from '@/modules/spot/components/SpotSimilarSection.vue
 import { getSpotDetail, getSimilarSpots, recordSpotView } from '@/modules/spot/api.js'
 import { addFavorite, removeFavorite } from '@/modules/favorite/api.js'
 import { deleteReview, getSpotReviews, submitReview } from '@/modules/review/api.js'
+import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { getLocationSnapshot } from '@/shared/lib/location.js'
 import { saveSpotFootprint } from '@/shared/lib/footprint.js'
 import { getAvatarUrl, getImageUrl } from '@/shared/api/client.js'
@@ -307,7 +308,7 @@ const handleBuy = () => {
   }
 
   if (!userStore.isLoggedIn) {
-    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    router.push({ path: AUTH_ROUTE_PATHS.login, query: { redirect: route.fullPath } })
     return
   }
 
@@ -321,7 +322,7 @@ const toggleFavorite = async () => {
   }
 
   if (!userStore.isLoggedIn) {
-    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    router.push({ path: AUTH_ROUTE_PATHS.login, query: { redirect: route.fullPath } })
     return
   }
 
@@ -349,7 +350,7 @@ const handleSubmitRating = async () => {
   }
 
   if (!userStore.isLoggedIn) {
-    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    router.push({ path: AUTH_ROUTE_PATHS.login, query: { redirect: route.fullPath } })
     return
   }
 

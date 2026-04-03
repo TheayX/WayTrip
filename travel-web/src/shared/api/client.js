@@ -3,6 +3,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/modules/account/store/user.js'
 import router from '@/app/router/index.js'
+import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 
 /**
  * 创建 Axios 实例
@@ -25,7 +26,7 @@ const redirectToLogin = async (message) => {
   const hadToken = Boolean(userStore.token) // 记录之前是否有 Token
   const currentRoute = router.currentRoute.value
   // 如果当前不在登录页，设置重定向参数
-  const redirect = currentRoute?.path && currentRoute.path !== '/login'
+  const redirect = currentRoute?.path && currentRoute.path !== AUTH_ROUTE_PATHS.login
     ? currentRoute.fullPath
     : undefined
 
@@ -46,8 +47,8 @@ const redirectToLogin = async (message) => {
   try {
     await router.replace(
       redirect
-        ? { path: '/login', query: { redirect } } // 带重定向参数
-        : { path: '/login' }
+        ? { path: AUTH_ROUTE_PATHS.login, query: { redirect } } // 带重定向参数
+        : { path: AUTH_ROUTE_PATHS.login }
     )
   } finally {
     authRedirectInProgress = false
