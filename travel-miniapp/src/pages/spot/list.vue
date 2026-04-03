@@ -5,24 +5,24 @@
     <view class="sticky-header">
       <view class="search-section" @click="goSearch">
         <view class="search-box">
-          <uni-icons type="search" size="18" color="#8E8E93"></uni-icons>
-          <text class="placeholder">搜索景点名称 / 城市</text>
+          <uni-icons type="search" size="18" color="#6B7280"></uni-icons>
+          <text class="placeholder">搜索景点、城市或旅行灵感</text>
         </view>
       </view>
 
       <view class="filter-bar">
         <view class="filter-item" :class="{ active: activeTab === 'region' }" @click="toggleTab('region')">
           <text class="text">{{ currentRegionDisplay }}</text>
-          <uni-icons :type="activeTab === 'region' ? 'top' : 'bottom'" size="12" :color="activeTab === 'region' ? '#007AFF' : '#333'"></uni-icons>
+          <uni-icons :type="activeTab === 'region' ? 'top' : 'bottom'" size="12" :color="activeTab === 'region' ? '#111827' : '#6B7280'"></uni-icons>
         </view>
         <view class="filter-item" :class="{ active: activeTab === 'category' }" @click="toggleTab('category')">
           <text class="text">{{ currentCategoryDisplay }}</text>
-          <uni-icons :type="activeTab === 'category' ? 'top' : 'bottom'" size="12" :color="activeTab === 'category' ? '#007AFF' : '#333'"></uni-icons>
+          <uni-icons :type="activeTab === 'category' ? 'top' : 'bottom'" size="12" :color="activeTab === 'category' ? '#111827' : '#6B7280'"></uni-icons>
         </view>
 
         <view class="filter-item" :class="{ active: activeTab === 'sort' }" @click="toggleTab('sort')">
           <text class="text">{{ currentSortLabel }}</text>
-          <uni-icons :type="activeTab === 'sort' ? 'top' : 'bottom'" size="12" :color="activeTab === 'sort' ? '#007AFF' : '#333'"></uni-icons>
+          <uni-icons :type="activeTab === 'sort' ? 'top' : 'bottom'" size="12" :color="activeTab === 'sort' ? '#111827' : '#6B7280'"></uni-icons>
         </view>
       </view>
 
@@ -54,7 +54,7 @@
               @click="handleRegionConfirm(null)"
             >
               <text>全部</text>
-              <uni-icons v-if="!tempCityId && tempProvinceId === activeProvinceId" type="checkmarkempty" color="#007AFF" size="16"></uni-icons>
+              <uni-icons v-if="!tempCityId && tempProvinceId === activeProvinceId" type="checkmarkempty" color="#111827" size="16"></uni-icons>
             </view>
             <view
               class="sub-item"
@@ -64,7 +64,7 @@
               @click="handleRegionConfirm(city)"
             >
               <text>{{ city.name }}</text>
-              <uni-icons v-if="tempCityId === city.id" type="checkmarkempty" color="#007AFF" size="16"></uni-icons>
+              <uni-icons v-if="tempCityId === city.id" type="checkmarkempty" color="#111827" size="16"></uni-icons>
             </view>
           </scroll-view>
         </view>
@@ -95,7 +95,7 @@
               @click="handleCategoryConfirm(null)"
             >
               <text>全部</text>
-              <uni-icons v-if="!tempCategoryId && tempParentId === activeParentId" type="checkmarkempty" color="#007AFF" size="16"></uni-icons>
+              <uni-icons v-if="!tempCategoryId && tempParentId === activeParentId" type="checkmarkempty" color="#111827" size="16"></uni-icons>
             </view>
             <view 
               class="sub-item" 
@@ -105,7 +105,7 @@
               @click="handleCategoryConfirm(sub)"
             >
               <text>{{ sub.name }}</text>
-              <uni-icons v-if="tempCategoryId === sub.id" type="checkmarkempty" color="#007AFF" size="16"></uni-icons>
+              <uni-icons v-if="tempCategoryId === sub.id" type="checkmarkempty" color="#111827" size="16"></uni-icons>
             </view>
           </scroll-view>
         </view>
@@ -119,7 +119,7 @@
           @click="handleSelectSort(opt)"
         >
           <text :class="{ 'text-blue': sortBy === opt.value }">{{ opt.label }}</text>
-          <uni-icons v-if="sortBy === opt.value" type="checkmarkempty" color="#007AFF" size="16"></uni-icons>
+          <uni-icons v-if="sortBy === opt.value" type="checkmarkempty" color="#111827" size="16"></uni-icons>
         </view>
       </view>
     </view>
@@ -134,10 +134,21 @@
       <view class="header-placeholder"></view>
 
       <view class="list-padding">
+        <view class="hero-panel">
+          <view class="hero-copy">
+            <text class="hero-eyebrow">目的地探索</text>
+            <text class="hero-title">找到下一处值得出发的风景</text>
+            <text class="hero-subtitle">按地区、分类与偏好筛选，快速浏览适合当前行程的景点。</text>
+          </view>
+        </view>
+
         <view class="current-state-card" v-if="activeFilterTags.length || total">
           <view class="state-header">
-            <text class="state-title">当前筛选</text>
-            <text class="state-count">共 {{ total }} 个结果</text>
+            <view class="state-copy">
+              <text class="state-title">筛选结果</text>
+              <text class="state-subtitle">已为你整理当前条件下更值得先看的景点</text>
+            </view>
+            <text class="state-count">{{ total }} 个结果</text>
           </view>
           <view class="state-tags" v-if="activeFilterTags.length">
             <text v-for="tag in activeFilterTags" :key="tag" class="state-tag">{{ tag }}</text>
@@ -164,8 +175,8 @@
             </view>
             
             <view class="tags-row">
-              <view class="tag location">{{ spot.regionName }}</view>
-              <view class="tag category">{{ spot.categoryName }}</view>
+              <view class="tag location" v-if="spot.regionName">{{ spot.regionName }}</view>
+              <view class="tag category" v-if="spot.categoryName">{{ spot.categoryName }}</view>
             </view>
 
             <view class="card-footer">
@@ -569,7 +580,9 @@ onMounted(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.92), rgba(244, 246, 251, 0.88) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
 }
 
 /* 吸顶容器 */
@@ -579,27 +592,71 @@ onMounted(() => {
   left: 0;
   width: 100%;
   z-index: 99;
-  background-color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  padding: 20rpx 20rpx 16rpx;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.96) 0%, rgba(248, 250, 252, 0.88) 100%);
+  backdrop-filter: blur(24rpx);
+  box-sizing: border-box;
+}
+
+.hero-panel {
+  padding: 0 0 24rpx;
+}
+
+.hero-copy {
+  padding: 28rpx 28rpx 22rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.72);
+  border-radius: 28rpx;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.54) 100%);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-eyebrow {
+  display: block;
+  font-size: 22rpx;
+  letter-spacing: 4rpx;
+  color: #6b7280;
+}
+
+.hero-title {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 42rpx;
+  line-height: 1.28;
+  font-weight: 600;
+  color: #111827;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #4b5563;
 }
 
 /* 搜索栏 */
 .search-section {
-  padding: 20rpx 32rpx;
-  background: #fff;
+  padding: 0 12rpx 12rpx;
   
   .search-box {
-    height: 72rpx;
-    background: #f4f6fb;
-    border-radius: 36rpx;
+    height: 84rpx;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1rpx solid rgba(255, 255, 255, 0.76);
+    border-radius: 42rpx;
     display: flex;
     align-items: center;
-    padding: 0 24rpx;
+    padding: 0 26rpx;
+    box-shadow:
+      0 14rpx 34rpx rgba(15, 23, 42, 0.06),
+      inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
     
     .placeholder {
       font-size: 28rpx;
-      color: #909399;
-      margin-left: 12rpx;
+      color: #6b7280;
+      margin-left: 14rpx;
     }
   }
 }
@@ -607,17 +664,24 @@ onMounted(() => {
 /* 筛选栏 */
 .filter-bar {
   display: flex;
-  height: 88rpx;
-  border-top: 1rpx solid #EBEEF5;
-  background: #fff;
+  height: 84rpx;
+  padding: 0 12rpx;
+  gap: 12rpx;
+  box-sizing: border-box;
   
   .filter-item {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 999rpx;
+    background: rgba(255, 255, 255, 0.74);
+    border: 1rpx solid rgba(255, 255, 255, 0.76);
     font-size: 28rpx;
-    color: #333;
+    color: #4b5563;
+    box-shadow:
+      0 12rpx 30rpx rgba(15, 23, 42, 0.05),
+      inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
     
     .text {
       max-width: 140rpx;
@@ -629,9 +693,11 @@ onMounted(() => {
     }
     
     &.active {
-      color: #2563eb;
+      color: #111827;
+      background: rgba(255, 255, 255, 0.94);
+      border-color: rgba(255, 255, 255, 0.96);
       .text {
-        color: #2563eb;
+        color: #111827;
       }
     }
   }
@@ -644,19 +710,22 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.4);
+  background: rgba(15, 23, 42, 0.18);
   z-index: 90;
 }
 
 .dropdown-content {
   position: absolute;
-  top: 100%; /* 相对于 sticky-header */
-  left: 0;
-  width: 100%;
-  background: #fff;
+  top: calc(100% + 12rpx);
+  left: 20rpx;
+  width: calc(100% - 40rpx);
+  background: rgba(255, 255, 255, 0.96);
   z-index: 99;
-  border-radius: 0 0 24rpx 24rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.88);
+  border-radius: 30rpx;
   overflow: hidden;
+  backdrop-filter: blur(24rpx);
+  box-shadow: 0 24rpx 60rpx rgba(15, 23, 42, 0.12);
   animation: slideDown 0.2s ease-out;
 }
 
@@ -696,11 +765,11 @@ onMounted(() => {
 /* 分类 - 双栏 */
 .double-column {
   display: flex;
-  height: 600rpx;
+  height: 560rpx;
   
   .col-left {
     width: 200rpx;
-    background: #f4f6fb;
+    background: rgba(248, 250, 252, 0.94);
     
     .menu-item {
       height: 90rpx;
@@ -708,12 +777,12 @@ onMounted(() => {
       align-items: center;
       justify-content: center;
       font-size: 28rpx;
-      color: #606266;
+      color: #6b7280;
       position: relative;
       
       &.active {
-        background: #fff;
-        color: #2563eb;
+        background: rgba(255, 255, 255, 0.96);
+        color: #111827;
         font-weight: 600;
         
         &::before {
@@ -723,7 +792,7 @@ onMounted(() => {
           top: 30rpx;
           bottom: 30rpx;
           width: 6rpx;
-          background: #2563eb;
+          background: #111827;
           border-radius: 0 4rpx 4rpx 0;
         }
       }
@@ -741,11 +810,12 @@ onMounted(() => {
       justify-content: space-between;
       padding: 0 32rpx;
       font-size: 28rpx;
-      color: #333;
-      border-bottom: 1rpx solid #F5F7FA;
+      color: #374151;
+      border-bottom: 1rpx solid rgba(229, 231, 235, 0.64);
       
       &.active {
-        color: #2563eb;
+        color: #111827;
+        font-weight: 600;
       }
     }
   }
@@ -760,12 +830,12 @@ onMounted(() => {
     justify-content: space-between;
     padding: 0 40rpx;
     font-size: 28rpx;
-    color: #333;
-    border-bottom: 1rpx solid #F5F7FA;
+    color: #374151;
+    border-bottom: 1rpx solid rgba(229, 231, 235, 0.64);
     
     .text-blue {
-      color: #2563eb;
-      font-weight: 500;
+      color: #111827;
+      font-weight: 600;
     }
   }
 }
@@ -777,37 +847,53 @@ onMounted(() => {
 }
 
 .header-placeholder {
-  // 搜索栏(72+20+20) + 筛选栏(88) + 额外间距
-  height: calc(112rpx + 88rpx + 20rpx);
+  // 搜索框 + 筛选栏 + 下方间距
+  height: 148rpx;
 }
 
 .list-padding {
-  padding: 0 24rpx 40rpx;
+  padding: 0 24rpx 44rpx;
 }
 
 .current-state-card {
-  margin-bottom: 20rpx;
-  padding: 20rpx 24rpx;
-  background: #fff;
-  border-radius: 18rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  margin-bottom: 24rpx;
+  padding: 24rpx 24rpx 22rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1rpx solid rgba(255, 255, 255, 0.82);
+  border-radius: 28rpx;
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 
   .state-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 16rpx;
   }
 
+  .state-copy {
+    flex: 1;
+  }
+
   .state-title {
+    display: block;
     font-size: 28rpx;
     font-weight: 600;
-    color: #303133;
+    color: #111827;
+  }
+
+  .state-subtitle {
+    display: block;
+    margin-top: 8rpx;
+    font-size: 22rpx;
+    line-height: 1.5;
+    color: #6b7280;
   }
 
   .state-count {
     font-size: 24rpx;
-    color: #909399;
+    color: #4b5563;
   }
 
   .state-tags {
@@ -818,28 +904,31 @@ onMounted(() => {
   }
 
   .state-tag {
-    padding: 8rpx 16rpx;
+    padding: 8rpx 18rpx;
     border-radius: 999rpx;
-    background: #eef4ff;
-    color: #2563eb;
+    background: rgba(17, 24, 39, 0.06);
+    color: #374151;
     font-size: 22rpx;
   }
 }
 
 /* 景点卡片优化 */
 .spot-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 32rpx;
   overflow: hidden;
   margin-bottom: 24rpx;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
   
   .card-image-box {
     position: relative;
     width: 100%;
-    height: 320rpx; // 加大图片展示
+    height: 332rpx;
     
     .card-img {
       width: 100%;
@@ -850,35 +939,35 @@ onMounted(() => {
       position: absolute;
       left: 20rpx;
       bottom: 20rpx;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 6rpx 16rpx;
+      background: rgba(255, 255, 255, 0.94);
+      padding: 8rpx 18rpx;
       border-radius: 30rpx;
       display: flex;
       align-items: baseline;
-      box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
+      box-shadow: 0 10rpx 24rpx rgba(15, 23, 42, 0.12);
       
       .score {
         font-size: 28rpx;
         font-weight: 700;
-        color: #FF9500;
+        color: #b45309;
         margin-right: 4rpx;
       }
       .unit {
         font-size: 20rpx;
-        color: #606266;
+        color: #6b7280;
       }
     }
   }
   
   .card-info {
-    padding: 24rpx;
+    padding: 24rpx 24rpx 26rpx;
     
     .card-header {
       margin-bottom: 12rpx;
       .title {
         font-size: 32rpx;
         font-weight: 600;
-        color: #303133;
+        color: #111827;
         line-height: 1.4;
       }
     }
@@ -891,16 +980,17 @@ onMounted(() => {
       
       .tag {
         font-size: 22rpx;
-        padding: 4rpx 12rpx;
-        border-radius: 6rpx;
+        padding: 8rpx 16rpx;
+        border-radius: 999rpx;
         
         &.location {
-          background: #F2F6FC;
-          color: #606266;
+          background: rgba(15, 23, 42, 0.06);
+          color: #4b5563;
         }
         &.category {
-          background: #ECF5FF;
-          color: #2563eb;
+          background: rgba(255, 255, 255, 0.72);
+          color: #111827;
+          border: 1rpx solid rgba(15, 23, 42, 0.08);
         }
       }
     }
@@ -911,19 +1001,19 @@ onMounted(() => {
       align-items: center;
       
       .price-box {
-        color: #FF3B30;
+        color: #9f1239;
         display: flex;
         align-items: baseline;
         
         .symbol { font-size: 24rpx; margin-right: 2rpx; }
         .num { font-size: 40rpx; font-weight: 700; }
-        .label { font-size: 22rpx; color: #909399; margin-left: 4rpx; font-weight: normal;}
+        .label { font-size: 22rpx; color: #6b7280; margin-left: 4rpx; font-weight: normal;}
       }
       
       .heat-box {
         .heat-text {
           font-size: 22rpx;
-          color: #909399;
+          color: #6b7280;
         }
       }
     }
@@ -943,16 +1033,17 @@ onMounted(() => {
   }
   
   text {
-    color: #909399;
+    color: #6b7280;
     font-size: 28rpx;
     margin-bottom: 40rpx;
   }
   
   .reset-btn {
     padding: 16rpx 48rpx;
-    border: 1rpx solid #DCDFE6;
+    border: 1rpx solid rgba(15, 23, 42, 0.12);
     border-radius: 36rpx;
-    color: #606266;
+    color: #374151;
+    background: rgba(255, 255, 255, 0.72);
     font-size: 26rpx;
   }
 }
@@ -960,7 +1051,7 @@ onMounted(() => {
 .loading-state, .no-more {
   text-align: center;
   padding: 30rpx 0;
-  color: #C0C4CC;
+  color: #9ca3af;
   font-size: 24rpx;
 }
 </style>

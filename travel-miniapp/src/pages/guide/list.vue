@@ -1,11 +1,11 @@
 <!-- 攻略列表页 -->
 <template>
   <view class="ios-page">
-    <!-- 顶部状态区域 -->
-    <view class="list-state-card">
-      <view class="state-main">
-        <text class="state-title">攻略列表</text>
-        <text class="state-desc">{{ currentStateText }}</text>
+    <view class="hero-card">
+      <view class="hero-copy">
+        <text class="hero-eyebrow">旅行灵感</text>
+        <text class="hero-title">从真实经验里挑一份更适合当下的攻略</text>
+        <text class="hero-subtitle">{{ currentStateText }}</text>
       </view>
       <view class="state-actions">
         <text
@@ -13,16 +13,16 @@
           :class="{ active: sortBy === 'time' }"
           @click="changeSort('time')"
         >
-          最新优先
+          最新发布
         </text>
         <text
           class="sort-chip"
           :class="{ active: sortBy === 'category' }"
           @click="changeSort('category')"
         >
-          分类排序
+          按主题看
         </text>
-        <text class="reset-link" @click="resetFilters">重置</text>
+        <text class="reset-link" @click="resetFilters">清空</text>
       </view>
     </view>
 
@@ -56,11 +56,14 @@
       >
         <image class="guide-cover" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
         <view class="guide-info">
+          <view class="guide-label-row">
+            <text class="guide-category">{{ guide.category }}</text>
+            <text class="guide-views">{{ guide.viewCount }} 次浏览</text>
+          </view>
           <text class="guide-title">{{ guide.title }}</text>
           <text class="guide-summary">{{ guide.summary }}</text>
           <view class="guide-meta">
-            <text class="guide-category">{{ guide.category }}</text>
-            <text class="guide-views">👁 {{ guide.viewCount }}</text>
+            <text class="guide-meta-text">打开查看完整路线与行程建议</text>
           </view>
         </view>
       </view>
@@ -103,9 +106,9 @@ const hasMore = computed(() => guideList.value.length < total.value)
 
 // 计算属性
 const currentStateText = computed(() => {
-  const categoryText = currentCategory.value ? `分类：${currentCategory.value}` : '全部分类'
-  const sortText = sortBy.value === 'category' ? '分类排序' : '最新优先'
-  return `${categoryText} · 共 ${total.value} 条 · ${sortText}`
+  const categoryText = currentCategory.value ? currentCategory.value : '全部主题'
+  const sortText = sortBy.value === 'category' ? '按主题整理' : '按发布时间整理'
+  return `${categoryText} · ${total.value} 篇内容 · ${sortText}`
 })
 
 // 数据加载方法
@@ -229,120 +232,155 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
 }
 
-.list-state-card {
-  padding: 24rpx 32rpx 20rpx;
-  background: #fff;
-  border-bottom: 1px solid #F2F2F7;
+.hero-card {
+  margin: 24rpx 24rpx 18rpx;
+  padding: 30rpx 28rpx 26rpx;
+  border-radius: 32rpx;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.86);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
-.state-main {
+.hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 10rpx;
 }
 
-.state-title {
-  font-size: 34rpx;
-  font-weight: 700;
-  color: #1C1C1E;
+.hero-eyebrow {
+  font-size: 22rpx;
+  letter-spacing: 4rpx;
+  color: #71717a;
 }
 
-.state-desc {
+.hero-title {
+  font-size: 42rpx;
+  line-height: 1.3;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.hero-subtitle {
   font-size: 24rpx;
-  color: #6b7280;
+  line-height: 1.6;
+  color: #52525b;
 }
 
 .state-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 16rpx;
-  margin-top: 18rpx;
+  margin-top: 22rpx;
 }
 
 .sort-chip {
-  padding: 10rpx 22rpx;
+  padding: 12rpx 24rpx;
   border-radius: 999rpx;
-  background: #f4f6fb;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1rpx solid rgba(15, 23, 42, 0.08);
   font-size: 24rpx;
-  color: #6b7280;
+  color: #52525b;
 }
 
 .sort-chip.active {
-  background: rgba(0, 122, 255, 0.1);
-  color: #2563eb;
+  background: rgba(24, 24, 27, 0.92);
+  border-color: rgba(24, 24, 27, 0.92);
+  color: #fafafa;
 }
 
 .reset-link {
   margin-left: auto;
   font-size: 24rpx;
-  color: #2563eb;
+  color: #a16207;
 }
 
 /* 分类栏 */
 .category-bar {
   white-space: nowrap;
-  background: #fff;
-  padding: 20rpx 32rpx;
-  border-bottom: 1px solid #F2F2F7;
+  padding: 0 24rpx 12rpx;
+  box-sizing: border-box;
 }
 
 .category-item {
   display: inline-block;
-  padding: 14rpx 32rpx;
+  padding: 14rpx 28rpx;
   margin-right: 16rpx;
-  background: #f4f6fb;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 100rpx;
   font-size: 26rpx;
-  color: #6b7280;
+  color: #52525b;
+  box-shadow:
+    0 12rpx 30rpx rgba(15, 23, 42, 0.05),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
 }
 
 .category-item.active {
-  background: #2563eb;
-  color: #fff;
+  background: rgba(24, 24, 27, 0.92);
+  border-color: rgba(24, 24, 27, 0.92);
+  color: #fafafa;
 }
 
 /* 攻略列表 */
 .guide-list {
   flex: 1;
-  padding: 24rpx 32rpx;
+  padding: 12rpx 24rpx 36rpx;
   box-sizing: border-box;
 }
 
 .guide-card {
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
   overflow: hidden;
   margin-bottom: 24rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
   width: 100%;
 }
 
 .guide-cover {
   width: 100%;
-  height: 300rpx;
+  height: 320rpx;
   display: block;
 }
 
 .guide-info {
-  padding: 24rpx;
+  padding: 24rpx 24rpx 26rpx;
+}
+
+.guide-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 14rpx;
 }
 
 .guide-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #1C1C1E;
+  color: #18181b;
   display: block;
   margin-bottom: 12rpx;
+  line-height: 1.4;
 }
 
 .guide-summary {
   font-size: 26rpx;
-  color: #6b7280;
+  color: #52525b;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -351,23 +389,25 @@ onShow(() => {
 }
 
 .guide-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-top: 16rpx;
 }
 
 .guide-category {
   font-size: 24rpx;
-  color: #2563eb;
-  background: rgba(0, 122, 255, 0.1);
-  padding: 6rpx 16rpx;
+  color: #18181b;
+  background: rgba(24, 24, 27, 0.06);
+  padding: 8rpx 18rpx;
   border-radius: 100rpx;
 }
 
 .guide-views {
   font-size: 24rpx;
-  color: #6b7280;
+  color: #71717a;
+}
+
+.guide-meta-text {
+  font-size: 23rpx;
+  color: #71717a;
 }
 
 /* 加载状态 */
@@ -375,7 +415,7 @@ onShow(() => {
 .no-more {
   text-align: center;
   padding: 30rpx;
-  color: #6b7280;
+  color: #71717a;
   font-size: 26rpx;
 }
 
@@ -389,16 +429,16 @@ onShow(() => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #6b7280;
+  color: #71717a;
 }
 
 .empty-reset {
   margin-top: 28rpx;
   padding: 14rpx 36rpx;
   border-radius: 999rpx;
-  background: #fff;
-  border: 1px solid #d1d5db;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   font-size: 24rpx;
-  color: #4B5563;
+  color: #3f3f46;
 }
 </style>
