@@ -1,7 +1,11 @@
 <!-- 账号资料页 -->
 <template>
   <view class="profile-page">
-    <!-- 基本资料区域 -->
+    <view class="hero-card">
+      <text class="hero-title">账号资料</text>
+      <text class="hero-subtitle">更新头像、昵称与联系方式，保持你的旅行身份信息完整。</text>
+    </view>
+
     <view class="profile-card">
       <text class="card-title">基本资料</text>
 
@@ -157,14 +161,45 @@ onShow(async () => {
 .profile-page {
   min-height: 100vh;
   padding: 24rpx 32rpx;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
+}
+
+.hero-card {
+  margin-bottom: 24rpx;
+  padding: 28rpx;
+  border-radius: 34rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #52525b;
 }
 
 .profile-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 40rpx;
   padding: 32rpx 28rpx;
-  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.05);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .profile-card + .profile-card {
@@ -239,7 +274,7 @@ onShow(async () => {
   height: 84rpx;
   line-height: 84rpx;
   border-radius: 18rpx;
-  background: #0F766E;
+  background: #18181b;
   color: #fff;
   font-size: 30rpx;
   font-weight: 600;

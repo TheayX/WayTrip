@@ -288,16 +288,21 @@ onLoad(async (options) => {
 .nearby-page {
   min-height: 100vh;
   padding: 24rpx;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
 }
 
 .hero-card,
 .map-card,
 .spot-card,
 .empty-state {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.06);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .hero-card {
@@ -329,13 +334,13 @@ onLoad(async (options) => {
   gap: 8rpx;
   padding: 14rpx 18rpx;
   border-radius: 999rpx;
-  background: #eff6ff;
-  color: #2563eb;
+  background: rgba(17, 24, 39, 0.06);
+  color: #111827;
 }
 
 .hero-action-text {
   font-size: 22rpx;
-  color: #2563eb;
+  color: #111827;
 }
 
 .map-card {
@@ -355,8 +360,8 @@ onLoad(async (options) => {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.18), transparent 28%),
-    linear-gradient(135deg, #e0f2fe 0%, #dbeafe 55%, #f8fafc 100%);
+    radial-gradient(circle at 20% 20%, rgba(190, 24, 93, 0.12), transparent 28%),
+    linear-gradient(135deg, #fdf2f8 0%, #eef2ff 55%, #f8fafc 100%);
 }
 
 .placeholder-grid {
@@ -364,7 +369,7 @@ onLoad(async (options) => {
   inset: 0;
   background-image:
     linear-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(37, 99, 235, 0.08) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(190, 24, 93, 0.06) 1px, transparent 1px);
   background-size: 32rpx 32rpx;
 }
 
@@ -372,7 +377,7 @@ onLoad(async (options) => {
   position: relative;
   z-index: 1;
   font-size: 26rpx;
-  color: #1d4ed8;
+  color: #4b5563;
 }
 
 .spot-list {
@@ -412,7 +417,7 @@ onLoad(async (options) => {
 
 .spot-distance {
   font-size: 24rpx;
-  color: #2563eb;
+  color: #111827;
 }
 
 .spot-meta {
@@ -425,7 +430,7 @@ onLoad(async (options) => {
 .spot-tag {
   padding: 6rpx 14rpx;
   border-radius: 999rpx;
-  background: #eef2ff;
+  background: rgba(17, 24, 39, 0.06);
   font-size: 22rpx;
   color: #4b5563;
 }
@@ -437,7 +442,7 @@ onLoad(async (options) => {
 .spot-price {
   font-size: 32rpx;
   font-weight: 700;
-  color: #ef4444;
+  color: #9f1239;
 }
 
 .spot-rating {
@@ -476,7 +481,7 @@ onLoad(async (options) => {
   margin-top: 28rpx;
   padding: 18rpx 40rpx;
   border-radius: 999rpx;
-  background: #2563eb;
+  background: #111827;
   color: #ffffff;
   font-size: 26rpx;
 }

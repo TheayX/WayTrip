@@ -1,9 +1,13 @@
 <!-- 账号注销页 -->
 <template>
   <view class="deactivate-page">
-    <!-- 风险提示区域 -->
+    <view class="hero-card">
+      <text class="hero-title">注销账户</text>
+      <text class="hero-subtitle">这是高风险操作，确认前请先了解数据与恢复方式。</text>
+    </view>
+
     <view class="warning-card">
-      <view class="warning-icon">⚠️</view>
+      <view class="warning-icon">风险提示</view>
       <text class="warning-title">注销账户</text>
       <text class="warning-desc">注销后你将无法使用此账户登录，所有数据将被保留。</text>
     </view>
@@ -88,23 +92,64 @@ const doDeactivate = async () => {
 
 <style scoped>
 .deactivate-page {
-  background-color: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
   min-height: 100vh;
   padding: 20rpx 32rpx;
   padding-top: 40rpx;
 }
 
+.hero-card {
+  margin-bottom: 24rpx;
+  padding: 28rpx;
+  border-radius: 34rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #52525b;
+}
+
 .warning-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
   padding: 48rpx 32rpx;
   text-align: center;
   margin-bottom: 40rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .warning-icon {
-  font-size: 80rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 132rpx;
+  height: 56rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: rgba(190, 24, 93, 0.1);
+  color: #9f1239;
+  font-size: 24rpx;
+  font-weight: 600;
   margin-bottom: 16rpx;
 }
 
@@ -124,11 +169,14 @@ const doDeactivate = async () => {
 }
 
 .info-section {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
   padding: 32rpx;
   margin-bottom: 40rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .info-title {
@@ -169,7 +217,7 @@ const doDeactivate = async () => {
   flex: 1;
   height: 88rpx;
   line-height: 88rpx;
-  background: #f4f6fb;
+  background: rgba(17, 24, 39, 0.06);
   color: #666;
   border: none;
   border-radius: 36rpx;
@@ -181,7 +229,7 @@ const doDeactivate = async () => {
   flex: 1;
   height: 88rpx;
   line-height: 88rpx;
-  background: #FF3B30;
+  background: #9f1239;
   color: #fff;
   border: none;
   border-radius: 36rpx;

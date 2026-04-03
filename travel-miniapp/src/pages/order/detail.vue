@@ -3,7 +3,7 @@
   <view class="ios-page" v-if="order">
     <!-- 订单状态区域 -->
     <view class="status-card" :class="order.status">
-      <text class="status-icon">{{ getStatusIcon(order.status) }}</text>
+      <text class="status-kicker">订单状态</text>
       <text class="status-text">{{ order.statusText }}</text>
       <text class="status-desc">{{ getStatusDesc(order.status) }}</text>
       <text v-if="order.status === 'pending' && countdownText" class="countdown-text">
@@ -108,17 +108,6 @@ const fetchOrderDetail = async () => {
 }
 
 // 工具方法
-const getStatusIcon = (status) => {
-  const icons = {
-    pending: '⏳',
-    paid: '✅',
-    completed: '🎉',
-    cancelled: '❌',
-    refunded: '💰'
-  }
-  return icons[status] || '🧾'
-}
-
 const getStatusDesc = (status) => {
   const descs = {
     pending: '请在5分钟内完成支付',
@@ -233,7 +222,9 @@ onUnload(() => {
 <style scoped>
 .ios-page {
   min-height: 100vh;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
   padding-bottom: 180rpx;
 }
 
@@ -243,38 +234,39 @@ onUnload(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 40rpx;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 16rpx 40rpx rgba(0, 0, 0, 0.08); /* default */
+  box-shadow: 0 16rpx 40rpx rgba(0, 0, 0, 0.08);
 }
 
 .status-card.pending {
-  background: linear-gradient(135deg, #FF9500, #FFCC00);
-  box-shadow: 0 16rpx 40rpx rgba(255, 149, 0, 0.25);
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  box-shadow: 0 16rpx 40rpx rgba(245, 158, 11, 0.22);
 }
 .status-card.paid {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 16rpx 40rpx rgba(37, 99, 235, 0.25);
+  background: linear-gradient(135deg, #18181b, #3f3f46);
+  box-shadow: 0 16rpx 40rpx rgba(24, 24, 27, 0.2);
 }
 .status-card.completed {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 16rpx 40rpx rgba(16, 185, 129, 0.25);
+  background: linear-gradient(135deg, #0f766e, #115e59);
+  box-shadow: 0 16rpx 40rpx rgba(15, 118, 110, 0.2);
 }
 .status-card.cancelled {
-  background: linear-gradient(135deg, #94a3b8, #64748b);
+  background: linear-gradient(135deg, #64748b, #475569);
   box-shadow: 0 16rpx 40rpx rgba(100, 116, 139, 0.25);
 }
 .status-card.refunded {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  box-shadow: 0 16rpx 40rpx rgba(239, 68, 68, 0.25);
+  background: linear-gradient(135deg, #be123c, #9f1239);
+  box-shadow: 0 16rpx 40rpx rgba(190, 24, 93, 0.22);
 }
 
-.status-icon {
-  font-size: 72rpx;
-  margin-bottom: 24rpx;
-  filter: drop-shadow(0 4rpx 8rpx rgba(0,0,0,0.1));
+.status-kicker {
+  font-size: 22rpx;
+  letter-spacing: 4rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 18rpx;
 }
 
 .status-text {
@@ -305,9 +297,12 @@ onUnload(() => {
   align-items: center;
   margin: 0 32rpx 24rpx;
   padding: 24rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .spot-image {
@@ -344,9 +339,12 @@ onUnload(() => {
 .info-card {
   margin: 0 32rpx 24rpx;
   padding: 32rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .info-title {
@@ -393,7 +391,7 @@ onUnload(() => {
 }
 
 .total-price {
-  color: #ef4444;
+  color: #9f1239;
   font-size: 40rpx;
   font-weight: 800;
 }
@@ -425,19 +423,19 @@ onUnload(() => {
 }
 
 .action-btn.cancel {
-  background: #f8fafc;
-  color: #64748b;
+  background: rgba(17, 24, 39, 0.06);
+  color: #52525b;
 }
 
 .action-btn.pay {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: #18181b;
   color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.3);
+  box-shadow: 0 10rpx 24rpx rgba(24, 24, 27, 0.18);
 }
 
 .action-btn.review {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(16, 185, 129, 0.3);
+  background: rgba(255, 255, 255, 0.72);
+  color: #18181b;
+  border: 1rpx solid rgba(15, 23, 42, 0.12);
 }
 </style>

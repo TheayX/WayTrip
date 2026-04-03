@@ -115,9 +115,9 @@ onShow(() => {
 </script>
 
 <style scoped>
-.reviews-page { min-height: 100vh; padding: 24rpx; background: #f4f6fb; }
-.hero-card, .tab-bar, .review-card, .empty-card { background: #fff; border-radius: 32rpx; box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05); }
-.hero-card { padding: 32rpx 28rpx; background: linear-gradient(135deg, #eff6ff 0%, #ffffff 56%, #eef2ff 100%); }
+.reviews-page { min-height: 100vh; padding: 24rpx; background: radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%), linear-gradient(180deg, #fafafa 0%, #eef2f7 100%); }
+.hero-card, .tab-bar, .review-card, .empty-card { background: rgba(255, 255, 255, 0.78); border: 1rpx solid rgba(255, 255, 255, 0.84); border-radius: 32rpx; box-shadow: 0 18rpx 48rpx rgba(15, 23, 42, 0.08), inset 0 1rpx 0 rgba(255, 255, 255, 0.82); }
+.hero-card { padding: 32rpx 28rpx; background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%); }
 .hero-stats { display: flex; gap: 18rpx; margin-top: 22rpx; }
 .hero-stat { flex: 1; padding: 18rpx 20rpx; border-radius: 24rpx; background: rgba(255, 255, 255, 0.72); }
 .hero-stat-value { display: block; font-size: 34rpx; font-weight: 700; color: #111827; }
@@ -126,7 +126,7 @@ onShow(() => {
 .hero-desc { display: block; margin-top: 14rpx; font-size: 26rpx; line-height: 1.7; color: #64748b; }
 .tab-bar { display: flex; gap: 12rpx; margin-top: 24rpx; padding: 10rpx; }
 .tab-item { flex: 1; height: 76rpx; line-height: 76rpx; text-align: center; border-radius: 24rpx; font-size: 28rpx; font-weight: 600; color: #6b7280; }
-.tab-item.active { background: #2563eb; color: #fff; }
+.tab-item.active { background: #18181b; color: #fff; }
 .review-card { margin-top: 22rpx; padding: 26rpx; }
 .review-header { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
 .user-box { display: flex; align-items: center; gap: 16rpx; min-width: 0; }
@@ -141,7 +141,7 @@ onShow(() => {
 .comment { display: block; margin-top: 20rpx; font-size: 27rpx; line-height: 1.8; color: #334155; display: -webkit-box; overflow: hidden; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
 .review-footer { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; margin-top: 22rpx; }
 .footer-text { font-size: 22rpx; color: #94a3b8; }
-.footer-link { font-size: 24rpx; color: #2563eb; }
+.footer-link { font-size: 24rpx; color: #18181b; }
 .empty-card { margin-top: 22rpx; padding: 36rpx 28rpx; }
 .empty-title { display: block; font-size: 28rpx; font-weight: 700; color: #1f2937; }
 .empty-desc { display: block; margin-top: 14rpx; font-size: 25rpx; line-height: 1.7; color: #64748b; }

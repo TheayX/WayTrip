@@ -1,7 +1,11 @@
 <!-- 我的互动页 -->
 <template>
   <view class="activity-page">
-    <!-- 顶部类型切换 -->
+    <view class="hero-card">
+      <text class="hero-title">我的互动</text>
+      <text class="hero-subtitle">集中查看浏览足迹、收藏景点和你留下的评价。</text>
+    </view>
+
     <view class="tab-bar">
       <view
         v-for="tab in tabs"
@@ -418,7 +422,35 @@ onShow(async () => {
 <style scoped>
 .activity-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f4f6fb 0%, #eef3f8 100%);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
+}
+
+.hero-card {
+  margin: 24rpx 24rpx 16rpx;
+  padding: 28rpx;
+  border-radius: 34rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #52525b;
 }
 
 .tab-bar {
@@ -427,8 +459,8 @@ onShow(async () => {
   z-index: 10;
   display: flex;
   gap: 16rpx;
-  padding: 20rpx 24rpx 16rpx;
-  background: rgba(244, 246, 251, 0.85);
+  padding: 0 24rpx 16rpx;
+  background: rgba(248, 250, 252, 0.88);
   backdrop-filter: blur(12px);
 }
 
@@ -445,8 +477,8 @@ onShow(async () => {
 }
 
 .tab-item.active {
-  background: #2563eb;
-  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.25);
+  background: #18181b;
+  box-shadow: 0 8rpx 20rpx rgba(24, 24, 27, 0.18);
 }
 
 .tab-label {
@@ -477,8 +509,11 @@ onShow(async () => {
   gap: 24rpx;
   padding: 24rpx;
   border-radius: 36rpx;
-  background: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .browse-image,
@@ -543,7 +578,7 @@ onShow(async () => {
 
 .favorite-price {
   font-size: 32rpx;
-  color: #ef4444;
+  color: #9f1239;
   font-weight: 800;
 }
 
@@ -588,8 +623,8 @@ onShow(async () => {
 }
 
 .ghost-btn {
-  color: #2563eb;
-  background: #eff6ff;
+  color: #18181b;
+  background: rgba(17, 24, 39, 0.06);
 }
 
 .danger-btn {
@@ -604,8 +639,8 @@ onShow(async () => {
 
 .primary-btn {
   color: #fff;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.3);
+  background: #18181b;
+  box-shadow: 0 10rpx 24rpx rgba(24, 24, 27, 0.18);
 }
 
 .load-more {
