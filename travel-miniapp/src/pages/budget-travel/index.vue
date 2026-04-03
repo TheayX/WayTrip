@@ -115,7 +115,7 @@ import {
 } from '@/services/budget-travel'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
-import { getImageUrl } from '@/utils/request'
+import { getImageUrl } from '@/utils/client'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 const tabs = [

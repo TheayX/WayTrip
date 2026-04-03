@@ -87,7 +87,7 @@ import { ref, computed, onMounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getGuideList, getCategories } from '@/api/guide'
 import { promptLogin } from '@/utils/auth'
-import { getImageUrl } from '@/utils/request'
+import { getImageUrl } from '@/utils/client'
 
 // 页面数据状态
 const categories = ref([])

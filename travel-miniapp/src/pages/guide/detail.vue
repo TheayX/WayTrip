@@ -58,7 +58,7 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getGuideDetail } from '@/api/guide'
 import { guardLoginPage } from '@/utils/auth'
-import { getImageUrl } from '@/utils/request'
+import { getImageUrl } from '@/utils/client'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 页面数据状态

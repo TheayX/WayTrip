@@ -1,5 +1,5 @@
 // 攻略相关接口
-import { get } from '@/utils/request'
+import { get } from '@/utils/client'
 
 /**
  * 获取攻略列表

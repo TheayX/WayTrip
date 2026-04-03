@@ -162,7 +162,7 @@ import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, submitReview } from '@/api/review'
 import { guardLoginPage } from '@/utils/auth'
 import { getLocationSnapshot } from '@/utils/location'
-import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
+import { getAvatarUrl, getContentImageUrl } from '@/utils/client'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 

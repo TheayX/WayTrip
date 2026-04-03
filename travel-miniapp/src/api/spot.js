@@ -1,5 +1,5 @@
 // 景点相关API接口
-import { get, post } from '@/utils/request'
+import { get, post } from '@/utils/client'
 
 /**
  * 获取景点列表

@@ -532,7 +532,7 @@ jdbc:mysql://localhost:3306/waytrip_db
 - `controller` 只承接接口，不下沉业务细节
 - `service/impl` 放主业务实现或门面实现
 - `service/support` 放被多个服务复用的支撑逻辑
-- `dto` 按模块拆分，优先使用 `request / response / query / item / stats / config`
+- `dto` 按模块拆分，优先使用 `client / response / query / item / stats / config`
 - `util` 只放真正通用、无业务状态的工具类
 
 ### 12.2 推荐的开发方式

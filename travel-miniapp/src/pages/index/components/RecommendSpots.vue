@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { getContentImageUrl } from '@/utils/request'
+import { getContentImageUrl } from '@/utils/client'
 
 defineProps({
   isLoggedIn: { type: Boolean, default: false },

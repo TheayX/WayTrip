@@ -65,7 +65,7 @@
 import { ref, reactive } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getOrderList, cancelOrder } from '@/api/order'
-import { getImageUrl } from '@/utils/request'
+import { getImageUrl } from '@/utils/client'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 常量配置
