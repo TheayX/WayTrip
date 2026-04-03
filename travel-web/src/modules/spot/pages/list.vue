@@ -1,14 +1,9 @@
 <!-- 景点列表页 -->
 <template>
   <div class="page-container spot-list-page">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>景点列表</el-breadcrumb-item>
-    </el-breadcrumb>
-
-    <section class="search-strip card" @click="$router.push('/search')">
+    <section class="search-strip premium-card" @click="$router.push('/search')">
       <el-icon><Search /></el-icon>
-      <span>搜索景点名称 / 城市</span>
+      <span>搜索景点名称 / 城市 / 分类</span>
     </section>
 
     <SpotListToolbar
@@ -26,8 +21,11 @@
       @change="handleFilter"
     />
 
-    <section class="active-filters" v-if="activeFilterTags.length">
-      <span v-for="tag in activeFilterTags" :key="tag" class="tag-chip">{{ tag }}</span>
+    <section class="active-filters premium-card" v-if="activeFilterTags.length">
+      <p class="filter-kicker">Active Filters</p>
+      <div class="tag-row">
+        <span v-for="tag in activeFilterTags" :key="tag" class="tag-chip">{{ tag }}</span>
+      </div>
     </section>
 
     <section v-loading="loading" class="spot-grid">
@@ -227,6 +225,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  padding-top: 4px;
 }
 
 .search-strip {
@@ -234,11 +233,24 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #909399;
+  color: #64748b;
   cursor: pointer;
 }
 
 .active-filters {
+  padding: 18px 20px;
+}
+
+.filter-kicker {
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.tag-row {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -247,21 +259,18 @@ onMounted(async () => {
 .tag-chip {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
+  min-height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
   background: #e8f1ff;
   color: #2563eb;
   font-size: 13px;
-}
-
-.tag-chip.plain {
-  background: #f3f4f6;
-  color: #4b5563;
+  font-weight: 600;
 }
 
 .spot-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
   min-height: 200px;
 }
@@ -274,7 +283,7 @@ onMounted(async () => {
 
 @media (max-width: 992px) {
   .spot-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

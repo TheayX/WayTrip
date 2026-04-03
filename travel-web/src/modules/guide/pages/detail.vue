@@ -1,25 +1,15 @@
 <!-- 攻略详情页 -->
 <template>
   <div class="page-container" v-if="guide">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: '/guides' }">攻略</el-breadcrumb-item>
-      <el-breadcrumb-item>{{ guide.title }}</el-breadcrumb-item>
-    </el-breadcrumb>
-
     <div class="guide-detail-layout">
       <div class="guide-main">
-        <!-- 封面图 -->
         <img :src="getImageUrl(guide.coverImage)" class="guide-cover" alt="" />
 
-        <!-- 标题信息 -->
         <GuideDetailHeader :guide="guide" />
 
-        <!-- 攻略内容 -->
-        <div class="guide-content card" v-html="guide.content"></div>
+        <div class="guide-content premium-card" v-html="guide.content"></div>
       </div>
 
-      <!-- 侧边栏 - 关联景点 -->
       <GuideRelatedSpotSidebar
         :spots="guide.relatedSpots || []"
         @select="$router.push(`/spots/${$event.id}?source=guide`)"
@@ -79,7 +69,7 @@ onMounted(() => {
 .guide-detail-layout {
   display: flex;
   gap: 24px;
-  margin-top: 8px;
+  padding-top: 4px;
 }
 
 .guide-main {
@@ -89,23 +79,34 @@ onMounted(() => {
 
 .guide-cover {
   width: 100%;
-  height: 400px;
+  height: 430px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 28px;
 }
 
 .guide-content {
-  padding: 24px;
-  margin-top: 16px;
-  border-radius: 12px;
-  line-height: 1.8;
+  padding: 28px;
+  margin-top: 18px;
+  line-height: 1.9;
   font-size: 15px;
-  color: #303133;
+  color: #334155;
+
+  :deep(h1),
+  :deep(h2),
+  :deep(h3) {
+    color: #0f172a;
+    line-height: 1.35;
+    margin: 1.3em 0 0.7em;
+  }
+
+  :deep(p) {
+    margin: 1em 0;
+  }
 
   :deep(img) {
     max-width: 100%;
-    border-radius: 8px;
-    margin: 12px 0;
+    border-radius: 16px;
+    margin: 16px 0;
   }
 }
 
@@ -113,6 +114,9 @@ onMounted(() => {
   .guide-detail-layout {
     flex-direction: column;
   }
+
+  .guide-cover {
+    height: 320px;
+  }
 }
 </style>
-
