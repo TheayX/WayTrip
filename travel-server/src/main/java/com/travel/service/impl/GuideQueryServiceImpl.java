@@ -49,6 +49,14 @@ public class GuideQueryServiceImpl implements GuideQueryService {
         wrapper.eq(Guide::getIsPublished, 1);
         wrapper.eq(Guide::getIsDeleted, 0);
 
+        // 用户端综合搜索会复用攻略列表接口，这里直接补关键词过滤，避免再新增一套平行搜索接口。
+        if (StringUtils.hasText(request.getKeyword())) {
+            wrapper.and(query -> query
+                .like(Guide::getTitle, request.getKeyword())
+                .or()
+                .like(Guide::getContent, request.getKeyword()));
+        }
+
         if (StringUtils.hasText(request.getCategory())) {
             wrapper.eq(Guide::getCategory, request.getCategory());
         }
