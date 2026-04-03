@@ -84,7 +84,7 @@
           <text class="guide-summary">{{ item.summary || '这篇攻略里提到的景点更适合低预算出行。' }}</text>
           <view class="guide-meta">
             <text class="meta-tag">{{ item.category || '攻略' }}</text>
-            <text class="meta-tag">👁 {{ item.viewCount || 0 }}</text>
+            <text class="meta-tag">{{ item.viewCount || 0 }} 次浏览</text>
             <text class="meta-tag">关联景点 {{ item.relatedCount }}</text>
           </view>
         </view>
@@ -220,9 +220,9 @@ onLoad(() => {
 </script>
 
 <style scoped>
-.budget-page { min-height: 100vh; padding: 24rpx; background: #f4f6fb; }
-.hero-card, .tab-bar, .spot-card, .guide-card, .empty-card { background: #fff; border-radius: 32rpx; box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05); }
-.hero-card { padding: 32rpx 28rpx; background: linear-gradient(135deg, #fff7ed 0%, #ffffff 56%, #fffbeb 100%); }
+.budget-page { min-height: 100vh; padding: 24rpx; background: radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%), linear-gradient(180deg, #fafafa 0%, #eef2f7 100%); }
+.hero-card, .tab-bar, .spot-card, .guide-card, .empty-card { background: rgba(255, 255, 255, 0.78); border: 1rpx solid rgba(255, 255, 255, 0.84); border-radius: 32rpx; box-shadow: 0 18rpx 48rpx rgba(15, 23, 42, 0.08), inset 0 1rpx 0 rgba(255, 255, 255, 0.82); }
+.hero-card { padding: 32rpx 28rpx; background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%); }
 .hero-title { display: block; font-size: 40rpx; font-weight: 700; color: #111827; }
 .hero-desc { display: block; margin-top: 14rpx; font-size: 26rpx; line-height: 1.7; color: #64748b; }
 .hero-stats { display: flex; gap: 18rpx; margin-top: 22rpx; }
@@ -231,12 +231,12 @@ onLoad(() => {
 .hero-stat-label { display: block; margin-top: 8rpx; font-size: 22rpx; color: #64748b; }
 .tab-bar { display: flex; gap: 12rpx; margin-top: 24rpx; padding: 10rpx; }
 .tab-item { flex: 1; height: 76rpx; line-height: 76rpx; text-align: center; border-radius: 24rpx; font-size: 28rpx; font-weight: 600; color: #6b7280; }
-.tab-item.active { background: #f97316; color: #fff; }
-.filter-card { margin-top: 18rpx; padding: 20rpx 22rpx; border-radius: 26rpx; background: #ffffff; box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05); }
+.tab-item.active { background: #18181b; color: #fff; }
+.filter-card { margin-top: 18rpx; padding: 20rpx 22rpx; border-radius: 26rpx; background: rgba(255, 255, 255, 0.78); border: 1rpx solid rgba(255, 255, 255, 0.84); box-shadow: 0 18rpx 48rpx rgba(15, 23, 42, 0.08), inset 0 1rpx 0 rgba(255, 255, 255, 0.82); }
 .filter-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12rpx; }
 .filter-chip { min-width: 140rpx; height: 64rpx; line-height: 64rpx; padding: 0 24rpx; border-radius: 999rpx; text-align: center; background: #f8fafc; font-size: 24rpx; color: #64748b; }
-.filter-chip.active { background: rgba(249, 115, 22, 0.12); color: #ea580c; font-weight: 600; }
-.summary-card { margin-top: 18rpx; padding: 22rpx 24rpx; border-radius: 26rpx; background: #ffffff; box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05); }
+.filter-chip.active { background: rgba(17, 24, 39, 0.08); color: #18181b; font-weight: 600; }
+.summary-card { margin-top: 18rpx; padding: 22rpx 24rpx; border-radius: 26rpx; background: rgba(255, 255, 255, 0.78); border: 1rpx solid rgba(255, 255, 255, 0.84); box-shadow: 0 18rpx 48rpx rgba(15, 23, 42, 0.08), inset 0 1rpx 0 rgba(255, 255, 255, 0.82); }
 .summary-title { display: block; font-size: 26rpx; font-weight: 700; color: #1f2937; }
 .summary-desc { display: block; margin-top: 10rpx; font-size: 23rpx; line-height: 1.7; color: #64748b; }
 .content-section { margin-top: 22rpx; }
@@ -246,7 +246,7 @@ onLoad(() => {
 .spot-content, .guide-content { padding: 24rpx; }
 .spot-header, .guide-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16rpx; }
 .spot-title, .guide-title { flex: 1; font-size: 32rpx; font-weight: 700; color: #111827; }
-.spot-price, .guide-price { font-size: 30rpx; font-weight: 700; color: #ea580c; }
+.spot-price, .guide-price { font-size: 30rpx; font-weight: 700; color: #9f1239; }
 .spot-desc, .guide-summary { display: block; margin-top: 14rpx; font-size: 25rpx; line-height: 1.7; color: #64748b; }
 .spot-meta, .guide-meta { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 18rpx; }
 .meta-tag, .meta-rating { padding: 8rpx 16rpx; border-radius: 999rpx; background: #f8fafc; font-size: 22rpx; color: #475569; }

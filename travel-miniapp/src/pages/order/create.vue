@@ -1,6 +1,11 @@
 <!-- 订单创建页 -->
 <template>
   <view class="ios-page" v-if="spot">
+    <view class="hero-card">
+      <text class="hero-title">确认订单</text>
+      <text class="hero-subtitle">核对出行日期、人数与联系人信息后提交订单。</text>
+    </view>
+
     <!-- 景点信息 -->
     <view class="spot-card">
       <image class="spot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
@@ -185,19 +190,49 @@ onLoad((options) => {
 <style scoped>
 .ios-page {
   min-height: 100vh;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
   padding-bottom: 160rpx;
 }
 
-/* 景点卡片 */
+.hero-card {
+  margin: 24rpx 32rpx 0;
+  padding: 28rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #52525b;
+}
+
 .spot-card {
   display: flex;
   align-items: center;
   margin: 24rpx 32rpx;
   padding: 24rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .spot-image {
@@ -221,7 +256,7 @@ onLoad((options) => {
 
 .spot-price {
   font-size: 28rpx;
-  color: #FF3B30;
+  color: #9f1239;
   font-weight: 600;
 }
 
@@ -229,9 +264,12 @@ onLoad((options) => {
 .form-card {
   margin: 0 32rpx 24rpx;
   padding: 0 24rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .form-item {
@@ -290,7 +328,7 @@ onLoad((options) => {
 .qty-btn {
   width: 60rpx;
   height: 60rpx;
-  background: #f4f6fb;
+  background: rgba(17, 24, 39, 0.06);
   border-radius: 32rpx;
   display: flex;
   align-items: center;
@@ -311,9 +349,12 @@ onLoad((options) => {
 .price-card {
   margin: 0 32rpx 24rpx;
   padding: 24rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .price-row {
@@ -333,7 +374,7 @@ onLoad((options) => {
 }
 
 .total-price {
-  color: #FF3B30;
+  color: #9f1239;
   font-size: 36rpx;
   font-weight: 700;
 }
@@ -366,7 +407,7 @@ onLoad((options) => {
 
 .total-info .amount {
   font-size: 40rpx;
-  color: #FF3B30;
+  color: #9f1239;
   font-weight: 700;
 }
 
@@ -374,7 +415,7 @@ onLoad((options) => {
   width: 280rpx;
   height: 88rpx;
   line-height: 88rpx;
-  background: #2563eb;
+  background: #18181b;
   color: #fff;
   font-size: 32rpx;
   font-weight: 600;

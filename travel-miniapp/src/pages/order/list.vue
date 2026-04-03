@@ -1,7 +1,11 @@
 <!-- 订单列表页 -->
 <template>
   <view class="ios-page">
-    <!-- 顶部状态切换 -->
+    <view class="hero-card">
+      <text class="hero-title">我的订单</text>
+      <text class="hero-subtitle">查看近期预订、支付进度与出行安排。</text>
+    </view>
+
     <view class="tabs">
       <view
         v-for="tab in tabs"
@@ -180,21 +184,50 @@ onShow(() => {
 <style scoped>
 .ios-page {
   min-height: 100vh;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
   display: flex;
   flex-direction: column;
 }
 
-/* Glassmorphism Tab Bar */
+.hero-card {
+  margin: 24rpx 24rpx 16rpx;
+  padding: 28rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #52525b;
+}
+
 .tabs {
   display: flex;
-  padding: 16rpx 24rpx;
+  padding: 0 24rpx 12rpx;
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(244, 246, 251, 0.85);
+  background: rgba(248, 250, 252, 0.88);
   backdrop-filter: blur(12px);
   gap: 16rpx;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
 .tab-item {
@@ -202,32 +235,37 @@ onShow(() => {
   text-align: center;
   padding: 18rpx 0;
   font-size: 26rpx;
-  color: #64748b;
+  color: #52525b;
   border-radius: 99rpx;
   font-weight: 500;
   transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1rpx solid rgba(255, 255, 255, 0.82);
 }
 
 .tab-item.active {
-  background: #2563eb;
+  background: #18181b;
   color: #fff;
   font-weight: 700;
-  box-shadow: 0 6rpx 16rpx rgba(37, 99, 235, 0.25);
+  box-shadow: 0 10rpx 24rpx rgba(24, 24, 27, 0.18);
 }
 
 .order-list {
   flex: 1;
   width: 100%;
   box-sizing: border-box;
-  padding: 24rpx 32rpx;
+  padding: 12rpx 24rpx 32rpx;
 }
 
 .order-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
   margin-bottom: 32rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
   width: 100%;
   box-sizing: border-box;
   padding: 28rpx;
@@ -300,7 +338,7 @@ onShow(() => {
 
 .price {
   font-size: 36rpx;
-  color: #ef4444;
+  color: #9f1239;
   font-weight: 800;
 }
 
@@ -330,20 +368,20 @@ onShow(() => {
 }
 
 .action-btn.cancel {
-  background: #f8fafc;
-  color: #64748b;
+  background: rgba(17, 24, 39, 0.06);
+  color: #52525b;
 }
 
 .action-btn.pay {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: #18181b;
   color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.3);
+  box-shadow: 0 10rpx 24rpx rgba(24, 24, 27, 0.18);
 }
 
 .action-btn.review {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(16, 185, 129, 0.3);
+  background: rgba(255, 255, 255, 0.72);
+  color: #18181b;
+  border: 1rpx solid rgba(15, 23, 42, 0.12);
 }
 
 .empty {

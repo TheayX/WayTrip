@@ -51,19 +51,24 @@ const entryGroups = getMoreEntryGroups()
 .more-page {
   min-height: 100vh;
   padding: 24rpx;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
 }
 
 .hero-card,
 .group-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 32rpx;
-  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .hero-card {
   padding: 34rpx 30rpx;
-  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 55%, #f5f3ff 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
 }
 
 .hero-title {
@@ -104,7 +109,7 @@ const entryGroups = getMoreEntryGroups()
   position: relative;
   padding: 24rpx;
   border-radius: 28rpx;
-  background: #f8fafc;
+  background: rgba(248, 250, 252, 0.72);
 }
 
 .grid-item.disabled {

@@ -1,12 +1,16 @@
 <!-- 景点搜索页 -->
 <template>
   <view class="ios-page">
-    <!-- 搜索头部 -->
+    <view class="hero-card">
+      <text class="hero-title">搜索景点</text>
+      <text class="hero-subtitle">输入景点名、城市或目的地关键词，快速定位下一次出发。</text>
+    </view>
+
     <view class="search-header">
       <view class="search-input-wrap">
         <uni-search-bar
           v-model="keyword"
-          placeholder="搜索景点名称"
+          placeholder="搜索景点名称 / 城市"
           :focus="true"
           :radius="16"
           :clearButton="'auto'"
@@ -21,6 +25,11 @@
 
     <!-- 搜索结果 -->
     <scroll-view class="search-result" scroll-y @scrolltolower="loadMore">
+      <view v-if="searched && resultList.length" class="result-state">
+        <text class="result-state-title">搜索结果</text>
+        <text class="result-state-desc">共找到 {{ resultList.length }} 个与“{{ keyword }}”相关的景点</text>
+      </view>
+
       <view 
         class="result-card" 
         v-for="spot in resultList" 
@@ -112,15 +121,42 @@ const goDetail = (id) => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
+}
+
+.hero-card {
+  margin: 24rpx 24rpx 16rpx;
+  padding: 28rpx 28rpx 24rpx;
+  border-radius: 30rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #52525b;
 }
 
 /* 搜索头部 */
 .search-header {
   display: flex;
   align-items: center;
-  padding: 60rpx 32rpx 20rpx;
-  background: #fff;
+  padding: 0 24rpx 20rpx;
 }
 
 .search-input-wrap {
@@ -135,32 +171,66 @@ const goDetail = (id) => {
 :deep(.search-input-wrap .uni-searchbar__box) {
   height: 80rpx;
   border-radius: 36rpx;
+  background: rgba(255, 255, 255, 0.76) !important;
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 12rpx 30rpx rgba(15, 23, 42, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 :deep(.search-input-wrap .uni-searchbar__box-search-input) {
   font-size: 30rpx;
-  color: #1C1C1E;
+  color: #18181b;
 }
 
 .cancel-btn {
   margin-left: 24rpx;
-  color: #2563eb;
+  color: #a16207;
   font-size: 30rpx;
 }
 
 /* 搜索结果 */
 .search-result {
   flex: 1;
-  padding: 24rpx 32rpx;
+  padding: 0 24rpx 32rpx;
+}
+
+.result-state {
+  margin-bottom: 20rpx;
+  padding: 24rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1rpx solid rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 16rpx 40rpx rgba(15, 23, 42, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.result-state-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.result-state-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  line-height: 1.5;
+  color: #71717a;
 }
 
 .result-card {
   display: flex;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
   overflow: hidden;
   margin-bottom: 24rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .result-image {
@@ -180,17 +250,17 @@ const goDetail = (id) => {
 .result-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #1C1C1E;
+  color: #18181b;
 }
 
 .result-region {
   font-size: 24rpx;
-  color: #6b7280;
+  color: #71717a;
 }
 
 .result-price {
   font-size: 32rpx;
-  color: #FF3B30;
+  color: #9f1239;
   font-weight: 600;
 }
 
@@ -204,6 +274,6 @@ const goDetail = (id) => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #6b7280;
+  color: #71717a;
 }
 </style>

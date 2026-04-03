@@ -1,13 +1,12 @@
 <!-- 个性推荐页 -->
 <template>
   <view class="recommend-page">
-    <!-- 顶部区域 -->
-    <view class="top-bar">
-      <view>
+    <view class="hero-card">
+      <view class="hero-copy">
         <text class="page-title">{{ recommendationPageTitle }}</text>
-        <text class="page-subtitle">集中浏览当前个性推荐内容</text>
+        <text class="page-subtitle">根据你的浏览偏好和近期热度，优先整理更适合此刻出发的景点。</text>
       </view>
-      <text v-if="isLoggedIn" class="refresh-btn" @click="refreshList">刷新推荐</text>
+      <text v-if="isLoggedIn" class="refresh-btn" @click="refreshList">换一组</text>
     </view>
 
     <!-- 偏好提示 -->
@@ -21,13 +20,16 @@
       <view class="recommend-card" v-for="spot in recommendations" :key="spot.id" @click="goSpotDetail(spot.id)">
         <image class="card-image" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
         <view class="card-content">
+          <view class="card-kicker">
+            <text class="card-tag">{{ spot.categoryName || '景点' }}</text>
+            <text class="card-rating">{{ spot.avgRating || '4.5' }} 分</text>
+          </view>
           <view class="card-header">
             <text class="card-title">{{ spot.name }}</text>
-            <text class="card-rating">★ {{ spot.avgRating || '4.5' }}</text>
           </view>
           <text class="card-desc">{{ spot.intro || '暂无介绍，点击查看详情...' }}</text>
           <view class="card-footer">
-            <text class="card-tag">{{ spot.categoryName || '景点' }}</text>
+            <text class="card-hint">打开查看推荐理由与完整信息</text>
             <text class="card-price">¥{{ spot.price }}</text>
           </view>
         </view>
@@ -171,15 +173,28 @@ onShow(() => {
 .recommend-page {
   min-height: 100vh;
   padding: 32rpx;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
 }
 
-.top-bar {
+.hero-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
   margin-bottom: 24rpx;
+  padding: 28rpx;
+  border-radius: 34rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-copy {
+  flex: 1;
 }
 
 .page-title {
@@ -198,7 +213,7 @@ onShow(() => {
 
 .refresh-btn {
   font-size: 26rpx;
-  color: #2563eb;
+  color: #a16207;
 }
 
 .preference-tip {
@@ -207,15 +222,18 @@ onShow(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 36rpx;
-  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.05);
+  box-shadow:
+    0 16rpx 40rpx rgba(15, 23, 42, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .tip-main {
   font-size: 26rpx;
   line-height: 1.5;
-  color: #2563eb;
+  color: #18181b;
 }
 
 .tip-arrow {
@@ -230,10 +248,13 @@ onShow(() => {
 }
 
 .recommend-card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 40rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.06);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .card-image {
@@ -243,6 +264,14 @@ onShow(() => {
 
 .card-content {
   padding: 24rpx;
+}
+
+.card-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
 }
 
 .card-header,
@@ -269,7 +298,7 @@ onShow(() => {
 
 .card-rating {
   font-size: 24rpx;
-  color: #f59e0b;
+  color: #a16207;
 }
 
 .card-desc {
@@ -285,16 +314,21 @@ onShow(() => {
 
 .card-tag {
   font-size: 22rpx;
-  color: #2563eb;
-  background: rgba(37, 99, 235, 0.1);
-  padding: 6rpx 14rpx;
+  color: #18181b;
+  background: rgba(24, 24, 27, 0.06);
+  padding: 8rpx 16rpx;
   border-radius: 999rpx;
+}
+
+.card-hint {
+  font-size: 22rpx;
+  color: #71717a;
 }
 
 .card-price {
   font-size: 30rpx;
   font-weight: 700;
-  color: #ef4444;
+  color: #9f1239;
 }
 
 .empty-state {
@@ -314,8 +348,8 @@ onShow(() => {
 .empty-link {
   padding: 14rpx 28rpx;
   border-radius: 999rpx;
-  background: #ffffff;
-  color: #2563eb;
+  background: rgba(255, 255, 255, 0.78);
+  color: #18181b;
   font-size: 24rpx;
   box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.05);
 }

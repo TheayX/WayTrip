@@ -120,8 +120,8 @@ onLoad(() => {
   min-height: 100vh;
   padding: 28rpx 24rpx 40rpx;
   background:
-    radial-gradient(circle at top, rgba(124, 58, 237, 0.22), transparent 36%),
-    linear-gradient(180deg, #1f1637 0%, #31224f 45%, #f4f6fb 45%, #f4f6fb 100%);
+    radial-gradient(circle at top, rgba(190, 24, 93, 0.16), transparent 32%),
+    linear-gradient(180deg, #241525 0%, #3b1f38 42%, #f7f8fb 42%, #eef2f7 100%);
 }
 
 .hero-card {
@@ -275,13 +275,13 @@ onLoad(() => {
 }
 
 .ghost-btn {
-  background: #fff;
-  color: #7c3aed;
-  border: 2rpx solid rgba(124, 58, 237, 0.16);
+  background: rgba(255, 255, 255, 0.86);
+  color: #881337;
+  border: 2rpx solid rgba(190, 24, 93, 0.12);
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  background: linear-gradient(135deg, #881337 0%, #9f1239 100%);
   color: #fff;
 }
 

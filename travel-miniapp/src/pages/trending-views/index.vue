@@ -89,20 +89,25 @@ onLoad(() => {
 .recent-page {
   min-height: 100vh;
   padding: 24rpx;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
 }
 
 .hero-card,
 .spot-card,
 .empty-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 32rpx;
-  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 
 .hero-card {
   padding: 32rpx 28rpx;
-  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 56%, #fff7ed 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
 }
 
 .hero-title {
@@ -178,7 +183,7 @@ onLoad(() => {
 .spot-price {
   font-size: 30rpx;
   font-weight: 700;
-  color: #d97706;
+  color: #9f1239;
 }
 
 .spot-meta {

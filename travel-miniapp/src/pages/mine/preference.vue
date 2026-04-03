@@ -1,7 +1,11 @@
 <!-- 偏好设置页 -->
 <template>
   <view class="ios-page">
-    <!-- 偏好选择区域 -->
+    <view class="hero-card">
+      <text class="hero-title">旅行偏好</text>
+      <text class="hero-subtitle">选择你更常关注的景点类型，推荐结果会更贴近你的旅行口味。</text>
+    </view>
+
     <view class="header">
       <PreferenceCategorySelector
         v-model="selectedIds"
@@ -92,14 +96,45 @@ onMounted(() => {
 <style scoped>
 .ios-page {
   min-height: 100vh;
-  background: #f4f6fb;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(245, 247, 250, 0.9) 48%, rgba(238, 242, 247, 1) 100%),
+    linear-gradient(180deg, #fafafa 0%, #eef2f7 100%);
   padding: 32rpx;
 }
 
+.hero-card {
+  margin-bottom: 24rpx;
+  padding: 28rpx;
+  border-radius: 34rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.hero-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #52525b;
+}
+
 .header {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1rpx solid rgba(255, 255, 255, 0.84);
   border-radius: 40rpx;
   padding: 40rpx 32rpx;
-  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.05);
+  box-shadow:
+    0 18rpx 48rpx rgba(15, 23, 42, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
 }
 </style>
