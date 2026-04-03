@@ -7,6 +7,7 @@ export const ROUTE_NAMES = {
   randomPick: 'RandomPick',
   budgetTravel: 'BudgetTravel',
   travelerReviews: 'TravelerReviews',
+  trendingViews: 'TrendingViews',
   spotList: 'SpotList',
   spotDetail: 'SpotDetail',
   guideList: 'GuideList',

@@ -12,6 +12,7 @@ export const APP_ROUTE_PATHS = {
   randomPick: '/random-pick',
   budgetTravel: '/budget-travel',
   travelerReviews: '/traveler-reviews',
+  trendingViews: '/trending-views',
   spots: '/spots',
   guides: '/guides',
   search: '/search'

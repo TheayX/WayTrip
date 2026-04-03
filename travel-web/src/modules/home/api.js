@@ -15,6 +15,15 @@ export const getBanners = () => client.get('/home/banners')
 export const getHotSpots = (limit = 10) => client.get('/home/hot', { params: { limit } })
 
 /**
+ * 获取近期热看
+ * @param days
+ * @param limit
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const getRecentViewedSpots = (days = 14, limit = 12) =>
+  client.get('/home/recent-views', { params: { days, limit } })
+
+/**
  * 获取推荐景点
  * @param limit
  * @returns {Promise<axios.AxiosResponse<any>>}
@@ -37,4 +46,3 @@ export const getNearbySpots = (latitude, longitude, limit = 10) =>
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export const refreshRecommendations = (limit = 10) => client.post('/recommendations/refresh', null, { params: { limit } })
-

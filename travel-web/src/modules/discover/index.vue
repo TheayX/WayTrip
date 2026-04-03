@@ -15,6 +15,7 @@
         <el-button type="primary" plain @click="router.push(APP_ROUTE_PATHS.randomPick)">随心一选</el-button>
         <el-button type="primary" plain @click="router.push(APP_ROUTE_PATHS.budgetTravel)">穷游玩法</el-button>
         <el-button type="primary" plain @click="router.push(APP_ROUTE_PATHS.travelerReviews)">游客口碑</el-button>
+        <el-button type="primary" plain @click="router.push(APP_ROUTE_PATHS.trendingViews)">近期热看</el-button>
         <el-button text type="primary" @click="router.push(APP_ROUTE_PATHS.guides)">浏览攻略</el-button>
       </div>
     </section>
