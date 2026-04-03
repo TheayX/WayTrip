@@ -15,21 +15,21 @@
         </div>
       </div>
       <div class="hero-actions">
-        <el-button @click="$router.push('/settings')">系统设置</el-button>
+        <el-button @click="$router.push('/account/settings')">系统设置</el-button>
         <el-button type="danger" plain @click="handleLogout">退出登录</el-button>
       </div>
     </section>
 
     <section class="stats-grid">
-      <div class="stats-card card" @click="$router.push('/profile/activity?tab=browse')">
+      <div class="stats-card card" @click="$router.push('/account/activity?tab=browse')">
         <strong>{{ dashboardStats.viewed }}</strong>
         <span>浏览历史</span>
       </div>
-      <div class="stats-card card" @click="$router.push('/profile/activity?tab=favorite')">
+      <div class="stats-card card" @click="$router.push('/account/activity?tab=favorite')">
         <strong>{{ dashboardStats.favorites }}</strong>
         <span>我的收藏</span>
       </div>
-      <div class="stats-card card" @click="$router.push('/profile/activity?tab=review')">
+      <div class="stats-card card" @click="$router.push('/account/activity?tab=review')">
         <strong>{{ dashboardStats.reviews }}</strong>
         <span>我的评价</span>
       </div>
@@ -38,18 +38,18 @@
     <section class="order-overview card">
       <div class="section-header">
         <h3>旅行订单</h3>
-        <el-button text type="primary" @click="$router.push('/orders')">查看全部</el-button>
+        <el-button text type="primary" @click="$router.push('/account/orders')">查看全部</el-button>
       </div>
       <div class="order-grid">
-        <div class="order-card" @click="$router.push('/orders?status=pending')">
+        <div class="order-card" @click="$router.push('/account/orders?status=pending')">
           <strong>{{ orderStats.pending }}</strong>
           <span>待支付</span>
         </div>
-        <div class="order-card" @click="$router.push('/orders?status=paid')">
+        <div class="order-card" @click="$router.push('/account/orders?status=paid')">
           <strong>{{ orderStats.paid }}</strong>
           <span>已支付</span>
         </div>
-        <div class="order-card" @click="$router.push('/orders?status=completed')">
+        <div class="order-card" @click="$router.push('/account/orders?status=completed')">
           <strong>{{ orderStats.completed }}</strong>
           <span>已完成</span>
         </div>
@@ -57,8 +57,8 @@
     </section>
 
     <section class="entry-grid">
-      <div class="entry-card card" @click="$router.push('/profile/activity?tab=browse')">我的互动</div>
-      <div class="entry-card card" @click="$router.push('/orders')">我的订单</div>
+      <div class="entry-card card" @click="$router.push('/account/activity?tab=browse')">我的互动</div>
+      <div class="entry-card card" @click="$router.push('/account/orders')">我的订单</div>
       <div class="entry-card card" @click="activeMenu = 'preference'">偏好设置</div>
       <div class="entry-card card" @click="activeMenu = 'info'">账号资料</div>
     </section>

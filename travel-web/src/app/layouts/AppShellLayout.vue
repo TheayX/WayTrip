@@ -117,16 +117,16 @@ const handleBack = () => {
 const handleCommand = (command) => {
   switch (command) {
     case 'profile':
-      router.push('/profile')
+      router.push('/account/profile')
       break
     case 'orders':
-      router.push('/orders')
+      router.push('/account/orders')
       break
     case 'activity':
-      router.push('/profile/activity')
+      router.push('/account/activity')
       break
     case 'settings':
-      router.push('/settings')
+      router.push('/account/settings')
       break
     case 'logout':
       ElMessageBox.confirm('确定要退出登录吗？', '提示', {

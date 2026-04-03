@@ -43,17 +43,17 @@ const route = useRoute()
 const userStore = useUserStore()
 
 const navItems = computed(() => [
-  { label: '个人中心', path: '/profile', icon: User },
-  { label: '我的互动', path: '/profile/activity', icon: ChatDotRound },
-  { label: '我的订单', path: '/orders', icon: Tickets },
-  { label: '我的收藏', path: '/favorites', icon: Collection },
-  { label: '我的评价', path: '/reviews', icon: Document },
-  { label: '设置', path: '/settings', icon: Setting }
+  { label: '个人中心', path: '/account/profile', icon: User },
+  { label: '我的互动', path: '/account/activity', icon: ChatDotRound },
+  { label: '我的订单', path: '/account/orders', icon: Tickets },
+  { label: '我的收藏', path: '/account/favorites', icon: Collection },
+  { label: '我的评价', path: '/account/reviews', icon: Document },
+  { label: '设置', path: '/account/settings', icon: Setting }
 ])
 
 const isActive = (item) => {
-  if (item.path === '/profile') {
-    return route.path === '/profile'
+  if (item.path === '/account/profile') {
+    return route.path === '/account/profile'
   }
 
   return route.path === item.path || route.path.startsWith(`${item.path}/`)

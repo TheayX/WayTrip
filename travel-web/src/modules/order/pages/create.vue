@@ -144,7 +144,7 @@ const handleSubmit = async () => {
       contactPhone: form.contactPhone
     })
     ElMessage.success('订单创建成功')
-    router.push(`/orders/${res.data?.id || res.data}`)
+    router.push(`/account/orders/${res.data?.id || res.data}`)
   } catch (e) {
     // 下单失败时由接口层提示，这里只负责恢复提交态。
   }
