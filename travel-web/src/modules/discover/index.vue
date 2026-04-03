@@ -1,18 +1,34 @@
 <!-- 发现页 -->
 <template>
   <div class="page-container discover-page">
-    <section class="discover-hero card">
-      <div>
-        <p class="hero-eyebrow">Explore</p>
+    <section class="discover-hero premium-card">
+      <div class="discover-hero-main">
+        <p class="hero-eyebrow">Explore Console</p>
         <h2 class="page-title">发现灵感</h2>
-        <p class="page-subtitle">把推荐、附近探索和内容浏览统一收进一个更适合 Web 端的发现页。</p>
-      </div>
-      <div class="hero-actions">
-        <div class="hero-search" @click="$router.push(APP_ROUTE_PATHS.search)">
-          <el-icon><Search /></el-icon>
-          <span>搜索景点</span>
+        <p class="page-subtitle">把推荐、附近探索、景点筛选和攻略浏览整理成一个更适合 Web 端的探索工作台。</p>
+
+        <div class="hero-search-row">
+          <button type="button" class="hero-search" @click="$router.push(APP_ROUTE_PATHS.search)">
+            <el-icon><Search /></el-icon>
+            <span>搜索景点、攻略与关键词</span>
+          </button>
+          <el-button text type="primary" @click="router.push(APP_ROUTE_PATHS.guides)">浏览攻略</el-button>
         </div>
-        <el-button text type="primary" @click="router.push(APP_ROUTE_PATHS.guides)">浏览攻略</el-button>
+      </div>
+
+      <div class="hero-status">
+        <article class="status-card">
+          <strong>{{ recommendations.length || 0 }}</strong>
+          <span>推荐预览</span>
+        </article>
+        <article class="status-card">
+          <strong>{{ nearbySpots.length || 0 }}</strong>
+          <span>附近结果</span>
+        </article>
+        <article class="status-card">
+          <strong>{{ spotList.length + guideList.length }}</strong>
+          <span>当前内容总览</span>
+        </article>
       </div>
     </section>
 
@@ -26,7 +42,7 @@
       <article
         v-for="item in sceneEntries"
         :key="item.key"
-        class="scene-card card"
+        class="scene-card premium-card"
         :class="{ active: activeScene === item.key }"
         @click="activateScene(item.key)"
       >
@@ -38,47 +54,61 @@
       </article>
     </section>
 
-    <section class="tab-panel card">
+    <section class="tab-panel premium-card">
       <div class="tab-panel-main">
-        <el-radio-group v-model="activeTab" @change="handleTabChange">
-          <el-radio-button label="all">综合浏览</el-radio-button>
-          <el-radio-button label="spot">景点</el-radio-button>
-          <el-radio-button label="guide">攻略</el-radio-button>
-        </el-radio-group>
+        <div>
+          <p class="panel-kicker">Content Mode</p>
+          <el-radio-group v-model="activeTab" @change="handleTabChange">
+            <el-radio-button label="all">综合浏览</el-radio-button>
+            <el-radio-button label="spot">景点</el-radio-button>
+            <el-radio-button label="guide">攻略</el-radio-button>
+          </el-radio-group>
+        </div>
         <el-button text @click="clearScene">清除场景</el-button>
       </div>
       <p class="tab-panel-desc">{{ currentSceneDescription }}</p>
     </section>
 
-    <section class="filters card">
-      <div v-if="showSpotFilters" class="filter-group">
-        <span class="filter-label">地区</span>
-        <el-select v-model="selectedRegionId" clearable placeholder="全部地区" @change="handleSpotFilter">
-          <el-option label="全部" value="" />
-          <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="item.id" />
-        </el-select>
+    <section class="filters premium-card">
+      <div class="filters-head">
+        <div>
+          <p class="panel-kicker">Filters</p>
+          <h3>当前筛选条件</h3>
+        </div>
+        <p class="filters-summary">{{ filterSummary }}</p>
       </div>
-      <div v-if="showSpotFilters" class="filter-group">
-        <span class="filter-label">分类</span>
-        <el-select v-model="selectedSpotCategoryId" clearable placeholder="全部分类" @change="handleSpotFilter">
-          <el-option label="全部" value="" />
-          <el-option v-for="item in spotCategories" :key="item.id" :label="item.name" :value="item.id" />
-        </el-select>
-      </div>
-      <div v-if="showGuideFilters" class="filter-group">
-        <span class="filter-label">主题</span>
-        <el-select v-model="selectedGuideCategory" clearable placeholder="全部主题" @change="handleGuideFilter">
-          <el-option label="全部" value="" />
-          <el-option v-for="item in guideCategories" :key="item" :label="item" :value="item" />
-        </el-select>
+
+      <div class="filters-grid">
+        <div v-if="showSpotFilters" class="filter-group">
+          <span class="filter-label">地区</span>
+          <el-select v-model="selectedRegionId" clearable placeholder="全部地区" @change="handleSpotFilter">
+            <el-option label="全部" value="" />
+            <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </div>
+        <div v-if="showSpotFilters" class="filter-group">
+          <span class="filter-label">分类</span>
+          <el-select v-model="selectedSpotCategoryId" clearable placeholder="全部分类" @change="handleSpotFilter">
+            <el-option label="全部" value="" />
+            <el-option v-for="item in spotCategories" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </div>
+        <div v-if="showGuideFilters" class="filter-group">
+          <span class="filter-label">主题</span>
+          <el-select v-model="selectedGuideCategory" clearable placeholder="全部主题" @change="handleGuideFilter">
+            <el-option label="全部" value="" />
+            <el-option v-for="item in guideCategories" :key="item" :label="item" :value="item" />
+          </el-select>
+        </div>
       </div>
     </section>
 
     <section v-if="showRecommendationSection" class="content-section">
       <div class="section-head">
         <div>
+          <p class="panel-kicker">Recommendation Layer</p>
           <h3>{{ userStore.isLoggedIn ? recommendType : '推荐景点' }}</h3>
-          <p>把个性化推荐作为发现流的一部分浏览，不再占用主导航入口。</p>
+          <p>把个性推荐作为发现流的一部分浏览，不再额外占用主导航入口。</p>
         </div>
         <div class="section-actions">
           <el-button text type="primary" @click="router.push(APP_ROUTE_PATHS.recommendations)">全部推荐</el-button>
@@ -86,8 +116,11 @@
         </div>
       </div>
 
-      <div v-if="needPreference && userStore.isLoggedIn" class="hint-banner card" @click="showPreferencePopup">
-        <span>你还没有设置偏好分类，先选几类感兴趣的景点，推荐会更稳定。</span>
+      <div v-if="needPreference && userStore.isLoggedIn" class="hint-banner premium-card" @click="showPreferencePopup">
+        <div>
+          <strong>还没有设置偏好分类</strong>
+          <p>先选几类感兴趣的景点，推荐结果会更贴近你的出游偏好。</p>
+        </div>
         <el-icon><ArrowRight /></el-icon>
       </div>
 
@@ -107,8 +140,9 @@
     <section v-if="showNearbySection" class="content-section">
       <div class="section-head">
         <div>
+          <p class="panel-kicker">Nearby Layer</p>
           <h3>附近探索</h3>
-          <p>附近内容放入发现流承接，更符合 Web 端场景浏览习惯。</p>
+          <p>附近内容放入发现流承接，更符合 Web 端基于场景的浏览习惯。</p>
         </div>
         <div class="section-actions">
           <el-button :loading="nearbyLoading" type="primary" @click="handleLocate">{{ nearbyLoading ? '定位中' : '重新定位' }}</el-button>
@@ -132,8 +166,9 @@
     <section v-if="showSpotSection" class="content-section">
       <div class="section-head">
         <div>
+          <p class="panel-kicker">Spot Layer</p>
           <h3>精选景点</h3>
-          <p>按地区和分类快速缩小范围，继续深入浏览。</p>
+          <p>通过地区、分类和当前场景继续缩小范围，让列表页承担更深入的浏览任务。</p>
         </div>
         <el-button text type="primary" @click="$router.push(APP_ROUTE_PATHS.spots)">查看全部</el-button>
       </div>
@@ -151,8 +186,9 @@
     <section v-if="showGuideSection" class="content-section">
       <div class="section-head">
         <div>
+          <p class="panel-kicker">Guide Layer</p>
           <h3>精选攻略</h3>
-          <p>把内容发现和景点浏览放在同一条探索流里。</p>
+          <p>把攻略作为探索流里的内容支线，而不是孤立的信息列表。</p>
         </div>
         <el-button text type="primary" @click="$router.push(APP_ROUTE_PATHS.guides)">查看全部</el-button>
       </div>
@@ -250,14 +286,29 @@ const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.v
 const showRecommendationSection = computed(() => activeScene.value === 'all' || activeScene.value === 'recommend')
 const showNearbySection = computed(() => activeScene.value === 'all' || activeScene.value === 'nearby')
 const currentSceneDescription = computed(() => {
-  if (activeScene.value === 'recommend') return '当前聚焦推荐灵感，适合快速浏览个性化内容。'
+  if (activeScene.value === 'recommend') return '当前聚焦推荐灵感，适合快速浏览更偏个性化的内容。'
   if (activeScene.value === 'nearby') return '当前聚焦附近探索，适合基于地理位置找目的地。'
-  return '综合模式下会同时展示推荐灵感、附近探索和精选内容。'
+  return '综合模式会同时展示推荐灵感、附近探索和精选内容。'
 })
 const nearbyEmptyText = computed(() => {
   if (!userStore.isLoggedIn) return '登录后查看附近景点'
   if (nearbyStatus.value === 'empty') return '附近暂时没有景点'
   return '还没有加载附近景点'
+})
+const filterSummary = computed(() => {
+  const segments = []
+  if (selectedRegionId.value) {
+    const region = regions.value.find(item => item.id === selectedRegionId.value)
+    segments.push(`地区：${region?.name || '已选择'}`)
+  }
+  if (selectedSpotCategoryId.value) {
+    const category = spotCategories.value.find(item => item.id === selectedSpotCategoryId.value)
+    segments.push(`分类：${category?.name || '已选择'}`)
+  }
+  if (selectedGuideCategory.value) {
+    segments.push(`主题：${selectedGuideCategory.value}`)
+  }
+  return segments.length ? segments.join(' / ') : '当前为默认筛选'
 })
 const sceneEntries = computed(() => ([
   { key: 'all', title: '综合探索', desc: '同时查看推荐、附近和精选内容。', badge: 'Default' },
@@ -486,61 +537,95 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding-top: 4px;
 }
 
 .discover-hero {
   padding: 28px;
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
   background:
-    radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 28%),
-    linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 28%),
+    linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
 }
 
-.hero-eyebrow {
-  margin-bottom: 10px;
+.hero-eyebrow,
+.panel-kicker {
+  margin-bottom: 8px;
   font-size: 12px;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.14em;
   color: #64748b;
   text-transform: uppercase;
+  font-weight: 700;
 }
 
 .page-title {
-  font-size: 34px;
+  font-size: 38px;
+  line-height: 1.08;
   font-weight: 700;
-  margin-bottom: 10px;
+  letter-spacing: -0.04em;
+  color: #0f172a;
 }
 
 .page-subtitle,
 .tab-panel-desc,
-.section-head p {
+.section-head p,
+.filters-summary {
   color: #64748b;
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
-.hero-actions {
+.hero-search-row {
+  margin-top: 22px;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
 .hero-search {
-  display: flex;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #475569;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 18px;
-  border-radius: 999px;
-  background: #fff;
-  color: #475569;
   cursor: pointer;
-  border: 1px solid #dbeafe;
+}
+
+.hero-status {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.status-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.86);
+}
+
+.status-card strong {
+  display: block;
+  font-size: 30px;
+  line-height: 1;
+  color: #0f172a;
+}
+
+.status-card span {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 13px;
 }
 
 .scene-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -548,7 +633,6 @@ onMounted(async () => {
   padding: 20px;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all 0.2s ease;
 }
 
 .scene-card.active {
@@ -564,52 +648,74 @@ onMounted(async () => {
   margin-bottom: 10px;
 }
 
+.scene-top strong {
+  font-size: 18px;
+  color: #0f172a;
+}
+
 .scene-top span {
-  font-size: 12px;
-  padding: 4px 10px;
+  min-height: 28px;
+  padding: 0 10px;
   border-radius: 999px;
   color: #1d4ed8;
   background: #dbeafe;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .scene-card p {
   color: #64748b;
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 .tab-panel,
 .filters,
 .hint-banner {
-  padding: 18px 20px;
+  padding: 20px 22px;
 }
 
 .tab-panel-main {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .tab-panel-desc {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
-.filters {
+.filters-head {
   display: flex;
+  justify-content: space-between;
   gap: 16px;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.filters-head h3 {
+  font-size: 24px;
+  color: #0f172a;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .filter-group {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
-  flex: 1 1 240px;
 }
 
 .filter-label {
-  color: #606266;
-  white-space: nowrap;
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
 }
 
 .content-section {
@@ -628,21 +734,33 @@ onMounted(async () => {
 
 .section-head h3 {
   margin-bottom: 6px;
-  font-size: 24px;
+  font-size: 30px;
+  color: #0f172a;
+  letter-spacing: -0.03em;
 }
 
 .hint-banner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #2563eb;
+  gap: 18px;
   cursor: pointer;
+}
+
+.hint-banner strong {
+  color: #0f172a;
+}
+
+.hint-banner p {
+  margin-top: 6px;
+  color: #64748b;
+  line-height: 1.75;
 }
 
 .spot-grid,
 .guide-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -652,16 +770,31 @@ onMounted(async () => {
   gap: 12px;
 }
 
-@media (max-width: 992px) {
-  .scene-grid,
+@media (max-width: 1100px) {
+  .discover-hero,
+  .filters-grid,
   .spot-grid,
-  .guide-grid {
+  .guide-grid,
+  .scene-grid {
     grid-template-columns: 1fr;
   }
+}
 
+@media (max-width: 768px) {
   .discover-hero,
   .tab-panel-main,
+  .filters-head,
   .section-head {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-title {
+    font-size: 32px;
+  }
+
+  .hero-search-row {
     flex-direction: column;
     align-items: stretch;
   }

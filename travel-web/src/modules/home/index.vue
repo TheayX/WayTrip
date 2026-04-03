@@ -2,29 +2,71 @@
 <template>
   <div class="home-page">
     <section class="hero">
-      <div class="hero-overlay">
-        <div class="page-container hero-inner">
-          <div class="hero-copy">
-            <p class="hero-eyebrow">{{ APP_NAME }}</p>
-            <h1 class="hero-title">发现旅途之美</h1>
-            <p class="hero-subtitle">从首页快速进入景点、攻略和探索场景，再把更完整的发现流交给 Web 端专门承接。</p>
-            <div class="hero-actions">
-              <div class="hero-search" @click="router.push(APP_ROUTE_PATHS.search)">
-                <el-icon><Search /></el-icon>
-                <span>搜索景点</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <el-carousel class="hero-carousel" height="500px" :interval="5000" autoplay :pause-on-hover="false" arrow="never" indicator-position="none">
+      <el-carousel class="hero-carousel" height="620px" :interval="5000" autoplay :pause-on-hover="false" arrow="never" indicator-position="none">
         <el-carousel-item v-for="banner in banners" :key="banner.id">
           <div class="hero-slide" :class="{ clickable: !!banner.spotId }" @click="handleBannerClick(banner)">
             <img :src="getImageUrl(banner.imageUrl)" class="hero-bg" alt="" />
           </div>
         </el-carousel-item>
       </el-carousel>
+
+      <div class="hero-overlay">
+        <div class="page-container hero-inner">
+          <div class="hero-copy">
+            <p class="hero-eyebrow">{{ APP_NAME }} Curated Travel</p>
+            <h1 class="hero-title">把灵感、景点与攻略整理成一条更高级的探索路径。</h1>
+            <p class="hero-subtitle">首页只保留真正高频的入口，把推荐、附近和精选内容收束成更干净的旅行探索体验。</p>
+
+            <div class="hero-actions">
+              <button type="button" class="hero-search glass-panel" @click="router.push(APP_ROUTE_PATHS.search)">
+                <el-icon><Search /></el-icon>
+                <span>搜索景点、攻略与旅行灵感</span>
+              </button>
+              <el-button type="primary" @click="router.push(APP_ROUTE_PATHS.discover)">进入发现</el-button>
+            </div>
+
+            <div class="hero-metrics">
+              <article class="hero-metric glass-panel">
+                <strong>{{ hotSpots.length || 0 }}</strong>
+                <span>热门景点精选</span>
+              </article>
+              <article class="hero-metric glass-panel">
+                <strong>{{ recommendations.length || 0 }}</strong>
+                <span>推荐内容预览</span>
+              </article>
+              <article class="hero-metric glass-panel">
+                <strong>{{ nearbySpots.length || 0 }}</strong>
+                <span>附近可探索地点</span>
+              </article>
+            </div>
+          </div>
+
+          <aside class="hero-aside glass-panel">
+            <p class="hero-aside-kicker">Today's Flow</p>
+            <div class="hero-aside-item">
+              <span class="hero-aside-index">01</span>
+              <div>
+                <strong>先搜你想去的目的地</strong>
+                <p>从关键字、地区和分类切入，快速缩小范围。</p>
+              </div>
+            </div>
+            <div class="hero-aside-item">
+              <span class="hero-aside-index">02</span>
+              <div>
+                <strong>在发现页切换探索场景</strong>
+                <p>推荐、附近与内容浏览在同一条路径里切换。</p>
+              </div>
+            </div>
+            <div class="hero-aside-item">
+              <span class="hero-aside-index">03</span>
+              <div>
+                <strong>从详情继续下钻</strong>
+                <p>景点、攻略和相关推荐形成连续浏览关系。</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
     </section>
 
     <div class="page-container home-content">
@@ -35,6 +77,24 @@
         :items="hotKeywords"
         @select="handleKeywordSelect"
       />
+
+      <section class="curation-strip premium-card">
+        <article class="curation-item">
+          <span class="curation-label">For You</span>
+          <h3>个性推荐已从独立入口收进发现流</h3>
+          <p>登录后会基于偏好与行为刷新推荐，让首页只保留精简预览。</p>
+        </article>
+        <article class="curation-item">
+          <span class="curation-label">Nearby</span>
+          <h3>附近探索保留即时能力，但不再打散主导航</h3>
+          <p>地理位置相关内容统一进入发现体系，减少入口噪音。</p>
+        </article>
+        <article class="curation-item">
+          <span class="curation-label">Editorial</span>
+          <h3>攻略与景点重新建立更自然的浏览关系</h3>
+          <p>从首页预览，到列表筛选，再到详情沉浸阅读，层级更加清晰。</p>
+        </article>
+      </section>
 
       <HomeNearbySection
         :headline="nearbyHeadline"
@@ -48,58 +108,55 @@
         @select="router.push(`/spots/${$event.id}?source=nearby`)"
       />
 
-      <section class="section">
+      <section class="section page-section">
         <div class="section-header">
-          <h2 class="section-title">热门景点</h2>
+          <div>
+            <p class="section-kicker">Popular Spots</p>
+            <h2 class="section-title">热门景点精选</h2>
+            <p class="section-subtitle">控制数量，只保留最值得继续浏览的内容，让首页更像经过策展的旅行入口。</p>
+          </div>
           <el-button text type="primary" @click="router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`)">查看全部</el-button>
         </div>
-        <div v-if="hotSpots.length" class="hot-grid">
-          <article v-for="spot in hotSpots" :key="spot.id" class="hot-card card" @click="router.push(`/spots/${spot.id}?source=home`)">
-            <img :src="getImageUrl(spot.coverImage)" class="hot-image" alt="" />
-            <div class="hot-content">
-              <div class="hot-top">
-                <h3>{{ spot.name }}</h3>
-                <span class="price">¥{{ spot.price }}</span>
-              </div>
-              <div class="hot-bottom">
-                <span class="star-text">★ {{ spot.avgRating || '4.5' }}</span>
-                <span>{{ spot.regionName }}</span>
-              </div>
-            </div>
-          </article>
+
+        <div v-if="hotSpots.length" class="spot-grid">
+          <SpotCard
+            v-for="spot in hotSpots"
+            :key="spot.id"
+            :spot="spot"
+            @select="router.push(`/spots/${spot.id}?source=home`)"
+          />
         </div>
         <el-empty v-else description="暂无热门景点" />
       </section>
 
-      <section class="section">
+      <section class="section page-section">
         <div class="section-header">
-          <h2 class="section-title">{{ recommendationSectionTitle }}</h2>
+          <div>
+            <p class="section-kicker">Recommendations</p>
+            <h2 class="section-title">{{ recommendationSectionTitle }}</h2>
+            <p class="section-subtitle">把个性推荐作为高质量预览保留在首页，完整浏览和切换继续交给发现页承接。</p>
+          </div>
           <div class="section-actions">
             <el-button text type="primary" @click="goRecommendations">查看更多</el-button>
             <el-button v-if="userStore.isLoggedIn" text type="primary" :loading="refreshing" @click="handleRefresh">换一批</el-button>
           </div>
         </div>
 
-        <div v-if="needPreference && userStore.isLoggedIn" class="preference-tip card" @click="showPreferencePopup">
-          <span>你还没有设置偏好，先选几类感兴趣的景点，推荐会更准确。</span>
+        <div v-if="needPreference && userStore.isLoggedIn" class="preference-tip premium-card" @click="showPreferencePopup">
+          <div>
+            <strong>你还没有设置偏好分类</strong>
+            <p>先选择几类感兴趣的景点，推荐结果会明显更稳定。</p>
+          </div>
           <el-icon><ArrowRight /></el-icon>
         </div>
 
-        <div v-if="recommendations.length" class="recommend-list">
-          <article v-for="spot in recommendations.slice(0, 4)" :key="spot.id" class="recommend-card card" @click="router.push(`/spots/${spot.id}?source=home`)">
-            <img :src="getImageUrl(spot.coverImage)" class="recommend-image" alt="" />
-            <div class="recommend-content">
-              <div class="recommend-top">
-                <h3>{{ spot.name }}</h3>
-                <span class="star-text">★ {{ spot.avgRating || '4.5' }}</span>
-              </div>
-              <p>{{ spot.intro || '暂无介绍，点击查看详情。' }}</p>
-              <div class="recommend-bottom">
-                <span class="tag">{{ spot.categoryName || '景点' }}</span>
-                <span class="price">¥{{ spot.price }}</span>
-              </div>
-            </div>
-          </article>
+        <div v-if="recommendations.length" class="recommend-grid">
+          <SpotCard
+            v-for="spot in recommendations.slice(0, 4)"
+            :key="spot.id"
+            :spot="spot"
+            @select="router.push(`/spots/${spot.id}?source=home`)"
+          />
         </div>
         <el-empty v-else :description="userStore.isLoggedIn ? '暂无推荐景点' : '登录后查看推荐景点'">
           <el-button v-if="!userStore.isLoggedIn" type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
@@ -133,6 +190,7 @@ import { ElMessage } from 'element-plus'
 import { Guide, MapLocation, Search, Star, Tickets } from '@element-plus/icons-vue'
 import HomeNearbySection from '@/modules/home/components/HomeNearbySection.vue'
 import HomeQuickActions from '@/modules/home/components/HomeQuickActions.vue'
+import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { APP_NAME } from '@/shared/constants/app.js'
 import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
@@ -147,6 +205,7 @@ import {
 } from '@/shared/lib/cold-start-guide.js'
 import { getLocationSnapshot, getCurrentLocation } from '@/shared/lib/location.js'
 import { getImageUrl } from '@/shared/api/client.js'
+import { ArrowRight } from '@element-plus/icons-vue'
 
 // 基础依赖与用户状态
 const router = useRouter()
@@ -187,10 +246,10 @@ const nearbyHeadline = computed(() => {
 const nearbySummary = computed(() => {
   if (nearbyLoading.value) return '正在获取你周边的景点'
   if (nearbyStatus.value === 'ready' && nearbySpots.value.length) {
-    return `你附近有 ${nearbySpots.value.length} 个景点，最近约 ${formatDistance(nearbySpots.value[0].distanceKm)}`
+    return `你附近有 ${nearbySpots.value.length} 个景点，最近约 ${formatDistance(nearbySpots.value[0].distanceKm)}。`
   }
-  if (!userStore.isLoggedIn) return '登录后可按距离浏览附近景点'
-  return '点击按钮后会调用浏览器定位并加载附近景点'
+  if (!userStore.isLoggedIn) return '登录后可按距离浏览附近景点。'
+  return '点击按钮后会调用浏览器定位并加载附近景点。'
 })
 
 const nearbyActionText = computed(() => {
@@ -234,7 +293,7 @@ const maybeShowColdStartGuide = () => {
 const fetchHomeBasics = async () => {
   const [bannerRes, hotRes] = await Promise.all([
     getBanners(),
-    getHotSpots(6)
+    getHotSpots(4)
   ])
   banners.value = bannerRes.data?.list || []
   hotSpots.value = hotRes.data?.list || []
@@ -364,9 +423,10 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .hero {
   position: relative;
-  height: 500px;
+  min-height: 620px;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 50%, #38bdf8 100%);
+  border-bottom-left-radius: 36px;
+  border-bottom-right-radius: 36px;
 }
 
 .hero-carousel,
@@ -378,7 +438,7 @@ onMounted(async () => {
 
 .hero-bg {
   object-fit: cover;
-  filter: brightness(0.45);
+  filter: brightness(0.42);
 }
 
 .hero-slide.clickable {
@@ -389,36 +449,45 @@ onMounted(async () => {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: linear-gradient(90deg, rgba(15, 23, 42, 0.68), rgba(15, 23, 42, 0.24));
+  background:
+    linear-gradient(100deg, rgba(15, 23, 42, 0.82) 0%, rgba(15, 23, 42, 0.54) 44%, rgba(15, 23, 42, 0.28) 100%);
 }
 
 .hero-inner {
-  height: 100%;
-  display: flex;
-  align-items: center;
+  min-height: 620px;
+  padding-top: 44px;
+  padding-bottom: 64px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 28px;
+  align-items: end;
 }
 
 .hero-copy {
-  max-width: 620px;
+  max-width: 760px;
   color: #fff;
 }
 
 .hero-eyebrow {
-  margin-bottom: 12px;
-  letter-spacing: 0.3em;
+  margin-bottom: 16px;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .hero-title {
-  font-size: 54px;
-  line-height: 1.1;
-  margin-bottom: 16px;
+  font-size: 64px;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
 }
 
 .hero-subtitle {
-  font-size: 18px;
-  line-height: 1.8;
+  max-width: 660px;
+  margin-top: 18px;
+  font-size: 17px;
+  line-height: 1.95;
   color: rgba(255, 255, 255, 0.86);
 }
 
@@ -430,27 +499,137 @@ onMounted(async () => {
 }
 
 .hero-search {
+  min-height: 56px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: none;
+  color: #ffffff;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 20px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #475569;
+  gap: 10px;
   cursor: pointer;
 }
 
+.hero-metrics {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.hero-metric {
+  padding: 16px 18px;
+  border-radius: 22px;
+}
+
+.hero-metric strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.hero-metric span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+}
+
+.hero-aside {
+  padding: 22px;
+  border-radius: 28px;
+  color: #ffffff;
+}
+
+.hero-aside-kicker {
+  margin-bottom: 18px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.hero-aside-item + .hero-aside-item {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hero-aside-item {
+  display: flex;
+  gap: 14px;
+}
+
+.hero-aside-index {
+  color: #c8a95b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hero-aside-item strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.hero-aside-item p {
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.75;
+  font-size: 13px;
+}
+
 .home-content {
+  margin-top: 28px;
+  padding-bottom: 18px;
   display: flex;
   flex-direction: column;
   gap: 28px;
-  margin-top: 28px;
+}
+
+.curation-strip {
+  padding: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.curation-item {
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #eef2f7;
+}
+
+.curation-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.curation-item h3 {
+  margin-top: 14px;
+  font-size: 20px;
+  line-height: 1.35;
+  color: #0f172a;
+}
+
+.curation-item p {
+  margin-top: 10px;
+  color: #64748b;
+  line-height: 1.8;
+  font-size: 14px;
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .section-header,
@@ -461,89 +640,39 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.hot-grid {
+.section-kicker {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.spot-grid,
+.recommend-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
-}
-
-.hot-card,
-.recommend-card {
-  cursor: pointer;
-}
-
-.hot-image {
-  width: 100%;
-  height: 210px;
-  object-fit: cover;
-}
-
-.hot-content {
-  padding: 16px;
-}
-
-.hot-top,
-.hot-bottom,
-.recommend-top,
-.recommend-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.hot-top h3,
-.recommend-top h3 {
-  font-size: 18px;
-}
-
-.hot-bottom {
-  margin-top: 12px;
-  color: #909399;
 }
 
 .preference-tip {
-  padding: 14px 18px;
+  padding: 18px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #409eff;
+  gap: 16px;
   cursor: pointer;
 }
 
-.recommend-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+.preference-tip strong {
+  color: #0f172a;
 }
 
-.recommend-card {
-  display: flex;
-}
-
-.recommend-image {
-  width: 210px;
-  height: 170px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.recommend-content {
-  flex: 1;
-  min-width: 0;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.recommend-content p {
-  color: #606266;
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.preference-tip p {
+  margin-top: 6px;
+  color: #64748b;
+  line-height: 1.75;
 }
 
 .preference-tags {
@@ -552,38 +681,67 @@ onMounted(async () => {
   gap: 12px;
 }
 
-@media (max-width: 1024px) {
-  .hot-grid {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 1200px) {
+  .hero-inner,
+  .spot-grid,
+  .recommend-grid,
+  .curation-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .nearby-list,
-  .recommend-list {
+  .hero-inner {
+    align-items: start;
+  }
+}
+
+@media (max-width: 992px) {
+  .hero {
+    min-height: auto;
+  }
+
+  .hero-inner {
+    min-height: auto;
     grid-template-columns: 1fr;
+  }
+
+  .hero-title {
+    font-size: 46px;
+  }
+
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
 @media (max-width: 768px) {
+  .hero {
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
+  }
+
+  .hero-inner {
+    padding-top: 28px;
+    padding-bottom: 40px;
+  }
+
   .hero-title {
     font-size: 36px;
   }
 
   .hero-actions {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
-  .hot-grid {
+  .spot-grid,
+  .recommend-grid,
+  .curation-strip {
     grid-template-columns: 1fr;
-  }
-
-  .recommend-card {
-    flex-direction: column;
-  }
-
-  .recommend-image {
-    width: 100%;
-    height: 220px;
   }
 }
 </style>
