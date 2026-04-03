@@ -4,12 +4,15 @@
     <!-- 吸顶宽幅导航栏带搜索 -->
     <view class="ios-header">
       <view class="header-top">
-        <text class="large-title">发现</text>
+        <view class="title-group">
+          <text class="header-kicker">Discover</text>
+          <text class="large-title">把灵感筛成这次想去的地方。</text>
+        </view>
       </view>
       <view class="search-bar" @click="goSearch">
         <uni-search-bar
           :modelValue="''"
-          placeholder="搜索景点、攻略..."
+          placeholder="搜索景点、攻略或目的地"
           :clearButton="'none'"
           :cancelButton="'none'"
           :radius="100"
@@ -139,7 +142,7 @@
       <!-- 攻略列表 -->
       <view class="section" v-if="showGuideSection">
         <view class="section-header">
-          <text class="section-title">精华攻略</text>
+          <text class="section-title">精选攻略</text>
           <text class="section-link" @click="goGuideList">查看全部</text>
         </view>
 
@@ -370,72 +373,85 @@ onShow(async () => {
 <style scoped>
 .discover-page {
   min-height: 100vh;
-  background: #f4f6fb;
+  background: transparent;
   padding-bottom: 48rpx;
 }
 
-/* Glassmorphism Header */
 .ios-header {
-  padding: 88rpx 32rpx 24rpx;
-  background: linear-gradient(180deg, #f4f6fb 0%, rgba(244, 246, 251, 0.9) 100%);
+  padding: 88rpx 32rpx 26rpx;
+  background: linear-gradient(180deg, rgba(248, 250, 255, 0.96) 0%, rgba(244, 246, 251, 0.88) 100%);
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(18rpx);
 }
 .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
-.large-title { font-size: 48rpx; font-weight: 800; color: #111827; letter-spacing: 1rpx; }
+.title-group { display: flex; flex-direction: column; gap: 10rpx; max-width: 540rpx; }
+.header-kicker { font-size: 22rpx; font-weight: 700; letter-spacing: 6rpx; color: #64748b; text-transform: uppercase; }
+.large-title { font-size: 48rpx; font-weight: 800; color: #0f172a; line-height: 1.18; }
 .search-bar :deep(.uni-searchbar) { padding: 0; background: transparent; }
-.search-bar :deep(.uni-searchbar__box) { border: 2rpx solid #e5e7eb; height: 80rpx; border-radius: 40rpx; backdrop-filter: blur(10px); box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.02); }
+.search-bar :deep(.uni-searchbar__box) {
+  border: 2rpx solid rgba(255, 255, 255, 0.76);
+  height: 82rpx;
+  border-radius: 42rpx;
+  backdrop-filter: blur(14rpx);
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
+  background: rgba(255, 255, 255, 0.82);
+}
 
 .page-content {
   padding: 0 32rpx;
 }
 
-/* Quick Nav Redesign */
 .quick-panel {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10rpx;
   margin-top: 10rpx;
   margin-bottom: 32rpx;
+  padding: 14rpx;
+  border-radius: 36rpx;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(18rpx);
 }
 
 .quick-card {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
+  gap: 10rpx;
+  min-height: 120rpx;
+  padding: 12rpx 8rpx;
+  border-radius: 26rpx;
 }
 
 .icon-orb {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 32rpx;
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6rpx 16rpx rgba(0,0,0,0.03);
 }
 .bg-blue { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
 .bg-orange { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); }
 .bg-amber { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
 
 .quick-title {
-  font-size: 26rpx;
-  font-weight: 500;
-  color: #374151;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #334155;
 }
 
-/* Tab Redesign */
 .mode-tabs {
   display: flex;
-  gap: 16rpx;
+  gap: 12rpx;
   margin-top: 24rpx;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.88);
   padding: 10rpx;
   border-radius: 36rpx;
-  box-shadow: 0 4rpx 16rpx rgba(17, 24, 39, 0.03);
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.04);
 }
 
 .mode-tab {
@@ -451,18 +467,17 @@ onShow(async () => {
 }
 
 .mode-tab.active {
-  background: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 6rpx 12rpx rgba(37, 99, 235, 0.2);
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.06);
 }
 
-/* Filters */
 .filter-card {
   margin-top: 24rpx;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 36rpx;
   padding: 20rpx 0;
-  box-shadow: 0 4rpx 16rpx rgba(17, 24, 39, 0.03);
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.04);
   overflow: hidden;
 }
 
@@ -511,7 +526,7 @@ onShow(async () => {
   padding: 0 24rpx;
   margin-right: 16rpx;
   border-radius: 99rpx;
-  background: #f1f5f9;
+  background: #f8fafc;
   color: #64748b;
   font-size: 24rpx;
   font-weight: 500;
@@ -519,30 +534,28 @@ onShow(async () => {
 }
 
 .chip.active {
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
+  background: #fffdf7;
+  color: #8a6a2f;
   font-weight: 600;
 }
 
-/* Section Shared */
 .section { margin-top: 40rpx; }
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
-.section-title { font-size: 38rpx; font-weight: 700; color: #111827; }
+.section-title { font-size: 38rpx; font-weight: 700; color: #0f172a; }
 .section-link { font-size: 26rpx; color: #6b7280; font-weight: 500;}
 
-/* Lists */
 .card-list { display: flex; flex-direction: column; gap: 24rpx; }
 .spot-card, .guide-card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 36rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow: 0 14rpx 36rpx rgba(15, 23, 42, 0.05);
 }
-.spot-image, .guide-image { width: 100%; height: 280rpx; }
+.spot-image, .guide-image { width: 100%; height: 300rpx; }
 .spot-content, .guide-content { padding: 24rpx 28rpx; }
 
 .spot-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin-bottom: 12rpx; }
-.spot-title, .guide-title { font-size: 34rpx; font-weight: 700; color: #111827; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spot-title, .guide-title { font-size: 34rpx; font-weight: 700; color: #0f172a; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .spot-price { font-size: 34rpx; font-weight: 800; color: #ef4444; }
 
 .spot-desc, .guide-desc {
@@ -554,7 +567,7 @@ onShow(async () => {
 
 .spot-meta, .guide-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12rpx;}
 .spot-meta { justify-content: flex-start; }
-.meta-tag { padding: 8rpx 20rpx; border-radius: 12rpx; background: #f3f4f6; color: #4b5563; font-size: 22rpx; font-weight: 500; }
+.meta-tag { padding: 8rpx 20rpx; border-radius: 999rpx; background: #f8fafc; color: #475569; font-size: 22rpx; font-weight: 500; }
 .meta-view { display: flex; align-items: center; gap: 6rpx; font-size: 24rpx; color: #9ca3af; font-weight: 500;}
 
 .empty-tip { display: flex; flex-direction: column; align-items: center; padding: 64rpx 0; gap: 16rpx; }

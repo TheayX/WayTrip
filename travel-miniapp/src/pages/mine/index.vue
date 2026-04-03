@@ -8,8 +8,9 @@
           <image class="avatar-lg" :src="getAvatarUrl(userInfo?.avatar)" />
         </view>
         <view class="profile-info">
-          <text class="user-name">{{ isLoggedIn ? (userInfo?.nickname || '旅行家') : '旅程从登录开始' }}</text>
-          <text class="user-desc">{{ isLoggedIn ? '开启你的极简探索之旅' : '点此登录，发掘专属旅行足迹' }}</text>
+          <text class="hero-kicker">{{ isLoggedIn ? 'WayTrip Account' : 'WayTrip' }}</text>
+          <text class="user-name">{{ isLoggedIn ? (userInfo?.nickname || '旅行家') : '登录后管理你的旅行资产' }}</text>
+          <text class="user-desc">{{ isLoggedIn ? '收藏、订单、评价与偏好都整理在这里' : '点此登录，查看订单、收藏与偏好设置' }}</text>
         </view>
         <view class="hero-action" v-if="!isLoggedIn">
           <text class="hero-action-text">登录</text>
@@ -296,7 +297,7 @@ watch(isLoggedIn, async (loggedIn, prevLoggedIn) => {
 
 <style scoped>
 .ios-mine {
-  background-color: #f4f6fb;
+  background-color: transparent;
   min-height: 100vh;
   padding: 20rpx 32rpx;
   padding-bottom: 48rpx;
@@ -306,16 +307,17 @@ watch(isLoggedIn, async (loggedIn, prevLoggedIn) => {
   margin-bottom: 32rpx;
   padding: 40rpx 32rpx;
   border-radius: 40rpx;
-  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
-  box-shadow: 0 12rpx 32rpx rgba(59, 130, 246, 0.08);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(239, 246, 255, 0.9) 100%);
+  box-shadow: 0 16rpx 40rpx rgba(15, 23, 42, 0.06);
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  backdrop-filter: blur(18rpx);
 }
 
 .profile-hero.guest {
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-  box-shadow: 0 12rpx 32rpx rgba(249, 115, 22, 0.06);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 247, 237, 0.92) 100%);
+  box-shadow: 0 16rpx 40rpx rgba(15, 23, 42, 0.05);
 }
 
 .profile-header { display: flex; align-items: center; z-index: 1; position: relative; }
@@ -324,10 +326,9 @@ watch(isLoggedIn, async (loggedIn, prevLoggedIn) => {
 .avatar-lg { width: 140rpx; height: 140rpx; border-radius: 50%; border: 6rpx solid #ffffff; box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.06); }
 
 .profile-info { flex: 1; }
+.hero-kicker { display: block; margin-bottom: 10rpx; font-size: 22rpx; font-weight: 700; letter-spacing: 6rpx; color: #64748b; text-transform: uppercase; }
 .user-name { font-size: 42rpx; font-weight: 800; color: #1e293b; display: block; margin-bottom: 12rpx; letter-spacing: 1rpx; }
-.guest .user-name { color: #9a3412; }
 .user-desc { font-size: 26rpx; color: #64748b; font-weight: 500; }
-.guest .user-desc { color: #c2410c; }
 
 .hero-action { display: flex; align-items: center; gap: 8rpx; padding: 14rpx 28rpx; border-radius: 99rpx; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); }
 .hero-action-text { font-size: 24rpx; color: #ea580c; font-weight: 700; }
@@ -336,24 +337,24 @@ watch(isLoggedIn, async (loggedIn, prevLoggedIn) => {
 .profile-line { font-size: 24rpx; color: #475569; font-weight: 500; }
 
 /* Stats */
-.stats-board { display: flex; background: #ffffff; border-radius: 36rpx; padding: 28rpx 16rpx; margin-bottom: 32rpx; box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.03); }
+.stats-board { display: flex; background: rgba(255, 255, 255, 0.9); border-radius: 36rpx; padding: 28rpx 16rpx; margin-bottom: 32rpx; box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05); backdrop-filter: blur(18rpx); }
 .stats-item { flex: 1; text-align: center; }
-.stats-value { display: block; font-size: 40rpx; font-weight: 800; color: #111827; }
+.stats-value { display: block; font-size: 40rpx; font-weight: 800; color: #0f172a; }
 .stats-label { display: block; margin-top: 10rpx; font-size: 24rpx; color: #6b7280; font-weight: 500; }
 
 /* Orders */
-.order-overview { background: #ffffff; border-radius: 36rpx; padding: 32rpx; margin-bottom: 32rpx; box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.03); }
+.order-overview { background: rgba(255, 255, 255, 0.92); border-radius: 36rpx; padding: 32rpx; margin-bottom: 32rpx; box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05); }
 .overview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
-.overview-title { font-size: 32rpx; font-weight: 700; color: #111827; }
+.overview-title { font-size: 32rpx; font-weight: 700; color: #0f172a; }
 .overview-link { font-size: 24rpx; color: #6b7280; font-weight: 500;}
-.overview-grid { display: flex; gap: 20rpx; }
-.overview-card { flex: 1; background: #f8fafc; border-radius: 24rpx; padding: 28rpx 12rpx; text-align: center; transition: all 0.2s ease; }
+.overview-grid { display: flex; gap: 16rpx; }
+.overview-card { flex: 1; background: #f8fafc; border-radius: 28rpx; padding: 28rpx 12rpx; text-align: center; transition: all 0.2s ease; }
 .overview-card:active { background: #f1f5f9; }
 .overview-value { display: block; font-size: 36rpx; font-weight: 800; color: #2563eb; }
 .overview-label { display: block; margin-top: 10rpx; font-size: 24rpx; color: #64748b; font-weight: 500;}
 
 /* Group list */
-.ios-group { background: #ffffff; border-radius: 36rpx; overflow: hidden; margin-bottom: 32rpx; box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.03); }
+.ios-group { background: rgba(255, 255, 255, 0.92); border-radius: 36rpx; overflow: hidden; margin-bottom: 32rpx; box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05); }
 .locked-group-shell { position: relative; margin-bottom: 32rpx; }
 .locked-group-shell .ios-group { margin-bottom: 0; }
 .group-locked { filter: grayscale(0.5) opacity(0.8); }
@@ -371,9 +372,9 @@ watch(isLoggedIn, async (loggedIn, prevLoggedIn) => {
 
 .cell-title { font-size: 30rpx; font-weight: 600; color: #1f2937; flex: 1; }
 
-.group-lock-mask { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 36rpx; background: rgba(248, 250, 252, 0.5); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 40rpx; z-index: 10;}
+.group-lock-mask { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 36rpx; background: rgba(248, 250, 252, 0.55); backdrop-filter: blur(12rpx); display: flex; align-items: center; justify-content: center; padding: 40rpx; z-index: 10;}
 .group-lock-content { width: 100%; border-radius: 32rpx; padding: 48rpx 40rpx; background: rgba(255, 255, 255, 0.95); box-shadow: 0 16rpx 40rpx rgba(17, 24, 39, 0.06); text-align: center; }
-.group-lock-title { display: block; font-size: 34rpx; font-weight: 800; color: #111827; }
+.group-lock-title { display: block; font-size: 34rpx; font-weight: 800; color: #0f172a; }
 .group-lock-desc { display: block; margin-top: 12rpx; font-size: 26rpx; line-height: 1.6; color: #64748b; }
 .group-lock-button { margin-top: 32rpx; height: 88rpx; line-height: 88rpx; border-radius: 99rpx; background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; font-size: 30rpx; font-weight: 700; box-shadow: 0 4rpx 16rpx rgba(37, 99, 235, 0.3);}
 
