@@ -20,14 +20,14 @@ export const SPOT_DETAIL_SOURCE = {
 }
 
 export const buildSpotDetailUrl = (spotId, source = SPOT_DETAIL_SOURCE.DETAIL, options = {}) => {
-  const query = new URLSearchParams({
-    id: String(spotId),
-    source
-  })
+  const query = [
+    `id=${encodeURIComponent(String(spotId))}`,
+    `source=${encodeURIComponent(source)}`
+  ]
 
   if (options.openReview) {
-    query.set('openReview', '1')
+    query.push('openReview=1')
   }
 
-  return `/pages/spot/detail?${query.toString()}`
+  return `/pages/spot/detail?${query.join('&')}`
 }
