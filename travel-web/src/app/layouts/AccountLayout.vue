@@ -35,6 +35,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ChatDotRound, Collection, Document, Setting, Tickets, User } from '@element-plus/icons-vue'
+import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { getAvatarUrl } from '@/shared/api/client.js'
 
@@ -43,17 +44,17 @@ const route = useRoute()
 const userStore = useUserStore()
 
 const navItems = computed(() => [
-  { label: '个人中心', path: '/account/profile', icon: User },
-  { label: '我的互动', path: '/account/activity', icon: ChatDotRound },
-  { label: '我的订单', path: '/account/orders', icon: Tickets },
-  { label: '我的收藏', path: '/account/favorites', icon: Collection },
-  { label: '我的评价', path: '/account/reviews', icon: Document },
-  { label: '设置', path: '/account/settings', icon: Setting }
+  { label: '个人中心', path: ACCOUNT_ROUTE_PATHS.profile, icon: User },
+  { label: '我的互动', path: ACCOUNT_ROUTE_PATHS.activity, icon: ChatDotRound },
+  { label: '我的订单', path: ACCOUNT_ROUTE_PATHS.orders, icon: Tickets },
+  { label: '我的收藏', path: ACCOUNT_ROUTE_PATHS.favorites, icon: Collection },
+  { label: '我的评价', path: ACCOUNT_ROUTE_PATHS.reviews, icon: Document },
+  { label: '设置', path: ACCOUNT_ROUTE_PATHS.settings, icon: Setting }
 ])
 
 const isActive = (item) => {
-  if (item.path === '/account/profile') {
-    return route.path === '/account/profile'
+  if (item.path === ACCOUNT_ROUTE_PATHS.profile) {
+    return route.path === ACCOUNT_ROUTE_PATHS.profile
   }
 
   return route.path === item.path || route.path.startsWith(`${item.path}/`)

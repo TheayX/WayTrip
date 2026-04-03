@@ -1,11 +1,7 @@
 <!-- 订单详情页 -->
 <template>
   <div class="page-container" v-if="order">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: '/account/orders' }">我的订单</el-breadcrumb-item>
-      <el-breadcrumb-item>订单详情</el-breadcrumb-item>
-    </el-breadcrumb>
+    <AccountPageHeader title="订单详情" subtitle="查看订单状态、联系人信息和价格明细。" />
 
     <div class="detail-layout">
       <div class="detail-main">
@@ -101,6 +97,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { getOrderDetail, payOrder, cancelOrder } from '@/modules/order/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ElMessage, ElMessageBox } from 'element-plus'

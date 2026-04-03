@@ -1,19 +1,9 @@
 <!-- 我的评价页 -->
 <template>
   <div class="page-container">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>我的评价</el-breadcrumb-item>
-    </el-breadcrumb>
+    <AccountPageHeader title="我的评价" subtitle="查看、修改或删除你提交过的全部景点评价。" />
 
     <section class="review-page card">
-      <div class="page-head">
-        <div>
-          <h2>我的评价</h2>
-          <p>查看、修改或删除你提交过的全部景点评价。</p>
-        </div>
-      </div>
-
       <div v-loading="loading">
         <div v-if="reviewList.length" class="review-list">
           <article v-for="item in reviewList" :key="item.id" class="review-card">
@@ -84,6 +74,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { deleteReview, getMyReviews, submitReview } from '@/modules/review/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 
@@ -175,23 +166,6 @@ onMounted(() => {
   margin-top: 8px;
   padding: 28px;
   border-radius: 18px;
-}
-
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-
-  h2 {
-    margin: 0 0 8px;
-    font-size: 26px;
-  }
-
-  p {
-    margin: 0;
-    color: #909399;
-  }
 }
 
 .review-list {

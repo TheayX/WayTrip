@@ -89,6 +89,7 @@
 
 <script setup>
 import { useUserStore } from '@/modules/account/store/user.js'
+import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
 import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -117,16 +118,16 @@ const handleBack = () => {
 const handleCommand = (command) => {
   switch (command) {
     case 'profile':
-      router.push('/account/profile')
+      router.push(ACCOUNT_ROUTE_PATHS.profile)
       break
     case 'orders':
-      router.push('/account/orders')
+      router.push(ACCOUNT_ROUTE_PATHS.orders)
       break
     case 'activity':
-      router.push('/account/activity')
+      router.push(ACCOUNT_ROUTE_PATHS.activity)
       break
     case 'settings':
-      router.push('/account/settings')
+      router.push(ACCOUNT_ROUTE_PATHS.settings)
       break
     case 'logout':
       ElMessageBox.confirm('确定要退出登录吗？', '提示', {

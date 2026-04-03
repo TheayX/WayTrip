@@ -1,10 +1,11 @@
 <!-- 个人中心页 -->
 <template>
   <div class="page-container profile-page">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>个人中心</el-breadcrumb-item>
-    </el-breadcrumb>
+    <AccountPageHeader title="个人中心" subtitle="管理资料、偏好和账号安全设置。">
+      <template #actions>
+        <el-button @click="$router.push(ACCOUNT_ROUTE_PATHS.settings)">系统设置</el-button>
+      </template>
+    </AccountPageHeader>
 
     <section class="hero card">
       <div class="hero-main">
@@ -15,21 +16,20 @@
         </div>
       </div>
       <div class="hero-actions">
-        <el-button @click="$router.push('/account/settings')">系统设置</el-button>
         <el-button type="danger" plain @click="handleLogout">退出登录</el-button>
       </div>
     </section>
 
     <section class="stats-grid">
-      <div class="stats-card card" @click="$router.push('/account/activity?tab=browse')">
+      <div class="stats-card card" @click="$router.push(`${ACCOUNT_ROUTE_PATHS.activity}?tab=browse`)">
         <strong>{{ dashboardStats.viewed }}</strong>
         <span>浏览历史</span>
       </div>
-      <div class="stats-card card" @click="$router.push('/account/activity?tab=favorite')">
+      <div class="stats-card card" @click="$router.push(`${ACCOUNT_ROUTE_PATHS.activity}?tab=favorite`)">
         <strong>{{ dashboardStats.favorites }}</strong>
         <span>我的收藏</span>
       </div>
-      <div class="stats-card card" @click="$router.push('/account/activity?tab=review')">
+      <div class="stats-card card" @click="$router.push(`${ACCOUNT_ROUTE_PATHS.activity}?tab=review`)">
         <strong>{{ dashboardStats.reviews }}</strong>
         <span>我的评价</span>
       </div>
@@ -38,18 +38,18 @@
     <section class="order-overview card">
       <div class="section-header">
         <h3>旅行订单</h3>
-        <el-button text type="primary" @click="$router.push('/account/orders')">查看全部</el-button>
+        <el-button text type="primary" @click="$router.push(ACCOUNT_ROUTE_PATHS.orders)">查看全部</el-button>
       </div>
       <div class="order-grid">
-        <div class="order-card" @click="$router.push('/account/orders?status=pending')">
+        <div class="order-card" @click="$router.push(`${ACCOUNT_ROUTE_PATHS.orders}?status=pending`)">
           <strong>{{ orderStats.pending }}</strong>
           <span>待支付</span>
         </div>
-        <div class="order-card" @click="$router.push('/account/orders?status=paid')">
+        <div class="order-card" @click="$router.push(`${ACCOUNT_ROUTE_PATHS.orders}?status=paid`)">
           <strong>{{ orderStats.paid }}</strong>
           <span>已支付</span>
         </div>
-        <div class="order-card" @click="$router.push('/account/orders?status=completed')">
+        <div class="order-card" @click="$router.push(`${ACCOUNT_ROUTE_PATHS.orders}?status=completed`)">
           <strong>{{ orderStats.completed }}</strong>
           <span>已完成</span>
         </div>
@@ -57,8 +57,8 @@
     </section>
 
     <section class="entry-grid">
-      <div class="entry-card card" @click="$router.push('/account/activity?tab=browse')">我的互动</div>
-      <div class="entry-card card" @click="$router.push('/account/orders')">我的订单</div>
+      <div class="entry-card card" @click="$router.push(`${ACCOUNT_ROUTE_PATHS.activity}?tab=browse`)">我的互动</div>
+      <div class="entry-card card" @click="$router.push(ACCOUNT_ROUTE_PATHS.orders)">我的订单</div>
       <div class="entry-card card" @click="activeMenu = 'preference'">偏好设置</div>
       <div class="entry-card card" @click="activeMenu = 'info'">账号资料</div>
     </section>
@@ -152,6 +152,8 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
+import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { getFavoriteList } from '@/modules/favorite/api.js'
 import { getOrderList } from '@/modules/order/api.js'
