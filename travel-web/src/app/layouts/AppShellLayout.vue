@@ -120,7 +120,7 @@
             <router-link to="/discover">发现灵感</router-link>
             <router-link to="/spots">热门景点</router-link>
             <router-link to="/guides">旅行攻略</router-link>
-            <router-link to="/more">更多功能</router-link>
+            <router-link to="/random-pick">随心一选</router-link>
           </div>
 
           <div class="footer-meta">
@@ -143,7 +143,7 @@ import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-path
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/shared/api/client.js'
-import { ArrowDown, ChatDotRound, Discount, Grid, MagicStick, Search, Setting, Stopwatch, Tickets, User, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
+import { ArrowDown, ChatDotRound, Discount, MagicStick, Search, Setting, Stopwatch, Tickets, User, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
 
 // 基础依赖与路由状态
 const userStore = useUserStore()
@@ -160,8 +160,7 @@ const featureMenuItems = [
   { label: '随心一选', path: APP_ROUTE_PATHS.randomPick, icon: MagicStick },
   { label: '穷游玩法', path: APP_ROUTE_PATHS.budgetTravel, icon: Discount },
   { label: '游客口碑', path: APP_ROUTE_PATHS.travelerReviews, icon: ChatDotRound },
-  { label: '近期热看', path: APP_ROUTE_PATHS.trendingViews, icon: Stopwatch },
-  { label: '更多功能', path: APP_ROUTE_PATHS.more, icon: Grid }
+  { label: '近期热看', path: APP_ROUTE_PATHS.trendingViews, icon: Stopwatch }
 ]
 
 // 计算属性

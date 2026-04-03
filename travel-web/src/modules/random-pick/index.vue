@@ -1,29 +1,41 @@
 <!-- 随心一选页 -->
 <template>
   <div class="page-container random-pick-page">
-    <section v-if="spot" class="hero-card" @click="goDetail">
-      <img :src="getImageUrl(spot.coverImage)" class="hero-image" alt="" />
-      <div class="hero-overlay"></div>
-      <div class="hero-content">
-        <p class="eyebrow">随心一选</p>
-        <h1 class="title">{{ spot.name }}</h1>
-        <p class="subtitle">{{ spot.regionName || '旅行目的地' }} · {{ spot.categoryName || '景点推荐' }}</p>
-        <p class="desc">{{ spot.description || spot.intro || fallbackCopy }}</p>
+    <section class="hero-card premium-card">
+      <div class="hero-copy">
+        <p class="eyebrow">Random Pick</p>
+        <h1 class="title">把选择交给今天的运气</h1>
+        <p class="subtitle">这个页面不追求信息量，而是给用户一个更轻、更快的随机出发入口。</p>
+      </div>
+      <div class="action-bar action-bar-desktop">
+        <el-button size="large" @click="drawSpot" :loading="loading">换一个</el-button>
+        <el-button size="large" type="primary" :disabled="!spot" @click="goDetail">去看看</el-button>
+      </div>
+    </section>
+
+    <section v-if="spot" class="picked-card premium-card" @click="goDetail">
+      <img :src="getImageUrl(spot.coverImage)" class="picked-image" alt="" />
+      <div class="picked-content">
+        <span class="picked-label">今天的随机结果</span>
+        <h2>{{ spot.name }}</h2>
+        <p class="picked-subtitle">{{ spot.regionName || '旅行目的地' }} · {{ spot.categoryName || '景点推荐' }}</p>
+        <p class="picked-desc">{{ spot.description || spot.intro || fallbackCopy }}</p>
 
         <div class="meta-row">
           <span class="meta-pill">★ {{ formatRating(spot.avgRating) }}</span>
           <span class="meta-pill">{{ formatPrice(spot.price) }}</span>
+          <span class="meta-pill">随机灵感</span>
         </div>
       </div>
     </section>
 
-    <section v-else-if="loading" class="state-card loading-card">
+    <section v-else-if="loading" class="state-card premium-card loading-card">
       <div class="loading-orb"></div>
       <h2>正在随机选择景点</h2>
       <p>从现有景点里随机抽取一个目的地。</p>
     </section>
 
-    <section v-else class="state-card">
+    <section v-else class="state-card premium-card">
       <el-empty description="暂时没有抽到合适的景点">
         <template #description>
           <p>暂时没有抽到合适的景点，可以再试一次。</p>
@@ -31,12 +43,13 @@
       </el-empty>
     </section>
 
-    <section class="tips-card card">
+    <section class="tips-card premium-card">
+      <p class="eyebrow">Today's Reason</p>
       <h2>今日灵感</h2>
       <p>{{ randomReason }}</p>
     </section>
 
-    <section class="action-bar">
+    <section class="action-bar action-bar-mobile">
       <el-button size="large" @click="drawSpot" :loading="loading">换一个</el-button>
       <el-button size="large" type="primary" :disabled="!spot" @click="goDetail">去看看</el-button>
     </section>
@@ -118,91 +131,120 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding-top: 8px;
+  padding-top: 4px;
   padding-bottom: 32px;
 }
 
+.hero-card,
+.state-card,
+.tips-card {
+  padding: 26px;
+}
+
 .hero-card {
-  position: relative;
-  min-height: 540px;
-  border-radius: 28px;
-  overflow: hidden;
-  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
   background:
-    radial-gradient(circle at top, rgba(124, 58, 237, 0.22), transparent 36%),
-    linear-gradient(135deg, #1f1637 0%, #31224f 60%, #0f172a 100%);
-  box-shadow: 0 24px 60px rgba(31, 22, 55, 0.24);
-}
-
-.hero-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.14) 0%, rgba(17, 24, 39, 0.78) 100%);
-}
-
-.hero-content {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 36px;
-  color: #fff;
+    radial-gradient(circle at top right, rgba(124, 58, 237, 0.16), transparent 28%),
+    linear-gradient(135deg, #faf7ff 0%, #ffffff 58%, #f5f3ff 100%);
 }
 
 .eyebrow {
-  display: inline-flex;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  font-size: 13px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
 }
 
 .title {
-  margin-top: 16px;
-  font-size: 44px;
-  line-height: 1.15;
+  font-size: 36px;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+}
+
+.subtitle,
+.picked-subtitle,
+.picked-desc,
+.loading-card p,
+.tips-card p {
+  color: #64748b;
+  line-height: 1.85;
 }
 
 .subtitle {
   margin-top: 12px;
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.86);
 }
 
-.desc {
+.picked-card {
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.05fr minmax(0, 1fr);
+  cursor: pointer;
+}
+
+.picked-image {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  object-fit: cover;
+}
+
+.picked-content {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.picked-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #f5f3ff;
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.picked-content h2,
+.tips-card h2,
+.loading-card h2 {
   margin-top: 16px;
-  max-width: 760px;
-  line-height: 1.8;
-  color: rgba(255, 255, 255, 0.92);
+  font-size: 34px;
+  line-height: 1.12;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+}
+
+.picked-desc {
+  margin-top: 14px;
 }
 
 .meta-row {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 22px;
 }
 
 .meta-pill {
   display: inline-flex;
   align-items: center;
-  padding: 10px 16px;
+  min-height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.state-card,
-.tips-card {
-  padding: 24px;
-  border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
 }
 
 .loading-card {
@@ -220,38 +262,43 @@ onMounted(() => {
   box-shadow: 0 18px 36px rgba(124, 58, 237, 0.22);
 }
 
-.loading-card h2,
-.tips-card h2 {
-  margin-top: 18px;
-  margin-bottom: 10px;
-  font-size: 24px;
-}
-
-.loading-card p,
-.tips-card p {
-  color: #64748b;
-  line-height: 1.8;
-}
-
 .action-bar {
   display: flex;
   gap: 16px;
 }
 
+.action-bar-mobile {
+  display: none;
+}
+
+@media (max-width: 992px) {
+  .hero-card,
+  .picked-card {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .action-bar-desktop {
+    display: none;
+  }
+
+  .action-bar-mobile {
+    display: flex;
+  }
+}
+
 @media (max-width: 768px) {
-  .hero-card {
-    min-height: 460px;
+  .title,
+  .picked-content h2 {
+    font-size: 30px;
   }
 
-  .hero-content {
-    padding: 24px;
+  .picked-image {
+    min-height: 260px;
   }
 
-  .title {
-    font-size: 32px;
-  }
-
-  .action-bar {
+  .action-bar-mobile {
     flex-direction: column;
   }
 }
