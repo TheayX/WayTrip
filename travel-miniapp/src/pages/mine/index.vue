@@ -128,7 +128,7 @@ import { getViewHistory } from '@/api/spot'
 import { wxLogin } from '@/api/auth'
 import { getUserInfo } from '@/api/user'
 import AuthPopup from './components/AuthPopup.vue'
-import { getAvatarUrl } from '@/utils/request'
+import { getAvatarUrl } from '@/utils/client'
 
 // 基础依赖与用户状态
 const userStore = useUserStore()

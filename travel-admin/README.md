@@ -161,7 +161,7 @@ feature-module/
 示例：
 
 - `modules/banner/api.js`
-- `modules/system/api/auth.js`
+- `modules/system/api/api.js`
 - `modules/recommendation/api/recommendation.js`
 
 ## 开发约定

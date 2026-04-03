@@ -65,7 +65,7 @@ import { computed, ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { fetchTravelerReviewFeed } from '@/services/traveler-reviews'
 import { promptLogin } from '@/utils/auth'
-import { getAvatarUrl } from '@/utils/request'
+import { getAvatarUrl } from '@/utils/client'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 const tabs = [

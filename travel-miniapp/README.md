@@ -57,11 +57,11 @@ travel-miniapp/
 
 例如：
 
-- `home.js`
 - `api.js`
-- `guide.js`
-- `review.js`
-- `user.js`
+- `api.js`
+- `api.js`
+- `api.js`
+- `api.js`
 
 说明：
 

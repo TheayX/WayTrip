@@ -138,7 +138,7 @@ import { deleteReview, getMyReviews, submitReview } from '@/api/review'
 import { getViewHistory } from '@/api/spot'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
-import { getContentImageUrl, getImageUrl } from '@/utils/request'
+import { getContentImageUrl, getImageUrl } from '@/utils/client'
 
 // 常量配置
 const tabs = [
