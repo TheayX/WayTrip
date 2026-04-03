@@ -1,35 +1,25 @@
 <!-- 附近景点页 -->
 <template>
   <div class="page-container nearby-page">
-    <section class="hero card">
+    <section class="hero premium-card">
       <div>
+        <p class="hero-eyebrow">Nearby Detail</p>
         <h2 class="page-title">附近探索</h2>
         <p class="page-subtitle">{{ subtitle }}</p>
       </div>
       <div class="hero-actions">
-        <el-button :loading="loading" type="primary" @click="handleLocate">{{ loading ? '定位中' : '重新定位' }}</el-button>
         <el-button text @click="router.push({ path: APP_ROUTE_PATHS.discover, query: { tab: 'spot', scene: 'nearby' } })">返回发现页</el-button>
+        <el-button :loading="loading" type="primary" @click="handleLocate">{{ loading ? '定位中' : '重新定位' }}</el-button>
       </div>
     </section>
 
     <section v-if="spots.length" class="spot-grid">
-      <article v-for="spot in spots" :key="spot.id" class="spot-card card" @click="$router.push(`/spots/${spot.id}?source=nearby`)">
-        <img :src="getImageUrl(spot.coverImage)" class="spot-image" alt="" />
-        <div class="spot-content">
-          <div class="spot-top">
-            <h3 class="spot-name">{{ spot.name }}</h3>
-            <span class="distance">{{ formatDistance(spot.distanceKm) }}</span>
-          </div>
-          <div class="spot-meta">
-            <span class="tag">{{ spot.regionName || '附近区域' }}</span>
-            <span class="tag">{{ spot.categoryName || '景点' }}</span>
-          </div>
-          <div class="spot-bottom">
-            <span class="price">¥{{ spot.price }}</span>
-            <span>评分 {{ spot.avgRating || '4.5' }}</span>
-          </div>
-        </div>
-      </article>
+      <SpotCard
+        v-for="spot in spots"
+        :key="spot.id"
+        :spot="spot"
+        @select="$router.push(`/spots/${spot.id}?source=nearby`)"
+      />
     </section>
 
     <el-empty v-else :description="emptyText">
@@ -43,10 +33,10 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/modules/account/store/user.js'
+import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { getNearbySpots } from '@/modules/home/api.js'
 import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { getLocationSnapshot, getCurrentLocation } from '@/shared/lib/location.js'
-import { getImageUrl } from '@/shared/api/client.js'
 
 // 基础依赖与用户状态
 const router = useRouter()
@@ -59,11 +49,11 @@ const locationStatus = ref('idle')
 
 // 计算属性
 const subtitle = computed(() => {
-  if (loading.value) return '正在根据当前位置获取周边景点'
+  if (loading.value) return '正在根据当前位置获取周边景点。'
   if (locationStatus.value === 'ready' && spots.value.length) {
-    return `共找到 ${spots.value.length} 个景点，最近约 ${formatDistance(spots.value[0].distanceKm)}`
+    return `共找到 ${spots.value.length} 个景点，最近约 ${formatDistance(spots.value[0].distanceKm)}。`
   }
-  if (locationStatus.value === 'empty') return '当前位置附近暂时没有可展示的景点'
+  if (locationStatus.value === 'empty') return '当前位置附近暂时没有可展示的景点。'
   return '这个页面保留为直达入口，更完整的探索流已经合并到发现页。'
 })
 
@@ -82,7 +72,7 @@ const formatDistance = (value) => {
 
 // 数据加载方法
 const fetchNearby = async (latitude, longitude) => {
-  const res = await getNearbySpots(latitude, longitude, 10)
+  const res = await getNearbySpots(latitude, longitude, 9)
   spots.value = res.data?.list || []
   locationStatus.value = spots.value.length ? 'ready' : 'empty'
 }
@@ -123,88 +113,65 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding-top: 4px;
 }
 
 .hero {
-  padding: 24px;
+  padding: 26px;
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
   align-items: center;
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 28%),
+    linear-gradient(135deg, #f7fdfa 0%, #ffffff 60%, #eefbf6 100%);
+}
+
+.hero-eyebrow {
+  margin-bottom: 8px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.page-title {
+  font-size: 34px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+}
+
+.page-subtitle {
+  margin-top: 12px;
+  color: #64748b;
+  line-height: 1.8;
 }
 
 .hero-actions {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.page-title {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.page-subtitle {
-  color: #909399;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .spot-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
-.spot-card {
-  cursor: pointer;
-}
-
-.spot-image {
-  width: 100%;
-  height: 240px;
-  object-fit: cover;
-}
-
-.spot-content {
-  padding: 16px;
-}
-
-.spot-top,
-.spot-meta,
-.spot-bottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-}
-
-.spot-name {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.distance {
-  color: #409eff;
-  font-weight: 600;
-}
-
-.spot-meta {
-  margin: 12px 0;
-}
-
-@media (max-width: 900px) {
-  .spot-grid {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 992px) {
   .hero {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
   }
 
-  .hero-actions {
-    flex-direction: column;
-    align-items: stretch;
+  .spot-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
