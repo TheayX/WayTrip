@@ -5,10 +5,10 @@
     <div class="guide-content">
       <span class="guide-category">{{ guide.category || '攻略' }}</span>
       <h3 class="guide-title">{{ guide.title }}</h3>
-      <p class="guide-summary">{{ guide.summary || '带上好心情，发现更多旅行灵感。' }}</p>
+      <p class="guide-summary">{{ guide.summary || '整理路线、玩法与出行经验，帮助你更快形成这次旅程的安排。' }}</p>
       <div class="guide-meta">
         <span class="guide-views">浏览 {{ guide.viewCount || 0 }}</span>
-        <span class="guide-link">阅读详情</span>
+        <span class="guide-link">继续阅读</span>
       </div>
     </div>
   </article>
@@ -39,7 +39,7 @@ defineEmits(['select'])
 
 .guide-image {
   width: 100%;
-  height: 220px;
+  height: 236px;
   object-fit: cover;
 }
 
@@ -53,8 +53,8 @@ defineEmits(['select'])
   min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
-  background: #f8fafc;
-  color: #334155;
+  background: #fffdf7;
+  color: #8a6a2f;
   font-size: 12px;
   font-weight: 700;
 }
@@ -70,7 +70,7 @@ defineEmits(['select'])
 .guide-summary {
   margin-top: 10px;
   color: #64748b;
-  line-height: 1.75;
+  line-height: 1.7;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
