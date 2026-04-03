@@ -12,11 +12,7 @@
       </div>
     </section>
 
-    <section class="quick-panel">
-      <div class="quick-card card" @click="$router.push('/spots?sortBy=heat')">全部景点</div>
-      <div class="quick-card card" @click="$router.push('/guides')">游玩攻略</div>
-      <div class="quick-card card" @click="goRecommendations">推荐景点</div>
-    </section>
+    <DiscoverQuickPanel :items="quickEntries" />
 
     <section class="tab-panel card">
       <el-radio-group v-model="activeTab" @change="handleTabChange">
@@ -56,20 +52,12 @@
         <el-button text type="primary" @click="$router.push('/spots')">查看全部</el-button>
       </div>
       <div v-if="spotList.length" class="spot-grid">
-        <article v-for="spot in spotList" :key="spot.id" class="spot-card card" @click="$router.push(`/spots/${spot.id}?source=discover`)">
-          <img :src="getImageUrl(spot.coverImage)" class="spot-image" alt="" />
-          <div class="spot-content">
-            <div class="spot-top">
-              <h4 class="spot-name">{{ spot.name }}</h4>
-              <span class="price">¥{{ spot.price }}</span>
-            </div>
-            <p class="spot-desc">{{ spot.intro || '暂无介绍' }}</p>
-            <div class="spot-meta">
-              <span class="tag">{{ spot.regionName || '地区待补充' }}</span>
-              <span class="tag">{{ spot.categoryName || '分类待补充' }}</span>
-            </div>
-          </div>
-        </article>
+        <SpotCard
+          v-for="spot in spotList"
+          :key="spot.id"
+          :spot="spot"
+          @select="$router.push(`/spots/${spot.id}?source=discover`)"
+        />
       </div>
       <el-empty v-else description="当前条件暂无景点" />
     </section>
@@ -80,17 +68,12 @@
         <el-button text type="primary" @click="$router.push('/guides')">查看全部</el-button>
       </div>
       <div v-if="guideList.length" class="guide-grid">
-        <article v-for="guide in guideList" :key="guide.id" class="guide-card card" @click="$router.push(`/guides/${guide.id}`)">
-          <img :src="getImageUrl(guide.coverImage)" class="guide-image" alt="" />
-          <div class="guide-content">
-            <h4 class="guide-title">{{ guide.title }}</h4>
-            <p class="guide-desc">{{ guide.summary || '带上好心情，发现更多旅行灵感。' }}</p>
-            <div class="guide-meta">
-              <span class="tag">{{ guide.category || '攻略' }}</span>
-              <span>👁 {{ guide.viewCount || 0 }}</span>
-            </div>
-          </div>
-        </article>
+        <GuideCard
+          v-for="guide in guideList"
+          :key="guide.id"
+          :guide="guide"
+          @select="$router.push(`/guides/${guide.id}`)"
+        />
       </div>
       <el-empty v-else description="当前条件暂无攻略" />
     </section>
@@ -101,9 +84,11 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import DiscoverQuickPanel from '@/modules/discover/components/DiscoverQuickPanel.vue'
+import GuideCard from '@/modules/guide/components/GuideCard.vue'
 import { getGuideList, getCategories } from '@/modules/guide/api.js'
+import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { getSpotList, getFilters } from '@/modules/spot/api.js'
-import { getImageUrl } from '@/shared/api/client.js'
 import { useUserStore } from '@/modules/account/store/user.js'
 
 const DISCOVER_STATE_KEY = 'discover_state'
@@ -129,6 +114,11 @@ const showSpotFilters = computed(() => activeTab.value === 'all' || activeTab.va
 const showGuideFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
 const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
 const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
+const quickEntries = computed(() => ([
+  { key: 'spots', label: '全部景点', handler: () => router.push('/spots?sortBy=heat') },
+  { key: 'guides', label: '游玩攻略', handler: () => router.push('/guides') },
+  { key: 'recommend', label: '推荐景点', handler: () => goRecommendations() }
+]))
 
 // 工具方法
 const persistState = () => {
@@ -269,19 +259,6 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-.quick-panel {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.quick-card {
-  padding: 18px;
-  text-align: center;
-  cursor: pointer;
-  font-weight: 600;
-}
-
 .tab-panel,
 .filters {
   padding: 18px 20px;
@@ -324,51 +301,7 @@ onMounted(async () => {
   gap: 20px;
 }
 
-.spot-card,
-.guide-card {
-  cursor: pointer;
-}
-
-.spot-image,
-.guide-image {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-}
-
-.spot-content,
-.guide-content {
-  padding: 16px;
-}
-
-.spot-top,
-.spot-meta,
-.guide-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-}
-
-.spot-name,
-.guide-title {
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.spot-desc,
-.guide-desc {
-  margin: 12px 0;
-  line-height: 1.6;
-  color: #606266;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 @media (max-width: 900px) {
-  .quick-panel,
   .spot-grid,
   .guide-grid {
     grid-template-columns: 1fr;

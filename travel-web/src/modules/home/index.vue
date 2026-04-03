@@ -26,42 +26,19 @@
     </section>
 
     <div class="page-container home-content">
-      <section class="quick-grid">
-        <div v-for="item in quickActions" :key="item.id" class="quick-card card" @click="item.handler()">
-          <div class="quick-icon" :class="item.theme">
-            <el-icon><component :is="item.icon" /></el-icon>
-          </div>
-          <div>
-            <h3>{{ item.title }}</h3>
-            <p>{{ item.desc }}</p>
-          </div>
-        </div>
-      </section>
+      <HomeQuickActions :items="quickActions" />
 
-      <section class="section">
-        <div class="section-header">
-          <h2 class="section-title">附近探索</h2>
-          <el-button text type="primary" @click="goNearby">查看更多</el-button>
-        </div>
-        <div class="nearby-panel card">
-          <div class="nearby-copy">
-            <h3>{{ nearbyHeadline }}</h3>
-            <p>{{ nearbySummary }}</p>
-            <el-button type="primary" :loading="nearbyLoading" @click="goNearby">{{ nearbyActionText }}</el-button>
-          </div>
-          <div v-if="nearbySpots.length" class="nearby-list">
-            <article v-for="spot in nearbySpots.slice(0, 3)" :key="spot.id" class="nearby-item" @click="router.push(`/spots/${spot.id}?source=nearby`)">
-              <img :src="getImageUrl(spot.coverImage)" class="nearby-image" alt="" />
-              <div class="nearby-info">
-                <h4>{{ spot.name }}</h4>
-                <p>{{ spot.regionName || '附近区域' }}</p>
-                <span>{{ formatDistance(spot.distanceKm) }}</span>
-              </div>
-            </article>
-          </div>
-          <el-empty v-else description="暂未加载附近景点" :image-size="80" />
-        </div>
-      </section>
+      <HomeNearbySection
+        :headline="nearbyHeadline"
+        :summary="nearbySummary"
+        :action-text="nearbyActionText"
+        :loading="nearbyLoading"
+        :spots="nearbySpots"
+        :format-distance="formatDistance"
+        @more="goNearby"
+        @action="goNearby"
+        @select="router.push(`/spots/${$event.id}?source=nearby`)"
+      />
 
       <section class="section">
         <div class="section-header">
@@ -146,6 +123,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Guide, MapLocation, Search, Star, Tickets } from '@element-plus/icons-vue'
+import HomeNearbySection from '@/modules/home/components/HomeNearbySection.vue'
+import HomeQuickActions from '@/modules/home/components/HomeQuickActions.vue'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { getBanners, getHotSpots, getNearbySpots } from '@/modules/home/api.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
@@ -434,61 +413,6 @@ onMounted(async () => {
   margin-top: 28px;
 }
 
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-}
-
-.quick-card {
-  padding: 20px;
-  display: flex;
-  gap: 16px;
-  cursor: pointer;
-  align-items: center;
-}
-
-.quick-card h3 {
-  margin-bottom: 8px;
-  font-size: 18px;
-}
-
-.quick-card p {
-  color: #909399;
-  line-height: 1.6;
-}
-
-.quick-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.quick-icon.blue {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
-.quick-icon.orange {
-  background: #ffedd5;
-  color: #ea580c;
-}
-
-.quick-icon.amber {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.quick-icon.emerald {
-  background: #d1fae5;
-  color: #059669;
-}
-
 .section {
   display: flex;
   flex-direction: column;
@@ -501,57 +425,6 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-}
-
-.nearby-panel {
-  padding: 22px;
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 20px;
-  align-items: start;
-}
-
-.nearby-copy h3 {
-  margin-bottom: 12px;
-  font-size: 24px;
-}
-
-.nearby-copy p {
-  margin-bottom: 18px;
-  color: #606266;
-  line-height: 1.7;
-}
-
-.nearby-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
-
-.nearby-item {
-  background: #f8fafc;
-  border-radius: 14px;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.nearby-image {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-}
-
-.nearby-info {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.nearby-info p,
-.nearby-info span {
-  color: #64748b;
-  font-size: 13px;
 }
 
 .hot-grid {
@@ -646,13 +519,8 @@ onMounted(async () => {
 }
 
 @media (max-width: 1024px) {
-  .quick-grid,
   .hot-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .nearby-panel {
-    grid-template-columns: 1fr;
   }
 
   .nearby-list,
@@ -666,7 +534,6 @@ onMounted(async () => {
     font-size: 36px;
   }
 
-  .quick-grid,
   .hot-grid {
     grid-template-columns: 1fr;
   }
