@@ -52,20 +52,26 @@ src/
    ├─ banner/                        轮播图管理
    ├─ category/                      分类管理
    ├─ dashboard/                     运营概览
-   ├─ guide/                         攻略管理
-   ├─ order/                         订单管理
-   ├─ recommendation/                推荐系统
-   │  ├─ api/                        推荐系统接口
-   │  ├─ components/                 推荐系统页面组件
-   │  └─ composables/                推荐系统页面逻辑
    ├─ region/                        地区管理
    ├─ spot/                          景点管理
-   │  ├─ components/                 景点页面组件
-   │  └─ composables/                景点模块逻辑
+   ├─ guide/                         攻略管理
+   ├─ order/                         订单中心
+   ├─ recommendation/                推荐系统
    ├─ system/                        系统管理
-   │  └─ api/                        系统接口
    └─ user-ops/                      用户运营
-      └─ api/                        用户运营接口
+
+模块内部按复杂度按需拆分：
+
+light-module/
+├─ api.js
+└─ index.vue
+
+feature-module/
+├─ api.js 或 api/
+├─ components/
+├─ composables/                      可选
+├─ pages/                            可选
+└─ styles/                           可选
 ```
 
 ## 分层职责
@@ -112,15 +118,16 @@ src/
 
 ### 页面文件命名
 
-- 单页面模块：`index.vue + api.js`
-- 多页面模块：语义页面名 + `api/`
+- 轻模块：模块根目录 `index.vue + api.js`
+- 中等及以上模块：`pages/` 下放页面文件，按需搭配 `components/`、`composables/`、`api/`
 
 示例：
 
-- `modules/spot/index.vue`
-- `modules/order/index.vue`
-- `modules/system/login.vue`
-- `modules/recommendation/config.vue`
+- `modules/banner/index.vue`
+- `modules/spot/pages/index.vue`
+- `modules/order/pages/index.vue`
+- `modules/system/pages/login.vue`
+- `modules/recommendation/pages/config.vue`
 
 ### 组件文件命名
 
@@ -144,8 +151,9 @@ src/
 
 ### 接口文件命名
 
-- 单页面简单模块：模块根目录直接 `api.js`
-- 多页面或接口较多的模块：使用 `api/` 目录拆分
+- 轻模块：模块根目录直接 `api.js`
+- 多页面模块或接口较多的模块：使用 `api/` 目录拆分
+- 如果模块已经引入 `pages/`，优先保持“页面与接口按模块聚合”，不要再回退到根目录平铺多个页面文件
 
 示例：
 
@@ -165,9 +173,9 @@ src/
 
 不要为了图省事把业务代码放进 `shared`。
 
-### 2. 简单模块保持轻量
+### 2. 轻模块保持轻量
 
-简单模块保持：
+轻模块保持：
 
 ```text
 module/
@@ -177,13 +185,15 @@ module/
 
 不要为了“看起来规范”提前拆很多空目录。
 
-### 3. 复杂模块按需拆分
+### 3. 中等及以上模块按需拆分
 
-当页面明显膨胀时，再往模块内拆：
+当页面明显膨胀，或者一个模块下已经出现多页面时，再往模块内拆：
 
+- `pages/`
 - `components/`
 - `composables/`
 - `api/`
+- `styles/`
 
 拆分的目标是降低维护成本，不是为了增加层级数量。
 
