@@ -1,11 +1,11 @@
 <!-- 游客口碑页 -->
 <template>
   <div class="page-container reviews-page">
-    <section class="hero-card">
+    <section class="hero-card premium-card">
       <div>
         <p class="hero-eyebrow">Traveler Reviews</p>
         <h1 class="hero-title">游客口碑</h1>
-        <p class="hero-desc">先看真实游客怎么说，再决定要不要去。</p>
+        <p class="hero-desc">先看真实游客怎么说，再决定要不要继续深入浏览景点详情。</p>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -19,12 +19,16 @@
       </div>
     </section>
 
-    <section class="tab-bar card">
+    <section class="tab-bar premium-card">
+      <div class="tab-copy">
+        <p class="hero-eyebrow">Review Mode</p>
+        <h2>{{ activeTab === 'positive' ? '高分种草' : '真实避雷' }}</h2>
+      </div>
       <el-segmented v-model="activeTab" :options="tabs" />
     </section>
 
     <section v-if="activeReviews.length" class="review-list">
-      <article v-for="item in activeReviews" :key="item.id" class="review-card card" @click="goSpotDetail(item.spotId)">
+      <article v-for="item in activeReviews" :key="item.id" class="review-card premium-card" @click="goSpotDetail(item.spotId)">
         <div class="review-header">
           <div class="user-box">
             <img :src="getAvatarUrl(item.avatar)" class="avatar" alt="" />
@@ -47,7 +51,7 @@
       </article>
     </section>
 
-    <section v-else-if="!loading" class="empty-wrap card">
+    <section v-else-if="!loading" class="empty-wrap premium-card">
       <el-empty :description="emptyStateTitle">
         <template #description>
           <p>{{ emptyStateDesc }}</p>
@@ -55,7 +59,7 @@
       </el-empty>
     </section>
 
-    <section v-if="loading" class="loading-row card">
+    <section v-if="loading" class="loading-row premium-card">
       <p>正在整理游客评价...</p>
     </section>
   </div>
@@ -113,8 +117,8 @@ onMounted(() => {
 .reviews-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding-top: 8px;
+  gap: 20px;
+  padding-top: 4px;
   padding-bottom: 32px;
 }
 
@@ -122,10 +126,7 @@ onMounted(() => {
 .tab-bar,
 .empty-wrap,
 .loading-row {
-  padding: 24px;
-  border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+  padding: 26px;
 }
 
 .hero-card {
@@ -133,20 +134,28 @@ onMounted(() => {
   justify-content: space-between;
   gap: 18px;
   align-items: flex-end;
-  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 56%, #eef2ff 100%);
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.12), transparent 28%),
+    linear-gradient(135deg, #f8fbff 0%, #ffffff 58%, #eef5ff 100%);
 }
 
 .hero-eyebrow {
   margin-bottom: 8px;
   font-size: 12px;
-  letter-spacing: 0.24em;
-  color: #1d4ed8;
+  letter-spacing: 0.14em;
+  color: #64748b;
   text-transform: uppercase;
+  font-weight: 700;
+}
+
+.hero-title,
+.tab-copy h2 {
+  color: #0f172a;
+  letter-spacing: -0.03em;
 }
 
 .hero-title {
   font-size: 36px;
-  margin-bottom: 12px;
 }
 
 .hero-desc,
@@ -164,8 +173,8 @@ onMounted(() => {
 .hero-stat {
   min-width: 140px;
   padding: 18px 20px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.78);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .hero-stat strong {
@@ -178,6 +187,13 @@ onMounted(() => {
   display: block;
   margin-top: 8px;
   color: #64748b;
+}
+
+.tab-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
 }
 
 .review-list {
@@ -232,8 +248,11 @@ onMounted(() => {
 
 .score-badge {
   flex-shrink: 0;
-  padding: 8px 14px;
+  min-height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
   font-weight: 700;
 }
 
@@ -254,20 +273,18 @@ onMounted(() => {
 
 .footer-link {
   color: #2563eb !important;
+  font-weight: 700;
 }
 
 @media (max-width: 992px) {
-  .hero-card {
+  .hero-card,
+  .tab-bar {
     flex-direction: column;
     align-items: flex-start;
   }
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 30px;
-  }
-
   .hero-stats {
     width: 100%;
     flex-direction: column;
