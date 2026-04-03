@@ -33,6 +33,33 @@
         </el-radio-group>
         <span v-if="searched" class="result-total">{{ totalText }}</span>
       </div>
+      <div class="search-actions">
+        <div class="search-chip-group">
+          <span class="group-label">热搜</span>
+          <button
+            v-for="item in hotKeywords"
+            :key="item"
+            type="button"
+            class="search-chip"
+            @click="applyKeyword(item)"
+          >
+            {{ item }}
+          </button>
+        </div>
+        <div class="search-chip-group" v-if="recentKeywords.length">
+          <span class="group-label">最近搜索</span>
+          <button
+            v-for="item in recentKeywords"
+            :key="item"
+            type="button"
+            class="search-chip ghost"
+            @click="applyKeyword(item)"
+          >
+            {{ item }}
+          </button>
+          <el-button text @click="clearRecentKeywords">清空</el-button>
+        </div>
+      </div>
     </section>
 
     <template v-if="searched">
@@ -125,12 +152,110 @@
       <el-empty
         v-if="!spotLoading && !guideLoading && spotResults.length === 0 && guideResults.length === 0"
         description="没有找到匹配的景点或攻略"
-      />
+      >
+        <template #default>
+          <div class="empty-panel">
+            <p>换个关键词试试，或者直接从下面的推荐内容继续浏览。</p>
+            <div class="search-chip-group compact" v-if="recentKeywords.length">
+              <span class="group-label">最近搜索</span>
+              <button
+                v-for="item in recentKeywords"
+                :key="`empty-${item}`"
+                type="button"
+                class="search-chip ghost"
+                @click="applyKeyword(item)"
+              >
+                {{ item }}
+              </button>
+            </div>
+          </div>
+        </template>
+      </el-empty>
+
+      <section
+        v-if="!spotLoading && !guideLoading && spotResults.length === 0 && guideResults.length === 0 && fallbackSpots.length + fallbackGuides.length > 0"
+        class="result-section"
+      >
+        <div class="section-head">
+          <div>
+            <h3>不如先看看这些</h3>
+            <p>搜索没有命中时，继续从热门景点和最新攻略里找灵感。</p>
+          </div>
+        </div>
+
+        <div v-if="fallbackSpots.length" class="fallback-grid">
+          <article
+            v-for="spot in fallbackSpots"
+            :key="`fallback-spot-${spot.id}`"
+            class="fallback-card card"
+            @click="$router.push(`/spots/${spot.id}?source=search`)"
+          >
+            <img :src="getImageUrl(spot.coverImage)" class="fallback-image" alt="" />
+            <div class="fallback-content">
+              <h4>{{ spot.name }}</h4>
+              <p>{{ spot.regionName }} · {{ spot.categoryName || '景点' }}</p>
+            </div>
+          </article>
+        </div>
+
+        <div v-if="fallbackGuides.length" class="fallback-grid">
+          <article
+            v-for="guide in fallbackGuides"
+            :key="`fallback-guide-${guide.id}`"
+            class="fallback-card card"
+            @click="$router.push(`/guides/${guide.id}`)"
+          >
+            <img :src="getImageUrl(guide.coverImage)" class="fallback-image" alt="" />
+            <div class="fallback-content">
+              <h4>{{ guide.title }}</h4>
+              <p>{{ guide.category || '攻略' }} · {{ guide.createdAt }}</p>
+            </div>
+          </article>
+        </div>
+      </section>
     </template>
 
     <section v-else class="search-hint card">
       <el-icon :size="64" color="#c0c4cc"><Search /></el-icon>
       <p>输入关键词后，同时查看景点和攻略结果。</p>
+      <div class="search-chip-group compact">
+        <span class="group-label">热搜推荐</span>
+        <button
+          v-for="item in hotKeywords"
+          :key="`hint-${item}`"
+          type="button"
+          class="search-chip"
+          @click="applyKeyword(item)"
+        >
+          {{ item }}
+        </button>
+      </div>
+      <div v-if="fallbackSpots.length || fallbackGuides.length" class="hint-recommend">
+        <article
+          v-for="spot in fallbackSpots.slice(0, 2)"
+          :key="`hint-spot-${spot.id}`"
+          class="hint-card card"
+          @click="$router.push(`/spots/${spot.id}?source=search`)"
+        >
+          <img :src="getImageUrl(spot.coverImage)" class="hint-image" alt="" />
+          <div class="hint-content">
+            <h4>{{ spot.name }}</h4>
+            <p>{{ spot.regionName }}</p>
+          </div>
+        </article>
+        <article
+          v-for="guide in fallbackGuides.slice(0, 1)"
+          :key="`hint-guide-${guide.id}`"
+          class="hint-card card"
+          @click="$router.push(`/guides/${guide.id}`)"
+        >
+          <img :src="getImageUrl(guide.coverImage)" class="hint-image" alt="" />
+          <div class="hint-content">
+            <h4>{{ guide.title }}</h4>
+            <p>{{ guide.category || '攻略' }}</p>
+          </div>
+        </article>
+      </div>
     </section>
   </div>
 </template>
@@ -139,12 +264,16 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
+import { getHotSpots } from '@/modules/home/api.js'
 import { getGuideList } from '@/modules/guide/api.js'
 import { searchSpots } from '@/modules/spot/api.js'
 import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { getImageUrl } from '@/shared/api/client.js'
 
 const SEARCH_TABS = ['all', 'spot', 'guide']
+const SEARCH_HISTORY_KEY = 'search_recent_keywords'
+const SEARCH_HISTORY_LIMIT = 8
+const hotKeywords = ['杭州西湖', '上海迪士尼', '周末出游', '古镇', '海边', '徒步']
 
 // 基础依赖与路由状态
 const route = useRoute()
@@ -164,6 +293,9 @@ const spotPageSize = 8
 const guidePageSize = 6
 const spotTotal = ref(0)
 const guideTotal = ref(0)
+const recentKeywords = ref([])
+const fallbackSpots = ref([])
+const fallbackGuides = ref([])
 
 // 计算属性
 const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
@@ -171,6 +303,38 @@ const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.v
 const totalText = computed(() => `共找到 ${spotTotal.value} 个景点，${guideTotal.value} 篇攻略`)
 
 // 工具方法
+const saveRecentKeyword = (value) => {
+  const normalized = value.trim()
+  if (!normalized) return
+
+  const nextKeywords = [
+    normalized,
+    ...recentKeywords.value.filter((item) => item !== normalized)
+  ].slice(0, SEARCH_HISTORY_LIMIT)
+
+  recentKeywords.value = nextKeywords
+  localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(nextKeywords))
+}
+
+const restoreRecentKeywords = () => {
+  const raw = localStorage.getItem(SEARCH_HISTORY_KEY)
+  if (!raw) return
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) {
+      recentKeywords.value = parsed.filter((item) => typeof item === 'string' && item.trim()).slice(0, SEARCH_HISTORY_LIMIT)
+    }
+  } catch (_error) {
+    recentKeywords.value = []
+  }
+}
+
+const clearRecentKeywords = () => {
+  recentKeywords.value = []
+  localStorage.removeItem(SEARCH_HISTORY_KEY)
+}
+
 const syncRouteQuery = () => {
   router.replace({
     path: APP_ROUTE_PATHS.search,
@@ -179,6 +343,11 @@ const syncRouteQuery = () => {
       ...(activeTab.value !== 'all' ? { tab: activeTab.value } : {})
     }
   })
+}
+
+const applyKeyword = async (value) => {
+  keyword.value = value
+  await handleSearch()
 }
 
 // 数据加载方法
@@ -221,6 +390,16 @@ const fetchGuideResults = async () => {
   }
 }
 
+const fetchFallbackContent = async () => {
+  const [spotRes, guideRes] = await Promise.all([
+    getHotSpots(4),
+    getGuideList({ page: 1, pageSize: 3, sortBy: 'time' })
+  ])
+
+  fallbackSpots.value = spotRes.data?.list || []
+  fallbackGuides.value = guideRes.data?.list || []
+}
+
 // 交互处理方法
 const handleSearch = async () => {
   if (!keyword.value.trim()) return
@@ -228,6 +407,7 @@ const handleSearch = async () => {
   searched.value = true
   spotPage.value = 1
   guidePage.value = 1
+  saveRecentKeyword(keyword.value)
   syncRouteQuery()
 
   // 综合搜索页默认并行拉两类结果，避免切 tab 时才首次加载造成体验割裂。
@@ -252,6 +432,9 @@ const handleTabChange = async () => {
 
 // 生命周期
 onMounted(async () => {
+  restoreRecentKeywords()
+  await fetchFallbackContent()
+
   if (typeof route.query.tab === 'string' && SEARCH_TABS.includes(route.query.tab)) {
     activeTab.value = route.query.tab
   }
@@ -308,6 +491,45 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 16px;
   align-items: center;
+}
+
+.search-actions,
+.search-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-actions {
+  margin-top: 18px;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.group-label {
+  color: #64748b;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.search-chip {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.search-chip.ghost {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.search-chip-group.compact {
+  justify-content: center;
 }
 
 .result-section {
@@ -426,6 +648,50 @@ onMounted(async () => {
   justify-content: center;
 }
 
+.empty-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.fallback-grid,
+.hint-recommend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.fallback-card,
+.hint-card {
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.fallback-image,
+.hint-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.fallback-content,
+.hint-content {
+  padding: 14px 16px;
+}
+
+.fallback-content h4,
+.hint-content h4 {
+  margin-bottom: 6px;
+  color: #0f172a;
+}
+
+.fallback-content p,
+.hint-content p {
+  color: #64748b;
+}
+
 .search-hint {
   display: flex;
   flex-direction: column;
@@ -448,6 +714,11 @@ onMounted(async () => {
   .section-head {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .fallback-grid,
+  .hint-recommend {
+    grid-template-columns: 1fr;
   }
 }
 
