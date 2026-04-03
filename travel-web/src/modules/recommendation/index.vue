@@ -45,7 +45,7 @@
     </section>
 
     <el-empty v-else :description="userStore.isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点'">
-      <el-button v-if="!userStore.isLoggedIn" type="primary" @click="$router.push('/login')">去登录</el-button>
+      <el-button v-if="!userStore.isLoggedIn" type="primary" @click="$router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
     </el-empty>
 
     <el-dialog v-model="preferenceVisible" title="选择你感兴趣的景点分类" width="520px" :close-on-click-modal="false">
@@ -72,6 +72,7 @@ import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
+import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { getImageUrl } from '@/shared/api/client.js'
 
 // 基础依赖与用户状态

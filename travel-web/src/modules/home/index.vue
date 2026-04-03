@@ -5,7 +5,7 @@
       <div class="hero-overlay">
         <div class="page-container hero-inner">
           <div class="hero-copy">
-            <p class="hero-eyebrow">WayTrip</p>
+            <p class="hero-eyebrow">{{ APP_NAME }}</p>
             <h1 class="hero-title">发现旅途之美</h1>
             <p class="hero-subtitle">把热门景点、个性推荐、附近探索和攻略入口集中到一个首页里。</p>
             <div class="hero-search" @click="router.push('/search')">
@@ -94,7 +94,7 @@
           </article>
         </div>
         <el-empty v-else :description="userStore.isLoggedIn ? '暂无推荐景点' : '登录后查看推荐景点'">
-          <el-button v-if="!userStore.isLoggedIn" type="primary" @click="router.push('/login')">去登录</el-button>
+          <el-button v-if="!userStore.isLoggedIn" type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
         </el-empty>
       </section>
     </div>
@@ -126,6 +126,8 @@ import { Guide, MapLocation, Search, Star, Tickets } from '@element-plus/icons-v
 import HomeNearbySection from '@/modules/home/components/HomeNearbySection.vue'
 import HomeQuickActions from '@/modules/home/components/HomeQuickActions.vue'
 import { useUserStore } from '@/modules/account/store/user.js'
+import { APP_NAME } from '@/shared/constants/app.js'
+import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { getBanners, getHotSpots, getNearbySpots } from '@/modules/home/api.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
 import {
@@ -299,7 +301,7 @@ const handleBannerClick = (banner) => {
 
 const goRecommendations = () => {
   if (!userStore.isLoggedIn) {
-    router.push('/login')
+    router.push(AUTH_ROUTE_PATHS.login)
     return
   }
   router.push('/recommendations')
@@ -307,7 +309,7 @@ const goRecommendations = () => {
 
 const goNearby = async () => {
   if (!userStore.isLoggedIn) {
-    router.push('/login')
+    router.push(AUTH_ROUTE_PATHS.login)
     return
   }
 

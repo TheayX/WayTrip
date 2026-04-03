@@ -4,7 +4,7 @@
     <div class="login-card">
       <div class="login-header">
         <span class="logo-icon">✈</span>
-        <h1>欢迎回到 WayTrip</h1>
+        <h1>欢迎回到 {{ APP_NAME }}</h1>
         <p>登录以开启精彩旅程</p>
       </div>
       <el-form ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent="handleLogin">
@@ -30,6 +30,7 @@ import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { login } from '@/modules/auth/api.js'
+import { APP_NAME } from '@/shared/constants/app.js'
 import { ElMessage } from 'element-plus'
 
 // 基础依赖与路由状态

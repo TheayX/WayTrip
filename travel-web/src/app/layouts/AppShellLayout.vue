@@ -7,7 +7,7 @@
         <div class="navbar-left">
           <router-link to="/" class="logo">
             <span class="logo-icon">✈</span>
-            <span class="logo-text">WayTrip</span>
+            <span class="logo-text">{{ APP_NAME }}</span>
           </router-link>
           <nav class="nav-links">
             <router-link to="/" class="nav-link" :class="{ active: isHomeActive }">首页</router-link>
@@ -49,7 +49,7 @@
             </el-dropdown>
           </template>
           <template v-else>
-            <el-button type="primary" round @click="$router.push('/login')">登录</el-button>
+            <el-button type="primary" round @click="$router.push(AUTH_ROUTE_PATHS.login)">登录</el-button>
           </template>
         </div>
       </div>
@@ -72,7 +72,7 @@
     <footer class="footer">
       <div class="footer-inner">
         <div class="footer-left">
-          <span class="footer-logo">✈ WayTrip</span>
+          <span class="footer-logo">✈ {{ APP_NAME }}</span>
           <p class="footer-desc">发现旅途之美，开启精彩旅程</p>
         </div>
         <div class="footer-links">
@@ -80,7 +80,7 @@
           <router-link to="/guides">旅行攻略</router-link>
         </div>
         <div class="footer-right">
-          <p>© 2026 WayTrip. All rights reserved.</p>
+          <p>© 2026 {{ APP_NAME }}. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -90,6 +90,9 @@
 <script setup>
 import { useUserStore } from '@/modules/account/store/user.js'
 import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
+import { APP_NAME } from '@/shared/constants/app.js'
+import { ROUTE_NAMES } from '@/shared/constants/route-names.js'
+import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -101,8 +104,8 @@ const router = useRouter()
 const route = useRoute()
 
 // 计算属性
-const isHomeActive = computed(() => route.name === 'Home')
-const hiddenBackRoutes = ['Home', 'Login', 'Register']
+const isHomeActive = computed(() => route.name === ROUTE_NAMES.home)
+const hiddenBackRoutes = [ROUTE_NAMES.home, ROUTE_NAMES.login, ROUTE_NAMES.register]
 const showBackBar = computed(() => !hiddenBackRoutes.includes(route.name))
 
 // 交互处理方法
@@ -137,7 +140,7 @@ const handleCommand = (command) => {
       }).then(() => {
         userStore.logout()
         ElMessage.success('已退出登录')
-        router.replace('/login')
+        router.replace(AUTH_ROUTE_PATHS.login)
       }).catch(() => {})
       break
   }

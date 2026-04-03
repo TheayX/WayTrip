@@ -155,6 +155,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
 import { useUserStore } from '@/modules/account/store/user.js'
+import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { getFavoriteList } from '@/modules/favorite/api.js'
 import { getOrderList } from '@/modules/order/api.js'
 import { getMyReviews } from '@/modules/review/api.js'
@@ -361,7 +362,7 @@ const handleDeactivate = async () => {
   await deactivateAccount()
   userStore.logout()
   ElMessage.success('账户已注销')
-  router.replace('/login')
+  router.replace(AUTH_ROUTE_PATHS.login)
 }
 
 const handleLogout = async () => {
@@ -369,7 +370,7 @@ const handleLogout = async () => {
     type: 'warning'
   })
   userStore.logout()
-  router.replace('/login')
+  router.replace(AUTH_ROUTE_PATHS.login)
 }
 
 // 生命周期
