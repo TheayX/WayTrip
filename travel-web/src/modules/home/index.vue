@@ -8,9 +8,12 @@
             <p class="hero-eyebrow">{{ APP_NAME }}</p>
             <h1 class="hero-title">发现旅途之美</h1>
             <p class="hero-subtitle">从首页快速进入景点、攻略和探索场景，再把更完整的发现流交给 Web 端专门承接。</p>
-            <div class="hero-search" @click="router.push(APP_ROUTE_PATHS.search)">
-              <el-icon><Search /></el-icon>
-              <span>搜索景点</span>
+            <div class="hero-actions">
+              <div class="hero-search" @click="router.push(APP_ROUTE_PATHS.search)">
+                <el-icon><Search /></el-icon>
+                <span>搜索景点</span>
+              </div>
+              <el-button class="hero-random-btn" size="large" @click="router.push(APP_ROUTE_PATHS.randomPick)">试试手气</el-button>
             </div>
           </div>
         </div>
@@ -420,8 +423,14 @@ onMounted(async () => {
   color: rgba(255, 255, 255, 0.86);
 }
 
-.hero-search {
+.hero-actions {
   margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-search {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -430,6 +439,11 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.92);
   color: #475569;
   cursor: pointer;
+}
+
+.hero-random-btn {
+  border-radius: 999px;
+  padding-inline: 24px;
 }
 
 .home-content {
@@ -558,6 +572,11 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .hero-title {
     font-size: 36px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .hot-grid {

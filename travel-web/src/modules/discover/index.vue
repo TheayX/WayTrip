@@ -12,6 +12,7 @@
           <el-icon><Search /></el-icon>
           <span>搜索景点</span>
         </div>
+        <el-button type="primary" plain @click="router.push(APP_ROUTE_PATHS.randomPick)">随心一选</el-button>
         <el-button text type="primary" @click="router.push(APP_ROUTE_PATHS.guides)">浏览攻略</el-button>
       </div>
     </section>
