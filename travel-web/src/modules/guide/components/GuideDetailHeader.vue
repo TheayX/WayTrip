@@ -1,7 +1,7 @@
 <!-- 攻略详情头部 -->
 <template>
   <div class="guide-header premium-card">
-    <p class="guide-kicker">Guide Story</p>
+    <p class="guide-kicker">旅行攻略</p>
     <h1 class="guide-title">{{ guide.title }}</h1>
     <div class="guide-meta">
       <span class="tag">{{ guide.category || '攻略' }}</span>
@@ -45,6 +45,7 @@ defineProps({
   font-weight: 700;
   color: #0f172a;
   letter-spacing: -0.04em;
+  text-wrap: balance;
 }
 
 .guide-meta {
