@@ -15,6 +15,7 @@
               </div>
               <el-button class="hero-random-btn" size="large" @click="router.push(APP_ROUTE_PATHS.randomPick)">试试手气</el-button>
               <el-button class="hero-budget-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.budgetTravel)">低预算出游</el-button>
+              <el-button class="hero-review-btn" size="large" plain @click="router.push(APP_ROUTE_PATHS.travelerReviews)">看看口碑</el-button>
             </div>
           </div>
         </div>
@@ -448,6 +449,11 @@ onMounted(async () => {
 }
 
 .hero-budget-btn {
+  border-radius: 999px;
+  padding-inline: 24px;
+}
+
+.hero-review-btn {
   border-radius: 999px;
   padding-inline: 24px;
 }
