@@ -69,7 +69,7 @@ defineEmits(['clickNearby', 'markerTap', 'moreHot', 'clickHot'])
 <style scoped>
 .section { padding: 24rpx 0 48rpx; }
 .section-header { padding: 0 32rpx; margin-bottom: 24rpx; display: flex; align-items: center; justify-content: space-between;}
-.section-title { font-size: 38rpx; font-weight: 700; color: #111827; }
+.section-title { font-size: 38rpx; font-weight: 700; color: #0f172a; }
 .section-link { font-size: 26rpx; color: #6b7280; font-weight: 500; }
 
 /* Hot Spots */
@@ -77,7 +77,7 @@ defineEmits(['clickNearby', 'markerTap', 'moreHot', 'clickHot'])
 .hot-card {
   display: inline-block; width: 280rpx; height: 360rpx; margin-right: 24rpx;
   border-radius: 36rpx; overflow: hidden; position: relative;
-  box-shadow: 0 8rpx 20rpx rgba(17, 24, 39, 0.08);
+  box-shadow: 0 16rpx 36rpx rgba(15, 23, 42, 0.08);
 }
 .hot-img { width: 100%; height: 100%; }
 .hot-overlay {
@@ -93,8 +93,9 @@ defineEmits(['clickNearby', 'markerTap', 'moreHot', 'clickHot'])
 /* Nearby Card */
 .nearby-card {
   margin: 16rpx 32rpx 0; padding: 28rpx;
-  background: #ffffff; border-radius: 36rpx;
-  box-shadow: 0 8rpx 32rpx rgba(17, 24, 39, 0.03);
+  background: rgba(255, 255, 255, 0.88); border-radius: 36rpx;
+  box-shadow: 0 12rpx 36rpx rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(18rpx);
 }
 .nearby-top {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx;
@@ -102,15 +103,15 @@ defineEmits(['clickNearby', 'markerTap', 'moreHot', 'clickHot'])
 .nearby-status { font-size: 34rpx; font-weight: 700; color: #111827; }
 .nearby-badge {
   display: flex; align-items: center; gap: 8rpx;
-  padding: 10rpx 24rpx; background: rgba(37, 99, 235, 0.08); border-radius: 99rpx;
+  padding: 10rpx 24rpx; background: rgba(255, 255, 255, 0.9); border-radius: 99rpx;
 }
-.badge-text { font-size: 24rpx; font-weight: 600; color: #2563eb; }
+.badge-text { font-size: 24rpx; font-weight: 600; color: #334155; }
 
 .nearby-map-shell { border-radius: 24rpx; overflow: hidden; background: #f8fafc; margin-top: 12rpx;}
 .nearby-map { width: 100%; height: 260rpx; }
 .nearby-placeholder {
   height: 260rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16rpx;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #e9eff7 100%);
 }
 .placeholder-text { font-size: 26rpx; color: #64748b; font-weight: 500; }
 

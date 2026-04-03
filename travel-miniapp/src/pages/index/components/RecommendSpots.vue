@@ -58,31 +58,31 @@ defineEmits(['goLogin', 'refresh', 'more', 'click'])
 .section { padding: 12rpx 32rpx; margin-bottom: 16rpx;}
 .login-prompt-bar {
   display: flex; align-items: center; justify-content: space-between;
-  background: linear-gradient(90deg, #eff6ff 0%, #e0f2fe 100%);
+  background: linear-gradient(90deg, #ffffff 0%, #f8fbff 100%);
   padding: 24rpx 32rpx; border-radius: 99rpx; margin-bottom: 32rpx;
-  box-shadow: 0 4rpx 12rpx rgba(59, 130, 246, 0.08);
+  box-shadow: 0 10rpx 24rpx rgba(15, 23, 42, 0.05);
 }
 .prompt-content { display: flex; align-items: center; gap: 14rpx; }
-.prompt-text { font-size: 26rpx; color: #1d4ed8; font-weight: 600; }
+.prompt-text { font-size: 26rpx; color: #334155; font-weight: 600; }
 
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
-.section-title { font-size: 38rpx; font-weight: 700; color: #111827; }
+.section-title { font-size: 38rpx; font-weight: 700; color: #0f172a; }
 .section-actions { display: flex; gap: 32rpx; }
 .section-link { font-size: 26rpx; color: #6b7280; font-weight: 500; }
 
 .recommend-list { display: flex; flex-direction: column; gap: 24rpx; }
 .recommend-card {
-  background: #ffffff; border-radius: 36rpx; overflow: hidden;
-  box-shadow: 0 12rpx 32rpx rgba(17, 24, 39, 0.04);
+  background: rgba(255, 255, 255, 0.92); border-radius: 36rpx; overflow: hidden;
+  box-shadow: 0 14rpx 36rpx rgba(15, 23, 42, 0.05);
 }
-.rec-img { width: 100%; height: 280rpx; }
+.rec-img { width: 100%; height: 300rpx; }
 .rec-content { padding: 24rpx 28rpx; }
 .rec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; gap: 16rpx; }
-.rec-name { font-size: 34rpx; font-weight: 700; color: #111827; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-name { font-size: 34rpx; font-weight: 700; color: #0f172a; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rec-rating { display: flex; align-items: center; gap: 6rpx; font-size: 26rpx; font-weight: 700; color: #f59e0b; }
 .rec-desc { font-size: 26rpx; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 20rpx; line-height: 1.5; }
 .rec-footer { display: flex; justify-content: space-between; align-items: center; }
-.rec-tag { padding: 8rpx 20rpx; background: #f3f4f6; color: #4b5563; border-radius: 12rpx; font-size: 22rpx; font-weight: 500; }
+.rec-tag { padding: 8rpx 20rpx; background: #f8fafc; color: #475569; border-radius: 999rpx; font-size: 22rpx; font-weight: 500; }
 .rec-price { font-size: 34rpx; font-weight: 800; color: #ef4444; }
 
 .empty-tip { display: flex; flex-direction: column; align-items: center; padding: 64rpx 0; gap: 16rpx; }

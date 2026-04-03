@@ -18,7 +18,11 @@ defineEmits(['click'])
 </script>
 
 <style scoped>
-.banner-container { padding: 8rpx 32rpx 24rpx; }
-.banner, .banner-image { width: 100%; height: 320rpx; border-radius: 32rpx; }
-.banner { overflow: hidden; box-shadow: 0 16rpx 32rpx rgba(17, 24, 39, 0.08); transform: translateZ(0); }
+.banner-container { padding: 8rpx 32rpx 28rpx; }
+.banner, .banner-image { width: 100%; height: 340rpx; border-radius: 36rpx; }
+.banner {
+  overflow: hidden;
+  box-shadow: 0 18rpx 40rpx rgba(15, 23, 42, 0.1);
+  transform: translateZ(0);
+}
 </style>
