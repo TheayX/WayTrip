@@ -14,57 +14,32 @@
         <div class="page-container hero-inner">
           <div class="hero-copy">
             <p class="hero-eyebrow">{{ APP_NAME }} Curated Travel</p>
-            <h1 class="hero-title">把灵感、景点与攻略整理成一条更高级的探索路径。</h1>
-            <p class="hero-subtitle">首页只保留真正高频的入口，把推荐、附近和精选内容收束成更干净的旅行探索体验。</p>
+            <h1 class="hero-title">选一个方向，开始这次旅行。</h1>
+            <p class="hero-subtitle">热门景点、个性推荐、附近探索与实用攻略，帮你更快找到想去的地方。</p>
 
             <div class="hero-actions">
-              <button type="button" class="hero-search glass-panel" @click="router.push(APP_ROUTE_PATHS.search)">
+              <button type="button" class="hero-search hero-glass" @click="router.push(APP_ROUTE_PATHS.search)">
                 <el-icon><Search /></el-icon>
-                <span>搜索景点、攻略与旅行灵感</span>
+                <span>搜索景点、攻略或目的地</span>
               </button>
               <el-button type="primary" @click="router.push(APP_ROUTE_PATHS.discover)">进入发现</el-button>
             </div>
 
             <div class="hero-metrics">
-              <article class="hero-metric glass-panel">
+              <article class="hero-metric hero-glass">
                 <strong>{{ hotSpots.length || 0 }}</strong>
-                <span>热门景点精选</span>
+                <span>热门景点</span>
               </article>
-              <article class="hero-metric glass-panel">
+              <article class="hero-metric hero-glass">
                 <strong>{{ recommendations.length || 0 }}</strong>
-                <span>推荐内容预览</span>
+                <span>个性推荐</span>
               </article>
-              <article class="hero-metric glass-panel">
+              <article class="hero-metric hero-glass">
                 <strong>{{ nearbySpots.length || 0 }}</strong>
-                <span>附近可探索地点</span>
+                <span>附近探索</span>
               </article>
             </div>
           </div>
-
-          <aside class="hero-aside glass-panel">
-            <p class="hero-aside-kicker">Today's Flow</p>
-            <div class="hero-aside-item">
-              <span class="hero-aside-index">01</span>
-              <div>
-                <strong>先搜你想去的目的地</strong>
-                <p>从关键字、地区和分类切入，快速缩小范围。</p>
-              </div>
-            </div>
-            <div class="hero-aside-item">
-              <span class="hero-aside-index">02</span>
-              <div>
-                <strong>在发现页切换探索场景</strong>
-                <p>推荐、附近与内容浏览在同一条路径里切换。</p>
-              </div>
-            </div>
-            <div class="hero-aside-item">
-              <span class="hero-aside-index">03</span>
-              <div>
-                <strong>从详情继续下钻</strong>
-                <p>景点、攻略和相关推荐形成连续浏览关系。</p>
-              </div>
-            </div>
-          </aside>
         </div>
       </div>
     </section>
@@ -77,24 +52,6 @@
         :items="hotKeywords"
         @select="handleKeywordSelect"
       />
-
-      <section class="curation-strip premium-card">
-        <article class="curation-item">
-          <span class="curation-label">For You</span>
-          <h3>个性推荐已从独立入口收进发现流</h3>
-          <p>登录后会基于偏好与行为刷新推荐，让首页只保留精简预览。</p>
-        </article>
-        <article class="curation-item">
-          <span class="curation-label">Nearby</span>
-          <h3>附近探索保留即时能力，但不再打散主导航</h3>
-          <p>地理位置相关内容统一进入发现体系，减少入口噪音。</p>
-        </article>
-        <article class="curation-item">
-          <span class="curation-label">Editorial</span>
-          <h3>攻略与景点重新建立更自然的浏览关系</h3>
-          <p>从首页预览，到列表筛选，再到详情沉浸阅读，层级更加清晰。</p>
-        </article>
-      </section>
 
       <HomeNearbySection
         :headline="nearbyHeadline"
@@ -113,9 +70,9 @@
           <div>
             <p class="section-kicker">Popular Spots</p>
             <h2 class="section-title">热门景点精选</h2>
-            <p class="section-subtitle">控制数量，只保留最值得继续浏览的内容，让首页更像经过策展的旅行入口。</p>
+            <p class="section-subtitle">优先展示当前最值得继续点开的景点。</p>
           </div>
-          <el-button text type="primary" @click="router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`)">查看全部</el-button>
+          <button type="button" class="section-link" @click="router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`)">查看全部</button>
         </div>
 
         <div v-if="hotSpots.length" class="spot-grid">
@@ -134,18 +91,18 @@
           <div>
             <p class="section-kicker">Recommendations</p>
             <h2 class="section-title">{{ recommendationSectionTitle }}</h2>
-            <p class="section-subtitle">把个性推荐作为高质量预览保留在首页，完整浏览和切换继续交给发现页承接。</p>
+            <p class="section-subtitle">根据你的浏览偏好，优先整理值得继续查看的景点。</p>
           </div>
           <div class="section-actions">
-            <el-button text type="primary" @click="goRecommendations">查看更多</el-button>
-            <el-button v-if="userStore.isLoggedIn" text type="primary" :loading="refreshing" @click="handleRefresh">换一批</el-button>
+            <button type="button" class="section-link" @click="goRecommendations">查看更多</button>
+            <button v-if="userStore.isLoggedIn" type="button" class="section-link" :disabled="refreshing" @click="handleRefresh">换一批</button>
           </div>
         </div>
 
         <div v-if="needPreference && userStore.isLoggedIn" class="preference-tip premium-card" @click="showPreferencePopup">
           <div>
-            <strong>你还没有设置偏好分类</strong>
-            <p>先选择几类感兴趣的景点，推荐结果会明显更稳定。</p>
+            <strong>还没有设置偏好分类</strong>
+            <p>先选几类感兴趣的景点，推荐会更稳定。</p>
           </div>
           <el-icon><ArrowRight /></el-icon>
         </div>
@@ -207,12 +164,10 @@ import { getLocationSnapshot, getCurrentLocation } from '@/shared/lib/location.j
 import { getImageUrl } from '@/shared/api/client.js'
 import { ArrowRight } from '@element-plus/icons-vue'
 
-// 基础依赖与用户状态
 const router = useRouter()
 const userStore = useUserStore()
 const hotKeywords = SEARCH_HOT_KEYWORDS
 
-// 页面数据状态
 const banners = ref([])
 const hotSpots = ref([])
 const nearbySpots = ref([])
@@ -233,7 +188,6 @@ const {
   savePreferences
 } = useRecommendationFeed(12)
 
-// 计算属性
 const recommendationSectionTitle = computed(() => (userStore.isLoggedIn ? recommendType.value : '推荐景点'))
 
 const nearbyHeadline = computed(() => {
@@ -244,12 +198,12 @@ const nearbyHeadline = computed(() => {
 })
 
 const nearbySummary = computed(() => {
-  if (nearbyLoading.value) return '正在获取你周边的景点'
+  if (nearbyLoading.value) return '正在获取附近景点。'
   if (nearbyStatus.value === 'ready' && nearbySpots.value.length) {
-    return `你附近有 ${nearbySpots.value.length} 个景点，最近约 ${formatDistance(nearbySpots.value[0].distanceKm)}。`
+    return `附近有 ${nearbySpots.value.length} 个地点可看，最近约 ${formatDistance(nearbySpots.value[0].distanceKm)}。`
   }
-  if (!userStore.isLoggedIn) return '登录后可按距离浏览附近景点。'
-  return '点击按钮后会调用浏览器定位并加载附近景点。'
+  if (!userStore.isLoggedIn) return '登录后可按距离查看附近内容。'
+  return '允许浏览器定位后即可加载附近内容。'
 })
 
 const nearbyActionText = computed(() => {
@@ -258,15 +212,13 @@ const nearbyActionText = computed(() => {
   return '进入发现'
 })
 
-// 首页只保留高频一级入口，把推荐和附近收进发现页承接，避免继续平铺更多导航位。
 const quickActions = computed(() => ([
-  { id: 'discover', title: '发现灵感', desc: '集中浏览推荐、附近与精选内容', icon: Star, theme: 'amber', handler: () => router.push(APP_ROUTE_PATHS.discover) },
-  { id: 'spots', title: '全部景点', desc: '按热度浏览热门景点', icon: MapLocation, theme: 'blue', handler: () => router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`) },
-  { id: 'guides', title: '游玩攻略', desc: '查看最新旅行攻略', icon: Guide, theme: 'orange', handler: () => router.push(APP_ROUTE_PATHS.guides) },
-  { id: 'orders', title: '行程订单', desc: '查看进行中与已完成订单', icon: Tickets, theme: 'emerald', handler: () => goOrders() }
+  { id: 'discover', title: '发现灵感', desc: '浏览推荐、附近与精选内容', icon: Star, theme: 'amber', handler: () => router.push(APP_ROUTE_PATHS.discover) },
+  { id: 'spots', title: '全部景点', desc: '按热度进入景点列表', icon: MapLocation, theme: 'blue', handler: () => router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`) },
+  { id: 'guides', title: '游玩攻略', desc: '快速查看最新攻略', icon: Guide, theme: 'orange', handler: () => router.push(APP_ROUTE_PATHS.guides) },
+  { id: 'orders', title: '行程订单', desc: '管理当前与历史订单', icon: Tickets, theme: 'emerald', handler: () => goOrders() }
 ]))
 
-// 工具方法
 const formatDistance = (value) => {
   const distance = Number(value)
   if (!Number.isFinite(distance)) return '-- km'
@@ -289,7 +241,6 @@ const maybeShowColdStartGuide = () => {
   openPreferenceDialog()
 }
 
-// 数据加载方法
 const fetchHomeBasics = async () => {
   const [bannerRes, hotRes] = await Promise.all([
     getBanners(),
@@ -324,7 +275,6 @@ const tryLoadNearbyAutomatically = async () => {
   }
 }
 
-// 交互处理方法
 const toggleCategory = (id) => {
   const index = selectedCategories.value.indexOf(id)
   if (index > -1) {
@@ -398,7 +348,6 @@ const goNearby = async () => {
     }
   }
 
-  // 附近探索继续保留能力，但主承接页切到发现页，统一 Web 端探索路径。
   router.push({ path: APP_ROUTE_PATHS.discover, query: { tab: 'spot', scene: 'nearby' } })
 }
 
@@ -411,7 +360,6 @@ const goOrders = () => {
   router.push('/account/orders')
 }
 
-// 生命周期
 onMounted(async () => {
   await fetchHomeBasics()
   await fetchRecommendationList()
@@ -423,7 +371,7 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .hero {
   position: relative;
-  min-height: 620px;
+  min-height: 560px;
   overflow: hidden;
   border-bottom-left-radius: 36px;
   border-bottom-right-radius: 36px;
@@ -450,16 +398,14 @@ onMounted(async () => {
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(100deg, rgba(15, 23, 42, 0.82) 0%, rgba(15, 23, 42, 0.54) 44%, rgba(15, 23, 42, 0.28) 100%);
+    linear-gradient(100deg, rgba(15, 23, 42, 0.74) 0%, rgba(15, 23, 42, 0.42) 42%, rgba(15, 23, 42, 0.14) 100%);
 }
 
 .hero-inner {
-  min-height: 620px;
-  padding-top: 44px;
+  min-height: 560px;
+  padding-top: 56px;
   padding-bottom: 64px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 28px;
+  display: flex;
   align-items: end;
 }
 
@@ -484,15 +430,15 @@ onMounted(async () => {
 }
 
 .hero-subtitle {
-  max-width: 660px;
-  margin-top: 18px;
-  font-size: 17px;
-  line-height: 1.95;
+  max-width: 620px;
+  margin-top: 20px;
+  font-size: 16px;
+  line-height: 1.75;
   color: rgba(255, 255, 255, 0.86);
 }
 
 .hero-actions {
-  margin-top: 28px;
+  margin-top: 30px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -500,7 +446,7 @@ onMounted(async () => {
 
 .hero-search {
   min-height: 56px;
-  padding: 0 18px;
+  padding: 0 20px;
   border-radius: 999px;
   border: none;
   color: #ffffff;
@@ -510,10 +456,27 @@ onMounted(async () => {
   cursor: pointer;
 }
 
+.hero-glass {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 18px 40px -28px rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(20px) saturate(135%);
+  -webkit-backdrop-filter: blur(20px) saturate(135%);
+}
+
+.hero-search:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.12) 100%);
+}
+
 .hero-metrics {
   margin-top: 24px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 180px));
   gap: 14px;
 }
 
@@ -526,56 +489,16 @@ onMounted(async () => {
   display: block;
   font-size: 28px;
   line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 6px 24px rgba(15, 23, 42, 0.28);
 }
 
 .hero-metric span {
   display: block;
   margin-top: 8px;
-  color: rgba(255, 255, 255, 0.76);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 13px;
-}
-
-.hero-aside {
-  padding: 22px;
-  border-radius: 28px;
-  color: #ffffff;
-}
-
-.hero-aside-kicker {
-  margin-bottom: 18px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.hero-aside-item + .hero-aside-item {
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.hero-aside-item {
-  display: flex;
-  gap: 14px;
-}
-
-.hero-aside-index {
-  color: #c8a95b;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.hero-aside-item strong {
-  display: block;
-  margin-bottom: 6px;
-}
-
-.hero-aside-item p {
-  color: rgba(255, 255, 255, 0.72);
-  line-height: 1.75;
-  font-size: 13px;
+  letter-spacing: 0.02em;
 }
 
 .home-content {
@@ -583,47 +506,7 @@ onMounted(async () => {
   padding-bottom: 18px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-}
-
-.curation-strip {
-  padding: 22px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.curation-item {
-  padding: 18px;
-  border-radius: 20px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid #eef2f7;
-}
-
-.curation-label {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.curation-item h3 {
-  margin-top: 14px;
-  font-size: 20px;
-  line-height: 1.35;
-  color: #0f172a;
-}
-
-.curation-item p {
-  margin-top: 10px;
-  color: #64748b;
-  line-height: 1.8;
-  font-size: 14px;
+  gap: 24px;
 }
 
 .section {
@@ -647,6 +530,26 @@ onMounted(async () => {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #64748b;
+}
+
+.section-link {
+  border: none;
+  background: transparent;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.section-link:hover:not(:disabled) {
+  color: #0f172a;
+}
+
+.section-link:disabled {
+  color: #94a3b8;
+  cursor: default;
 }
 
 .spot-grid,
@@ -682,15 +585,9 @@ onMounted(async () => {
 }
 
 @media (max-width: 1200px) {
-  .hero-inner,
   .spot-grid,
-  .recommend-grid,
-  .curation-strip {
+  .recommend-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .hero-inner {
-    align-items: start;
   }
 }
 
@@ -701,7 +598,7 @@ onMounted(async () => {
 
   .hero-inner {
     min-height: auto;
-    grid-template-columns: 1fr;
+    align-items: center;
   }
 
   .hero-title {
@@ -738,9 +635,12 @@ onMounted(async () => {
     align-items: stretch;
   }
 
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+
   .spot-grid,
-  .recommend-grid,
-  .curation-strip {
+  .recommend-grid {
     grid-template-columns: 1fr;
   }
 }

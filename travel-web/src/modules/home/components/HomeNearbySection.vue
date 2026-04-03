@@ -6,13 +6,13 @@
         <p class="section-kicker">Nearby</p>
         <h2 class="section-title">附近探索</h2>
       </div>
-      <el-button text type="primary" @click="$emit('more')">查看更多</el-button>
+      <button type="button" class="section-link" @click="$emit('more')">查看更多</button>
     </div>
 
     <div class="nearby-panel premium-card">
       <div class="nearby-copy">
         <span class="copy-pill">{{ headline }}</span>
-        <h3>把距离、场景和即时灵感放在同一条探索线上。</h3>
+        <h3>把距离感放回旅行决策里。</h3>
         <p>{{ summary }}</p>
         <el-button type="primary" :loading="loading" @click="$emit('action')">{{ actionText }}</el-button>
       </div>
@@ -91,6 +91,21 @@ defineEmits(['more', 'action', 'select'])
   color: #64748b;
 }
 
+.section-link {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.section-link:hover {
+  color: #0f172a;
+}
+
 .nearby-panel {
   padding: 26px;
   display: grid;
@@ -110,8 +125,8 @@ defineEmits(['more', 'action', 'select'])
   min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: #f8fafc;
+  color: #475569;
   display: inline-flex;
   align-items: center;
   font-size: 12px;
@@ -129,7 +144,7 @@ defineEmits(['more', 'action', 'select'])
 .nearby-copy p {
   margin: 14px 0 22px;
   color: #64748b;
-  line-height: 1.85;
+  line-height: 1.75;
 }
 
 .nearby-list {
@@ -185,7 +200,7 @@ defineEmits(['more', 'action', 'select'])
 }
 
 .nearby-info span {
-  color: #1d4ed8;
+  color: #475569;
   font-size: 12px;
   font-weight: 700;
 }

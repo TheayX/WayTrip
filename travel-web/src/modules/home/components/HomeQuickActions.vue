@@ -9,7 +9,7 @@
         <h3>{{ item.title }}</h3>
         <p>{{ item.desc }}</p>
       </div>
-      <span class="quick-arrow">进入</span>
+      <span class="quick-arrow">查看</span>
     </div>
   </section>
 </template>
@@ -56,7 +56,7 @@ defineProps({
 
 .quick-copy p {
   color: #64748b;
-  line-height: 1.75;
+  line-height: 1.65;
   font-size: 14px;
 }
 
@@ -93,7 +93,7 @@ defineProps({
 }
 
 .quick-arrow {
-  color: #1d4ed8;
+  color: #334155;
   font-size: 13px;
   font-weight: 700;
 }
