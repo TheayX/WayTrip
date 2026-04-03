@@ -8,6 +8,7 @@ export const ROUTE_NAMES = {
   budgetTravel: 'BudgetTravel',
   travelerReviews: 'TravelerReviews',
   trendingViews: 'TrendingViews',
+  more: 'More',
   spotList: 'SpotList',
   spotDetail: 'SpotDetail',
   guideList: 'GuideList',
