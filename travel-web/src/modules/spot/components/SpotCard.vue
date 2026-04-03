@@ -22,7 +22,7 @@
         <span class="tag-chip">{{ spot.categoryName || '分类待补充' }}</span>
       </div>
       <div class="spot-footer">
-        <span class="spot-meta">适合继续深入浏览详情与相关推荐</span>
+        <span class="spot-meta">查看详情</span>
         <span class="spot-rating">评分 {{ spot.avgRating || '-' }}</span>
       </div>
     </div>
@@ -117,8 +117,8 @@ defineEmits(['select'])
   min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
-  background: #e8f1ff;
-  color: #2563eb;
+  background: #f8fafc;
+  color: #334155;
   font-size: 12px;
   font-weight: 600;
 }
@@ -136,8 +136,9 @@ defineEmits(['select'])
 }
 
 .spot-meta {
-  color: #64748b;
+  color: #334155;
   font-size: 13px;
+  font-weight: 600;
 }
 
 .price-box {

@@ -3,31 +3,31 @@
   <div class="page-container discover-page">
     <section class="discover-hero premium-card">
       <div class="discover-hero-main">
-        <p class="hero-eyebrow">Explore Console</p>
+        <p class="hero-eyebrow">Discover More</p>
         <h2 class="page-title">发现灵感</h2>
-        <p class="page-subtitle">把推荐、附近探索、景点筛选和攻略浏览整理成一个更适合 Web 端的探索工作台。</p>
+        <p class="page-subtitle">从推荐、附近、景点和攻略里继续缩小范围，找到更适合这次出行的选择。</p>
 
         <div class="hero-search-row">
           <button type="button" class="hero-search" @click="$router.push(APP_ROUTE_PATHS.search)">
             <el-icon><Search /></el-icon>
-            <span>搜索景点、攻略与关键词</span>
+            <span>搜索景点、攻略或目的地</span>
           </button>
-          <el-button text type="primary" @click="router.push(APP_ROUTE_PATHS.guides)">浏览攻略</el-button>
+          <button type="button" class="hero-link" @click="router.push(APP_ROUTE_PATHS.guides)">浏览攻略</button>
         </div>
       </div>
 
       <div class="hero-status">
         <article class="status-card">
           <strong>{{ recommendations.length || 0 }}</strong>
-          <span>推荐预览</span>
+          <span>推荐结果</span>
         </article>
         <article class="status-card">
           <strong>{{ nearbySpots.length || 0 }}</strong>
-          <span>附近结果</span>
+          <span>附近地点</span>
         </article>
         <article class="status-card">
           <strong>{{ spotList.length + guideList.length }}</strong>
-          <span>当前内容总览</span>
+          <span>当前内容</span>
         </article>
       </div>
     </section>
@@ -57,14 +57,14 @@
     <section class="tab-panel premium-card">
       <div class="tab-panel-main">
         <div>
-          <p class="panel-kicker">Content Mode</p>
+          <p class="panel-kicker">浏览内容</p>
           <el-radio-group v-model="activeTab" @change="handleTabChange">
             <el-radio-button label="all">综合浏览</el-radio-button>
             <el-radio-button label="spot">景点</el-radio-button>
             <el-radio-button label="guide">攻略</el-radio-button>
           </el-radio-group>
         </div>
-        <el-button text @click="clearScene">清除场景</el-button>
+        <button type="button" class="section-link" @click="clearScene">清除场景</button>
       </div>
       <p class="tab-panel-desc">{{ currentSceneDescription }}</p>
     </section>
@@ -72,7 +72,7 @@
     <section class="filters premium-card">
       <div class="filters-head">
         <div>
-          <p class="panel-kicker">Filters</p>
+          <p class="panel-kicker">筛选条件</p>
           <h3>当前筛选条件</h3>
         </div>
         <p class="filters-summary">{{ filterSummary }}</p>
@@ -106,13 +106,13 @@
     <section v-if="showRecommendationSection" class="content-section">
       <div class="section-head">
         <div>
-          <p class="panel-kicker">Recommendation Layer</p>
+          <p class="panel-kicker">推荐</p>
           <h3>{{ userStore.isLoggedIn ? recommendType : '推荐景点' }}</h3>
-          <p>把个性推荐作为发现流的一部分浏览，不再额外占用主导航入口。</p>
+          <p>根据你的浏览偏好，优先整理值得继续查看的景点。</p>
         </div>
         <div class="section-actions">
-          <el-button text type="primary" @click="router.push(APP_ROUTE_PATHS.recommendations)">全部推荐</el-button>
-          <el-button v-if="userStore.isLoggedIn" text type="primary" :loading="refreshing" @click="handleRefresh">换一批</el-button>
+          <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.recommendations)">查看全部</button>
+          <button v-if="userStore.isLoggedIn" type="button" class="section-link" :disabled="refreshing" @click="handleRefresh">换一批</button>
         </div>
       </div>
 
@@ -140,13 +140,13 @@
     <section v-if="showNearbySection" class="content-section">
       <div class="section-head">
         <div>
-          <p class="panel-kicker">Nearby Layer</p>
+          <p class="panel-kicker">附近</p>
           <h3>附近探索</h3>
-          <p>附近内容放入发现流承接，更符合 Web 端基于场景的浏览习惯。</p>
+          <p>结合当前位置，快速看看周边有哪些值得去的地方。</p>
         </div>
         <div class="section-actions">
           <el-button :loading="nearbyLoading" type="primary" @click="handleLocate">{{ nearbyLoading ? '定位中' : '重新定位' }}</el-button>
-          <el-button text type="primary" @click="router.push(APP_ROUTE_PATHS.nearby)">独立页查看</el-button>
+          <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.nearby)">独立页查看</button>
         </div>
       </div>
 
@@ -166,11 +166,11 @@
     <section v-if="showSpotSection" class="content-section">
       <div class="section-head">
         <div>
-          <p class="panel-kicker">Spot Layer</p>
+          <p class="panel-kicker">景点</p>
           <h3>精选景点</h3>
-          <p>通过地区、分类和当前场景继续缩小范围，让列表页承担更深入的浏览任务。</p>
+          <p>按地区和分类继续缩小范围，先挑出值得继续查看的目的地。</p>
         </div>
-        <el-button text type="primary" @click="$router.push(APP_ROUTE_PATHS.spots)">查看全部</el-button>
+        <button type="button" class="section-link" @click="$router.push(APP_ROUTE_PATHS.spots)">查看全部</button>
       </div>
       <div v-if="spotList.length" class="spot-grid">
         <SpotCard
@@ -186,11 +186,11 @@
     <section v-if="showGuideSection" class="content-section">
       <div class="section-head">
         <div>
-          <p class="panel-kicker">Guide Layer</p>
+          <p class="panel-kicker">攻略</p>
           <h3>精选攻略</h3>
-          <p>把攻略作为探索流里的内容支线，而不是孤立的信息列表。</p>
+          <p>从路线、玩法和经验里找到更适合自己的出行灵感。</p>
         </div>
-        <el-button text type="primary" @click="$router.push(APP_ROUTE_PATHS.guides)">查看全部</el-button>
+        <button type="button" class="section-link" @click="$router.push(APP_ROUTE_PATHS.guides)">查看全部</button>
       </div>
       <div v-if="guideList.length" class="guide-grid">
         <GuideCard
@@ -286,9 +286,9 @@ const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.v
 const showRecommendationSection = computed(() => activeScene.value === 'all' || activeScene.value === 'recommend')
 const showNearbySection = computed(() => activeScene.value === 'all' || activeScene.value === 'nearby')
 const currentSceneDescription = computed(() => {
-  if (activeScene.value === 'recommend') return '当前聚焦推荐灵感，适合快速浏览更偏个性化的内容。'
-  if (activeScene.value === 'nearby') return '当前聚焦附近探索，适合基于地理位置找目的地。'
-  return '综合模式会同时展示推荐灵感、附近探索和精选内容。'
+  if (activeScene.value === 'recommend') return '优先浏览更贴近你兴趣的推荐内容。'
+  if (activeScene.value === 'nearby') return '优先查看距离更近、适合立刻出发的地点。'
+  return '综合浏览会同时展示推荐、附近、景点与攻略内容。'
 })
 const nearbyEmptyText = computed(() => {
   if (!userStore.isLoggedIn) return '登录后查看附近景点'
@@ -311,9 +311,9 @@ const filterSummary = computed(() => {
   return segments.length ? segments.join(' / ') : '当前为默认筛选'
 })
 const sceneEntries = computed(() => ([
-  { key: 'all', title: '综合探索', desc: '同时查看推荐、附近和精选内容。', badge: 'Default' },
-  { key: 'recommend', title: '推荐灵感', desc: userStore.isLoggedIn ? '优先浏览个性化推荐结果。' : '登录后查看更个性化的推荐结果。', badge: 'For You' },
-  { key: 'nearby', title: '附近探索', desc: '基于定位快速浏览周边可去的景点。', badge: 'Nearby' }
+  { key: 'all', title: '综合探索', desc: '同时查看推荐、附近、景点和攻略。', badge: '全部' },
+  { key: 'recommend', title: '为你推荐', desc: userStore.isLoggedIn ? '优先浏览更贴近兴趣的内容。' : '登录后查看更贴近兴趣的推荐。', badge: '推荐' },
+  { key: 'nearby', title: '附近探索', desc: '基于定位快速浏览周边值得去的地方。', badge: '附近' }
 ]))
 
 // 工具方法
@@ -546,8 +546,8 @@ onMounted(async () => {
   grid-template-columns: minmax(0, 1fr) 280px;
   gap: 20px;
   background:
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 28%),
-    linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+    radial-gradient(circle at top right, rgba(200, 169, 91, 0.14), transparent 28%),
+    linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
 .hero-eyebrow,
@@ -586,14 +586,31 @@ onMounted(async () => {
 .hero-search {
   min-height: 52px;
   padding: 0 18px;
-  border: 1px solid #dbeafe;
+  border: 1px solid #e2e8f0;
   border-radius: 999px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.92);
   color: #475569;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
+}
+
+.hero-link,
+.section-link {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.hero-link:hover,
+.section-link:hover:not(:disabled) {
+  color: #0f172a;
 }
 
 .hero-status {
@@ -605,8 +622,8 @@ onMounted(async () => {
 .status-card {
   padding: 18px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.86);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #ffffff 100%);
+  border: 1px solid #eef2f7;
 }
 
 .status-card strong {
@@ -636,8 +653,8 @@ onMounted(async () => {
 }
 
 .scene-card.active {
-  border-color: #93c5fd;
-  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+  border-color: rgba(200, 169, 91, 0.42);
+  background: linear-gradient(180deg, #fffdf7 0%, #ffffff 100%);
 }
 
 .scene-top {
@@ -657,8 +674,8 @@ onMounted(async () => {
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  color: #1d4ed8;
-  background: #dbeafe;
+  color: #8a6a2f;
+  background: #f7f0db;
   display: inline-flex;
   align-items: center;
   font-size: 12px;
@@ -737,6 +754,11 @@ onMounted(async () => {
   font-size: 30px;
   color: #0f172a;
   letter-spacing: -0.03em;
+}
+
+.section-link:disabled {
+  color: #94a3b8;
+  cursor: default;
 }
 
 .hint-banner {

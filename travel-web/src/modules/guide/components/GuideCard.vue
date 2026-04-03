@@ -53,8 +53,8 @@ defineEmits(['select'])
   min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: #f8fafc;
+  color: #334155;
   font-size: 12px;
   font-weight: 700;
 }
@@ -91,7 +91,7 @@ defineEmits(['select'])
 }
 
 .guide-link {
-  color: #1d4ed8;
+  color: #334155;
   font-size: 13px;
   font-weight: 700;
 }
