@@ -2,7 +2,7 @@
 <template>
   <section class="filter-bar premium-card">
     <div class="filter-head">
-      <p class="filter-kicker">Filters</p>
+      <p class="filter-kicker">缩小范围</p>
       <h3>筛选条件</h3>
     </div>
     <div class="filter-row">
@@ -80,6 +80,7 @@ defineEmits(['update:regionId', 'update:categoryId', 'change'])
 .filter-head h3 {
   font-size: 22px;
   color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .filter-row {
