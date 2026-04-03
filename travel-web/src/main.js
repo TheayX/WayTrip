@@ -5,7 +5,25 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  ChatDotRound,
+  Collection,
+  Delete,
+  Document,
+  Guide,
+  Lock,
+  MapLocation,
+  Phone,
+  Search,
+  Setting,
+  Star,
+  SwitchButton,
+  Tickets,
+  User
+} from '@element-plus/icons-vue'
 
 import App from './App.vue'
 import router from './app/router'
@@ -24,8 +42,28 @@ app.use(router)
 // 注册 Element Plus UI 组件库（中文语言包）
 app.use(ElementPlus, { locale: zhCn })
 
-// 全局注册所有 Element Plus 图标（可直接在模板中使用）
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+// 仅注册当前 Web 端实际用到的图标，避免把整包图标打进主产物。
+const globalIcons = {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  ChatDotRound,
+  Collection,
+  Delete,
+  Document,
+  Guide,
+  Lock,
+  MapLocation,
+  Phone,
+  Search,
+  Setting,
+  Star,
+  SwitchButton,
+  Tickets,
+  User
+}
+
+for (const [key, component] of Object.entries(globalIcons)) {
   app.component(key, component)
 }
 

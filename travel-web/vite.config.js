@@ -23,11 +23,30 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Element Plus 组件库单独打包
-          'element-plus': ['element-plus', '@element-plus/icons-vue'],
-          // Vue 核心库单独打包
-          'vue-vendor': ['vue', 'vue-router', 'pinia']
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return undefined
+          }
+
+          // UI 组件库与图标库拆开，避免继续堆进同一个超大 chunk。
+          if (id.includes('element-plus')) {
+            return 'element-plus'
+          }
+          if (id.includes('@element-plus/icons-vue')) {
+            return 'element-plus-icons'
+          }
+
+          // 基础框架相关依赖保持独立，减少业务更新时的缓存失效范围。
+          if (id.includes('vue-router') || id.includes('pinia') || id.includes('/vue/')) {
+            return 'vue-vendor'
+          }
+
+          // 请求层依赖单独拆出，便于后续继续演进 shared/api。
+          if (id.includes('axios')) {
+            return 'http-vendor'
+          }
+
+          return 'vendor'
         }
       }
     }
