@@ -59,7 +59,7 @@ import { computed, reactive } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getUserInfo, updateUserInfo, uploadAvatar } from '@/api/user'
 import { useUserStore } from '@/stores/user'
-import { getAvatarUrl } from '@/utils/client'
+import { getAvatarUrl } from '@/utils/request'
 
 // 基础依赖与用户状态
 const userStore = useUserStore()

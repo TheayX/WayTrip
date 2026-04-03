@@ -1,5 +1,5 @@
 // 用户相关接口
-import { post, get, put, del, uploadFile } from '@/utils/client'
+import { post, get, put, del, uploadFile } from '@/utils/request'
 
 // 用户资料接口统一走 /user/*。
 

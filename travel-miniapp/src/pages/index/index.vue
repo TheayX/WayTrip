@@ -75,7 +75,7 @@ import RecommendSpots from './components/RecommendSpots.vue'
 import NearbyAndHot from './components/NearbyAndHot.vue'
 import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getFeatureEntryById, getHomeEntryItems } from '@/constants/feature-entry-registry'
-import { getAvatarUrl, getContentImageUrl } from '@/utils/client'
+import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 

@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import { getContentImageUrl } from '@/utils/client'
+import { getContentImageUrl } from '@/utils/request'
 
 defineProps({
   nearbyHeadline: { type: String, default: '附近探索' },

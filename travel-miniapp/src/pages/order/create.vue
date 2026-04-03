@@ -87,7 +87,7 @@ import { ref, reactive, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getSpotDetail } from '@/api/spot'
 import { createOrder } from '@/api/order'
-import { getImageUrl } from '@/utils/client'
+import { getImageUrl } from '@/utils/request'
 
 // 页面数据状态
 const spot = ref(null)

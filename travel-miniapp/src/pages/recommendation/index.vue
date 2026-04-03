@@ -67,7 +67,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { promptLogin } from '@/utils/auth'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
-import { getContentImageUrl } from '@/utils/client'
+import { getContentImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 

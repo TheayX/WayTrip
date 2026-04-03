@@ -47,7 +47,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { fetchTrendingViewSpots } from '@/services/trending-views'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
-import { getImageUrl } from '@/utils/client'
+import { getImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 const trendingSpots = ref([])
