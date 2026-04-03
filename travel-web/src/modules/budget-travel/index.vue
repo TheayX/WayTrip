@@ -1,11 +1,11 @@
 <!-- 穷游玩法页 -->
 <template>
   <div class="page-container budget-page">
-    <section class="hero-card">
+    <section class="hero-card premium-card">
       <div>
         <p class="hero-eyebrow">Budget Travel</p>
         <h1 class="hero-title">穷游玩法</h1>
-        <p class="hero-desc">先把预算压下来，再挑值得去的景点和攻略。</p>
+        <p class="hero-desc">把预算作为第一筛选条件，先找更省钱的景点和攻略，再决定是否继续深入浏览。</p>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -19,32 +19,34 @@
       </div>
     </section>
 
-    <section class="tab-bar card">
-      <el-segmented v-model="activeTab" :options="tabs" @change="handleTabChange" />
-    </section>
+    <section class="control-card premium-card">
+      <div class="control-head">
+        <div>
+          <p class="hero-eyebrow">Browse Mode</p>
+          <h2>{{ budgetSummaryTitle }}</h2>
+        </div>
+        <p class="control-desc">{{ budgetSummaryText }}</p>
+      </div>
 
-    <section class="filter-card card">
-      <div class="filter-options">
-        <button
-          v-for="option in budgetModes"
-          :key="option.value"
-          type="button"
-          class="filter-chip"
-          :class="{ active: budgetMode === option.value }"
-          @click="switchBudgetMode(option.value)"
-        >
-          {{ option.label }}
-        </button>
+      <div class="control-row">
+        <el-segmented v-model="activeTab" :options="tabs" @change="handleTabChange" />
+        <div class="filter-options">
+          <button
+            v-for="option in budgetModes"
+            :key="option.value"
+            type="button"
+            class="filter-chip"
+            :class="{ active: budgetMode === option.value }"
+            @click="switchBudgetMode(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
       </div>
     </section>
 
-    <section class="summary-card card">
-      <h2>{{ budgetSummaryTitle }}</h2>
-      <p>{{ budgetSummaryText }}</p>
-    </section>
-
     <section v-if="activeTab === 'spots'" class="content-section">
-      <p class="section-tip">优先展示低价且热度更高的景点。</p>
+      <p class="section-tip">优先展示价格更低、同时热度更高的景点结果。</p>
 
       <div v-if="budgetSpots.length" class="spot-grid">
         <SpotCard
@@ -62,24 +64,15 @@
     </section>
 
     <section v-else class="content-section">
-      <p class="section-tip">根据攻略关联景点的价格，先筛出更适合低预算出行的内容。</p>
+      <p class="section-tip">根据攻略关联景点的价格，优先筛出更适合低预算出行的内容。</p>
 
       <div v-if="budgetGuides.length" class="guide-grid">
-        <article v-for="item in budgetGuides" :key="item.id" class="guide-card card" @click="goGuideDetail(item.id)">
-          <img :src="getImageUrl(item.coverImage)" class="guide-image" alt="" />
-          <div class="guide-content">
-            <div class="guide-head">
-              <h3>{{ item.title }}</h3>
-              <span class="guide-price">{{ item.priceLabel || '低预算' }}</span>
-            </div>
-            <p>{{ item.summary || '这篇攻略里提到的景点更适合低预算出行。' }}</p>
-            <div class="guide-meta">
-              <span class="tag">{{ item.category || '攻略' }}</span>
-              <span class="tag">👁 {{ item.viewCount || 0 }}</span>
-              <span class="tag">关联景点 {{ item.relatedCount || 0 }}</span>
-            </div>
-          </div>
-        </article>
+        <GuideCard
+          v-for="item in budgetGuides"
+          :key="item.id"
+          :guide="item"
+          @select="goGuideDetail(item.id)"
+        />
       </div>
       <el-empty v-else-if="!loadingGuides" description="暂时没筛出低预算攻略">
         <template #description>
@@ -88,7 +81,7 @@
       </el-empty>
     </section>
 
-    <section v-if="currentLoading" class="loading-row card">
+    <section v-if="currentLoading" class="loading-row premium-card">
       <p>{{ currentLoadingText }}</p>
     </section>
   </div>
@@ -99,6 +92,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
+import GuideCard from '@/modules/guide/components/GuideCard.vue'
 import {
   BUDGET_MAX_PRICE,
   BUDGET_MODE_FREE,
@@ -107,7 +101,6 @@ import {
   fetchBudgetTravelGuides,
   fetchBudgetTravelSpots
 } from '@/modules/budget-travel/api.js'
-import { getImageUrl } from '@/shared/api/client.js'
 
 const router = useRouter()
 
@@ -207,20 +200,15 @@ onMounted(() => {
 .budget-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding-top: 8px;
+  gap: 20px;
+  padding-top: 4px;
   padding-bottom: 32px;
 }
 
 .hero-card,
-.tab-bar,
-.filter-card,
-.summary-card,
+.control-card,
 .loading-row {
-  padding: 24px;
-  border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+  padding: 26px;
 }
 
 .hero-card {
@@ -228,26 +216,33 @@ onMounted(() => {
   justify-content: space-between;
   gap: 18px;
   align-items: flex-end;
-  background: linear-gradient(135deg, #fff7ed 0%, #ffffff 56%, #fffbeb 100%);
+  background:
+    radial-gradient(circle at top right, rgba(249, 115, 22, 0.12), transparent 28%),
+    linear-gradient(135deg, #fff9f4 0%, #ffffff 58%, #fff7ed 100%);
 }
 
 .hero-eyebrow {
   margin-bottom: 8px;
   font-size: 12px;
-  letter-spacing: 0.24em;
-  color: #9a3412;
+  letter-spacing: 0.14em;
+  color: #64748b;
   text-transform: uppercase;
+  font-weight: 700;
+}
+
+.hero-title,
+.control-head h2 {
+  color: #0f172a;
+  letter-spacing: -0.03em;
 }
 
 .hero-title {
   font-size: 36px;
-  margin-bottom: 12px;
 }
 
 .hero-desc,
-.summary-card p,
+.control-desc,
 .section-tip,
-.guide-content p,
 .loading-row p {
   color: #64748b;
   line-height: 1.8;
@@ -261,12 +256,11 @@ onMounted(() => {
 .hero-stat {
   min-width: 140px;
   padding: 18px 20px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.78);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
 }
 
-.hero-stat strong,
-.summary-card h2 {
+.hero-stat strong {
   display: block;
   font-size: 28px;
   color: #111827;
@@ -278,25 +272,40 @@ onMounted(() => {
   color: #64748b;
 }
 
+.control-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.control-row {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
 .filter-options {
   display: flex;
   gap: 12px;
 }
 
 .filter-chip {
-  height: 44px;
-  padding: 0 20px;
+  height: 42px;
+  padding: 0 18px;
   border: none;
   border-radius: 999px;
   background: #f8fafc;
   color: #64748b;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .filter-chip.active {
   background: rgba(249, 115, 22, 0.12);
   color: #ea580c;
-  font-weight: 600;
 }
 
 .content-section {
@@ -308,63 +317,14 @@ onMounted(() => {
 .spot-grid,
 .guide-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
-.guide-card {
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.guide-image {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-}
-
-.guide-content {
-  padding: 18px;
-}
-
-.guide-head,
-.guide-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.guide-head h3 {
-  flex: 1;
-  font-size: 18px;
-}
-
-.guide-price {
-  color: #ea580c;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.guide-content p {
-  margin-top: 12px;
-  margin-bottom: 14px;
-}
-
-.guide-meta {
-  flex-wrap: wrap;
-}
-
-.tag {
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: #f8fafc;
-  color: #475569;
-  font-size: 13px;
-}
-
 @media (max-width: 992px) {
-  .hero-card {
+  .hero-card,
+  .control-head,
+  .control-row {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -376,10 +336,6 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 30px;
-  }
-
   .hero-stats,
   .filter-options {
     width: 100%;

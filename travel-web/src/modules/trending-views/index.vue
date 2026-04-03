@@ -1,11 +1,11 @@
 <!-- 近期热看页 -->
 <template>
   <div class="page-container trending-page">
-    <section class="hero-card">
+    <section class="hero-card premium-card">
       <div>
         <p class="hero-eyebrow">Trending Views</p>
         <h1 class="hero-title">近期热看</h1>
-        <p class="hero-desc">看看最近一段时间里，大家浏览更多的景点。</p>
+        <p class="hero-desc">看看最近一段时间里，大家浏览更多的景点，快速补齐近期热门灵感。</p>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -28,7 +28,7 @@
       />
     </section>
 
-    <section v-else-if="!loading" class="empty-wrap card">
+    <section v-else-if="!loading" class="empty-wrap premium-card">
       <el-empty description="最近还没有可展示的浏览热点">
         <template #description>
           <p>等有更多浏览记录后，这里会自动更新。</p>
@@ -36,7 +36,7 @@
       </el-empty>
     </section>
 
-    <section v-if="loading" class="loading-row card">
+    <section v-if="loading" class="loading-row premium-card">
       <p>正在整理近期热看的景点...</p>
     </section>
   </div>
@@ -84,18 +84,15 @@ onMounted(() => {
 .trending-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding-top: 8px;
+  gap: 20px;
+  padding-top: 4px;
   padding-bottom: 32px;
 }
 
 .hero-card,
 .empty-wrap,
 .loading-row {
-  padding: 24px;
-  border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+  padding: 26px;
 }
 
 .hero-card {
@@ -103,20 +100,24 @@ onMounted(() => {
   justify-content: space-between;
   gap: 18px;
   align-items: flex-end;
-  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 56%, #fff7ed 100%);
+  background:
+    radial-gradient(circle at top right, rgba(217, 119, 6, 0.12), transparent 28%),
+    linear-gradient(135deg, #fffdf5 0%, #ffffff 58%, #fff7ed 100%);
 }
 
 .hero-eyebrow {
   margin-bottom: 8px;
   font-size: 12px;
-  letter-spacing: 0.24em;
-  color: #d97706;
+  letter-spacing: 0.14em;
+  color: #64748b;
   text-transform: uppercase;
+  font-weight: 700;
 }
 
 .hero-title {
   font-size: 36px;
-  margin-bottom: 12px;
+  color: #0f172a;
+  letter-spacing: -0.03em;
 }
 
 .hero-desc,
@@ -133,8 +134,8 @@ onMounted(() => {
 .hero-stat {
   min-width: 140px;
   padding: 18px 20px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.78);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .hero-stat strong {
@@ -151,7 +152,7 @@ onMounted(() => {
 
 .spot-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -167,10 +168,6 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 30px;
-  }
-
   .hero-stats {
     width: 100%;
     flex-direction: column;
