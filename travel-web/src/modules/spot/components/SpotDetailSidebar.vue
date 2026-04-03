@@ -2,7 +2,7 @@
 <template>
   <div class="detail-sidebar">
     <div class="sidebar-card premium-card">
-      <p class="sidebar-kicker">Spot Overview</p>
+      <p class="sidebar-kicker">目的地概览</p>
       <h1 class="spot-name">{{ spot.name }}</h1>
       <div class="spot-meta">
         <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
@@ -13,10 +13,12 @@
         <span class="big-price">¥{{ spot.price }}</span>
         <span class="price-label">/人</span>
       </div>
-      <el-button type="primary" size="large" class="buy-btn" @click="$emit('buy')">立即购票</el-button>
-      <el-button :type="spot.isFavorite ? 'warning' : 'default'" size="large" class="fav-btn" @click="$emit('toggle-favorite')">
-        {{ spot.isFavorite ? '已收藏' : '收藏' }}
-      </el-button>
+      <div class="action-group">
+        <el-button type="primary" size="large" class="buy-btn" @click="$emit('buy')">立即购票</el-button>
+        <el-button size="large" class="fav-btn" :class="{ active: spot.isFavorite }" @click="$emit('toggle-favorite')">
+          {{ spot.isFavorite ? '已收藏' : '收藏景点' }}
+        </el-button>
+      </div>
     </div>
 
     <div class="sidebar-card premium-card">
@@ -32,7 +34,7 @@
     </div>
 
     <div class="sidebar-card premium-card">
-      <h3 class="sidebar-title">写评价</h3>
+      <h3 class="sidebar-title">分享体验</h3>
       <div class="rating-input">
         <span class="rating-label">评分：</span>
         <el-rate :model-value="ratingForm.score" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" @update:model-value="$emit('update:score', $event)" />
@@ -41,7 +43,7 @@
         :model-value="ratingForm.comment"
         type="textarea"
         :rows="4"
-        placeholder="分享你的旅行体验..."
+        placeholder="写下这次游玩的真实感受..."
         maxlength="500"
         show-word-limit
         @update:model-value="$emit('update:comment', $event)"
@@ -142,8 +144,35 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
   width: 100%;
 }
 
-.buy-btn {
-  margin-bottom: 10px;
+.action-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  gap: 10px;
+}
+
+.buy-btn,
+.fav-btn {
+  min-height: 46px;
+}
+
+.fav-btn {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  box-shadow: none;
+}
+
+.fav-btn:hover,
+.fav-btn:focus-visible {
+  border-color: rgba(200, 169, 91, 0.45);
+  color: #8a6a2f;
+  background: #fffdf7;
+}
+
+.fav-btn.active {
+  border-color: rgba(200, 169, 91, 0.45);
+  color: #8a6a2f;
+  background: #fffdf7;
 }
 
 .sidebar-title {
@@ -151,6 +180,7 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 14px;
+  letter-spacing: -0.02em;
 }
 
 .detail-item {
@@ -197,6 +227,10 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 @media (max-width: 992px) {
   .detail-sidebar {
     width: 100%;
+  }
+
+  .action-group {
+    grid-template-columns: 1fr;
   }
 }
 </style>
