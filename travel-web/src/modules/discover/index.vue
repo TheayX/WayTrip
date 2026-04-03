@@ -16,6 +16,12 @@
       </div>
     </section>
 
+    <ExploreKeywordGroup
+      title="热门搜索"
+      :items="hotKeywords"
+      @select="handleKeywordSelect"
+    />
+
     <section class="scene-grid">
       <article
         v-for="item in sceneEntries"
@@ -193,11 +199,14 @@ import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { getSpotList, getFilters } from '@/modules/spot/api.js'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { getCurrentLocation, getLocationSnapshot } from '@/shared/lib/location.js'
+import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
 import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import ExploreKeywordGroup from '@/shared/ui/ExploreKeywordGroup.vue'
 
 const DISCOVER_STATE_KEY = 'discover_state'
 const DISCOVER_TABS = ['all', 'spot', 'guide']
 const DISCOVER_SCENES = ['all', 'recommend', 'nearby']
+const hotKeywords = SEARCH_HOT_KEYWORDS
 
 // 基础依赖与用户状态
 const userStore = useUserStore()
@@ -324,6 +333,10 @@ const toggleCategory = (id) => {
 
 const showPreferencePopup = async () => {
   await openPreferenceDialog()
+}
+
+const handleKeywordSelect = (value) => {
+  router.push({ path: APP_ROUTE_PATHS.search, query: { keyword: value } })
 }
 
 // 数据加载方法

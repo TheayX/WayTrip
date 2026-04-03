@@ -34,31 +34,16 @@
         <span v-if="searched" class="result-total">{{ totalText }}</span>
       </div>
       <div class="search-actions">
-        <div class="search-chip-group">
-          <span class="group-label">热搜</span>
-          <button
-            v-for="item in hotKeywords"
-            :key="item"
-            type="button"
-            class="search-chip"
-            @click="applyKeyword(item)"
-          >
-            {{ item }}
-          </button>
-        </div>
-        <div class="search-chip-group" v-if="recentKeywords.length">
-          <span class="group-label">最近搜索</span>
-          <button
-            v-for="item in recentKeywords"
-            :key="item"
-            type="button"
-            class="search-chip ghost"
-            @click="applyKeyword(item)"
-          >
-            {{ item }}
-          </button>
-          <el-button text @click="clearRecentKeywords">清空</el-button>
-        </div>
+        <ExploreKeywordGroup title="热搜" :items="hotKeywords" @select="applyKeyword" />
+        <ExploreKeywordGroup
+          v-if="recentKeywords.length"
+          title="最近搜索"
+          :items="recentKeywords"
+          variant="ghost"
+          clearable
+          @select="applyKeyword"
+          @clear="clearRecentKeywords"
+        />
       </div>
     </section>
 
@@ -156,18 +141,14 @@
         <template #default>
           <div class="empty-panel">
             <p>换个关键词试试，或者直接从下面的推荐内容继续浏览。</p>
-            <div class="search-chip-group compact" v-if="recentKeywords.length">
-              <span class="group-label">最近搜索</span>
-              <button
-                v-for="item in recentKeywords"
-                :key="`empty-${item}`"
-                type="button"
-                class="search-chip ghost"
-                @click="applyKeyword(item)"
-              >
-                {{ item }}
-              </button>
-            </div>
+            <ExploreKeywordGroup
+              v-if="recentKeywords.length"
+              title="最近搜索"
+              :items="recentKeywords"
+              variant="ghost"
+              compact
+              @select="applyKeyword"
+            />
           </div>
         </template>
       </el-empty>
@@ -183,79 +164,29 @@
           </div>
         </div>
 
-        <div v-if="fallbackSpots.length" class="fallback-grid">
-          <article
-            v-for="spot in fallbackSpots"
-            :key="`fallback-spot-${spot.id}`"
-            class="fallback-card card"
-            @click="$router.push(`/spots/${spot.id}?source=search`)"
-          >
-            <img :src="getImageUrl(spot.coverImage)" class="fallback-image" alt="" />
-            <div class="fallback-content">
-              <h4>{{ spot.name }}</h4>
-              <p>{{ spot.regionName }} · {{ spot.categoryName || '景点' }}</p>
-            </div>
-          </article>
-        </div>
+        <ExploreSuggestionGrid
+          v-if="fallbackSpotCards.length"
+          :items="fallbackSpotCards"
+          @select="handleFallbackSpotSelect"
+        />
 
-        <div v-if="fallbackGuides.length" class="fallback-grid">
-          <article
-            v-for="guide in fallbackGuides"
-            :key="`fallback-guide-${guide.id}`"
-            class="fallback-card card"
-            @click="$router.push(`/guides/${guide.id}`)"
-          >
-            <img :src="getImageUrl(guide.coverImage)" class="fallback-image" alt="" />
-            <div class="fallback-content">
-              <h4>{{ guide.title }}</h4>
-              <p>{{ guide.category || '攻略' }} · {{ guide.createdAt }}</p>
-            </div>
-          </article>
-        </div>
+        <ExploreSuggestionGrid
+          v-if="fallbackGuideCards.length"
+          :items="fallbackGuideCards"
+          @select="handleFallbackGuideSelect"
+        />
       </section>
     </template>
 
     <section v-else class="search-hint card">
       <el-icon :size="64" color="#c0c4cc"><Search /></el-icon>
       <p>输入关键词后，同时查看景点和攻略结果。</p>
-      <div class="search-chip-group compact">
-        <span class="group-label">热搜推荐</span>
-        <button
-          v-for="item in hotKeywords"
-          :key="`hint-${item}`"
-          type="button"
-          class="search-chip"
-          @click="applyKeyword(item)"
-        >
-          {{ item }}
-        </button>
-      </div>
-      <div v-if="fallbackSpots.length || fallbackGuides.length" class="hint-recommend">
-        <article
-          v-for="spot in fallbackSpots.slice(0, 2)"
-          :key="`hint-spot-${spot.id}`"
-          class="hint-card card"
-          @click="$router.push(`/spots/${spot.id}?source=search`)"
-        >
-          <img :src="getImageUrl(spot.coverImage)" class="hint-image" alt="" />
-          <div class="hint-content">
-            <h4>{{ spot.name }}</h4>
-            <p>{{ spot.regionName }}</p>
-          </div>
-        </article>
-        <article
-          v-for="guide in fallbackGuides.slice(0, 1)"
-          :key="`hint-guide-${guide.id}`"
-          class="hint-card card"
-          @click="$router.push(`/guides/${guide.id}`)"
-        >
-          <img :src="getImageUrl(guide.coverImage)" class="hint-image" alt="" />
-          <div class="hint-content">
-            <h4>{{ guide.title }}</h4>
-            <p>{{ guide.category || '攻略' }}</p>
-          </div>
-        </article>
-      </div>
+      <ExploreKeywordGroup title="热搜推荐" :items="hotKeywords" compact @select="applyKeyword" />
+      <ExploreSuggestionGrid
+        v-if="hintCards.length"
+        :items="hintCards"
+        @select="handleHintSelect"
+      />
     </section>
   </div>
 </template>
@@ -267,13 +198,15 @@ import { Search } from '@element-plus/icons-vue'
 import { getHotSpots } from '@/modules/home/api.js'
 import { getGuideList } from '@/modules/guide/api.js'
 import { searchSpots } from '@/modules/spot/api.js'
+import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
 import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
-import { getImageUrl } from '@/shared/api/client.js'
+import ExploreKeywordGroup from '@/shared/ui/ExploreKeywordGroup.vue'
+import ExploreSuggestionGrid from '@/shared/ui/ExploreSuggestionGrid.vue'
 
 const SEARCH_TABS = ['all', 'spot', 'guide']
 const SEARCH_HISTORY_KEY = 'search_recent_keywords'
 const SEARCH_HISTORY_LIMIT = 8
-const hotKeywords = ['杭州西湖', '上海迪士尼', '周末出游', '古镇', '海边', '徒步']
+const hotKeywords = SEARCH_HOT_KEYWORDS
 
 // 基础依赖与路由状态
 const route = useRoute()
@@ -301,6 +234,26 @@ const fallbackGuides = ref([])
 const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
 const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
 const totalText = computed(() => `共找到 ${spotTotal.value} 个景点，${guideTotal.value} 篇攻略`)
+const fallbackSpotCards = computed(() => fallbackSpots.value.map((spot) => ({
+  id: `spot-${spot.id}`,
+  targetId: spot.id,
+  type: 'spot',
+  image: spot.coverImage,
+  title: spot.name,
+  subtitle: `${spot.regionName} · ${spot.categoryName || '景点'}`
+})))
+const fallbackGuideCards = computed(() => fallbackGuides.value.map((guide) => ({
+  id: `guide-${guide.id}`,
+  targetId: guide.id,
+  type: 'guide',
+  image: guide.coverImage,
+  title: guide.title,
+  subtitle: `${guide.category || '攻略'} · ${guide.createdAt}`
+})))
+const hintCards = computed(() => [
+  ...fallbackSpotCards.value.slice(0, 2),
+  ...fallbackGuideCards.value.slice(0, 1)
+])
 
 // 工具方法
 const saveRecentKeyword = (value) => {
@@ -348,6 +301,22 @@ const syncRouteQuery = () => {
 const applyKeyword = async (value) => {
   keyword.value = value
   await handleSearch()
+}
+
+const handleFallbackSpotSelect = (item) => {
+  router.push(`/spots/${item.targetId}?source=search`)
+}
+
+const handleFallbackGuideSelect = (item) => {
+  router.push(`/guides/${item.targetId}`)
+}
+
+const handleHintSelect = (item) => {
+  if (item.type === 'spot') {
+    handleFallbackSpotSelect(item)
+    return
+  }
+  handleFallbackGuideSelect(item)
 }
 
 // 数据加载方法
@@ -493,43 +462,12 @@ onMounted(async () => {
   align-items: center;
 }
 
-.search-actions,
-.search-chip-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-}
-
 .search-actions {
+  display: flex;
   margin-top: 18px;
+  gap: 12px;
   flex-direction: column;
   align-items: stretch;
-}
-
-.group-label {
-  color: #64748b;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.search-chip {
-  padding: 8px 14px;
-  border: 0;
-  border-radius: 999px;
-  background: #dbeafe;
-  color: #1d4ed8;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.search-chip.ghost {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.search-chip-group.compact {
-  justify-content: center;
 }
 
 .result-section {
@@ -656,42 +594,6 @@ onMounted(async () => {
   margin-top: 16px;
 }
 
-.fallback-grid,
-.hint-recommend {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-.fallback-card,
-.hint-card {
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.fallback-image,
-.hint-image {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-}
-
-.fallback-content,
-.hint-content {
-  padding: 14px 16px;
-}
-
-.fallback-content h4,
-.hint-content h4 {
-  margin-bottom: 6px;
-  color: #0f172a;
-}
-
-.fallback-content p,
-.hint-content p {
-  color: #64748b;
-}
-
 .search-hint {
   display: flex;
   flex-direction: column;
@@ -714,11 +616,6 @@ onMounted(async () => {
   .section-head {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .fallback-grid,
-  .hint-recommend {
-    grid-template-columns: 1fr;
   }
 }
 
