@@ -1,104 +1,132 @@
 <!-- 主布局 -->
 <template>
-  <div class="layout">
-    <!-- 顶部导航 -->
-    <header class="navbar">
-      <div class="navbar-inner">
-        <div class="navbar-left">
-          <router-link to="/" class="logo">
-            <span class="logo-icon">✈</span>
-            <span class="logo-text">{{ APP_NAME }}</span>
-          </router-link>
-          <nav class="nav-links">
-            <router-link to="/" class="nav-link" :class="{ active: isHomeActive }">首页</router-link>
-            <router-link to="/discover" class="nav-link" active-class="active">发现</router-link>
-            <router-link to="/spots" class="nav-link" active-class="active">景点</router-link>
-            <router-link to="/guides" class="nav-link" active-class="active">攻略</router-link>
-            <el-dropdown trigger="hover" placement="bottom-start" @command="handleFeatureCommand">
-              <button type="button" class="nav-link nav-link-button" :class="{ active: isFeatureMenuActive }">
-                <span>特色功能</span>
-                <el-icon class="nav-link-arrow"><ArrowDown /></el-icon>
-              </button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item
-                    v-for="item in featureMenuItems"
-                    :key="item.path"
-                    :command="item.path"
-                  >
-                    <el-icon><component :is="item.icon" /></el-icon>
-                    <span>{{ item.label }}</span>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </nav>
-        </div>
-        <div class="navbar-right">
-          <div class="search-trigger" @click="$router.push(APP_ROUTE_PATHS.search)">
-            <el-icon><Search /></el-icon>
-            <span>搜索景点</span>
+  <div class="app-shell">
+    <header class="shell-header">
+      <div class="page-container">
+        <div class="shell-header-bar glass-panel">
+          <div class="shell-left">
+            <router-link to="/" class="brand-link" aria-label="WayTrip 首页">
+              <span class="brand-mark" aria-hidden="true">
+                <span class="brand-mark-core"></span>
+              </span>
+              <span class="brand-copy">
+                <strong>{{ APP_NAME }}</strong>
+                <span>Travel Curated</span>
+              </span>
+            </router-link>
+
+            <nav class="shell-nav">
+              <router-link to="/" class="shell-nav-link" :class="{ active: isHomeActive }">首页</router-link>
+              <router-link to="/discover" class="shell-nav-link" active-class="active">发现</router-link>
+              <router-link to="/spots" class="shell-nav-link" active-class="active">景点</router-link>
+              <router-link to="/guides" class="shell-nav-link" active-class="active">攻略</router-link>
+              <el-dropdown trigger="hover" placement="bottom-start" @command="handleFeatureCommand">
+                <button type="button" class="shell-nav-link shell-nav-button" :class="{ active: isFeatureMenuActive }">
+                  <span>精选功能</span>
+                  <el-icon class="nav-arrow"><ArrowDown /></el-icon>
+                </button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-for="item in featureMenuItems"
+                      :key="item.path"
+                      :command="item.path"
+                    >
+                      <el-icon><component :is="item.icon" /></el-icon>
+                      <span>{{ item.label }}</span>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </nav>
           </div>
-          <template v-if="userStore.isLoggedIn">
-            <el-dropdown trigger="click" @command="handleCommand">
-              <div class="user-avatar">
-                <el-avatar :size="32" :src="getAvatarUrl(userStore.userInfo?.avatar)" icon="User" />
-                <span class="user-name">{{ userStore.userInfo?.nickname || '用户' }}</span>
-              </div>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="profile">
-                    <el-icon><User /></el-icon>个人中心
-                  </el-dropdown-item>
-                  <el-dropdown-item command="activity">
-                    <el-icon><ChatDotRound /></el-icon>我的互动
-                  </el-dropdown-item>
-                  <el-dropdown-item command="orders">
-                    <el-icon><Tickets /></el-icon>我的订单
-                  </el-dropdown-item>
-                  <el-dropdown-item command="settings">
-                    <el-icon><Setting /></el-icon>设置
-                  </el-dropdown-item>
-                  <el-dropdown-item divided command="logout">
-                    <el-icon><SwitchButton /></el-icon>退出登录
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-          <template v-else>
-            <el-button type="primary" round @click="$router.push(AUTH_ROUTE_PATHS.login)">登录</el-button>
-          </template>
+
+          <div class="shell-right">
+            <button type="button" class="search-entry" @click="$router.push(APP_ROUTE_PATHS.search)">
+              <el-icon><Search /></el-icon>
+              <span>搜索景点 / 攻略</span>
+            </button>
+
+            <template v-if="userStore.isLoggedIn">
+              <el-dropdown trigger="click" @command="handleCommand">
+                <button type="button" class="user-trigger">
+                  <el-avatar :size="34" :src="getAvatarUrl(userStore.userInfo?.avatar)" icon="User" />
+                  <span class="user-copy">
+                    <strong>{{ userStore.userInfo?.nickname || '旅行家' }}</strong>
+                    <span>个人空间</span>
+                  </span>
+                  <el-icon class="user-arrow"><ArrowDown /></el-icon>
+                </button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="profile">
+                      <el-icon><User /></el-icon>个人中心
+                    </el-dropdown-item>
+                    <el-dropdown-item command="activity">
+                      <el-icon><ChatDotRound /></el-icon>我的互动
+                    </el-dropdown-item>
+                    <el-dropdown-item command="orders">
+                      <el-icon><Tickets /></el-icon>我的订单
+                    </el-dropdown-item>
+                    <el-dropdown-item command="settings">
+                      <el-icon><Setting /></el-icon>设置
+                    </el-dropdown-item>
+                    <el-dropdown-item divided command="logout">
+                      <el-icon><SwitchButton /></el-icon>退出登录
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </template>
+            <template v-else>
+              <el-button type="primary" @click="$router.push(AUTH_ROUTE_PATHS.login)">登录</el-button>
+            </template>
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- 主内容区 -->
-    <main class="main-content">
-      <div v-if="showBackBar" class="back-bar">
-        <div class="back-bar-inner">
-          <button type="button" class="back-button" @click="handleBack">
-            <el-icon><ArrowLeft /></el-icon>
-            <span>返回上一页</span>
-          </button>
+    <main class="shell-main">
+      <div v-if="showBackBar" class="context-bar">
+        <div class="page-container">
+          <div class="context-bar-inner glass-panel">
+            <button type="button" class="context-back" @click="handleBack">
+              <el-icon><ArrowLeft /></el-icon>
+              <span>返回上一页</span>
+            </button>
+            <p class="context-text">{{ currentPageText }}</p>
+          </div>
         </div>
       </div>
       <router-view />
     </main>
 
-    <!-- 底部 -->
-    <footer class="footer">
-      <div class="footer-inner">
-        <div class="footer-left">
-          <span class="footer-logo">✈ {{ APP_NAME }}</span>
-          <p class="footer-desc">发现旅途之美，开启精彩旅程</p>
-        </div>
-        <div class="footer-links">
-          <router-link to="/spots">热门景点</router-link>
-          <router-link to="/guides">旅行攻略</router-link>
-        </div>
-        <div class="footer-right">
-          <p>© 2026 {{ APP_NAME }}. All rights reserved.</p>
+    <footer class="shell-footer">
+      <div class="page-container">
+        <div class="shell-footer-panel premium-card">
+          <div class="footer-brand">
+            <div class="footer-brand-head">
+              <span class="brand-mark brand-mark-footer" aria-hidden="true">
+                <span class="brand-mark-core"></span>
+              </span>
+              <div>
+                <strong>{{ APP_NAME }}</strong>
+                <p>把推荐、附近和攻略整理成更有秩序的旅行探索体验。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-links">
+            <router-link to="/discover">发现灵感</router-link>
+            <router-link to="/spots">热门景点</router-link>
+            <router-link to="/guides">旅行攻略</router-link>
+            <router-link to="/more">更多功能</router-link>
+          </div>
+
+          <div class="footer-meta">
+            <span>Curated travel planning for modern explorers.</span>
+            <span>© 2026 {{ APP_NAME }}</span>
+          </div>
         </div>
       </div>
     </footer>
@@ -106,16 +134,16 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
 import { APP_NAME } from '@/shared/constants/app.js'
 import { ROUTE_NAMES } from '@/shared/constants/route-names.js'
 import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { useRouter, useRoute } from 'vue-router'
-import { computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/shared/api/client.js'
-import { ArrowDown, ChatDotRound, Discount, Grid, MagicStick, Stopwatch } from '@element-plus/icons-vue'
+import { ArrowDown, ChatDotRound, Discount, Grid, MagicStick, Search, Setting, Stopwatch, Tickets, User, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
 
 // 基础依赖与路由状态
 const userStore = useUserStore()
@@ -141,6 +169,7 @@ const isHomeActive = computed(() => route.name === ROUTE_NAMES.home)
 const isFeatureMenuActive = computed(() => featureRouteNames.includes(route.name))
 const hiddenBackRoutes = [ROUTE_NAMES.home, ROUTE_NAMES.login, ROUTE_NAMES.register]
 const showBackBar = computed(() => !hiddenBackRoutes.includes(route.name))
+const currentPageText = computed(() => route.meta?.title || '继续浏览当前内容')
 
 // 交互处理方法
 const handleBack = () => {
@@ -187,228 +216,397 @@ const handleCommand = (command) => {
 </script>
 
 <style lang="scss" scoped>
-.layout {
+.app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* ===== 导航栏 ===== */
-.navbar {
+.shell-header {
   position: sticky;
   top: 0;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid #ebeef5;
-  height: 64px;
+  z-index: 120;
+  padding: 18px 0 0;
 }
 
-.navbar-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  height: 100%;
+.shell-header-bar {
+  min-height: 76px;
+  padding: 12px 16px 12px 20px;
+  border-radius: 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 18px;
 }
 
-.navbar-left {
+.shell-left,
+.shell-right,
+.shell-nav {
   display: flex;
   align-items: center;
-  gap: 32px;
 }
 
-.logo {
-  display: flex;
+.shell-left {
+  gap: 22px;
+  min-width: 0;
+}
+
+.shell-right {
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.brand-link {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 20px;
-  font-weight: 700;
-  color: #409eff;
-  text-decoration: none;
-
-  .logo-icon {
-    font-size: 24px;
-  }
+  gap: 12px;
+  min-width: 0;
 }
 
-.nav-links {
+/* 使用几何图形替代 emoji，让品牌表达更稳定、更像正式产品。 */
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 68%, #c8a95b 100%);
+  box-shadow: 0 20px 28px -18px rgba(37, 99, 235, 0.78);
+}
+
+.brand-mark::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0));
+}
+
+.brand-mark-core {
+  width: 18px;
+  height: 18px;
+  border-radius: 7px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  transform: rotate(45deg);
+}
+
+.brand-copy {
   display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-copy strong {
+  font-size: 17px;
+  line-height: 1.1;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.brand-copy span {
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.shell-nav {
   gap: 4px;
 }
 
-.nav-link {
+.shell-nav-link {
+  min-height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #475569;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: none;
-  padding: 8px 16px;
-  font-size: 15px;
-  color: #606266;
-  border-radius: 8px;
-  transition: all 0.2s;
-  text-decoration: none;
-  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-
-  &:hover {
-    color: #409eff;
-    background: #ecf5ff;
-  }
-
-  &.active {
-    color: #409eff;
-    font-weight: 600;
-    background: #ecf5ff;
-  }
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.nav-link-button {
+.shell-nav-link:hover {
+  color: #1d4ed8;
+  background: rgba(239, 246, 255, 0.92);
+}
+
+.shell-nav-link.active {
+  color: #1d4ed8;
+  background: rgba(239, 246, 255, 0.96);
+}
+
+.shell-nav-button {
   font-family: inherit;
 }
 
-.nav-link-arrow {
+.nav-arrow {
   font-size: 12px;
 }
 
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.search-trigger {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: #f5f7fa;
-  border-radius: 20px;
-  color: #909399;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #ebeef5;
-    color: #606266;
-  }
-}
-
-.user-avatar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #f5f7fa;
-  }
-
-  .user-name {
-    font-size: 14px;
-    color: #303133;
-    max-width: 80px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-/* ===== 主内容 ===== */
-.main-content {
-  flex: 1;
-}
-
-.back-bar {
-  position: sticky;
-  top: 64px;
-  z-index: 90;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid #ebeef5;
-}
-
-.back-bar-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 12px 24px;
-}
-
-.back-button {
+.search-entry {
+  min-width: 220px;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid rgba(226, 232, 240, 0.96);
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.92);
+  color: #64748b;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
-  border: 1px solid #dcdfe6;
-  border-radius: 999px;
-  background: #fff;
-  color: #303133;
-  font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    border-color: #409eff;
-    color: #409eff;
-    background: #ecf5ff;
-  }
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-/* ===== 底部 ===== */
-.footer {
-  background: #2c3e50;
-  color: #ffffffcc;
-  padding: 32px 0;
-  margin-top: 40px;
+.search-entry:hover {
+  border-color: rgba(147, 197, 253, 0.96);
+  background: #ffffff;
+  color: #334155;
 }
 
-.footer-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
+.user-trigger {
+  min-height: 48px;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid rgba(226, 232, 240, 0.96);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.user-trigger:hover {
+  border-color: rgba(147, 197, 253, 0.96);
+  box-shadow: 0 18px 26px -24px rgba(15, 23, 42, 0.45);
+}
+
+.user-copy {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.user-copy strong {
+  max-width: 108px;
+  font-size: 13px;
+  line-height: 1.2;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-copy span,
+.user-arrow {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.shell-main {
+  flex: 1;
+  padding-top: 16px;
+}
+
+.context-bar {
+  position: sticky;
+  top: 94px;
+  z-index: 110;
+  padding-bottom: 8px;
+}
+
+.context-bar-inner {
+  min-height: 58px;
+  padding: 10px 16px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 14px;
+}
+
+.context-back {
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #334155;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.context-text {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.shell-footer {
+  padding: 32px 0 28px;
+}
+
+.shell-footer-panel {
+  padding: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) auto auto;
+  gap: 24px;
   align-items: center;
 }
 
-.footer-logo {
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
+.footer-brand-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.footer-desc {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #ffffff99;
+.brand-mark-footer {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+}
+
+.footer-brand strong {
+  display: block;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.footer-brand p,
+.footer-meta {
+  color: #64748b;
+  line-height: 1.7;
 }
 
 .footer-links {
   display: flex;
-  gap: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
 
-  a {
-    color: #ffffffcc;
-    text-decoration: none;
-    font-size: 14px;
-    transition: color 0.2s;
+.footer-links a {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
 
-    &:hover {
-      color: #fff;
-    }
+.footer-links a:hover {
+  color: #1d4ed8;
+}
+
+.footer-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  font-size: 13px;
+}
+
+@media (max-width: 1200px) {
+  .shell-header-bar {
+    flex-wrap: wrap;
+  }
+
+  .shell-left,
+  .shell-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .shell-footer-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-meta {
+    align-items: flex-start;
   }
 }
 
-.footer-right {
-  font-size: 13px;
-  color: #ffffff80;
+@media (max-width: 992px) {
+  .shell-nav {
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .search-entry {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .context-bar {
+    top: 144px;
+  }
+}
+
+@media (max-width: 768px) {
+  .shell-header {
+    padding-top: 12px;
+  }
+
+  .shell-header-bar {
+    padding: 14px;
+    border-radius: 24px;
+  }
+
+  .brand-copy span,
+  .context-text,
+  .footer-meta span:first-child {
+    display: none;
+  }
+
+  .shell-left,
+  .shell-right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shell-nav {
+    width: 100%;
+  }
+
+  .shell-nav-link {
+    flex: none;
+  }
+
+  .user-trigger,
+  .search-entry {
+    width: 100%;
+  }
+
+  .context-bar {
+    top: 188px;
+  }
+
+  .context-bar-inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .shell-footer-panel {
+    padding: 24px 22px;
+  }
+
+  .footer-links {
+    gap: 14px;
+  }
 }
 </style>
-

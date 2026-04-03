@@ -1,127 +1,392 @@
-/* ===== 全局样式 ===== */
+/* ═══════════════════════════════════════════════════════
+   WayTrip Web — 全局设计系统
+   极简主义 · 现代化 · 高级感
+   ═══════════════════════════════════════════════════════ */
+
+/* ─── 1. 设计 Token ─── */
+:root {
+  --wt-color-primary: #2563eb;
+  --wt-color-primary-strong: #1d4ed8;
+  --wt-color-primary-soft: #eff6ff;
+  --wt-color-accent: #c8a95b;
+  --wt-color-success: #059669;
+  --wt-color-warning: #d97706;
+  --wt-color-danger: #dc2626;
+
+  --wt-ink-strong: #0f172a;
+  --wt-ink-main: #334155;
+  --wt-ink-soft: #64748b;
+  --wt-ink-placeholder: #94a3b8;
+
+  --wt-surface-page: #f5f7fb;
+  --wt-surface-base: #ffffff;
+  --wt-surface-soft: #f8fafc;
+  --wt-surface-muted: #eef2f7;
+  --wt-border-color: #e2e8f0;
+  --wt-border-strong: #d7e2ee;
+
+  --wt-shadow-sm: 0 10px 30px -24px rgba(15, 23, 42, 0.28);
+  --wt-shadow-md: 0 22px 44px -30px rgba(15, 23, 42, 0.26);
+  --wt-shadow-lg: 0 28px 70px -42px rgba(15, 23, 42, 0.34);
+
+  --wt-radius-xs: 10px;
+  --wt-radius-sm: 14px;
+  --wt-radius-md: 20px;
+  --wt-radius-lg: 28px;
+  --wt-radius-pill: 999px;
+
+  --wt-container: 1240px;
+
+  --el-color-primary: var(--wt-color-primary);
+  --el-color-primary-light-3: #60a5fa;
+  --el-color-primary-light-5: #93c5fd;
+  --el-color-primary-light-7: #bfdbfe;
+  --el-color-primary-light-8: #dbeafe;
+  --el-color-primary-light-9: #eff6ff;
+  --el-color-primary-dark-2: var(--wt-color-primary-strong);
+
+  --el-text-color-primary: var(--wt-ink-strong);
+  --el-text-color-regular: var(--wt-ink-main);
+  --el-text-color-secondary: var(--wt-ink-soft);
+  --el-text-color-placeholder: var(--wt-ink-placeholder);
+  --el-border-color: var(--wt-border-color);
+  --el-border-color-light: var(--wt-border-color);
+  --el-border-color-lighter: #edf2f7;
+  --el-fill-color-light: var(--wt-surface-soft);
+  --el-fill-color-blank: var(--wt-surface-base);
+  --el-bg-color: var(--wt-surface-base);
+  --el-bg-color-page: var(--wt-surface-page);
+  --el-mask-color: rgba(15, 23, 42, 0.52);
+  --el-border-radius-base: 12px;
+  --el-border-radius-small: 10px;
+}
+
+/* ─── 2. 基础重置 ─── */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body, #app {
-  height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
-    'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial,
-    sans-serif;
-  color: #333;
-  background-color: #f5f7fa;
+html {
+  color-scheme: light;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Segoe UI', sans-serif;
+  color: var(--wt-ink-strong);
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 24%),
+    radial-gradient(circle at top right, rgba(200, 169, 91, 0.08), transparent 20%),
+    linear-gradient(180deg, #f8fafd 0%, #f4f7fb 100%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 a {
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
 }
 
-/* ===== 主题色 ===== */
-:root {
-  --primary-color: #409eff;
-  --primary-dark: #3a8ee6;
-  --primary-light: #ecf5ff;
-  --success-color: #67c23a;
-  --warning-color: #e6a23c;
-  --danger-color: #f56c6c;
-  --text-primary: #303133;
-  --text-regular: #606266;
-  --text-secondary: #909399;
-  --text-placeholder: #c0c4cc;
-  --border-color: #e4e7ed;
-  --bg-color: #f5f7fa;
-  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+img {
+  display: block;
+  max-width: 100%;
 }
 
-/* ===== 通用容器 ===== */
-.page-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+::selection {
+  background: rgba(37, 99, 235, 0.16);
 }
 
-.section-title {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-}
-
-/* ===== 卡片通用 ===== */
-.card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  }
-}
-
-/* ===== 价格 ===== */
-.price {
-  color: var(--danger-color);
-  font-weight: 600;
-}
-
-/* ===== 标签 ===== */
-.tag {
-  display: inline-block;
-  padding: 2px 10px;
-  font-size: 12px;
-  border-radius: 4px;
-  background: var(--primary-light);
-  color: var(--primary-color);
-}
-
-/* ===== 评分星 ===== */
-.star-text {
-  color: #faad14;
-  font-weight: 500;
-}
-
-/* ===== 空状态 ===== */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 0;
-  color: var(--text-secondary);
-
-  .empty-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-  }
-
-  .empty-text {
-    font-size: 14px;
-  }
-}
-
-/* ===== 面包屑样式覆盖 ===== */
-.el-breadcrumb {
-  margin-bottom: 16px;
-}
-
-/* ===== 自定义滚动条 ===== */
+/* ─── 3. 全局滚动条 ─── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ─── 4. 通用结构类 ─── */
+.page-container {
+  width: min(100%, var(--wt-container));
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.page-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.section-title {
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--wt-ink-strong);
+}
+
+.section-subtitle {
+  color: var(--wt-ink-soft);
+  line-height: 1.7;
+}
+
+.card,
+.premium-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #ffffff 100%);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--wt-shadow-sm);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.card:hover,
+.premium-card:hover {
+  border-color: rgba(191, 219, 254, 0.95);
+  box-shadow: var(--wt-shadow-md);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--wt-shadow-sm);
+}
+
+.surface-soft {
+  background: var(--wt-surface-soft);
+}
+
+.price {
+  color: var(--wt-color-danger);
+  font-weight: 700;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: var(--wt-radius-pill);
+  background: var(--wt-color-primary-soft);
+  color: var(--wt-color-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.star-text {
+  color: var(--wt-color-accent);
+  font-weight: 600;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 0;
+  color: var(--wt-ink-soft);
+}
+
+.empty-state .empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 22px;
+  background: var(--wt-surface-soft);
+  border: 1px solid var(--wt-border-color);
+}
+
+/* ─── 5. Element Plus 全局覆盖 ─── */
+.el-button {
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.el-button:not(.is-text):not(.is-link) {
+  min-height: 42px;
+  padding: 0 18px;
+}
+
+.el-button--primary {
+  border: none;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 18px 30px -20px rgba(37, 99, 235, 0.9);
+}
+
+.el-button--primary:hover,
+.el-button--primary:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 24px 34px -22px rgba(37, 99, 235, 0.92);
+}
+
+.el-button.is-text,
+.el-button.is-link,
+.el-button--text {
+  color: var(--wt-color-primary);
+}
+
+.el-input__wrapper,
+.el-select__wrapper,
+.el-textarea__inner {
+  background: rgba(248, 250, 252, 0.96);
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px rgba(226, 232, 240, 0.96) inset !important;
+  transition:
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.el-input__wrapper:hover,
+.el-select__wrapper:hover,
+.el-textarea__inner:hover {
+  background: #ffffff;
+}
+
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focus,
+.el-textarea__inner:focus {
+  background: #ffffff;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.96) inset !important;
+}
+
+.el-dialog {
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: var(--wt-shadow-lg);
+}
+
+.el-dialog__header {
+  padding: 24px 28px 12px;
+}
+
+.el-dialog__body {
+  padding: 20px 28px 28px;
+}
+
+.el-dialog__footer {
+  padding: 0 28px 28px;
+}
+
+.el-dropdown-menu {
+  padding: 8px;
+  border-radius: 18px !important;
+  border: 1px solid rgba(226, 232, 240, 0.96) !important;
+  box-shadow: var(--wt-shadow-md) !important;
+}
+
+.el-dropdown-menu__item {
+  min-height: 40px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.el-dropdown-menu__item:hover {
+  background: var(--wt-color-primary-soft) !important;
+  color: var(--wt-color-primary) !important;
+}
+
+.el-tabs__nav-wrap::after {
+  background-color: var(--wt-border-color);
+}
+
+.el-tabs__item {
+  color: var(--wt-ink-soft);
+  font-weight: 600;
+}
+
+.el-tabs__item.is-active {
+  color: var(--wt-color-primary);
+}
+
+.el-radio-button__inner {
+  border-radius: 999px !important;
+}
+
+.el-breadcrumb {
+  margin-bottom: 0;
+}
+
+.el-breadcrumb__inner {
+  color: var(--wt-ink-soft);
+  font-weight: 500;
+}
+
+.el-empty {
+  padding: 40px 0;
+}
+
+.el-empty__description p {
+  color: var(--wt-ink-soft);
+  line-height: 1.7;
+}
+
+.el-loading-mask {
+  background: rgba(255, 255, 255, 0.74) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* ─── 6. 响应式约束 ─── */
+@media (max-width: 992px) {
+  .page-container {
+    padding: 0 18px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .card,
+  .premium-card {
+    border-radius: 22px;
+  }
+
+  .page-stack {
+    gap: 22px;
+  }
+}
