@@ -28,7 +28,8 @@ uploads/*
 !uploads/.gitkeep
 
 # temp
-/_temp/
+_temp/
 
 # AI Assistant
 .aiassistant/
+.codex/
