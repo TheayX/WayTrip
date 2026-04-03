@@ -7,10 +7,10 @@
           <div class="hero-copy">
             <p class="hero-eyebrow">{{ APP_NAME }}</p>
             <h1 class="hero-title">发现旅途之美</h1>
-            <p class="hero-subtitle">把热门景点、个性推荐、附近探索和攻略入口集中到一个首页里。</p>
-            <div class="hero-search" @click="router.push('/search')">
+            <p class="hero-subtitle">从首页快速进入景点、攻略和探索场景，再把更完整的发现流交给 Web 端专门承接。</p>
+            <div class="hero-search" @click="router.push(APP_ROUTE_PATHS.search)">
               <el-icon><Search /></el-icon>
-              <span>搜索景点、攻略...</span>
+              <span>搜索景点</span>
             </div>
           </div>
         </div>
@@ -43,7 +43,7 @@
       <section class="section">
         <div class="section-header">
           <h2 class="section-title">热门景点</h2>
-          <el-button text type="primary" @click="router.push('/spots?sortBy=heat')">查看全部</el-button>
+          <el-button text type="primary" @click="router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`)">查看全部</el-button>
         </div>
         <div v-if="hotSpots.length" class="hot-grid">
           <article v-for="spot in hotSpots" :key="spot.id" class="hot-card card" @click="router.push(`/spots/${spot.id}?source=home`)">
@@ -127,7 +127,7 @@ import HomeNearbySection from '@/modules/home/components/HomeNearbySection.vue'
 import HomeQuickActions from '@/modules/home/components/HomeQuickActions.vue'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { APP_NAME } from '@/shared/constants/app.js'
-import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { getBanners, getHotSpots, getNearbySpots } from '@/modules/home/api.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
 import {
@@ -185,14 +185,15 @@ const nearbySummary = computed(() => {
 const nearbyActionText = computed(() => {
   if (nearbyLoading.value) return '加载中'
   if (!userStore.isLoggedIn) return '去登录'
-  return '查看附近'
+  return '进入发现'
 })
 
+// 首页只保留高频一级入口，把推荐和附近收进发现页承接，避免继续平铺更多导航位。
 const quickActions = computed(() => ([
-  { id: 'spots', title: '全部景点', desc: '按热度浏览热门景点', icon: MapLocation, theme: 'blue', handler: () => router.push('/spots?sortBy=heat') },
-  { id: 'guides', title: '游玩攻略', desc: '查看最新旅行攻略', icon: Guide, theme: 'orange', handler: () => router.push('/guides') },
-  { id: 'recommend', title: '推荐景点', desc: '集中浏览推荐结果', icon: Star, theme: 'amber', handler: () => goRecommendations() },
-  { id: 'nearby', title: '附近探索', desc: '查看离你最近的景点', icon: Tickets, theme: 'emerald', handler: () => goNearby() }
+  { id: 'discover', title: '发现灵感', desc: '集中浏览推荐、附近与精选内容', icon: Star, theme: 'amber', handler: () => router.push(APP_ROUTE_PATHS.discover) },
+  { id: 'spots', title: '全部景点', desc: '按热度浏览热门景点', icon: MapLocation, theme: 'blue', handler: () => router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`) },
+  { id: 'guides', title: '游玩攻略', desc: '查看最新旅行攻略', icon: Guide, theme: 'orange', handler: () => router.push(APP_ROUTE_PATHS.guides) },
+  { id: 'orders', title: '行程订单', desc: '查看进行中与已完成订单', icon: Tickets, theme: 'emerald', handler: () => goOrders() }
 ]))
 
 // 工具方法
@@ -304,7 +305,7 @@ const goRecommendations = () => {
     router.push(AUTH_ROUTE_PATHS.login)
     return
   }
-  router.push('/recommendations')
+  router.push(APP_ROUTE_PATHS.recommendations)
 }
 
 const goNearby = async () => {
@@ -323,7 +324,17 @@ const goNearby = async () => {
     }
   }
 
-  router.push('/nearby')
+  // 附近探索继续保留能力，但主承接页切到发现页，统一 Web 端探索路径。
+  router.push({ path: APP_ROUTE_PATHS.discover, query: { tab: 'spot', scene: 'nearby' } })
+}
+
+const goOrders = () => {
+  if (!userStore.isLoggedIn) {
+    router.push(AUTH_ROUTE_PATHS.login)
+    return
+  }
+
+  router.push('/account/orders')
 }
 
 // 生命周期

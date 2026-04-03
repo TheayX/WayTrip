@@ -3,10 +3,13 @@
   <div class="page-container nearby-page">
     <section class="hero card">
       <div>
-        <h2 class="page-title">附近景点</h2>
+        <h2 class="page-title">附近探索</h2>
         <p class="page-subtitle">{{ subtitle }}</p>
       </div>
-      <el-button :loading="loading" type="primary" @click="handleLocate">{{ loading ? '定位中' : '重新定位' }}</el-button>
+      <div class="hero-actions">
+        <el-button :loading="loading" type="primary" @click="handleLocate">{{ loading ? '定位中' : '重新定位' }}</el-button>
+        <el-button text @click="router.push({ path: APP_ROUTE_PATHS.discover, query: { tab: 'spot', scene: 'nearby' } })">返回发现页</el-button>
+      </div>
     </section>
 
     <section v-if="spots.length" class="spot-grid">
@@ -37,13 +40,16 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { getNearbySpots } from '@/modules/home/api.js'
+import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { getLocationSnapshot, getCurrentLocation } from '@/shared/lib/location.js'
 import { getImageUrl } from '@/shared/api/client.js'
 
 // 基础依赖与用户状态
+const router = useRouter()
 const userStore = useUserStore()
 
 // 页面数据状态
@@ -58,7 +64,7 @@ const subtitle = computed(() => {
     return `共找到 ${spots.value.length} 个景点，最近约 ${formatDistance(spots.value[0].distanceKm)}`
   }
   if (locationStatus.value === 'empty') return '当前位置附近暂时没有可展示的景点'
-  return '登录并授权浏览器定位后，可按距离浏览附近景点'
+  return '这个页面保留为直达入口，更完整的探索流已经合并到发现页。'
 })
 
 const emptyText = computed(() => {
@@ -102,6 +108,7 @@ const handleLocate = async () => {
 
 // 生命周期
 onMounted(async () => {
+  // 保留独立页直达体验，但不再让它承担 Web 端主探索入口。
   if (!userStore.isLoggedIn) return
 
   const snapshot = await getLocationSnapshot()
@@ -124,6 +131,12 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 16px;
   align-items: center;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .page-title {
@@ -185,6 +198,11 @@ onMounted(async () => {
   }
 
   .hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-actions {
     flex-direction: column;
     align-items: stretch;
   }
