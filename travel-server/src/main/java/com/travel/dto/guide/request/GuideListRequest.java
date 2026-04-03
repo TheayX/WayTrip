@@ -9,6 +9,7 @@ import lombok.Data;
 public class GuideListRequest {
     private Integer page = 1;
     private Integer pageSize = 10;
+    private String keyword;
     private String category;
     private String sortBy = "time"; // time, category
 }

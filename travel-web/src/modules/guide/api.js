@@ -3,7 +3,7 @@ import client from '@/shared/api/client.js'
 
 /**
  * 获取攻略列表
- * @param params
+ * @param {object} params
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export const getGuideList = (params) => client.get('/guides', { params })
