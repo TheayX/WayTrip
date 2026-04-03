@@ -13,20 +13,14 @@ const publicRoutes = [
   { path: 'search', name: 'Search', component: () => import('@/modules/search/index.vue'), meta: { title: '搜索' } }
 ]
 
-/**
- * 用户中心布局子路由
- * 说明：
- * 1. 先保持现有访问路径不变，降低迁移阶段的路由波动
- * 2. 后续再整体迁到 /account/* 语义
- */
 const accountRoutes = [
+  { path: 'profile', name: 'Profile', component: () => import('@/modules/account/pages/profile.vue'), meta: { title: '个人中心', requiresAuth: true } },
+  { path: 'activity', name: 'Activity', component: () => import('@/modules/account/pages/activity.vue'), meta: { title: '我的互动', requiresAuth: true } },
+  { path: 'settings', name: 'Settings', component: () => import('@/modules/account/pages/settings.vue'), meta: { title: '设置', requiresAuth: true } },
   { path: 'orders', name: 'OrderList', component: () => import('@/modules/order/pages/list.vue'), meta: { title: '我的订单', requiresAuth: true } },
   { path: 'orders/:id', name: 'OrderDetail', component: () => import('@/modules/order/pages/detail.vue'), meta: { title: '订单详情', requiresAuth: true } },
   { path: 'favorites', name: 'Favorites', component: () => import('@/modules/favorite/index.vue'), meta: { title: '我的收藏', requiresAuth: true } },
-  { path: 'reviews', name: 'ReviewList', component: () => import('@/modules/review/index.vue'), meta: { title: '我的评价', requiresAuth: true } },
-  { path: 'profile', name: 'Profile', component: () => import('@/modules/account/pages/profile.vue'), meta: { title: '个人中心', requiresAuth: true } },
-  { path: 'profile/activity', name: 'Activity', component: () => import('@/modules/account/pages/activity.vue'), meta: { title: '我的互动', requiresAuth: true } },
-  { path: 'settings', name: 'Settings', component: () => import('@/modules/account/pages/settings.vue'), meta: { title: '设置', requiresAuth: true } }
+  { path: 'reviews', name: 'ReviewList', component: () => import('@/modules/review/index.vue'), meta: { title: '我的评价', requiresAuth: true } }
 ]
 
 export const appShellRoutes = [
@@ -36,7 +30,7 @@ export const appShellRoutes = [
     children: [
       ...publicRoutes,
       {
-        path: '',
+        path: 'account',
         component: () => import('@/app/layouts/AccountLayout.vue'),
         children: accountRoutes
       }

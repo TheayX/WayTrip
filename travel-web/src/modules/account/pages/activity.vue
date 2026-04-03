@@ -3,7 +3,7 @@
   <div class="page-container activity-page">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: '/profile' }">个人中心</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/account/profile' }">个人中心</el-breadcrumb-item>
       <el-breadcrumb-item>我的互动</el-breadcrumb-item>
     </el-breadcrumb>
 
@@ -171,7 +171,7 @@ const loadActiveTab = async () => {
 // 交互处理方法
 const handleTabChange = async () => {
   router.replace({
-    path: '/profile/activity',
+    path: '/account/activity',
     query: activeTab.value === 'browse' ? {} : { tab: activeTab.value }
   })
   await loadActiveTab()

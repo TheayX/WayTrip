@@ -11,7 +11,7 @@
     </el-tabs>
 
     <div v-loading="loading" class="order-list">
-      <div v-for="order in orderList" :key="order.id" class="order-card card" @click="$router.push(`/orders/${order.id}`)">
+      <div v-for="order in orderList" :key="order.id" class="order-card card" @click="$router.push(`/account/orders/${order.id}`)">
         <div class="order-header">
           <span class="order-no">订单号：{{ order.orderNo }}</span>
           <el-tag :type="statusType(order.status)" size="small">{{ order.statusText }}</el-tag>

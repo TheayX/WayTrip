@@ -3,7 +3,7 @@
   <div class="page-container" v-if="order">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: '/orders' }">我的订单</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/account/orders' }">我的订单</el-breadcrumb-item>
       <el-breadcrumb-item>订单详情</el-breadcrumb-item>
     </el-breadcrumb>
 
