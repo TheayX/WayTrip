@@ -1,5 +1,5 @@
 // 首页相关接口
-import { get, post } from '@/utils/client'
+import { get, post } from '@/utils/request'
 
 /**
  * 获取首页轮播图

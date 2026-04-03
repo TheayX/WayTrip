@@ -67,7 +67,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { getNearbySpots } from '@/api/home'
 import { promptLogin } from '@/utils/auth'
 import { getAuthorizedLocation, getLocationSnapshot } from '@/utils/location'
-import { getContentImageUrl } from '@/utils/client'
+import { getContentImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 

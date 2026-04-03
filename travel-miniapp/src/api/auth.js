@@ -1,5 +1,5 @@
 // 微信登录相关接口
-import { post } from '@/utils/client'
+import { post } from '@/utils/request'
 
 // /auth/* 仅用于登录注册和微信绑定流程。
 

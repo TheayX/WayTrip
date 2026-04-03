@@ -56,7 +56,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { fetchRandomPickSpot } from '@/services/random-pick'
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
-import { getImageUrl } from '@/utils/client'
+import { getImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 页面数据状态

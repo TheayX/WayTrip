@@ -1,5 +1,5 @@
 // 评论相关接口
-import { del, get, post } from '@/utils/client'
+import { del, get, post } from '@/utils/request'
 
 /**
  * 提交评论

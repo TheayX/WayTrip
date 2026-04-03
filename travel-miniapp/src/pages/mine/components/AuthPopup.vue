@@ -108,7 +108,7 @@ import { wxBindPhone, prepareWxBindPhone } from '@/api/auth'
 import { updateUserInfo, uploadAvatar, setPreferences } from '@/api/user'
 import { getFilters } from '@/api/spot'
 import { useUserStore } from '@/stores/user'
-import { getAvatarUrl } from '@/utils/client'
+import { getAvatarUrl } from '@/utils/request'
 import PreferenceCategorySelector from '@/components/PreferenceCategorySelector.vue'
 import {
   markColdStartGuideCompleted,

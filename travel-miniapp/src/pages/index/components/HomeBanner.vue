@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { getContentImageUrl } from '@/utils/client'
+import { getContentImageUrl } from '@/utils/request'
 
 defineProps({
   banners: { type: Array, default: () => [] }

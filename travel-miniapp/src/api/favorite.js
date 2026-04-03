@@ -1,5 +1,5 @@
 // 收藏相关接口
-import { get, post, del } from '@/utils/client'
+import { get, post, del } from '@/utils/request'
 
 /**
  * 添加收藏
