@@ -3,3 +3,13 @@ export const AUTH_ROUTE_PATHS = {
   login: '/login',
   register: '/register'
 }
+
+export const APP_ROUTE_PATHS = {
+  home: '/',
+  discover: '/discover',
+  recommendations: '/recommendations',
+  nearby: '/nearby',
+  spots: '/spots',
+  guides: '/guides',
+  search: '/search'
+}

@@ -17,9 +17,9 @@
           </nav>
         </div>
         <div class="navbar-right">
-          <div class="search-trigger" @click="$router.push('/search')">
+          <div class="search-trigger" @click="$router.push(APP_ROUTE_PATHS.search)">
             <el-icon><Search /></el-icon>
-            <span>搜索景点...</span>
+            <span>搜索景点</span>
           </div>
           <template v-if="userStore.isLoggedIn">
             <el-dropdown trigger="click" @command="handleCommand">
@@ -92,7 +92,7 @@ import { useUserStore } from '@/modules/account/store/user.js'
 import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
 import { APP_NAME } from '@/shared/constants/app.js'
 import { ROUTE_NAMES } from '@/shared/constants/route-names.js'
-import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
