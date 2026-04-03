@@ -76,16 +76,21 @@ src/
 └─ modules/                          业务模块层
    ├─ account/
    ├─ auth/
+   ├─ budget-travel/
    ├─ discover/
    ├─ favorite/
    ├─ guide/
    ├─ home/
+   ├─ more/
    ├─ nearby/
    ├─ order/
+   ├─ random-pick/
    ├─ recommendation/
    ├─ review/
    ├─ search/
    └─ spot/
+   ├─ traveler-reviews/
+   └─ trending-views/
 ```
 
 说明：
@@ -137,6 +142,11 @@ src/
 - `guide`：攻略列表与详情
 - `recommendation`：推荐结果页
 - `nearby`：附近探索直达页
+- `random-pick`：随心一选
+- `budget-travel`：穷游玩法
+- `traveler-reviews`：游客口碑
+- `trending-views`：近期热看
+- `more`：玩法入口聚合页
 - `order`：订单相关页面
 - `account`：个人中心域
 - `auth`：登录注册域
@@ -148,6 +158,7 @@ src/
 - 首页负责高频入口和首屏内容分发
 - 发现页负责推荐、附近、景点、攻略的聚合探索
 - 搜索页负责景点 + 攻略的综合检索
+- 玩法型页面通过 `more` 与独立轻模块承接
 - 用户中心统一收口到 `/account/*`
 - 附近页保留为直达页，但主探索承接已并入发现页
 
