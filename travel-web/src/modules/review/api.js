@@ -35,6 +35,13 @@ export const getMyReviews = (page = 1, pageSize = 10) =>
   client.get('/reviews/mine', { params: { page, pageSize } })
 
 /**
+ * 获取游客口碑流
+ * @param {object} params
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const getReviewFeed = (params) => client.get('/reviews/feed', { params })
+
+/**
  * 删除评论
  * @param reviewId
  * @returns {Promise<axios.AxiosResponse<any>>}

@@ -11,6 +11,7 @@ export const APP_ROUTE_PATHS = {
   nearby: '/nearby',
   randomPick: '/random-pick',
   budgetTravel: '/budget-travel',
+  travelerReviews: '/traveler-reviews',
   spots: '/spots',
   guides: '/guides',
   search: '/search'
