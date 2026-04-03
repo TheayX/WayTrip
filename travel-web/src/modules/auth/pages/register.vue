@@ -1,62 +1,58 @@
 <!-- 注册页 -->
 <template>
-  <div class="register-page">
-    <div class="register-card">
-      <div class="register-header">
-        <span class="logo-icon">✈</span>
-        <h1>注册 {{ APP_NAME }}</h1>
-        <p>{{ step === 1 ? '创建账号，探索世界' : '完善个人资料（可跳过）' }}</p>
-      </div>
+  <div class="register-page premium-card">
+    <div class="register-header">
+      <p class="header-kicker">Create Account</p>
+      <h1>注册 {{ APP_NAME }}</h1>
+      <p class="header-desc">{{ step === 1 ? '先完成账号创建。' : '补充昵称和头像，可跳过。' }}</p>
+    </div>
 
-      <!-- 步骤指示器 -->
-      <div class="step-indicator">
-        <div class="step" :class="{ active: step >= 1 }">1</div>
-        <div class="step-line" :class="{ active: step >= 2 }"></div>
-        <div class="step" :class="{ active: step >= 2 }">2</div>
-      </div>
+    <div class="step-indicator">
+      <div class="step" :class="{ active: step >= 1 }">1</div>
+      <div class="step-line" :class="{ active: step >= 2 }"></div>
+      <div class="step" :class="{ active: step >= 2 }">2</div>
+    </div>
 
-      <!-- 第一步：手机号 + 密码 -->
-      <el-form v-if="step === 1" ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent="handleStep1">
-        <el-form-item prop="phone">
-          <el-input v-model="form.phone" placeholder="请输入手机号" prefix-icon="Phone" maxlength="11" />
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input v-model="form.password" type="password" placeholder="请输入密码 (至少6位)" prefix-icon="Lock" show-password />
-        </el-form-item>
-        <el-form-item prop="confirmPassword">
-          <el-input v-model="form.confirmPassword" type="password" placeholder="请确认密码" prefix-icon="Lock" show-password />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" class="register-btn" @click="handleStep1">下一步</el-button>
-        </el-form-item>
-      </el-form>
+    <el-form v-if="step === 1" ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent="handleStep1">
+      <el-form-item prop="phone">
+        <el-input v-model="form.phone" placeholder="手机号" prefix-icon="Phone" maxlength="11" />
+      </el-form-item>
+      <el-form-item prop="password">
+        <el-input v-model="form.password" type="password" placeholder="密码（至少 6 位）" prefix-icon="Lock" show-password />
+      </el-form-item>
+      <el-form-item prop="confirmPassword">
+        <el-input v-model="form.confirmPassword" type="password" placeholder="确认密码" prefix-icon="Lock" show-password />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" class="register-btn" :loading="loading" @click="handleStep1">下一步</el-button>
+      </el-form-item>
+    </el-form>
 
-      <!-- 第二步：头像 + 昵称（可跳过） -->
-      <div v-if="step === 2" class="step2-content">
-        <div class="avatar-upload">
-          <el-upload
-            class="avatar-uploader"
-            :show-file-list="false"
-            :auto-upload="false"
-            accept="image/*"
-            :on-change="handleAvatarChange"
-          >
-            <div class="avatar-wrapper">
-              <el-avatar :size="100" :src="avatarPreview || defaultRegisterAvatar" class="upload-avatar" />
-              <div class="avatar-tip">点击上传头像</div>
-            </div>
-          </el-upload>
-        </div>
-        <el-input v-model="registerProfileForm.nickname" placeholder="请输入昵称" prefix-icon="User" maxlength="30" size="large" class="nickname-input" />
-        <div class="step2-actions">
-          <el-button size="large" class="skip-btn" :loading="loading" @click="handleSkip">跳过</el-button>
-          <el-button type="primary" size="large" :loading="loading" class="confirm-btn" @click="handleStep2">完成注册</el-button>
-        </div>
+    <div v-if="step === 2" class="step2-content">
+      <div class="avatar-upload">
+        <el-upload
+          class="avatar-uploader"
+          :show-file-list="false"
+          :auto-upload="false"
+          accept="image/*"
+          :on-change="handleAvatarChange"
+        >
+          <div class="avatar-wrapper">
+            <el-avatar :size="96" :src="avatarPreview || defaultRegisterAvatar" class="upload-avatar" />
+            <div class="avatar-tip">上传头像</div>
+          </div>
+        </el-upload>
       </div>
+      <el-input v-model="registerProfileForm.nickname" placeholder="昵称" prefix-icon="User" maxlength="30" size="large" class="nickname-input" />
+      <div class="step2-actions">
+        <el-button size="large" class="skip-btn" :loading="loading" @click="handleSkip">跳过</el-button>
+        <el-button type="primary" size="large" :loading="loading" class="confirm-btn" @click="handleStep2">完成注册</el-button>
+      </div>
+    </div>
 
-      <div class="register-footer" v-if="step === 1">
-        已有账号？<router-link to="/login" class="link">立即登录</router-link>
-      </div>
+    <div class="register-footer" v-if="step === 1">
+      <span>已有账号？</span>
+      <router-link to="/login" class="link">去登录</router-link>
     </div>
   </div>
 </template>
@@ -150,7 +146,6 @@ const doRegister = async (options = {}) => {
   const { nickname, avatar } = options
   loading.value = true
   try {
-    // 1. 调用注册接口
     const registerData = {
       phone: form.phone,
       password: form.password
@@ -161,7 +156,6 @@ const doRegister = async (options = {}) => {
     const res = await register(registerData)
     userStore.login(res.data)
 
-    // 2. 如果有头像，注册后再上传
     if (avatar) {
       try {
         const uploadRes = await uploadAvatar(avatar)
@@ -171,10 +165,9 @@ const doRegister = async (options = {}) => {
       }
     }
 
-    ElMessage.success(`注册成功，欢迎来到 ${APP_NAME}！`)
+    ElMessage.success(`注册成功，欢迎来到 ${APP_NAME}`)
     router.push('/')
   } catch (e) {
-    // 注册失败（如手机号已注册），回到第一步修改
     step.value = 1
   } finally {
     loading.value = false
@@ -187,170 +180,149 @@ const handleSkip = () => {
 
 const handleStep2 = () => {
   doRegister({
-      nickname: registerProfileForm.nickname.trim() || defaultRegisterNickname,
-      avatar: avatarFile.value || null
-    })
-  }
+    nickname: registerProfileForm.nickname.trim() || defaultRegisterNickname,
+    avatar: avatarFile.value || null
+  })
+}
 </script>
 
 <style lang="scss" scoped>
 .register-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.register-card {
-  width: 420px;
-  background: #fff;
-  border-radius: 16px;
-  padding: 48px 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  padding: 28px;
 }
 
 .register-header {
-  text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+}
 
-  .logo-icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: 12px;
-  }
+.header-kicker {
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
 
-  h1 {
-    font-size: 24px;
-    color: #303133;
-    margin-bottom: 8px;
-  }
+.register-header h1 {
+  font-size: 32px;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+}
 
-  p {
-    color: #909399;
-    font-size: 14px;
-  }
+.header-desc {
+  margin-top: 10px;
+  color: #64748b;
+  line-height: 1.75;
 }
 
 .step-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+}
 
-  .step {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #e0e0e0;
-    color: #999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s;
+.step {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
 
-    &.active {
-      background: #409eff;
-      color: #fff;
-    }
-  }
+.step.active {
+  background: #2563eb;
+  color: #fff;
+}
 
-  .step-line {
-    width: 60px;
-    height: 3px;
-    background: #e0e0e0;
-    margin: 0 12px;
-    transition: all 0.3s;
+.step-line {
+  width: 60px;
+  height: 3px;
+  background: #e2e8f0;
+  margin: 0 12px;
+  transition: all 0.3s;
+}
 
-    &.active {
-      background: #409eff;
-    }
-  }
+.step-line.active {
+  background: #2563eb;
 }
 
 .register-btn {
   width: 100%;
-  height: 44px;
-  font-size: 16px;
-  border-radius: 8px;
 }
 
 .register-footer {
-  text-align: center;
-  font-size: 14px;
-  color: #909399;
   margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #64748b;
+}
 
-  .link {
-    color: #409eff;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+.link {
+  color: #1d4ed8;
+  font-weight: 700;
 }
 
 .step2-content {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
 
-  .avatar-upload {
-    margin-bottom: 24px;
-    text-align: center;
+.avatar-upload {
+  margin-bottom: 22px;
+  text-align: center;
+}
 
-    .avatar-uploader {
-      display: inline-block;
-      cursor: pointer;
-    }
+.avatar-uploader {
+  display: inline-block;
+  cursor: pointer;
+}
 
-    .avatar-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+.avatar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-    .upload-avatar {
-      border: 2px dashed #dcdfe6;
-      transition: border-color 0.3s;
+.upload-avatar {
+  border: 2px dashed #d7e2ee;
+  transition: border-color 0.3s;
+}
 
-      &:hover {
-        border-color: #409eff;
-      }
-    }
+.upload-avatar:hover {
+  border-color: #2563eb;
+}
 
-    .avatar-tip {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #909399;
-    }
-  }
+.avatar-tip {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #64748b;
+}
 
-  .nickname-input {
-    width: 100%;
-    margin-bottom: 24px;
-  }
+.nickname-input {
+  width: 100%;
+  margin-bottom: 22px;
+}
 
-  .step2-actions {
-    width: 100%;
-    display: flex;
-    gap: 12px;
+.step2-actions {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+}
 
-    .skip-btn {
-      flex: 1;
-      height: 44px;
-      border-radius: 8px;
-    }
-
-    .confirm-btn {
-      flex: 1;
-      height: 44px;
-      border-radius: 8px;
-    }
-  }
+.skip-btn,
+.confirm-btn {
+  flex: 1;
 }
 </style>
-

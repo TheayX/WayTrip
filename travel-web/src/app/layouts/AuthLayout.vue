@@ -17,10 +17,10 @@
       <section class="auth-hero">
         <p class="auth-eyebrow">Account Access</p>
         <h1>进入你的旅行空间</h1>
-        <p>登录后继续管理偏好、订单、收藏与旅行记录，整个账号体验会与 Web 主站保持同一套高级感视觉语言。</p>
+        <p>登录后继续管理偏好、订单、收藏与旅行记录。认证区只保留必要信息，不再叠加多层视觉容器。</p>
       </section>
 
-      <div class="auth-card premium-card">
+      <div class="auth-panel">
         <router-view />
       </div>
     </main>
@@ -137,9 +137,8 @@ import { APP_NAME } from '@/shared/constants/app.js'
   font-size: 15px;
 }
 
-.auth-card {
+.auth-panel {
   width: 100%;
-  padding: 28px;
 }
 
 @media (max-width: 992px) {
@@ -165,11 +164,6 @@ import { APP_NAME } from '@/shared/constants/app.js'
 
   .auth-main {
     padding: 20px 16px 32px;
-  }
-
-  .auth-card {
-    padding: 20px;
-    border-radius: 22px;
   }
 
   .auth-hero h1 {
