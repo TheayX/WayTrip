@@ -2,7 +2,7 @@
 <template>
   <div v-if="spots.length" class="guide-sidebar">
     <div class="sidebar-card premium-card">
-      <p class="sidebar-kicker">Related Spots</p>
+      <p class="sidebar-kicker">相关目的地</p>
       <h3 class="sidebar-title">相关景点</h3>
       <div
         v-for="spot in spots"
@@ -58,6 +58,7 @@ defineEmits(['select'])
 .sidebar-title {
   font-size: 22px;
   color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .related-spot {

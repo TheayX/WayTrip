@@ -96,17 +96,33 @@ onMounted(() => {
   :deep(h3) {
     color: #0f172a;
     line-height: 1.35;
-    margin: 1.3em 0 0.7em;
+    margin: 1.4em 0 0.7em;
+    letter-spacing: -0.02em;
   }
 
   :deep(p) {
-    margin: 1em 0;
+    margin: 1.05em 0;
   }
 
   :deep(img) {
     max-width: 100%;
     border-radius: 16px;
     margin: 16px 0;
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    padding-left: 1.4em;
+    margin: 1em 0;
+  }
+
+  :deep(blockquote) {
+    margin: 1.2em 0;
+    padding: 14px 18px;
+    border-left: 3px solid rgba(200, 169, 91, 0.5);
+    background: #fffdf7;
+    color: #475569;
+    border-radius: 16px;
   }
 }
 
