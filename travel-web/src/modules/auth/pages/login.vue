@@ -1,26 +1,27 @@
 <!-- 登录页 -->
 <template>
-  <div class="login-page">
-    <div class="login-card">
-      <div class="login-header">
-        <span class="logo-icon">✈</span>
-        <h1>欢迎回到 {{ APP_NAME }}</h1>
-        <p>登录以开启精彩旅程</p>
-      </div>
-      <el-form ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent="handleLogin">
-        <el-form-item prop="phone">
-          <el-input v-model="form.phone" placeholder="请输入手机号" prefix-icon="Phone" maxlength="11" />
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input v-model="form.password" type="password" placeholder="请输入密码" prefix-icon="Lock" show-password />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" :loading="loading" class="login-btn" @click="handleLogin">登 录</el-button>
-        </el-form-item>
-      </el-form>
-      <div class="login-footer">
-        还没有账号？<router-link to="/register" class="link">立即注册</router-link>
-      </div>
+  <div class="login-page premium-card">
+    <div class="login-header">
+      <p class="header-kicker">Sign In</p>
+      <h1>欢迎回到 {{ APP_NAME }}</h1>
+      <p class="header-desc">登录后继续你的旅行记录与探索偏好。</p>
+    </div>
+
+    <el-form ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent="handleLogin">
+      <el-form-item prop="phone">
+        <el-input v-model="form.phone" placeholder="手机号" prefix-icon="Phone" maxlength="11" />
+      </el-form-item>
+      <el-form-item prop="password">
+        <el-input v-model="form.password" type="password" placeholder="密码" prefix-icon="Lock" show-password />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" :loading="loading" class="login-btn" @click="handleLogin">登录</el-button>
+      </el-form-item>
+    </el-form>
+
+    <div class="login-footer">
+      <span>还没有账号？</span>
+      <router-link to="/register" class="link">创建账号</router-link>
     </div>
   </div>
 </template>
@@ -69,9 +70,8 @@ const handleLogin = async () => {
     const res = await login(form)
     userStore.login(res.data)
 
-    // 检查账户是否被恢复
     if (res.data.user?.isReactivated) {
-      ElMessage.success('账户已恢复，欢迎回来！')
+      ElMessage.success('账户已恢复，欢迎回来')
     } else {
       ElMessage.success('登录成功')
     }
@@ -88,62 +88,50 @@ const handleLogin = async () => {
 
 <style lang="scss" scoped>
 .login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.login-card {
-  width: 420px;
-  background: #fff;
-  border-radius: 16px;
-  padding: 48px 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  padding: 28px;
 }
 
 .login-header {
-  text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+}
 
-  .logo-icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: 12px;
-  }
+.header-kicker {
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
 
-  h1 {
-    font-size: 24px;
-    color: #303133;
-    margin-bottom: 8px;
-  }
+.login-header h1 {
+  font-size: 32px;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+}
 
-  p {
-    color: #909399;
-    font-size: 14px;
-  }
+.header-desc {
+  margin-top: 10px;
+  color: #64748b;
+  line-height: 1.75;
 }
 
 .login-btn {
   width: 100%;
-  height: 44px;
-  font-size: 16px;
-  border-radius: 8px;
 }
 
 .login-footer {
-  text-align: center;
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
   font-size: 14px;
-  color: #909399;
+  color: #64748b;
+}
 
-  .link {
-    color: #409eff;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+.link {
+  color: #1d4ed8;
+  font-weight: 700;
 }
 </style>
