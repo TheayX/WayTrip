@@ -74,8 +74,8 @@ defineEmits(['select', 'clear'])
   padding: 0 16px;
   border: 0;
   border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: #f8fafc;
+  color: #334155;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
@@ -87,6 +87,7 @@ defineEmits(['select', 'clear'])
 
 .keyword-chip:hover {
   transform: translateY(-1px);
+  background: #f1f5f9;
 }
 
 .keyword-chip.ghost {
