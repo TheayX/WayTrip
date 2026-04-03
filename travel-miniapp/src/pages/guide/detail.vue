@@ -6,12 +6,13 @@
 
     <!-- 攻略信息区域 -->
     <view class="guide-header card">
+      <text class="guide-kicker">旅行攻略</text>
       <text class="guide-title">{{ guide.title }}</text>
       <view class="guide-meta">
         <text class="guide-category">{{ guide.category }}</text>
-        <text class="guide-info">👁 {{ guide.viewCount }} · {{ guide.createdAt }}</text>
+        <text class="guide-info">浏览 {{ guide.viewCount }} · {{ guide.createdAt }}</text>
       </view>
-      <text class="guide-intro">这篇攻略提到的景点会集中展示在下方，方便直接跳转查看。</text>
+      <text class="guide-intro">把路线、玩法和景点信息整理成一篇更适合随时翻看的出行笔记。</text>
     </view>
 
     <!-- 攻略内容区域 -->
@@ -24,7 +25,7 @@
       <view class="section-header">
         <view>
           <text class="section-title">攻略关联景点</text>
-          <text class="section-subtitle">共 {{ guide.relatedSpots?.length || 0 }} 个可直达景点入口</text>
+          <text class="section-subtitle">共 {{ guide.relatedSpots?.length || 0 }} 个可直接查看的景点</text>
         </view>
         <text class="section-link" @click="goSpotList">更多景点</text>
       </view>
@@ -40,7 +41,7 @@
           <view class="spot-info">
             <text class="spot-name">{{ spot.name }}</text>
             <text class="spot-price">{{ spot.price }}</text>
-            <text class="spot-link">查看景点详情 ›</text>
+            <text class="spot-link">查看详情</text>
           </view>
         </view>
       </scroll-view>
@@ -123,18 +124,31 @@ onLoad((options) => {
 .guide-detail-page {
   min-height: 100vh;
   padding-bottom: 40rpx;
-  background: linear-gradient(180deg, #f5f7fa 0%, #eef3f8 100%);
+  background: transparent;
 }
 
 .guide-cover {
   width: 100%;
-  height: 420rpx;
+  height: 460rpx;
 }
 
 .guide-header {
   margin: -72rpx 24rpx 20rpx;
   position: relative;
   z-index: 1;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16rpx 40rpx rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(18rpx);
+}
+
+.guide-kicker {
+  display: block;
+  margin-bottom: 12rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  letter-spacing: 6rpx;
+  color: #64748b;
+  text-transform: uppercase;
 }
 
 .guide-title {
@@ -142,7 +156,8 @@ onLoad((options) => {
   margin-bottom: 16rpx;
   font-size: 40rpx;
   font-weight: 700;
-  color: #1f2937;
+  color: #0f172a;
+  line-height: 1.2;
 }
 
 .guide-meta {
@@ -153,8 +168,8 @@ onLoad((options) => {
 
 .guide-category {
   font-size: 24rpx;
-  color: #2563eb;
-  background: rgba(37, 99, 235, 0.1);
+  color: #8a6a2f;
+  background: #fffdf7;
   padding: 8rpx 18rpx;
   border-radius: 999rpx;
 }
@@ -177,10 +192,14 @@ onLoad((options) => {
   font-size: 28rpx;
   line-height: 1.8;
   color: #334155;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
 }
 
 .related-spots {
   margin: 0 24rpx;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
 }
 
 .section-header {
@@ -195,7 +214,7 @@ onLoad((options) => {
   display: block;
   font-size: 30rpx;
   font-weight: 700;
-  color: #1f2937;
+  color: #0f172a;
 }
 
 .section-subtitle {
@@ -207,7 +226,7 @@ onLoad((options) => {
 
 .section-link {
   font-size: 24rpx;
-  color: #2563eb;
+  color: #334155;
 }
 
 .spots-scroll {
@@ -219,7 +238,7 @@ onLoad((options) => {
   width: 280rpx;
   margin-right: 20rpx;
   background: #f8fafc;
-  border-radius: 18rpx;
+  border-radius: 28rpx;
   overflow: hidden;
 }
 
@@ -257,7 +276,7 @@ onLoad((options) => {
   display: block;
   margin-top: 10rpx;
   font-size: 22rpx;
-  color: #2563eb;
+  color: #334155;
 }
 
 .empty-related {
@@ -276,8 +295,8 @@ onLoad((options) => {
   margin-top: 20rpx;
   padding: 14rpx 28rpx;
   border-radius: 999rpx;
-  background: #eff6ff;
-  color: #2563eb;
+  background: #f8fafc;
+  color: #334155;
   font-size: 24rpx;
 }
 </style>

@@ -15,8 +15,8 @@
     <view class="info-card">
       <view class="info-header">
         <text class="spot-name">{{ spot.name }}</text>
-        <view class="favorite-btn" @click="toggleFavorite">
-          <text class="fav-icon">{{ spot.isFavorite ? '❤️' : '🤍' }}</text>
+        <view class="favorite-btn" :class="{ active: spot.isFavorite }" @click="toggleFavorite">
+          <uni-icons :type="spot.isFavorite ? 'heart-filled' : 'heart'" size="22" :color="spot.isFavorite ? '#be123c' : '#64748b'" />
         </view>
       </view>
       <view class="info-meta">
@@ -58,7 +58,7 @@
     <!-- 相似景点区域 -->
     <view class="related-card" v-if="similarSpots.length">
       <view class="card-header">
-        <text class="card-title">看了又看</text>
+        <text class="card-title">你可能还想去</text>
         <text class="more-link">{{ similarUpdateTimeText }}</text>
       </view>
       <scroll-view class="related-scroll" scroll-x :show-scrollbar="false">
@@ -74,7 +74,7 @@
             <text class="related-meta">{{ item.regionName || '周边景点' }} · {{ item.categoryName || '推荐' }}</text>
             <view class="related-footer">
               <text class="related-price">¥{{ item.price || 0 }}</text>
-              <text class="related-score">相似度 {{ formatSimilarity(item.similarity) }}</text>
+              <text class="related-score">匹配度 {{ formatSimilarity(item.similarity) }}</text>
             </view>
           </view>
         </view>
@@ -115,11 +115,11 @@
     <!-- 底部操作栏 -->
     <view class="bottom-bar">
       <view class="action-btn" @click="showRatingPopup">
-        <text class="action-icon">✍️</text>
+        <uni-icons type="compose" size="22" color="#64748b" />
         <text class="action-text">评价</text>
       </view>
-      <view class="action-btn" @click="toggleFavorite">
-        <text class="action-icon">{{ spot.isFavorite ? '❤️' : '🤍' }}</text>
+      <view class="action-btn" :class="{ active: spot.isFavorite }" @click="toggleFavorite">
+        <uni-icons :type="spot.isFavorite ? 'heart-filled' : 'heart'" size="22" :color="spot.isFavorite ? '#be123c' : '#64748b'" />
         <text class="action-text">收藏</text>
       </view>
       <button class="buy-btn" @click="goBuy">立即购票</button>
@@ -213,7 +213,7 @@ const distanceText = computed(() => {
 })
 
 const similarUpdateTimeText = computed(() => {
-  return similarUpdateTime.value ? `更新于 ${similarUpdateTime.value}` : '相似景点'
+  return similarUpdateTime.value ? `更新于 ${similarUpdateTime.value}` : '为你精选'
 })
 
 // 工具方法
@@ -434,7 +434,7 @@ onUnload(() => {
 
 <style scoped>
 .ios-page {
-  background: #f4f6fb;
+  background: transparent;
   min-height: 100vh;
   padding-bottom: 160rpx;
 }
@@ -442,7 +442,7 @@ onUnload(() => {
 /* 图片轮播 */
 .image-swiper {
   width: 100%;
-  height: 500rpx;
+  height: 540rpx;
 }
 
 .swiper-image {
@@ -466,11 +466,12 @@ onUnload(() => {
 .info-card {
   margin: -60rpx 32rpx 24rpx;
   padding: 28rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 40rpx;
   position: relative;
   z-index: 1;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow: 0 16rpx 40rpx rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(18rpx);
 }
 
 .info-header {
@@ -487,11 +488,17 @@ onUnload(() => {
 }
 
 .favorite-btn {
-  padding: 10rpx;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 24rpx;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.fav-icon {
-  font-size: 48rpx;
+.favorite-btn.active {
+  background: #fff1f2;
 }
 
 .info-meta {
@@ -539,9 +546,9 @@ onUnload(() => {
 .detail-card {
   margin: 0 32rpx 24rpx;
   padding: 0 28rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
 }
 
 .detail-item {
@@ -601,7 +608,7 @@ onUnload(() => {
 }
 
 .distance-text {
-  color: #2563EB;
+  color: #8a6a2f;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -610,9 +617,9 @@ onUnload(() => {
 .desc-card {
   margin: 0 32rpx 24rpx;
   padding: 28rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
 }
 
 .card-title {
@@ -632,9 +639,9 @@ onUnload(() => {
 .related-card {
   margin: 0 32rpx 24rpx;
   padding: 28rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
 }
 
 .related-scroll {
@@ -645,7 +652,7 @@ onUnload(() => {
   display: inline-block;
   width: 300rpx;
   margin-right: 20rpx;
-  background: #F8FAFC;
+  background: #f8fafc;
   border-radius: 32rpx;
   overflow: hidden;
 }
@@ -699,16 +706,16 @@ onUnload(() => {
 
 .related-score {
   font-size: 20rpx;
-  color: #2563eb;
+  color: #8a6a2f;
 }
 
 /* 评论卡片 */
 .comment-card {
   margin: 0 32rpx 24rpx;
   padding: 28rpx;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 36rpx;
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
 }
 
 .card-header {
@@ -720,7 +727,7 @@ onUnload(() => {
 
 .more-link {
   font-size: 28rpx;
-  color: #2563eb;
+  color: #334155;
 }
 
 .comment-item {
@@ -805,9 +812,9 @@ onUnload(() => {
   display: flex;
   align-items: center;
   padding: 20rpx 32rpx;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
-  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.04);
+  box-shadow: 0 -8rpx 24rpx rgba(15, 23, 42, 0.04);
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 }
 
@@ -818,14 +825,14 @@ onUnload(() => {
   padding: 0 28rpx;
 }
 
-.action-icon {
-  font-size: 40rpx;
-}
-
 .action-text {
   font-size: 22rpx;
   color: #6b7280;
-  margin-top: 4rpx;
+  margin-top: 8rpx;
+}
+
+.action-btn.active .action-text {
+  color: #be123c;
 }
 
 .buy-btn {
