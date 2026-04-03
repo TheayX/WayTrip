@@ -1,8 +1,11 @@
 <!-- 景点详情相似推荐区 -->
 <template>
-  <div v-if="items.length" class="info-section card">
+  <div v-if="items.length" class="info-section premium-card">
     <div class="section-header-row">
-      <h2 class="section-label">看了又看</h2>
+      <div>
+        <p class="section-kicker">Similar Spots</p>
+        <h2 class="section-label">看了又看</h2>
+      </div>
       <span class="section-hint">{{ updateTime ? `更新于 ${updateTime}` : '相似景点' }}</span>
     </div>
     <div class="similar-list">
@@ -44,48 +47,58 @@ defineEmits(['select'])
 
 <style lang="scss" scoped>
 .info-section {
-  margin-top: 16px;
   padding: 24px;
-  border-radius: 12px;
 }
 
 .section-header-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-kicker {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 .section-label {
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 12px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.03em;
 }
 
 .section-hint {
-  color: #909399;
+  color: #64748b;
   font-size: 13px;
 }
 
 .similar-list {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
 .similar-item {
   display: flex;
   gap: 12px;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 14px;
+  border-radius: 18px;
   background: #f8fafc;
+  border: 1px solid #eef2f7;
   cursor: pointer;
 }
 
 .similar-image {
   width: 120px;
-  height: 90px;
-  border-radius: 10px;
+  height: 96px;
+  border-radius: 12px;
   object-fit: cover;
   flex-shrink: 0;
 }
@@ -97,13 +110,15 @@ defineEmits(['select'])
 
 .similar-content h3 {
   margin-bottom: 8px;
-  font-size: 15px;
+  font-size: 16px;
+  color: #0f172a;
 }
 
 .similar-content p {
-  color: #909399;
+  color: #64748b;
   font-size: 13px;
   margin-bottom: 10px;
+  line-height: 1.7;
 }
 
 .similar-bottom {
@@ -114,8 +129,9 @@ defineEmits(['select'])
 }
 
 .similar-score {
-  color: #409eff;
+  color: #2563eb;
   font-size: 12px;
+  font-weight: 700;
 }
 
 @media (max-width: 992px) {

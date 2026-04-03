@@ -1,6 +1,10 @@
 <!-- 景点列表筛选栏 -->
 <template>
-  <section class="filter-bar card">
+  <section class="filter-bar premium-card">
+    <div class="filter-head">
+      <p class="filter-kicker">Filters</p>
+      <h3>筛选条件</h3>
+    </div>
     <div class="filter-row">
       <div class="filter-group">
         <span class="filter-label">地区</span>
@@ -57,7 +61,25 @@ defineEmits(['update:regionId', 'update:categoryId', 'change'])
 
 <style lang="scss" scoped>
 .filter-bar {
-  padding: 18px;
+  padding: 22px;
+}
+
+.filter-head {
+  margin-bottom: 16px;
+}
+
+.filter-kicker {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.filter-head h3 {
+  font-size: 22px;
+  color: #0f172a;
 }
 
 .filter-row {
@@ -69,12 +91,14 @@ defineEmits(['update:regionId', 'update:categoryId', 'change'])
 .filter-group {
   flex: 1 1 260px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
 }
 
 .filter-label {
   white-space: nowrap;
-  color: #606266;
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
 }
 </style>

@@ -2,24 +2,21 @@
 <template>
   <div v-if="spot" class="spot-detail">
     <div class="page-container">
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ path: '/spots' }">景点</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ spot.name }}</el-breadcrumb-item>
-      </el-breadcrumb>
-
       <div class="detail-layout">
         <div class="detail-main">
-          <el-carousel v-if="spotImages.length" height="420px" class="image-carousel">
-            <el-carousel-item v-for="(img, idx) in spotImages" :key="idx">
-              <img :src="img" class="carousel-img" alt="" @click="previewImage(idx)" />
-            </el-carousel-item>
-          </el-carousel>
-          <div v-else class="no-image">
-            <el-empty description="暂无景点图片" />
-          </div>
+          <section class="hero-block premium-card">
+            <el-carousel v-if="spotImages.length" height="460px" class="image-carousel">
+              <el-carousel-item v-for="(img, idx) in spotImages" :key="idx">
+                <img :src="img" class="carousel-img" alt="" @click="previewImage(idx)" />
+              </el-carousel-item>
+            </el-carousel>
+            <div v-else class="no-image">
+              <el-empty description="暂无景点图片" />
+            </div>
+          </section>
 
-          <div class="info-section card">
+          <div class="info-section premium-card">
+            <p class="section-kicker">Spot Intro</p>
             <h2 class="section-label">景点简介</h2>
             <p class="desc-text">{{ spot.description || '暂无简介' }}</p>
           </div>
@@ -31,15 +28,18 @@
             @select="router.push(`/spots/${$event.spotId}?source=similar`)"
           />
 
-          <div class="info-section card">
+          <div class="info-section premium-card">
             <div class="section-header-row">
-              <h2 class="section-label">最新评论</h2>
+              <div>
+                <p class="section-kicker">Reviews</p>
+                <h2 class="section-label">最新评论</h2>
+              </div>
               <el-button v-if="hasMoreComments" text type="primary" @click="loadMoreComments">查看更多</el-button>
             </div>
 
             <div v-if="comments.length" class="comment-list">
               <div v-for="comment in comments" :key="comment.id" class="comment-item">
-                <el-avatar :size="40" :src="getAvatarUrl(comment.avatar)" icon="User" />
+                <el-avatar :size="44" :src="getAvatarUrl(comment.avatar)" icon="User" />
                 <div class="comment-body">
                   <div class="comment-top">
                     <span class="comment-name">{{ comment.nickname }}</span>
@@ -425,19 +425,30 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.spot-detail {
+  padding-top: 4px;
+}
+
 .detail-layout {
   display: flex;
   gap: 24px;
-  margin-top: 8px;
 }
 
 .detail-main {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hero-block {
+  overflow: hidden;
+  padding: 0;
 }
 
 .image-carousel {
-  border-radius: 12px;
+  border-radius: 28px;
   overflow: hidden;
 }
 
@@ -449,42 +460,46 @@ onUnmounted(() => {
 }
 
 .no-image {
-  height: 300px;
-  background: #f5f7fa;
-  border-radius: 12px;
+  height: 320px;
+  background: #f8fafc;
+  border-radius: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .info-section {
-  margin-top: 16px;
   padding: 24px;
-  border-radius: 12px;
+}
+
+.section-kicker {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 .section-label {
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.03em;
 }
 
 .section-header-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-}
-
-.section-hint {
-  color: #909399;
-  font-size: 13px;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .desc-text {
-  font-size: 14px;
-  color: #606266;
-  line-height: 1.8;
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.9;
   white-space: pre-wrap;
 }
 
@@ -497,6 +512,12 @@ onUnmounted(() => {
 .comment-item {
   display: flex;
   gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
 }
 
 .comment-body {
@@ -507,7 +528,8 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  gap: 12px;
 }
 
 .comment-actions {
@@ -521,21 +543,21 @@ onUnmounted(() => {
 }
 
 .comment-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #303133;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .comment-text {
   font-size: 14px;
-  color: #606266;
-  line-height: 1.6;
-  margin-bottom: 4px;
+  color: #475569;
+  line-height: 1.8;
+  margin-bottom: 6px;
 }
 
 .comment-time {
   font-size: 12px;
-  color: #c0c4cc;
+  color: #94a3b8;
 }
 
 .invalid-state {

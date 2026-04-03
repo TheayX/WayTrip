@@ -1,12 +1,12 @@
 <!-- 景点详情侧边信息区 -->
 <template>
   <div class="detail-sidebar">
-    <div class="sidebar-card card">
+    <div class="sidebar-card premium-card">
+      <p class="sidebar-kicker">Spot Overview</p>
       <h1 class="spot-name">{{ spot.name }}</h1>
       <div class="spot-meta">
         <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
         <span class="meta-count">({{ spot.ratingCount || 0 }}条评价)</span>
-        <el-divider direction="vertical" />
         <span>{{ spot.regionName }} / {{ spot.categoryName }}</span>
       </div>
       <div class="spot-price-row">
@@ -19,7 +19,8 @@
       </el-button>
     </div>
 
-    <div class="sidebar-card card">
+    <div class="sidebar-card premium-card">
+      <h3 class="sidebar-title">出行信息</h3>
       <div class="detail-item">
         <span class="detail-label">开放时间</span>
         <span class="detail-value">{{ spot.openTime || '暂无信息' }}</span>
@@ -30,7 +31,7 @@
       </div>
     </div>
 
-    <div class="sidebar-card card">
+    <div class="sidebar-card premium-card">
       <h3 class="sidebar-title">写评价</h3>
       <div class="rating-input">
         <span class="rating-label">评分：</span>
@@ -39,7 +40,7 @@
       <el-input
         :model-value="ratingForm.comment"
         type="textarea"
-        :rows="3"
+        :rows="4"
         placeholder="分享你的旅行体验..."
         maxlength="500"
         show-word-limit
@@ -77,7 +78,7 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 
 <style lang="scss" scoped>
 .detail-sidebar {
-  width: 360px;
+  width: 380px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -85,105 +86,112 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 }
 
 .sidebar-card {
-  padding: 20px;
-  border-radius: 12px;
+  padding: 22px;
+}
+
+.sidebar-kicker {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 .spot-name {
-  font-size: 22px;
+  font-size: 30px;
+  line-height: 1.12;
   font-weight: 700;
-  color: #303133;
-  margin-bottom: 8px;
+  color: #0f172a;
+  letter-spacing: -0.04em;
+  margin-bottom: 10px;
 }
 
 .spot-meta {
   font-size: 13px;
-  color: #909399;
-  margin-bottom: 16px;
+  color: #64748b;
+  margin-bottom: 18px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .meta-count {
-  color: #c0c4cc;
+  color: #94a3b8;
 }
 
 .spot-price-row {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .big-price {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
-  color: #f56c6c;
+  color: #ef4444;
 }
 
 .price-label {
   font-size: 14px;
-  color: #909399;
+  color: #64748b;
+}
+
+.buy-btn,
+.fav-btn,
+.submit-rating-btn {
+  width: 100%;
 }
 
 .buy-btn {
-  width: 100%;
-  height: 44px;
-  font-size: 16px;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-.fav-btn {
-  width: 100%;
-  height: 40px;
-  border-radius: 8px;
+.sidebar-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 14px;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eef2f7;
+}
 
-  &:last-child {
-    border-bottom: none;
-  }
+.detail-item:last-child {
+  border-bottom: none;
 }
 
 .detail-label {
   font-size: 14px;
-  color: #909399;
+  color: #64748b;
   flex-shrink: 0;
 }
 
 .detail-value {
   font-size: 14px;
-  color: #303133;
+  color: #0f172a;
   text-align: right;
-}
-
-.sidebar-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  line-height: 1.7;
 }
 
 .rating-input {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .rating-label {
   font-size: 14px;
-  color: #606266;
+  color: #475569;
 }
 
 .submit-rating-btn {
-  width: 100%;
-  margin-top: 12px;
-  border-radius: 8px;
+  margin-top: 14px;
 }
 
 @media (max-width: 992px) {

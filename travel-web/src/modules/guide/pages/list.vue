@@ -1,11 +1,6 @@
 <!-- 攻略列表页 -->
 <template>
   <div class="page-container guide-list-page">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>旅行攻略</el-breadcrumb-item>
-    </el-breadcrumb>
-
     <GuideListToolbar
       :description="currentStateText"
       :sort-by="sortBy"
@@ -13,16 +8,19 @@
       @reset="resetFilters"
     />
 
-    <section class="category-bar card">
-      <el-check-tag :checked="currentCategory === ''" @change="selectCategory('')">全部</el-check-tag>
-      <el-check-tag
-        v-for="cat in categories"
-        :key="cat"
-        :checked="currentCategory === cat"
-        @change="selectCategory(cat)"
-      >
-        {{ cat }}
-      </el-check-tag>
+    <section class="category-bar premium-card">
+      <p class="category-kicker">Categories</p>
+      <div class="category-tags">
+        <el-check-tag :checked="currentCategory === ''" @change="selectCategory('')">全部</el-check-tag>
+        <el-check-tag
+          v-for="cat in categories"
+          :key="cat"
+          :checked="currentCategory === cat"
+          @change="selectCategory(cat)"
+        >
+          {{ cat }}
+        </el-check-tag>
+      </div>
     </section>
 
     <section v-loading="loading" class="guide-grid">
@@ -166,10 +164,23 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  padding-top: 4px;
 }
 
 .category-bar {
-  padding: 18px;
+  padding: 18px 20px;
+}
+
+.category-kicker {
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.category-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -177,7 +188,7 @@ onMounted(async () => {
 
 .guide-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
   min-height: 200px;
 }
@@ -190,7 +201,7 @@ onMounted(async () => {
 
 @media (max-width: 992px) {
   .guide-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
