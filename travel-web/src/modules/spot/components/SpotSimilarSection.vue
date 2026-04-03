@@ -3,23 +3,23 @@
   <div v-if="items.length" class="info-section premium-card">
     <div class="section-header-row">
       <div>
-        <p class="section-kicker">Similar Spots</p>
-        <h2 class="section-label">看了又看</h2>
+        <p class="section-kicker">相关推荐</p>
+        <h2 class="section-label">你可能还想去</h2>
       </div>
-      <span class="section-hint">{{ updateTime ? `更新于 ${updateTime}` : '相似景点' }}</span>
+      <span class="section-hint">{{ updateTime ? `更新于 ${updateTime}` : '为你精选' }}</span>
     </div>
     <div class="similar-list">
       <article v-for="item in items" :key="item.spotId" class="similar-item" @click="$emit('select', item)">
         <img :src="getImageUrl(item.coverImage)" class="similar-image" alt="" />
-        <div class="similar-content">
-          <h3>{{ item.spotName }}</h3>
-          <p>{{ item.regionName || '周边景点' }} · {{ item.categoryName || '推荐' }}</p>
-          <div class="similar-bottom">
-            <span class="price">¥{{ item.price || 0 }}</span>
-            <span class="similar-score">相似度 {{ formatSimilarity(item.similarity) }}</span>
+          <div class="similar-content">
+            <h3>{{ item.spotName }}</h3>
+            <p>{{ item.regionName || '周边景点' }} · {{ item.categoryName || '推荐' }}</p>
+            <div class="similar-bottom">
+              <span class="price">¥{{ item.price || 0 }}</span>
+              <span class="similar-score">匹配度 {{ formatSimilarity(item.similarity) }}</span>
+            </div>
           </div>
-        </div>
-      </article>
+        </article>
     </div>
   </div>
 </template>
@@ -129,7 +129,7 @@ defineEmits(['select'])
 }
 
 .similar-score {
-  color: #2563eb;
+  color: #8a6a2f;
   font-size: 12px;
   font-weight: 700;
 }

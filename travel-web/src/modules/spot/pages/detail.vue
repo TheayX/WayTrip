@@ -16,7 +16,7 @@
           </section>
 
           <div class="info-section premium-card">
-            <p class="section-kicker">Spot Intro</p>
+            <p class="section-kicker">目的地介绍</p>
             <h2 class="section-label">景点简介</h2>
             <p class="desc-text">{{ spot.description || '暂无简介' }}</p>
           </div>
@@ -31,10 +31,10 @@
           <div class="info-section premium-card">
             <div class="section-header-row">
               <div>
-                <p class="section-kicker">Reviews</p>
+                <p class="section-kicker">旅行评价</p>
                 <h2 class="section-label">最新评论</h2>
               </div>
-              <el-button v-if="hasMoreComments" text type="primary" @click="loadMoreComments">查看更多</el-button>
+              <button v-if="hasMoreComments" type="button" class="section-link" @click="loadMoreComments">查看更多</button>
             </div>
 
             <div v-if="comments.length" class="comment-list">
@@ -501,6 +501,16 @@ onUnmounted(() => {
   color: #64748b;
   line-height: 1.9;
   white-space: pre-wrap;
+}
+
+.section-link {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .comment-list {
