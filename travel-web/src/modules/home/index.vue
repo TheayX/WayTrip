@@ -28,6 +28,12 @@
     <div class="page-container home-content">
       <HomeQuickActions :items="quickActions" />
 
+      <ExploreKeywordGroup
+        title="热门搜索"
+        :items="hotKeywords"
+        @select="handleKeywordSelect"
+      />
+
       <HomeNearbySection
         :headline="nearbyHeadline"
         :summary="nearbySummary"
@@ -127,7 +133,9 @@ import HomeNearbySection from '@/modules/home/components/HomeNearbySection.vue'
 import HomeQuickActions from '@/modules/home/components/HomeQuickActions.vue'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { APP_NAME } from '@/shared/constants/app.js'
+import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
 import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import ExploreKeywordGroup from '@/shared/ui/ExploreKeywordGroup.vue'
 import { getBanners, getHotSpots, getNearbySpots } from '@/modules/home/api.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
 import {
@@ -141,6 +149,7 @@ import { getImageUrl } from '@/shared/api/client.js'
 // 基础依赖与用户状态
 const router = useRouter()
 const userStore = useUserStore()
+const hotKeywords = SEARCH_HOT_KEYWORDS
 
 // 页面数据状态
 const banners = ref([])
@@ -266,6 +275,10 @@ const toggleCategory = (id) => {
 
 const showPreferencePopup = async () => {
   await openPreferenceDialog()
+}
+
+const handleKeywordSelect = (value) => {
+  router.push({ path: APP_ROUTE_PATHS.search, query: { keyword: value } })
 }
 
 const handleSkipColdStart = () => {
