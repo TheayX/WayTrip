@@ -1,10 +1,7 @@
 <!-- 订单列表页 -->
 <template>
   <div class="page-container">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>我的订单</el-breadcrumb-item>
-    </el-breadcrumb>
+    <AccountPageHeader title="我的订单" subtitle="查看订单状态、完成支付和发起评价。" />
 
     <el-tabs v-model="currentTab" @tab-change="handleTabChange" class="order-tabs">
       <el-tab-pane v-for="tab in tabs" :key="tab.value" :label="tab.label" :name="tab.value" />
@@ -58,6 +55,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { getOrderList, cancelOrder, payOrder } from '@/modules/order/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ElMessage, ElMessageBox } from 'element-plus'

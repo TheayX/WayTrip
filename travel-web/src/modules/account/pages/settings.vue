@@ -1,10 +1,7 @@
 <!-- 设置页 -->
 <template>
   <div class="page-container settings-page">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>设置</el-breadcrumb-item>
-    </el-breadcrumb>
+    <AccountPageHeader title="设置" subtitle="查看帮助信息并清理本地缓存。" />
 
     <section class="settings-card card">
       <div class="settings-item" @click="contactService">
@@ -24,6 +21,7 @@
 </template>
 
 <script setup>
+import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { clearFootprints } from '@/shared/lib/footprint.js'
 import { clearLocationCache } from '@/shared/lib/location.js'

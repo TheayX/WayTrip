@@ -1,12 +1,7 @@
 <!-- 我的收藏页 -->
 <template>
   <div class="page-container">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>我的收藏</el-breadcrumb-item>
-    </el-breadcrumb>
-
-    <h2 class="page-title">我的收藏</h2>
+    <AccountPageHeader title="我的收藏" subtitle="保留想去的景点，方便后续统一比较和下单。" />
 
     <div v-loading="loading" class="favorite-grid">
       <div
@@ -54,6 +49,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { getFavoriteList, removeFavorite } from '@/modules/favorite/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ElMessage } from 'element-plus'
@@ -97,12 +93,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.page-title {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-
 .favorite-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

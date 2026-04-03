@@ -1,18 +1,7 @@
 <!-- 我的互动页 -->
 <template>
   <div class="page-container activity-page">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: '/account/profile' }">个人中心</el-breadcrumb-item>
-      <el-breadcrumb-item>我的互动</el-breadcrumb-item>
-    </el-breadcrumb>
-
-    <section class="hero card">
-      <div>
-        <h2 class="page-title">我的互动</h2>
-        <p class="page-subtitle">统一管理浏览、收藏和评价记录。</p>
-      </div>
-    </section>
+    <AccountPageHeader title="我的互动" subtitle="统一管理浏览、收藏和评价记录。" />
 
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <el-tab-pane label="浏览" name="browse" />
@@ -98,6 +87,8 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
+import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
 import { deleteReview, getMyReviews, submitReview } from '@/modules/review/api.js'
 import { getFavoriteList, removeFavorite } from '@/modules/favorite/api.js'
 import { getViewHistory } from '@/modules/spot/api.js'
@@ -171,7 +162,7 @@ const loadActiveTab = async () => {
 // 交互处理方法
 const handleTabChange = async () => {
   router.replace({
-    path: '/account/activity',
+    path: ACCOUNT_ROUTE_PATHS.activity,
     query: activeTab.value === 'browse' ? {} : { tab: activeTab.value }
   })
   await loadActiveTab()
@@ -232,20 +223,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.hero {
-  padding: 24px;
-}
-
-.page-title {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.page-subtitle {
-  color: #909399;
 }
 
 .card-list {
