@@ -163,13 +163,16 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { useUserStore } from '@/app/store/user.js'
+import { useRoute, useRouter } from 'vue-router'
 import { createAdmin, deleteAdmin, getAdminList, resetAdminPassword, updateAdmin } from '@/modules/system/api/admin.js'
 
 const userStore = useUserStore()
+const route = useRoute()
+const router = useRouter()
 
 // 列表状态
 const loading = ref(false)
@@ -177,6 +180,7 @@ const total = ref(0) // 总数
 const tableData = ref([]) // 表格数据
 const uiStatus = ref('') // UI 绑定状态（用于下拉框）
 const errorMessage = ref('')
+const skipNextRouteLoad = ref(false)
 
 // 查询参数
 const queryParams = reactive({
@@ -259,6 +263,7 @@ const fetchData = async () => {
 const handleSearch = () => {
   queryParams.page = 1
   queryParams.status = uiStatus.value === '' || uiStatus.value == null ? null : Number(uiStatus.value)
+  syncRouteQuery()
   fetchData()
 }
 
@@ -268,6 +273,35 @@ const handleReset = () => {
   queryParams.status = null
   uiStatus.value = ''
   handleSearch()
+}
+
+const syncRouteQuery = () => {
+  const nextQuery = {}
+  if (queryParams.keyword) {
+    nextQuery.keyword = queryParams.keyword
+  }
+  if (uiStatus.value) {
+    nextQuery.status = uiStatus.value
+  }
+  const currentQuery = {}
+  if (typeof route.query.keyword === 'string' && route.query.keyword) {
+    currentQuery.keyword = route.query.keyword
+  }
+  if (typeof route.query.status === 'string' && route.query.status) {
+    currentQuery.status = route.query.status
+  }
+  const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
+  if (changed) {
+    skipNextRouteLoad.value = true
+    router.replace({ path: route.path, query: nextQuery })
+  }
+}
+
+// 顶栏快捷搜索会复用管理员列表页的关键字筛选，这里保持 query 与表单单向一致。
+const applyRouteQuery = () => {
+  queryParams.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
+  uiStatus.value = typeof route.query.status === 'string' ? route.query.status : ''
+  queryParams.status = uiStatus.value === '' || uiStatus.value == null ? null : Number(uiStatus.value)
 }
 
 // 重置表单状态
@@ -375,7 +409,18 @@ const formatDate = (dateStr) => {
 }
 
 // 页面初始化
+watch(() => route.query, () => {
+  if (skipNextRouteLoad.value) {
+    skipNextRouteLoad.value = false
+    return
+  }
+  applyRouteQuery()
+  queryParams.page = 1
+  fetchData()
+})
+
 onMounted(() => {
+  applyRouteQuery()
   fetchData()
 })
 </script>

@@ -134,8 +134,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder, cancelOrder } from '@/modules/order/api.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
@@ -144,6 +144,7 @@ import OrderSummaryCards from '@/modules/order/components/OrderSummaryCards.vue'
 import OrderDetailDrawer from '@/modules/order/components/OrderDetailDrawer.vue'
 
 const router = useRouter()
+const route = useRoute()
 
 const tabs = [
   { key: 'all', label: '全部', statuses: [] },
@@ -172,6 +173,7 @@ const summaryStats = reactive({
   completed: 0,
   closed: 0
 })
+const skipNextRouteLoad = ref(false)
 
 const summaryCards = computed(() => ([
   { key: 'all', label: '全部订单', value: summaryStats.all, hint: '查看全部订单总量' },
@@ -313,8 +315,44 @@ const refreshDashboardData = async () => {
   await Promise.all([fetchOrderList(), fetchSummaryStats()])
 }
 
+const syncRouteQuery = () => {
+  const nextQuery = {}
+  if (searchForm.orderNo) {
+    nextQuery.orderNo = searchForm.orderNo
+  }
+  if (searchForm.spotName) {
+    nextQuery.spotName = searchForm.spotName
+  }
+  if (searchForm.status) {
+    nextQuery.status = searchForm.status
+  }
+  const currentQuery = {}
+  if (typeof route.query.orderNo === 'string' && route.query.orderNo) {
+    currentQuery.orderNo = route.query.orderNo
+  }
+  if (typeof route.query.spotName === 'string' && route.query.spotName) {
+    currentQuery.spotName = route.query.spotName
+  }
+  if (typeof route.query.status === 'string' && route.query.status) {
+    currentQuery.status = route.query.status
+  }
+  const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
+  if (changed) {
+    skipNextRouteLoad.value = true
+    router.replace({ path: route.path, query: nextQuery })
+  }
+}
+
+// 全局搜索会通过 query 落到订单页，这里统一回填筛选状态，避免跳转后还要手工再搜一次。
+const applyRouteQuery = () => {
+  searchForm.orderNo = typeof route.query.orderNo === 'string' ? route.query.orderNo : ''
+  searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
+  searchForm.status = typeof route.query.status === 'string' ? route.query.status : ''
+}
+
 const handleSearch = () => {
   pagination.page = 1
+  syncRouteQuery()
   refreshDashboardData()
 }
 
@@ -335,6 +373,7 @@ const handleTabChange = (tabKey) => {
   currentTab.value = tabKey
   searchForm.status = ''
   pagination.page = 1
+  syncRouteQuery()
   fetchOrderList()
 }
 
@@ -424,7 +463,18 @@ const handleReopen = (row) => runOrderAction({
   successText: '订单已撤销完成'
 })
 
+watch(() => route.query, () => {
+  if (skipNextRouteLoad.value) {
+    skipNextRouteLoad.value = false
+    return
+  }
+  applyRouteQuery()
+  pagination.page = 1
+  refreshDashboardData()
+})
+
 onMounted(() => {
+  applyRouteQuery()
   refreshDashboardData()
 })
 </script>
