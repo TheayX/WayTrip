@@ -84,7 +84,9 @@
           <template #default="{ row }">
             <div class="user-cell">
               <el-avatar :src="row.avatar" :size="36">{{ row.nickname?.[0] }}</el-avatar>
-              <span>{{ row.nickname }}</span>
+              <el-button link type="primary" class="nickname-link" @click="handleOpenUser(row)">
+                {{ row.nickname }}
+              </el-button>
             </div>
           </template>
         </el-table-column>
@@ -200,6 +202,10 @@ const handleReset = () => {
   handleSearch()
 }
 
+const handleOpenUser = (row) => {
+  router.push({ path: '/user', query: { nickname: row.nickname || '' } })
+}
+
 // 跳转景点页，并复用景点管理页的自动定位与详情打开能力。
 const handleOpenSpot = (row) => {
   router.push({
@@ -281,6 +287,10 @@ onMounted(() => {
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
+.nickname-link {
+  font-weight: 600;
+}
+
 .score-text {
   color: #f59e0b;
   font-weight: 700;
@@ -294,6 +304,7 @@ onMounted(() => {
 
 :deep(.review-table .el-button.is-link) {
   padding: 0;
+  margin: 0;
   min-width: 0;
   height: auto;
 }

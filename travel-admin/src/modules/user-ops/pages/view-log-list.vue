@@ -403,6 +403,7 @@ watch(
 
 :deep(.ops-table .el-button.is-link) {
   padding: 0;
+  margin: 0;
   min-width: 0;
   height: auto;
 }
