@@ -40,6 +40,107 @@
         </div>
       </el-collapse-item>
 
+      <el-collapse-item title="核心算法公式" name="formula">
+        <div class="help-content">
+          <div class="formula-intro">
+            本系统基于 <strong>ItemCF（基于物品的协同过滤）</strong> 计算景点相似度，再结合用户历史交互权重生成推荐分数。
+          </div>
+
+          <div class="formula-grid">
+            <section class="formula-card">
+              <div class="formula-card-head">
+                <div class="formula-kicker">公式 1</div>
+                <div class="formula-title">IUF 加权余弦相似度</div>
+              </div>
+              <div class="formula-surface">
+                <math display="block" xmlns="http://www.w3.org/1998/Math/MathML">
+                  <mrow>
+                    <msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub>
+                    <mo>=</mo>
+                    <mfrac>
+                      <mrow>
+                        <munderover>
+                          <mo>&#x2211;</mo>
+                          <mrow>
+                            <mi>u</mi>
+                            <mo>&#x2208;</mo>
+                            <mi>N</mi><mo>(</mo><mi>i</mi><mo>)</mo>
+                            <mo>&#x2229;</mo>
+                            <mi>N</mi><mo>(</mo><mi>j</mi><mo>)</mo>
+                          </mrow>
+                          <mrow />
+                        </munderover>
+                        <mfrac>
+                          <mn>1</mn>
+                          <mrow>
+                            <mi>log</mi>
+                            <mo>(</mo>
+                            <mn>1</mn>
+                            <mo>+</mo>
+                            <mo>|</mo><mi>N</mi><mo>(</mo><mi>u</mi><mo>)</mo><mo>|</mo>
+                            <mo>)</mo>
+                          </mrow>
+                        </mfrac>
+                      </mrow>
+                      <msqrt>
+                        <mrow>
+                          <mo>|</mo><mi>N</mi><mo>(</mo><mi>i</mi><mo>)</mo><mo>|</mo>
+                          <mo>&#x22C5;</mo>
+                          <mo>|</mo><mi>N</mi><mo>(</mo><mi>j</mi><mo>)</mo><mo>|</mo>
+                        </mrow>
+                      </msqrt>
+                    </mfrac>
+                  </mrow>
+                </math>
+              </div>
+              <div class="formula-symbols">
+                <p><code>w<sub>ij</sub></code>：景点 <code>i</code> 与景点 <code>j</code> 的相似度</p>
+                <p><code>N(i)</code>：与景点 <code>i</code> 发生过交互的用户集合</p>
+                <p><code>N(j)</code>：与景点 <code>j</code> 发生过交互的用户集合</p>
+                <p><code>N(u)</code>：用户 <code>u</code> 历史交互过的景点集合，<code>|N(u)|</code> 为交互景点总数</p>
+              </div>
+            </section>
+
+            <section class="formula-card">
+              <div class="formula-card-head">
+                <div class="formula-kicker">公式 2</div>
+                <div class="formula-title">预测评分</div>
+              </div>
+              <div class="formula-surface">
+                <math display="block" xmlns="http://www.w3.org/1998/Math/MathML">
+                  <mrow>
+                    <msub><mi>P</mi><mrow><mi>u</mi><mi>j</mi></mrow></msub>
+                    <mo>=</mo>
+                    <mrow>
+                      <munderover>
+                        <mo>&#x2211;</mo>
+                        <mrow>
+                          <mi>i</mi>
+                          <mo>&#x2208;</mo>
+                          <mi>N</mi><mo>(</mo><mi>u</mi><mo>)</mo>
+                          <mo>&#x2229;</mo>
+                          <mi>S</mi><mo>(</mo><mi>j</mi><mo>,</mo><mi>K</mi><mo>)</mo>
+                        </mrow>
+                        <mrow />
+                      </munderover>
+                      <msub><mi>w</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub>
+                      <mo>&#x22C5;</mo>
+                      <msub><mi>r</mi><mrow><mi>u</mi><mi>i</mi></mrow></msub>
+                    </mrow>
+                  </mrow>
+                </math>
+              </div>
+              <div class="formula-symbols">
+                <p><code>P<sub>uj</sub></code>：用户 <code>u</code> 对景点 <code>j</code> 的预测兴趣分数</p>
+                <p><code>w<sub>ji</sub></code>：景点 <code>j</code> 与景点 <code>i</code> 的相似度</p>
+                <p><code>r<sub>ui</sub></code>：用户 <code>u</code> 对景点 <code>i</code> 的历史交互权重</p>
+                <p><code>S(j, K)</code>：与景点 <code>j</code> 最相似的前 <code>K</code> 个景点集合</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </el-collapse-item>
+
       <el-collapse-item title="行为权重说明" name="weights">
         <div class="help-content">
           <el-table :data="weightExplanations" stripe style="width: 100%">
@@ -190,6 +291,75 @@ const emit = defineEmits(['update:active-collapse'])
   }
 }
 
+.formula-intro {
+  color: #475569;
+  line-height: 1.8;
+}
+
+.formula-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.formula-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.92) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+.formula-card-head {
+  display: grid;
+  gap: 6px;
+}
+
+.formula-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.formula-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.formula-surface {
+  overflow-x: auto;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(244, 248, 255, 0.96) 0%, rgba(255, 255, 255, 0.96) 100%);
+  border: 1px solid rgba(214, 226, 241, 0.96);
+
+  math {
+    min-width: 520px;
+    color: #0f172a;
+    font-size: 1.04rem;
+  }
+}
+
+.formula-symbols {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+
+  p {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(232, 238, 247, 0.96);
+    line-height: 1.75;
+  }
+}
+
 .strategy-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -246,8 +416,17 @@ const emit = defineEmits(['update:active-collapse'])
 }
 
 @media (max-width: 768px) {
+  .formula-grid,
   .strategy-grid {
     grid-template-columns: 1fr;
+  }
+
+  .formula-surface {
+    padding: 14px 16px;
+
+    math {
+      min-width: 480px;
+    }
   }
 }
 </style>
