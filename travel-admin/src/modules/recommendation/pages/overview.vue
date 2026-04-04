@@ -33,24 +33,32 @@
     <!-- 状态卡片 -->
     <div v-loading="loading" class="hero-grid">
       <el-card shadow="hover" class="hero-card hero-card-engine">
-        <div class="hero-label">引擎状态</div>
-        <div class="hero-value">{{ status.computing ? '计算中' : '就绪' }}</div>
-        <div class="hero-desc">当前推荐引擎的计算状态与可用性</div>
+        <div class="hero-card-content">
+          <div class="hero-label">引擎状态</div>
+          <div class="hero-value">{{ status.computing ? '计算中' : '就绪' }}</div>
+          <div class="hero-desc">当前推荐引擎的计算状态与可用性</div>
+        </div>
       </el-card>
       <el-card shadow="hover" class="hero-card hero-card-time">
-        <div class="hero-label">上次更新</div>
-        <div class="hero-value hero-value-sm">{{ status.lastUpdateTime || '暂无记录' }}</div>
-        <div class="hero-desc">最近一次矩阵更新或配置生效时间</div>
+        <div class="hero-card-content">
+          <div class="hero-label">上次更新</div>
+          <div class="hero-value hero-value-sm">{{ status.lastUpdateTime || '暂无记录' }}</div>
+          <div class="hero-desc">最近一次矩阵更新或配置生效时间</div>
+        </div>
       </el-card>
       <el-card shadow="hover" class="hero-card hero-card-users">
-        <div class="hero-label">覆盖用户</div>
-        <div class="hero-value">{{ status.totalUsers ?? '-' }}</div>
-        <div class="hero-desc">进入推荐链路的用户规模</div>
+        <div class="hero-card-content">
+          <div class="hero-label">覆盖用户</div>
+          <div class="hero-value">{{ status.totalUsers ?? '-' }}</div>
+          <div class="hero-desc">进入推荐链路的用户规模</div>
+        </div>
       </el-card>
       <el-card shadow="hover" class="hero-card hero-card-spots">
-        <div class="hero-label">覆盖景点</div>
-        <div class="hero-value">{{ status.totalSpots ?? '-' }}</div>
-        <div class="hero-desc">当前参与推荐计算的景点数量</div>
+        <div class="hero-card-content">
+          <div class="hero-label">覆盖景点</div>
+          <div class="hero-value">{{ status.totalSpots ?? '-' }}</div>
+          <div class="hero-desc">当前参与推荐计算的景点数量</div>
+        </div>
       </el-card>
     </div>
 
@@ -378,62 +386,83 @@ onMounted(async () => {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
-    margin-bottom: 24px;
   }
 
   .hero-card {
     border: none;
-    color: #fff;
-    overflow: hidden;
-    position: relative;
 
     :deep(.el-card__body) {
-      padding: 22px !important;
+      padding: 0 !important;
     }
   }
 
-  .hero-card-engine {
-    background: linear-gradient(135deg, #0f9d58 0%, #36cfc9 100%);
+  .hero-card-content {
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
+    color: #fff;
+    border-radius: 20px;
+    height: 100%;
+    min-height: 152px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+    }
   }
 
-  .hero-card-time {
-    background: linear-gradient(135deg, #1677ff 0%, #69b1ff 100%);
+  .hero-card-engine .hero-card-content {
+    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
   }
 
-  .hero-card-users {
-    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  .hero-card-time .hero-card-content {
+    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   }
 
-  .hero-card-spots {
-    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+  .hero-card-users .hero-card-content {
+    background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+  }
+
+  .hero-card-spots .hero-card-content {
+    background: linear-gradient(135deg, #9f1239 0%, #e11d48 100%);
   }
 
   .hero-label {
-    font-size: 13px;
+    font-size: 12px;
     opacity: 0.88;
   }
 
   .hero-value {
-    margin-top: 10px;
-    font-size: 28px;
+    margin-top: 8px;
+    font-size: 24px;
     font-weight: 700;
     line-height: 1.2;
   }
 
   .hero-value-sm {
     font-size: 16px;
-    line-height: 1.5;
+    line-height: 1.4;
+    word-break: break-word;
   }
 
   .hero-desc {
-    margin-top: 10px;
+    margin-top: 8px;
     font-size: 12px;
-    line-height: 1.7;
-    opacity: 0.92;
+    line-height: 1.65;
+    opacity: 0.9;
   }
 
   .content-row {
-    margin-bottom: 24px;
   }
 
   .entry-grid {
@@ -499,11 +528,9 @@ onMounted(async () => {
   }
 
   .journey-card {
-    margin-top: 24px;
   }
 
   .summary-card {
-    margin-top: 24px;
   }
 
   .summary-grid {
@@ -579,7 +606,6 @@ onMounted(async () => {
   }
 
   .panel-card + .panel-card {
-    margin-top: 24px;
   }
 
   .tips-list {

@@ -198,7 +198,6 @@ html, body {
   background: var(--surface-soft);
   padding: 20px 24px 4px;
   border-radius: 18px;
-  margin-bottom: 20px;
   border: 1px solid rgba(219, 228, 240, 0.9);
   transition: all 0.3s ease;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
@@ -221,7 +220,6 @@ html, body {
 
 /* ─── 7. 分页器 ─── */
 .pagination-wrapper, .pagination {
-  margin-top: 24px;
   display: flex;
   justify-content: flex-end;
   padding-top: 20px;

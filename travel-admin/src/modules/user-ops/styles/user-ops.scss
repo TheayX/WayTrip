@@ -9,43 +9,61 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
-    margin-bottom: 24px;
   }
 
   .insight-stat-card {
-    border-radius: 16px;
-    border: 1px solid #f1f5f9;
-    background: #ffffff;
-    transition: box-shadow 0.3s ease;
+    border-radius: 20px;
+    border: 1px solid rgba(219, 228, 240, 0.9);
+    background:
+      radial-gradient(circle at top right, rgba(96, 165, 250, 0.12) 0%, rgba(96, 165, 250, 0) 42%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.9) 100%);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    position: relative;
+    overflow: hidden;
 
     &:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      transform: translateY(-2px);
+      border-color: rgba(191, 219, 254, 0.95);
+      box-shadow: 0 24px 52px rgba(15, 23, 42, 0.08);
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0) 100%);
     }
 
     :deep(.el-card__body) {
-      padding: 20px !important;
+      padding: 18px 20px 20px !important;
     }
   }
 
   .insight-stat-label {
     font-size: 13px;
-    color: #94a3b8;
-    font-weight: 500;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.01em;
   }
 
   .insight-stat-value {
-    margin-top: 10px;
-    font-size: 26px;
+    margin-top: 12px;
+    font-size: 28px;
     font-weight: 700;
     line-height: 1.2;
     color: #0f172a;
   }
 
   .insight-stat-desc {
-    margin-top: 10px;
+    margin-top: 12px;
     font-size: 12px;
-    line-height: 1.6;
-    color: #94a3b8;
+    line-height: 1.65;
+    color: #7c8aa0;
   }
 
   @media (max-width: 900px) {

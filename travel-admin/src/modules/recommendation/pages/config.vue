@@ -350,7 +350,6 @@ onMounted(async () => {
 
   @media (max-width: 768px) {
     .workspace-row {
-      margin-bottom: 16px;
     }
   }
 }

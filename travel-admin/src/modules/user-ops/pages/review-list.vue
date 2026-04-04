@@ -3,16 +3,34 @@
   <div class="review-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">User Operations</p>
+        <p class="page-kicker">用户评价运营</p>
         <h1 class="page-title">评价管理</h1>
-        <p class="page-subtitle">查看用户评价内容，快速定位景点并处理违规评价。</p>
+        <p class="page-subtitle">查看用户评价内容、快速定位景点，并处理违规评价或异常评分内容。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchReviewList">刷新数据</el-button>
       </div>
     </section>
 
-    <el-card shadow="hover">
+    <section class="insight-stat-row">
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">当前结果</div>
+        <div class="insight-stat-value">{{ pagination.total }}</div>
+        <div class="insight-stat-desc">符合当前筛选条件的评价数量</div>
+      </el-card>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">本页平均评分</div>
+        <div class="insight-stat-value">{{ currentPageAverageScore }}</div>
+        <div class="insight-stat-desc">用于快速判断当前页评价整体质量</div>
+      </el-card>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">低分评价</div>
+        <div class="insight-stat-value">{{ lowScoreCount }}</div>
+        <div class="insight-stat-desc">本页评分小于等于 2 分的评价数量</div>
+      </el-card>
+    </section>
+
+    <el-card shadow="hover" class="management-card">
       <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
@@ -22,6 +40,10 @@
 
       <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+        <div class="filter-caption">
+          <span class="filter-title">筛选评价</span>
+          <span class="filter-subtitle">按用户昵称和景点名称快速检索评价，优先处理低分或异常内容。</span>
+        </div>
         <el-form-item label="用户昵称">
           <el-input
             v-model="searchForm.nickname"
@@ -114,7 +136,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteReview, getReviewList } from '@/modules/user-ops/api/review.js'
@@ -139,6 +161,12 @@ const pagination = reactive({
   pageSize: 10,
   total: 0
 })
+const currentPageAverageScore = computed(() => {
+  if (!reviewList.value.length) return '0.0'
+  const totalScore = reviewList.value.reduce((sum, item) => sum + Number(item.score || 0), 0)
+  return (totalScore / reviewList.value.length).toFixed(1)
+})
+const lowScoreCount = computed(() => reviewList.value.filter((item) => Number(item.score || 0) <= 2).length)
 
 // 获取评价列表
 const fetchReviewList = async () => {
@@ -206,10 +234,36 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+@use '@/modules/user-ops/styles/user-ops.scss' as userOps;
+
 .review-page {
+  @include userOps.page-shell;
   display: flex;
   flex-direction: column;
   gap: 20px;
+
+  .management-card {
+    border-radius: 22px;
+  }
+
+  .filter-caption {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .filter-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .filter-subtitle {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #64748b;
+  }
 }
 
 .user-cell,
@@ -234,7 +288,7 @@ onMounted(() => {
 }
 
 .review-table {
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
 }
 
