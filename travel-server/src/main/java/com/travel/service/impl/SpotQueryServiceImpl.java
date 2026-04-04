@@ -98,13 +98,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     @Override
     public PageResult<SpotListResponse> searchSpots(String keyword, Integer page, Integer pageSize) {
         Page<Spot> pageObj = new Page<>(page, pageSize);
-        LambdaQueryWrapper<Spot> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Spot::getIsPublished, 1);
-        wrapper.eq(Spot::getIsDeleted, 0);
-        wrapper.and(query -> query.like(Spot::getName, keyword).or().like(Spot::getDescription, keyword));
-        wrapper.orderByDesc(Spot::getHeatScore);
-
-        Page<Spot> result = spotMapper.selectPage(pageObj, wrapper);
+        Page<Spot> result = (Page<Spot>) spotMapper.selectPublishedSearchPage(pageObj, keyword);
         List<SpotListResponse> list = result.getRecords().stream()
             .map(spotResponseAssembler::toSpotListResponse)
             .collect(Collectors.toList());

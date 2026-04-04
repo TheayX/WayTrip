@@ -20,7 +20,13 @@
           @clear="clearKeyword"
         />
       </view>
-      <text class="cancel-btn" @click="goBack">取消</text>
+      <button
+        class="search-btn"
+        :disabled="!keyword.trim()"
+        @click="doSearch"
+      >
+        搜索
+      </button>
     </view>
 
     <!-- 搜索结果 -->
@@ -103,11 +109,6 @@ const clearKeyword = () => {
   searched.value = false
 }
 
-// 页面跳转方法
-const goBack = () => {
-  uni.navigateBack()
-}
-
 const goDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
@@ -183,10 +184,24 @@ const goDetail = (id) => {
   color: #18181b;
 }
 
-.cancel-btn {
+.search-btn {
   margin-left: 24rpx;
-  color: #a16207;
-  font-size: 30rpx;
+  min-width: 132rpx;
+  height: 80rpx;
+  border: none;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #ca8a04 0%, #f59e0b 100%);
+  color: #fffdf5;
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 80rpx;
+  box-shadow: 0 14rpx 28rpx rgba(202, 138, 4, 0.22);
+}
+
+.search-btn[disabled] {
+  background: #d4d4d8;
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: none;
 }
 
 /* 搜索结果 */

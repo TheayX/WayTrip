@@ -28,6 +28,11 @@ public interface SpotMapper extends BaseMapper<Spot> {
                                @Param("sortBy") String sortBy);
 
     /**
+     * 面向用户端搜索已发布景点，并补充地区名匹配能力。
+     */
+    IPage<Spot> selectPublishedSearchPage(Page<Spot> page, @Param("keyword") String keyword);
+
+    /**
      * 根据经纬度查询附近景点列表。
      */
     List<NearbySpotResponse.SpotItem> selectNearbySpots(@Param("latitude") BigDecimal latitude,

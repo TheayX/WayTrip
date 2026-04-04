@@ -68,6 +68,28 @@
         </choose>
     </select>
 
+    <!-- 用户端搜索景点时同时匹配景点名、简介和地区名 -->
+    <select id="selectPublishedSearchPage" resultMap="SpotResultMap">
+        SELECT s.*,
+               c.name AS category_name,
+               r.name AS region_name
+        FROM spot s
+        LEFT JOIN spot_category c ON s.category_id = c.id AND c.is_deleted = 0
+        LEFT JOIN spot_region r ON s.region_id = r.id AND r.is_deleted = 0
+        <where>
+            s.is_deleted = 0
+            AND s.is_published = 1
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    s.name LIKE CONCAT('%', #{keyword}, '%')
+                    OR s.description LIKE CONCAT('%', #{keyword}, '%')
+                    OR r.name LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY s.heat_score DESC, s.id DESC
+    </select>
+
     <!-- 附近景点查询（按距离升序返回） -->
     <select id="selectNearbySpots" resultType="com.travel.dto.home.response.NearbySpotResponse$SpotItem">
         SELECT
