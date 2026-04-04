@@ -1,0 +1,64 @@
+/* ═══════════════════════════════════════════════════════
+   WayTrip Admin — 语义 Token
+   说明：业务页面和组件层只允许消费语义变量，不直接依赖基础色板。
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  --el-color-primary: var(--wt-brand-primary-500);
+  --el-color-primary-light-3: #5b8def;
+  --el-color-primary-light-5: #8bb1f5;
+  --el-color-primary-light-7: #bad3fb;
+  --el-color-primary-light-8: var(--wt-brand-primary-100);
+  --el-color-primary-light-9: var(--wt-brand-primary-50);
+  --el-color-primary-dark-2: var(--wt-brand-primary-600);
+
+  --el-color-success: var(--wt-success-500);
+  --el-color-warning: var(--wt-warning-500);
+  --el-color-danger: var(--wt-danger-500);
+  --el-color-info: var(--wt-info-500);
+
+  --el-card-border-radius: var(--wt-radius-card);
+
+  --wt-surface-page: #f8fafc;
+  --wt-surface-panel: rgba(255, 255, 255, 0.82);
+  --wt-surface-elevated: rgba(255, 255, 255, 0.94);
+  --wt-surface-muted: rgba(248, 250, 252, 0.78);
+  --wt-surface-hover: #e5e7eb;
+
+  --wt-text-primary: #0f172a;
+  --wt-text-regular: #475569;
+  --wt-text-secondary: #94a3b8;
+  --wt-text-placeholder: #cbd5e1;
+
+  --wt-border-default: #dbe4f0;
+  --wt-border-soft: #edf2f7;
+  --wt-divider-soft: #f1f5f9;
+  --wt-divider-faint: #f8fafc;
+
+  --wt-scrollbar-thumb: #cbd5e1;
+  --wt-scrollbar-thumb-hover: #94a3b8;
+
+  --wt-fill-hover: #f8fafc;
+  --wt-fill-striped: #fafbfd;
+
+  --wt-tag-success-bg: #ecfdf5;
+  --wt-tag-success-text: #059669;
+  --wt-tag-warning-bg: #fffbeb;
+  --wt-tag-warning-text: #d97706;
+  --wt-tag-danger-bg: #fef2f2;
+  --wt-tag-danger-text: #dc2626;
+  --wt-tag-info-bg: #f1f5f9;
+  --wt-tag-info-text: #64748b;
+  --wt-tag-primary-bg: #eff6ff;
+  --wt-tag-primary-text: #2563eb;
+
+  --wt-overlay-bg: rgba(255, 255, 255, 0.78);
+  --wt-dialog-header-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.92) 100%);
+  --wt-dialog-body-bg: rgba(255, 255, 255, 0.92);
+  --wt-dialog-footer-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.96) 100%);
+  --wt-row-gradient-hover: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%);
+
+  --wt-shadow-card: var(--wt-shadow-card-light);
+  --wt-shadow-soft: var(--wt-shadow-soft-light);
+  --wt-shadow-float: var(--wt-shadow-float-light);
+}

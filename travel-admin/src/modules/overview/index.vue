@@ -268,10 +268,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { Money, User, Location, ShoppingCart, RefreshRight } from '@element-plus/icons-vue'
+import { useTheme } from '@/shared/composables/useTheme.js'
+import { getChartThemeTokens } from '@/shared/theme/charts/index.js'
 import { getHotSpots, getOrderHeatmap, getOrderTrend, getOverview } from './api.js'
 
 // Refs for charts
@@ -283,6 +285,7 @@ const heatmapRef = ref(null)
 const mainLineChartRef = ref(null)
 const trendChartShellRef = ref(null)
 const router = useRouter()
+const { currentTheme } = useTheme()
 
 const charts = []
 let mainLineChart = null
@@ -313,6 +316,8 @@ const overview = ref({
 })
 const hotSpots = ref([])
 const heatmapYear = ref(new Date().getFullYear())
+
+const getChartPalette = () => getChartThemeTokens(currentTheme.value)
 
 const workbenchEntries = [
   {
@@ -365,11 +370,12 @@ const dashboardTips = [
 ]
 
 const initSparklines = () => {
+  const palette = getChartPalette()
   const configs = [
-    { ref: sparklineRevenue, color: '#3b82f6', areaColor: 'rgba(59, 130, 246, 0.1)' },
-    { ref: sparklineUsers, color: '#8b5cf6', areaColor: 'rgba(139, 92, 246, 0.1)' },
-    { ref: sparklineSpots, color: '#10b981', areaColor: 'rgba(16, 185, 129, 0.1)' },
-    { ref: sparklineOrders, color: '#f97316', areaColor: 'rgba(249, 115, 22, 0.1)' }
+    { ref: sparklineRevenue, color: palette.blue, areaColor: 'rgba(59, 130, 246, 0.16)' },
+    { ref: sparklineUsers, color: palette.violet, areaColor: 'rgba(139, 92, 246, 0.16)' },
+    { ref: sparklineSpots, color: palette.emerald, areaColor: 'rgba(16, 185, 129, 0.16)' },
+    { ref: sparklineOrders, color: palette.amber, areaColor: 'rgba(249, 115, 22, 0.16)' }
   ]
 
   configs.forEach(cfg => {
@@ -397,30 +403,31 @@ const buildSparklineOption = (data, color, areaColor) => ({
 })
 
 const updateSparklines = () => {
+  const palette = getChartPalette()
   const targets = [
     {
       ref: sparklineRevenue.value,
       data: (overview.value.recentRevenueSeries || []).map(item => Number(item || 0)),
-      color: '#3b82f6',
-      areaColor: 'rgba(59, 130, 246, 0.1)'
+      color: palette.blue,
+      areaColor: 'rgba(59, 130, 246, 0.16)'
     },
     {
       ref: sparklineUsers.value,
       data: (overview.value.recentUserSeries || []).map(item => Number(item || 0)),
-      color: '#8b5cf6',
-      areaColor: 'rgba(139, 92, 246, 0.1)'
+      color: palette.violet,
+      areaColor: 'rgba(139, 92, 246, 0.16)'
     },
     {
       ref: sparklineSpots.value,
       data: (overview.value.recentSpotSeries || []).map(item => Number(item || 0)),
-      color: '#10b981',
-      areaColor: 'rgba(16, 185, 129, 0.1)'
+      color: palette.emerald,
+      areaColor: 'rgba(16, 185, 129, 0.16)'
     },
     {
       ref: sparklineOrders.value,
       data: (overview.value.recentOrderSeries || []).map(item => Number(item || 0)),
-      color: '#f97316',
-      areaColor: 'rgba(249, 115, 22, 0.1)'
+      color: palette.amber,
+      areaColor: 'rgba(249, 115, 22, 0.16)'
     }
   ]
 
@@ -435,6 +442,7 @@ const initHeatmap = () => {
   if (!heatmapRef.value) return
   const chart = echarts.init(heatmapRef.value)
   charts.push(chart)
+  const palette = getChartPalette()
 
   chart.setOption({
     tooltip: {
@@ -449,7 +457,7 @@ const initHeatmap = () => {
       calculable: false,
       show: false,
       inRange: {
-        color: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'] // GitHub Colors
+        color: palette.heatmap
       }
     },
     calendar: {
@@ -460,13 +468,13 @@ const initHeatmap = () => {
       range: String(heatmapYear.value),
       itemStyle: {
         borderWidth: 2,
-        borderColor: '#fff',
+        borderColor: palette.panelBackground,
         borderRadius: 4
       },
       splitLine: { show: false },
       yearLabel: { show: false },
-      dayLabel: { color: '#94a3b8', fontSize: 10 },
-      monthLabel: { color: '#94a3b8', fontSize: 10 }
+      dayLabel: { color: palette.textSecondary, fontSize: 10 },
+      monthLabel: { color: palette.textSecondary, fontSize: 10 }
     },
     series: {
       type: 'heatmap',
@@ -480,6 +488,7 @@ const updateHeatmap = (year, list) => {
   const chart = charts.find(target => target.getDom() === heatmapRef.value)
   if (!chart) return
   const maxValue = Math.max(...list.map(item => Number(item.orderCount || 0)), 0)
+  const palette = getChartPalette()
   chart.setOption({
     visualMap: {
       min: 0,
@@ -487,7 +496,7 @@ const updateHeatmap = (year, list) => {
       calculable: false,
       show: false,
       inRange: {
-        color: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39']
+        color: palette.heatmap
       }
     },
     calendar: {
@@ -543,12 +552,13 @@ const updateMainLineChart = (list) => {
   initMainLineChart()
   if (!mainLineChart) return
 
+  const palette = getChartPalette()
   const option = {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderColor: '#e2e8f0',
-      textStyle: { color: '#1e293b' },
+      backgroundColor: palette.tooltipBackground,
+      borderColor: palette.borderColor,
+      textStyle: { color: palette.textPrimary },
       formatter(params) {
         const current = list[params[0]?.dataIndex]
         if (!current) return ''
@@ -559,24 +569,33 @@ const updateMainLineChart = (list) => {
         ].join('<br/>')
       }
     },
-    legend: { data: ['订单量', '收入'], bottom: 0 },
+    legend: {
+      data: ['订单量', '收入'],
+      bottom: 0,
+      textStyle: { color: palette.textSecondary }
+    },
     grid: { left: '2%', right: '2%', top: '5%', bottom: '15%', containLabel: true },
     xAxis: {
       type: 'category',
       boundaryGap: false,
       data: list.map(item => formatAxisLabel(item.date)),
-      axisLine: { lineStyle: { color: '#e2e8f0' } }
+      axisLine: { lineStyle: { color: palette.borderColor } },
+      axisLabel: { color: palette.textSecondary }
     },
     yAxis: [
       {
         type: 'value',
         name: '订单量',
-        splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }
+        nameTextStyle: { color: palette.textSecondary },
+        axisLabel: { color: palette.textSecondary },
+        splitLine: { lineStyle: { type: 'dashed', color: palette.splitLine } }
       },
       {
         type: 'value',
         name: '收入',
+        nameTextStyle: { color: palette.textSecondary },
         axisLabel: {
+          color: palette.textSecondary,
           formatter(value) {
             return `¥${Number(value).toLocaleString('zh-CN')}`
           }
@@ -595,7 +614,7 @@ const updateMainLineChart = (list) => {
         animationDelay: (_, index) => hasTrendAnimated ? 0 : index * 80,
         animationEasing: 'linear',
         animationEasingUpdate: 'linear',
-        itemStyle: { color: '#3b82f6' },
+        itemStyle: { color: palette.blue },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
@@ -614,7 +633,7 @@ const updateMainLineChart = (list) => {
         animationDelay: (_, index) => hasTrendAnimated ? 0 : index * 80,
         animationEasing: 'linear',
         animationEasingUpdate: 'linear',
-        itemStyle: { color: '#10b981' }
+        itemStyle: { color: palette.emerald }
       }
     ],
     animationDuration: hasTrendAnimated ? 300 : 900,
@@ -637,7 +656,8 @@ const updateMainLineChart = (list) => {
         type: 'category',
         boundaryGap: false,
         data: labels,
-        axisLine: { lineStyle: { color: '#e2e8f0' } }
+        axisLine: { lineStyle: { color: palette.borderColor } },
+        axisLabel: { color: palette.textSecondary }
       },
       yAxis: option.yAxis,
       series: [
@@ -764,6 +784,13 @@ onMounted(() => {
   })
 })
 
+watch(currentTheme, async () => {
+  await nextTick()
+  updateSparklines()
+  updateHeatmap(heatmapYear.value, [])
+  fetchData()
+})
+
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   charts.forEach(c => c.dispose())
@@ -789,9 +816,9 @@ onUnmounted(() => {
 .text-xs { font-size: 12px; line-height: 16px; }
 .font-bold { font-weight: 700; }
 .font-medium { font-weight: 500; }
-.text-gray-800 { color: #1f2937; }
-.text-gray-500 { color: #6b7280; }
-.text-gray-400 { color: #9ca3af; }
+.text-gray-800 { color: var(--wt-text-primary); }
+.text-gray-500 { color: var(--wt-text-regular); }
+.text-gray-400 { color: var(--wt-text-secondary); }
 .text-blue-600 { color: #2563eb; }
 .text-purple-600 { color: #7c3aed; }
 .text-emerald-600 { color: #059669; }
@@ -829,8 +856,8 @@ onUnmounted(() => {
 .trend-card {
   border-radius: 22px;
   overflow: hidden;
-  border: 1px solid rgba(219, 228, 240, 0.9);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.88) 100%);
+  border: 1px solid var(--wt-border-default);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .trend-card :deep(.el-card__body) {
@@ -838,24 +865,24 @@ onUnmounted(() => {
 }
 
 .tone-blue {
-  background: linear-gradient(180deg, rgba(239, 246, 255, 0.88) 0%, rgba(255, 255, 255, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.12) 0%, var(--wt-surface-elevated) 100%);
 }
 
 .tone-violet {
-  background: linear-gradient(180deg, rgba(245, 243, 255, 0.88) 0%, rgba(255, 255, 255, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.12) 0%, var(--wt-surface-elevated) 100%);
 }
 
 .tone-emerald {
-  background: linear-gradient(180deg, rgba(236, 253, 245, 0.88) 0%, rgba(255, 255, 255, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, var(--wt-surface-elevated) 100%);
 }
 
 .tone-amber {
-  background: linear-gradient(180deg, rgba(255, 247, 237, 0.88) 0%, rgba(255, 255, 255, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.12) 0%, var(--wt-surface-elevated) 100%);
 }
 
 .metric-label {
   font-size: 13px;
-  color: #64748b;
+  color: var(--wt-text-regular);
   font-weight: 600;
 }
 
@@ -902,10 +929,10 @@ onUnmounted(() => {
   align-items: center;
   gap: 18px;
   padding: 12px 16px;
-  border: 1px solid #d9e3ef;
+  border: 1px solid var(--wt-border-default);
   border-radius: 16px;
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 .control-group {
@@ -914,12 +941,12 @@ onUnmounted(() => {
   gap: 10px;
   padding: 8px 10px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--wt-surface-elevated);
 }
 
 .control-label {
   font-size: 12px;
-  color: #475569;
+  color: var(--wt-text-regular);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -927,7 +954,7 @@ onUnmounted(() => {
 .control-divider {
   width: 1px;
   height: 40px;
-  background: #dbe3ee;
+  background: var(--wt-border-default);
 }
 
 .trend-chart-shell {
@@ -956,21 +983,21 @@ onUnmounted(() => {
 .today-overview-item {
   padding: 14px 16px;
   border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.86) 100%);
-  border: 1px solid #e5edf5;
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
 }
 
 .overview-label {
   display: block;
   margin-bottom: 6px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--wt-text-regular);
 }
 
 .overview-value {
   font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--wt-text-primary);
 }
 
 .today-overview-tip {
@@ -996,18 +1023,18 @@ onUnmounted(() => {
   gap: 14px;
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid #eef2f7;
+  border: 1px solid var(--wt-border-default);
   border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.88) 100%);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
 }
 
 .hot-spot-item:hover {
-  border-color: #cbd5e1;
+  border-color: var(--el-color-primary-light-5);
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 .hot-spot-rank {
@@ -1020,8 +1047,8 @@ onUnmounted(() => {
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
-  color: #475569;
-  background: #e2e8f0;
+  color: var(--wt-text-regular);
+  background: var(--wt-border-default);
 }
 
 .rank-1 {
@@ -1056,7 +1083,7 @@ onUnmounted(() => {
   min-width: 0;
   font-size: 14px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--wt-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1073,7 +1100,7 @@ onUnmounted(() => {
   display: flex;
   gap: 14px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--wt-text-regular);
 }
 
 .workbench-grid {
@@ -1085,8 +1112,8 @@ onUnmounted(() => {
 .workbench-entry {
   padding: 18px;
   border-radius: 18px;
-  border: 1px solid #e7edf7;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 251, 255, 0.9) 100%);
+  border: 1px solid var(--wt-border-default);
+  background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   text-align: left;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -1094,8 +1121,8 @@ onUnmounted(() => {
 
 .workbench-entry:hover {
   transform: translateY(-2px);
-  border-color: #cbd5e1;
-  box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.28);
+  border-color: var(--el-color-primary-light-5);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 .workbench-entry-head {
@@ -1108,14 +1135,14 @@ onUnmounted(() => {
 .workbench-entry-title {
   font-size: 16px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--wt-text-primary);
 }
 
 .workbench-entry-desc {
   margin-top: 10px;
   font-size: 13px;
   line-height: 1.7;
-  color: #5b6475;
+  color: var(--wt-text-regular);
 }
 
 .workbench-entry-action {
@@ -1133,21 +1160,21 @@ onUnmounted(() => {
 .tips-item {
   padding: 14px 16px;
   border-radius: 16px;
-  background: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(255, 255, 255, 0.84) 100%);
-  border: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
+  border: 1px solid var(--wt-border-default);
 }
 
 .tips-title {
   font-size: 13px;
   font-weight: 700;
-  color: #253046;
+  color: var(--wt-text-primary);
 }
 
 .tips-desc {
   margin-top: 8px;
   font-size: 12px;
   line-height: 1.7;
-  color: #607086;
+  color: var(--wt-text-regular);
 }
 
 @media (max-width: 1200px) {

@@ -1,0 +1,84 @@
+/* 暗色主题 */
+
+html.dark,
+html[data-theme='dark'] {
+  --el-color-primary: #60a5fa;
+  --el-color-primary-light-3: #93c5fd;
+  --el-color-primary-light-5: #bfdbfe;
+  --el-color-primary-light-7: #dbeafe;
+  --el-color-primary-light-8: #eaf2ff;
+  --el-color-primary-light-9: rgba(96, 165, 250, 0.16);
+  --el-color-primary-dark-2: #3b82f6;
+
+  --el-color-success: #22c55e;
+  --el-color-warning: #f59e0b;
+  --el-color-danger: #fb7185;
+  --el-color-info: #94a3b8;
+
+  --wt-surface-page: #020617;
+  --wt-surface-panel: rgba(15, 23, 42, 0.82);
+  --wt-surface-elevated: rgba(15, 23, 42, 0.94);
+  --wt-surface-muted: rgba(15, 23, 42, 0.72);
+  --wt-surface-hover: rgba(51, 65, 85, 0.72);
+
+  --wt-text-primary: #f8fafc;
+  --wt-text-regular: #cbd5e1;
+  --wt-text-secondary: #94a3b8;
+  --wt-text-placeholder: #64748b;
+
+  --wt-border-default: rgba(51, 65, 85, 0.92);
+  --wt-border-soft: rgba(37, 49, 65, 0.92);
+  --wt-divider-soft: rgba(37, 49, 65, 0.92);
+  --wt-divider-faint: rgba(30, 41, 59, 0.86);
+
+  --wt-scrollbar-thumb: rgba(100, 116, 139, 0.72);
+  --wt-scrollbar-thumb-hover: rgba(148, 163, 184, 0.88);
+
+  --wt-fill-hover: rgba(30, 41, 59, 0.92);
+  --wt-fill-striped: rgba(15, 23, 42, 0.88);
+
+  --wt-tag-success-bg: rgba(34, 197, 94, 0.16);
+  --wt-tag-success-text: #86efac;
+  --wt-tag-warning-bg: rgba(245, 158, 11, 0.18);
+  --wt-tag-warning-text: #fcd34d;
+  --wt-tag-danger-bg: rgba(251, 113, 133, 0.16);
+  --wt-tag-danger-text: #fda4af;
+  --wt-tag-info-bg: rgba(148, 163, 184, 0.16);
+  --wt-tag-info-text: #cbd5e1;
+  --wt-tag-primary-bg: rgba(96, 165, 250, 0.18);
+  --wt-tag-primary-text: #bfdbfe;
+
+  --wt-overlay-bg: rgba(2, 6, 23, 0.56);
+  --wt-dialog-header-bg: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 0.92) 100%);
+  --wt-dialog-body-bg: rgba(15, 23, 42, 0.94);
+  --wt-dialog-footer-bg: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.98) 100%);
+  --wt-row-gradient-hover: linear-gradient(90deg, rgba(15, 23, 42, 0.4) 0%, rgba(30, 41, 59, 0.92) 50%, rgba(15, 23, 42, 0.4) 100%);
+
+  --wt-shadow-card: var(--wt-shadow-card-dark);
+  --wt-shadow-soft: var(--wt-shadow-soft-dark);
+  --wt-shadow-float: var(--wt-shadow-float-dark);
+
+  --bg-page:
+    radial-gradient(circle at top, rgba(30, 41, 59, 0.98), rgba(7, 12, 24, 0.98) 42%, rgba(2, 6, 23, 1) 100%),
+    linear-gradient(180deg, #020617 0%, #0f172a 100%);
+
+  --el-text-color-primary: var(--wt-text-primary);
+  --el-text-color-regular: var(--wt-text-regular);
+  --el-text-color-secondary: var(--wt-text-secondary);
+  --el-text-color-placeholder: var(--wt-text-placeholder);
+  --el-border-color-light: var(--wt-border-default);
+  --el-border-color-lighter: var(--wt-border-soft);
+
+  --el-input-bg-color: rgba(15, 23, 42, 0.82);
+  --el-input-border-color: rgba(71, 85, 105, 0.96);
+  --el-input-focus-border-color: #60a5fa;
+
+  --el-table-header-bg-color: #111c2d;
+  --el-table-header-text-color: #cbd5e1;
+  --el-table-border-color: rgba(37, 49, 65, 0.92);
+  --el-table-bg-color: #0f172a;
+  --el-table-tr-bg-color: #0f172a;
+
+  --el-card-border-color: rgba(30, 41, 59, 0.94);
+  --el-card-bg-color: #0f172a;
+}

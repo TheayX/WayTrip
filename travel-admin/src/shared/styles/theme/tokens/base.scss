@@ -1,0 +1,36 @@
+/* ═══════════════════════════════════════════════════════
+   WayTrip Admin — 主题基础 Token
+   说明：这里只定义品牌、半径、阴影等与具体主题无关的基础变量。
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  /* 品牌色 */
+  --wt-brand-primary-500: #2563eb;
+  --wt-brand-primary-600: #1d4ed8;
+  --wt-brand-primary-300: #93c5fd;
+  --wt-brand-primary-200: #bfdbfe;
+  --wt-brand-primary-100: #dbeafe;
+  --wt-brand-primary-50: #eff6ff;
+
+  /* 状态色 */
+  --wt-success-500: #10b981;
+  --wt-warning-500: #f59e0b;
+  --wt-danger-500: #e11d48;
+  --wt-info-500: #64748b;
+
+  /* 圆角体系 */
+  --el-border-radius-base: 10px;
+  --el-border-radius-small: 6px;
+  --el-border-radius-round: 999px;
+  --wt-radius-card: 20px;
+  --wt-radius-card-large: 28px;
+  --wt-radius-input: 10px;
+
+  /* 阴影体系 */
+  --wt-shadow-card-light: 0 18px 48px rgba(15, 23, 42, 0.06);
+  --wt-shadow-soft-light: 0 10px 28px rgba(15, 23, 42, 0.05);
+  --wt-shadow-float-light: 0 24px 60px rgba(15, 23, 42, 0.12);
+  --wt-shadow-card-dark: 0 18px 48px rgba(2, 6, 23, 0.4);
+  --wt-shadow-soft-dark: 0 10px 28px rgba(2, 6, 23, 0.28);
+  --wt-shadow-float-dark: 0 24px 60px rgba(2, 6, 23, 0.52);
+}

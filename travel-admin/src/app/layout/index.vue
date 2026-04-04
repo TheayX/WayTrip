@@ -58,6 +58,26 @@
             <el-breadcrumb-item>{{ currentGroupTitle }}</el-breadcrumb-item>
             <el-breadcrumb-item>{{ $route.meta.title }}</el-breadcrumb-item>
           </el-breadcrumb>
+          <!-- 主题切换 -->
+          <el-dropdown trigger="click" @command="setThemeMode">
+            <button type="button" class="theme-switch">
+              <el-icon><Sunny v-if="currentTheme === 'light'" /><Moon v-else /></el-icon>
+              <span>{{ currentThemeLabel }}</span>
+              <span v-if="isSystemMode" class="theme-switch-mode">系统</span>
+              <el-icon><ArrowDown /></el-icon>
+            </button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  v-for="item in THEME_MODE_OPTIONS"
+                  :key="item.value"
+                  :command="item.value"
+                >
+                  {{ item.label }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
           <!-- 消息通知角标 -->
           <div class="action-icon">
             <el-badge is-dot class="item">
@@ -100,13 +120,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { NAVIGATION_GROUPS, NAVIGATION_GROUP_MAP } from '@/shared/constants/navigation.js'
-import { Fold, Expand, Search, Bell, ArrowDown } from '@element-plus/icons-vue'
+import { THEME_MODE_OPTIONS } from '@/shared/constants/theme.js'
+import { useTheme } from '@/shared/composables/useTheme.js'
+import { Fold, Expand, Search, Bell, ArrowDown, Moon, Sunny } from '@element-plus/icons-vue'
 import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const isCollapse = ref(false)
+const { currentTheme, isSystemMode, setThemeMode } = useTheme()
 
 const groupedMenuList = computed(() => {
   const mainRoute = router.options.routes.find(r => r.path === '/')
@@ -134,6 +157,10 @@ const currentGroupTitle = computed(() => {
 
 const defaultOpenGroups = computed(() => {
   return currentGroupTitle.value ? [route.meta?.group] : []
+})
+
+const currentThemeLabel = computed(() => {
+  return currentTheme.value === 'dark' ? '暗色主题' : '浅色主题'
 })
 
 onMounted(async () => {
@@ -165,11 +192,11 @@ onMounted(async () => {
 }
 
 .aside {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: var(--wt-surface-panel);
+  border: 1px solid var(--wt-border-default);
   height: 100%;
   border-radius: 24px;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--wt-shadow-card);
   backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
@@ -215,7 +242,7 @@ onMounted(async () => {
       width: 4px;
     }
     &::-webkit-scrollbar-thumb {
-      background: #e5e7eb;
+      background: var(--wt-scrollbar-thumb);
       border-radius: 4px;
     }
 
@@ -285,25 +312,58 @@ onMounted(async () => {
     font-size: 18px;
 
     &:hover {
-      background-color: #e5e7eb;
+      background-color: var(--wt-surface-hover);
       color: var(--el-text-color-primary);
+    }
+  }
+
+  .theme-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px;
+    border: 1px solid var(--wt-border-default);
+    border-radius: 999px;
+    background: var(--wt-surface-elevated);
+    box-shadow: var(--wt-shadow-soft);
+    color: var(--el-text-color-primary);
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      border-color: var(--el-color-primary-light-5);
+      box-shadow: var(--wt-shadow-float);
+    }
+
+    span {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .theme-switch-mode {
+      padding: 2px 8px;
+      font-size: 12px;
+      color: var(--wt-text-secondary);
+      background: var(--el-color-primary-light-9);
+      border-radius: 999px;
     }
   }
 
   .top-search {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.76);
+    background: var(--wt-surface-panel);
     padding: 0 16px;
     height: 40px;
     border-radius: 999px;
     color: var(--el-text-color-secondary);
     font-size: 14px;
     cursor: text;
-    border: 1px solid rgba(219, 228, 240, 0.9);
-    box-shadow:
-      0 10px 28px rgba(15, 23, 42, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    border: 1px solid var(--wt-border-default);
+    box-shadow: var(--wt-shadow-soft);
 
     .search-placeholder {
       margin-left: 8px;
@@ -328,11 +388,9 @@ onMounted(async () => {
     cursor: pointer;
     padding: 5px 12px 5px 8px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow:
-      0 10px 28px rgba(15, 23, 42, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(219, 228, 240, 0.9);
+    background: var(--wt-surface-elevated);
+    box-shadow: var(--wt-shadow-soft);
+    border: 1px solid var(--wt-border-default);
     transition: all 0.2s;
     
     &:hover {

@@ -1,0 +1,79 @@
+/* 可复用视觉模式 */
+
+.borderless-table {
+  :deep(.el-table__inner-wrapper::before) {
+    display: none;
+  }
+
+  :deep(td.el-table__cell),
+  :deep(th.el-table__cell.is-leaf) {
+    border-bottom: 1px solid var(--wt-divider-faint) !important;
+  }
+
+  :deep(.el-table__row) {
+    transition: all 0.2s ease;
+
+    td {
+      padding: 12px 0;
+    }
+  }
+
+  :deep(.el-table__row:hover > td.el-table__cell) {
+    background: var(--wt-row-gradient-hover) !important;
+  }
+}
+
+.capsule-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 999px;
+
+  &.status-capsule {
+    gap: 6px;
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+  }
+
+  &.status-success {
+    background-color: var(--wt-tag-success-bg);
+    color: var(--wt-tag-success-text);
+
+    .dot { background-color: var(--el-color-success); }
+  }
+
+  &.status-primary {
+    background-color: var(--wt-tag-primary-bg);
+    color: var(--wt-tag-primary-text);
+
+    .dot { background-color: var(--el-color-primary); }
+  }
+
+  &.status-warning {
+    background-color: var(--wt-tag-warning-bg);
+    color: var(--wt-tag-warning-text);
+
+    .dot { background-color: #f97316; }
+  }
+
+  &.status-danger {
+    background-color: var(--wt-tag-danger-bg);
+    color: var(--wt-tag-danger-text);
+
+    .dot { background-color: #ef4444; }
+  }
+
+  &.status-neutral {
+    background-color: var(--wt-tag-info-bg);
+    color: var(--wt-text-regular);
+
+    .dot { background-color: var(--wt-text-secondary); }
+  }
+}

@@ -1,0 +1,28 @@
+/* 浅色主题 */
+
+:root,
+html[data-theme='light'] {
+  --bg-page:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.94) 44%, rgba(235, 240, 247, 1) 100%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+
+  --el-text-color-primary: var(--wt-text-primary);
+  --el-text-color-regular: var(--wt-text-regular);
+  --el-text-color-secondary: var(--wt-text-secondary);
+  --el-text-color-placeholder: var(--wt-text-placeholder);
+  --el-border-color-light: var(--wt-border-default);
+  --el-border-color-lighter: var(--wt-border-soft);
+
+  --el-input-bg-color: rgba(248, 250, 252, 0.88);
+  --el-input-border-color: var(--wt-border-default);
+  --el-input-focus-border-color: var(--el-color-primary);
+
+  --el-table-header-bg-color: #f8fafc;
+  --el-table-header-text-color: #475569;
+  --el-table-border-color: var(--wt-divider-soft);
+  --el-table-bg-color: #ffffff;
+  --el-table-tr-bg-color: #ffffff;
+
+  --el-card-border-color: var(--wt-divider-soft);
+  --el-card-bg-color: #ffffff;
+}
