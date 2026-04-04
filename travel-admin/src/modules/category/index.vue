@@ -3,19 +3,37 @@
   <div class="category-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">Content Workspace</p>
+        <p class="page-kicker">内容结构管理</p>
         <h1 class="page-title">分类管理</h1>
-        <p class="page-subtitle">维护内容分类层级，统一景点与攻略的归类结构。</p>
+        <p class="page-subtitle">维护内容分类层级，统一景点与攻略的归类结构，保证前后台分类口径一致。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading1 || loading2" @click="handleRefresh">刷新数据</el-button>
       </div>
     </section>
 
+    <section class="summary-grid">
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">一级分类</div>
+        <div class="summary-value">{{ level1List.length }}</div>
+        <div class="summary-desc">当前已创建的一级分类数量</div>
+      </el-card>
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">当前子分类</div>
+        <div class="summary-value">{{ level2List.length }}</div>
+        <div class="summary-desc">当前选中一级分类下的二级分类数量</div>
+      </el-card>
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">当前工作区</div>
+        <div class="summary-value summary-value--sm">{{ activeParentName }}</div>
+        <div class="summary-desc">未选择时默认展示第一项或空状态</div>
+      </el-card>
+    </section>
+
     <el-row :gutter="20">
       <!-- 左侧：一级分类 -->
       <el-col :span="6">
-        <el-card shadow="never" class="left-card">
+        <el-card shadow="hover" class="left-card">
           <template #header>
             <div class="card-header">
               <span>一级分类</span>
@@ -59,7 +77,7 @@
 
       <!-- 右侧：二级分类 -->
       <el-col :span="18">
-        <el-card shadow="never" class="right-card">
+        <el-card shadow="hover" class="right-card">
           <template #header>
             <div class="card-header">
               <span>二级分类</span>
@@ -194,6 +212,7 @@ const level1List = ref([])
 const level2List = ref([])
 const activeParentId = ref(null)
 const errorMessage = ref('')
+const activeParentName = computed(() => level1List.value.find((item) => item.id === activeParentId.value)?.name || '未选择')
 
 // 对话框与表单状态
 const dialogVisible = ref(false)
@@ -384,8 +403,45 @@ onMounted(() => {
   flex-direction: column;
   gap: 20px;
 
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .summary-card {
+    border-radius: 20px;
+  }
+
+  .summary-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .summary-value {
+    margin-top: 8px;
+    font-size: 28px;
+    line-height: 1.1;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .summary-value--sm {
+    font-size: 22px;
+    line-height: 1.35;
+  }
+
+  .summary-desc {
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #64748b;
+  }
+
   .left-card {
     min-height: 520px;
+    border-radius: 22px;
     .parent-list {
       list-style: none;
       padding: 0;
@@ -431,6 +487,7 @@ onMounted(() => {
   }
   .right-card {
     min-height: 520px;
+    border-radius: 22px;
   }
 }
 
@@ -503,6 +560,14 @@ onMounted(() => {
   color: #94a3b8;
   font-size: 20px;
   border-radius: 8px;
+}
+
+@media (max-width: 1200px) {
+  .category-page {
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 }
 
 </style>

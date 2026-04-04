@@ -3,17 +3,34 @@
   <div class="banner-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">Content Workspace</p>
+        <p class="page-kicker">首页资源管理</p>
         <h1 class="page-title">轮播图管理</h1>
-        <p class="page-subtitle">维护首页轮播内容、关联景点和展示顺序。</p>
+        <p class="page-subtitle">维护首页轮播内容、关联景点和展示顺序，保证首页重点内容露出稳定。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchBannerList">刷新数据</el-button>
       </div>
     </section>
 
-    <el-card shadow="hover">
-      <!-- 卡片头部 -->
+    <section class="summary-grid">
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">轮播总数</div>
+        <div class="summary-value">{{ bannerList.length }}</div>
+        <div class="summary-desc">当前后台已维护的轮播图数量</div>
+      </el-card>
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">已启用</div>
+        <div class="summary-value">{{ enabledCount }}</div>
+        <div class="summary-desc">正在首页展示的轮播图数量</div>
+      </el-card>
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">已关联景点</div>
+        <div class="summary-value">{{ linkedSpotCount }}</div>
+        <div class="summary-desc">已绑定景点入口的轮播图数量</div>
+      </el-card>
+    </section>
+
+    <el-card shadow="hover" class="management-card">
       <template #header>
         <div class="card-header">
           <span>轮播图管理</span>
@@ -210,6 +227,8 @@ const loading = ref(false)
 const bannerList = ref([])
 const spotList = ref([])
 const errorMessage = ref('')
+const enabledCount = computed(() => bannerList.value.filter((item) => Number(item.enabled) === 1).length)
+const linkedSpotCount = computed(() => bannerList.value.filter((item) => item.spotId && item.spotName).length)
 
 // 对话框与表单状态
 const dialogVisible = ref(false)
@@ -388,6 +407,43 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.banner-page {
+  .management-card {
+    border-radius: 22px;
+  }
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  border-radius: 20px;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.summary-value {
+  margin-top: 8px;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.summary-desc {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #64748b;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -404,7 +460,8 @@ onMounted(() => {
 .banner-preview {
   width: 160px;
   height: 80px;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
 .banner-status {
@@ -419,7 +476,7 @@ onMounted(() => {
 }
 
 .banner-table {
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
 }
 
@@ -529,6 +586,12 @@ onMounted(() => {
 
 :deep(.spot-name-link .el-button__text) {
   text-align: left;
+}
+
+@media (max-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 </style>

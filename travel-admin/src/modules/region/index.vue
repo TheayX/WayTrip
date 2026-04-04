@@ -3,19 +3,37 @@
   <div class="region-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">Content Workspace</p>
+        <p class="page-kicker">地域结构管理</p>
         <h1 class="page-title">地区管理</h1>
-        <p class="page-subtitle">维护地区层级结构，统一内容展示的地域维度。</p>
+        <p class="page-subtitle">维护前后台统一使用的地区层级，保证景点分布、附近推荐与筛选口径一致。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading1 || loading2" @click="handleRefresh">刷新数据</el-button>
       </div>
     </section>
 
+    <section class="summary-grid">
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">一级地区</div>
+        <div class="summary-value">{{ level1List.length }}</div>
+        <div class="summary-desc">当前已维护的一级地区数量</div>
+      </el-card>
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">当前子地区</div>
+        <div class="summary-value">{{ level2List.length }}</div>
+        <div class="summary-desc">当前选中一级地区下的二级地区数量</div>
+      </el-card>
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">当前工作区</div>
+        <div class="summary-value summary-value--sm">{{ activeParentName }}</div>
+        <div class="summary-desc">未选择时默认展示第一项或空状态</div>
+      </el-card>
+    </section>
+
     <el-row :gutter="20">
       <!-- 左侧：一级地区 -->
       <el-col :span="6">
-        <el-card shadow="never" class="left-card">
+        <el-card shadow="hover" class="left-card">
           <template #header>
             <div class="card-header">
               <span>一级地区</span>
@@ -51,7 +69,7 @@
 
       <!-- 右侧：二级地区 -->
       <el-col :span="18">
-        <el-card shadow="never" class="right-card">
+        <el-card shadow="hover" class="right-card">
           <template #header>
             <div class="card-header">
               <span>二级地区</span>
@@ -133,6 +151,7 @@ const level1List = ref([])
 const level2List = ref([])
 const activeParentId = ref(null)
 const errorMessage = ref('')
+const activeParentName = computed(() => level1List.value.find((item) => item.id === activeParentId.value)?.name || '未选择')
 
 // 对话框与表单状态
 const dialogVisible = ref(false)
@@ -303,12 +322,53 @@ onMounted(() => {
 .region-page {
   display: flex;
   flex-direction: column;
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .summary-card {
+    border-radius: 22px;
+  }
+
+  .summary-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #64748b;
+  }
+
+  .summary-value {
+    margin-top: 10px;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.05;
+    color: #0f172a;
+  }
+
+  .summary-value--sm {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
+  .summary-desc {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #94a3b8;
+  }
+
   .left-card {
+    border-radius: 22px;
     min-height: 520px;
+
     .parent-list {
       list-style: none;
       padding: 0;
       margin: 0;
+
       .list-item {
         display: flex;
         justify-content: space-between;
@@ -319,21 +379,25 @@ onMounted(() => {
         cursor: pointer;
         transition: all 0.2s ease;
         border: 1px solid transparent;
+
         &:hover {
           background-color: #f8fafc;
           .item-actions { opacity: 1; }
         }
+
         &.active {
           background-color: var(--el-color-primary-light-9);
           color: var(--el-color-primary);
           border-color: var(--el-color-primary-light-7);
           font-weight: 600;
         }
+
         .item-actions {
           opacity: 0;
           transition: opacity 0.2s;
           display: flex;
           gap: 12px;
+
           .action-icon {
             color: #94a3b8;
             font-size: 30px;
@@ -341,6 +405,7 @@ onMounted(() => {
             padding: 4px;
             border-radius: 6px;
             transition: all 0.2s;
+
             &:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
             &.danger:hover { color: #ef4444; background: #fef2f2; }
           }
@@ -348,7 +413,9 @@ onMounted(() => {
       }
     }
   }
+
   .right-card {
+    border-radius: 22px;
     min-height: 520px;
   }
 }
@@ -381,6 +448,14 @@ onMounted(() => {
   font-size: 12px;
   line-height: 1.5;
   color: #94a3b8;
+}
+
+@media (max-width: 1200px) {
+  .region-page {
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 }
 
 </style>
