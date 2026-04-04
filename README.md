@@ -19,7 +19,7 @@ WayTrip 是一个面向旅游场景的个性化推荐系统，当前包含 4 个
 | 小程序端 | Uni-app + Vue 3 + Pinia |
 | Web 用户端 | Vue 3 + Vite + Element Plus + Pinia |
 | 管理端 | Vue 3 + Vite + Element Plus + Pinia + ECharts |
-| API 文档 | Knife4j 4.5.0（OpenAPI 3） |
+| API 文档 | SpringDoc（OpenAPI 3） |
 
 ## 项目结构
 
@@ -106,7 +106,8 @@ mvn spring-boot:run
 启动后可访问：
 
 - API 服务：`http://localhost:8080`
-- API 文档：`http://localhost:8080/doc.html`
+- API 文档界面：`http://localhost:8080/swagger-ui/index.html`
+- API 文档数据：`http://localhost:8080/v3/api-docs`
 
 ### 3. 启动 Web 用户端
 

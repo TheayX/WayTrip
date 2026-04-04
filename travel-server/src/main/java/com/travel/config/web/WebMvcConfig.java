@@ -58,7 +58,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/v1/guides",
                         "/api/v1/guides/categories",
                         "/api/admin/v1/auth/login",
-                        "/doc.html",
+                        "/swagger-ui/**",
                         "/swagger-resources/**",
                         "/v3/api-docs/**",
                         "/webjars/**",

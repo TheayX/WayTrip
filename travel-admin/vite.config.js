@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
         configureServer(server) {
           server.httpServer?.once('listening', () => {
             setTimeout(() => {
-              console.log(`  \x1b[32m➜\x1b[0m  API 文档：  \x1b[36m${proxyTarget}/doc.html\x1b[0m`)
+              console.log(`  \x1b[32m➜\x1b[0m  API 文档：  \x1b[36m${proxyTarget}/swagger-ui/index.html\x1b[0m`)
             }, 100)
           })
         }
