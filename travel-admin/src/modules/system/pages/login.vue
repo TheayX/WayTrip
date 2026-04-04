@@ -1,7 +1,22 @@
 <!-- 登录页面 -->
 <template>
-  <div class="login-container">
+  <div class="login-container" :class="{ 'login-container--dark': currentTheme === 'dark' }">
     <div class="login-bg"></div>
+    <div class="theme-switcher">
+      <span class="theme-switcher__label">主题</span>
+      <div class="theme-switcher__group">
+        <button
+          v-for="option in THEME_MODE_OPTIONS"
+          :key="option.value"
+          type="button"
+          class="theme-switcher__button"
+          :class="{ 'theme-switcher__button--active': themeMode === option.value }"
+          @click="setThemeMode(option.value)"
+        >
+          {{ option.label }}
+        </button>
+      </div>
+    </div>
     <div class="login-box">
       <div class="login-left">
           <div class="left-content">
@@ -59,9 +74,12 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { ElMessage } from 'element-plus'
 import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
+import { useTheme } from '@/shared/composables/useTheme.js'
+import { THEME_MODE_OPTIONS } from '@/shared/constants/theme.js'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { themeMode, currentTheme, setThemeMode } = useTheme()
 const formRef = ref()
 const loading = ref(false)
 
@@ -115,6 +133,9 @@ const handleLogin = async () => {
   --login-input-bg: rgba(250, 250, 249, 0.92);
   --login-input-border: rgba(214, 211, 209, 0.92);
   --login-input-hover-bg: #fff;
+  --login-input-text: #0f172a;
+  --login-input-placeholder: #94a3b8;
+  --login-input-icon: #64748b;
   --login-footer: #a8a29e;
   background:
     var(--login-shell-bg);
@@ -149,6 +170,61 @@ const handleLogin = async () => {
       right: -120px;
     }
   }
+}
+
+.theme-switcher {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--login-panel-bg) 88%, transparent);
+  border: 1px solid var(--login-panel-border);
+  box-shadow: var(--wt-shadow-soft);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.theme-switcher__label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wt-text-secondary);
+}
+
+.theme-switcher__group {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--login-right-bg) 72%, transparent);
+}
+
+.theme-switcher__button {
+  border: none;
+  background: transparent;
+  color: var(--wt-text-regular);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    color: var(--wt-text-primary);
+  }
+}
+
+.theme-switcher__button--active {
+  background: var(--wt-surface-elevated);
+  color: var(--wt-text-primary);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 .login-box {
@@ -317,6 +393,17 @@ const handleLogin = async () => {
 
         :deep(.el-input__inner) {
           height: 50px;
+          color: var(--login-input-text);
+        }
+
+        :deep(.el-input__inner::placeholder) {
+          color: var(--login-input-placeholder);
+        }
+
+        :deep(.el-input__prefix-inner),
+        :deep(.el-input__suffix-inner),
+        :deep(.el-input__icon) {
+          color: var(--login-input-icon);
         }
 
         .login-btn {
@@ -367,7 +454,94 @@ const handleLogin = async () => {
   --login-input-bg: rgba(15, 23, 42, 0.82);
   --login-input-border: rgba(71, 85, 105, 0.92);
   --login-input-hover-bg: rgba(30, 41, 59, 0.96);
+  --login-input-text: #f8fafc;
+  --login-input-placeholder: #94a3b8;
+  --login-input-icon: #cbd5e1;
   --login-footer: #64748b;
+}
+
+.login-container--dark {
+  --login-shell-bg:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0) 28%),
+    radial-gradient(circle at 80% 18%, rgba(99, 102, 241, 0.14) 0%, rgba(99, 102, 241, 0) 24%),
+    radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0) 32%),
+    linear-gradient(135deg, #020617 0%, #0b1120 48%, #111827 100%);
+  --login-panel-bg: rgba(2, 6, 23, 0.72);
+  --login-panel-border: rgba(71, 85, 105, 0.96);
+  --login-panel-shadow: 0 36px 100px rgba(2, 6, 23, 0.56);
+  --login-left-text: #f8fafc;
+  --login-right-bg: rgba(15, 23, 42, 0.92);
+  --login-kicker: #93c5fd;
+  --login-title: #f8fafc;
+  --login-subtitle: #dbeafe;
+  --login-input-bg: rgba(15, 23, 42, 0.98);
+  --login-input-border: rgba(96, 165, 250, 0.28);
+  --login-input-hover-bg: rgba(30, 41, 59, 0.98);
+  --login-input-text: #f8fafc;
+  --login-input-placeholder: #94a3b8;
+  --login-input-icon: #bfdbfe;
+  --login-footer: #94a3b8;
+
+  .login-bg {
+    &::before {
+      background: rgba(8, 145, 178, 0.2);
+    }
+
+    &::after {
+      background: rgba(99, 102, 241, 0.22);
+    }
+  }
+
+  .theme-switcher {
+    background: rgba(2, 6, 23, 0.76);
+    border-color: rgba(71, 85, 105, 0.9);
+  }
+
+  .theme-switcher__group {
+    background: rgba(15, 23, 42, 0.9);
+  }
+
+  .theme-switcher__button--active {
+    background: rgba(30, 41, 59, 0.98);
+    color: #f8fafc;
+  }
+
+  .login-box {
+    border-color: rgba(71, 85, 105, 0.96);
+  }
+
+  .login-left {
+    background:
+      linear-gradient(180deg, rgba(3, 7, 18, 0.98) 0%, rgba(15, 23, 42, 0.96) 100%),
+      linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(56, 189, 248, 0) 42%);
+  }
+
+  .login-right {
+    box-shadow: inset 1px 0 0 rgba(71, 85, 105, 0.42);
+  }
+
+  .login-form {
+    :deep(.el-input__wrapper) {
+      box-shadow:
+        0 0 0 1px rgba(96, 165, 250, 0.22) inset,
+        0 12px 24px rgba(2, 6, 23, 0.18);
+    }
+
+    :deep(.el-input__wrapper.is-focus),
+    :deep(.el-input__wrapper:hover) {
+      box-shadow:
+        0 0 0 1px rgba(96, 165, 250, 0.88) inset,
+        0 16px 30px rgba(2, 6, 23, 0.24);
+    }
+
+    .login-btn {
+      background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+
+      &:hover {
+        box-shadow: 0 18px 36px rgba(37, 99, 235, 0.32);
+      }
+    }
+  }
 }
 
 @media (max-width: 960px) {
@@ -393,6 +567,11 @@ const handleLogin = async () => {
   .login-box .login-right {
     padding: 36px 28px 40px;
   }
+
+  .theme-switcher {
+    top: 16px;
+    right: 16px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -410,6 +589,23 @@ const handleLogin = async () => {
 
   .login-box .login-right {
     padding: 30px 22px 32px;
+  }
+
+  .theme-switcher {
+    left: 16px;
+    right: 16px;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .theme-switcher__group {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .theme-switcher__button {
+    flex: 1;
+    padding: 8px 10px;
   }
 
   .login-box .login-left .slogan,
