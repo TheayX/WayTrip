@@ -33,9 +33,9 @@ const emit = defineEmits(['change-tab'])
 }
 
 .summary-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(219, 228, 240, 0.9);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.88) 100%);
   padding: 18px 20px;
   text-align: left;
   cursor: pointer;
@@ -48,7 +48,7 @@ const emit = defineEmits(['change-tab'])
 
   &.active {
     border-color: #2563eb;
-    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+    box-shadow: 0 14px 32px rgba(37, 99, 235, 0.12);
   }
 }
 

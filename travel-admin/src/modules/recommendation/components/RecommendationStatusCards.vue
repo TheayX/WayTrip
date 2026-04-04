@@ -80,7 +80,7 @@ defineProps({
 }
 
 .status-card {
-  border-radius: 12px;
+  border-radius: 20px;
   border: none;
   transition: all 0.3s;
 
@@ -95,7 +95,7 @@ defineProps({
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-radius: 12px;
+  border-radius: 20px;
   color: #fff;
   position: relative;
   overflow: hidden;
@@ -111,10 +111,10 @@ defineProps({
     border-radius: 50%;
   }
 
-  &.engine-bg { background: linear-gradient(135deg, #52c41a 0%, #36cfc9 100%); }
-  &.time-bg { background: linear-gradient(135deg, #1890ff 0%, #69b1ff 100%); }
-  &.users-bg { background: linear-gradient(135deg, #722ed1 0%, #b37feb 100%); }
-  &.spots-bg { background: linear-gradient(135deg, #ff4d4f 0%, #ff7a45 100%); }
+  &.engine-bg { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); }
+  &.time-bg { background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%); }
+  &.users-bg { background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%); }
+  &.spots-bg { background: linear-gradient(135deg, #9f1239 0%, #e11d48 100%); }
 }
 
 .status-info {
