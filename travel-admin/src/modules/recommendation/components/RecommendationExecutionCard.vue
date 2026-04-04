@@ -116,9 +116,8 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 
 <style lang="scss" scoped>
 .execution-card {
-  border-radius: 20px;
+  border-radius: 22px;
   border: none;
-  margin-bottom: 24px;
 }
 
 .card-header {
@@ -161,20 +160,20 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 }
 
 .execution-intro {
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #fff7e8 0%, #fff1db 100%);
-  border: 1px solid #ffd8a8;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 247, 232, 0.96) 0%, rgba(255, 241, 219, 0.92) 100%);
+  border: 1px solid rgba(255, 216, 168, 0.95);
   color: #7a4e00;
   line-height: 1.7;
   font-size: 13px;
 }
 
 .execution-brief {
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.96);
 }
 
 .execution-brief-title {
@@ -191,15 +190,15 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 }
 
 .matrix-action-callout {
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #f3fff7 0%, #ebfff1 100%);
-  border: 1px solid #b7ebc6;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(243, 255, 247, 0.96) 0%, rgba(235, 255, 241, 0.92) 100%);
+  border: 1px solid rgba(183, 235, 198, 0.95);
 }
 
 .matrix-action-callout.pending {
-  background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
-  border-color: #ffd591;
+  background: linear-gradient(135deg, rgba(255, 249, 240, 0.96) 0%, rgba(255, 244, 230, 0.92) 100%);
+  border-color: rgba(255, 213, 145, 0.95);
 }
 
 .matrix-action-title {
@@ -236,10 +235,10 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 }
 
 .execution-metric {
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #f7faff 0%, #eef5ff 100%);
-  border: 1px solid #d8e7ff;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(247, 250, 255, 0.96) 0%, rgba(238, 245, 255, 0.92) 100%);
+  border: 1px solid rgba(216, 231, 255, 0.96);
 }
 
 .execution-metric-label {
@@ -268,10 +267,10 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 }
 
 .execution-note {
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.96);
 }
 
 .execution-note-title {

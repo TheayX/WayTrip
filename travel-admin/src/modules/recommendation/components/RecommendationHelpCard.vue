@@ -131,7 +131,7 @@ const emit = defineEmits(['update:active-collapse'])
 
 <style lang="scss" scoped>
 .help-card {
-  border-radius: 20px;
+  border-radius: 22px;
   border: none;
 }
 
@@ -159,10 +159,10 @@ const emit = defineEmits(['update:active-collapse'])
 
 .help-intro {
   margin-bottom: 16px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #f6fbff 0%, #eef7ff 100%);
-  border: 1px solid #d8eaff;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(246, 251, 255, 0.96) 0%, rgba(238, 247, 255, 0.92) 100%);
+  border: 1px solid rgba(216, 234, 255, 0.96);
   color: #44607a;
   line-height: 1.7;
   font-size: 13px;
@@ -197,9 +197,10 @@ const emit = defineEmits(['update:active-collapse'])
 }
 
 .strategy-item {
-  background: #fafafa;
-  border-radius: 14px;
-  padding: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.96);
 
   .strategy-title {
     font-weight: 600;
@@ -220,7 +221,7 @@ const emit = defineEmits(['update:active-collapse'])
 }
 
 .data-field-group + .data-field-group {
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .data-field-title {
