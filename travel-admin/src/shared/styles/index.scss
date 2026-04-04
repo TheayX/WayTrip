@@ -5,39 +5,40 @@
 
 /* ─── 1. CSS 变量体系 (Design Tokens) ─── */
 :root {
-  /* 核心主题色 (品牌蓝) */
-  --el-color-primary: #3b82f6;
-  --el-color-primary-light-3: #60a5fa;
-  --el-color-primary-light-5: #93c5fd;
-  --el-color-primary-light-7: #bfdbfe;
+  /* 核心主题色 */
+  --el-color-primary: #2563eb;
+  --el-color-primary-light-3: #5b8def;
+  --el-color-primary-light-5: #8bb1f5;
+  --el-color-primary-light-7: #bad3fb;
   --el-color-primary-light-8: #dbeafe;
   --el-color-primary-light-9: #eff6ff;
-  --el-color-primary-dark-2: #2563eb;
+  --el-color-primary-dark-2: #1d4ed8;
 
   /* 状态色系 */
   --el-color-success: #10b981;
   --el-color-warning: #f59e0b;
-  --el-color-danger: #ef4444;
+  --el-color-danger: #e11d48;
   --el-color-info: #64748b;
 
   /* 圆角体系 */
-  --el-border-radius-base: 8px;
+  --el-border-radius-base: 10px;
   --el-border-radius-small: 6px;
-  --el-border-radius-round: 20px;
-  --radius-card: 16px;
-  --radius-input: 8px;
+  --el-border-radius-round: 999px;
+  --radius-card: 20px;
+  --radius-card-large: 28px;
+  --radius-input: 10px;
 
   /* 文字色系 */
   --el-text-color-primary: #0f172a;
   --el-text-color-regular: #475569;
   --el-text-color-secondary: #94a3b8;
   --el-text-color-placeholder: #cbd5e1;
-  --el-border-color-light: #e2e8f0;
-  --el-border-color-lighter: #f1f5f9;
+  --el-border-color-light: #dbe4f0;
+  --el-border-color-lighter: #edf2f7;
 
   /* 输入框 */
-  --el-input-bg-color: #f8fafc;
-  --el-input-border-color: #e2e8f0;
+  --el-input-bg-color: rgba(248, 250, 252, 0.88);
+  --el-input-border-color: #dbe4f0;
   --el-input-focus-border-color: var(--el-color-primary);
 
   /* 表格 */
@@ -53,7 +54,15 @@
   --el-card-bg-color: #ffffff;
 
   /* 页面背景 */
-  --bg-page: #f3f4f6;
+  --bg-page:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.94) 44%, rgba(235, 240, 247, 1) 100%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  --surface-base: rgba(255, 255, 255, 0.82);
+  --surface-strong: rgba(255, 255, 255, 0.94);
+  --surface-soft: rgba(248, 250, 252, 0.78);
+  --shadow-card: 0 18px 48px rgba(15, 23, 42, 0.06);
+  --shadow-soft: 0 10px 28px rgba(15, 23, 42, 0.05);
+  --shadow-float: 0 24px 60px rgba(15, 23, 42, 0.12);
 }
 
 /* ─── 2. 全局基础重置 ─── */
@@ -65,8 +74,8 @@
 
 html, body {
   height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: var(--bg-page);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-page);
   color: var(--el-text-color-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -96,11 +105,13 @@ html, body {
 .el-card {
   border-radius: var(--radius-card) !important;
   border: 1px solid var(--el-card-border-color) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  background: var(--surface-base) !important;
+  box-shadow: var(--shadow-card) !important;
+  backdrop-filter: blur(16px);
   transition: box-shadow 0.3s ease;
 
   &:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: var(--shadow-float) !important;
   }
 }
 
@@ -184,15 +195,16 @@ html, body {
 
 /* ─── 6. 搜索过滤栏 (search-form) ─── */
 .search-form, .el-form--inline.search-form {
-  background: #f8fafc;
+  background: var(--surface-soft);
   padding: 20px 24px 4px;
-  border-radius: 12px;
+  border-radius: 18px;
   margin-bottom: 20px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid rgba(219, 228, 240, 0.9);
   transition: all 0.3s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
 
   &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    box-shadow: var(--shadow-soft);
     border-color: #e2e8f0;
   }
 
@@ -229,23 +241,23 @@ html, body {
 /* ─── 8. 按钮 (el-button) ─── */
 .el-button {
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 10px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .el-button--primary:not(.is-link):not(.is-plain):not(.el-button--text) {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   border: none;
   &:hover, &:focus {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.24);
   }
 }
 
 /* ─── 9. 对话框 (el-dialog) ─── */
 .el-overlay .el-dialog {
-  border-radius: var(--radius-card);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-card-large);
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.2);
   overflow: hidden;
 }
 
@@ -392,7 +404,7 @@ html, body {
 .page-title {
   margin: 0;
   color: #0f172a;
-  font-size: 30px;
+  font-size: 32px;
   line-height: 1.2;
 }
 
@@ -482,8 +494,8 @@ html, body {
 .capsule-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 20px;
+  padding: 5px 11px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
   line-height: 1;

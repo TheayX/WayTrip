@@ -6,7 +6,10 @@
       <el-aside width="100%" class="aside">
         <!-- Logo 区域 -->
         <div class="logo">
-          <div class="logo-icon">✨</div>
+          <div class="logo-icon" aria-hidden="true">
+            <span class="logo-glyph glyph-main"></span>
+            <span class="logo-glyph glyph-accent"></span>
+          </div>
           <span v-if="!isCollapse" class="logo-text">WayTrip Admin</span>
         </div>
         <!-- 导航菜单 -->
@@ -49,7 +52,7 @@
           <!-- 快捷搜索 (仅 UI 演示) -->
           <div class="top-search" v-if="!isCollapse">
             <el-icon><Search /></el-icon>
-            <span class="search-placeholder">Search... (⌘K)</span>
+            <span class="search-placeholder">搜索页面、功能或数据</span>
           </div>
         </div>
         <div class="header-right">
@@ -151,7 +154,7 @@ onMounted(async () => {
 .layout-container {
   height: 100vh;
   width: 100vw;
-  background-color: var(--el-bg-color-page, #f3f4f6);
+  background: var(--bg-page);
   overflow: hidden;
   display: flex;
 }
@@ -164,10 +167,12 @@ onMounted(async () => {
 }
 
 .aside {
-  background-color: #ffffff;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.78);
   height: 100%;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border-radius: 24px;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -183,8 +188,31 @@ onMounted(async () => {
     flex-shrink: 0;
 
     .logo-icon {
-      font-size: 24px;
+      position: relative;
+      width: 28px;
+      height: 28px;
       margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .logo-glyph {
+      position: absolute;
+      border-radius: 10px;
+      transform: rotate(45deg);
+    }
+
+    .glyph-main {
+      inset: 2px;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.26);
+    }
+
+    .glyph-accent {
+      width: 10px;
+      height: 10px;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #c8a95b 0%, #b8892e 100%);
     }
 
     .logo-text {
@@ -287,15 +315,17 @@ onMounted(async () => {
   .top-search {
     display: flex;
     align-items: center;
-    background-color: #ffffff;
+    background: rgba(255, 255, 255, 0.76);
     padding: 0 16px;
-    height: 36px;
-    border-radius: 18px;
+    height: 40px;
+    border-radius: 999px;
     color: var(--el-text-color-secondary);
     font-size: 14px;
     cursor: text;
-    border: 1px solid var(--el-border-color-light);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(219, 228, 240, 0.9);
+    box-shadow:
+      0 10px 28px rgba(15, 23, 42, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.82);
 
     .search-placeholder {
       margin-left: 8px;
@@ -318,11 +348,13 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     cursor: pointer;
-    padding: 4px 12px;
-    border-radius: 20px;
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-    border: 1px solid var(--el-border-color-light);
+    padding: 5px 12px 5px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow:
+      0 10px 28px rgba(15, 23, 42, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(219, 228, 240, 0.9);
     transition: all 0.2s;
     
     &:hover {
@@ -352,7 +384,7 @@ onMounted(async () => {
   
   .main-content-wrapper {
     height: 100%;
-    border-radius: 16px;
+    border-radius: 24px;
     /* transition animation */
     .fade-transform-leave-active,
     .fade-transform-enter-active {
