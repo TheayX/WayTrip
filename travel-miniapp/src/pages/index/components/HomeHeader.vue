@@ -1,22 +1,19 @@
 <template>
   <view class="ios-header">
+    <image class="hero-brand-bg" src="/static/brand/standard.svg" mode="widthFix" />
     <view class="header-top">
-      <view class="greeting-box">
-        <text class="header-kicker">WayTrip</text>
-        <text class="large-title">下一次出发，先从这里开始。</text>
+      <view class="search-bar" @click="$emit('goSearch')">
+        <uni-search-bar
+          :modelValue="''"
+          placeholder="搜索景点、攻略或目的地"
+          :clearButton="'none'"
+          :cancelButton="'none'"
+          :radius="100"
+          :readonly="true"
+          bgColor="rgba(255, 255, 255, 0.6)"
+        />
       </view>
       <image class="avatar-sm" :src="avatarUrl" @click="$emit('goMine')" />
-    </view>
-    <view class="search-bar" @click="$emit('goSearch')">
-      <uni-search-bar
-        :modelValue="''"
-        placeholder="搜索景点、攻略或目的地"
-        :clearButton="'none'"
-        :cancelButton="'none'"
-        :radius="100"
-        :readonly="true"
-        bgColor="rgba(255, 255, 255, 0.6)"
-      />
     </view>
   </view>
 </template>
@@ -30,17 +27,32 @@ defineEmits(['goSearch', 'goMine'])
 
 <style scoped>
 .ios-header {
-  padding: 88rpx 32rpx 28rpx;
+  padding: 42rpx 32rpx 28rpx;
   background: linear-gradient(180deg, rgba(248, 250, 255, 0.96) 0%, rgba(244, 246, 251, 0.9) 100%);
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(18rpx);
+  overflow: hidden;
 }
-.header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28rpx; }
-.greeting-box { display: flex; flex-direction: column; gap: 10rpx; max-width: 520rpx; }
-.header-kicker { font-size: 22rpx; font-weight: 700; letter-spacing: 6rpx; color: #64748b; text-transform: uppercase; }
-.large-title { font-size: 50rpx; font-weight: 800; color: #0f172a; line-height: 1.18; }
+.hero-brand-bg {
+  position: absolute;
+  left: 28rpx;
+  top: 18rpx;
+  width: 236rpx;
+  display: block;
+  opacity: 0.16;
+  pointer-events: none;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  position: relative;
+  z-index: 1;
+  padding-top: 18rpx;
+}
+.search-bar { flex: 1; }
 .avatar-sm {
   width: 76rpx;
   height: 76rpx;

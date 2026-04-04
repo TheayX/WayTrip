@@ -108,6 +108,7 @@
             <el-breadcrumb-item>{{ currentGroupTitle }}</el-breadcrumb-item>
             <el-breadcrumb-item>{{ $route.meta.title }}</el-breadcrumb-item>
           </el-breadcrumb>
+          <img :src="brandMarkUrl" alt="" aria-hidden="true" class="header-brand-icon" />
           <!-- 主题切换 -->
           <el-dropdown trigger="click" @command="setThemeMode">
             <button type="button" class="theme-switch">
@@ -662,6 +663,20 @@ onMounted(async () => {
       color: var(--wt-text-secondary);
       background: var(--el-color-primary-light-9);
       border-radius: 999px;
+    }
+  }
+
+  .header-brand-icon {
+    width: 26px;
+    height: 26px;
+    display: block;
+    flex-shrink: 0;
+    opacity: 0.96;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+      transform: translateY(-1px);
     }
   }
 

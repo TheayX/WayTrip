@@ -4,21 +4,18 @@
     <!-- 吸顶宽幅导航栏带搜索 -->
     <view class="ios-header">
       <view class="header-top">
-        <view class="title-group">
-          <text class="header-kicker">Discover</text>
-          <text class="large-title">把灵感筛成这次想去的地方。</text>
+        <view class="search-bar" @click="goSearch">
+          <uni-search-bar
+            :modelValue="''"
+            placeholder="搜索景点、攻略或目的地"
+            :clearButton="'none'"
+            :cancelButton="'none'"
+            :radius="100"
+            :readonly="true"
+            bgColor="rgba(255, 255, 255, 0.6)"
+          />
         </view>
-      </view>
-      <view class="search-bar" @click="goSearch">
-        <uni-search-bar
-          :modelValue="''"
-          placeholder="搜索景点、攻略或目的地"
-          :clearButton="'none'"
-          :cancelButton="'none'"
-          :radius="100"
-          :readonly="true"
-          bgColor="rgba(255, 255, 255, 0.6)"
-        />
+        <image class="brand-mark" src="/static/brand/standard-mark.svg" mode="aspectFit" />
       </view>
     </view>
 
@@ -378,17 +375,16 @@ onShow(async () => {
 }
 
 .ios-header {
-  padding: 88rpx 32rpx 26rpx;
+  padding: 42rpx 32rpx 26rpx;
   background: linear-gradient(180deg, rgba(248, 250, 255, 0.96) 0%, rgba(244, 246, 251, 0.88) 100%);
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(18rpx);
 }
-.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
-.title-group { display: flex; flex-direction: column; gap: 10rpx; max-width: 540rpx; }
-.header-kicker { font-size: 22rpx; font-weight: 700; letter-spacing: 6rpx; color: #64748b; text-transform: uppercase; }
-.large-title { font-size: 48rpx; font-weight: 800; color: #0f172a; line-height: 1.18; }
+.header-top { display: flex; align-items: center; gap: 16rpx; }
+.brand-mark { width: 76rpx; height: 76rpx; display: block; flex-shrink: 0; }
+.search-bar { flex: 1; }
 .search-bar :deep(.uni-searchbar) { padding: 0; background: transparent; }
 .search-bar :deep(.uni-searchbar__box) {
   border: 2rpx solid rgba(255, 255, 255, 0.76);

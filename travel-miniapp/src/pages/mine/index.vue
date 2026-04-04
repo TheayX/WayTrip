@@ -3,6 +3,11 @@
   <view class="ios-mine">
     <!-- 用户信息区域 (晨光与冰蓝渐变) -->
     <view class="profile-hero" :class="{ guest: !isLoggedIn }" @click="!isLoggedIn ? doLogin() : null">
+      <image
+        class="profile-brand"
+        :src="isLoggedIn ? '/static/brand/mono-mark.svg' : '/static/brand/mono.svg'"
+        :mode="isLoggedIn ? 'aspectFit' : 'widthFix'"
+      />
       <view class="profile-header">
         <view class="avatar-container">
           <image class="avatar-lg" :src="getAvatarUrl(userInfo?.avatar)" />
@@ -315,9 +320,23 @@ watch(isLoggedIn, async (loggedIn, prevLoggedIn) => {
   backdrop-filter: blur(18rpx);
 }
 
+.profile-brand {
+  position: absolute;
+  top: 28rpx;
+  right: 28rpx;
+  width: 156rpx;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
 .profile-hero.guest {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 247, 237, 0.92) 100%);
   box-shadow: 0 16rpx 40rpx rgba(15, 23, 42, 0.05);
+}
+
+.profile-hero.guest .profile-brand {
+  width: 192rpx;
+  opacity: 0.1;
 }
 
 .profile-header { display: flex; align-items: center; z-index: 1; position: relative; }
