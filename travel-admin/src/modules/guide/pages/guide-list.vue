@@ -3,16 +3,34 @@
   <div class="guide-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">Content Workspace</p>
+        <p class="page-kicker">攻略内容管理</p>
         <h1 class="page-title">攻略管理</h1>
-        <p class="page-subtitle">维护攻略内容、发布状态和关联景点信息。</p>
+        <p class="page-subtitle">维护攻略内容、发布状态与关联景点信息，保证内容质量和阅读入口稳定。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="loadData">刷新数据</el-button>
       </div>
     </section>
 
-    <el-card shadow="hover">
+    <section class="summary-grid">
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">当前结果</div>
+        <div class="summary-value">{{ total }}</div>
+        <div class="summary-desc">符合筛选条件的攻略数量</div>
+      </el-card>
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">已发布</div>
+        <div class="summary-value">{{ publishedCount }}</div>
+        <div class="summary-desc">正在前台展示的攻略内容</div>
+      </el-card>
+      <el-card shadow="hover" class="summary-card">
+        <div class="summary-label">待处理</div>
+        <div class="summary-value">{{ unpublishedCount }}</div>
+        <div class="summary-desc">仍需完善或尚未发布的攻略</div>
+      </el-card>
+    </section>
+
+    <el-card shadow="hover" class="management-card">
       <template #header>
         <div class="card-header">
           <span>攻略列表</span>
@@ -92,21 +110,11 @@
     />
 
     <transition name="el-zoom-in-bottom">
-      <div
-        v-show="selectedGuides.length > 0"
-        class="floating-action-bar flex items-center shadow-lg"
-        style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; border-radius: 9999px; overflow: hidden; display: flex; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);"
-      >
-        <div
-          class="px-4 py-3 bg-gray-800 text-white rounded-l-full font-medium shadow-none outline-none"
-          style="background-color: #1f2937; color: white; padding: 12px 16px;"
-        >
+      <div v-show="selectedGuides.length > 0" class="floating-action-bar">
+        <div class="floating-action-summary">
           已选择 <span class="text-primary font-bold px-1" style="color: var(--el-color-primary)">{{ selectedGuides.length }}</span> 项
         </div>
-        <div
-          class="bg-white px-4 py-2 rounded-r-full border text-gray-700 shadow-none outline-none flex items-center gap-2"
-          style="background: white; padding: 8px 16px; border-left: none; gap: 8px; display: flex;"
-        >
+        <div class="floating-action-actions">
           <el-button type="success" size="small" @click="handleBatchPublish(true)">批量发布</el-button>
           <el-button type="warning" size="small" @click="handleBatchPublish(false)">批量下架</el-button>
           <el-button type="danger" size="small" @click="handleBatchDelete">批量删除</el-button>
@@ -234,6 +242,8 @@ const rules = {
   category: [{ required: true, message: '请选择或输入攻略分类', trigger: 'change' }],
   content: [{ required: true, message: '请输入攻略内容', trigger: 'blur' }]
 }
+const publishedCount = computed(() => tableData.value.filter((item) => item.published).length)
+const unpublishedCount = computed(() => tableData.value.filter((item) => !item.published).length)
 
 // 合并列表景点和编辑回显景点，避免旧关联缺失时无法展示。
 const mergedSpotOptions = computed(() => {
@@ -586,6 +596,41 @@ watch(
   gap: 20px;
 }
 
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  border-radius: 20px;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.summary-value {
+  margin-top: 8px;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.summary-desc {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #64748b;
+}
+
+.management-card {
+  border-radius: 22px;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -602,11 +647,46 @@ watch(
   justify-content: flex-end;
 }
 
+.floating-action-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(18px);
+}
+
+.floating-action-summary {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 12px 16px;
+  font-weight: 600;
+}
+
+.floating-action-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
 :deep(.guide-highlight-row) {
-  --el-table-tr-bg-color: #fdf6ec;
+  --el-table-tr-bg-color: #eff6ff;
 
   td {
-    background-color: #fdf6ec !important;
+    background-color: #eff6ff !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
   }
 }
 

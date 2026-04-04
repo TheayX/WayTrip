@@ -2,12 +2,16 @@
   <!-- 搜索筛选表单 -->
   <div class="search-form premium-filter-bar mb-6">
     <el-form :inline="true" :model="queryParams" @submit.prevent>
+      <div class="filter-caption">
+        <span class="filter-title">筛选景点</span>
+        <span class="filter-subtitle">按关键词、地区、分类和发布状态快速定位需要处理的内容。</span>
+      </div>
       <div class="flex-between">
         <div class="filter-group flex gap-4">
           <el-form-item class="filter-item mb-0">
             <el-input
               v-model="queryParams.keyword"
-              placeholder="搜索景点名称..."
+              placeholder="搜索景点名称"
               clearable
               class="custom-input search-input"
               :prefix-icon="Search"
@@ -34,7 +38,7 @@
 
           <el-button type="primary" link @click="showAdvanced = !showAdvanced" class="ml-2 font-medium">
             <el-icon class="mr-1"><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
-            {{ showAdvanced ? '收起筛选' : '更多筛选' }}
+            {{ showAdvanced ? '收起条件' : '更多条件' }}
           </el-button>
         </div>
 
@@ -115,16 +119,36 @@ const emitFilterChange = () => emit('filter-change')
 
 <style lang="scss" scoped>
 .premium-filter-bar {
-  background: #f8fafc;
-  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.82) 0%, rgba(255, 255, 255, 0.9) 100%);
+  border-radius: 18px;
   padding: 16px 24px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid rgba(219, 228, 240, 0.9);
   transition: all 0.3s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
 
   &:hover {
     border-color: #e2e8f0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   }
+}
+
+.filter-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.filter-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.filter-subtitle {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #64748b;
 }
 
 .flex { display: flex; }
@@ -146,9 +170,9 @@ const emitFilterChange = () => emit('filter-change')
 .font-medium { font-weight: 500; }
 
 :deep(.el-input__wrapper) {
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.92);
   
   &:hover {
     box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 1px 2px 0 rgba(0, 0, 0, 0.05);

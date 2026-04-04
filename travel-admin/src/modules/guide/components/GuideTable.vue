@@ -107,8 +107,8 @@ const handleCommand = (command, row) => {
 .cover-img {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
 .guide-title-link {
@@ -208,7 +208,7 @@ const handleCommand = (command, row) => {
 }
 
 .danger-text {
-  color: #ef4444 !important;
+  color: #e11d48 !important;
 }
 
 .success-text {

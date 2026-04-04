@@ -1,6 +1,10 @@
 <template>
   <div class="filter-panel">
     <el-form :inline="true" :model="queryParams" @submit.prevent>
+      <div class="filter-caption">
+        <span class="filter-title">筛选攻略</span>
+        <span class="filter-subtitle">按标题关键词、分类和发布状态快速找到需要更新的攻略内容。</span>
+      </div>
       <div class="filter-row">
         <div class="filter-main">
           <el-form-item class="filter-item">
@@ -63,10 +67,30 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
 .filter-panel {
   margin-top: 16px;
   margin-bottom: 20px;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  background: #f8fafc;
+  border: 1px solid rgba(219, 228, 240, 0.9);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.82) 0%, rgba(255, 255, 255, 0.9) 100%);
   padding: 16px 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.filter-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.filter-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.filter-subtitle {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #64748b;
 }
 
 .filter-row,
@@ -112,7 +136,7 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
 :deep(.el-input__wrapper),
 :deep(.el-select__wrapper) {
   border-radius: 10px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 

@@ -2,9 +2,9 @@
   <div class="dashboard premium-dashboard admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">Business Overview</p>
+        <p class="page-kicker">运营总览</p>
         <h1 class="page-title">运营概览</h1>
-        <p class="page-subtitle">集中查看核心指标、趋势变化与业务入口，用总览视角发现问题并跳转处理。</p>
+        <p class="page-subtitle">集中查看核心指标、趋势变化与关键入口，先判断问题方向，再进入具体模块处理。</p>
       </div>
       <div class="hero-actions">
         <el-button type="primary" :loading="loading" @click="fetchData">
@@ -34,13 +34,13 @@
       <!-- 顶部：四大趋势指标卡 -->
       <el-row v-loading="loading" element-loading-text="正在加载概览数据..." :gutter="20" class="trend-cards mb-6">
       <el-col :span="6">
-        <el-card shadow="hover" class="trend-card bg-gradient-to-br from-blue-50 to-white border-blue-100">
+        <el-card shadow="hover" class="trend-card tone-blue">
           <div class="flex justify-between items-start mb-2">
             <div>
-              <p class="text-sm text-gray-500 mb-1">今日收入</p>
+              <p class="metric-label mb-1">今日收入</p>
               <h3 class="text-2xl font-bold text-gray-800">¥{{ formatCurrency(overview.todayRevenue) }}</h3>
             </div>
-            <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+            <div class="metric-icon tone-blue">
               <el-icon><Money /></el-icon>
             </div>
           </div>
@@ -52,13 +52,13 @@
       </el-col>
 
       <el-col :span="6">
-        <el-card shadow="hover" class="trend-card bg-gradient-to-br from-purple-50 to-white border-purple-100">
+        <el-card shadow="hover" class="trend-card tone-violet">
           <div class="flex justify-between items-start mb-2">
             <div>
-              <p class="text-sm text-gray-500 mb-1">今日新增用户</p>
+              <p class="metric-label mb-1">今日新增用户</p>
               <h3 class="text-2xl font-bold text-gray-800">{{ formatInteger(overview.todayNewUsers) }}</h3>
             </div>
-            <div class="p-2 bg-purple-100 text-purple-600 rounded-lg">
+            <div class="metric-icon tone-violet">
               <el-icon><User /></el-icon>
             </div>
           </div>
@@ -70,13 +70,13 @@
       </el-col>
 
       <el-col :span="6">
-        <el-card shadow="hover" class="trend-card bg-gradient-to-br from-emerald-50 to-white border-emerald-100">
+        <el-card shadow="hover" class="trend-card tone-emerald">
           <div class="flex justify-between items-start mb-2">
             <div>
-              <p class="text-sm text-gray-500 mb-1">今日新增景点</p>
+              <p class="metric-label mb-1">今日新增景点</p>
               <h3 class="text-2xl font-bold text-gray-800">{{ formatInteger(overview.todayNewSpots) }}</h3>
             </div>
-            <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+            <div class="metric-icon tone-emerald">
               <el-icon><Location /></el-icon>
             </div>
           </div>
@@ -88,13 +88,13 @@
       </el-col>
 
       <el-col :span="6">
-        <el-card shadow="hover" class="trend-card bg-gradient-to-br from-orange-50 to-white border-orange-100">
+        <el-card shadow="hover" class="trend-card tone-amber">
           <div class="flex justify-between items-start mb-2">
             <div>
-              <p class="text-sm text-gray-500 mb-1">今日订单</p>
+              <p class="metric-label mb-1">今日订单</p>
               <h3 class="text-2xl font-bold text-gray-800">{{ formatInteger(overview.todayOrders) }}</h3>
             </div>
-            <div class="p-2 bg-orange-100 text-orange-600 rounded-lg">
+            <div class="metric-icon tone-amber">
               <el-icon><ShoppingCart /></el-icon>
             </div>
           </div>
@@ -109,7 +109,7 @@
       <!-- 中部：趋势 + 今日概览 -->
       <el-row v-loading="loading" element-loading-text="正在加载趋势与榜单..." :gutter="20">
       <el-col :span="16">
-        <el-card shadow="hover" class="border-0 mb-6">
+        <el-card shadow="hover" class="overview-panel border-0 mb-6">
            <template #header>
             <div class="flex justify-between items-center trend-toolbar">
               <span class="font-bold text-gray-800">订单与收入趋势</span>
@@ -144,7 +144,7 @@
           </div>
         </el-card>
 
-        <el-card shadow="hover" class="border-0">
+        <el-card shadow="hover" class="overview-panel border-0">
           <template #header>
             <div class="flex justify-between items-center">
               <span class="font-bold text-gray-800">近一年订单密集度 (Contribution)</span>
@@ -155,11 +155,11 @@
       </el-col>
 
       <el-col :span="8">
-        <el-card shadow="hover" class="border-0 mb-6">
+        <el-card shadow="hover" class="overview-panel border-0 mb-6">
           <template #header>
             <div class="flex justify-between items-center">
               <span class="font-bold text-gray-800">今日概览</span>
-              <el-tag size="small" type="primary" effect="light" round>真实数据</el-tag>
+              <el-tag size="small" type="primary" effect="light" round>实时汇总</el-tag>
             </div>
           </template>
           <div class="today-overview">
@@ -185,11 +185,11 @@
           </div>
         </el-card>
 
-        <el-card shadow="hover" class="border-0">
+        <el-card shadow="hover" class="overview-panel border-0">
           <template #header>
             <div class="flex justify-between items-center">
               <span class="font-bold text-gray-800">热门景点</span>
-              <el-tag size="small" type="warning" effect="light" round>真实数据</el-tag>
+              <el-tag size="small" type="warning" effect="light" round>重点关注</el-tag>
             </div>
           </template>
           <div class="hot-spots-list">
@@ -224,7 +224,7 @@
             <template #header>
               <div class="flex justify-between items-center">
                 <span class="font-bold text-gray-800">运营入口</span>
-                <el-tag size="small" type="primary" effect="light" round>总览跳转</el-tag>
+                <el-tag size="small" type="primary" effect="light" round>快捷入口</el-tag>
               </div>
             </template>
             <div class="workbench-grid">
@@ -247,11 +247,11 @@
         </el-col>
 
         <el-col :span="8">
-          <el-card shadow="hover" class="border-0 timeline-card">
+        <el-card shadow="hover" class="border-0 timeline-card">
           <template #header>
             <div class="flex justify-between items-center">
               <span class="font-bold text-gray-800">运营提示</span>
-              <el-tag size="small" type="success" effect="light" round>建议</el-tag>
+              <el-tag size="small" type="success" effect="light" round>建议动作</el-tag>
             </div>
           </template>
           <div class="tips-list">
@@ -816,11 +816,7 @@ onUnmounted(() => {
 .overflow-y-auto { overflow-y: auto; }
 .mt-6 { margin-top: 24px; }
 
-.dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+.dashboard { display: flex; flex-direction: column; gap: 20px; }
 
 .dashboard-error {
   padding: 12px 0 4px;
@@ -831,24 +827,70 @@ onUnmounted(() => {
 }
 
 .trend-card {
-  border-radius: 16px;
+  border-radius: 22px;
   overflow: hidden;
-  border-width: 1px;
-  border-style: solid;
+  border: 1px solid rgba(219, 228, 240, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.88) 100%);
 }
-.border-blue-100 { border-color: #dbeafe; }
-.border-purple-100 { border-color: #ede9fe; }
-.border-emerald-100 { border-color: #d1fae5; }
-.border-orange-100 { border-color: #ffedd5; }
 
-/* Subtle gradients */
-.bg-gradient-to-br {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+.trend-card :deep(.el-card__body) {
+  padding: 22px 22px 18px !important;
 }
-.from-blue-50 { --tw-gradient-from: #eff6ff; --tw-gradient-stops: var(--tw-gradient-from), #fff; }
-.from-purple-50 { --tw-gradient-from: #faf5ff; --tw-gradient-stops: var(--tw-gradient-from), #fff; }
-.from-emerald-50 { --tw-gradient-from: #ecfdf5; --tw-gradient-stops: var(--tw-gradient-from), #fff; }
-.from-orange-50 { --tw-gradient-from: #fff7ed; --tw-gradient-stops: var(--tw-gradient-from), #fff; }
+
+.tone-blue {
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.88) 0%, rgba(255, 255, 255, 0.92) 100%);
+}
+
+.tone-violet {
+  background: linear-gradient(180deg, rgba(245, 243, 255, 0.88) 0%, rgba(255, 255, 255, 0.92) 100%);
+}
+
+.tone-emerald {
+  background: linear-gradient(180deg, rgba(236, 253, 245, 0.88) 0%, rgba(255, 255, 255, 0.92) 100%);
+}
+
+.tone-amber {
+  background: linear-gradient(180deg, rgba(255, 247, 237, 0.88) 0%, rgba(255, 255, 255, 0.92) 100%);
+}
+
+.metric-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+}
+
+.metric-icon.tone-blue {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.metric-icon.tone-violet {
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+}
+
+.metric-icon.tone-emerald {
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+}
+
+.metric-icon.tone-amber {
+  background: rgba(217, 119, 6, 0.1);
+  color: #d97706;
+}
+
+.overview-panel {
+  border-radius: 22px;
+}
 
 .trend-toolbar {
   gap: 16px;
@@ -913,8 +955,8 @@ onUnmounted(() => {
 
 .today-overview-item {
   padding: 14px 16px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.86) 100%);
   border: 1px solid #e5edf5;
 }
 
@@ -934,8 +976,8 @@ onUnmounted(() => {
 .today-overview-tip {
   grid-column: 1 / -1;
   padding: 12px 14px;
-  border-radius: 12px;
-  background: #eff6ff;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.08);
   color: #1d4ed8;
   font-size: 12px;
   font-weight: 600;
@@ -955,8 +997,8 @@ onUnmounted(() => {
   width: 100%;
   padding: 14px 16px;
   border: 1px solid #eef2f7;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.88) 100%);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
@@ -1042,9 +1084,9 @@ onUnmounted(() => {
 
 .workbench-entry {
   padding: 18px;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid #e7edf7;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 251, 255, 0.9) 100%);
   text-align: left;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -1080,7 +1122,7 @@ onUnmounted(() => {
   margin-top: 14px;
   font-size: 12px;
   font-weight: 700;
-  color: #245bdb;
+  color: #1d4ed8;
 }
 
 .tips-list {
@@ -1090,8 +1132,8 @@ onUnmounted(() => {
 
 .tips-item {
   padding: 14px 16px;
-  border-radius: 12px;
-  background: #f8fafc;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(255, 255, 255, 0.84) 100%);
   border: 1px solid #e2e8f0;
 }
 

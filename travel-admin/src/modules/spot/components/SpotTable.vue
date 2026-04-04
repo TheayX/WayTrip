@@ -21,7 +21,7 @@
     <el-table-column prop="regionName" label="地区" width="110" align="center" />
     <el-table-column prop="categoryName" label="分类" width="110" align="center">
       <template #default="{ row }">
-        <el-tag effect="plain" type="info" size="small">{{ row.categoryName }}</el-tag>
+        <el-tag effect="plain" type="info" size="small">{{ row.categoryName || '未分类' }}</el-tag>
       </template>
     </el-table-column>
     <el-table-column prop="price" label="价格" width="100" align="center">
@@ -114,8 +114,8 @@ const handleCommand = (command, row) => {
 .cover-img {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
 .spot-name-link {
@@ -143,7 +143,7 @@ const handleCommand = (command, row) => {
   display: inline-block;
   min-width: 56px;
   font-weight: 600;
-  color: #ef4444;
+  color: #9f1239;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
@@ -216,6 +216,6 @@ const handleCommand = (command, row) => {
   justify-content: center;
 }
 
-.danger-text { color: #ef4444 !important; }
+.danger-text { color: #e11d48 !important; }
 .success-text { color: #10b981 !important; }
 </style>
