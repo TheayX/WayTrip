@@ -6,8 +6,11 @@
       <el-aside width="100%" class="aside">
         <!-- Logo 区域 -->
         <div class="logo">
-          <img :src="brandMarkUrl" alt="" aria-hidden="true" class="logo-icon" />
-          <span v-if="!isCollapse" class="logo-text">WayTrip Admin</span>
+          <img v-if="isCollapse" :src="brandMarkUrl" alt="" aria-hidden="true" class="logo-icon" />
+          <template v-else>
+            <img :src="brandLogoUrl" alt="WayTrip" class="logo-full" />
+            <span class="logo-text">Admin</span>
+          </template>
         </div>
         <!-- 导航菜单 -->
         <el-menu
@@ -171,6 +174,7 @@ import { THEME_MODE_OPTIONS } from '@/shared/constants/theme.js'
 import { useTheme } from '@/shared/composables/useTheme.js'
 import { Fold, Expand, Search, Bell, ArrowDown, Moon, Sunny } from '@element-plus/icons-vue'
 import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
+import brandLogoUrl from '@/shared/assets/brand/waytrip-logo.svg'
 
 const router = useRouter()
 const route = useRoute()
@@ -505,24 +509,32 @@ onMounted(async () => {
   border-right: none;
 
   .logo {
-    height: 72px;
+    min-height: 112px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 16px;
+    padding: 18px 16px 14px;
     cursor: pointer;
     flex-shrink: 0;
+    flex-direction: column;
+    gap: 8px;
 
     .logo-icon {
       width: 28px;
       height: 28px;
-      margin-right: 8px;
       flex-shrink: 0;
       display: block;
     }
 
+    .logo-full {
+      width: 148px;
+      height: auto;
+      display: block;
+      flex-shrink: 0;
+    }
+
     .logo-text {
-      font-size: 18px;
+      font-size: 30px;
       font-weight: 700;
       color: var(--el-text-color-primary);
       background: linear-gradient(135deg, var(--el-color-primary), #6366f1);

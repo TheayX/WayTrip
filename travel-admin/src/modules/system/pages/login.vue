@@ -21,8 +21,7 @@
       <div class="login-left">
           <div class="left-content">
             <div class="brand">
-            <img :src="brandMarkUrl" alt="" aria-hidden="true" class="brand-icon" />
-            <span class="brand-text">WayTrip</span>
+            <img :src="brandLogoUrl" alt="WayTrip Admin" class="brand-logo" />
           </div>
           <div class="eyebrow">WayTrip Admin</div>
           <h2 class="slogan">统一管理内容、交易与用户行为</h2>
@@ -73,7 +72,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { ElMessage } from 'element-plus'
-import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
+import brandLogoUrl from '@/shared/assets/brand/waytrip-logo.svg'
 import { useTheme } from '@/shared/composables/useTheme.js'
 import { THEME_MODE_OPTIONS } from '@/shared/constants/theme.js'
 
@@ -266,35 +265,32 @@ const handleLogin = async () => {
     .left-content {
       position: relative;
       z-index: 2;
+      max-width: 360px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 34px;
+      margin-bottom: 38px;
+      margin-left: -18px;
 
-      .brand-icon {
-        width: 48px;
-        height: 48px;
+      .brand-logo {
+        width: 333px;
+        max-width: none;
+        height: auto;
         display: block;
         flex-shrink: 0;
-        filter: drop-shadow(0 18px 24px rgba(59, 130, 246, 0.24));
-      }
-
-      .brand-text {
-        font-size: 22px;
-        font-weight: 700;
-        letter-spacing: 0.06em;
+        filter: drop-shadow(0 18px 24px rgba(59, 130, 246, 0.2));
       }
     }
 
     .eyebrow {
-      font-size: 12px;
+      font-size: 15px;
+      font-weight: 700;
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: rgba(226, 232, 240, 0.72);
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
 
     .slogan {
@@ -562,6 +558,15 @@ const handleLogin = async () => {
   .login-box .login-left {
     padding: 36px 28px 28px;
     gap: 28px;
+
+    .left-content {
+      max-width: 320px;
+    }
+
+    .brand .brand-logo {
+      width: 220px;
+      margin-left: -12px;
+    }
   }
 
   .login-box .login-right {
@@ -585,6 +590,15 @@ const handleLogin = async () => {
 
   .login-box .login-left {
     padding: 30px 22px 24px;
+
+    .left-content {
+      max-width: 280px;
+    }
+
+    .brand .brand-logo {
+      width: 196px;
+      margin-left: -10px;
+    }
   }
 
   .login-box .login-right {
