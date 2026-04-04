@@ -344,7 +344,6 @@ watch(
 }
 
 .source-alert {
-  margin-bottom: 16px;
 }
 
 .source-cell {

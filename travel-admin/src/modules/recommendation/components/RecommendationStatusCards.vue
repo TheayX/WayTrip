@@ -75,14 +75,16 @@ defineProps({
 </script>
 
 <style lang="scss" scoped>
-.status-row {
-  margin-bottom: 24px;
-}
-
 .status-card {
   border-radius: 20px;
   border: none;
   transition: all 0.3s;
+  background: transparent;
+  overflow: hidden;
+
+  :deep(.el-card__body) {
+    padding: 0 !important;
+  }
 
   &:hover {
     transform: translateY(-4px);
@@ -99,6 +101,8 @@ defineProps({
   color: #fff;
   position: relative;
   overflow: hidden;
+  min-height: 136px;
+  box-sizing: border-box;
 
   &::after {
     content: '';
@@ -133,7 +137,9 @@ defineProps({
 
     &.small {
       font-size: 15px;
-      font-weight: normal;
+      font-weight: 600;
+      line-height: 1.45;
+      word-break: break-word;
     }
   }
 }
@@ -147,5 +153,11 @@ defineProps({
 
 .status-card:hover .status-icon {
   transform: scale(1.1) rotate(5deg);
+}
+
+@media (max-width: 1200px) {
+  .status-card-content {
+    min-height: 124px;
+  }
 }
 </style>

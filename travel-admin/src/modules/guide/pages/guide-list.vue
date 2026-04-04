@@ -643,7 +643,6 @@ watch(
 }
 
 .pagination {
-  margin-top: 20px;
   justify-content: flex-end;
 }
 

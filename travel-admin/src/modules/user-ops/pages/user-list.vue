@@ -3,16 +3,34 @@
   <div class="user-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">User Operations</p>
+        <p class="page-kicker">用户运营管理</p>
         <h1 class="page-title">用户管理</h1>
-        <p class="page-subtitle">查看用户基础信息、行为摘要和运营关联入口。</p>
+        <p class="page-subtitle">查看用户基础信息、行为摘要和运营关联入口，快速定位重点用户并进入后续运营链路。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchUserList">刷新数据</el-button>
       </div>
     </section>
 
-    <el-card shadow="hover">
+    <section class="insight-stat-row">
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">当前结果</div>
+        <div class="insight-stat-value">{{ pagination.total }}</div>
+        <div class="insight-stat-desc">符合当前搜索条件的用户数量</div>
+      </el-card>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">本页订单总数</div>
+        <div class="insight-stat-value">{{ currentPageOrderCount }}</div>
+        <div class="insight-stat-desc">当前页用户累计订单量，用于判断消费活跃度</div>
+      </el-card>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">本页互动总数</div>
+        <div class="insight-stat-value">{{ currentPageEngagementCount }}</div>
+        <div class="insight-stat-desc">当前页收藏、评价与浏览等行为汇总</div>
+      </el-card>
+    </section>
+
+    <el-card shadow="hover" class="management-card">
       <!-- 卡片头部 -->
       <template #header>
         <div class="card-header">
@@ -22,6 +40,10 @@
 
       <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+        <div class="filter-caption">
+          <span class="filter-title">筛选用户</span>
+          <span class="filter-subtitle">按昵称快速定位用户，再进入偏好、收藏和浏览行为页继续分析。</span>
+        </div>
         <el-form-item label="昵称">
           <el-input
             v-model="searchForm.nickname"
@@ -179,7 +201,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { getUserList, getUserDetail, resetUserPassword } from '@/modules/user-ops/api/user.js'
@@ -209,6 +231,10 @@ const pagination = reactive({
 // 对话框与表单状态
 const detailVisible = ref(false)
 const currentUser = ref(null)
+const currentPageOrderCount = computed(() => userList.value.reduce((sum, item) => sum + Number(item.orderCount || 0), 0))
+const currentPageEngagementCount = computed(() => userList.value.reduce((sum, item) => {
+  return sum + Number(item.favoriteCount || 0) + Number(item.ratingCount || 0) + Number(item.viewCount || 0)
+}, 0))
 
 // 格式化手机号显示
 const formatPhone = (phone) => {
@@ -377,9 +403,36 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+@use '@/modules/user-ops/styles/user-ops.scss' as userOps;
+
 .user-page {
+  @include userOps.page-shell;
   display: flex;
   flex-direction: column;
+
+  .management-card {
+    border-radius: 22px;
+  }
+
+  .filter-caption {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .filter-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .filter-subtitle {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #64748b;
+  }
+
   .recent-orders {
     margin-top: 24px;
     h4 {
@@ -450,7 +503,7 @@ watch(
 }
 
 .user-table {
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
 }
 
