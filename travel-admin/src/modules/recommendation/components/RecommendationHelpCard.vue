@@ -131,7 +131,7 @@ const emit = defineEmits(['update:active-collapse'])
 
 <style lang="scss" scoped>
 .help-card {
-  border-radius: 12px;
+  border-radius: 20px;
   border: none;
 }
 
@@ -143,7 +143,7 @@ const emit = defineEmits(['update:active-collapse'])
     position: relative;
     padding-left: 12px;
 
-    &::before {
+      &::before {
       content: '';
       position: absolute;
       left: 0;
@@ -151,16 +151,16 @@ const emit = defineEmits(['update:active-collapse'])
       transform: translateY(-50%);
       width: 4px;
       height: 16px;
-      background: #1890ff;
-      border-radius: 2px;
-    }
+        background: #2563eb;
+        border-radius: 2px;
+      }
   }
 }
 
 .help-intro {
   margin-bottom: 16px;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #f6fbff 0%, #eef7ff 100%);
   border: 1px solid #d8eaff;
   color: #44607a;
@@ -198,7 +198,7 @@ const emit = defineEmits(['update:active-collapse'])
 
 .strategy-item {
   background: #fafafa;
-  border-radius: 8px;
+  border-radius: 14px;
   padding: 16px;
 
   .strategy-title {

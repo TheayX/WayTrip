@@ -369,7 +369,7 @@ defineProps({
 
 <style lang="scss" scoped>
 .config-card {
-  border-radius: 12px;
+  border-radius: 20px;
   border: none;
   margin-bottom: 24px;
 
@@ -401,7 +401,7 @@ defineProps({
         transform: translateY(-50%);
         width: 4px;
         height: 16px;
-        background: #722ed1;
+        background: #2563eb;
         border-radius: 2px;
       }
     }
@@ -417,7 +417,7 @@ defineProps({
 
 .impact-overview-card {
   padding: 16px;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid #e5e7eb;
   background: #fff;
 }
@@ -478,7 +478,7 @@ defineProps({
 
 .change-hint-card {
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
 }
@@ -531,7 +531,7 @@ defineProps({
     }
   }
 
-  .section-title {
+    .section-title {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -540,11 +540,11 @@ defineProps({
     color: #303133;
     margin-bottom: 8px;
 
-    .el-icon {
-      color: #722ed1;
-      font-size: 18px;
+      .el-icon {
+        color: #2563eb;
+        font-size: 18px;
+      }
     }
-  }
 
   .section-desc {
     font-size: 13px;

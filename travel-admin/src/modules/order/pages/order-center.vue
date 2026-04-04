@@ -3,9 +3,9 @@
   <div class="order-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">Transaction Workspace</p>
+        <p class="page-kicker">交易订单管理</p>
         <h1 class="page-title">订单中心</h1>
-        <p class="page-subtitle">统一处理订单查询、状态流转和订单跟踪。</p>
+        <p class="page-subtitle">统一处理订单查询、状态流转和售后跟踪，先按工作区筛选，再进入具体订单处理。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading || summaryLoading" @click="handleRefresh">刷新数据</el-button>
@@ -484,7 +484,7 @@ onMounted(() => {
 }
 
 .order-table {
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
 }
 
@@ -530,6 +530,14 @@ onMounted(() => {
 
 :deep(.order-table .el-table__row:hover > td.el-table__cell) {
   background: #f8fbff;
+}
+
+:deep(.workspace-tabs .el-tabs__item.is-active) {
+  color: #0f172a;
+}
+
+:deep(.workspace-tabs .el-tabs__active-bar) {
+  background: #2563eb;
 }
 
 @media (max-width: 960px) {

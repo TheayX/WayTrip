@@ -116,7 +116,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 
 <style lang="scss" scoped>
 .execution-card {
-  border-radius: 12px;
+  border-radius: 20px;
   border: none;
   margin-bottom: 24px;
 }
@@ -142,7 +142,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
   position: relative;
   padding-left: 12px;
 
-  &::before {
+    &::before {
     content: '';
     position: absolute;
     left: 0;
@@ -150,9 +150,9 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
     transform: translateY(-50%);
     width: 4px;
     height: 16px;
-    background: #722ed1;
-    border-radius: 2px;
-  }
+      background: #2563eb;
+      border-radius: 2px;
+    }
 }
 
 .execution-stack {
@@ -162,7 +162,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 
 .execution-intro {
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #fff7e8 0%, #fff1db 100%);
   border: 1px solid #ffd8a8;
   color: #7a4e00;
@@ -172,7 +172,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 
 .execution-brief {
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
 }
@@ -192,7 +192,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 
 .matrix-action-callout {
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #f3fff7 0%, #ebfff1 100%);
   border: 1px solid #b7ebc6;
 }
@@ -237,7 +237,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 
 .execution-metric {
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #f7faff 0%, #eef5ff 100%);
   border: 1px solid #d8e7ff;
 }
@@ -269,7 +269,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 
 .execution-note {
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
 }

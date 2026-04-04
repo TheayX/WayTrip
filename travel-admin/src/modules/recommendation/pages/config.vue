@@ -3,9 +3,9 @@
   <div class="recommendation-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">Recommendation Workspace</p>
+        <p class="page-kicker">推荐系统配置</p>
         <h1 class="page-title">推荐配置</h1>
-        <p class="page-subtitle">左侧维护参数配置，右侧处理保存与矩阵执行，下方进行调试预览和结果验证。</p>
+        <p class="page-subtitle">上方看整体状态，中部维护参数与执行动作，下方完成调试预览和字段说明核对。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="pageLoading || saving || updatingMatrix" @click="loadPageData">刷新状态</el-button>
@@ -298,8 +298,8 @@ onMounted(async () => {
   }
 
   .workspace-summary-card {
-    border-radius: 14px;
-    border: 1px solid #e7edf7;
+    border-radius: 20px;
+    border: 1px solid rgba(219, 228, 240, 0.9);
   }
 
   .summary-label {
@@ -323,6 +323,7 @@ onMounted(async () => {
 
   .workspace-shell-card {
     border: none;
+    border-radius: 22px;
   }
 
   .shell-card-header {
