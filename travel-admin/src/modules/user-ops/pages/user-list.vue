@@ -75,7 +75,13 @@
             <el-avatar :src="row.avatar" :size="40">{{ row.nickname?.charAt(0) }}</el-avatar>
           </template>
         </el-table-column>
-        <el-table-column prop="nickname" label="昵称" min-width="120" />
+        <el-table-column label="昵称" min-width="120">
+          <template #default="{ row }">
+            <el-button link type="primary" class="nickname-link" @click="handleDetail(row)">
+              {{ row.nickname }}
+            </el-button>
+          </template>
+        </el-table-column>
         <el-table-column label="手机号" width="140">
           <template #default="{ row }">
             {{ formatPhone(row.phone) }}
@@ -505,6 +511,17 @@ watch(
 .user-table {
   border-radius: 18px;
   overflow: hidden;
+}
+
+:deep(.user-table .el-button.is-link) {
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  height: auto;
+}
+
+.nickname-link {
+  font-weight: 600;
 }
 
 :deep(.user-table th.el-table__cell) {
