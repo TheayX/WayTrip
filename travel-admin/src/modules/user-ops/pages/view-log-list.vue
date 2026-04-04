@@ -2,41 +2,39 @@
   <div class="view-log-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">User Operations</p>
+        <p class="page-kicker">浏览行为运营</p>
         <h1 class="page-title">浏览行为</h1>
-        <p class="page-subtitle">查看用户浏览行为、来源分布和停留时长。</p>
+        <p class="page-subtitle">查看浏览来源、停留时长和景点点击表现，用于判断各入口的真实贡献。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchViewList">刷新数据</el-button>
       </div>
     </section>
 
-    <el-card shadow="hover">
-      <!-- 卡片头部 -->
+    <section class="insight-stat-row">
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">筛选结果</div>
+        <div class="insight-stat-value">{{ pagination.total }}</div>
+        <div class="insight-stat-desc">当前条件下的浏览记录总数</div>
+      </el-card>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">当前页平均停留</div>
+        <div class="insight-stat-value">{{ averageDuration }} 秒</div>
+        <div class="insight-stat-desc">用于快速判断当前筛选结果的浏览深度</div>
+      </el-card>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">当前页主要来源</div>
+        <div class="insight-stat-value">{{ topSourceLabel }}</div>
+        <div class="insight-stat-desc">帮助判断推荐、搜索、攻略等入口的贡献</div>
+      </el-card>
+    </section>
+
+    <el-card shadow="hover" class="management-card">
       <template #header>
         <div class="card-header">
-          <span>浏览行为</span>
+          <span>浏览记录</span>
         </div>
       </template>
-
-      <!-- 统计卡片 -->
-      <div class="insight-stat-row">
-        <el-card shadow="never" class="insight-stat-card">
-          <div class="insight-stat-label">筛选结果</div>
-          <div class="insight-stat-value">{{ pagination.total }}</div>
-          <div class="insight-stat-desc">当前条件下的浏览记录总数</div>
-        </el-card>
-        <el-card shadow="never" class="insight-stat-card">
-          <div class="insight-stat-label">当前页平均停留</div>
-          <div class="insight-stat-value">{{ averageDuration }} 秒</div>
-          <div class="insight-stat-desc">用于快速判断当前筛选结果的浏览深度</div>
-        </el-card>
-        <el-card shadow="never" class="insight-stat-card">
-          <div class="insight-stat-label">当前页主要来源</div>
-          <div class="insight-stat-value">{{ topSourceLabel }}</div>
-          <div class="insight-stat-desc">帮助判断推荐、搜索、攻略等入口的贡献</div>
-        </el-card>
-      </div>
 
       <el-alert
         class="source-alert"
@@ -46,8 +44,11 @@
         title="说明：这里展示的是数据库原始来源值；推荐算法计算时会再归并到首页、搜索、攻略、推荐、默认这几个来源挡位。"
       />
 
-      <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+        <div class="filter-caption">
+          <span class="filter-title">筛选浏览记录</span>
+          <span class="filter-subtitle">按用户、景点、来源和时间段回看浏览轨迹，优先识别高频入口和高停留内容。</span>
+        </div>
         <el-form-item label="用户昵称">
           <el-input
             v-model="searchForm.nickname"
@@ -106,7 +107,6 @@
         </el-result>
       </div>
 
-      <!-- 浏览列表 -->
       <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table">
         <el-table-column prop="id" label="记录ID" width="90" />
         <el-table-column label="用户昵称" width="160">
@@ -122,7 +122,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="来源" width="120">
+        <el-table-column label="来源" width="120" align="center">
           <template #default="{ row }">
             <div class="source-cell">
               <el-tag effect="light">{{ getSourceLabel(row.source) }}</el-tag>
@@ -130,18 +130,17 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="停留时长" width="120">
+        <el-table-column label="停留时长" width="120" align="center">
           <template #default="{ row }">{{ row.duration || 0 }} 秒</template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="浏览时间" width="170" />
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column prop="createdAt" label="浏览时间" width="170" align="center" />
+        <el-table-column label="操作" width="100" fixed="right" align="center">
           <template #default="{ row }">
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <!-- 分页器 -->
       <div class="pagination-wrapper">
         <el-pagination
           v-model:current-page="pagination.page"
@@ -341,9 +340,34 @@ watch(
 
 .view-log-page {
   @include userOps.page-shell;
+
+  .management-card {
+    border-radius: 22px;
+  }
+}
+
+.filter-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.filter-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.filter-subtitle {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #64748b;
 }
 
 .source-alert {
+  margin-bottom: 12px;
+  border-radius: 14px;
 }
 
 .source-cell {
@@ -367,13 +391,20 @@ watch(
 .spot-cover {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: 10px;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
 .ops-table {
   border-radius: 16px;
   overflow: hidden;
+}
+
+:deep(.ops-table .el-button.is-link) {
+  padding: 0;
+  min-width: 0;
+  height: auto;
 }
 
 :deep(.ops-table th.el-table__cell) {

@@ -110,9 +110,9 @@
           </template>
         </el-table-column>
         <el-table-column prop="comment" label="评价内容" min-width="260" show-overflow-tooltip />
-        <el-table-column prop="createdAt" label="创建时间" width="170" />
-        <el-table-column prop="updatedAt" label="更新时间" width="170" />
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column prop="createdAt" label="创建时间" width="170" align="center" />
+        <el-table-column prop="updatedAt" label="更新时间" width="170" align="center" />
+        <el-table-column label="操作" width="120" fixed="right" align="center">
           <template #default="{ row }">
             <el-button link type="danger" @click="handleDelete(row)">违规删除</el-button>
           </template>
@@ -290,6 +290,12 @@ onMounted(() => {
 .review-table {
   border-radius: 18px;
   overflow: hidden;
+}
+
+:deep(.review-table .el-button.is-link) {
+  padding: 0;
+  min-width: 0;
+  height: auto;
 }
 
 :deep(.review-table th.el-table__cell) {

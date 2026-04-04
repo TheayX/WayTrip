@@ -2,44 +2,45 @@
   <div class="preference-page admin-page-shell">
     <section class="page-hero">
       <div>
-        <p class="page-kicker">User Operations</p>
+        <p class="page-kicker">用户画像运营</p>
         <h1 class="page-title">用户偏好</h1>
-        <p class="page-subtitle">查看用户画像标签和偏好分类分布。</p>
+        <p class="page-subtitle">查看用户画像标签和分类分布，判断当前兴趣覆盖是否稳定、是否需要回看推荐结果。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchPreferenceList">刷新数据</el-button>
       </div>
     </section>
 
-    <el-card shadow="hover">
-      <!-- 卡片头部 -->
+    <section class="insight-stat-row">
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">覆盖用户</div>
+        <div class="insight-stat-value">{{ pagination.total }}</div>
+        <div class="insight-stat-desc">当前筛选条件下的用户画像记录数</div>
+      </el-card>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">当前页标签数</div>
+        <div class="insight-stat-value">{{ currentPageTagCount }}</div>
+        <div class="insight-stat-desc">当前页所有用户偏好标签的累计数量</div>
+      </el-card>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">当前页高频偏好</div>
+        <div class="insight-stat-value">{{ topPreferenceTag }}</div>
+        <div class="insight-stat-desc">用于快速观察当前筛选结果的主导偏好方向</div>
+      </el-card>
+    </section>
+
+    <el-card shadow="hover" class="management-card">
       <template #header>
         <div class="card-header">
-          <span>用户偏好</span>
+          <span>偏好画像</span>
         </div>
       </template>
 
-      <!-- 统计卡片 -->
-      <div class="insight-stat-row">
-        <el-card shadow="never" class="insight-stat-card">
-          <div class="insight-stat-label">覆盖用户</div>
-          <div class="insight-stat-value">{{ pagination.total }}</div>
-          <div class="insight-stat-desc">当前筛选条件下的用户画像记录数</div>
-        </el-card>
-        <el-card shadow="never" class="insight-stat-card">
-          <div class="insight-stat-label">当前页标签数</div>
-          <div class="insight-stat-value">{{ currentPageTagCount }}</div>
-          <div class="insight-stat-desc">当前页所有用户偏好标签的累计数量</div>
-        </el-card>
-        <el-card shadow="never" class="insight-stat-card">
-          <div class="insight-stat-label">当前页高频偏好</div>
-          <div class="insight-stat-value">{{ topPreferenceTag }}</div>
-          <div class="insight-stat-desc">用于快速观察当前筛选结果的主导偏好方向</div>
-        </el-card>
-      </div>
-
-      <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+        <div class="filter-caption">
+          <span class="filter-title">筛选用户画像</span>
+          <span class="filter-subtitle">按用户昵称和偏好分类快速定位画像标签，再回到收藏、浏览和推荐结果页交叉验证。</span>
+        </div>
         <el-form-item label="用户昵称">
           <el-input
             v-model="searchForm.nickname"
@@ -77,11 +78,14 @@
         </el-result>
       </div>
 
-      <!-- 偏好列表 -->
       <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table">
         <el-table-column prop="userId" label="用户ID" width="90" />
-        <el-table-column prop="nickname" label="用户昵称" min-width="140" />
-        <el-table-column prop="phone" label="手机号" width="150">
+        <el-table-column label="用户昵称" min-width="140">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="handleOpenUser(row)">{{ row.nickname }}</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="phone" label="手机号" width="150" align="center">
           <template #default="{ row }">{{ formatPhone(row.phone) }}</template>
         </el-table-column>
         <el-table-column label="偏好标签" min-width="260">
@@ -92,11 +96,10 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="updatedAt" label="最近更新时间" width="170" />
-        <el-table-column prop="createdAt" label="注册时间" width="170" />
+        <el-table-column prop="updatedAt" label="最近更新时间" width="170" align="center" />
+        <el-table-column prop="createdAt" label="注册时间" width="170" align="center" />
       </el-table>
 
-      <!-- 分页器 -->
       <div class="pagination-wrapper">
         <el-pagination
           v-model:current-page="pagination.page"
@@ -242,6 +245,10 @@ const applyRouteQuery = () => {
   searchForm.categoryId = typeof route.query.categoryId === 'string' ? Number(route.query.categoryId) : null
 }
 
+const handleOpenUser = (row) => {
+  router.push({ path: '/user', query: { nickname: row.nickname || '' } })
+}
+
 // 页面初始化
 onMounted(() => {
   applyRouteQuery()
@@ -268,6 +275,29 @@ watch(
 
 .preference-page {
   @include userOps.page-shell;
+
+  .management-card {
+    border-radius: 22px;
+  }
+}
+
+.filter-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.filter-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.filter-subtitle {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #64748b;
 }
 
 .tag-list {
@@ -283,6 +313,12 @@ watch(
 .ops-table {
   border-radius: 16px;
   overflow: hidden;
+}
+
+:deep(.ops-table .el-button.is-link) {
+  padding: 0;
+  min-width: 0;
+  height: auto;
 }
 
 :deep(.ops-table th.el-table__cell) {
