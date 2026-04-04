@@ -88,7 +88,7 @@ defineProps({
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: var(--wt-shadow-soft) !important;
   }
 }
 
@@ -111,7 +111,7 @@ defineProps({
     right: -20px;
     width: 100px;
     height: 100px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--wt-overlay-bg);
     border-radius: 50%;
   }
 

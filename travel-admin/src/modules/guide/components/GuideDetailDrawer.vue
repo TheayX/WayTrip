@@ -136,7 +136,7 @@ const containsHtml = (content) => /<[^>]+>/.test(content || '')
   }
 
   &.unpublished {
-    color: #64748b;
+    color: var(--wt-text-secondary);
   }
 }
 

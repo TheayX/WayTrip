@@ -400,8 +400,8 @@ onMounted(() => {
 }
 
 :deep(.admin-table th.el-table__cell) {
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--wt-fill-hover);
+  color: var(--wt-text-secondary);
   font-weight: 600;
 }
 
@@ -412,7 +412,7 @@ onMounted(() => {
 
   :deep(td.el-table__cell),
   :deep(th.el-table__cell.is-leaf) {
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--wt-divider-faint);
   }
 }
 
@@ -445,11 +445,11 @@ onMounted(() => {
   }
 
   &.status-neutral {
-    background-color: #f1f5f9;
-    color: #475569;
+    background-color: var(--wt-tag-info-bg);
+    color: var(--wt-text-regular);
 
     .dot {
-      background-color: #94a3b8;
+      background-color: var(--wt-text-secondary);
     }
   }
 }
@@ -459,7 +459,7 @@ onMounted(() => {
 }
 
 :deep(.admin-table .el-table__row:hover > td.el-table__cell) {
-  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+  background: var(--wt-row-gradient-hover) !important;
 }
 
 </style>

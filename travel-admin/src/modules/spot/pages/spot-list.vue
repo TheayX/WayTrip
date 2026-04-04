@@ -816,7 +816,7 @@ watch(
 
 .summary-label {
   font-size: 13px;
-  color: #64748b;
+  color: var(--wt-text-secondary);
   font-weight: 600;
 }
 
@@ -825,14 +825,14 @@ watch(
   font-size: 28px;
   line-height: 1.1;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--wt-text-primary);
 }
 
 .summary-desc {
   margin-top: 10px;
   font-size: 12px;
   line-height: 1.7;
-  color: #64748b;
+  color: var(--wt-text-regular);
 }
 
 .management-card {

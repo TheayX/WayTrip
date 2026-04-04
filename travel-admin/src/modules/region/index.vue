@@ -337,7 +337,7 @@ onMounted(() => {
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.04em;
-    color: #64748b;
+    color: var(--wt-text-secondary);
   }
 
   .summary-value {
@@ -345,7 +345,7 @@ onMounted(() => {
     font-size: 34px;
     font-weight: 700;
     line-height: 1.05;
-    color: #0f172a;
+    color: var(--wt-text-primary);
   }
 
   .summary-value--sm {
@@ -357,7 +357,7 @@ onMounted(() => {
     margin-top: 10px;
     font-size: 13px;
     line-height: 1.6;
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
   }
 
   .left-card {
@@ -381,7 +381,7 @@ onMounted(() => {
         border: 1px solid transparent;
 
         &:hover {
-          background-color: #f8fafc;
+          background-color: var(--wt-fill-hover);
           .item-actions { opacity: 1; }
         }
 
@@ -399,7 +399,7 @@ onMounted(() => {
           gap: 12px;
 
           .action-icon {
-            color: #94a3b8;
+            color: var(--wt-text-secondary);
             font-size: 30px;
             cursor: pointer;
             padding: 4px;
@@ -426,8 +426,8 @@ onMounted(() => {
 }
 
 :deep(.content-table th.el-table__cell) {
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--wt-fill-hover);
+  color: var(--wt-text-secondary);
   font-weight: 600;
 }
 
@@ -437,17 +437,17 @@ onMounted(() => {
 
 :deep(.borderless-table td.el-table__cell),
 :deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--wt-divider-faint);
 }
 
 :deep(.content-table .el-table__row:hover > td.el-table__cell) {
-  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+  background: var(--wt-row-gradient-hover) !important;
 }
 .form-tip {
   margin-top: 8px;
   font-size: 12px;
   line-height: 1.5;
-  color: #94a3b8;
+  color: var(--wt-text-secondary);
 }
 
 @media (max-width: 1200px) {

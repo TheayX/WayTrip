@@ -304,13 +304,13 @@ watch(
 .filter-title {
   font-size: 13px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--wt-text-primary);
 }
 
 .filter-subtitle {
   font-size: 12px;
   line-height: 1.6;
-  color: #64748b;
+  color: var(--wt-text-regular);
 }
 
 .spot-cell {
@@ -340,8 +340,8 @@ watch(
 }
 
 :deep(.ops-table th.el-table__cell) {
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--wt-fill-hover);
+  color: var(--wt-text-secondary);
   font-weight: 600;
 }
 
@@ -351,11 +351,11 @@ watch(
 
 :deep(.borderless-table td.el-table__cell),
 :deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--wt-divider-faint);
 }
 
 :deep(.ops-table .el-table__row:hover > td.el-table__cell) {
-  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+  background: var(--wt-row-gradient-hover) !important;
 }
 
 </style>

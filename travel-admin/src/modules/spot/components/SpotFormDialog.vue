@@ -395,7 +395,6 @@ defineExpose({
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #94a3b8;
     color: var(--wt-text-secondary);
 
     .el-icon { font-size: 32px; }

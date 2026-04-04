@@ -388,7 +388,7 @@ defineProps({
     .title {
       font-size: 16px;
       font-weight: 600;
-      color: #1f2f3d;
+      color: var(--wt-text-primary);
       position: relative;
       padding-left: 12px;
 
@@ -400,7 +400,7 @@ defineProps({
         transform: translateY(-50%);
         width: 4px;
         height: 16px;
-        background: #2563eb;
+        background: var(--el-color-primary);
         border-radius: 2px;
       }
     }
@@ -417,8 +417,8 @@ defineProps({
 .impact-overview-card {
   padding: 18px;
   border-radius: 20px;
-  border: 1px solid rgba(219, 228, 240, 0.92);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--wt-border-default);
+  box-shadow: inset 0 1px 0 var(--wt-overlay-bg);
 }
 
 .impact-overview-head {
@@ -431,41 +431,57 @@ defineProps({
 .impact-overview-title {
   font-size: 14px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--wt-text-primary);
 }
 
 .impact-overview-desc {
   margin-top: 10px;
   font-size: 12px;
   line-height: 1.7;
-  color: #5b6475;
+  color: var(--wt-text-regular);
 }
 
 .impact-overview-meta {
   margin-top: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: #334155;
+  color: var(--wt-text-primary);
 }
 
 .impact-overview-card.tone-live {
-  background: linear-gradient(135deg, rgba(243, 255, 247, 0.96) 0%, rgba(235, 255, 241, 0.92) 100%);
-  border-color: rgba(183, 235, 198, 0.95);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-tag-success-bg) 72%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-tag-success-bg) 48%, var(--wt-surface-muted)) 100%
+  );
+  border-color: color-mix(in srgb, var(--wt-tag-success-text) 18%, var(--wt-border-default));
 }
 
 .impact-overview-card.tone-matrix {
-  background: linear-gradient(135deg, rgba(255, 249, 240, 0.96) 0%, rgba(255, 244, 230, 0.92) 100%);
-  border-color: rgba(255, 213, 145, 0.95);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 74%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 52%, var(--wt-surface-muted)) 100%
+  );
+  border-color: color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
 }
 
 .impact-overview-card.tone-save {
-  background: linear-gradient(135deg, rgba(248, 251, 255, 0.96) 0%, rgba(242, 247, 255, 0.92) 100%);
-  border-color: rgba(214, 228, 255, 0.95);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--el-color-primary-light-9) 58%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--el-color-primary-light-9) 34%, var(--wt-surface-muted)) 100%
+  );
+  border-color: color-mix(in srgb, var(--el-color-primary) 14%, var(--wt-border-default));
 }
 
 .impact-overview-card.tone-status {
-  background: linear-gradient(135deg, rgba(247, 245, 255, 0.96) 0%, rgba(240, 235, 255, 0.92) 100%);
-  border-color: rgba(211, 195, 255, 0.95);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #722ed1 14%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, #722ed1 8%, var(--wt-surface-muted)) 100%
+  );
+  border-color: color-mix(in srgb, #722ed1 18%, var(--wt-border-default));
 }
 
 .change-hint-panel {
@@ -478,13 +494,17 @@ defineProps({
 .change-hint-card {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.9) 100%);
-  border: 1px solid rgba(226, 232, 240, 0.96);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
 }
 
 .change-hint-card.matrix {
-  background: linear-gradient(135deg, rgba(255, 250, 240, 0.96) 0%, rgba(255, 245, 230, 0.92) 100%);
-  border-color: rgba(251, 211, 141, 0.95);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 72%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 50%, var(--wt-surface-muted)) 100%
+  );
+  border-color: color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
 }
 
 .change-hint-title {
@@ -494,14 +514,14 @@ defineProps({
   gap: 12px;
   font-size: 13px;
   font-weight: 700;
-  color: #253046;
+  color: var(--wt-text-primary);
 }
 
 .change-hint-desc {
   margin-top: 8px;
   font-size: 12px;
   line-height: 1.7;
-  color: #5b6475;
+  color: var(--wt-text-regular);
 }
 
 .section-eyebrow {
@@ -512,7 +532,7 @@ defineProps({
   margin-bottom: 10px;
   font-size: 12px;
   font-weight: 700;
-  color: #5b6475;
+  color: var(--wt-text-regular);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -521,7 +541,7 @@ defineProps({
   .form-section {
     margin-bottom: 32px;
     padding-bottom: 24px;
-    border-bottom: 1px solid #eef2f7;
+    border-bottom: 1px solid var(--wt-divider-soft);
 
     &:last-child {
       border-bottom: none;
@@ -536,18 +556,18 @@ defineProps({
     gap: 8px;
     font-size: 15px;
     font-weight: 600;
-    color: #303133;
+    color: var(--wt-text-primary);
     margin-bottom: 8px;
 
       .el-icon {
-        color: #2563eb;
+        color: var(--el-color-primary);
         font-size: 18px;
       }
     }
 
   .section-desc {
     font-size: 13px;
-    color: #64748b;
+    color: var(--wt-text-regular);
     margin-bottom: 20px;
   }
 
@@ -559,20 +579,20 @@ defineProps({
     margin: 8px 0 8px;
     font-size: 13px;
     font-weight: 700;
-    color: #253046;
+    color: var(--wt-text-primary);
   }
 
   .section-subdesc {
     margin-bottom: 16px;
     font-size: 12px;
     line-height: 1.7;
-    color: #607086;
+    color: var(--wt-text-regular);
   }
 
   .form-tip {
     display: block;
     font-size: 12px;
-    color: #64748b;
+    color: var(--wt-text-regular);
     margin-top: 4px;
   }
 

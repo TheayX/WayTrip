@@ -430,20 +430,20 @@ watch(
   .filter-title {
     font-size: 13px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--wt-text-primary);
   }
 
   .filter-subtitle {
     font-size: 12px;
     line-height: 1.6;
-    color: #64748b;
+    color: var(--wt-text-regular);
   }
 
   .recent-orders {
     margin-top: 24px;
     h4 {
       margin-bottom: 12px;
-      color: #0f172a;
+      color: var(--wt-text-primary);
       font-weight: 600;
     }
   }
@@ -458,28 +458,28 @@ watch(
   .summary-card {
     min-height: 180px;
     border-radius: 16px !important;
-    border: 1px solid #f1f5f9 !important;
+    border: 1px solid var(--wt-divider-soft) !important;
   }
 
   .summary-metric {
     font-size: 22px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--wt-text-primary);
   }
 
   .summary-line {
     margin-top: 12px;
-    color: #475569;
+    color: var(--wt-text-regular);
   }
 
   .summary-line-muted {
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
   }
 
   .summary-meta {
     margin-top: 12px;
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
     line-height: 1.6;
   }
 
@@ -492,12 +492,12 @@ watch(
 
   .summary-empty {
     margin-top: 12px;
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
   }
 
   .summary-divider {
     margin: 0 6px;
-    color: #e2e8f0;
+    color: var(--wt-border-default);
   }
 
   .table-actions {
@@ -525,8 +525,8 @@ watch(
 }
 
 :deep(.user-table th.el-table__cell) {
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--wt-fill-hover);
+  color: var(--wt-text-secondary);
   font-weight: 600;
 }
 
@@ -536,11 +536,11 @@ watch(
 
 :deep(.borderless-table td.el-table__cell),
 :deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--wt-divider-faint);
 }
 
 :deep(.user-table .el-table__row:hover > td.el-table__cell) {
-  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+  background: var(--wt-row-gradient-hover) !important;
 }
 
 @media (max-width: 900px) {

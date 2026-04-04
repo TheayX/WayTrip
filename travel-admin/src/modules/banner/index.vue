@@ -425,7 +425,7 @@ onMounted(() => {
 
 .summary-label {
   font-size: 13px;
-  color: #64748b;
+  color: var(--wt-text-secondary);
   font-weight: 600;
 }
 
@@ -434,14 +434,14 @@ onMounted(() => {
   font-size: 28px;
   line-height: 1.1;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--wt-text-primary);
 }
 
 .summary-desc {
   margin-top: 10px;
   font-size: 12px;
   line-height: 1.7;
-  color: #64748b;
+  color: var(--wt-text-regular);
 }
 
 .card-header {
@@ -472,7 +472,7 @@ onMounted(() => {
 }
 
 .text-muted {
-  color: #94a3b8;
+  color: var(--wt-text-secondary);
 }
 
 .banner-table {
@@ -481,8 +481,8 @@ onMounted(() => {
 }
 
 :deep(.banner-table th.el-table__cell) {
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--wt-fill-hover);
+  color: var(--wt-text-secondary);
   font-weight: 600;
 }
 
@@ -492,22 +492,22 @@ onMounted(() => {
 
 :deep(.borderless-table td.el-table__cell),
 :deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--wt-divider-faint);
 }
 
 :deep(.banner-table .el-table__row:hover > td.el-table__cell) {
-  background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+  background: var(--wt-row-gradient-hover) !important;
 }
 
 .upload-container {
   .image-uploader {
     :deep(.el-upload) {
-      border: 2px dashed #e2e8f0;
+      border: 2px dashed var(--wt-border-default);
       border-radius: 12px;
       cursor: pointer;
       overflow: hidden;
       transition: all 0.3s;
-      &:hover { border-color: var(--el-color-primary); background: #f8fafc; }
+      &:hover { border-color: var(--el-color-primary); background: var(--wt-fill-hover); }
     }
   }
   .uploaded-image {
@@ -521,13 +521,13 @@ onMounted(() => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
     .el-icon { font-size: 28px; margin-bottom: 8px; }
     span { font-size: 12px; }
   }
   .upload-tip {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
     margin-top: 8px;
   }
 }
@@ -535,7 +535,7 @@ onMounted(() => {
   margin-top: 8px;
   font-size: 12px;
   line-height: 1.5;
-  color: #94a3b8;
+  color: var(--wt-text-secondary);
 }
 
 .spot-name-cell {
@@ -550,7 +550,7 @@ onMounted(() => {
   height: auto;
   justify-content: flex-start;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--wt-text-primary);
 
   &:hover {
     color: var(--el-color-primary);

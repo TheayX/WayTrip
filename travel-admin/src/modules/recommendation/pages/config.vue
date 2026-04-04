@@ -275,26 +275,26 @@ onMounted(async () => {
 
   .workspace-summary-card {
     border-radius: 20px;
-    border: 1px solid rgba(219, 228, 240, 0.9);
+    border: 1px solid var(--wt-border-default);
   }
 
   .summary-label {
     font-size: 12px;
-    color: #64748b;
+    color: var(--wt-text-secondary);
   }
 
   .summary-value {
     margin-top: 10px;
     font-size: 24px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--wt-text-primary);
   }
 
   .summary-desc {
     margin-top: 10px;
     font-size: 12px;
     line-height: 1.7;
-    color: #607086;
+    color: var(--wt-text-regular);
   }
 
   .workspace-section {

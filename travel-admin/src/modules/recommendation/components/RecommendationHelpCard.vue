@@ -240,7 +240,7 @@ const emit = defineEmits(['update:active-collapse'])
   .title {
     font-size: 16px;
     font-weight: 600;
-    color: #1f2f3d;
+    color: var(--wt-text-primary);
     position: relative;
     padding-left: 12px;
 
@@ -252,7 +252,7 @@ const emit = defineEmits(['update:active-collapse'])
       transform: translateY(-50%);
       width: 4px;
       height: 16px;
-        background: #2563eb;
+        background: var(--el-color-primary);
         border-radius: 2px;
       }
   }
@@ -262,9 +262,9 @@ const emit = defineEmits(['update:active-collapse'])
   margin-bottom: 16px;
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(246, 251, 255, 0.96) 0%, rgba(238, 247, 255, 0.92) 100%);
-  border: 1px solid rgba(216, 234, 255, 0.96);
-  color: #44607a;
+  background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
+  color: var(--wt-text-regular);
   line-height: 1.7;
   font-size: 13px;
 }
@@ -272,7 +272,7 @@ const emit = defineEmits(['update:active-collapse'])
 .help-content {
   padding: 8px 0;
   line-height: 1.8;
-  color: #606266;
+  color: var(--wt-text-regular);
 
   ul {
     padding-left: 20px;
@@ -284,15 +284,15 @@ const emit = defineEmits(['update:active-collapse'])
 
   code {
     padding: 2px 6px;
-    background: #f5f5f5;
+    background: var(--wt-surface-muted);
     border-radius: 4px;
     font-size: 13px;
-    color: #722ed1;
+    color: var(--el-color-primary);
   }
 }
 
 .formula-intro {
-  color: #475569;
+  color: var(--wt-text-regular);
   line-height: 1.8;
 }
 
@@ -306,9 +306,9 @@ const emit = defineEmits(['update:active-collapse'])
 .formula-card {
   padding: 18px;
   border-radius: 20px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.92) 100%);
-  border: 1px solid rgba(226, 232, 240, 0.96);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
+  box-shadow: inset 0 1px 0 var(--wt-overlay-bg);
 }
 
 .formula-card-head {
@@ -321,13 +321,13 @@ const emit = defineEmits(['update:active-collapse'])
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--wt-text-secondary);
 }
 
 .formula-title {
   font-size: 16px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--wt-text-primary);
 }
 
 .formula-surface {
@@ -335,12 +335,12 @@ const emit = defineEmits(['update:active-collapse'])
   margin-top: 14px;
   padding: 16px 18px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(244, 248, 255, 0.96) 0%, rgba(255, 255, 255, 0.96) 100%);
-  border: 1px solid rgba(214, 226, 241, 0.96);
+  background: linear-gradient(135deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
+  border: 1px solid var(--wt-border-default);
 
   math {
     min-width: 520px;
-    color: #0f172a;
+    color: var(--wt-text-primary);
     font-size: 1.04rem;
   }
 }
@@ -354,8 +354,8 @@ const emit = defineEmits(['update:active-collapse'])
     margin: 0;
     padding: 12px 14px;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(232, 238, 247, 0.96);
+    background: var(--wt-overlay-bg);
+    border: 1px solid var(--wt-border-soft);
     line-height: 1.75;
   }
 }
@@ -367,20 +367,20 @@ const emit = defineEmits(['update:active-collapse'])
 }
 
 .strategy-item {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.9) 100%);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   border-radius: 18px;
   padding: 18px;
-  border: 1px solid rgba(226, 232, 240, 0.96);
+  border: 1px solid var(--wt-border-default);
 
   .strategy-title {
     font-weight: 600;
-    color: #303133;
+    color: var(--wt-text-primary);
     margin-bottom: 8px;
   }
 
   .strategy-desc {
     font-size: 13px;
-    color: #606266;
+    color: var(--wt-text-regular);
   }
 }
 
@@ -398,7 +398,7 @@ const emit = defineEmits(['update:active-collapse'])
   margin-bottom: 12px;
   font-size: 14px;
   font-weight: 700;
-  color: #1f2f3d;
+  color: var(--wt-text-primary);
 }
 
 .field-pill {
@@ -406,9 +406,9 @@ const emit = defineEmits(['update:active-collapse'])
   align-items: center;
   padding: 4px 10px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #eef6ff 0%, #f6faff 100%);
-  border: 1px solid #cfe3ff;
-  color: #245bdb;
+  background: var(--wt-tag-primary-bg);
+  border: 1px solid color-mix(in srgb, var(--el-color-primary) 20%, var(--wt-border-default));
+  color: var(--wt-tag-primary-text);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.4;

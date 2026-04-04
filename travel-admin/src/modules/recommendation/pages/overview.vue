@@ -417,7 +417,7 @@ onMounted(async () => {
       width: 96px;
       height: 96px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.12);
+      background: color-mix(in srgb, var(--wt-overlay-bg) 38%, transparent);
     }
   }
 
@@ -474,30 +474,30 @@ onMounted(async () => {
   .entry-card {
     padding: 18px;
     border-radius: 14px;
-    border: 1px solid #e7edf7;
+    border: 1px solid var(--wt-border-default);
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.35);
+      box-shadow: var(--wt-shadow-soft);
     }
   }
 
   .entry-card.tone-config {
-    background: linear-gradient(135deg, #f5f9ff 0%, #edf4ff 100%);
+    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, color-mix(in srgb, var(--el-color-primary-light-9) 50%, var(--wt-surface-muted)) 100%);
   }
 
   .entry-card.tone-profile {
-    background: linear-gradient(135deg, #f2fff7 0%, #ebfff1 100%);
+    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, color-mix(in srgb, var(--wt-tag-success-bg) 55%, var(--wt-surface-muted)) 100%);
   }
 
   .entry-card.tone-favorite {
-    background: linear-gradient(135deg, #fffaf0 0%, #fff4e6 100%);
+    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, color-mix(in srgb, var(--wt-tag-warning-bg) 55%, var(--wt-surface-muted)) 100%);
   }
 
   .entry-card.tone-view {
-    background: linear-gradient(135deg, #f8faff 0%, #f1f5ff 100%);
+    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, color-mix(in srgb, var(--wt-tag-info-bg) 55%, var(--wt-surface-muted)) 100%);
   }
 
   .entry-head {
@@ -510,14 +510,14 @@ onMounted(async () => {
   .entry-title {
     font-size: 16px;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--wt-text-primary);
   }
 
   .entry-desc {
     margin-top: 10px;
     font-size: 13px;
     line-height: 1.7;
-    color: #5b6475;
+    color: var(--wt-text-regular);
   }
 
   .entry-action {
@@ -542,13 +542,13 @@ onMounted(async () => {
   .summary-panel {
     padding: 18px;
     border-radius: 14px;
-    border: 1px solid #e7edf7;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid var(--wt-border-default);
+    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .summary-title {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--wt-text-secondary);
   }
 
   .summary-main {
@@ -556,14 +556,14 @@ onMounted(async () => {
     font-size: 20px;
     font-weight: 700;
     line-height: 1.35;
-    color: #1f2937;
+    color: var(--wt-text-primary);
   }
 
   .summary-sub {
     margin-top: 10px;
     font-size: 12px;
     line-height: 1.7;
-    color: #607086;
+    color: var(--wt-text-regular);
   }
 
   .journey-grid {
@@ -574,8 +574,8 @@ onMounted(async () => {
   .journey-step {
     padding: 16px 18px;
     border-radius: 14px;
-    border: 1px solid #e7edf7;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid var(--wt-border-default);
+    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .journey-index {
@@ -595,14 +595,14 @@ onMounted(async () => {
     margin-top: 12px;
     font-size: 15px;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--wt-text-primary);
   }
 
   .journey-desc {
     margin-top: 8px;
     font-size: 13px;
     line-height: 1.7;
-    color: #5b6475;
+    color: var(--wt-text-regular);
   }
 
   .panel-card + .panel-card {
@@ -616,21 +616,21 @@ onMounted(async () => {
   .tips-item {
     padding: 14px 16px;
     border-radius: 12px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--wt-surface-muted);
+    border: 1px solid var(--wt-border-default);
   }
 
   .tips-title {
     font-size: 13px;
     font-weight: 700;
-    color: #253046;
+    color: var(--wt-text-primary);
   }
 
   .tips-desc {
     margin-top: 8px;
     font-size: 12px;
     line-height: 1.7;
-    color: #607086;
+    color: var(--wt-text-regular);
   }
 
   .quick-actions {

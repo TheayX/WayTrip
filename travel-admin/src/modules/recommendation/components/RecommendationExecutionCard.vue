@@ -137,7 +137,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .title {
   font-size: 16px;
   font-weight: 600;
-  color: #1f2f3d;
+  color: var(--wt-text-primary);
   position: relative;
   padding-left: 12px;
 
@@ -149,7 +149,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
     transform: translateY(-50%);
     width: 4px;
     height: 16px;
-      background: #2563eb;
+      background: var(--el-color-primary);
       border-radius: 2px;
     }
 }
@@ -162,9 +162,13 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .execution-intro {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(255, 247, 232, 0.96) 0%, rgba(255, 241, 219, 0.92) 100%);
-  border: 1px solid rgba(255, 216, 168, 0.95);
-  color: #7a4e00;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 72%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 48%, var(--wt-surface-muted)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
+  color: color-mix(in srgb, var(--wt-tag-warning-text) 88%, var(--wt-text-primary));
   line-height: 1.7;
   font-size: 13px;
 }
@@ -172,33 +176,41 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .execution-brief {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.9) 100%);
-  border: 1px solid rgba(226, 232, 240, 0.96);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
 }
 
 .execution-brief-title {
   font-size: 13px;
   font-weight: 700;
-  color: #253046;
+  color: var(--wt-text-primary);
 }
 
 .execution-brief-text {
   margin-top: 6px;
   font-size: 12px;
   line-height: 1.7;
-  color: #607086;
+  color: var(--wt-text-regular);
 }
 
 .matrix-action-callout {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(243, 255, 247, 0.96) 0%, rgba(235, 255, 241, 0.92) 100%);
-  border: 1px solid rgba(183, 235, 198, 0.95);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-tag-success-bg) 72%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-tag-success-bg) 48%, var(--wt-surface-muted)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--wt-tag-success-text) 18%, var(--wt-border-default));
 }
 
 .matrix-action-callout.pending {
-  background: linear-gradient(135deg, rgba(255, 249, 240, 0.96) 0%, rgba(255, 244, 230, 0.92) 100%);
-  border-color: rgba(255, 213, 145, 0.95);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 74%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 52%, var(--wt-surface-muted)) 100%
+  );
+  border-color: color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
 }
 
 .matrix-action-title {
@@ -208,14 +220,14 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
   gap: 12px;
   font-size: 13px;
   font-weight: 700;
-  color: #253046;
+  color: var(--wt-text-primary);
 }
 
 .matrix-action-text {
   margin-top: 8px;
   font-size: 12px;
   line-height: 1.7;
-  color: #607086;
+  color: var(--wt-text-regular);
 }
 
 .execution-actions {
@@ -237,20 +249,24 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .execution-metric {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(247, 250, 255, 0.96) 0%, rgba(238, 245, 255, 0.92) 100%);
-  border: 1px solid rgba(216, 231, 255, 0.96);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--el-color-primary-light-9) 56%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--el-color-primary-light-9) 34%, var(--wt-surface-muted)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--el-color-primary) 14%, var(--wt-border-default));
 }
 
 .execution-metric-label {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--wt-text-secondary);
 }
 
 .execution-metric-value {
   margin-top: 8px;
   font-size: 20px;
   font-weight: 700;
-  color: #1d4ed8;
+  color: var(--el-color-primary);
   line-height: 1.25;
 }
 
@@ -258,7 +274,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
   margin-top: 8px;
   font-size: 12px;
   line-height: 1.6;
-  color: #5b6475;
+  color: var(--wt-text-regular);
 }
 
 .execution-notes {
@@ -269,21 +285,21 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .execution-note {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.9) 100%);
-  border: 1px solid rgba(226, 232, 240, 0.96);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
 }
 
 .execution-note-title {
   font-size: 13px;
   font-weight: 700;
-  color: #253046;
+  color: var(--wt-text-primary);
 }
 
 .execution-note-text {
   margin-top: 6px;
   font-size: 12px;
   line-height: 1.7;
-  color: #607086;
+  color: var(--wt-text-regular);
 }
 
 @media (max-width: 1200px) {

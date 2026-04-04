@@ -442,13 +442,13 @@ onMounted(() => {
   }
 
   .quantity {
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
     font-size: 12px;
     margin-left: 6px;
   }
 
   .text-gray {
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
     font-size: 12px;
     margin-top: 2px;
   }
@@ -463,11 +463,11 @@ onMounted(() => {
 
 .workspace-title {
   margin: 0;
-  color: #0f172a;
+  color: var(--wt-text-primary);
 }
 .workspace-subtitle {
   margin: 8px 0 0;
-  color: #64748b;
+  color: var(--wt-text-regular);
 }
 
 .workspace-card {
@@ -507,7 +507,11 @@ onMounted(() => {
 }
 
 .spot-link {
-  color: #1e293b;
+  color: var(--wt-text-primary);
+
+  &:hover {
+    color: var(--el-color-primary);
+  }
 }
 
 .table-actions {
