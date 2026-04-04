@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">地域结构管理</p>
         <h1 class="page-title">地区管理</h1>
-        <p class="page-subtitle">维护前后台统一使用的地区层级，保证景点分布、附近推荐与筛选口径一致。</p>
+        <p class="page-subtitle">维护前后台统一使用的地区层级。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading1 || loading2" @click="handleRefresh">刷新数据</el-button>

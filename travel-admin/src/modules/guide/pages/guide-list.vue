@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">攻略内容管理</p>
         <h1 class="page-title">攻略管理</h1>
-        <p class="page-subtitle">维护攻略内容、发布状态与关联景点信息，保证内容质量和阅读入口稳定。</p>
+        <p class="page-subtitle">维护攻略内容、发布状态与关联景点。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="loadData">刷新数据</el-button>

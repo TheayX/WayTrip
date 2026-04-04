@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">首页资源管理</p>
         <h1 class="page-title">轮播图管理</h1>
-        <p class="page-subtitle">维护首页轮播内容、关联景点和展示顺序，保证首页重点内容露出稳定。</p>
+        <p class="page-subtitle">维护首页轮播内容和展示顺序。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchBannerList">刷新数据</el-button>
@@ -497,28 +497,6 @@ onMounted(() => {
 
 :deep(.banner-table .el-table__row:hover > td.el-table__cell) {
   background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
-}
-
-.form-section {
-  padding: 4px 4px 0;
-}
-
-.form-section-head {
-  margin-bottom: 16px;
-}
-
-.form-section-title {
-  margin: 0;
-  color: #0f172a;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.form-section-desc {
-  margin: 8px 0 0;
-  color: #64748b;
-  font-size: 13px;
-  line-height: 1.6;
 }
 
 .upload-container {

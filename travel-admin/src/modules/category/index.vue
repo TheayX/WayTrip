@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">内容结构管理</p>
         <h1 class="page-title">分类管理</h1>
-        <p class="page-subtitle">维护内容分类层级，统一景点与攻略的归类结构，保证前后台分类口径一致。</p>
+        <p class="page-subtitle">维护景点与攻略的分类层级。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading1 || loading2" @click="handleRefresh">刷新数据</el-button>

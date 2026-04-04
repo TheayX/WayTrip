@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">用户运营管理</p>
         <h1 class="page-title">用户管理</h1>
-        <p class="page-subtitle">查看用户基础信息、行为摘要和运营关联入口，快速定位重点用户并进入后续运营链路。</p>
+        <p class="page-subtitle">查看用户信息、行为摘要与运营入口。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchUserList">刷新数据</el-button>

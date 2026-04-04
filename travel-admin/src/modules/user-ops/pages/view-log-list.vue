@@ -4,7 +4,7 @@
       <div>
         <p class="page-kicker">浏览行为运营</p>
         <h1 class="page-title">浏览行为</h1>
-        <p class="page-subtitle">查看浏览来源、停留时长和景点点击表现，用于判断各入口的真实贡献。</p>
+        <p class="page-subtitle">查看浏览来源、停留时长与入口表现。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchViewList">刷新数据</el-button>
