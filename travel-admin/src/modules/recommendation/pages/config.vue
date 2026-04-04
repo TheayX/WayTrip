@@ -62,30 +62,18 @@
 
     <el-row v-loading="pageLoading" :gutter="24" class="workspace-row">
       <el-col :xl="16" :lg="15" :md="24">
-        <el-card shadow="hover" class="workspace-shell-card">
-          <template #header>
-            <div class="shell-card-header">
-              <span>配置区</span>
-              <el-tag size="small" effect="plain" type="primary" round>参数录入</el-tag>
-            </div>
-          </template>
+        <div class="workspace-section">
           <RecommendationConfigCard
             :config="config"
             :impact-overview-cards="impactOverviewCards"
             :immediate-change-summary="immediateChangeSummary"
             :matrix-change-summary="matrixChangeSummary"
           />
-        </el-card>
+        </div>
       </el-col>
 
       <el-col :xl="8" :lg="9" :md="24">
-        <el-card shadow="hover" class="workspace-shell-card">
-          <template #header>
-            <div class="shell-card-header">
-              <span>执行区</span>
-              <el-tag size="small" effect="plain" type="success" round>保存与生效</el-tag>
-            </div>
-          </template>
+        <div class="workspace-section">
           <RecommendationExecutionCard
             ref="executionCardRef"
             :status="status"
@@ -97,17 +85,11 @@
             @save-config="handleSaveConfig"
             @update-matrix="handleUpdateMatrix"
           />
-        </el-card>
+        </div>
       </el-col>
     </el-row>
 
-    <el-card shadow="hover" class="workspace-shell-card debug-shell-card">
-      <template #header>
-        <div class="shell-card-header">
-          <span>调试预览</span>
-          <el-tag size="small" effect="plain" type="info" round>结果验证</el-tag>
-        </div>
-      </template>
+    <div class="workspace-section debug-shell-card">
       <RecommendationDebugCard
         ref="debugCardRef"
         :active-preview-tab="activePreviewTab"
@@ -137,15 +119,9 @@
         @preview-similarity="handlePreviewSimilarity"
         @preview-similarity-update="handlePreviewSimilarityWithMatrixUpdate"
       />
-    </el-card>
+    </div>
 
-    <el-card shadow="hover" class="workspace-shell-card">
-      <template #header>
-        <div class="shell-card-header">
-          <span>字段说明</span>
-          <el-tag size="small" effect="plain" type="warning" round>配置参考</el-tag>
-        </div>
-      </template>
+    <div class="workspace-section">
       <RecommendationHelpCard
         :active-collapse="activeCollapse"
         :weight-explanations="weightExplanations"
@@ -153,7 +129,7 @@
         :cold-start-data-field-references="coldStartDataFieldReferences"
         @update:active-collapse="activeCollapse = $event"
       />
-    </el-card>
+    </div>
     </template>
   </div>
 </template>
@@ -321,17 +297,9 @@ onMounted(async () => {
     color: #607086;
   }
 
-  .workspace-shell-card {
-    border: none;
-    border-radius: 22px;
-  }
-
-  .shell-card-header {
+  .workspace-section {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+    flex-direction: column;
   }
 
   .debug-shell-card {
