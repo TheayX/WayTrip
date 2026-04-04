@@ -129,20 +129,20 @@ const emit = defineEmits(['update:visible', 'complete', 'refund', 'cancel', 'reo
 
 .detail-hero {
   border-radius: 18px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
   padding: 18px;
 }
 
 .detail-order-no {
   margin: 0 0 6px;
-  color: #64748b;
+  color: var(--wt-text-regular);
   font-size: 13px;
 }
 
 .detail-spot-name {
   margin: 0;
-  color: #0f172a;
+  color: var(--wt-text-primary);
   font-size: 20px;
 }
 
@@ -161,14 +161,14 @@ const emit = defineEmits(['update:visible', 'complete', 'refund', 'cancel', 'reo
   flex: 1;
   min-width: 0;
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--wt-surface-elevated);
   padding: 14px 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--wt-border-default);
 }
 
 .detail-stat-label {
   display: block;
-  color: #64748b;
+  color: var(--wt-text-regular);
   font-size: 12px;
   margin-bottom: 6px;
 }
@@ -189,7 +189,7 @@ const emit = defineEmits(['update:visible', 'complete', 'refund', 'cancel', 'reo
   margin: 0;
   padding-left: 10px;
   border-left: 4px solid var(--el-color-primary);
-  color: #0f172a;
+  color: var(--wt-text-primary);
   font-size: 14px;
   font-weight: 700;
 }
@@ -206,8 +206,8 @@ const emit = defineEmits(['update:visible', 'complete', 'refund', 'cancel', 'reo
 
 :deep(.detail-descriptions .el-descriptions__label) {
   width: 100px;
-  background: #f8fafc !important;
-  color: #64748b;
+  background: var(--el-table-header-bg-color) !important;
+  color: var(--wt-text-regular);
   font-weight: 500;
 }
 

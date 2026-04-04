@@ -230,9 +230,9 @@ defineExpose({
 .justify-end { justify-content: flex-end; }
 .items-center { align-items: center; }
 
-.bg-white { background-color: #ffffff; }
-.border-t { border-top: 1px solid #f1f5f9; }
-.border-gray-100 { border-color: #f1f5f9; }
+.bg-white { background-color: var(--wt-surface-elevated); }
+.border-t { border-top: 1px solid var(--wt-divider-soft); }
+.border-gray-100 { border-color: var(--wt-divider-soft); }
 
 .drawer-body {
   min-height: 0;
@@ -241,13 +241,13 @@ defineExpose({
 .section-nav {
   width: 220px;
   padding: 24px 16px 24px 24px;
-  border-right: 1px solid #f1f5f9;
-  background: #fbfdff;
+  border-right: 1px solid var(--wt-divider-soft);
+  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
 }
 
 .section-nav-title {
   margin-bottom: 14px;
-  color: #64748b;
+  color: var(--wt-text-regular);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -256,9 +256,9 @@ defineExpose({
 
 .section-nav-item {
   width: 100%;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--wt-border-default);
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--wt-surface-elevated);
   padding: 12px 14px;
   text-align: left;
   cursor: pointer;
@@ -269,7 +269,7 @@ defineExpose({
   }
 
   &:hover {
-    border-color: #cbd5e1;
+    border-color: var(--el-color-primary-light-5);
   }
 
   &.active {
@@ -280,7 +280,7 @@ defineExpose({
 
 .section-nav-name {
   display: block;
-  color: #0f172a;
+  color: var(--wt-text-primary);
   font-size: 14px;
   font-weight: 700;
 }
@@ -288,7 +288,7 @@ defineExpose({
 .section-nav-hint {
   display: block;
   margin-top: 6px;
-  color: #64748b;
+  color: var(--wt-text-regular);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -296,9 +296,9 @@ defineExpose({
 .section-card {
   margin-bottom: 24px;
   padding: 24px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--wt-divider-soft);
   border-radius: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .section-anchor {
@@ -317,12 +317,12 @@ defineExpose({
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--wt-text-primary);
 }
 
 .section-desc {
   margin: 8px 0 0;
-  color: #64748b;
+  color: var(--wt-text-regular);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -330,7 +330,7 @@ defineExpose({
 .custom-form {
   :deep(.el-form-item__label) {
     font-weight: 600;
-    color: #475569;
+    color: var(--wt-text-regular);
     padding-bottom: 4px;
   }
 
@@ -342,22 +342,22 @@ defineExpose({
 
 .publish-panel {
   height: 100%;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--wt-border-default);
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--wt-surface-elevated);
   padding: 16px;
 }
 
 .publish-title {
   margin: 0;
-  color: #0f172a;
+  color: var(--wt-text-primary);
   font-size: 15px;
   font-weight: 700;
 }
 
 .publish-desc {
   margin: 8px 0 16px;
-  color: #64748b;
+  color: var(--wt-text-regular);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -371,19 +371,19 @@ defineExpose({
 .upload-container {
   .image-uploader {
     :deep(.el-upload) {
-      border: 2px dashed #cbd5e1;
+      border: 2px dashed var(--wt-border-default);
       border-radius: 12px;
       cursor: pointer;
       position: relative;
       overflow: hidden;
       transition: all 0.3s ease;
-      background: #f8fafc;
+      background: var(--wt-surface-muted);
       width: 240px;
       height: 160px;
 
       &:hover {
         border-color: var(--el-color-primary);
-        background: #f0f9ff;
+        background: var(--el-color-primary-light-9);
       }
     }
   }
@@ -425,7 +425,7 @@ defineExpose({
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
 
     .el-icon { font-size: 32px; }
     span { font-size: 13px; font-weight: 500; }
@@ -433,7 +433,7 @@ defineExpose({
 
   .upload-tip {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
   }
 }
 
@@ -446,7 +446,7 @@ defineExpose({
     width: 100%;
     padding: 16px 24px 0;
     border-right: none;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--wt-divider-soft);
   }
 }
 </style>

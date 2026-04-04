@@ -9,7 +9,7 @@
     <div v-if="detail" class="detail-container">
       <div class="cover-wrapper mb-6">
         <el-image :src="getImageUrl(detail.coverImage)" fit="cover" class="cover-img w-full h-48 rounded-xl shadow-sm" />
-        <div class="status-badge absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold shadow-sm" :class="detail.published ? 'text-green-600' : 'text-gray-500'">
+        <div class="status-badge absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold shadow-sm" :class="detail.published ? 'text-green-600' : 'text-gray-500'">
           {{ detail.published ? '已上架' : '未上架' }}
         </div>
       </div>
@@ -21,17 +21,17 @@
         </p>
         
         <div class="flex gap-4">
-          <div class="stat-item bg-gray-50 px-4 py-2 rounded-lg flex-1">
+          <div class="stat-item px-4 py-2 rounded-lg flex-1">
             <div class="text-xs text-gray-500 mb-1">当前价格</div>
             <div class="text-lg font-bold text-red-500">¥{{ detail.price }}</div>
           </div>
-          <div class="stat-item bg-gray-50 px-4 py-2 rounded-lg flex-1">
+          <div class="stat-item px-4 py-2 rounded-lg flex-1">
             <div class="text-xs text-gray-500 mb-1">用户评分</div>
             <div class="text-lg font-bold text-gray-800 flex items-center gap-1">
               <el-icon color="#f59e0b"><StarFilled /></el-icon> {{ detail.avgRating || '暂无' }}
             </div>
           </div>
-          <div class="stat-item bg-gray-50 px-4 py-2 rounded-lg flex-1">
+          <div class="stat-item px-4 py-2 rounded-lg flex-1">
             <div class="text-xs text-gray-500 mb-1">热度</div>
             <div class="text-lg font-bold text-gray-800">{{ detail.heatScore || 0 }}</div>
           </div>
@@ -50,7 +50,7 @@
 
       <div class="info-section mb-6">
         <h3 class="text-sm font-bold text-gray-800 mb-3 border-l-4 border-primary pl-2 uppercase tracking-winder">景点介绍</h3>
-        <div class="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg leading-relaxed whitespace-pre-line">
+        <div class="text-sm text-gray-600 content-panel p-4 rounded-lg leading-relaxed whitespace-pre-line">
           {{ detail.description || '暂无详细介绍' }}
         </div>
       </div>
@@ -121,12 +121,9 @@ const emitVisible = (val) => {
 
 .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
 .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-.border-gray-100 { border-color: #f3f4f6; }
+.border-gray-100 { border-color: var(--wt-divider-soft); }
 .border-primary { border-color: var(--el-color-primary); }
-
-.bg-white\/90 { background-color: rgba(255, 255, 255, 0.9); }
 .backdrop-blur-sm { backdrop-filter: blur(4px); }
-.bg-gray-50 { background-color: #f9fafb; }
 
 .text-xs { font-size: 12px; line-height: 16px; }
 .text-sm { font-size: 14px; line-height: 20px; }
@@ -134,9 +131,9 @@ const emitVisible = (val) => {
 .text-2xl { font-size: 24px; line-height: 32px; }
 
 .font-bold { font-weight: 700; }
-.text-gray-800 { color: #1f2937; }
-.text-gray-600 { color: #4b5563; }
-.text-gray-500 { color: #6b7280; }
+.text-gray-800 { color: var(--wt-text-primary); }
+.text-gray-600 { color: var(--wt-text-regular); }
+.text-gray-500 { color: var(--wt-text-regular); }
 .text-red-500 { color: #ef4444; }
 .text-green-600 { color: #16a34a; }
 
@@ -149,6 +146,21 @@ const emitVisible = (val) => {
   position: relative;
 }
 
+.status-badge {
+  background: color-mix(in srgb, var(--wt-surface-elevated) 92%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.stat-item {
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
+}
+
+.content-panel {
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
+}
+
 :deep(.custom-desc) {
   .el-descriptions__body {
     background-color: transparent;
@@ -157,8 +169,8 @@ const emitVisible = (val) => {
     padding: 12px 16px !important;
   }
   .el-descriptions__label {
-    background-color: #f8fafc !important;
-    color: #64748b;
+    background-color: var(--el-table-header-bg-color) !important;
+    color: var(--wt-text-regular);
     font-weight: 500;
     width: 100px;
   }

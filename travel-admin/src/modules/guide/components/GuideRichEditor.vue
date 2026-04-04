@@ -87,15 +87,15 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .guide-rich-editor {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--wt-border-default);
   border-radius: 14px;
   overflow: hidden;
-  background: #ffffff;
+  background: var(--wt-surface-elevated);
 }
 
 .editor-toolbar {
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border-bottom: 1px solid var(--wt-border-default);
+  background: var(--wt-surface-muted);
 }
 
 .editor-content {
@@ -105,13 +105,13 @@ onBeforeUnmount(() => {
 
 :deep(.w-e-text-container) {
   min-height: 360px !important;
-  background: #ffffff;
+  background: var(--wt-surface-elevated);
 }
 
 :deep(.w-e-text) {
   padding: 12px 14px !important;
   line-height: 1.8;
-  color: #334155;
+  color: var(--wt-text-regular);
 }
 
 :deep(.w-e-menu) {

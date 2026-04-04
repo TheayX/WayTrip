@@ -116,7 +116,7 @@ const handleCommand = (command, row) => {
   min-width: 0;
   height: auto;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--wt-text-primary);
 
   &:hover {
     color: var(--el-color-primary);
@@ -135,7 +135,7 @@ const handleCommand = (command, row) => {
 
 .count-text {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--wt-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -146,7 +146,7 @@ const handleCommand = (command, row) => {
 
   :deep(td.el-table__cell),
   :deep(th.el-table__cell.is-leaf) {
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--wt-divider-faint);
   }
 
   :deep(.el-table__row) {
@@ -158,7 +158,7 @@ const handleCommand = (command, row) => {
   }
 
   :deep(.el-table__row:hover > td.el-table__cell) {
-    background: linear-gradient(90deg, rgba(248, 250, 252, 0.5) 0%, #f1f5f9 50%, rgba(248, 250, 252, 0.5) 100%) !important;
+    background: var(--wt-row-gradient-hover) !important;
   }
 }
 
@@ -182,20 +182,20 @@ const handleCommand = (command, row) => {
   }
 
   &.status-success {
-    background-color: #ecfdf5;
-    color: #059669;
+    background-color: var(--wt-tag-success-bg);
+    color: var(--wt-tag-success-text);
 
     .dot {
-      background-color: #10b981;
+      background-color: var(--el-color-success);
     }
   }
 
   &.status-neutral {
-    background-color: #f1f5f9;
-    color: #475569;
+    background-color: var(--wt-tag-info-bg);
+    color: var(--wt-text-regular);
 
     .dot {
-      background-color: #94a3b8;
+      background-color: var(--wt-text-secondary);
     }
   }
 }

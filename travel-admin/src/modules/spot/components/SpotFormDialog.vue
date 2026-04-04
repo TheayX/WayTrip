@@ -310,26 +310,26 @@ defineExpose({
 .ml-1 { margin-left: 4px; }
 .w-full { width: 100%; }
 
-.border-b { border-bottom: 1px solid #f1f5f9; }
-.border-t { border-top: 1px solid #f1f5f9; }
-.bg-gray-50 { background-color: #f8fafc; }
-.bg-white { background-color: #ffffff; }
+.border-b { border-bottom: 1px solid var(--wt-divider-soft); }
+.border-t { border-top: 1px solid var(--wt-divider-soft); }
+.bg-gray-50 { background-color: var(--wt-surface-muted); }
+.bg-white { background-color: var(--wt-surface-elevated); }
 
 .section-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--wt-text-primary);
   margin-top: 0;
   margin-bottom: 24px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--wt-divider-soft);
 }
 
 /* Custom Input overwrites for form */
 .custom-form {
   :deep(.el-form-item__label) {
     font-weight: 600;
-    color: #475569;
+    color: var(--wt-text-regular);
     padding-bottom: 4px;
   }
   
@@ -341,19 +341,19 @@ defineExpose({
 .upload-container {
   .image-uploader {
     :deep(.el-upload) {
-      border: 2px dashed #cbd5e1;
+      border: 2px dashed var(--wt-border-default);
       border-radius: 12px;
       cursor: pointer;
       position: relative;
       overflow: hidden;
       transition: all 0.3s ease;
-      background: #f8fafc;
+      background: var(--wt-surface-muted);
       width: 240px;
       height: 160px;
 
       &:hover {
         border-color: var(--el-color-primary);
-        background: #f0f9ff;
+        background: var(--el-color-primary-light-9);
       }
     }
   }
@@ -396,6 +396,7 @@ defineExpose({
     align-items: center;
     justify-content: center;
     color: #94a3b8;
+    color: var(--wt-text-secondary);
 
     .el-icon { font-size: 32px; }
     span { font-size: 13px; font-weight: 500; }
@@ -403,7 +404,7 @@ defineExpose({
 
   .upload-tip {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--wt-text-secondary);
   }
 }
 
@@ -418,9 +419,9 @@ defineExpose({
 }
 
 .gallery-item {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--wt-border-default);
   padding: 4px;
-  background: white;
+  background: var(--wt-surface-elevated);
 }
 
 .gallery-image {

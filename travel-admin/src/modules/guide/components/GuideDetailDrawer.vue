@@ -19,11 +19,11 @@
         <p class="text-sm text-gray-500 mb-4">{{ detail.category || '未分类' }}</p>
 
         <div class="flex gap-4">
-          <div class="stat-item bg-gray-50 px-4 py-2 rounded-lg flex-1">
+          <div class="stat-item px-4 py-2 rounded-lg flex-1">
             <div class="text-xs text-gray-500 mb-1">浏览量</div>
             <div class="text-lg font-bold text-gray-800">{{ detail.viewCount ?? 0 }}</div>
           </div>
-          <div class="stat-item bg-gray-50 px-4 py-2 rounded-lg flex-1">
+          <div class="stat-item px-4 py-2 rounded-lg flex-1">
             <div class="text-xs text-gray-500 mb-1">关联景点</div>
             <div class="text-lg font-bold text-gray-800">{{ detail.spotOptions?.length || 0 }}</div>
           </div>
@@ -109,12 +109,11 @@ const containsHtml = (content) => /<[^>]+>/.test(content || '')
 .text-2xl { font-size: 24px; line-height: 32px; }
 
 .font-bold { font-weight: 700; }
-.text-gray-800 { color: #1f2937; }
-.text-gray-500 { color: #6b7280; }
+.text-gray-800 { color: var(--wt-text-primary); }
+.text-gray-500 { color: var(--wt-text-regular); }
 
-.bg-gray-50 { background-color: #f9fafb; }
 .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
-.border-gray-100 { border-color: #f3f4f6; }
+.border-gray-100 { border-color: var(--wt-divider-soft); }
 
 .cover-wrapper {
   position: relative;
@@ -126,7 +125,7 @@ const containsHtml = (content) => /<[^>]+>/.test(content || '')
   right: 16px;
   padding: 6px 12px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.92);
+  background: color-mix(in srgb, var(--wt-surface-elevated) 92%, transparent);
   backdrop-filter: blur(4px);
   font-size: 12px;
   font-weight: 700;
@@ -147,7 +146,7 @@ const containsHtml = (content) => /<[^>]+>/.test(content || '')
   border-left: 4px solid var(--el-color-primary);
   font-size: 14px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--wt-text-primary);
 }
 
 .spot-tags {
@@ -161,12 +160,18 @@ const containsHtml = (content) => /<[^>]+>/.test(content || '')
 }
 
 .content-panel {
-  background: #f8fafc;
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
   border-radius: 12px;
   padding: 16px;
-  color: #475569;
+  color: var(--wt-text-regular);
   line-height: 1.7;
   word-break: break-word;
+}
+
+.stat-item {
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  border: 1px solid var(--wt-border-default);
 }
 
 .plain-content {
@@ -188,8 +193,8 @@ const containsHtml = (content) => /<[^>]+>/.test(content || '')
   }
 
   .el-descriptions__label {
-    background-color: #f8fafc !important;
-    color: #64748b;
+    background-color: var(--el-table-header-bg-color) !important;
+    color: var(--wt-text-regular);
     font-weight: 500;
     width: 100px;
   }

@@ -119,16 +119,16 @@ const emitFilterChange = () => emit('filter-change')
 
 <style lang="scss" scoped>
 .premium-filter-bar {
-  background: linear-gradient(180deg, rgba(248, 250, 252, 0.82) 0%, rgba(255, 255, 255, 0.9) 100%);
+  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
   border-radius: 18px;
   padding: 16px 24px;
-  border: 1px solid rgba(219, 228, 240, 0.9);
+  border: 1px solid var(--wt-border-default);
   transition: all 0.3s ease;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  box-shadow: var(--wt-shadow-soft);
 
   &:hover {
-    border-color: #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    border-color: var(--el-border-color-light);
+    box-shadow: var(--wt-shadow-soft);
   }
 }
 
@@ -142,13 +142,13 @@ const emitFilterChange = () => emit('filter-change')
 .filter-title {
   font-size: 13px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--wt-text-primary);
 }
 
 .filter-subtitle {
   font-size: 12px;
   line-height: 1.6;
-  color: #64748b;
+  color: var(--wt-text-regular);
 }
 
 .flex { display: flex; }
@@ -164,7 +164,7 @@ const emitFilterChange = () => emit('filter-change')
 .ml-2 { margin-left: 8px; }
 .mr-1 { margin-right: 4px; }
 .px-6 { padding-left: 24px; padding-right: 24px; }
-.border-t { border-top: 1px solid #f1f5f9; }
+.border-t { border-top: 1px solid var(--wt-divider-soft); }
 .w-48 { width: 192px; }
 .w-32 { width: 128px; }
 .font-medium { font-weight: 500; }
@@ -172,7 +172,7 @@ const emitFilterChange = () => emit('filter-change')
 :deep(.el-input__wrapper) {
   border-radius: 10px;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  background-color: rgba(255, 255, 255, 0.92);
+  background-color: var(--wt-surface-elevated);
   
   &:hover {
     box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 1px 2px 0 rgba(0, 0, 0, 0.05);

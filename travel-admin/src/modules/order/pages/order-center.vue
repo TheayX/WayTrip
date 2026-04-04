@@ -523,17 +523,17 @@ onMounted(() => {
 }
 
 :deep(.order-table th.el-table__cell) {
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--el-table-header-bg-color);
+  color: var(--wt-text-regular);
   font-weight: 600;
 }
 
 :deep(.order-table .el-table__row:hover > td.el-table__cell) {
-  background: #f8fbff;
+  background: var(--wt-fill-hover);
 }
 
 :deep(.workspace-tabs .el-tabs__item.is-active) {
-  color: #0f172a;
+  color: var(--wt-text-primary);
 }
 
 :deep(.workspace-tabs .el-tabs__active-bar) {

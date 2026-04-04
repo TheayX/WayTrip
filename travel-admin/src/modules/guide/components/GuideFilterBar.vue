@@ -67,11 +67,11 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
 .filter-panel {
   margin-top: 16px;
   margin-bottom: 20px;
-  border: 1px solid rgba(219, 228, 240, 0.9);
+  border: 1px solid var(--wt-border-default);
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(248, 250, 252, 0.82) 0%, rgba(255, 255, 255, 0.9) 100%);
+  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
   padding: 16px 18px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 .filter-caption {
@@ -84,13 +84,13 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
 .filter-title {
   font-size: 13px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--wt-text-primary);
 }
 
 .filter-subtitle {
   font-size: 12px;
   line-height: 1.6;
-  color: #64748b;
+  color: var(--wt-text-regular);
 }
 
 .filter-row,
@@ -136,8 +136,8 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
 :deep(.el-input__wrapper),
 :deep(.el-select__wrapper) {
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  background: var(--wt-surface-elevated);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 @media (max-width: 960px) {

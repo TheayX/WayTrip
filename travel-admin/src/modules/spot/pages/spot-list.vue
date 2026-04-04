@@ -869,8 +869,8 @@ watch(
 }
 
 .floating-action-summary {
-  background: #0f172a;
-  color: #ffffff;
+  background: var(--wt-text-primary);
+  color: var(--wt-surface-elevated);
   padding: 12px 16px;
   font-weight: 600;
 }
@@ -880,14 +880,14 @@ watch(
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--wt-surface-elevated);
 }
 
 :deep(.spot-highlight-row) {
-  --el-table-tr-bg-color: #eff6ff;
+  --el-table-tr-bg-color: var(--el-color-primary-light-9);
 
   td {
-    background-color: #eff6ff !important;
+    background-color: var(--el-color-primary-light-9) !important;
   }
 }
 

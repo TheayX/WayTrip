@@ -33,16 +33,16 @@ const emit = defineEmits(['change-tab'])
 }
 
 .summary-card {
-  border: 1px solid rgba(219, 228, 240, 0.9);
+  border: 1px solid var(--wt-border-default);
   border-radius: 20px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.88) 100%);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   padding: 18px 20px;
   text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #cbd5e1;
+    border-color: var(--el-color-primary-light-5);
     transform: translateY(-1px);
   }
 
@@ -53,21 +53,21 @@ const emit = defineEmits(['change-tab'])
 }
 
 .summary-label {
-  color: #64748b;
+  color: var(--wt-text-regular);
   font-size: 13px;
   font-weight: 600;
 }
 
 .summary-value {
   margin-top: 12px;
-  color: #0f172a;
+  color: var(--wt-text-primary);
   font-size: 28px;
   font-weight: 700;
 }
 
 .summary-hint {
   margin-top: 8px;
-  color: #94a3b8;
+  color: var(--wt-text-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
