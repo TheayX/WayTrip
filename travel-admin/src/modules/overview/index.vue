@@ -4,7 +4,7 @@
       <div>
         <p class="page-kicker">运营总览</p>
         <h1 class="page-title">运营概览</h1>
-        <p class="page-subtitle">集中查看核心指标、趋势变化与关键入口，先判断问题方向，再进入具体模块处理。</p>
+        <p class="page-subtitle">集中查看核心指标、趋势变化与关键入口。</p>
       </div>
       <div class="hero-actions">
         <el-button type="primary" :loading="loading" @click="fetchData">

@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">推荐系统配置</p>
         <h1 class="page-title">推荐配置</h1>
-        <p class="page-subtitle">上方看整体状态，中部维护参数与执行动作，下方完成调试预览和字段说明核对。</p>
+        <p class="page-subtitle">统一维护推荐参数、生效动作和调试结果。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="pageLoading || saving || updatingMatrix" @click="loadPageData">刷新状态</el-button>

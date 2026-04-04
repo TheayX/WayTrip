@@ -4,7 +4,7 @@
       <div>
         <p class="page-kicker">用户收藏运营</p>
         <h1 class="page-title">用户收藏</h1>
-        <p class="page-subtitle">查看收藏行为覆盖范围与活跃用户，快速回跳到用户页和景点页继续分析。</p>
+        <p class="page-subtitle">查看收藏分布与活跃用户。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchFavoriteList">刷新数据</el-button>

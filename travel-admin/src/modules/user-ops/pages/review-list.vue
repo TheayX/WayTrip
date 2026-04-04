@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">用户评价运营</p>
         <h1 class="page-title">评价管理</h1>
-        <p class="page-subtitle">查看用户评价内容、快速定位景点，并处理违规评价或异常评分内容。</p>
+        <p class="page-subtitle">查看用户评价并处理异常内容。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchReviewList">刷新数据</el-button>

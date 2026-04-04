@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">Recommendation Overview</p>
         <h1 class="page-title">推荐总览</h1>
-        <p class="page-subtitle">查看推荐链路状态、最近行为摘要和相关工作台入口，不在总览页直接修改参数。</p>
+        <p class="page-subtitle">查看推荐链路状态与最近行为摘要。</p>
       </div>
       <div class="hero-actions">
         <el-button type="primary" :loading="loading" @click="loadPageData">刷新数据</el-button>

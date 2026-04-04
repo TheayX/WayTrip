@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">景点内容管理</p>
         <h1 class="page-title">景点管理</h1>
-        <p class="page-subtitle">维护景点基础信息、地区分类归属、评分热度和上架状态，统一处理内容质量与曝光表现。</p>
+        <p class="page-subtitle">维护景点信息、上架状态与展示质量。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="loadData">刷新数据</el-button>

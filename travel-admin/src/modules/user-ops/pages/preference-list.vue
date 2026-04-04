@@ -4,7 +4,7 @@
       <div>
         <p class="page-kicker">用户画像运营</p>
         <h1 class="page-title">用户偏好</h1>
-        <p class="page-subtitle">查看用户画像标签和分类分布，判断当前兴趣覆盖是否稳定、是否需要回看推荐结果。</p>
+        <p class="page-subtitle">查看用户画像标签与兴趣分布。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchPreferenceList">刷新数据</el-button>

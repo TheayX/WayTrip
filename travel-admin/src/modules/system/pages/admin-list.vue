@@ -5,7 +5,7 @@
       <div>
         <p class="page-kicker">System Management</p>
         <h1 class="page-title">管理员管理</h1>
-        <p class="page-subtitle">维护后台管理员账号、启用状态和密码重置操作。</p>
+        <p class="page-subtitle">维护后台管理员账号与启用状态。</p>
       </div>
       <div class="hero-actions">
         <el-button :loading="loading" @click="fetchData">刷新数据</el-button>
