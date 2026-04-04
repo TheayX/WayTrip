@@ -369,9 +369,8 @@ defineProps({
 
 <style lang="scss" scoped>
 .config-card {
-  border-radius: 20px;
+  border-radius: 22px;
   border: none;
-  margin-bottom: 24px;
 
   .card-header {
     display: flex;
@@ -416,10 +415,10 @@ defineProps({
 }
 
 .impact-overview-card {
-  padding: 16px;
-  border-radius: 18px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(219, 228, 240, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .impact-overview-head {
@@ -450,23 +449,23 @@ defineProps({
 }
 
 .impact-overview-card.tone-live {
-  background: linear-gradient(135deg, #f3fff7 0%, #ebfff1 100%);
-  border-color: #b7ebc6;
+  background: linear-gradient(135deg, rgba(243, 255, 247, 0.96) 0%, rgba(235, 255, 241, 0.92) 100%);
+  border-color: rgba(183, 235, 198, 0.95);
 }
 
 .impact-overview-card.tone-matrix {
-  background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
-  border-color: #ffd591;
+  background: linear-gradient(135deg, rgba(255, 249, 240, 0.96) 0%, rgba(255, 244, 230, 0.92) 100%);
+  border-color: rgba(255, 213, 145, 0.95);
 }
 
 .impact-overview-card.tone-save {
-  background: linear-gradient(135deg, #f8fbff 0%, #f2f7ff 100%);
-  border-color: #d6e4ff;
+  background: linear-gradient(135deg, rgba(248, 251, 255, 0.96) 0%, rgba(242, 247, 255, 0.92) 100%);
+  border-color: rgba(214, 228, 255, 0.95);
 }
 
 .impact-overview-card.tone-status {
-  background: linear-gradient(135deg, #f7f5ff 0%, #f0ebff 100%);
-  border-color: #d3c3ff;
+  background: linear-gradient(135deg, rgba(247, 245, 255, 0.96) 0%, rgba(240, 235, 255, 0.92) 100%);
+  border-color: rgba(211, 195, 255, 0.95);
 }
 
 .change-hint-panel {
@@ -477,15 +476,15 @@ defineProps({
 }
 
 .change-hint-card {
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.96);
 }
 
 .change-hint-card.matrix {
-  background: #fffaf0;
-  border-color: #fbd38d;
+  background: linear-gradient(135deg, rgba(255, 250, 240, 0.96) 0%, rgba(255, 245, 230, 0.92) 100%);
+  border-color: rgba(251, 211, 141, 0.95);
 }
 
 .change-hint-title {
@@ -522,7 +521,7 @@ defineProps({
   .form-section {
     margin-bottom: 32px;
     padding-bottom: 24px;
-    border-bottom: 1px solid #f0f2f5;
+    border-bottom: 1px solid #eef2f7;
 
     &:last-child {
       border-bottom: none;
@@ -548,7 +547,7 @@ defineProps({
 
   .section-desc {
     font-size: 13px;
-    color: #909399;
+    color: #64748b;
     margin-bottom: 20px;
   }
 
@@ -573,7 +572,7 @@ defineProps({
   .form-tip {
     display: block;
     font-size: 12px;
-    color: #909399;
+    color: #64748b;
     margin-top: 4px;
   }
 
