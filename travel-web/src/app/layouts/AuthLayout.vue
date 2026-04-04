@@ -3,9 +3,7 @@
   <div class="auth-layout">
     <header class="auth-header">
       <router-link to="/" class="brand-link" aria-label="WayTrip 首页">
-        <span class="brand-mark" aria-hidden="true">
-          <span class="brand-mark-core"></span>
-        </span>
+        <img :src="brandMarkUrl" alt="" aria-hidden="true" class="brand-mark">
         <span class="brand-copy">
           <strong>{{ APP_NAME }}</strong>
           <span>Travel Curated</span>
@@ -29,6 +27,7 @@
 
 <script setup>
 import { APP_NAME } from '@/shared/constants/app.js'
+import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
 </script>
 
 <style lang="scss" scoped>
@@ -55,29 +54,9 @@ import { APP_NAME } from '@/shared/constants/app.js'
 .brand-mark {
   width: 44px;
   height: 44px;
-  border-radius: 15px;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 70%, #c8a95b 100%);
-  box-shadow: 0 20px 28px -18px rgba(37, 99, 235, 0.72);
-}
-
-.brand-mark::before {
-  content: '';
-  position: absolute;
-  inset: 1px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0));
-}
-
-.brand-mark-core {
-  width: 18px;
-  height: 18px;
-  border-radius: 7px;
-  border: 2px solid rgba(255, 255, 255, 0.92);
-  transform: rotate(45deg);
+  display: block;
+  flex-shrink: 0;
+  filter: drop-shadow(0 18px 24px rgba(37, 99, 235, 0.18));
 }
 
 .brand-copy {

@@ -4,12 +4,9 @@
     <div class="login-bg"></div>
     <div class="login-box">
       <div class="login-left">
-        <div class="left-content">
-          <div class="brand">
-            <div class="brand-icon">
-              <span class="brand-mark brand-mark-primary"></span>
-              <span class="brand-mark brand-mark-secondary"></span>
-            </div>
+          <div class="left-content">
+            <div class="brand">
+            <img :src="brandMarkUrl" alt="" aria-hidden="true" class="brand-icon" />
             <span class="brand-text">WayTrip</span>
           </div>
           <div class="eyebrow">WayTrip Admin</div>
@@ -61,6 +58,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { ElMessage } from 'element-plus'
+import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -186,35 +184,11 @@ const handleLogin = async () => {
       margin-bottom: 34px;
 
       .brand-icon {
-        position: relative;
         width: 48px;
         height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.14);
-      }
-
-      .brand-mark {
-        position: absolute;
         display: block;
-        border-radius: 999px;
-      }
-
-      .brand-mark-primary {
-        width: 24px;
-        height: 24px;
-        background: linear-gradient(135deg, #f8fafc 0%, #dbeafe 100%);
-        transform: translate(-6px, -6px);
-      }
-
-      .brand-mark-secondary {
-        width: 20px;
-        height: 20px;
-        background: linear-gradient(135deg, #ca8a04 0%, #fde68a 100%);
-        transform: translate(7px, 7px);
+        flex-shrink: 0;
+        filter: drop-shadow(0 18px 24px rgba(59, 130, 246, 0.24));
       }
 
       .brand-text {

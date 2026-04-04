@@ -6,10 +6,7 @@
       <el-aside width="100%" class="aside">
         <!-- Logo 区域 -->
         <div class="logo">
-          <div class="logo-icon" aria-hidden="true">
-            <span class="logo-glyph glyph-main"></span>
-            <span class="logo-glyph glyph-accent"></span>
-          </div>
+          <img :src="brandMarkUrl" alt="" aria-hidden="true" class="logo-icon" />
           <span v-if="!isCollapse" class="logo-text">WayTrip Admin</span>
         </div>
         <!-- 导航菜单 -->
@@ -104,6 +101,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { NAVIGATION_GROUPS, NAVIGATION_GROUP_MAP } from '@/shared/constants/navigation.js'
 import { Fold, Expand, Search, Bell, ArrowDown } from '@element-plus/icons-vue'
+import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
 
 const router = useRouter()
 const route = useRoute()
@@ -188,31 +186,11 @@ onMounted(async () => {
     flex-shrink: 0;
 
     .logo-icon {
-      position: relative;
       width: 28px;
       height: 28px;
       margin-right: 8px;
       flex-shrink: 0;
-    }
-
-    .logo-glyph {
-      position: absolute;
-      border-radius: 10px;
-      transform: rotate(45deg);
-    }
-
-    .glyph-main {
-      inset: 2px;
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.26);
-    }
-
-    .glyph-accent {
-      width: 10px;
-      height: 10px;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, #c8a95b 0%, #b8892e 100%);
+      display: block;
     }
 
     .logo-text {

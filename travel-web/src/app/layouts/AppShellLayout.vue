@@ -6,9 +6,7 @@
         <div class="shell-header-bar glass-panel">
           <div class="shell-left">
             <router-link to="/" class="brand-link" aria-label="WayTrip 首页">
-              <span class="brand-mark" aria-hidden="true">
-                <span class="brand-mark-core"></span>
-              </span>
+              <img :src="brandMarkUrl" alt="" aria-hidden="true" class="brand-mark">
               <span class="brand-copy">
                 <strong>{{ APP_NAME }}</strong>
                 <span>Travel Curated</span>
@@ -106,9 +104,7 @@
         <div class="shell-footer-panel premium-card">
           <div class="footer-brand">
             <div class="footer-brand-head">
-              <span class="brand-mark brand-mark-footer" aria-hidden="true">
-                <span class="brand-mark-core"></span>
-              </span>
+              <img :src="brandMarkUrl" alt="" aria-hidden="true" class="brand-mark brand-mark-footer">
               <div>
                 <strong>{{ APP_NAME }}</strong>
                 <p>把推荐、附近和攻略整理成更有秩序的旅行探索体验。</p>
@@ -144,6 +140,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/shared/api/client.js'
 import { ArrowDown, ChatDotRound, Discount, MagicStick, Search, Setting, Stopwatch, Tickets, User, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
+import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
 
 // 基础依赖与路由状态
 const userStore = useUserStore()
@@ -266,29 +263,9 @@ const handleCommand = (command) => {
 .brand-mark {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 68%, #c8a95b 100%);
-  box-shadow: 0 20px 28px -18px rgba(37, 99, 235, 0.78);
-}
-
-.brand-mark::before {
-  content: '';
-  position: absolute;
-  inset: 1px;
-  border-radius: 13px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0));
-}
-
-.brand-mark-core {
-  width: 18px;
-  height: 18px;
-  border-radius: 7px;
-  border: 2px solid rgba(255, 255, 255, 0.92);
-  transform: rotate(45deg);
+  display: block;
+  flex-shrink: 0;
+  filter: drop-shadow(0 18px 24px rgba(37, 99, 235, 0.2));
 }
 
 .brand-copy {
