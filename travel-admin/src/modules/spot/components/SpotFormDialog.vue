@@ -1,20 +1,24 @@
 <template>
   <!-- 新增/编辑景点抽屉表单 -->
   <el-drawer
-    :model-value="visible"
-    :title="editId ? '编辑景点' : '新增景点'"
-    size="760px"
-    @update:model-value="emitVisible"
-    class="spot-form-drawer"
-    destroy-on-close
+      :model-value="visible"
+      :title="editId ? '编辑景点' : '新增景点'"
+      size="760px"
+      @update:model-value="emitVisible"
+      class="spot-form-drawer"
+      destroy-on-close
   >
     <div class="drawer-content-wrapper flex flex-col h-full">
       <!-- 顶部步骤条 -->
       <div class="steps-container px-6 py-4 bg-gray-50 border-b border-gray-100">
         <el-steps :active="activeStep" finish-status="success" simple>
-          <el-step title="基础信息" icon="Document" />
-          <el-step title="位置与营业" icon="Location" />
-          <el-step title="图文素材" icon="Picture" />
+          <el-step v-for="(step, index) in stepOptions" :key="step.title" :icon="step.icon">
+            <template #title>
+              <button type="button" class="step-title-btn" @click="goToStep(index)">
+                {{ step.title }}
+              </button>
+            </template>
+          </el-step>
         </el-steps>
       </div>
 
@@ -24,7 +28,7 @@
           <!-- Step 0: 基础信息 -->
           <div v-show="activeStep === 0" class="step-panel animate-fade-in">
             <h3 class="section-title">基础录入</h3>
-            
+
             <el-row :gutter="24">
               <el-col :span="24">
                 <el-form-item label="景点名称" prop="name">
@@ -37,13 +41,13 @@
               <el-col :span="12">
                 <el-form-item label="归属地区" prop="regionPath">
                   <el-cascader
-                    v-model="form.regionPath"
-                    :options="regionCascaderOptions"
-                    :props="regionCascaderProps"
-                    clearable
-                    placeholder="请选择地区"
-                    class="w-full"
-                    size="large"
+                      v-model="form.regionPath"
+                      :options="regionCascaderOptions"
+                      :props="regionCascaderProps"
+                      clearable
+                      placeholder="请选择地区"
+                      class="w-full"
+                      size="large"
                   />
                 </el-form-item>
               </el-col>
@@ -83,7 +87,7 @@
           <!-- Step 1: 位置与营业 -->
           <div v-show="activeStep === 1" class="step-panel animate-fade-in">
             <h3 class="section-title">定位与状态</h3>
-            
+
             <el-row :gutter="24">
               <el-col :span="24">
                 <el-form-item label="详细地址" prop="address">
@@ -128,21 +132,21 @@
           <!-- Step 2: 图文素材 -->
           <div v-show="activeStep === 2" class="step-panel animate-fade-in">
             <h3 class="section-title">画廊与展示图</h3>
-            
+
             <el-row :gutter="24">
               <el-col :span="24">
                 <el-form-item label="首页封面图 (Cover Image)">
                   <div class="upload-container">
                     <el-upload
-                      class="image-uploader"
-                      :action="uploadUrl"
-                      :headers="uploadHeaders"
-                      :data="coverUploadData"
-                      :show-file-list="false"
-                      :on-success="handleUploadSuccess"
-                      :on-error="handleUploadError"
-                      :before-upload="beforeUpload"
-                      accept="image/*"
+                        class="image-uploader"
+                        :action="uploadUrl"
+                        :headers="uploadHeaders"
+                        :data="coverUploadData"
+                        :show-file-list="false"
+                        :on-success="handleUploadSuccess"
+                        :on-error="handleUploadError"
+                        :before-upload="beforeUpload"
+                        accept="image/*"
                     >
                       <template #trigger>
                         <div v-if="form.coverImage" class="uploaded-mask-wrapper">
@@ -170,15 +174,15 @@
                     <div class="flex justify-between items-center mb-4">
                       <span class="text-sm text-gray-500">已上传 {{ form.images?.length || 0 }} 张图</span>
                       <el-upload
-                        class="gallery-uploader-inline"
-                        :action="uploadUrl"
-                        :headers="uploadHeaders"
-                        :data="galleryUploadData"
-                        :show-file-list="false"
-                        :on-success="handleGalleryUploadSuccess"
-                        :on-error="handleUploadError"
-                        :before-upload="beforeUpload"
-                        accept="image/*"
+                          class="gallery-uploader-inline"
+                          :action="uploadUrl"
+                          :headers="uploadHeaders"
+                          :data="galleryUploadData"
+                          :show-file-list="false"
+                          :on-success="handleGalleryUploadSuccess"
+                          :on-error="handleUploadError"
+                          :before-upload="beforeUpload"
+                          accept="image/*"
                       >
                         <el-button type="primary" plain class="modern-btn-plain"><el-icon class="mr-1"><Upload /></el-icon>继续添加图片</el-button>
                       </el-upload>
@@ -195,7 +199,7 @@
                         </div>
                       </div>
                     </div>
-                    
+
                     <el-empty v-else description="暂无详情图" :image-size="60" class="py-4" />
                   </div>
                 </el-form-item>
@@ -266,15 +270,25 @@ const emitVisible = (value) => {
   emit('update:visible', value)
 }
 
+const stepOptions = [
+  { title: '基础信息', icon: Document },
+  { title: '位置与营业', icon: Location },
+  { title: '图文素材', icon: Picture }
+]
+
+const goToStep = (stepIndex) => {
+  activeStep.value = stepIndex
+}
+
 const nextStep = async () => {
   // 可以在这里做部分校验，例如基础信息填完才能下一步
   // let fieldsToValidate = []
   // if (activeStep.value === 0) fieldsToValidate = ['name', 'regionPath', 'parentCategoryId', 'categoryId', 'price']
   // if (activeStep.value === 1) fieldsToValidate = ['address', 'heatLevel']
-  
+
   try {
     // 简略实现：暂时允许直接翻页，最后统一校验
-    activeStep.value++
+    goToStep(activeStep.value + 1)
   } catch (e) {
     // 校验失败拦截
   }
@@ -333,7 +347,7 @@ defineExpose({
     color: var(--wt-text-regular);
     padding-bottom: 4px;
   }
-  
+
   :deep(.el-input__wrapper), :deep(.el-textarea__inner) {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
@@ -363,7 +377,7 @@ defineExpose({
     position: relative;
     width: 240px;
     height: 160px;
-    
+
     .hover-mask {
       position: absolute;
       inset: 0;
@@ -377,7 +391,7 @@ defineExpose({
       font-weight: 600;
       gap: 4px;
     }
-    
+
     &:hover .hover-mask {
       opacity: 1;
     }
@@ -452,6 +466,15 @@ defineExpose({
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.step-title-btn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 
 :deep(.el-step.is-simple .el-step__title) {
