@@ -166,8 +166,8 @@
       {
         "pagePath": "pages/discover/index",
         "text": "发现",
-        "iconPath": "static/tabbar/spot.png",
-        "selectedIconPath": "static/tabbar/spot-active.png"
+        "iconPath": "static/tabbar/discover.png",
+        "selectedIconPath": "static/tabbar/discover-active.png"
       },
       {
         "pagePath": "pages/mine/index",
