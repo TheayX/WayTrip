@@ -56,7 +56,10 @@
               <text class="favorite-name">{{ spot.name }}</text>
               <text class="favorite-meta">{{ spot.regionName }} · {{ spot.categoryName }}</text>
               <view class="favorite-bottom">
-                <text class="favorite-rating">★ {{ spot.avgRating }}</text>
+                <view class="favorite-rating">
+                  <uni-icons type="star-filled" size="13" color="#d97706" />
+                  <text class="favorite-rating-text">{{ spot.avgRating }}</text>
+                </view>
                 <text class="favorite-price">¥{{ spot.price }}</text>
               </view>
             </view>
@@ -79,7 +82,10 @@
             <view class="review-body">
               <view class="review-top">
                 <text class="review-name">{{ item.spotName || `景点 #${item.spotId}` }}</text>
-                <text class="review-score">★ {{ item.score }}</text>
+                <view class="review-score">
+                  <uni-icons type="star-filled" size="13" color="#d97706" />
+                  <text class="review-score-text">{{ item.score }}</text>
+                </view>
               </view>
               <text class="review-time">更新于 {{ item.updatedAt || item.createdAt || '-' }}</text>
               <text class="review-comment">{{ item.comment || '这条评价没有填写文字内容。' }}</text>
@@ -111,13 +117,15 @@
         <text class="popup-title">编辑评价</text>
         <text class="popup-spot">{{ currentReview?.spotName || '-' }}</text>
         <view class="star-row">
-          <text
+          <view
             v-for="i in 5"
             :key="i"
             class="star"
             :class="{ active: i <= editForm.score }"
             @tap="editForm.score = i"
-          >★</text>
+          >
+            <uni-icons type="star-filled" size="22" :color="i <= editForm.score ? '#d97706' : '#cbd5e1'" />
+          </view>
         </view>
         <textarea
           v-model="editForm.comment"
@@ -571,8 +579,15 @@ onShow(async () => {
 
 .favorite-rating,
 .review-score {
-  font-size: 26rpx;
-  color: #f59e0b;
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.favorite-rating-text,
+.review-score-text {
+  font-size: 24rpx;
+  color: #b45309;
   font-weight: 700;
 }
 
@@ -726,13 +741,18 @@ onShow(async () => {
 }
 
 .star {
-  font-size: 56rpx;
-  color: #e2e8f0;
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+  background: rgba(248, 250, 252, 0.92);
   transition: color 0.2s ease;
 }
 
 .star.active {
-  color: #f59e0b;
+  background: rgba(255, 247, 237, 0.94);
 }
 
 .comment-input {

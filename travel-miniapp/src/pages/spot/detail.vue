@@ -20,7 +20,10 @@
         </view>
       </view>
       <view class="info-meta">
-        <text class="rating">★ {{ spot.avgRating }}</text>
+        <view class="rating-chip">
+          <uni-icons type="star-filled" size="14" color="#d97706" />
+          <text class="rating">{{ spot.avgRating }}</text>
+        </view>
         <text class="rating-count">({{ spot.ratingCount }}条评价)</text>
         <text class="divider">·</text>
         <text class="category">{{ spot.regionName }} · {{ spot.categoryName }}</text>
@@ -94,7 +97,10 @@
             <view class="comment-header">
               <text class="comment-name">{{ comment.nickname }}</text>
               <view class="comment-meta">
-                <text class="comment-score">★ {{ comment.score }}</text>
+                <view class="comment-score">
+                  <uni-icons type="star-filled" size="13" color="#d97706" />
+                  <text class="comment-score-text">{{ comment.score }}</text>
+                </view>
                 <text
                   v-if="canDeleteComment(comment)"
                   class="comment-delete"
@@ -130,13 +136,15 @@
       <view class="rating-content" @tap.stop>
         <text class="rating-title">评价景点</text>
         <view class="star-row">
-          <text 
+          <view
             v-for="i in 5" 
             :key="i" 
             class="star" 
             :class="{ active: i <= ratingForm.score }"
             @tap.stop="ratingForm.score = i"
-          >★</text>
+          >
+            <uni-icons type="star-filled" size="22" :color="i <= ratingForm.score ? '#d97706' : '#e2e8f0'" />
+          </view>
         </view>
         <textarea 
           class="rating-textarea" 
@@ -507,10 +515,18 @@ onUnload(() => {
   margin-top: 16rpx;
   font-size: 26rpx;
 }
+.rating-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 247, 237, 0.9);
+}
 
 .rating {
-  color: #FF9500;
-  font-weight: 600;
+  color: #b45309;
+  font-weight: 700;
 }
 
 .rating-count {
@@ -770,11 +786,8 @@ onUnload(() => {
   font-weight: 500;
 }
 
-.comment-score {
-  font-size: 24rpx;
-  color: #FF9500;
-  font-weight: 600;
-}
+.comment-score { display: inline-flex; align-items: center; gap: 6rpx; }
+.comment-score-text { font-size: 24rpx; color: #b45309; font-weight: 700; }
 
 .comment-delete {
   font-size: 24rpx;
@@ -886,12 +899,17 @@ onUnload(() => {
 }
 
 .star {
-  font-size: 60rpx;
-  color: #E5E5EA;
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+  background: rgba(248, 250, 252, 0.92);
 }
 
 .star.active {
-  color: #FF9500;
+  background: rgba(255, 247, 237, 0.94);
 }
 
 .rating-textarea {

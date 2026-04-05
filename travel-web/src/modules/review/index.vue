@@ -19,12 +19,12 @@
                   </div>
                 </div>
                 <div class="actions">
-                  <el-button type="primary" plain @click="openEdit(item)">编辑</el-button>
-                  <el-button type="danger" plain @click="handleDelete(item)">删除</el-button>
+                  <button type="button" class="review-action-button" @click="openEdit(item)">编辑</button>
+                  <button type="button" class="review-action-button review-action-button--danger" @click="handleDelete(item)">删除</button>
                 </div>
               </div>
               <p class="comment">{{ item.comment || '这条评价没有填写文字内容。' }}</p>
-              <el-button text type="primary" @click="$router.push(`/spots/${item.spotId}?source=review`)">查看景点</el-button>
+              <button type="button" class="review-action-button" @click="$router.push(`/spots/${item.spotId}?source=review`)">查看景点</button>
             </div>
           </article>
         </div>
@@ -231,6 +231,35 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+}
+
+.review-action-button {
+  height: 34px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(241, 245, 249, 0.92);
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.review-action-button:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.review-action-button--danger {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.review-action-button--danger:hover {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .pagination-wrapper {

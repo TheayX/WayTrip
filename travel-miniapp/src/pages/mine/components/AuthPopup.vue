@@ -3,8 +3,12 @@
     <!-- ========== 第一步：强制设置手机号和密码 ========== -->
     <view class="auth-mask" v-if="step === 1">
       <view class="auth-panel">
-        <text class="auth-title">欢迎来到微旅 🎉</text>
-        <text class="auth-subtitle">设置手机号和密码保护账户</text>
+        <image class="auth-brand-mark" src="/static/brand/standard-mark.svg" mode="aspectFit" />
+        <view class="auth-head">
+          <text class="auth-kicker">WayTrip Account</text>
+          <text class="auth-title">完成账号设置</text>
+          <text class="auth-subtitle">绑定手机号并设置密码，后续可直接使用同一账户登录。</text>
+        </view>
 
         <!-- 手机号 -->
         <input
@@ -25,7 +29,7 @@
             placeholder="设置密码（至少6位）"
             maxlength="50"
           />
-          <text class="pwd-eye" @click="step1PwdVisible = !step1PwdVisible">{{ step1PwdVisible ? '🙈' : '👁' }}</text>
+          <text class="pwd-toggle" @click="step1PwdVisible = !step1PwdVisible">{{ step1PwdVisible ? '隐藏' : '显示' }}</text>
         </view>
 
         <!-- 确认密码 -->
@@ -38,22 +42,26 @@
             placeholder="确认密码"
             maxlength="50"
           />
-          <text class="pwd-eye" @click="step1ConfirmPwdVisible = !step1ConfirmPwdVisible">{{ step1ConfirmPwdVisible ? '🙈' : '👁' }}</text>
+          <text class="pwd-toggle" @click="step1ConfirmPwdVisible = !step1ConfirmPwdVisible">{{ step1ConfirmPwdVisible ? '隐藏' : '显示' }}</text>
         </view>
 
         <view class="auth-actions">
           <button class="auth-btn confirm full" @click="submitStep1">下一步</button>
         </view>
         <text v-if="step1Error" class="auth-error">{{ step1Error }}</text>
-        <text class="auth-tip">如果手机号已在Web端注册，输入正确密码即可直接绑定</text>
+        <text class="auth-tip">如果手机号已在 Web 端注册，输入正确密码后会直接完成绑定。</text>
       </view>
     </view>
 
     <!-- ========== 第二步：可选设置头像和昵称 ========== -->
     <view class="auth-mask" v-if="step === 2">
       <view class="auth-panel">
-        <text class="auth-title">完成注册 ✨</text>
-        <text class="auth-subtitle">设置头像和昵称，或直接跳过完成注册</text>
+        <image class="auth-brand-mark" src="/static/brand/standard-mark.svg" mode="aspectFit" />
+        <view class="auth-head">
+          <text class="auth-kicker">WayTrip Profile</text>
+          <text class="auth-title">完善个人资料</text>
+          <text class="auth-subtitle">设置头像和昵称，或直接跳过，稍后也可以在账号资料里继续修改。</text>
+        </view>
 
         <!-- 头像选择 -->
         <view class="auth-avatar-wrap">
@@ -237,7 +245,10 @@ const submitStep2 = async () => {
       const uploadRes = await uploadAvatar(authForm.avatarTempFile)
       avatarUrl = uploadRes.data.url
     }
-    const updateData = { nickname }
+    const updateData = {
+      nickname,
+      phone: pendingRegister.phone
+    }
     if (avatarUrl) updateData.avatar = avatarUrl
 
     await updateUserInfo(updateData)
@@ -285,39 +296,96 @@ const skipRegisterPreferences = () => {
 /* ========== 新用户授权弹窗 ========== */
 .auth-mask {
   position: fixed; left: 0; top: 0; width: 100%; height: 100%;
-  background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.42); backdrop-filter: blur(14px);
   display: flex; align-items: center; justify-content: center; z-index: 1000;
+  padding: 32rpx;
+  box-sizing: border-box;
 }
 .auth-panel {
-  width: 600rpx; background: #ffffff; border-radius: 40rpx; padding: 48rpx 40rpx;
-  display: flex; flex-direction: column; align-items: center;
-  box-shadow: 0 16rpx 48rpx rgba(17, 24, 39, 0.12);
+  width: 620rpx;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.92) 100%);
+  border: 2rpx solid rgba(255, 255, 255, 0.72);
+  border-radius: 44rpx;
+  padding: 52rpx 40rpx 40rpx;
+  display: flex; flex-direction: column; align-items: stretch;
+  box-shadow: 0 20rpx 56rpx rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(18rpx);
+  box-sizing: border-box;
+  position: relative;
 }
 .preference-guide-panel {
-  width: 640rpx; background: #ffffff; border-radius: 40rpx; padding: 48rpx 36rpx;
-  box-shadow: 0 16rpx 48rpx rgba(17, 24, 39, 0.12);
+  width: 640rpx;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.92) 100%);
+  border: 2rpx solid rgba(255, 255, 255, 0.72);
+  border-radius: 44rpx;
+  padding: 44rpx 36rpx;
+  box-shadow: 0 20rpx 56rpx rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(18rpx);
+  box-sizing: border-box;
 }
-.auth-title { font-size: 38rpx; font-weight: 700; color: #111827; margin-bottom: 12rpx; }
-.auth-subtitle { font-size: 26rpx; color: #6b7280; margin-bottom: 40rpx; }
+.auth-brand-mark {
+  width: 72rpx;
+  height: 72rpx;
+  display: block;
+  position: absolute;
+  left: 32rpx;
+  top: 32rpx;
+}
+.auth-head {
+  padding: 8rpx 12rpx 0;
+  margin-bottom: 40rpx;
+  text-align: center;
+}
+.auth-kicker { display: block; font-size: 22rpx; font-weight: 700; letter-spacing: 4rpx; color: #64748b; margin-bottom: 10rpx; }
+.auth-title { display: block; font-size: 42rpx; font-weight: 800; color: #0f172a; margin-bottom: 14rpx; }
+.auth-subtitle { display: block; font-size: 26rpx; color: #64748b; line-height: 1.7; }
 
 .auth-avatar-wrap { margin-bottom: 32rpx; }
 .auth-avatar-btn { display: flex; flex-direction: column; align-items: center; background: transparent; padding: 0; margin: 0; line-height: normal; }
 .auth-avatar-btn::after { border: none; }
-.auth-avatar-img { width: 160rpx; height: 160rpx; border-radius: 50%; box-shadow: 0 8rpx 20rpx rgba(17, 24, 39, 0.08); }
+.auth-avatar-img { width: 160rpx; height: 160rpx; border-radius: 50%; box-shadow: 0 10rpx 28rpx rgba(17, 24, 39, 0.08); border: 6rpx solid rgba(255, 255, 255, 0.88); }
 .auth-avatar-edit { margin-top: 16rpx; }
-.auth-avatar-edit-text { font-size: 24rpx; color: #3b82f6; font-weight: 500;}
+.auth-avatar-edit-text { font-size: 24rpx; color: #475569; font-weight: 600;}
 
-.auth-input { width: 100%; height: 88rpx; border-radius: 32rpx; background: #f3f4f6; padding: 0 24rpx; margin-bottom: 20rpx; font-size: 30rpx; text-align: center; }
-.auth-input-wrap { width: 100%; height: 88rpx; border-radius: 32rpx; background: #f3f4f6; display: flex; align-items: center; padding: 0 24rpx; margin-bottom: 20rpx; }
-.auth-input-field { flex: 1; height: 88rpx; font-size: 30rpx; text-align: center; }
-.pwd-eye { font-size: 40rpx; padding: 0 8rpx; flex-shrink: 0; }
+.auth-input {
+  width: 100%;
+  height: 92rpx;
+  border-radius: 30rpx;
+  background: rgba(248, 250, 252, 0.92);
+  border: 2rpx solid rgba(226, 232, 240, 0.9);
+  padding: 0 28rpx;
+  margin-bottom: 20rpx;
+  font-size: 30rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+.auth-input-wrap {
+  width: 100%;
+  height: 92rpx;
+  border-radius: 30rpx;
+  background: rgba(248, 250, 252, 0.92);
+  border: 2rpx solid rgba(226, 232, 240, 0.9);
+  display: flex;
+  align-items: center;
+  padding: 0 28rpx;
+  margin-bottom: 20rpx;
+  box-sizing: border-box;
+}
+.auth-input-field { flex: 1; height: 92rpx; font-size: 30rpx; text-align: center; }
+.pwd-toggle {
+  font-size: 24rpx;
+  color: #64748b;
+  font-weight: 600;
+  padding-left: 16rpx;
+  flex-shrink: 0;
+}
 
-.auth-actions { display: flex; gap: 20rpx; width: 100%; margin-top: 16rpx; }
-.auth-btn { flex: 1; height: 88rpx; line-height: 88rpx; border-radius: 36rpx; font-size: 30rpx; text-align: center; font-weight: 600; }
-.auth-btn.skip { color: #4b5563; background: #f3f4f6; }
-.auth-btn.confirm { color: #ffffff; background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.3); }
+.auth-actions { display: flex; gap: 20rpx; width: 100%; margin-top: 16rpx; box-sizing: border-box; }
+.auth-btn { flex: 1; height: 88rpx; line-height: 88rpx; border-radius: 32rpx; font-size: 30rpx; text-align: center; font-weight: 700; }
+.auth-btn.skip { color: #475569; background: rgba(241, 245, 249, 0.95); }
+.auth-btn.confirm { color: #ffffff; background: linear-gradient(135deg, #0f172a, #334155); box-shadow: 0 10rpx 24rpx rgba(15, 23, 42, 0.16); }
 .auth-btn.confirm.full { flex: 1; width: 100%; }
 
-.auth-tip { display: block; margin-top: 24rpx; font-size: 24rpx; color: #9ca3af; text-align: center; }
-.auth-error { display: block; margin-top: 16rpx; font-size: 24rpx; color: #ef4444; text-align: center; font-weight: 500;}
+.auth-tip { display: block; margin-top: 24rpx; font-size: 24rpx; color: #94a3b8; text-align: center; line-height: 1.7; }
+.auth-error { display: block; margin-top: 16rpx; font-size: 24rpx; color: #dc2626; text-align: center; font-weight: 600;}
 </style>

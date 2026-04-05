@@ -53,9 +53,9 @@
             <p>{{ item.comment || '这条评价没有填写文字内容。' }}</p>
             <span>更新于 {{ item.updatedAt || item.createdAt || '-' }}</span>
             <div class="review-actions">
-              <el-button plain size="small" @click="openEdit(item)">编辑</el-button>
-              <el-button plain type="danger" size="small" @click="handleDeleteReview(item)">删除</el-button>
-              <el-button text type="primary" size="small" @click="$router.push(`/spots/${item.spotId}?source=review`)">查看景点</el-button>
+              <button type="button" class="review-action-button" @click="openEdit(item)">编辑</button>
+              <button type="button" class="review-action-button review-action-button--danger" @click="handleDeleteReview(item)">删除</button>
+              <button type="button" class="review-action-button" @click="$router.push(`/spots/${item.spotId}?source=review`)">查看景点</button>
             </div>
           </div>
         </article>
@@ -265,5 +265,34 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.review-action-button {
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  color: #475569;
+  background: rgba(241, 245, 249, 0.92);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.review-action-button:hover {
+  color: #0f172a;
+  background: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.review-action-button--danger {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.review-action-button--danger:hover {
+  background: #fee2e2;
+  color: #991b1b;
 }
 </style>

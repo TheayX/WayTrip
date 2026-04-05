@@ -38,7 +38,7 @@
     <section class="order-overview card">
       <div class="section-header">
         <h3>旅行订单</h3>
-        <el-button text type="primary" @click="$router.push(ACCOUNT_ROUTE_PATHS.orders)">查看全部</el-button>
+        <el-button text class="overview-link-button" @click="$router.push(ACCOUNT_ROUTE_PATHS.orders)">查看全部</el-button>
       </div>
       <div class="order-grid">
         <div class="order-card" @click="$router.push(`${ACCOUNT_ROUTE_PATHS.orders}?status=pending`)">
@@ -452,6 +452,17 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+:deep(.el-button.overview-link-button) {
+  color: #475569;
+  background: transparent;
+  border-color: transparent;
+}
+
+:deep(.el-button.overview-link-button:hover) {
+  color: #0f172a;
+  background: rgba(241, 245, 249, 0.92);
 }
 
 .order-grid {
