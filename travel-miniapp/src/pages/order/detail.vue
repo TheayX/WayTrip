@@ -70,7 +70,7 @@
       <button v-if="order.canCancel" class="action-btn cancel" @click="handleCancel">
         {{ order.status === 'paid' ? '申请退款' : '取消订单' }}
       </button>
-      <button v-if="order.canPay" class="action-btn pay" @click="handlePay">立即支付</button>
+      <button v-if="order.canPay && !timeoutRefreshInProgress" class="action-btn pay" @click="handlePay">立即支付</button>
       <button v-if="order.status === 'completed'" class="action-btn review" @click="handleReview">去评价</button>
     </view>
   </view>
@@ -87,8 +87,16 @@ import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 const order = ref(null)
 const orderId = ref(null)
 const countdownText = ref('')
+const detailLoading = ref(false)
 let countdownTimer = null
 let countdownTargetMs = null
+let hasTriggeredTimeoutRefresh = false
+let pendingTimeoutRefresh = false
+const timeoutRefreshInProgress = ref(false)
+let timeoutRetryTimer = null
+let timeoutRetryCount = 0
+const MAX_TIMEOUT_REFRESH_RETRIES = 6
+const TIMEOUT_REFRESH_RETRY_DELAY = 800
 
 // 计算属性
 const showActions = computed(() => {
@@ -98,13 +106,60 @@ const showActions = computed(() => {
 
 // 数据加载方法
 const fetchOrderDetail = async () => {
+  if (!orderId.value || detailLoading.value) return
+
+  detailLoading.value = true
   try {
     const res = await getOrderDetail(orderId.value)
     order.value = res.data
+    if (order.value?.status !== 'pending') {
+      clearTimeoutRetry()
+      timeoutRefreshInProgress.value = false
+      timeoutRetryCount = 0
+    }
     setupCountdown()
   } catch (e) {
     uni.showToast({ title: '获取订单详情失败', icon: 'none' })
+  } finally {
+    detailLoading.value = false
+    if (pendingTimeoutRefresh) {
+      pendingTimeoutRefresh = false
+      fetchOrderDetail()
+      return
+    }
+
+    if (timeoutRefreshInProgress.value && order.value?.status === 'pending' && timeoutRetryCount < MAX_TIMEOUT_REFRESH_RETRIES) {
+      scheduleTimeoutRetry()
+    }
   }
+}
+
+const clearTimeoutRetry = () => {
+  if (timeoutRetryTimer) {
+    clearTimeout(timeoutRetryTimer)
+    timeoutRetryTimer = null
+  }
+}
+
+const scheduleTimeoutRetry = () => {
+  clearTimeoutRetry()
+  timeoutRetryTimer = setTimeout(() => {
+    timeoutRetryCount += 1
+    fetchOrderDetail()
+  }, TIMEOUT_REFRESH_RETRY_DELAY)
+}
+
+const triggerTimeoutRefresh = () => {
+  timeoutRefreshInProgress.value = true
+  timeoutRetryCount = 0
+  clearTimeoutRetry()
+
+  if (detailLoading.value) {
+    pendingTimeoutRefresh = true
+    return
+  }
+
+  fetchOrderDetail()
 }
 
 // 工具方法
@@ -143,9 +198,15 @@ const clearCountdown = () => {
 
 const setupCountdown = () => {
   clearCountdown()
-  countdownText.value = ''
   countdownTargetMs = null
   if (!order.value || order.value.status !== 'pending') return
+
+  if (timeoutRefreshInProgress.value) {
+    return
+  }
+
+  countdownText.value = ''
+  hasTriggeredTimeoutRefresh = false
 
   const createdAt = parseDateTime(order.value.createdAt)
   if (!createdAt) return
@@ -154,9 +215,11 @@ const setupCountdown = () => {
   const tick = () => {
     const remaining = Math.floor((countdownTargetMs - Date.now()) / 1000)
     countdownText.value = formatRemaining(remaining)
-    if (remaining <= 0) {
+    if (remaining <= 0 && !hasTriggeredTimeoutRefresh) {
+      // 倒计时归零后只刷新一次，避免页面在状态切换期间重复请求。
+      hasTriggeredTimeoutRefresh = true
       clearCountdown()
-      fetchOrderDetail()
+      triggerTimeoutRefresh()
     }
   }
 
@@ -216,6 +279,7 @@ onShow(() => {
 
 onUnload(() => {
   clearCountdown()
+  clearTimeoutRetry()
 })
 </script>
 

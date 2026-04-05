@@ -4,6 +4,7 @@ import com.travel.common.result.ApiResponse;
 import com.travel.common.result.PageResult;
 import com.travel.dto.guide.request.AdminGuideListRequest;
 import com.travel.dto.guide.request.AdminGuideRequest;
+import com.travel.dto.guide.request.AdminGuideViewCountRequest;
 import com.travel.dto.guide.response.AdminGuideListResponse;
 import com.travel.service.GuideService;
 import com.travel.util.web.UserContextHolder;
@@ -57,6 +58,13 @@ public class AdminGuideController {
     @PutMapping("/{guideId}")
     public ApiResponse<Void> updateGuide(@PathVariable("guideId") Long guideId, @RequestBody AdminGuideRequest request) {
         guideService.updateGuide(guideId, request);
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "更新攻略浏览量")
+    @PutMapping("/{guideId}/view-count")
+    public ApiResponse<Void> updateGuideViewCount(@PathVariable("guideId") Long guideId, @RequestBody AdminGuideViewCountRequest request) {
+        guideService.updateGuideViewCount(guideId, request);
         return ApiResponse.success();
     }
 

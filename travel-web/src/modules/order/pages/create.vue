@@ -3,7 +3,7 @@
   <div class="page-container" v-if="spot">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: `/spots/${spot.id}` }">{{ spot.name }}</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: `/spots/${spot.id}`, query: { source: 'order' } }">{{ spot.name }}</el-breadcrumb-item>
       <el-breadcrumb-item>创建订单</el-breadcrumb-item>
     </el-breadcrumb>
 

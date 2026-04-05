@@ -8,6 +8,7 @@ import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.guide.request.AdminGuideListRequest;
 import com.travel.dto.guide.request.AdminGuideRequest;
+import com.travel.dto.guide.request.AdminGuideViewCountRequest;
 import com.travel.dto.guide.response.AdminGuideListResponse;
 import com.travel.entity.Guide;
 import com.travel.entity.GuideSpotRelation;
@@ -96,6 +97,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         response.setCategory(guide.getCategory());
         response.setContent(guide.getContent());
         response.setPublished(guide.getIsPublished() == 1);
+        response.setViewCount(guide.getViewCount());
         response.setSpotIds(filteredSpotIds);
         response.setSpotOptions(spotOptions);
         return response;
@@ -133,6 +135,16 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         markGuideSpotsDeleted(guideId);
         saveGuideSpots(guideId, request.getSpotIds());
         log.info("攻略更新成功: guideId={}, title={}", guideId, request.getTitle());
+    }
+
+    @Override
+    public void updateGuideViewCount(Long guideId, AdminGuideViewCountRequest request) {
+        Guide guide = getExistingGuide(guideId);
+        if (request != null && request.getViewCount() != null) {
+            guide.setViewCount(request.getViewCount());
+        }
+        guideMapper.updateById(guide);
+        log.info("攻略浏览量已更新: guideId={}, viewCount={}", guideId, guide.getViewCount());
     }
 
     @Override

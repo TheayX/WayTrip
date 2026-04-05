@@ -67,6 +67,7 @@
         @selection-change="handleSelectionChange"
         @view="handleView"
         @edit="handleEdit"
+        @edit-view-count="handleEditViewCount"
         @toggle-publish="handleTogglePublish"
         @delete="handleDelete"
       />
@@ -109,6 +110,38 @@
       :format-date="formatDate"
     />
 
+    <el-dialog v-model="viewCountDialogVisible" title="修改攻略浏览量" width="520px" destroy-on-close>
+      <template v-if="viewCountTarget">
+        <div class="view-count-dialog-body">
+          <div class="view-count-overview">
+            <div class="view-count-label">攻略标题</div>
+            <div class="view-count-title">{{ viewCountTarget.title }}</div>
+          </div>
+          <div class="view-count-overview">
+            <div class="view-count-label">当前浏览量</div>
+            <div class="view-count-number">{{ viewCountInitial }}</div>
+          </div>
+
+          <el-alert
+            type="warning"
+            :closable="false"
+            title="人工调整浏览量会直接影响后台展示结果，当前仅做管理员提醒，后续再补充更严格的限制措施。"
+          />
+
+          <el-form label-position="top" class="view-count-form">
+            <el-form-item label="目标浏览量">
+              <el-input-number v-model="viewCountFormValue" :min="0" :step="1" size="large" />
+            </el-form-item>
+          </el-form>
+        </div>
+      </template>
+      <template #footer>
+        <el-button @click="handleCloseViewCountDialog">取消</el-button>
+        <el-button @click="resetViewCountForm">恢复当前值</el-button>
+        <el-button type="primary" :loading="viewCountSubmitting" @click="handleSubmitViewCount">保存浏览量</el-button>
+      </template>
+    </el-dialog>
+
     <transition name="el-zoom-in-bottom">
       <div v-show="selectedGuides.length > 0" class="floating-action-bar">
         <div class="floating-action-summary">
@@ -139,6 +172,7 @@ import {
   getGuideDetail,
   getGuideList,
   updateGuide,
+  updateGuideViewCount,
   updatePublishStatus
 } from '@/modules/guide/api.js'
 import { useUserStore } from '@/app/store/user.js'
@@ -209,12 +243,17 @@ const selectedGuides = ref([])
 const dialogVisible = ref(false)
 const drawerVisible = ref(false)
 const submitting = ref(false)
+const viewCountSubmitting = ref(false)
 const editId = ref(null)
 const activeGuideId = ref(null)
 const autoOpenedGuideId = ref(null)
 const guideDetail = ref(null)
 const formDrawerRef = ref()
 const skipNextRouteLoad = ref(false)
+const viewCountDialogVisible = ref(false)
+const viewCountTarget = ref(null)
+const viewCountInitial = ref(0)
+const viewCountFormValue = ref(0)
 
 const queryParams = reactive({
   page: 1,
@@ -397,6 +436,63 @@ const handleEdit = async (row) => {
     dialogVisible.value = true
   } catch (e) {
     ElMessage.error('获取攻略详情失败')
+  }
+}
+
+const handleEditViewCount = (row) => {
+  viewCountTarget.value = { id: row.id, title: row.title }
+  viewCountInitial.value = Number(row.viewCount ?? 0)
+  viewCountFormValue.value = viewCountInitial.value
+  viewCountDialogVisible.value = true
+}
+
+const handleCloseViewCountDialog = () => {
+  viewCountDialogVisible.value = false
+  viewCountTarget.value = null
+  viewCountInitial.value = 0
+  viewCountFormValue.value = 0
+}
+
+const resetViewCountForm = () => {
+  viewCountFormValue.value = viewCountInitial.value
+}
+
+const handleSubmitViewCount = async () => {
+  if (!viewCountTarget.value?.id) {
+    ElMessage.warning('当前攻略不存在，无法保存浏览量')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `你正在手动把《${viewCountTarget.value.title}》的浏览量调整为 ${viewCountFormValue.value}。该数值会直接影响后台展示，请确认这是人工运营调整。`,
+      '浏览量调整确认',
+      {
+        type: 'warning',
+        confirmButtonText: '确认保存',
+        cancelButtonText: '返回检查'
+      }
+    )
+
+    viewCountSubmitting.value = true
+    await updateGuideViewCount(viewCountTarget.value.id, Number(viewCountFormValue.value ?? 0))
+
+    const targetRow = tableData.value.find((item) => item.id === viewCountTarget.value.id)
+    if (targetRow) {
+      targetRow.viewCount = Number(viewCountFormValue.value ?? 0)
+    }
+    if (guideDetail.value?.id === viewCountTarget.value.id) {
+      guideDetail.value.viewCount = Number(viewCountFormValue.value ?? 0)
+    }
+
+    ElMessage.success('浏览量已更新')
+    handleCloseViewCountDialog()
+  } catch (error) {
+    if (error !== 'cancel' && error !== 'close') {
+      ElMessage.error('浏览量更新失败')
+    }
+  } finally {
+    viewCountSubmitting.value = false
   }
 }
 
@@ -629,6 +725,47 @@ watch(
 
 .management-card {
   border-radius: 22px;
+}
+
+.view-count-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.view-count-overview {
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--wt-divider-soft);
+  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+}
+
+.view-count-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wt-text-secondary);
+}
+
+.view-count-title,
+.view-count-number {
+  margin-top: 8px;
+  color: var(--wt-text-primary);
+  font-weight: 700;
+}
+
+.view-count-title {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.view-count-number {
+  font-size: 28px;
+}
+
+.view-count-form {
+  margin-top: 4px;
 }
 
 .card-header {

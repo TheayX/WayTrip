@@ -47,6 +47,16 @@ export function updateGuide(id, data) {
 }
 
 /**
+ * 更新攻略浏览量
+ * @param id
+ * @param viewCount
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export function updateGuideViewCount(id, viewCount) {
+  return request.put(`/guides/${id}/view-count`, { viewCount })
+}
+
+/**
  * 切换攻略发布状态
  * @param id
  * @param published

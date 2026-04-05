@@ -40,6 +40,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
+    // 待支付订单超时阈值，需与兜底定时任务保持一致。
+    private static final int PAYMENT_TIMEOUT_MINUTES = 5;
+
     // 持久层与服务依赖
     private final OrderMapper orderMapper;
     private final SpotMapper spotMapper;
@@ -99,6 +102,7 @@ public class OrderServiceImpl implements OrderService {
         Page<Order> page = new Page<>(request.getPage(), request.getPageSize());
         Page<Order> result = orderMapper.selectPage(page, wrapper);
 
+        refreshPendingTimeoutOrders(result.getRecords());
         fillSpotInfo(result.getRecords());
 
         OrderListResponse response = new OrderListResponse();
@@ -128,6 +132,10 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() == OrderStatus.PAID.getCode()) {
             fillSpotInfoSingle(order);
             return buildOrderDetail(order);
+        }
+
+        if (order.getStatus() == OrderStatus.CANCELLED.getCode() && order.getCancelledAt() != null) {
+            throw new RuntimeException("订单已超时，已自动取消");
         }
 
         if (order.getStatus() != OrderStatus.PENDING.getCode()) {
@@ -214,6 +222,7 @@ public class OrderServiceImpl implements OrderService {
         Page<Order> page = new Page<>(request.getPage(), request.getPageSize());
         Page<Order> result = orderMapper.selectPage(page, wrapper);
 
+        refreshPendingTimeoutOrders(result.getRecords());
         fillSpotInfo(result.getRecords());
 
         AdminOrderListResponse response = new AdminOrderListResponse();
@@ -330,6 +339,7 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
+        refreshPendingTimeoutOrder(order);
         return order;
     }
 
@@ -341,7 +351,47 @@ public class OrderServiceImpl implements OrderService {
         if (order == null || order.getIsDeleted() == 1) {
             throw new RuntimeException("订单不存在");
         }
+        refreshPendingTimeoutOrder(order);
         return order;
+    }
+
+    /**
+     * 订单查询和支付前统一做一次即时过期校验，避免用户必须等待定时任务扫表。
+     */
+    private void refreshPendingTimeoutOrders(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return;
+        }
+
+        for (Order order : orders) {
+            refreshPendingTimeoutOrder(order);
+        }
+    }
+
+    /**
+     * 仅针对待支付订单执行过期校验，其他状态保持原样。
+     */
+    private void refreshPendingTimeoutOrder(Order order) {
+        if (!isPendingTimeoutOrder(order)) {
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        order.setStatus(OrderStatus.CANCELLED.getCode());
+        order.setCancelledAt(now);
+        order.setUpdatedAt(now);
+        orderMapper.updateById(order);
+        recommendationService.invalidateUserRecommendationCache(order.getUserId());
+        log.info("即时取消超时未支付订单: orderId={}, orderNo={}", order.getId(), order.getOrderNo());
+    }
+
+    private boolean isPendingTimeoutOrder(Order order) {
+        if (order == null || order.getStatus() == null || order.getCreatedAt() == null) {
+            return false;
+        }
+
+        return order.getStatus().equals(OrderStatus.PENDING.getCode())
+                && !order.getCreatedAt().plusMinutes(PAYMENT_TIMEOUT_MINUTES).isAfter(LocalDateTime.now());
     }
 
     private AdminOrderListResponse buildEmptyAdminOrderListResponse(Integer page, Integer pageSize) {

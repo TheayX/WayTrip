@@ -243,6 +243,68 @@ module/
 
 - `useRecommendationFeed.js`
 
+## 景点详情来源参数
+
+景点详情页跳转需要传递 `source` 参数，用于浏览来源统计与推荐权重归类。
+
+前端当前使用的来源值包括：
+
+- `home`
+- `list`
+- `search`
+- `nearby`
+- `guide`
+- `recommendation`
+- `discover`
+- `order`
+- `similar`
+- `random-pick`
+- `budget-travel`
+- `traveler-reviews`
+- `trending-views`
+- `footprint`
+- `favorite`
+- `review`
+- `detail`
+
+说明：
+
+1. `home` 只表示首页来源，不作为全局默认值。
+2. 景点详情页自身的兜底来源是 `detail`。
+3. 前端保留页面级来源语义，方便后续做统计和排查。
+4. 后端推荐权重会再做别名归类，不要求前端来源值和算法来源桶完全同名。
+
+当前后端来源归类规则：
+
+- 归到 `home`
+  - `home`
+- 归到 `search`
+  - `search`
+- 归到 `guide`
+  - `guide`
+- 归到 `recommendation`
+  - `recommendation`
+  - `discover`
+  - `random-pick`
+  - `budget-travel`
+  - `traveler-reviews`
+  - `trending-views`
+- 归到 `detail`
+  - `detail`
+  - `list`
+  - `nearby`
+  - `similar`
+  - `order`
+  - `footprint`
+  - `favorite`
+  - `review`
+
+维护约定：
+
+1. 新增景点详情入口时，先确认前端 `source` 是否有独立统计价值。
+2. 如果只需要保留页面语义，可以新增来源值，再由后端统一归桶。
+3. 如果新来源会影响推荐权重，必须同步更新来源归类规则。
+
 ## 开发约定
 
 ### 1. 新增代码先判断归属

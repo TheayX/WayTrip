@@ -3,6 +3,7 @@ package com.travel.service.impl;
 import com.travel.common.result.PageResult;
 import com.travel.dto.guide.request.AdminGuideListRequest;
 import com.travel.dto.guide.request.AdminGuideRequest;
+import com.travel.dto.guide.request.AdminGuideViewCountRequest;
 import com.travel.dto.guide.request.GuideBudgetListRequest;
 import com.travel.dto.guide.request.GuideListRequest;
 import com.travel.dto.guide.response.AdminGuideListResponse;
@@ -70,6 +71,11 @@ public class GuideServiceImpl implements GuideService {
     @Override
     public void updateGuide(Long guideId, AdminGuideRequest request) {
         guideAdminService.updateGuide(guideId, request);
+    }
+
+    @Override
+    public void updateGuideViewCount(Long guideId, AdminGuideViewCountRequest request) {
+        guideAdminService.updateGuideViewCount(guideId, request);
     }
 
     @Override

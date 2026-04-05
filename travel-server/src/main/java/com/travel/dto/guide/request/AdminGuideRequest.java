@@ -20,6 +20,8 @@ public class AdminGuideRequest {
     private String content;
     
     private Boolean published = false;
+
+    private Integer viewCount;
     
     private List<Long> spotIds;
 

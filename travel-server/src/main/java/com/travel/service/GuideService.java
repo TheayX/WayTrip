@@ -3,6 +3,7 @@ package com.travel.service;
 import com.travel.common.result.PageResult;
 import com.travel.dto.guide.request.AdminGuideListRequest;
 import com.travel.dto.guide.request.AdminGuideRequest;
+import com.travel.dto.guide.request.AdminGuideViewCountRequest;
 import com.travel.dto.guide.request.GuideBudgetListRequest;
 import com.travel.dto.guide.request.GuideListRequest;
 import com.travel.dto.guide.response.AdminGuideListResponse;
@@ -82,6 +83,14 @@ public interface GuideService {
      * @param request 攻略更新参数
      */
     void updateGuide(Long guideId, AdminGuideRequest request);
+
+    /**
+     * 单独更新攻略浏览量。
+     *
+     * @param guideId 攻略 ID
+     * @param request 浏览量更新参数
+     */
+    void updateGuideViewCount(Long guideId, AdminGuideViewCountRequest request);
     
     /**
      * 更新攻略发布状态。

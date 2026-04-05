@@ -58,6 +58,7 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="detail">查看详情</el-dropdown-item>
+                <el-dropdown-item command="edit-view-count">修改浏览量</el-dropdown-item>
                 <el-dropdown-item command="toggle-publish" :class="row.published ? 'danger-text' : 'success-text'">
                   {{ row.published ? '下架攻略' : '发布攻略' }}
                 </el-dropdown-item>
@@ -82,7 +83,7 @@ defineProps({
   getRowClassName: { type: Function, required: true }
 })
 
-const emit = defineEmits(['selection-change', 'view', 'edit', 'toggle-publish', 'delete'])
+const emit = defineEmits(['selection-change', 'view', 'edit', 'edit-view-count', 'toggle-publish', 'delete'])
 
 const handleSelectionChange = (selection) => {
   emit('selection-change', selection)
@@ -92,6 +93,9 @@ const handleCommand = (command, row) => {
   switch (command) {
     case 'detail':
       emit('view', row)
+      break
+    case 'edit-view-count':
+      emit('edit-view-count', row)
       break
     case 'toggle-publish':
       emit('toggle-publish', row)

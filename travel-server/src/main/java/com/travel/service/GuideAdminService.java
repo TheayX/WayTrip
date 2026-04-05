@@ -3,6 +3,7 @@ package com.travel.service;
 import com.travel.common.result.PageResult;
 import com.travel.dto.guide.request.AdminGuideListRequest;
 import com.travel.dto.guide.request.AdminGuideRequest;
+import com.travel.dto.guide.request.AdminGuideViewCountRequest;
 import com.travel.dto.guide.response.AdminGuideListResponse;
 
 /**
@@ -17,6 +18,8 @@ public interface GuideAdminService {
     Long createGuide(AdminGuideRequest request, Long adminId);
 
     void updateGuide(Long guideId, AdminGuideRequest request);
+
+    void updateGuideViewCount(Long guideId, AdminGuideViewCountRequest request);
 
     void updatePublishStatus(Long guideId, Boolean published);
 

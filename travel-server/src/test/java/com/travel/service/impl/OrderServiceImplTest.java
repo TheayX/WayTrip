@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,6 +123,78 @@ class OrderServiceImplTest {
         assertNull(response.getCompletedAt());
         assertFalse(response.getCanPay());
         assertTrue(response.getCanCancel());
+    }
+
+    @Test
+    void getOrderDetail_autoCancelsTimeoutPendingOrder() {
+        Order order = buildOrder(OrderStatus.PENDING);
+        order.setCreatedAt(LocalDateTime.now().minusMinutes(6));
+        when(orderMapper.selectOne(any())).thenReturn(order);
+        when(orderMapper.updateById(order)).thenReturn(1);
+        when(spotMapper.selectById(order.getSpotId())).thenReturn(spot);
+
+        var response = orderService.getOrderDetail(1L, order.getId());
+
+        assertEquals("cancelled", response.getStatus());
+        assertEquals("已取消", response.getStatusText());
+        assertNotNull(response.getCancelledAt());
+        assertFalse(response.getCanPay());
+        verify(orderMapper).updateById(order);
+    }
+
+    @Test
+    void getUserOrders_autoCancelsTimeoutPendingOrdersInCurrentPage() {
+        Order timeoutOrder = buildOrder(OrderStatus.PENDING);
+        timeoutOrder.setCreatedAt(LocalDateTime.now().minusMinutes(6));
+        Order freshOrder = buildOrder(OrderStatus.PENDING);
+        freshOrder.setId(11L);
+        freshOrder.setOrderNo("T202603220002");
+        freshOrder.setCreatedAt(LocalDateTime.now().minusMinutes(2));
+
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Order> page =
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 10);
+        page.setRecords(List.of(timeoutOrder, freshOrder));
+        page.setTotal(2);
+
+        when(orderMapper.selectPage(any(), any())).thenReturn(page);
+        when(orderMapper.updateById(timeoutOrder)).thenReturn(1);
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(spot));
+
+        var response = orderService.getUserOrders(1L, new com.travel.dto.order.request.OrderListRequest());
+
+        assertEquals(2, response.getList().size());
+        assertEquals("cancelled", response.getList().get(0).getStatus());
+        assertEquals("pending", response.getList().get(1).getStatus());
+        verify(orderMapper).updateById(timeoutOrder);
+        verify(orderMapper, never()).updateById(freshOrder);
+    }
+
+    @Test
+    void payOrder_rejectsTimeoutPendingOrderWithExplicitMessage() {
+        Order order = buildOrder(OrderStatus.PENDING);
+        order.setCreatedAt(LocalDateTime.now().minusMinutes(6));
+        when(orderMapper.selectOne(any())).thenReturn(order);
+        when(orderMapper.updateById(order)).thenReturn(1);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> orderService.payOrder(1L, order.getId(), "idem-1"));
+
+        assertEquals("订单已超时，已自动取消", ex.getMessage());
+        verify(orderMapper).updateById(order);
+    }
+
+    @Test
+    void getOrderDetail_autoCancelsPendingOrderAtExactTimeoutBoundary() {
+        Order order = buildOrder(OrderStatus.PENDING);
+        order.setCreatedAt(LocalDateTime.now().minusMinutes(5));
+        when(orderMapper.selectOne(any())).thenReturn(order);
+        when(orderMapper.updateById(order)).thenReturn(1);
+        when(spotMapper.selectById(order.getSpotId())).thenReturn(spot);
+
+        var response = orderService.getOrderDetail(1L, order.getId());
+
+        assertEquals("cancelled", response.getStatus());
+        assertNotNull(response.getCancelledAt());
+        verify(orderMapper).updateById(order);
     }
 
     /**
