@@ -16,7 +16,7 @@ const featureEntryRegistry = [
   { id: 'budget', title: '穷游玩法', desc: '低预算景点和攻略', icon: 'wallet-filled', theme: 'orange', url: '/pages/budget-travel/index', section: 'feature' },
   { id: 'reviews', title: '游客口碑', desc: '看游客真实评价', icon: 'chatboxes-filled', theme: 'blue', url: '/pages/traveler-reviews/index', section: 'feature' },
   { id: 'trending-views', title: '近期热看', desc: '看看最近浏览更高的景点', icon: 'eye-filled', theme: 'amber', url: '/pages/trending-views/index', section: 'feature' },
-  { id: 'more', title: '更多', desc: '功能总览和后续扩展', icon: 'grid-filled', theme: 'emerald', url: '/pages/more/index', section: 'feature' },
+  { id: 'more', title: '更多', desc: '功能总览和后续扩展', icon: 'more-filled', theme: 'emerald', url: '/pages/more/index', section: 'feature' },
   { id: 'city-topic', title: '城市专题', desc: '按城市整理主题玩法', icon: 'flag-filled', theme: 'blue', section: 'placeholder', available: false },
   { id: 'holiday-plan', title: '假日玩法', desc: '节日和假期的出游专题', icon: 'calendar-filled', theme: 'orange', section: 'placeholder', available: false },
   { id: 'route-list', title: '路线清单', desc: '半日游和一日游路线组合', icon: 'paperclip', theme: 'amber', section: 'placeholder', available: false },

@@ -27,7 +27,7 @@
 
 <script setup>
 import { APP_NAME } from '@/shared/constants/app.js'
-import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
+import brandMarkUrl from '@/shared/assets/brand/standard-mark.svg'
 </script>
 
 <style lang="scss" scoped>

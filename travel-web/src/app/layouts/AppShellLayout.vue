@@ -6,11 +6,7 @@
         <div class="shell-header-bar glass-panel">
           <div class="shell-left">
             <router-link to="/" class="brand-link" aria-label="WayTrip 首页">
-              <img :src="brandMarkUrl" alt="" aria-hidden="true" class="brand-mark">
-              <span class="brand-copy">
-                <strong>{{ APP_NAME }}</strong>
-                <span>Travel Curated</span>
-              </span>
+              <img :src="brandLogoUrl" alt="WayTrip" class="brand-logo">
             </router-link>
 
             <nav class="shell-nav">
@@ -140,7 +136,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/shared/api/client.js'
 import { ArrowDown, ChatDotRound, Discount, MagicStick, Search, Setting, Stopwatch, Tickets, User, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
-import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
+import brandLogoUrl from '@/shared/assets/brand/standard.svg'
+import brandMarkUrl from '@/shared/assets/brand/standard-mark.svg'
 
 // 基础依赖与路由状态
 const userStore = useUserStore()
@@ -257,6 +254,13 @@ const handleCommand = (command) => {
   align-items: center;
   gap: 12px;
   min-width: 0;
+}
+
+.brand-logo {
+  height: 34px;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
 }
 
 /* 使用几何图形替代 emoji，让品牌表达更稳定、更像正式产品。 */
