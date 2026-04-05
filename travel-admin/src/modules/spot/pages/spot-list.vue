@@ -37,7 +37,7 @@
           <span>景点管理</span>
           <div class="header-actions">
             <el-button @click="handleRefreshAllRatings" :loading="refreshingAllRatings">同步全部评分</el-button>
-            <el-button @click="handleRefreshAllHeats" :loading="refreshingAllHeats">同步全部热度</el-button>
+            <el-button @click="handleRefreshAllHeats" :loading="refreshingAllHeats">同步全部热度分数</el-button>
             <el-button type="primary" @click="handleAdd">新增景点</el-button>
           </div>
         </div>
@@ -593,7 +593,7 @@ const openSpotFromRoute = async () => {
   }
 }
 
-// 打开热度设置对话框
+// 打开热度档位设置对话框
 const handleHeatEdit = async (row) => {
   heatEditId.value = row.id
   heatSpotDetail.value = null
@@ -616,7 +616,7 @@ const handleRefreshSpotRating = async (row) => {
 
 const handleRefreshSpotHeat = async (row) => {
   await refreshSpotHeat(row.id)
-  ElMessage.success('热度已按档位和行为数据同步')
+  ElMessage.success('热度分数已按档位和行为数据同步')
   loadData()
 }
 
@@ -635,7 +635,7 @@ const handleRefreshAllHeats = async () => {
   refreshingAllHeats.value = true
   try {
     await refreshAllSpotHeat()
-    ElMessage.success('全部景点热度已按档位和行为数据同步')
+    ElMessage.success('全部景点热度分数已按档位和行为数据同步')
     loadData()
   } finally {
     refreshingAllHeats.value = false
@@ -684,11 +684,11 @@ const handleSubmit = async () => {
   }
 }
 
-// 提交热度设置
+// 提交热度档位设置
 const handleHeatSubmit = async () => {
   await heatDialogRef.value?.validate()
   if (!heatSpotDetail.value) {
-    ElMessage.error('景点详情加载失败，请重新打开热度设置')
+    ElMessage.error('景点详情加载失败，请重新打开热度档位设置')
     return
   }
   heatSubmitting.value = true

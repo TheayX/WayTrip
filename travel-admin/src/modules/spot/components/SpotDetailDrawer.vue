@@ -32,7 +32,7 @@
             </div>
           </div>
           <div class="stat-item px-4 py-2 rounded-lg flex-1">
-            <div class="text-xs text-gray-500 mb-1">热度</div>
+            <div class="text-xs text-gray-500 mb-1">热度分数</div>
             <div class="text-lg font-bold text-gray-800">{{ detail.heatScore || 0 }}</div>
           </div>
         </div>

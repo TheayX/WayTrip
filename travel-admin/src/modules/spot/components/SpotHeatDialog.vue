@@ -1,6 +1,6 @@
 <template>
-  <!-- 热度设置对话框 -->
-  <el-dialog :model-value="visible" title="热度设置" width="420px" @update:model-value="emitVisible">
+  <!-- 设置热度档位对话框 -->
+  <el-dialog :model-value="visible" title="设置热度档位" width="420px" @update:model-value="emitVisible">
     <el-form ref="heatFormRef" :model="heatForm" :rules="heatRules" label-width="110px">
       <el-form-item label="当前评分">
         <span>{{ heatForm.avgRating ?? 0 }}</span>
@@ -8,7 +8,7 @@
       <el-form-item label="评价数">
         <span>{{ heatForm.ratingCount ?? 0 }}</span>
       </el-form-item>
-      <el-form-item label="当前总热度">
+      <el-form-item label="当前热度分数">
         <span>{{ heatForm.heatScore ?? 0 }}</span>
       </el-form-item>
       <el-form-item label="热度档位" prop="heatLevel">

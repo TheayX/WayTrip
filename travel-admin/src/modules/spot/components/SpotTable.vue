@@ -34,11 +34,16 @@
         <span class="rating-text"><el-icon color="#f59e0b"><StarFilled /></el-icon> {{ row.avgRating || '暂无' }}</span>
       </template>
     </el-table-column>
-    <el-table-column label="热度" width="100" align="center">
+    <el-table-column label="热度档位" width="100" align="center">
       <template #default="{ row }">
         <el-tag :type="getHeatLevelTagType(row.heatLevel)" effect="light" class="round-tag capsule-badge">
           {{ getHeatLevelLabel(row.heatLevel) }}
         </el-tag>
+      </template>
+    </el-table-column>
+    <el-table-column label="热度分数" width="100" align="center">
+      <template #default="{ row }">
+        <span class="heat-score-text">{{ row.heatScore ?? 0 }}</span>
       </template>
     </el-table-column>
     <el-table-column label="状态" width="100" align="center">
@@ -61,8 +66,8 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="detail">查看详情</el-dropdown-item>
-                <el-dropdown-item command="heat">热度设置</el-dropdown-item>
-                <el-dropdown-item command="sync-heat">同步热度</el-dropdown-item>
+                <el-dropdown-item command="heat">设置热度档位</el-dropdown-item>
+                <el-dropdown-item command="sync-heat">同步热度分数</el-dropdown-item>
                 <el-dropdown-item command="sync-rating">同步评分</el-dropdown-item>
                 <el-dropdown-item command="toggle-publish" :class="row.published ? 'danger-text' : 'success-text'">
                   {{ row.published ? '下架景点' : '发布景点' }}
@@ -129,7 +134,7 @@ const handleCommand = (command, row) => {
   }
 }
 
-:deep(.spot-name-link.el-button.is-link) {
+:deep(.spot-name-link.is-link) {
   padding-left: 0;
   padding-right: 0;
 }
