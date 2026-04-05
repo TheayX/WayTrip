@@ -3,11 +3,7 @@
   <div class="auth-layout">
     <header class="auth-header">
       <router-link to="/" class="brand-link" aria-label="WayTrip 首页">
-        <img :src="brandMarkUrl" alt="" aria-hidden="true" class="brand-mark">
-        <span class="brand-copy">
-          <strong>{{ APP_NAME }}</strong>
-          <span>Travel Curated</span>
-        </span>
+        <img :src="brandMarkUrl" alt="WayTrip" class="brand-mark">
       </router-link>
     </header>
 
@@ -27,7 +23,7 @@
 
 <script setup>
 import { APP_NAME } from '@/shared/constants/app.js'
-import brandMarkUrl from '@/shared/assets/brand/standard-mark.svg'
+import brandMarkUrl from '@/shared/assets/brand/standard.svg'
 </script>
 
 <style lang="scss" scoped>
@@ -52,30 +48,10 @@ import brandMarkUrl from '@/shared/assets/brand/standard-mark.svg'
 }
 
 .brand-mark {
-  width: 44px;
-  height: 44px;
+  height: 80px;
+  width: auto;
   display: block;
   flex-shrink: 0;
-  filter: drop-shadow(0 18px 24px rgba(37, 99, 235, 0.18));
-}
-
-.brand-copy {
-  display: flex;
-  flex-direction: column;
-}
-
-.brand-copy strong {
-  font-size: 18px;
-  color: #0f172a;
-  line-height: 1.1;
-}
-
-.brand-copy span {
-  margin-top: 4px;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #64748b;
 }
 
 .auth-main {

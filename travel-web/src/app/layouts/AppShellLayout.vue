@@ -257,7 +257,7 @@ const handleCommand = (command) => {
 }
 
 .brand-logo {
-  height: 34px;
+  height: 44px;
   width: auto;
   display: block;
   flex-shrink: 0;
@@ -270,27 +270,6 @@ const handleCommand = (command) => {
   display: block;
   flex-shrink: 0;
   filter: drop-shadow(0 18px 24px rgba(37, 99, 235, 0.2));
-}
-
-.brand-copy {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.brand-copy strong {
-  font-size: 17px;
-  line-height: 1.1;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-}
-
-.brand-copy span {
-  margin-top: 4px;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #64748b;
 }
 
 .shell-nav {
@@ -547,7 +526,6 @@ const handleCommand = (command) => {
     border-radius: 24px;
   }
 
-  .brand-copy span,
   .context-text,
   .footer-meta span:first-child {
     display: none;
