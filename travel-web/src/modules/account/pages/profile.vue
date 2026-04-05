@@ -33,6 +33,10 @@
         <strong>{{ dashboardStats.reviews }}</strong>
         <span>我的评价</span>
       </div>
+      <div class="stats-card card" @click="$router.push(ACCOUNT_ROUTE_PATHS.orders)">
+        <strong>{{ dashboardStats.orders }}</strong>
+        <span>订单数量</span>
+      </div>
     </section>
 
     <section class="order-overview card">
@@ -54,13 +58,6 @@
           <span>已完成</span>
         </div>
       </div>
-    </section>
-
-    <section class="entry-grid">
-      <div class="entry-card card" @click="$router.push(`${ACCOUNT_ROUTE_PATHS.activity}?tab=browse`)">我的互动</div>
-      <div class="entry-card card" @click="$router.push(ACCOUNT_ROUTE_PATHS.orders)">我的订单</div>
-      <div class="entry-card card" @click="activeMenu = 'preference'">偏好设置</div>
-      <div class="entry-card card" @click="activeMenu = 'info'">账号资料</div>
     </section>
 
     <section class="profile-layout">
@@ -180,7 +177,7 @@ const avatarPreview = ref('')
 const avatarFile = ref(null)
 const passwordFormRef = ref(null)
 
-const dashboardStats = reactive({ viewed: 0, favorites: 0, reviews: 0 })
+const dashboardStats = reactive({ viewed: 0, favorites: 0, reviews: 0, orders: 0 })
 const orderStats = reactive({ pending: 0, paid: 0, completed: 0 })
 
 const profileForm = reactive({
@@ -260,6 +257,7 @@ const loadOverview = async () => {
   orderStats.pending = pendingRes.data?.total || pendingRes.data?.list?.length || 0
   orderStats.paid = paidRes.data?.total || paidRes.data?.list?.length || 0
   orderStats.completed = completedRes.data?.total || completedRes.data?.list?.length || 0
+  dashboardStats.orders = userStore.userInfo?.orderCount || 0
 }
 
 // 交互处理方法
@@ -415,15 +413,13 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.stats-grid,
-.entry-grid {
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
-.stats-card,
-.entry-card {
+.stats-card {
   padding: 22px;
   cursor: pointer;
   text-align: center;
@@ -556,7 +552,6 @@ onMounted(async () => {
 
 @media (max-width: 992px) {
   .stats-grid,
-  .entry-grid,
   .order-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -577,7 +572,6 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .stats-grid,
-  .entry-grid,
   .order-grid {
     grid-template-columns: 1fr;
   }

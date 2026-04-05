@@ -9,6 +9,10 @@
         <span class="meta-count">({{ spot.ratingCount || 0 }}条评价)</span>
         <span>{{ spot.regionName }} / {{ spot.categoryName }}</span>
       </div>
+      <div class="spot-stats">
+        <span>{{ spot.favoriteCount ?? 0 }}收藏</span>
+        <span>{{ spot.viewCount ?? 0 }}浏览</span>
+      </div>
       <div class="spot-price-row">
         <span class="big-price">¥{{ spot.price }}</span>
         <span class="price-label">/人</span>
@@ -18,6 +22,16 @@
         <el-button size="large" class="fav-btn" :class="{ active: spot.isFavorite }" @click="$emit('toggle-favorite')">
           {{ spot.isFavorite ? '已收藏' : '收藏景点' }}
         </el-button>
+      </div>
+      <div class="time-info">
+        <div class="time-item">
+          <span class="time-label">创建时间</span>
+          <span class="time-value">{{ formatDateTime(spot.createdAt) }}</span>
+        </div>
+        <div class="time-item">
+          <span class="time-label">更新时间</span>
+          <span class="time-value">{{ formatDateTime(spot.updatedAt) }}</span>
+        </div>
       </div>
     </div>
 
@@ -56,6 +70,17 @@
 </template>
 
 <script setup>
+const formatDateTime = (value) => {
+  if (!value) return '暂无信息'
+  const raw = typeof value === 'string' ? value.replace(' ', 'T') : value
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) {
+    return String(value).replace('T', ' ').slice(0, 19)
+  }
+  const pad = (num) => String(num).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
 defineProps({
   spot: {
     type: Object,
@@ -125,6 +150,16 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 
 .spot-price-row {
   margin-bottom: 18px;
+}
+
+.spot-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  color: #64748b;
 }
 
 .big-price {
@@ -224,10 +259,36 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
   margin-top: 14px;
 }
 
+.time-info {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eef2f7;
+  display: grid;
+  gap: 10px;
+}
+
+.time-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.time-label {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.time-value {
+  color: #0f172a;
+  text-align: right;
+}
+
 @media (max-width: 992px) {
   .detail-sidebar {
     width: 100%;
   }
+
 
   .action-group {
     grid-template-columns: 1fr;

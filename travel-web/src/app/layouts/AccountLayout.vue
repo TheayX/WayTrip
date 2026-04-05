@@ -11,21 +11,6 @@
         </div>
       </div>
 
-      <div class="account-summary surface-soft">
-        <div class="summary-item">
-          <strong>{{ summaryCounts.orders }}</strong>
-          <span>订单</span>
-        </div>
-        <div class="summary-item">
-          <strong>{{ summaryCounts.favorites }}</strong>
-          <span>收藏</span>
-        </div>
-        <div class="summary-item">
-          <strong>{{ summaryCounts.reviews }}</strong>
-          <span>评价</span>
-        </div>
-      </div>
-
       <nav class="account-nav">
         <button
           v-for="item in navItems"
@@ -72,13 +57,6 @@ const navItems = computed(() => [
   { label: '我的评价', desc: '管理你发布过的评价记录', path: ACCOUNT_ROUTE_PATHS.reviews, icon: Document },
   { label: '设置', desc: '修改账号、安全与体验选项', path: ACCOUNT_ROUTE_PATHS.settings, icon: Setting }
 ])
-
-// 这里先基于本地用户信息做轻量摘要，避免为了布局改造引入新的接口依赖。
-const summaryCounts = computed(() => ({
-  orders: userStore.userInfo?.orderCount ?? 0,
-  favorites: userStore.userInfo?.favoriteCount ?? 0,
-  reviews: userStore.userInfo?.reviewCount ?? 0
-}))
 
 const isActive = (item) => {
   if (item.path === ACCOUNT_ROUTE_PATHS.profile) {
@@ -137,34 +115,6 @@ const isActive = (item) => {
   color: #64748b;
   font-size: 13px;
   line-height: 1.7;
-}
-
-.account-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  padding: 14px;
-  border-radius: 20px;
-  border: 1px solid #e2e8f0;
-}
-
-.summary-item {
-  padding: 12px 10px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.88);
-  text-align: center;
-}
-
-.summary-item strong {
-  display: block;
-  font-size: 22px;
-  color: #0f172a;
-}
-
-.summary-item span {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #64748b;
 }
 
 .account-nav {
@@ -256,10 +206,6 @@ const isActive = (item) => {
   .account-sidebar {
     padding: 20px 16px;
     border-radius: 22px;
-  }
-
-  .account-summary {
-    grid-template-columns: 1fr;
   }
 }
 </style>

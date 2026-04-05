@@ -126,6 +126,7 @@
       v-model:visible="drawerVisible"
       :detail="spotDetail"
       :get-image-url="getImageUrl"
+      :format-date="formatDate"
     />
 
     <!-- Batch Floating Action Bar -->

@@ -36,6 +36,21 @@
             <div class="text-lg font-bold text-gray-800">{{ detail.heatScore || 0 }}</div>
           </div>
         </div>
+
+        <div class="stats-grid mt-4">
+          <div class="mini-stat-card">
+            <div class="mini-stat-label">评价量</div>
+            <div class="mini-stat-value">{{ detail.reviewCount ?? 0 }}</div>
+          </div>
+          <div class="mini-stat-card">
+            <div class="mini-stat-label">收藏量</div>
+            <div class="mini-stat-value">{{ detail.favoriteCount ?? 0 }}</div>
+          </div>
+          <div class="mini-stat-card">
+            <div class="mini-stat-label">浏览量</div>
+            <div class="mini-stat-value">{{ detail.viewCount ?? 0 }}</div>
+          </div>
+        </div>
       </div>
 
       <div class="info-section mb-6">
@@ -45,6 +60,8 @@
           <el-descriptions-item label="地区">{{ detail.regionName || '-' }}</el-descriptions-item>
           <el-descriptions-item label="开放时间">{{ detail.openTime || '-' }}</el-descriptions-item>
           <el-descriptions-item label="经纬度">E {{ detail.longitude || '-' }}, N {{ detail.latitude || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatDate(detail.createdAt) || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="更新时间">{{ formatDate(detail.updatedAt) || '-' }}</el-descriptions-item>
         </el-descriptions>
       </div>
 
@@ -71,7 +88,8 @@ import { Location, StarFilled } from '@element-plus/icons-vue'
 defineProps({
   visible: { type: Boolean, required: true },
   detail: { type: Object, default: null },
-  getImageUrl: { type: Function, required: true }
+  getImageUrl: { type: Function, required: true },
+  formatDate: { type: Function, required: true }
 })
 
 const emit = defineEmits(['update:visible'])
@@ -87,6 +105,7 @@ const emitVisible = (val) => {
 .mb-3 { margin-bottom: 12px; }
 .mb-2 { margin-bottom: 8px; }
 .mb-1 { margin-bottom: 4px; }
+.mt-4 { margin-top: 16px; }
 .pb-6 { padding-bottom: 24px; }
 .mt-0 { margin-top: 0; }
 .w-full { width: 100%; }
@@ -156,6 +175,31 @@ const emitVisible = (val) => {
   border: 1px solid var(--wt-border-default);
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mini-stat-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--wt-border-default);
+  background: var(--wt-surface-elevated);
+}
+
+.mini-stat-label {
+  font-size: 12px;
+  color: var(--wt-text-secondary);
+  margin-bottom: 6px;
+}
+
+.mini-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--wt-text-primary);
+}
+
 .content-panel {
   background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   border: 1px solid var(--wt-border-default);
@@ -173,6 +217,12 @@ const emitVisible = (val) => {
     color: var(--wt-text-regular);
     font-weight: 500;
     width: 100px;
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -3,6 +3,7 @@ package com.travel.dto.spot.response;
 import lombok.Data;
 import lombok.Builder;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -25,6 +26,11 @@ public class SpotDetailResponse {
     private Integer ratingCount;
     private String regionName;
     private String categoryName;
+    private Long reviewCount;
+    private Long favoriteCount;
+    private Long viewCount;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private Boolean isFavorite;
     private Integer userRating;
     private List<CommentItem> latestComments;

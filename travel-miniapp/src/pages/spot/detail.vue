@@ -29,8 +29,14 @@
         <text class="category">{{ spot.regionName }} · {{ spot.categoryName }}</text>
       </view>
       <view class="price-row">
-        <text class="price">¥{{ spot.price }}</text>
-        <text class="price-label">/人</text>
+        <view>
+          <text class="price">¥{{ spot.price }}</text>
+          <text class="price-label">/人</text>
+        </view>
+        <view class="price-stats">
+          <text class="price-stat">{{ spot.favoriteCount ?? 0 }}收藏</text>
+          <text class="price-stat">{{ spot.viewCount ?? 0 }}浏览</text>
+        </view>
       </view>
     </view>
 
@@ -49,6 +55,14 @@
           </view>
           <text class="nav-link">导航 ›</text>
         </view>
+      </view>
+      <view class="detail-item">
+        <text class="detail-label">创建时间</text>
+        <text class="detail-value">{{ formatDateTime(spot.createdAt) }}</text>
+      </view>
+      <view class="detail-item">
+        <text class="detail-label">更新时间</text>
+        <text class="detail-value">{{ formatDateTime(spot.updatedAt) }}</text>
       </view>
     </view>
 
@@ -304,6 +318,12 @@ const formatDistance = (value) => {
   return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
 }
 
+const formatDateTime = (value) => {
+  if (!value) return '暂无信息'
+  const normalized = String(value).replace('T', ' ')
+  return normalized.slice(0, 19)
+}
+
 const syncCurrentLocation = async () => {
   const snapshot = await getLocationSnapshot()
   currentLocation.value = snapshot.current
@@ -545,6 +565,9 @@ onUnload(() => {
 
 .price-row {
   margin-top: 20rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
 }
 
 .price {
@@ -555,6 +578,18 @@ onUnload(() => {
 
 .price-label {
   font-size: 26rpx;
+  color: #6b7280;
+}
+
+.price-stats {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.price-stat {
+  font-size: 24rpx;
   color: #6b7280;
 }
 

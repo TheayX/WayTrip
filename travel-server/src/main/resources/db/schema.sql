@@ -106,7 +106,7 @@ CREATE TABLE `spot` (
   `heat_level` tinyint NOT NULL DEFAULT 0 COMMENT '热度档位：0-普通，1-推荐，2-重点推荐，3-强推',
   `heat_score` int NOT NULL DEFAULT 0 COMMENT '热度分数',
   `avg_rating` decimal(2,1) NOT NULL DEFAULT 0.0 COMMENT '平均评分',
-  `rating_count` int NOT NULL DEFAULT 0 COMMENT '评分数量',
+  `rating_count` int NOT NULL DEFAULT 0 COMMENT '评价数量',
   `is_published` tinyint NOT NULL DEFAULT 0 COMMENT '发布状态：0-未发布，1-已发布',
   `is_deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

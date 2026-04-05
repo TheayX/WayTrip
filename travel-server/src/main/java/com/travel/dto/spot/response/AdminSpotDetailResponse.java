@@ -3,6 +3,7 @@ package com.travel.dto.spot.response;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -31,7 +32,17 @@ public class AdminSpotDetailResponse {
 
     private Long regionId;
 
+    private String regionName;
+
     private Long categoryId;
+
+    private String categoryName;
+
+    private Long reviewCount;
+
+    private Long favoriteCount;
+
+    private Long viewCount;
 
     private Boolean published;
 
@@ -42,4 +53,8 @@ public class AdminSpotDetailResponse {
     private Integer heatLevel;
 
     private Integer heatScore;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 }

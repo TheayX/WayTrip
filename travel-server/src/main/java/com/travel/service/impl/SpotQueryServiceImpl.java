@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
+import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.dto.spot.request.SpotListRequest;
 import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.dto.spot.response.SpotFilterResponse;
@@ -181,6 +182,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         );
         List<String> imageUrls = buildSpotImageUrls(spot, images);
         UserInteractionState interactionState = loadUserInteractionState(userId, spotId);
+        SpotRatingStats ratingStats = reviewMapper.selectSpotRatingStats(spotId);
 
         List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5);
         return SpotDetailResponse.builder()
@@ -198,6 +200,17 @@ public class SpotQueryServiceImpl implements SpotQueryService {
             .ratingCount(spot.getRatingCount())
             .regionName(spotResponseAssembler.getRegionName(spot.getRegionId()))
             .categoryName(spotResponseAssembler.getCategoryName(spot.getCategoryId()))
+            .reviewCount(ratingStats == null ? 0L : ratingStats.getRatingCount())
+            .favoriteCount(userSpotFavoriteMapper.selectCount(
+                new LambdaQueryWrapper<UserSpotFavorite>()
+                    .eq(UserSpotFavorite::getSpotId, spotId)
+                    .eq(UserSpotFavorite::getIsDeleted, 0)
+            ))
+            .viewCount(userSpotViewMapper.selectCount(
+                new LambdaQueryWrapper<UserSpotView>().eq(UserSpotView::getSpotId, spotId)
+            ))
+            .createdAt(spot.getCreatedAt())
+            .updatedAt(spot.getUpdatedAt())
             .isFavorite(interactionState.isFavorite())
             .userRating(interactionState.userRating())
             .latestComments(comments)

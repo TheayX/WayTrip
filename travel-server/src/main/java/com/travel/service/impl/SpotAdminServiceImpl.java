@@ -9,10 +9,16 @@ import com.travel.dto.spot.request.AdminSpotListRequest;
 import com.travel.dto.spot.request.AdminSpotUpsertRequest;
 import com.travel.dto.spot.response.AdminSpotDetailResponse;
 import com.travel.dto.spot.response.AdminSpotListResponse;
+import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotImage;
+import com.travel.entity.UserSpotFavorite;
+import com.travel.entity.UserSpotView;
 import com.travel.mapper.SpotImageMapper;
 import com.travel.mapper.SpotMapper;
+import com.travel.mapper.ReviewMapper;
+import com.travel.mapper.UserSpotFavoriteMapper;
+import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.SpotAdminService;
 import com.travel.service.support.spot.SpotResponseAssembler;
 import com.travel.service.support.spot.SpotTreeSupport;
@@ -37,6 +43,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
 
     private final SpotMapper spotMapper;
     private final SpotImageMapper spotImageMapper;
+    private final ReviewMapper reviewMapper;
+    private final UserSpotFavoriteMapper userSpotFavoriteMapper;
+    private final UserSpotViewMapper userSpotViewMapper;
     private final SpotResponseAssembler spotResponseAssembler;
     private final SpotTreeSupport spotTreeSupport;
     private final SpotWriteSupport spotWriteSupport;
@@ -99,12 +108,26 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         response.setCoverImage(spot.getCoverImageUrl());
         response.setImages(images.stream().map(SpotImage::getImageUrl).collect(Collectors.toList()));
         response.setRegionId(spot.getRegionId());
+        response.setRegionName(spotResponseAssembler.getRegionName(spot.getRegionId()));
         response.setCategoryId(spot.getCategoryId());
+        response.setCategoryName(spotResponseAssembler.getCategoryName(spot.getCategoryId()));
+        SpotRatingStats ratingStats = reviewMapper.selectSpotRatingStats(spotId);
+        response.setReviewCount(ratingStats == null ? 0L : ratingStats.getRatingCount());
+        response.setFavoriteCount(userSpotFavoriteMapper.selectCount(
+            new LambdaQueryWrapper<UserSpotFavorite>()
+                .eq(UserSpotFavorite::getSpotId, spotId)
+                .eq(UserSpotFavorite::getIsDeleted, 0)
+        ));
+        response.setViewCount(userSpotViewMapper.selectCount(
+            new LambdaQueryWrapper<UserSpotView>().eq(UserSpotView::getSpotId, spotId)
+        ));
         response.setPublished(spot.getIsPublished() == 1);
         response.setAvgRating(spot.getAvgRating());
         response.setRatingCount(spot.getRatingCount());
         response.setHeatLevel(spot.getHeatLevel());
         response.setHeatScore(spot.getHeatScore());
+        response.setCreatedAt(spot.getCreatedAt());
+        response.setUpdatedAt(spot.getUpdatedAt());
         return response;
     }
 
