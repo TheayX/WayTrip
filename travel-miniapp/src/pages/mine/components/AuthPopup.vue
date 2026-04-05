@@ -135,7 +135,7 @@ const step = ref(props.visibleStep)
 watch(() => props.visibleStep, (val) => step.value = val)
 
 const userStore = useUserStore()
-const defaultRegisterAvatar = getAvatarUrl('/uploads/images/avatar.jpg')
+const defaultRegisterAvatar = getAvatarUrl('/uploads/avatar/avatar.jpg')
 const defaultRegisterNickname = '微信用户'
 
 const step1Form = reactive({ phone: '', password: '', confirmPassword: '' })

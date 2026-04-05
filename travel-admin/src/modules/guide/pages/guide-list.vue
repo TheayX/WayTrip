@@ -189,7 +189,8 @@ const uploadHeaders = computed(() => ({
   Authorization: `Bearer ${userStore.token}`
 }))
 const uploadData = computed(() => ({
-  tag: form.title || ''
+  scene: 'guide',
+  name: form.title || ''
 }))
 
 // 补全图片访问地址

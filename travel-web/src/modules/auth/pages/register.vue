@@ -76,7 +76,7 @@ const formRef = ref(null)
 const loading = ref(false)
 const step = ref(1)
 const defaultRegisterNickname = 'web用户'
-const defaultRegisterAvatar = getAvatarUrl('/uploads/images/avatar.jpg')
+const defaultRegisterAvatar = getAvatarUrl('/uploads/avatar/avatar.jpg')
 
 // 注册表单状态
 const form = reactive({

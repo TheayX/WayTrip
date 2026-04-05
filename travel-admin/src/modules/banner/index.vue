@@ -135,7 +135,7 @@
                 class="image-uploader"
                 :action="uploadUrl"
                 :headers="uploadHeaders"
-                :data="{ tag: 'banner' }"
+                :data="{ scene: 'banner' }"
                 :show-file-list="false"
                 :on-success="handleUploadSuccess"
                 :on-error="handleUploadError"

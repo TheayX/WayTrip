@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
 public class UserAuthServiceImpl implements UserAuthService {
 
     // 默认资料配置
-    private static final String DEFAULT_AVATAR_URL = "/uploads/images/avatar.jpg";
+    private static final String DEFAULT_AVATAR_URL = "/uploads/avatar/avatar.jpg";
 
     // 持久层与外部能力依赖
     private final UserMapper userMapper;

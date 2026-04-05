@@ -2,6 +2,7 @@ package com.travel.controller.app;
 
 import com.travel.common.result.ApiResponse;
 import com.travel.service.FileUploadService;
+import com.travel.util.web.UserContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,6 @@ public class UploadController {
     @Operation(summary = "上传头像")
     @PostMapping("/avatar")
     public ApiResponse<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) {
-        return fileUploadService.uploadImage(file, 2, "头像", "avatar");
+        return fileUploadService.uploadAvatar(file, UserContextHolder.getUserId());
     }
 }

@@ -137,7 +137,7 @@
                       class="image-uploader"
                       :action="uploadUrl"
                       :headers="uploadHeaders"
-                      :data="uploadData"
+                      :data="coverUploadData"
                       :show-file-list="false"
                       :on-success="handleUploadSuccess"
                       :on-error="handleUploadError"
@@ -173,7 +173,7 @@
                         class="gallery-uploader-inline"
                         :action="uploadUrl"
                         :headers="uploadHeaders"
-                        :data="uploadData"
+                        :data="galleryUploadData"
                         :show-file-list="false"
                         :on-success="handleGalleryUploadSuccess"
                         :on-error="handleUploadError"
@@ -241,7 +241,8 @@ const props = defineProps({
   heatLevelOptions: { type: Array, required: true },
   uploadUrl: { type: String, required: true },
   uploadHeaders: { type: Object, required: true },
-  uploadData: { type: Object, required: true },
+  coverUploadData: { type: Object, required: true },
+  galleryUploadData: { type: Object, required: true },
   beforeUpload: { type: Function, required: true },
   handleUploadSuccess: { type: Function, required: true },
   handleGalleryUploadSuccess: { type: Function, required: true },

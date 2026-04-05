@@ -99,7 +99,8 @@
       :heat-level-options="heatLevelOptions"
       :upload-url="uploadUrl"
       :upload-headers="uploadHeaders"
-      :upload-data="uploadData"
+      :cover-upload-data="coverUploadData"
+      :gallery-upload-data="galleryUploadData"
       :before-upload="beforeUpload"
       :handle-upload-success="handleUploadSuccess"
       :handle-gallery-upload-success="handleGalleryUploadSuccess"
@@ -177,8 +178,15 @@ const uploadUrl = computed(() => getAdminUploadUrl('image'))
 const uploadHeaders = computed(() => ({
   Authorization: `Bearer ${userStore.token}`
 }))
-const uploadData = computed(() => ({
-  tag: form.name || ''
+const coverUploadData = computed(() => ({
+  scene: 'spot',
+  assetType: 'cover',
+  name: form.name || ''
+}))
+const galleryUploadData = computed(() => ({
+  scene: 'spot',
+  assetType: 'gallery',
+  name: form.name || ''
 }))
 
 // 补全图片访问地址

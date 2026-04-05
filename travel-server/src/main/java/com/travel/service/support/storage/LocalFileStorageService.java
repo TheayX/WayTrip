@@ -21,9 +21,9 @@ public class LocalFileStorageService {
     private final StorageFileNameGenerator storageFileNameGenerator;
     private final ImageUploadValidator imageUploadValidator;
 
-    public StoredFileInfo store(MultipartFile file, String directory, String prefix, String tag) throws IOException {
+    public StoredFileInfo store(MultipartFile file, String directory, String prefix) throws IOException {
         String extension = imageUploadValidator.getExtension(file.getOriginalFilename());
-        String filename = storageFileNameGenerator.generate(prefix, tag, extension);
+        String filename = storageFileNameGenerator.generate(prefix, extension);
 
         File uploadDir = new File(uploadPath, directory);
         if (!uploadDir.exists()) {
