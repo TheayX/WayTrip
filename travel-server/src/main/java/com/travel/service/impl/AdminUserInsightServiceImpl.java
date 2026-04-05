@@ -90,8 +90,10 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
 
-        Map<Long, String> categoryNameMap = spotCategoryMapper.selectBatchIds(categoryIds).stream()
-            .collect(Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
+        Map<Long, String> categoryNameMap = categoryIds.isEmpty()
+            ? Collections.emptyMap()
+            : spotCategoryMapper.selectBatchIds(categoryIds).stream()
+                .collect(Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
 
         List<AdminUserPreferenceListItem> list = users.stream().map(user -> {
             List<UserPreference> userPreferences = preferenceMap.getOrDefault(user.getId(), Collections.emptyList());
