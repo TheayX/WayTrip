@@ -60,7 +60,7 @@ class AuthInterceptorMvcTest {
                 UserInfoResponse.builder()
                         .id(1L)
                         .nickname("测试用户")
-                        .avatar("/uploads/images/avatar.jpg")
+                        .avatar("/uploads/avatar/avatar.jpg")
                         .phone("13800138000")
                         .hasPassword(true)
                         .preferences(List.of("自然风光"))
@@ -78,7 +78,7 @@ class AuthInterceptorMvcTest {
                 new AdminUserListResponse.UserItem(
                         1L,
                         "用户A",
-                        "/uploads/images/avatar.jpg",
+                        "/uploads/avatar/avatar.jpg",
                         "13800138000",
                         1,
                         2,

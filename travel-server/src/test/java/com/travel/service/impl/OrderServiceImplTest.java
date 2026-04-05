@@ -62,7 +62,7 @@ class OrderServiceImplTest {
         spot = new Spot();
         spot.setId(100L);
         spot.setName("西湖");
-        spot.setCoverImageUrl("/uploads/images/xihu.jpg");
+        spot.setCoverImageUrl("/uploads/spot/default/cover/default.jpg");
         spot.setPrice(BigDecimal.valueOf(80));
         spot.setIsDeleted(0);
     }

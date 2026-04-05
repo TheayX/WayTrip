@@ -26,7 +26,23 @@ application-local.yml
 .env.local
 
 # Uploads
-uploads/images/
-uploads/icons/
-!uploads/images/.keep
-!uploads/icons/.keep
+uploads/**
+
+!uploads/avatar/
+!uploads/avatar/avatar.jpg
+
+!uploads/banner/
+!uploads/banner/default.jpg
+
+!uploads/guide/
+!uploads/guide/default.jpg
+
+!uploads/icons/
+!uploads/icons/default.png
+
+!uploads/spot/
+!uploads/spot/default/
+!uploads/spot/default/cover/
+!uploads/spot/default/cover/default.jpg
+!uploads/spot/default/gallery/
+!uploads/spot/default/gallery/default.jpg

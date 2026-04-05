@@ -199,7 +199,7 @@ class UserProfileServiceImplTest {
         User user = new User();
         user.setId(id);
         user.setNickname(nickname);
-        user.setAvatarUrl("/uploads/images/avatar.jpg");
+        user.setAvatarUrl("/uploads/avatar/avatar.jpg");
         user.setPhone("13800138000");
         user.setIsDeleted(0);
         user.setCreatedAt(LocalDateTime.now().minusDays(10));

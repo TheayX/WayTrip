@@ -162,7 +162,7 @@ class AdminUserControllerMaskingMvcTest {
         user.setOpenid("openid-should-not-expose");
         user.setNickname("用户A");
         user.setPhone("13800138000");
-        user.setAvatarUrl("/uploads/images/avatar.jpg");
+        user.setAvatarUrl("/uploads/avatar/avatar.jpg");
         user.setIsDeleted(0);
         user.setCreatedAt(LocalDateTime.now().minusDays(10));
         user.setUpdatedAt(LocalDateTime.now().minusDays(1));
