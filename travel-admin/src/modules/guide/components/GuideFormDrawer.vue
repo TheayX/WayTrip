@@ -52,7 +52,7 @@
 
               <el-row :gutter="24">
                 <el-col :span="14">
-                  <el-form-item label="封面图">
+                  <el-form-item label="封面图" prop="coverImage">
                     <div class="upload-container">
                       <el-upload
                         class="image-uploader"
@@ -365,7 +365,12 @@ defineExpose({
 .publish-group {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 10px;
+
+  :deep(.el-radio) {
+    margin-right: 0;
+  }
 }
 
 .upload-container {

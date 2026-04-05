@@ -14,7 +14,13 @@
         <el-steps :active="activeStep" finish-status="success" simple>
           <el-step v-for="(step, index) in stepOptions" :key="step.title" :icon="step.icon">
             <template #title>
-              <button type="button" class="step-title-btn" @click="goToStep(index)">
+              <button
+                type="button"
+                class="step-title-btn"
+                :class="{ 'is-disabled': !isEditMode }"
+                :disabled="!isEditMode"
+                @click="goToStep(index)"
+              >
                 {{ step.title }}
               </button>
             </template>
@@ -135,7 +141,7 @@
 
             <el-row :gutter="24">
               <el-col :span="24">
-                <el-form-item label="首页封面图 (Cover Image)">
+                <el-form-item label="首页封面图 (Cover Image)" prop="coverImage">
                   <div class="upload-container">
                     <el-upload
                         class="image-uploader"
@@ -228,7 +234,8 @@
 
 <script setup>
 import { Plus, Document, Location, Picture, Clock, Edit, Upload, Delete, ArrowLeft, ArrowRight, Check } from '@element-plus/icons-vue'
-import { ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import { computed, ref, watch } from 'vue'
 
 const formRef = ref()
 const activeStep = ref(0)
@@ -276,26 +283,49 @@ const stepOptions = [
   { title: '图文素材', icon: Picture }
 ]
 
+const stepValidateFields = {
+  0: ['name', 'regionPath', 'parentCategoryId', 'categoryId', 'price'],
+  1: ['address', 'heatLevel']
+}
+
+const isEditMode = computed(() => props.editId !== null && props.editId !== undefined && props.editId !== '')
+
+const validateStep = async (stepIndex) => {
+  const fields = stepValidateFields[stepIndex] || []
+  if (!fields.length || !formRef.value) {
+    return true
+  }
+  try {
+    await formRef.value.validateField(fields)
+    return true
+  } catch (_e) {
+    return false
+  }
+}
+
 const goToStep = (stepIndex) => {
+  if (!isEditMode.value) {
+    return
+  }
   activeStep.value = stepIndex
 }
 
 const nextStep = async () => {
-  // 可以在这里做部分校验，例如基础信息填完才能下一步
-  // let fieldsToValidate = []
-  // if (activeStep.value === 0) fieldsToValidate = ['name', 'regionPath', 'parentCategoryId', 'categoryId', 'price']
-  // if (activeStep.value === 1) fieldsToValidate = ['address', 'heatLevel']
-
-  try {
-    // 简略实现：暂时允许直接翻页，最后统一校验
-    goToStep(activeStep.value + 1)
-  } catch (e) {
-    // 校验失败拦截
+  const valid = await validateStep(activeStep.value)
+  if (!valid) {
+    ElMessage.warning('请先完善当前步骤必填信息')
+    return
   }
+  activeStep.value = Math.min(activeStep.value + 1, stepOptions.length - 1)
 }
 
-const submit = () => {
-  emit('submit')
+const submit = async () => {
+  try {
+    await formRef.value?.validate()
+    emit('submit')
+  } catch (_e) {
+    ElMessage.warning('请先完善必填信息后再保存')
+  }
 }
 
 defineExpose({
@@ -475,6 +505,11 @@ defineExpose({
   color: inherit;
   font: inherit;
   cursor: pointer;
+
+  &.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 }
 
 :deep(.el-step.is-simple .el-step__title) {

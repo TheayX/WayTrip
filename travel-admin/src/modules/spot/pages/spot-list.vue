@@ -396,7 +396,8 @@ const rules = {
   parentCategoryId: [{ required: true, message: '请选择父分类', trigger: 'change' }],
   categoryId: [{ required: true, message: '请选择子分类', trigger: 'change' }],
   heatLevel: [{ required: true, message: '请选择热度档位', trigger: 'change' }],
-  address: [{ required: true, message: '请输入地址', trigger: 'blur' }]
+  address: [{ required: true, message: '请输入地址', trigger: 'blur' }],
+  coverImage: [{ required: true, message: '请上传封面图', trigger: 'change' }]
 }
 
 const heatForm = reactive({

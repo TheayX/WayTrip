@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.travel.dto.banner.request.AdminBannerRequest;
 import com.travel.dto.banner.response.AdminBannerListResponse;
 import com.travel.dto.banner.response.BannerResponse;
@@ -103,11 +104,15 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         SpotBanner banner = getActiveBanner(id);
         int targetSortOrder = prepareUpdateSortOrder(banner, validRequest.getSortOrder());
 
-        banner.setImageUrl(validRequest.getImageUrl());
-        banner.setSpotId(validRequest.getSpotId());
-        banner.setSortOrder(targetSortOrder);
-        banner.setIsEnabled(validRequest.getEnabled());
-        spotBannerMapper.updateById(banner);
+        spotBannerMapper.update(
+            null,
+            new LambdaUpdateWrapper<SpotBanner>()
+                .eq(SpotBanner::getId, id)
+                .set(SpotBanner::getImageUrl, validRequest.getImageUrl())
+                .set(SpotBanner::getSpotId, validRequest.getSpotId())
+                .set(SpotBanner::getSortOrder, targetSortOrder)
+                .set(SpotBanner::getIsEnabled, validRequest.getEnabled())
+        );
         log.info("轮播图更新成功: bannerId={}", id);
     }
 

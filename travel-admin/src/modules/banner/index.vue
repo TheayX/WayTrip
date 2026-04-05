@@ -341,12 +341,16 @@ const handleSubmit = async () => {
   try {
     await formRef.value.validate()
     submitting.value = true
+    const payload = {
+      ...form,
+      spotId: form.spotId === '' || form.spotId == null ? null : form.spotId
+    }
 
     if (isEdit.value) {
-      await updateBanner(currentId.value, form)
+      await updateBanner(currentId.value, payload)
       ElMessage.success('更新成功')
     } else {
-      await createBanner(form)
+      await createBanner(payload)
       ElMessage.success('创建成功')
     }
 

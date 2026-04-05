@@ -280,6 +280,7 @@ const form = reactive({
 const rules = {
   title: [{ required: true, message: '请输入攻略标题', trigger: 'blur' }],
   category: [{ required: true, message: '请选择或输入攻略分类', trigger: 'change' }],
+  coverImage: [{ required: true, message: '请上传封面图', trigger: 'change' }],
   content: [{ required: true, message: '请输入攻略内容', trigger: 'blur' }]
 }
 const publishedCount = computed(() => tableData.value.filter((item) => item.published).length)
