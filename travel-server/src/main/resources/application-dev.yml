@@ -1,16 +1,17 @@
 # 开发环境配置
-# 用途：本地开发默认配置，包含数据库、Redis、JWT、微信和上传目录占位项。
+# 用途：本地开发默认配置。
+# 说明：数据库、Redis、JWT、微信与上传目录都可以继续通过 travel-server/.env 覆盖。
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/waytrip_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true # 输入你的数据库连接URL，确保数据库名称和连接参数正确
+    url: jdbc:mysql://localhost:3306/waytrip_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: # 输入你的数据库密码
+    password:
   data:
     redis:
       host: localhost
       port: 6379
-      password: # 输入你的Redis密码
+      password:
       database: 0
       timeout: 3s
       connect-timeout: 3s
@@ -34,16 +35,16 @@ app:
 
 # JWT 配置
 jwt:
-  secret: # 输入你想要的JWT密钥，建议使用随机生成的字符串，并且长度至少为32个字符，以确保安全性 # 比如travel-recommendation-system-jwt-secret-key-dev-2025
+  secret:
   expiration: 604800000  # 7天（毫秒）
   admin-expiration: 86400000  # 1天（毫秒）
 
 # 微信小程序配置
 wx:
-  appid: # 输入你的微信小程序的appid ## 记得在 travel-miniapp/src/manifest.json 中修改appid
-  secret: # 输入你的微信小程序的secret # 在https://mp.weixin.qq.com/注册获取
+  appid:
+  secret:
 
 # 文件上传配置
 upload:
-  path: ./uploads
+  path: ${UPLOAD_PATH:./uploads}
   max-size: 5242880  # 5MB

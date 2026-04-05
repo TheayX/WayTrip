@@ -88,13 +88,11 @@ CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ### 2. 启动后端服务
 
-> 如果使用 IntelliJ IDEA，请将启动配置的 `Working directory` 设置为 `travel-server` 子模块目录，否则会出现图片路径或上传目录异常。
-
 开发环境建议：
 
-- 将 `travel-server/src/main/resources/application.yml` 的活动配置切到 `dev`
-- 在 `application-dev.yml` 中填写本地数据库、Redis、JWT、微信参数
-- 如果走 `prod` 配置，则在 `travel-server` 下创建 `.env`，参考 `.env.example`
+- 如果 `travel-server/src/main/resources/application.yml` 使用 `prod`，则在 `travel-server` 下创建 `.env`，参考 `travel-server/.env.example`
+- 如果切到 `dev`，则直接在 `travel-server/src/main/resources/application-dev.yml` 中填写本地数据库、Redis、JWT、微信与上传目录配置
+- `UPLOAD_PATH` 建议优先使用绝对路径；如果继续使用相对路径，请固定启动方式
 
 ```bash
 cd travel-server

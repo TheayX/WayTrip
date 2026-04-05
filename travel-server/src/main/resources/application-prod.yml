@@ -1,5 +1,5 @@
 # 生产环境配置
-# 敏感值通过 .env 文件注入（travel-server 根目录），参考 .env.example
+# 敏感值通过 travel-server/.env 注入，参考 .env.example
 # 用途：生产部署默认配置，优先从环境变量或 .env 中读取敏感参数。
 spring:
   datasource:

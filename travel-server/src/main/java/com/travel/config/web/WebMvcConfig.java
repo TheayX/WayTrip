@@ -1,6 +1,7 @@
 package com.travel.config.web;
 
 import com.travel.interceptor.AuthInterceptor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -8,6 +9,8 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.lang.NonNull;
+
+import java.nio.file.Path;
 
 /**
  * Web MVC 配置。
@@ -19,6 +22,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
     private AuthInterceptor authInterceptor;
+
+    @Value("${upload.path:./uploads}")
+    private String uploadPath;
 
     /**
      * 配置全局跨域规则。
@@ -73,9 +79,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
-        // 静态资源映射 - 使用绝对路径
-        String uploadPath = System.getProperty("user.dir") + "/uploads/";
+        // 统一复用上传落盘目录配置，避免“文件已上传但静态访问路径仍指向旧目录”的部署问题。
+        String normalizedUploadPath = Path.of(uploadPath)
+                .toAbsolutePath()
+                .normalize()
+                .toUri()
+                .toString();
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + uploadPath);
+                .addResourceLocations(normalizedUploadPath);
     }
 }
