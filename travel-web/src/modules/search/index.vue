@@ -181,12 +181,6 @@
     <section v-else class="search-hint card">
       <el-icon :size="64" color="#c0c4cc"><Search /></el-icon>
       <p>输入关键词后，同时查看景点和攻略结果。</p>
-      <ExploreKeywordGroup title="热搜推荐" :items="hotKeywords" compact @select="applyKeyword" />
-      <ExploreSuggestionGrid
-        v-if="hintCards.length"
-        :items="hintCards"
-        @select="handleHintSelect"
-      />
     </section>
   </div>
 </template>
@@ -420,6 +414,28 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.search-input {
+  :deep(.el-input-group__append) {
+    background-color: var(--el-color-primary);
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    overflow: hidden;
+
+    .el-button {
+      margin: 0;
+      height: 100%;
+      border-radius: 0;
+      box-shadow: none;
+      color: #ffffff;
+      background-color: transparent;
+      border-color: transparent;
+    }
+  }
 }
 
 .search-hero,

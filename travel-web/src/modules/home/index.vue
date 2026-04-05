@@ -16,29 +16,6 @@
             <p class="hero-eyebrow">{{ APP_NAME }} Curated Travel</p>
             <h1 class="hero-title">选一个方向，开始这次旅行。</h1>
             <p class="hero-subtitle">热门景点、个性推荐、附近探索与实用攻略，帮你更快找到想去的地方。</p>
-
-            <div class="hero-actions">
-              <button type="button" class="hero-search hero-glass" @click="router.push(APP_ROUTE_PATHS.search)">
-                <el-icon><Search /></el-icon>
-                <span>搜索景点、攻略或目的地</span>
-              </button>
-              <el-button type="primary" @click="router.push(APP_ROUTE_PATHS.discover)">进入发现</el-button>
-            </div>
-
-            <div class="hero-metrics">
-              <article class="hero-metric hero-glass">
-                <strong>{{ hotSpots.length || 0 }}</strong>
-                <span>热门景点</span>
-              </article>
-              <article class="hero-metric hero-glass">
-                <strong>{{ recommendations.length || 0 }}</strong>
-                <span>个性推荐</span>
-              </article>
-              <article class="hero-metric hero-glass">
-                <strong>{{ nearbySpots.length || 0 }}</strong>
-                <span>附近探索</span>
-              </article>
-            </div>
           </div>
         </div>
       </div>
@@ -397,6 +374,7 @@ onMounted(async () => {
   position: absolute;
   inset: 0;
   z-index: 2;
+  pointer-events: none;
   background:
     linear-gradient(100deg, rgba(15, 23, 42, 0.74) 0%, rgba(15, 23, 42, 0.42) 42%, rgba(15, 23, 42, 0.14) 100%);
 }
@@ -407,11 +385,13 @@ onMounted(async () => {
   padding-bottom: 64px;
   display: flex;
   align-items: end;
+  justify-content: center;
 }
 
 .hero-copy {
-  max-width: 760px;
+  max-width: 900px;
   color: #fff;
+  text-align: center;
 }
 
 .hero-eyebrow {
@@ -431,74 +411,10 @@ onMounted(async () => {
 
 .hero-subtitle {
   max-width: 620px;
-  margin-top: 20px;
+  margin: 20px auto 0;
   font-size: 16px;
   line-height: 1.75;
   color: rgba(255, 255, 255, 0.86);
-}
-
-.hero-actions {
-  margin-top: 30px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.hero-search {
-  min-height: 56px;
-  padding: 0 20px;
-  border-radius: 999px;
-  border: none;
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.hero-glass {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 18px 40px -28px rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(20px) saturate(135%);
-  -webkit-backdrop-filter: blur(20px) saturate(135%);
-}
-
-.hero-search:hover {
-  border-color: rgba(255, 255, 255, 0.32);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.12) 100%);
-}
-
-.hero-metrics {
-  margin-top: 24px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 180px));
-  gap: 14px;
-}
-
-.hero-metric {
-  padding: 16px 18px;
-  border-radius: 22px;
-}
-
-.hero-metric strong {
-  display: block;
-  font-size: 28px;
-  line-height: 1;
-  color: #ffffff;
-  text-shadow: 0 6px 24px rgba(15, 23, 42, 0.28);
-}
-
-.hero-metric span {
-  display: block;
-  margin-top: 8px;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 13px;
-  letter-spacing: 0.02em;
 }
 
 .home-content {
@@ -605,10 +521,6 @@ onMounted(async () => {
     font-size: 46px;
   }
 
-  .hero-metrics {
-    grid-template-columns: 1fr;
-  }
-
   .section-header {
     flex-direction: column;
     align-items: flex-start;
@@ -628,15 +540,6 @@ onMounted(async () => {
 
   .hero-title {
     font-size: 36px;
-  }
-
-  .hero-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .hero-metrics {
-    grid-template-columns: 1fr;
   }
 
   .spot-grid,

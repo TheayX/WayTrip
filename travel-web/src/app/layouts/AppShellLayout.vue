@@ -40,7 +40,7 @@
           </div>
 
           <div class="shell-right">
-            <button type="button" class="search-entry" @click="$router.push(APP_ROUTE_PATHS.search)">
+            <button v-if="route.path !== APP_ROUTE_PATHS.search" type="button" class="search-entry" @click="$router.push(APP_ROUTE_PATHS.search)">
               <el-icon><Search /></el-icon>
               <span>搜索景点 / 攻略</span>
             </button>
