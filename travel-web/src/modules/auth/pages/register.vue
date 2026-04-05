@@ -155,17 +155,51 @@ const doRegister = async (options = {}) => {
     }
     const res = await register(registerData)
     userStore.login(res.data)
+    let finalAvatar = res.data.user?.avatar || defaultRegisterAvatar
+    const finalNickname = nickname || res.data.user?.nickname || defaultRegisterNickname
 
     if (avatar) {
       try {
         const uploadRes = await uploadAvatar(avatar)
-        await updateUserInfo({ avatar: uploadRes.data.url })
+        finalAvatar = uploadRes.data.url
       } catch (e) {
-        console.warn('头像上传失败，可稍后在个人中心设置')
+        ElMessage.warning('头像上传失败，可稍后在个人中心设置')
       }
     }
 
-    ElMessage.success(`注册成功，欢迎来到 ${APP_NAME}`)
+    try {
+      await updateUserInfo({
+        nickname: finalNickname,
+        phone: form.phone,
+        avatar: finalAvatar
+      })
+      userStore.setUserInfo({
+        ...res.data.user,
+        nickname: finalNickname,
+        phone: form.phone,
+        avatar: finalAvatar
+      })
+    } catch (e) {
+      // 注册已成功，此处仅补充提示资料未完全落库，避免用户误以为账号创建失败。
+      ElMessage.warning('账号已注册成功，但头像或昵称未完全保存，可稍后在个人中心补充')
+      userStore.setUserInfo({
+        ...res.data.user,
+        nickname: finalNickname,
+        phone: form.phone,
+        avatar: res.data.user?.avatar || defaultRegisterAvatar
+      })
+      router.push('/')
+      return
+    }
+
+    if (avatar && finalAvatar === (res.data.user?.avatar || defaultRegisterAvatar)) {
+      ElMessage.warning('账号已注册成功，头像未更新，可稍后在个人中心设置')
+    } else {
+      ElMessage.success(`注册成功，欢迎来到 ${APP_NAME}`)
+    }
+
+    avatarPreview.value = ''
+    avatarFile.value = null
     router.push('/')
   } catch (e) {
     step.value = 1
