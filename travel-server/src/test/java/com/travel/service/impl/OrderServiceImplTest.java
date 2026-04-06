@@ -1,5 +1,6 @@
 package com.travel.service.impl;
 
+import com.travel.dto.order.request.CreateOrderRequest;
 import com.travel.entity.Order;
 import com.travel.entity.Spot;
 import com.travel.enums.OrderStatus;
@@ -237,6 +238,32 @@ class OrderServiceImplTest {
         assertEquals("订单状态不允许退款", ex.getMessage());
     }
 
+    @Test
+    void getOrderDetail_rejectsOrderOfAnotherUser() {
+        when(orderMapper.selectOne(any())).thenReturn(null);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> orderService.getOrderDetail(1L, 10L));
+
+        assertEquals("订单不存在", ex.getMessage());
+    }
+
+    @Test
+    void createOrder_rejectsOfflineSpot() {
+        Spot offlineSpot = new Spot();
+        offlineSpot.setId(100L);
+        offlineSpot.setPrice(BigDecimal.valueOf(80));
+        offlineSpot.setIsDeleted(0);
+        offlineSpot.setIsPublished(0);
+        when(spotMapper.selectById(100L)).thenReturn(offlineSpot);
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> orderService.createOrder(1L, buildCreateOrderRequest(100L)));
+
+        assertEquals("景点已下架", ex.getMessage());
+        verify(orderMapper, never()).insert(any());
+        verify(recommendationService, never()).invalidateUserRecommendationCache(any());
+    }
+
     /**
      * 按指定状态构造订单夹具。
      */
@@ -259,5 +286,15 @@ class OrderServiceImplTest {
             order.setPaidAt(LocalDateTime.now().minusHours(1));
         }
         return order;
+    }
+
+    private CreateOrderRequest buildCreateOrderRequest(Long spotId) {
+        CreateOrderRequest request = new CreateOrderRequest();
+        request.setSpotId(spotId);
+        request.setQuantity(2);
+        request.setVisitDate(LocalDate.now().plusDays(3));
+        request.setContactName("测试用户");
+        request.setContactPhone("13800138000");
+        return request;
     }
 }

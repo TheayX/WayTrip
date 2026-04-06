@@ -35,6 +35,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -159,6 +160,26 @@ class SpotQueryServiceImplTest {
         assertEquals(ResultCode.SPOT_OFFLINE.getMessage(), ex.getMessage());
         // 下架校验命中后应立即返回，避免多余数据库读取。
         verifyNoInteractions(spotImageMapper, userSpotFavoriteMapper, reviewMapper, userSpotViewMapper);
+    }
+
+    @Test
+    void searchSpots_usesPublishedSearchMapperMethod() {
+        Spot spot = buildSpot(66L, 1);
+        Page<Spot> page = new Page<>(1, 10);
+        page.setRecords(List.of(spot));
+        page.setTotal(1L);
+
+        when(spotMapper.selectPublishedSearchPage(any(), any())).thenReturn(page);
+        when(spotResponseAssembler.toSpotListResponse(spot)).thenReturn(
+            com.travel.dto.spot.response.SpotListResponse.builder().id(66L).name("已发布景点").build()
+        );
+
+        var response = spotQueryService.searchSpots("西湖", 1, 10);
+
+        assertEquals(1L, response.getTotal());
+        assertEquals(66L, response.getList().get(0).getId());
+        verify(spotMapper).selectPublishedSearchPage(any(Page.class), any(String.class));
+        verify(spotMapper, never()).selectPage(any(), any(LambdaQueryWrapper.class));
     }
 
     private Spot buildSpot(Long id, Integer published) {

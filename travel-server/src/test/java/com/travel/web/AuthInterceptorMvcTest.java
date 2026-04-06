@@ -191,4 +191,13 @@ class AuthInterceptorMvcTest {
         mockMvc.perform(options("/api/v1/user/info"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void protectedAdminEndpoint_rejectsRequestWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/admin/v1/auth/info")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(10002))
+                .andExpect(jsonPath("$.message").value("Token无效或过期"));
+    }
 }
