@@ -61,4 +61,12 @@
   --wt-shadow-card: var(--wt-shadow-card-light);
   --wt-shadow-soft: var(--wt-shadow-soft-light);
   --wt-shadow-float: var(--wt-shadow-float-light);
+
+  --wt-filter-compact-margin-top: 4px;
+  --wt-filter-compact-margin-bottom: 4px;
+  --wt-filter-compact-padding-y: 12px;
+  --wt-filter-compact-item-margin-bottom: 0;
+
+  --wt-surface-premium-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.9) 100%);
+  --wt-shadow-glow-soft: 0 8px 24px rgba(15, 23, 42, 0.06);
 }

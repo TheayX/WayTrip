@@ -1,5 +1,5 @@
 <template>
-  <div class="search-form">
+  <div class="search-form admin-filter-bar">
     <el-form :model="searchForm" @submit.prevent>
 
       <div class="filter-row">
@@ -99,84 +99,20 @@ const handleDateChange = (value) => {
 </script>
 
 <style lang="scss" scoped>
-.search-form {
-  margin-top: 16px;
-  margin-bottom: 20px;
-}
-
-
-
-.filter-row,
-.filter-main,
-.filter-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.filter-row {
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.filter-main {
-  flex-wrap: wrap;
-  align-items: center;
-  flex: 1;
-}
-
-.filter-actions {
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.filter-item {
-  margin-bottom: 0;
-}
-
 .filter-input,
 .filter-select {
   width: 220px;
-}
-
-.toggle-btn {
-  font-weight: 600;
 }
 
 .scope-alert {
   margin-top: 14px;
 }
 
-.advanced-panel {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--wt-border-default);
-}
-
 .date-picker {
   width: 260px;
 }
 
-:deep(.el-input__wrapper),
-:deep(.el-select__wrapper),
-:deep(.el-date-editor.el-input__wrapper) {
-  border-radius: 10px;
-  background: var(--wt-surface-elevated);
-  box-shadow: var(--wt-shadow-soft);
-}
-
 @media (max-width: 960px) {
-  .filter-row {
-    flex-direction: column;
-  }
-
-  .filter-actions {
-    width: 100%;
-  }
-
-  .filter-actions :deep(.el-button) {
-    width: 100%;
-  }
 
   .filter-input,
   .filter-select,

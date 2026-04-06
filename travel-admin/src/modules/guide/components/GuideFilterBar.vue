@@ -1,5 +1,5 @@
 <template>
-  <div class="search-form">
+  <div class="search-form admin-filter-bar">
     <el-form :inline="true" :model="queryParams" @submit.prevent>
 
       <div class="filter-row">
@@ -61,41 +61,6 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
 </script>
 
 <style lang="scss" scoped>
-.search-form {
-  margin-top: 16px;
-  margin-bottom: 20px;
-}
-
-
-
-.filter-row,
-.filter-main,
-.filter-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.filter-row {
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.filter-main {
-  flex-wrap: wrap;
-  align-items: center;
-  flex: 1;
-}
-
-.filter-actions {
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.filter-item {
-  margin-bottom: 0;
-}
-
 .filter-input {
   width: 240px;
 }
@@ -104,29 +69,9 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
   width: 200px;
 }
 
-.status-select {
-  width: 140px;
-}
-
-:deep(.el-input__wrapper),
-:deep(.el-select__wrapper) {
-  border-radius: 10px;
-  background: var(--wt-surface-elevated);
-  box-shadow: var(--wt-shadow-soft);
-}
+.status-select { width: 140px; }
 
 @media (max-width: 960px) {
-  .filter-row {
-    flex-direction: column;
-  }
-
-  .filter-actions {
-    width: 100%;
-  }
-
-  .filter-actions :deep(.el-button) {
-    width: 100%;
-  }
 
   .filter-input,
   .filter-select,

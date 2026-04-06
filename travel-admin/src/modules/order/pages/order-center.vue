@@ -21,13 +21,13 @@
 
 
 
-    <div class="page-action-row" style="margin-bottom: 0;">
+    <div class="page-action-row page-action-row--flush">
       <el-tabs :model-value="currentTab" class="workspace-tabs" @tab-change="handleTabChange">
         <el-tab-pane v-for="tab in tabs" :key="tab.key" :label="tab.label" :name="tab.key" />
       </el-tabs>
     </div>
 
-    <el-card shadow="never" class="workspace-card">
+    <el-card shadow="never" class="workspace-card admin-management-card">
 
 
       <OrderFilterBar
@@ -512,6 +512,10 @@ onMounted(() => {
   margin-bottom: 5px;
 }
 
+.page-action-row--flush {
+  margin-bottom: 0;
+}
+
 .workspace-head {
   display: none;
 }
@@ -527,27 +531,12 @@ onMounted(() => {
 
 .workspace-card {
   border: none;
-  border-radius: 20px;
 }
 
 .workspace-card :deep(.el-card__body) {
   padding-top: 4px !important;
 }
 
-.workspace-card :deep(.search-form) {
-  margin-top: 4px !important;
-  margin-bottom: 4px !important;
-  padding-top: 12px !important;
-  padding-bottom: 12px !important;
-}
-
-.workspace-card :deep(.search-form .el-form-item) {
-  margin-bottom: 0 !important;
-}
-
-.workspace-card :deep(.order-table) {
-  margin-top: 0 !important;
-}
 
 .workspace-title {
   font-size: 22px;
