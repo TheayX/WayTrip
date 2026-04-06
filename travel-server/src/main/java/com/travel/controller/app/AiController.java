@@ -4,7 +4,7 @@ import com.travel.common.result.ApiResponse;
 import com.travel.dto.ai.AiChatRequest;
 import com.travel.dto.ai.AiChatResponse;
 import com.travel.service.AiService;
-import com.travel.util.JwtUtil;
+import com.travel.util.security.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AiController {
 
     private final AiService aiService;
-    private final JwtUtil jwtUtil;
+    private final JwtUtils jwtUtil;
 
     @Operation(summary = "AI chat")
     @PostMapping("/chat")

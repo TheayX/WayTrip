@@ -43,6 +43,7 @@
 
 <script setup>
 import { nextTick, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import { chatWithAi } from '@/shared/api/ai.js'
 
 // 仅在本地持久化会话 ID，会话消息历史由后端 Redis 按 TTL 管理。
@@ -73,10 +74,38 @@ function createSessionId() {
   return `web_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 }
 
+function isValidSessionId(value) {
+  return typeof value === 'string' && /^web_\d+_[a-z0-9]{8}$/i.test(value)
+}
+
 function resetSessionId() {
   const created = createSessionId()
   localStorage.setItem(SESSION_STORAGE_KEY, created)
   sessionId.value = created
+}
+
+function ensureSessionId() {
+  if (isValidSessionId(sessionId.value)) return
+  resetSessionId()
+}
+
+function getReplyContent(response) {
+  const reply = response?.data?.reply
+  return typeof reply === 'string' ? reply.trim() : ''
+}
+
+function resolveAiErrorMessage(error) {
+  const status = error?.response?.status
+  if (status === 401 || status === 403) {
+    return '当前登录状态无法使用 AI 客服，请重新登录后再试。'
+  }
+  if (error?.code === 'ECONNABORTED' || /timeout/i.test(error?.message || '')) {
+    return 'AI 响应超时，请稍后重试。'
+  }
+  if (!error?.response) {
+    return '网络连接异常，请检查网络后再试。'
+  }
+  return 'AI 服务暂时繁忙，请稍后再试。'
 }
 
 // 视图交互方法
@@ -107,17 +136,31 @@ const sendMessage = async () => {
   const content = inputText.value.trim()
   if (!content || loading.value) return
 
+  ensureSessionId()
+
   messages.value.push({ role: 'user', content })
   inputText.value = ''
   loading.value = true
   scrollToBottom()
 
   try {
-    const res = await chatWithAi(sessionId.value, content)
-    const reply = res?.data?.reply || '抱歉，暂时没有可用回复。'
-    messages.value.push({ role: 'assistant', content: reply })
-  } catch {
-    messages.value.push({ role: 'assistant', content: '抱歉，AI 服务暂不可用，请稍后再试。' })
+    const firstResponse = await chatWithAi(sessionId.value, content)
+    let reply = getReplyContent(firstResponse)
+
+    // 空回复时做一次轻量重试，减少偶发空内容对话体验。
+    if (!reply) {
+      const retryResponse = await chatWithAi(sessionId.value, content)
+      reply = getReplyContent(retryResponse)
+    }
+
+    messages.value.push({
+      role: 'assistant',
+      content: reply || '抱歉，本次回复为空，请换个问法或稍后再试。'
+    })
+  } catch (error) {
+    const message = resolveAiErrorMessage(error)
+    messages.value.push({ role: 'assistant', content: message })
+    ElMessage.warning(message)
   } finally {
     loading.value = false
     scrollToBottom()

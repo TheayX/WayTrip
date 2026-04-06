@@ -3,7 +3,7 @@ import { ROUTE_NAMES } from '@/shared/constants/route-names.js'
 import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 
 const publicRoutes = [
-  { path: '', name: ROUTE_NAMES.home, component: () => import('@/modules/home/index.vue'), meta: { title: '首页', showAiChat: true } },
+  { path: '', name: ROUTE_NAMES.home, component: () => import('@/modules/home/index.vue'), meta: { title: '首页', showAiChat: true, hideBackBar: true } },
   { path: 'discover', name: ROUTE_NAMES.discover, component: () => import('@/modules/discover/index.vue'), meta: { title: '发现' } },
   { path: 'recommendations', name: ROUTE_NAMES.recommendations, component: () => import('@/modules/recommendation/index.vue'), meta: { title: '推荐景点', requiresAuth: true } },
   { path: 'nearby', name: ROUTE_NAMES.nearby, component: () => import('@/modules/nearby/index.vue'), meta: { title: '附近景点', requiresAuth: true } },
@@ -51,8 +51,8 @@ export const authRoutes = [
     path: '/',
     component: () => import('@/app/layouts/AuthLayout.vue'),
     children: [
-      { path: AUTH_ROUTE_PATHS.login.slice(1), name: ROUTE_NAMES.login, component: () => import('@/modules/auth/pages/login.vue'), meta: { title: '登录', showAiChat: false } },
-      { path: AUTH_ROUTE_PATHS.register.slice(1), name: ROUTE_NAMES.register, component: () => import('@/modules/auth/pages/register.vue'), meta: { title: '注册', showAiChat: false } }
+      { path: AUTH_ROUTE_PATHS.login.slice(1), name: ROUTE_NAMES.login, component: () => import('@/modules/auth/pages/login.vue'), meta: { title: '登录', showAiChat: false, hideBackBar: true } },
+      { path: AUTH_ROUTE_PATHS.register.slice(1), name: ROUTE_NAMES.register, component: () => import('@/modules/auth/pages/register.vue'), meta: { title: '注册', showAiChat: false, hideBackBar: true } }
     ]
   }
 ]

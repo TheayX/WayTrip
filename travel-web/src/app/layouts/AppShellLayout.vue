@@ -166,7 +166,12 @@ const featureMenuItems = [
 const isHomeActive = computed(() => route.name === ROUTE_NAMES.home)
 const isFeatureMenuActive = computed(() => featureRouteNames.includes(route.name))
 const hiddenBackRoutes = [ROUTE_NAMES.home, ROUTE_NAMES.login, ROUTE_NAMES.register]
-const showBackBar = computed(() => !hiddenBackRoutes.includes(route.name))
+const showBackBar = computed(() => {
+  if (typeof route.meta?.hideBackBar === 'boolean') {
+    return !route.meta.hideBackBar
+  }
+  return !hiddenBackRoutes.includes(route.name)
+})
 const currentPageText = computed(() => route.meta?.title || '继续浏览当前内容')
 const shouldShowAiChat = computed(() => {
   if (typeof route.meta?.showAiChat === 'boolean') {

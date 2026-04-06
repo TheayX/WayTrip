@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
-import com.travel.config.RedisKeyManager;
+import com.travel.config.cache.RedisKeyManager;
 import com.travel.entity.Order;
 import com.travel.entity.Spot;
 import com.travel.entity.UserSpotFavorite;
