@@ -122,6 +122,9 @@
         </div>
       </div>
     </footer>
+
+    <!-- AI 客服入口（悬浮球 + 对话框） -->
+    <AiChatWidget />
   </div>
 </template>
 
@@ -138,6 +141,7 @@ import { getAvatarUrl } from '@/shared/api/client.js'
 import { ArrowDown, ChatDotRound, Discount, MagicStick, Search, Setting, Stopwatch, Tickets, User, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
 import brandLogoUrl from '@/shared/assets/brand/standard.svg'
 import brandMarkUrl from '@/shared/assets/brand/standard-mark.svg'
+import AiChatWidget from '@/components/AiChatWidget.vue'
 
 // 基础依赖与路由状态
 const userStore = useUserStore()
