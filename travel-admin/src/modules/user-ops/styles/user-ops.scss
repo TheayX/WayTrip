@@ -18,24 +18,24 @@
   }
 
   .insight-stat-label {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--wt-text-secondary);
     font-weight: 600;
     letter-spacing: 0.01em;
   }
 
   .insight-stat-value {
-    margin-top: 12px;
-    font-size: 28px;
+    margin-top: 8px;
+    font-size: 24px;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.15;
     color: var(--wt-text-primary);
   }
 
   .insight-stat-desc {
-    margin-top: 12px;
+    margin-top: 6px;
     font-size: 12px;
-    line-height: 1.65;
+    line-height: 1.55;
     color: var(--wt-text-regular);
   }
 

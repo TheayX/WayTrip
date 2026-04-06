@@ -36,7 +36,8 @@ const emit = defineEmits(['change-tab'])
   border: 1px solid var(--wt-border-default);
   border-radius: 20px;
   background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  padding: 18px 20px;
+  padding: 14px 16px;
+  min-height: 112px;
   text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -54,21 +55,22 @@ const emit = defineEmits(['change-tab'])
 
 .summary-label {
   color: var(--wt-text-regular);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 }
 
 .summary-value {
-  margin-top: 12px;
+  margin-top: 8px;
   color: var(--wt-text-primary);
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.15;
 }
 
 .summary-hint {
-  margin-top: 8px;
+  margin-top: 6px;
   color: var(--wt-text-secondary);
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 </style>

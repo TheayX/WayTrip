@@ -192,7 +192,6 @@
   overflow: hidden;
 
   &:hover {
-    transform: translateY(-2px);
     border-color: var(--el-color-primary-light-7);
     box-shadow: var(--wt-shadow-float);
   }
@@ -208,28 +207,28 @@
   }
 
   :deep(.el-card__body) {
-    padding: 18px 20px 20px !important;
+    padding: 12px 16px !important;
   }
 }
 
 .summary-label {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--wt-text-secondary);
   font-weight: 600;
 }
 
 .summary-value {
   margin-top: 8px;
-  font-size: 28px;
-  line-height: 1.1;
+  font-size: 24px;
+  line-height: 1.15;
   font-weight: 700;
   color: var(--wt-text-primary);
 }
 
 .summary-desc {
-  margin-top: 10px;
+  margin-top: 6px;
   font-size: 12px;
-  line-height: 1.7;
+  line-height: 1.55;
   color: var(--wt-text-regular);
 }
 

@@ -414,28 +414,28 @@ onMounted(() => {
   }
 
   .summary-label {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--wt-text-secondary);
     font-weight: 600;
   }
 
   .summary-value {
     margin-top: 8px;
-    font-size: 28px;
-    line-height: 1.1;
+    font-size: 24px;
+    line-height: 1.15;
     font-weight: 700;
     color: var(--wt-text-primary);
   }
 
   .summary-value--sm {
-    font-size: 22px;
-    line-height: 1.35;
+    font-size: 20px;
+    line-height: 1.3;
   }
 
   .summary-desc {
-    margin-top: 10px;
+    margin-top: 6px;
     font-size: 12px;
-    line-height: 1.7;
+    line-height: 1.55;
     color: var(--wt-text-regular);
   }
 

@@ -326,7 +326,7 @@ onMounted(() => {
   .summary-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
+    gap: 16px;
   }
 
   .summary-card {
@@ -334,29 +334,28 @@ onMounted(() => {
   }
 
   .summary-label {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    letter-spacing: 0.04em;
     color: var(--wt-text-secondary);
   }
 
   .summary-value {
-    margin-top: 10px;
-    font-size: 34px;
+    margin-top: 8px;
+    font-size: 24px;
     font-weight: 700;
-    line-height: 1.05;
+    line-height: 1.15;
     color: var(--wt-text-primary);
   }
 
   .summary-value--sm {
-    font-size: 24px;
-    line-height: 1.2;
+    font-size: 20px;
+    line-height: 1.3;
   }
 
   .summary-desc {
-    margin-top: 10px;
-    font-size: 13px;
-    line-height: 1.6;
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.55;
     color: var(--wt-text-secondary);
   }
 
