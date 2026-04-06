@@ -7,5 +7,9 @@ import request from '@/shared/api/client.js'
  * @param {string} message 用户消息
  * @returns {Promise<any>} AI 客服回复结果
  */
-export const chatWithAi = (sessionId, message) => request.post('/ai/chat', { sessionId, message })
+export const chatWithAi = (sessionId, message) => request.post(
+  '/ai/chat',
+  { sessionId, message },
+  { timeout: 60000 }
+)
 

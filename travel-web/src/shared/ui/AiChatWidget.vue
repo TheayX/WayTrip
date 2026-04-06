@@ -45,9 +45,14 @@
 import { nextTick, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { chatWithAi } from '@/shared/api/ai.js'
-
-// 仅在本地持久化会话 ID，会话消息历史由后端 Redis 按 TTL 管理。
-const SESSION_STORAGE_KEY = 'waytrip_ai_session_id'
+import {
+  AI_CHAT_SESSION_STORAGE_KEY,
+  buildWelcomeMessage,
+  createSessionId,
+  getReplyContent,
+  isValidSessionId,
+  resolveAiErrorMessage
+} from '@/shared/lib/ai-chat.js'
 
 // 组件状态
 const isOpen = ref(false)
@@ -57,55 +62,23 @@ const messageListRef = ref(null)
 const sessionId = ref(getOrCreateSessionId())
 const messages = ref([buildWelcomeMessage()])
 
-// 欢迎语与会话初始化
-function buildWelcomeMessage() {
-  return { role: 'assistant', content: '你好，我是 WayTrip AI 客服。你可以问我景点、攻略、订单相关问题。' }
-}
-
 function getOrCreateSessionId() {
-  const cached = localStorage.getItem(SESSION_STORAGE_KEY)
+  const cached = localStorage.getItem(AI_CHAT_SESSION_STORAGE_KEY)
   if (cached) return cached
   const created = createSessionId()
-  localStorage.setItem(SESSION_STORAGE_KEY, created)
+  localStorage.setItem(AI_CHAT_SESSION_STORAGE_KEY, created)
   return created
-}
-
-function createSessionId() {
-  return `web_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
-}
-
-function isValidSessionId(value) {
-  return typeof value === 'string' && /^web_\d+_[a-z0-9]{8}$/i.test(value)
 }
 
 function resetSessionId() {
   const created = createSessionId()
-  localStorage.setItem(SESSION_STORAGE_KEY, created)
+  localStorage.setItem(AI_CHAT_SESSION_STORAGE_KEY, created)
   sessionId.value = created
 }
 
 function ensureSessionId() {
   if (isValidSessionId(sessionId.value)) return
   resetSessionId()
-}
-
-function getReplyContent(response) {
-  const reply = response?.data?.reply
-  return typeof reply === 'string' ? reply.trim() : ''
-}
-
-function resolveAiErrorMessage(error) {
-  const status = error?.response?.status
-  if (status === 401 || status === 403) {
-    return '当前登录状态无法使用 AI 客服，请重新登录后再试。'
-  }
-  if (error?.code === 'ECONNABORTED' || /timeout/i.test(error?.message || '')) {
-    return 'AI 响应超时，请稍后重试。'
-  }
-  if (!error?.response) {
-    return '网络连接异常，请检查网络后再试。'
-  }
-  return 'AI 服务暂时繁忙，请稍后再试。'
 }
 
 // 视图交互方法
