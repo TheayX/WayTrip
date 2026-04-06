@@ -74,17 +74,17 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="手机号" width="140">
+        <el-table-column label="手机号" width="140" align="center" header-align="center">
           <template #default="{ row }">
             {{ formatPhone(row.phone) }}
           </template>
         </el-table-column>
-        <el-table-column prop="orderCount" label="订单数" width="100" />
-        <el-table-column prop="favoriteCount" label="收藏数" width="100" />
-        <el-table-column prop="ratingCount" label="评价数" width="100" />
-        <el-table-column prop="createdAt" label="注册时间" width="170" />
-        <el-table-column prop="updatedAt" label="修改时间" width="170" />
-        <el-table-column label="操作" width="190" fixed="right" align="center">
+        <el-table-column prop="orderCount" label="订单数" width="100" align="center" header-align="center" />
+        <el-table-column prop="favoriteCount" label="收藏数" width="100" align="center" header-align="center" />
+        <el-table-column prop="ratingCount" label="评价数" width="100" align="center" header-align="center" />
+        <el-table-column prop="createdAt" label="注册时间" width="170" align="center" header-align="center" />
+        <el-table-column prop="updatedAt" label="修改时间" width="170" align="center" header-align="center" />
+        <el-table-column label="操作" width="190" fixed="right" align="center" header-align="center">
           <template #default="{ row }">
             <div class="table-actions">
               <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
@@ -519,7 +519,12 @@ watch(
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 10px;
+  }
+
+  .table-actions :deep(.el-button.is-link) {
+    padding: 4px 10px;
+    margin: 0;
   }
 }
 
