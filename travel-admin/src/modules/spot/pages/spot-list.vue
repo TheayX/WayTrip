@@ -2,13 +2,20 @@
 <template>
   <div class="spot-page admin-page-shell">
     <section class="page-hero">
-      <div>
+      <div class="hero-left">
         <p class="page-kicker">景点内容管理</p>
         <h1 class="page-title">景点管理</h1>
-        <p class="page-subtitle">维护景点信息、上架状态与展示质量。</p>
+        <div class="subtitle-row">
+          <p class="page-subtitle">维护景点信息、上架状态与展示质量。</p>
+        </div>
       </div>
-      <div class="hero-actions">
-        <el-button :loading="loading" @click="loadData">刷新数据</el-button>
+      <div class="hero-actions" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-end;">
+        <el-button :loading="loading" @click="loadData" style="margin-left: 0;">刷新数据</el-button>
+        <div class="hero-action-row">
+          <el-button @click="handleRefreshAllRatings" :loading="refreshingAllRatings" style="margin-left: 0;">同步全部评分</el-button>
+          <el-button @click="handleRefreshAllHeats" :loading="refreshingAllHeats" style="margin-left: 0;">同步全部热度分数</el-button>
+          <el-button type="primary" @click="handleAdd" style="margin-left: 0;">新增景点</el-button>
+        </div>
       </div>
     </section>
 
@@ -31,17 +38,7 @@
     </section>
 
     <el-card shadow="hover" class="management-card">
-      <!-- 卡片头部 -->
-      <template #header>
-        <div class="card-header">
-          <span>景点管理</span>
-          <div class="header-actions">
-            <el-button @click="handleRefreshAllRatings" :loading="refreshingAllRatings">同步全部评分</el-button>
-            <el-button @click="handleRefreshAllHeats" :loading="refreshingAllHeats">同步全部热度分数</el-button>
-            <el-button type="primary" @click="handleAdd">新增景点</el-button>
-          </div>
-        </div>
-      </template>
+
 
       <SpotFilterBar
         :query-params="queryParams"
@@ -814,6 +811,23 @@ watch(
   gap: 20px;
 }
 
+.hero-left {
+  flex: 1;
+}
+
+.subtitle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.hero-secondary-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px; /* Offset to align better with subtitle margin */
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -847,6 +861,34 @@ watch(
 
 .management-card {
   border-radius: 22px;
+}
+
+.management-card :deep(.el-card__body) {
+  padding-top: 4px !important;
+}
+
+.management-card :deep(.search-form.mb-6) {
+  margin-bottom: 4px !important;
+}
+
+.management-card :deep(.search-form) {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+.management-card :deep(.search-form .el-form-item) {
+  margin-bottom: 0 !important;
+}
+
+.management-card :deep(.premium-table) {
+  margin-top: 0 !important;
+}
+
+.hero-action-row {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  top: 32px;
 }
 
 .card-header {

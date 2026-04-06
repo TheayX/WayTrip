@@ -1,10 +1,7 @@
 <template>
-  <div class="filter-panel">
+  <div class="search-form">
     <el-form :model="searchForm" @submit.prevent>
-      <div class="filter-caption">
-        <span class="filter-title">筛选订单</span>
-        <span class="filter-subtitle">按订单号、景点名、状态和下单时间快速收敛当前工作区里的订单。</span>
-      </div>
+
       <div class="filter-row">
         <div class="filter-main">
           <el-form-item class="filter-item">
@@ -102,34 +99,12 @@ const handleDateChange = (value) => {
 </script>
 
 <style lang="scss" scoped>
-.filter-panel {
+.search-form {
   margin-top: 16px;
   margin-bottom: 20px;
-  border: 1px solid var(--wt-border-default);
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
-  padding: 16px 18px;
-  box-shadow: var(--wt-shadow-soft);
 }
 
-.filter-caption {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 14px;
-}
 
-.filter-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--wt-text-primary);
-}
-
-.filter-subtitle {
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--wt-text-regular);
-}
 
 .filter-row,
 .filter-main,

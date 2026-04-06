@@ -1,10 +1,7 @@
 <template>
-  <div class="filter-panel">
+  <div class="search-form">
     <el-form :inline="true" :model="queryParams" @submit.prevent>
-      <div class="filter-caption">
-        <span class="filter-title">筛选攻略</span>
-        <span class="filter-subtitle">按标题关键词、分类和发布状态快速找到需要更新的攻略内容。</span>
-      </div>
+
       <div class="filter-row">
         <div class="filter-main">
           <el-form-item class="filter-item">
@@ -64,34 +61,12 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
 </script>
 
 <style lang="scss" scoped>
-.filter-panel {
+.search-form {
   margin-top: 16px;
   margin-bottom: 20px;
-  border: 1px solid var(--wt-border-default);
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
-  padding: 16px 18px;
-  box-shadow: var(--wt-shadow-soft);
 }
 
-.filter-caption {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 14px;
-}
 
-.filter-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--wt-text-primary);
-}
-
-.filter-subtitle {
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--wt-text-regular);
-}
 
 .filter-row,
 .filter-main,

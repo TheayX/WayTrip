@@ -2,13 +2,16 @@
 <template>
   <div class="banner-page admin-page-shell">
     <section class="page-hero">
-      <div>
+      <div class="hero-left">
         <p class="page-kicker">首页资源管理</p>
         <h1 class="page-title">轮播图管理</h1>
-        <p class="page-subtitle">维护首页轮播内容和展示顺序。</p>
+        <div class="subtitle-row">
+          <p class="page-subtitle">维护首页轮播内容和展示顺序。</p>
+        </div>
       </div>
       <div class="hero-actions">
-        <el-button :loading="loading" @click="fetchBannerList">刷新数据</el-button>
+        <el-button :loading="loading" @click="fetchBannerList" class="hero-action-btn">刷新数据</el-button>
+        <el-button type="primary" @click="handleAdd" class="hero-action-btn hero-action-btn-add">新增轮播图</el-button>
       </div>
     </section>
 
@@ -31,15 +34,6 @@
     </section>
 
     <el-card shadow="hover" class="management-card">
-      <template #header>
-        <div class="card-header">
-          <span>轮播图管理</span>
-          <div class="header-actions">
-            <el-button type="primary" @click="handleAdd">新增轮播图</el-button>
-          </div>
-        </div>
-      </template>
-
       <div v-if="errorMessage" class="error-state page-error-state">
         <el-result icon="error" title="轮播图管理加载失败" :sub-title="errorMessage">
           <template #extra>
@@ -163,7 +157,7 @@
               placeholder="请选择景点（可选）"
               clearable
               filterable
-              style="width: 100%"
+              class="full-width-select"
             >
               <el-option
                 v-for="spot in spotList"
@@ -412,9 +406,36 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .banner-page {
-  .management-card {
-    border-radius: 22px;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hero-left {
+  flex: 1;
+}
+
+.hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.hero-action-btn {
+  margin-left: 0 !important;
+}
+
+.hero-action-btn-add {
+  position: relative;
+  top: 32px;
+}
+
+.subtitle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
 }
 
 .summary-grid {
@@ -448,13 +469,6 @@ onMounted(() => {
   color: var(--wt-text-regular);
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-actions,
 .table-actions {
   display: flex;
   align-items: center;
@@ -482,6 +496,18 @@ onMounted(() => {
 .banner-table {
   border-radius: 18px;
   overflow: hidden;
+}
+
+.management-card :deep(.banner-table) {
+  margin-top: 0 !important;
+}
+
+.management-card :deep(.el-card__body) {
+  padding-top: 0 !important;
+}
+
+.full-width-select {
+  width: 100%;
 }
 
 :deep(.banner-table th.el-table__cell) {

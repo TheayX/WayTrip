@@ -31,19 +31,11 @@
     </section>
 
     <el-card shadow="hover" class="management-card">
-      <!-- 卡片头部 -->
-      <template #header>
-        <div class="card-header">
-          <span>用户管理</span>
-        </div>
-      </template>
+
 
       <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
-        <div class="filter-caption">
-          <span class="filter-title">筛选用户</span>
-          <span class="filter-subtitle">按昵称快速定位用户，再进入偏好、收藏和浏览行为页继续分析。</span>
-        </div>
+
         <el-form-item label="昵称">
           <el-input
             v-model="searchForm.nickname"
@@ -418,6 +410,29 @@ watch(
 
   .management-card {
     border-radius: 22px;
+
+    :deep(.el-card__body) {
+      padding-top: 4px !important;
+    }
+
+    :deep(.search-form) {
+      margin-top: 4px !important;
+      margin-bottom: 4px !important;
+      padding-top: 10px !important;
+      padding-bottom: 10px !important;
+    }
+
+    :deep(.search-form .el-form-item) {
+      margin-bottom: 0 !important;
+    }
+
+    :deep(.user-table) {
+      margin-top: 0 !important;
+    }
+
+    :deep(.search-form + .user-table) {
+      margin-top: 0 !important;
+    }
   }
 
   .filter-caption {

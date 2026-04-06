@@ -2,24 +2,22 @@
 <template>
   <div class="admin-page admin-page-shell">
     <section class="page-hero">
-      <div>
+      <div class="hero-left">
         <p class="page-kicker">System Management</p>
         <h1 class="page-title">管理员管理</h1>
-        <p class="page-subtitle">维护后台管理员账号与启用状态。</p>
+        <div class="subtitle-row">
+          <p class="page-subtitle">维护后台管理员账号与启用状态。</p>
+        </div>
       </div>
-      <div class="hero-actions">
-        <el-button :loading="loading" @click="fetchData">刷新数据</el-button>
+      <div class="hero-actions" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-end;">
+        <el-button :loading="loading" @click="fetchData" style="margin-left: 0;">刷新数据</el-button>
+        <el-button type="primary" @click="handleAdd" class="hero-action-btn-add" style="margin-left: 0;">新增管理员</el-button>
       </div>
     </section>
 
-    <el-card shadow="hover">
-      <!-- 卡片头部 -->
-      <template #header>
-        <div class="card-header">
-          <span>管理员管理</span>
-          <el-button type="primary" @click="handleAdd">新增管理员</el-button>
-        </div>
-      </template>
+    <el-card shadow="hover" class="management-card">
+
+
 
       <!-- 搜索表单 -->
       <el-form :model="queryParams" inline class="search-form" @submit.prevent>
@@ -430,6 +428,48 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.hero-left {
+  flex: 1;
+}
+
+.subtitle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.hero-secondary-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.hero-action-btn-add {
+  position: relative;
+  top: 32px;
+}
+
+.management-card :deep(.el-card__body) {
+  padding-top: 4px !important;
+}
+
+.management-card :deep(.search-form) {
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+.management-card :deep(.search-form .el-form-item) {
+  margin-bottom: 0 !important;
+}
+
+.management-card :deep(.admin-table) {
+  margin-top: 0 !important;
+}
 
   .table-actions {
     display: flex;
@@ -437,7 +477,6 @@ onMounted(() => {
     justify-content: center;
     gap: 4px;
   }
-}
 
 .admin-table {
   border-radius: 16px;

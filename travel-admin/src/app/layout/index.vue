@@ -3,11 +3,11 @@
   <el-container class="layout-container">
     <!-- 侧边栏: 通栏贯穿设计 -->
     <el-aside :width="isCollapse ? '80px' : '260px'" class="aside">
-      <!-- Logo 区域 -->
       <div class="logo">
         <img v-if="isCollapse" :src="brandMarkUrl" alt="" aria-hidden="true" class="logo-icon" />
         <template v-else>
           <img :src="brandLogoUrl" alt="WayTrip" class="logo-full" />
+          <span class="logo-text">ADMIN</span>
         </template>
       </div>
       <!-- 导航菜单 -->
@@ -500,14 +500,16 @@ onMounted(async () => {
   z-index: 10;
 
   .logo {
-    height: 72px; /* 与 header 同高 */
+    min-height: 84px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 20px;
+    padding: 16px 20px;
     cursor: pointer;
     flex-shrink: 0;
     border-bottom: 1px solid var(--wt-border-default);
+    flex-direction: column;
+    gap: 6px;
 
     .logo-icon {
       width: 28px;
@@ -521,6 +523,14 @@ onMounted(async () => {
       height: auto;
       display: block;
       flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      color: var(--wt-text-regular);
+      line-height: 1;
     }
   }
 

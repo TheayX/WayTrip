@@ -1,11 +1,8 @@
 <template>
   <!-- 搜索筛选表单 -->
-  <div class="search-form premium-filter-bar mb-6">
+  <div class="search-form mb-6">
     <el-form :inline="true" :model="queryParams" @submit.prevent>
-      <div class="filter-caption">
-        <span class="filter-title">筛选景点</span>
-        <span class="filter-subtitle">按关键词、地区、分类和发布状态快速定位需要处理的内容。</span>
-      </div>
+
       <div class="flex-between">
         <div class="filter-group flex gap-4">
           <el-form-item class="filter-item mb-0">
@@ -118,38 +115,9 @@ const emitFilterChange = () => emit('filter-change')
 </script>
 
 <style lang="scss" scoped>
-.premium-filter-bar {
-  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
-  border-radius: 18px;
-  padding: 16px 24px;
-  border: 1px solid var(--wt-border-default);
-  transition: all 0.3s ease;
-  box-shadow: var(--wt-shadow-soft);
 
-  &:hover {
-    border-color: var(--el-border-color-light);
-    box-shadow: var(--wt-shadow-soft);
-  }
-}
 
-.filter-caption {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 14px;
-}
 
-.filter-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--wt-text-primary);
-}
-
-.filter-subtitle {
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--wt-text-regular);
-}
 
 .flex { display: flex; }
 .flex-wrap { flex-wrap: wrap; }

@@ -2,13 +2,16 @@
 <template>
   <div class="guide-page admin-page-shell">
     <section class="page-hero">
-      <div>
+      <div class="hero-left">
         <p class="page-kicker">攻略内容管理</p>
         <h1 class="page-title">攻略管理</h1>
-        <p class="page-subtitle">维护攻略内容、发布状态与关联景点。</p>
+        <div class="subtitle-row">
+          <p class="page-subtitle">维护攻略内容、发布状态与关联景点。</p>
+        </div>
       </div>
-      <div class="hero-actions">
-        <el-button :loading="loading" @click="loadData">刷新数据</el-button>
+      <div class="hero-actions" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-end;">
+        <el-button :loading="loading" @click="loadData" style="margin-left: 0;">刷新数据</el-button>
+        <el-button type="primary" @click="handleAdd" class="hero-action-btn-add" style="margin-left: 0;">新增攻略</el-button>
       </div>
     </section>
 
@@ -31,14 +34,7 @@
     </section>
 
     <el-card shadow="hover" class="management-card">
-      <template #header>
-        <div class="card-header">
-          <span>攻略列表</span>
-          <div class="header-actions">
-            <el-button type="primary" @click="handleAdd">新增攻略</el-button>
-          </div>
-        </div>
-      </template>
+
 
       <GuideFilterBar
         :query-params="queryParams"
@@ -694,6 +690,23 @@ watch(
   gap: 20px;
 }
 
+.hero-left {
+  flex: 1;
+}
+
+.subtitle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.hero-secondary-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -727,6 +740,30 @@ watch(
 
 .management-card {
   border-radius: 22px;
+}
+
+.management-card :deep(.el-card__body) {
+  padding-top: 4px !important;
+}
+
+.management-card :deep(.search-form) {
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+.management-card :deep(.search-form .el-form-item) {
+  margin-bottom: 0 !important;
+}
+
+.management-card :deep(.premium-table) {
+  margin-top: 0 !important;
+}
+
+.hero-action-btn-add {
+  position: relative;
+  top: 32px;
 }
 
 .view-count-dialog-body {

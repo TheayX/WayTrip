@@ -31,19 +31,11 @@
     </section>
 
     <el-card shadow="hover" class="management-card">
-      <!-- 卡片头部 -->
-      <template #header>
-        <div class="card-header">
-          <span>评价管理</span>
-        </div>
-      </template>
+
 
       <!-- 搜索表单 -->
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
-        <div class="filter-caption">
-          <span class="filter-title">筛选评价</span>
-          <span class="filter-subtitle">按用户昵称和景点名称快速检索评价，优先处理低分或异常内容。</span>
-        </div>
+
         <el-form-item label="用户昵称">
           <el-input
             v-model="searchForm.nickname"
@@ -250,6 +242,29 @@ onMounted(() => {
 
   .management-card {
     border-radius: 22px;
+
+    :deep(.el-card__body) {
+      padding-top: 4px !important;
+    }
+
+    :deep(.search-form) {
+      margin-top: 4px !important;
+      margin-bottom: 4px !important;
+      padding-top: 10px !important;
+      padding-bottom: 10px !important;
+    }
+
+    :deep(.search-form .el-form-item) {
+      margin-bottom: 0 !important;
+    }
+
+    :deep(.review-table) {
+      margin-top: 0 !important;
+    }
+
+    :deep(.search-form + .review-table) {
+      margin-top: 0 !important;
+    }
   }
 
   .filter-caption {

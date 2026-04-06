@@ -19,16 +19,16 @@
       @change-tab="handleTabChange"
     />
 
+
+
+    <div class="page-action-row" style="margin-bottom: 0;">
+      <el-tabs :model-value="currentTab" class="workspace-tabs" @tab-change="handleTabChange">
+        <el-tab-pane v-for="tab in tabs" :key="tab.key" :label="tab.label" :name="tab.key" />
+      </el-tabs>
+    </div>
+
     <el-card shadow="never" class="workspace-card">
-      <div class="workspace-head">
-        <div>
-          <h2 class="workspace-title">工作区</h2>
-          <p class="workspace-subtitle">按状态工作区快速收敛订单处理任务。</p>
-        </div>
-        <el-tabs :model-value="currentTab" class="workspace-tabs" @tab-change="handleTabChange">
-          <el-tab-pane v-for="tab in tabs" :key="tab.key" :label="tab.label" :name="tab.key" />
-        </el-tabs>
-      </div>
+
 
       <OrderFilterBar
         :current-tab="currentTab"
@@ -92,7 +92,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="createdAt" label="下单时间" width="180" align="center" />
-          <el-table-column label="操作" width="220" fixed="right" align="left">
+          <el-table-column label="操作" width="220" fixed="right" align="left" header-align="center">
             <template #default="{ row }">
               <div class="table-actions">
                 <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
@@ -504,11 +504,16 @@ onMounted(() => {
   }
 }
 
-.workspace-head {
+.page-action-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: -10px;
+  margin-bottom: 5px;
+}
+
+.workspace-head {
+  display: none;
 }
 
 .workspace-title {
@@ -523,6 +528,25 @@ onMounted(() => {
 .workspace-card {
   border: none;
   border-radius: 20px;
+}
+
+.workspace-card :deep(.el-card__body) {
+  padding-top: 4px !important;
+}
+
+.workspace-card :deep(.search-form) {
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+.workspace-card :deep(.search-form .el-form-item) {
+  margin-bottom: 0 !important;
+}
+
+.workspace-card :deep(.order-table) {
+  margin-top: 0 !important;
 }
 
 .workspace-title {

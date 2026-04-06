@@ -97,9 +97,9 @@
 .el-form--inline.search-form {
   padding: 20px 24px 4px;
   border: 1px solid var(--wt-border-default);
-  border-radius: 18px;
-  background: var(--wt-surface-muted);
-  box-shadow: var(--wt-shadow-soft);
+  border-radius: 12px;
+  background: var(--wt-surface-panel);
+  box-shadow: none;
   transition: all 0.3s ease;
 
   &:hover {

@@ -30,17 +30,10 @@
     </section>
 
     <el-card shadow="hover" class="management-card">
-      <template #header>
-        <div class="card-header">
-          <span>收藏记录</span>
-        </div>
-      </template>
+
 
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
-        <div class="filter-caption">
-          <span class="filter-title">筛选收藏记录</span>
-          <span class="filter-subtitle">按用户、景点和收藏时间快速回看显式偏好行为，判断收藏是否集中在某类内容上。</span>
-        </div>
+
         <el-form-item label="用户昵称">
           <el-input
             v-model="searchForm.nickname"
@@ -291,6 +284,29 @@ watch(
 
   .management-card {
     border-radius: 22px;
+
+    :deep(.el-card__body) {
+      padding-top: 4px !important;
+    }
+
+    :deep(.search-form) {
+      margin-top: 4px !important;
+      margin-bottom: 4px !important;
+      padding-top: 10px !important;
+      padding-bottom: 10px !important;
+    }
+
+    :deep(.search-form .el-form-item) {
+      margin-bottom: 0 !important;
+    }
+
+    :deep(.ops-table) {
+      margin-top: 0 !important;
+    }
+
+    :deep(.search-form + .ops-table) {
+      margin-top: 0 !important;
+    }
   }
 }
 
