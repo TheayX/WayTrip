@@ -5,7 +5,9 @@
   "main": "main.js",
   "scripts": {
     "dev:mp-weixin": "uni -p mp-weixin",
-    "build:mp-weixin": "uni build -p mp-weixin"
+    "build:mp-weixin": "uni build -p mp-weixin",
+    "lint": "eslint \"src/**/*.js\"",
+    "lint:fix": "eslint \"src/**/*.js\" --fix"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-alpha-5000420260319001",
@@ -37,6 +39,7 @@
     "@dcloudio/uni-stacktracey": "3.0.0-alpha-5000420260319001",
     "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000420260319001",
     "@vue/runtime-core": "3.5.30",
+    "eslint": "^9.36.0",
     "sass-embedded": "^1.77.5",
     "vite": "5.2.8"
   }

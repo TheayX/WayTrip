@@ -5,6 +5,11 @@ import { useUserStore } from '@/modules/account/store/user.js'
 import router from '@/app/router/index.js'
 import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 
+const AUTH_EXPIRED_CODE = 10002
+const ACCESS_DENIED_CODE = 10003
+const AUTH_EXPIRED_MESSAGE = '登录状态已失效，请重新登录'
+const NETWORK_ERROR_MESSAGE = '网络异常，请稍后重试'
+
 /**
  * 创建 Axios 实例
  * 配置：基础路径、超时时间等
@@ -83,8 +88,10 @@ client.interceptors.response.use(
     // 业务错误处理
     if (res.code !== 0) {
       // Token 失效，跳转登录页
-      if (res.code === 10002) {
-        redirectToLogin(res.message || '登录状态已失效，请重新登录')
+      if (res.code === AUTH_EXPIRED_CODE) {
+        redirectToLogin(res.message || AUTH_EXPIRED_MESSAGE)
+      } else if (res.code === ACCESS_DENIED_CODE) {
+        ElMessage.warning(res.message || '暂无权限访问该功能')
       } else {
         ElMessage.error(res.message || '请求失败')
       }
@@ -96,12 +103,18 @@ client.interceptors.response.use(
   (error) => {
     // HTTP 401 未授权，跳转登录页
     if (error?.response?.status === 401) {
-      redirectToLogin('登录状态已失效，请重新登录')
+      redirectToLogin(AUTH_EXPIRED_MESSAGE)
+      return Promise.reject(error)
+    }
+
+    // HTTP 403 无权限
+    if (error?.response?.status === 403) {
+      ElMessage.warning('暂无权限访问该功能')
       return Promise.reject(error)
     }
 
     // 其他网络错误或服务器异常
-    ElMessage.error(error.message || '网络错误')
+    ElMessage.error(error.message || NETWORK_ERROR_MESSAGE)
     return Promise.reject(error)
   }
 )

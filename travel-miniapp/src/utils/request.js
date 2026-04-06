@@ -3,6 +3,10 @@ import { useUserStore } from '@/stores/user'
 // 常量配置
 const SERVER_URL = 'http://localhost:8080'
 const BASE_URL = `${SERVER_URL.replace(/\/$/, '')}/api/v1`
+const AUTH_EXPIRED_CODE = 10002
+const ACCESS_DENIED_CODE = 10003
+const AUTH_EXPIRED_MESSAGE = '登录状态已失效，请重新登录'
+const NETWORK_ERROR_MESSAGE = '网络异常，请稍后重试'
 
 // 图片地址处理方法
 const isHttpUrl = (value) => /^http:\/\//i.test(value)
@@ -99,14 +103,14 @@ const request = (options) => {
           const result = res.data
           if (result.code === 0) {
             resolve(result)
-          } else if (result.code === 10002) {
+          } else if (result.code === AUTH_EXPIRED_CODE) {
             userStore.logout()
 
             // 只有原本确实存在登录态时，才提示“登录失效”。
             if (hadToken) {
               uni.showModal({
                 title: '提示',
-                content: '登录状态已失效，请重新登录',
+                content: AUTH_EXPIRED_MESSAGE,
                 confirmText: '去登录',
                 success: (modalRes) => {
                   if (modalRes.confirm) {
@@ -116,25 +120,52 @@ const request = (options) => {
               })
             }
 
-            const authExpiredResult = { code: 10002, data: null, message: result.message || 'Token invalid' }
+            const authExpiredResult = { code: AUTH_EXPIRED_CODE, data: null, message: result.message || AUTH_EXPIRED_MESSAGE }
             if (rejectOnAuthExpired) {
               reject(authExpiredResult)
               return
             }
 
             resolve(authExpiredResult)
+          } else if (result.code === ACCESS_DENIED_CODE) {
+            uni.showToast({ title: result.message || '暂无权限访问该功能', icon: 'none' })
+            reject(result)
           } else {
             uni.showToast({ title: result.message || '请求失败', icon: 'none' })
             reject(result)
           }
+        } else if (res.statusCode === 401) {
+          userStore.logout()
+          if (hadToken) {
+            uni.showModal({
+              title: '提示',
+              content: AUTH_EXPIRED_MESSAGE,
+              confirmText: '去登录',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  uni.reLaunch({ url: '/pages/mine/index' })
+                }
+              }
+            })
+          }
+
+          const authExpiredResult = { code: AUTH_EXPIRED_CODE, data: null, message: AUTH_EXPIRED_MESSAGE }
+          if (rejectOnAuthExpired) {
+            reject(authExpiredResult)
+            return
+          }
+          resolve(authExpiredResult)
+        } else if (res.statusCode === 403) {
+          uni.showToast({ title: '暂无权限访问该功能', icon: 'none' })
+          reject(res)
         } else {
-          uni.showToast({ title: '网络错误', icon: 'none' })
+          uni.showToast({ title: NETWORK_ERROR_MESSAGE, icon: 'none' })
           reject(res)
         }
       },
       fail: (err) => {
         if (showLoading) hideGlobalLoading()
-        uni.showToast({ title: '网络错误', icon: 'none' })
+        uni.showToast({ title: NETWORK_ERROR_MESSAGE, icon: 'none' })
         reject(err)
       }
     })

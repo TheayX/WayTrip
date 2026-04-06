@@ -4,6 +4,34 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/app/store/user.js'
 import router from '@/app/router/index.js'
 
+const AUTH_EXPIRED_CODE = 10002
+const ACCESS_DENIED_CODE = 10003
+const AUTH_EXPIRED_MESSAGE = '登录状态已失效，请重新登录'
+const NETWORK_ERROR_MESSAGE = '网络异常，请稍后重试'
+
+let authRedirectInProgress = false
+
+const redirectToLogin = async (message) => {
+  const userStore = useUserStore()
+  const hadToken = Boolean(userStore.token)
+  userStore.logout()
+
+  if (authRedirectInProgress) {
+    return
+  }
+
+  authRedirectInProgress = true
+  if (message && hadToken) {
+    ElMessage.warning(message)
+  }
+
+  try {
+    await router.replace('/login')
+  } finally {
+    authRedirectInProgress = false
+  }
+}
+
 /**
  * 创建 Axios 实例
  * 配置：基础路径、超时时间等
@@ -42,13 +70,12 @@ request.interceptors.response.use(
     const res = response.data
     // 业务错误处理
     if (res.code !== 0) {
-      ElMessage.error(res.message || '请求失败')
-
-      // Token 失效，强制登出
-      if (res.code === 10002) {
-        const userStore = useUserStore()
-        userStore.clearToken()
-        router.push('/login')
+      if (res.code === AUTH_EXPIRED_CODE) {
+        redirectToLogin(res.message || AUTH_EXPIRED_MESSAGE)
+      } else if (res.code === ACCESS_DENIED_CODE) {
+        ElMessage.warning(res.message || '暂无权限访问该功能')
+      } else {
+        ElMessage.error(res.message || '请求失败')
       }
 
       return Promise.reject(new Error(res.message || '请求失败'))
@@ -56,8 +83,18 @@ request.interceptors.response.use(
     return res
   },
   (error) => {
+    if (error?.response?.status === 401) {
+      redirectToLogin(AUTH_EXPIRED_MESSAGE)
+      return Promise.reject(error)
+    }
+
+    if (error?.response?.status === 403) {
+      ElMessage.warning('暂无权限访问该功能')
+      return Promise.reject(error)
+    }
+
     // 网络错误或服务器异常
-    ElMessage.error(error.message || '网络错误')
+    ElMessage.error(error.message || NETWORK_ERROR_MESSAGE)
     return Promise.reject(error)
   }
 )
