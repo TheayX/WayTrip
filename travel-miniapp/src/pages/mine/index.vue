@@ -150,6 +150,26 @@ const orderStats = reactive({ pending: 0, paid: 0, completed: 0 })
 const authStep = ref(0)
 const pendingOpenid = ref('')
 
+const TABBAR_PATHS = new Set([
+  '/pages/index/index',
+  '/pages/discover/index',
+  '/pages/mine/index'
+])
+
+/**
+ * 登录后按目标页面类型执行回跳：tabBar 页面使用 switchTab，普通页面使用 navigateTo。
+ */
+const navigateAfterLogin = (redirect) => {
+  if (!redirect) return
+
+  if (TABBAR_PATHS.has(redirect)) {
+    uni.switchTab({ url: redirect })
+    return
+  }
+
+  uni.navigateTo({ url: redirect })
+}
+
 // 工具方法
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
@@ -249,7 +269,7 @@ const doLogin = async () => {
 
       const redirect = consumeLoginRedirect()
       if (redirect) {
-        uni.navigateTo({ url: redirect })
+        navigateAfterLogin(redirect)
         return
       }
 
@@ -274,7 +294,7 @@ const onAuthSuccess = async () => {
 
   const redirect = consumeLoginRedirect()
   if (redirect) {
-    uni.navigateTo({ url: redirect })
+    navigateAfterLogin(redirect)
   }
 }
 
