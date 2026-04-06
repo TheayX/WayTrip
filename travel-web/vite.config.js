@@ -54,6 +54,11 @@ export default defineConfig({
   // 开发服务器配置
   server: {
     port: 3001, // Web 端端口号（区别于管理后台的 3000）
+
+    // 允许通过 ngrok 等外部 Host 访问开发服务器
+    // ngrok http 3001
+    allowedHosts: ['lila-architraved-nonchromatically.ngrok-free.dev'],
+
     proxy: {
       // API 请求代理到后端服务器
       '/api': {
