@@ -6,9 +6,12 @@ import router from '@/app/router/index.js'
 import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 
 const AUTH_EXPIRED_CODE = 10002
+const SUCCESS_CODE = 0
 const ACCESS_DENIED_CODE = 10003
 const AUTH_EXPIRED_MESSAGE = '登录状态已失效，请重新登录'
 const NETWORK_ERROR_MESSAGE = '网络异常，请稍后重试'
+const REQUEST_FAILED_MESSAGE = '请求失败'
+const NO_PERMISSION_MESSAGE = '暂无权限访问该功能'
 
 /**
  * 创建 Axios 实例
@@ -86,17 +89,17 @@ client.interceptors.response.use(
   (response) => {
     const res = response.data
     // 业务错误处理
-    if (res.code !== 0) {
+    if (res.code !== SUCCESS_CODE) {
       // Token 失效，跳转登录页
       if (res.code === AUTH_EXPIRED_CODE) {
         redirectToLogin(res.message || AUTH_EXPIRED_MESSAGE)
       } else if (res.code === ACCESS_DENIED_CODE) {
-        ElMessage.warning(res.message || '暂无权限访问该功能')
+        ElMessage.warning(res.message || NO_PERMISSION_MESSAGE)
       } else {
-        ElMessage.error(res.message || '请求失败')
+        ElMessage.error(res.message || REQUEST_FAILED_MESSAGE)
       }
 
-      return Promise.reject(new Error(res.message || '请求失败'))
+      return Promise.reject(new Error(res.message || REQUEST_FAILED_MESSAGE))
     }
     return res
   },
@@ -109,7 +112,7 @@ client.interceptors.response.use(
 
     // HTTP 403 无权限
     if (error?.response?.status === 403) {
-      ElMessage.warning('暂无权限访问该功能')
+      ElMessage.warning(NO_PERMISSION_MESSAGE)
       return Promise.reject(error)
     }
 

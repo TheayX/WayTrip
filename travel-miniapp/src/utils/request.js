@@ -3,10 +3,13 @@ import { useUserStore } from '@/stores/user'
 // 常量配置
 const SERVER_URL = 'http://localhost:8080'
 const BASE_URL = `${SERVER_URL.replace(/\/$/, '')}/api/v1`
+const SUCCESS_CODE = 0
 const AUTH_EXPIRED_CODE = 10002
 const ACCESS_DENIED_CODE = 10003
 const AUTH_EXPIRED_MESSAGE = '登录状态已失效，请重新登录'
 const NETWORK_ERROR_MESSAGE = '网络异常，请稍后重试'
+const REQUEST_FAILED_MESSAGE = '请求失败'
+const NO_PERMISSION_MESSAGE = '暂无权限访问该功能'
 
 // 图片地址处理方法
 const isHttpUrl = (value) => /^http:\/\//i.test(value)
@@ -75,6 +78,38 @@ const hideGlobalLoading = () => {
   }
 }
 
+const promptReLogin = (hadToken) => {
+  if (!hadToken) {
+    return
+  }
+
+  uni.showModal({
+    title: '提示',
+    content: AUTH_EXPIRED_MESSAGE,
+    confirmText: '去登录',
+    success: (modalRes) => {
+      if (modalRes.confirm) {
+        uni.reLaunch({ url: '/pages/mine/index' })
+      }
+    }
+  })
+}
+
+const resolveOrRejectAuthExpired = ({ rejectOnAuthExpired, resolve, reject, message }) => {
+  const authExpiredResult = {
+    code: AUTH_EXPIRED_CODE,
+    data: null,
+    message: message || AUTH_EXPIRED_MESSAGE
+  }
+
+  if (rejectOnAuthExpired) {
+    reject(authExpiredResult)
+    return
+  }
+
+  resolve(authExpiredResult)
+}
+
 // 基础请求方法
 const request = (options) => {
   return new Promise((resolve, reject) => {
@@ -101,62 +136,30 @@ const request = (options) => {
 
         if (res.statusCode === 200) {
           const result = res.data
-          if (result.code === 0) {
+          if (result.code === SUCCESS_CODE) {
             resolve(result)
           } else if (result.code === AUTH_EXPIRED_CODE) {
             userStore.logout()
-
-            // 只有原本确实存在登录态时，才提示“登录失效”。
-            if (hadToken) {
-              uni.showModal({
-                title: '提示',
-                content: AUTH_EXPIRED_MESSAGE,
-                confirmText: '去登录',
-                success: (modalRes) => {
-                  if (modalRes.confirm) {
-                    uni.reLaunch({ url: '/pages/mine/index' })
-                  }
-                }
-              })
-            }
-
-            const authExpiredResult = { code: AUTH_EXPIRED_CODE, data: null, message: result.message || AUTH_EXPIRED_MESSAGE }
-            if (rejectOnAuthExpired) {
-              reject(authExpiredResult)
-              return
-            }
-
-            resolve(authExpiredResult)
+            promptReLogin(hadToken)
+            resolveOrRejectAuthExpired({
+              rejectOnAuthExpired,
+              resolve,
+              reject,
+              message: result.message
+            })
           } else if (result.code === ACCESS_DENIED_CODE) {
-            uni.showToast({ title: result.message || '暂无权限访问该功能', icon: 'none' })
+            uni.showToast({ title: result.message || NO_PERMISSION_MESSAGE, icon: 'none' })
             reject(result)
           } else {
-            uni.showToast({ title: result.message || '请求失败', icon: 'none' })
+            uni.showToast({ title: result.message || REQUEST_FAILED_MESSAGE, icon: 'none' })
             reject(result)
           }
         } else if (res.statusCode === 401) {
           userStore.logout()
-          if (hadToken) {
-            uni.showModal({
-              title: '提示',
-              content: AUTH_EXPIRED_MESSAGE,
-              confirmText: '去登录',
-              success: (modalRes) => {
-                if (modalRes.confirm) {
-                  uni.reLaunch({ url: '/pages/mine/index' })
-                }
-              }
-            })
-          }
-
-          const authExpiredResult = { code: AUTH_EXPIRED_CODE, data: null, message: AUTH_EXPIRED_MESSAGE }
-          if (rejectOnAuthExpired) {
-            reject(authExpiredResult)
-            return
-          }
-          resolve(authExpiredResult)
+          promptReLogin(hadToken)
+          resolveOrRejectAuthExpired({ rejectOnAuthExpired, resolve, reject })
         } else if (res.statusCode === 403) {
-          uni.showToast({ title: '暂无权限访问该功能', icon: 'none' })
+          uni.showToast({ title: NO_PERMISSION_MESSAGE, icon: 'none' })
           reject(res)
         } else {
           uni.showToast({ title: NETWORK_ERROR_MESSAGE, icon: 'none' })
