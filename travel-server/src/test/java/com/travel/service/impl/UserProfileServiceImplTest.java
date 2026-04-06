@@ -15,8 +15,10 @@ import com.travel.enums.OrderStatus;
 import com.travel.mapper.OrderMapper;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotMapper;
+import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
+import com.travel.mapper.UserSpotViewMapper;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.BeforeAll;
@@ -71,6 +73,12 @@ class UserProfileServiceImplTest {
     private UserSpotFavoriteMapper userSpotFavoriteMapper;
 
     @Mock
+    private UserSpotViewMapper userSpotViewMapper;
+
+    @Mock
+    private UserPreferenceMapper userPreferenceMapper;
+
+    @Mock
     private ReviewMapper reviewMapper;
 
     @Mock
@@ -122,6 +130,9 @@ class UserProfileServiceImplTest {
         when(orderMapper.selectCount(any())).thenReturn(5L);
         when(userSpotFavoriteMapper.selectCount(any())).thenReturn(4L);
         when(reviewMapper.selectCount(any())).thenReturn(3L);
+        when(userSpotViewMapper.selectCount(any())).thenReturn(8L);
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+        when(userSpotViewMapper.selectList(any())).thenReturn(List.of());
 
         Order order = new Order();
         order.setId(11L);
