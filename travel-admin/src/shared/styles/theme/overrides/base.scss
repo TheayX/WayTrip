@@ -7,7 +7,8 @@
 }
 
 html,
-body {
+body,
+#app {
   height: 100%;
   font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-page);

@@ -31,6 +31,13 @@
   }
 }
 
+.table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
 /* ─────────────────────────────────────────────────────────────
    徽章类 - Badge Patterns
    ───────────────────────────────────────────────────────────── */
@@ -88,6 +95,38 @@
 
     .dot { background-color: var(--wt-text-secondary); }
   }
+}
+
+.danger-text {
+  color: #e11d48 !important;
+}
+
+.success-text {
+  color: #10b981 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   表单宽度工具类 - Form Width Utilities
+   ───────────────────────────────────────────────────────────── */
+
+.form-w-140 {
+  width: 140px;
+}
+
+.form-w-180 {
+  width: 180px;
+}
+
+.form-w-220 {
+  width: 220px;
+}
+
+.form-w-240 {
+  width: 240px;
+}
+
+.form-w-full {
+  width: 100%;
 }
 
 /* ─────────────────────────────────────────────────────────────

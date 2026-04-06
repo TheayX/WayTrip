@@ -26,7 +26,7 @@
               v-model="queryParams.keyword"
               placeholder="用户名/姓名"
               clearable
-              style="width: 220px"
+              class="form-w-220"
               @keyup.enter="handleSearch"
               @clear="handleSearch"
           />
@@ -36,7 +36,7 @@
               v-model="uiStatus"
               placeholder="全部"
               clearable
-              style="width: 140px"
+              class="form-w-140"
               @change="handleSearch"
               @clear="handleSearch"
           >
@@ -447,13 +447,6 @@ onMounted(() => {
   margin-top: 8px;
 }
 
-.table-actions {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-  }
-
 .admin-table {
   border-radius: 16px;
   overflow: hidden;
@@ -465,58 +458,6 @@ onMounted(() => {
   font-weight: 600;
 }
 
-.borderless-table {
-  :deep(.el-table__inner-wrapper::before) {
-    display: none;
-  }
-
-  :deep(td.el-table__cell),
-  :deep(th.el-table__cell.is-leaf) {
-    border-bottom: 1px solid var(--wt-divider-faint);
-  }
-}
-
-.capsule-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-
-  &.status-capsule {
-    gap: 6px;
-
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-    }
-  }
-
-  &.status-success {
-    background-color: #ecfdf5;
-    color: #059669;
-
-    .dot {
-      background-color: #10b981;
-    }
-  }
-
-  &.status-neutral {
-    background-color: var(--wt-tag-info-bg);
-    color: var(--wt-text-regular);
-
-    .dot {
-      background-color: var(--wt-text-secondary);
-    }
-  }
-}
-
-.danger-text {
-  color: #ef4444 !important;
-}
 
 :deep(.admin-table .el-table__row:hover > td.el-table__cell) {
   background: var(--wt-row-gradient-hover) !important;

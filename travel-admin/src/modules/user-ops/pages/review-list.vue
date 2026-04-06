@@ -41,7 +41,7 @@
             v-model="searchForm.nickname"
             placeholder="请输入用户昵称"
             clearable
-            style="width: 180px"
+            class="form-w-180"
             @keyup.enter="handleSearch"
             @clear="handleSearch"
           />
@@ -51,7 +51,7 @@
             v-model="searchForm.spotName"
             placeholder="请输入景点名称"
             clearable
-            style="width: 180px"
+            class="form-w-180"
             @keyup.enter="handleSearch"
             @clear="handleSearch"
           />
@@ -304,14 +304,6 @@ onMounted(() => {
   font-weight: 600;
 }
 
-:deep(.borderless-table .el-table__inner-wrapper::before) {
-  display: none;
-}
-
-:deep(.borderless-table td.el-table__cell),
-:deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid var(--wt-divider-faint);
-}
 
 :deep(.review-table .el-table__row:hover > td.el-table__cell) {
   background: var(--wt-row-gradient-hover) !important;
