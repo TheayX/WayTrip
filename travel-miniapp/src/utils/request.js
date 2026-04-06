@@ -50,16 +50,38 @@ const appendQueryParams = (url, params) => {
   return `${url}${url.includes('?') ? '&' : '?'}${query}`
 }
 
+// 全局 Loading 引用计数，避免并发请求造成 show/hide 不配对。
+let loadingRefCount = 0
+
+const showGlobalLoading = (title = '加载中...') => {
+  loadingRefCount += 1
+  if (loadingRefCount === 1) {
+    uni.showLoading({ title, mask: true })
+  }
+}
+
+const hideGlobalLoading = () => {
+  if (loadingRefCount <= 0) {
+    return
+  }
+
+  loadingRefCount -= 1
+  if (loadingRefCount === 0) {
+    uni.hideLoading()
+  }
+}
+
 // 基础请求方法
 const request = (options) => {
   return new Promise((resolve, reject) => {
-    const { url, method = 'GET', data = {}, params = null, showLoading = true, rejectOnAuthExpired = false } = options
+    // 默认不自动弹全局 loading，避免与页面内手动 loading 管理冲突。
+    const { url, method = 'GET', data = {}, params = null, showLoading = false, rejectOnAuthExpired = false } = options
     const userStore = useUserStore()
     const hadToken = Boolean(userStore.token)
     const requestUrl = appendQueryParams(BASE_URL + url, params)
 
     if (showLoading) {
-      uni.showLoading({ title: '加载中...', mask: true })
+      showGlobalLoading('加载中...')
     }
 
     uni.request({
@@ -71,7 +93,7 @@ const request = (options) => {
         'Authorization': userStore.token ? `Bearer ${userStore.token}` : ''
       },
       success: (res) => {
-        if (showLoading) uni.hideLoading()
+        if (showLoading) hideGlobalLoading()
 
         if (res.statusCode === 200) {
           const result = res.data
@@ -111,7 +133,7 @@ const request = (options) => {
         }
       },
       fail: (err) => {
-        if (showLoading) uni.hideLoading()
+        if (showLoading) hideGlobalLoading()
         uni.showToast({ title: '网络错误', icon: 'none' })
         reject(err)
       }
@@ -139,7 +161,7 @@ export const del = (url, data, options = {}) => {
 export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
   return new Promise((resolve, reject) => {
     const userStore = useUserStore()
-    uni.showLoading({ title: '上传中...', mask: true })
+    showGlobalLoading('上传中...')
     uni.uploadFile({
       url: BASE_URL + url,
       filePath,
@@ -149,7 +171,7 @@ export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
         'Authorization': userStore.token ? `Bearer ${userStore.token}` : ''
       },
       success: (res) => {
-        uni.hideLoading()
+        hideGlobalLoading()
         if (res.statusCode === 200) {
           const result = JSON.parse(res.data)
           if (result.code === 0) {
@@ -164,7 +186,7 @@ export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
         }
       },
       fail: (err) => {
-        uni.hideLoading()
+        hideGlobalLoading()
         uni.showToast({ title: '上传失败', icon: 'none' })
         reject(err)
       }
