@@ -2,10 +2,10 @@
 <template>
   <div class="login-page premium-card">
     <div class="login-header">
-      <p class="header-kicker">Sign In</p>
-      <h1>欢迎回到 {{ APP_NAME }}</h1>
-      <p class="header-desc">登录后继续你的旅行记录与探索偏好。</p>
-    </div>
+       <p class="header-kicker">Sign In</p>
+       <h1>欢迎回到 {{ APP_NAME }}</h1>
+       <p class="header-desc">登录你的账号，继续未完成的行程与探索。</p>
+     </div>
 
     <el-form ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent="handleLogin">
       <el-form-item prop="phone">

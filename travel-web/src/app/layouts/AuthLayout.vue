@@ -2,17 +2,17 @@
 <template>
   <div class="auth-layout">
     <header class="auth-header">
-      <router-link to="/" class="brand-link" aria-label="WayTrip 首页">
-        <img :src="brandMarkUrl" alt="WayTrip" class="brand-mark">
+      <router-link to="/" class="brand-link" :aria-label="`${APP_NAME} 首页`">
+        <img :src="brandMarkUrl" :alt="APP_NAME" class="brand-mark">
       </router-link>
     </header>
 
     <main class="auth-main">
-      <section class="auth-hero">
-        <p class="auth-eyebrow">Account Access</p>
-        <h1>进入你的旅行空间</h1>
-        <p>登录后继续管理偏好、订单、收藏与旅行记录。认证区只保留必要信息，不再叠加多层视觉容器。</p>
-      </section>
+       <section class="auth-hero">
+         <p class="auth-eyebrow">Account Access</p>
+         <h1>进入你的旅行空间</h1>
+         <p>登录后可查看订单、管理收藏，并持续记录你的旅行足迹。</p>
+       </section>
 
       <div class="auth-panel">
         <router-view />

@@ -43,14 +43,17 @@
           </div>
         </el-upload>
       </div>
-      <el-input v-model="registerProfileForm.nickname" placeholder="昵称" prefix-icon="User" maxlength="30" size="large" class="nickname-input" />
-      <div class="step2-actions">
-        <el-button size="large" class="skip-btn" :loading="loading" @click="handleSkip">跳过</el-button>
-        <el-button type="primary" size="large" :loading="loading" class="confirm-btn" @click="handleStep2">完成注册</el-button>
-      </div>
-    </div>
+       <el-input v-model="registerProfileForm.nickname" placeholder="昵称" prefix-icon="User" maxlength="30" size="large" class="nickname-input" />
+       <div class="step2-actions">
+         <el-button size="large" class="back-btn" :loading="loading" @click="handleBackToStep1">返回</el-button>
+         <div class="actions-right">
+           <el-button size="large" class="skip-btn" :loading="loading" @click="handleSkip">跳过</el-button>
+           <el-button type="primary" size="large" :loading="loading" class="confirm-btn" @click="handleStep2">完成注册</el-button>
+         </div>
+       </div>
+     </div>
 
-    <div class="register-footer" v-if="step === 1">
+    <div class="register-footer">
       <span>已有账号？</span>
       <router-link to="/login" class="link">去登录</router-link>
     </div>
@@ -212,6 +215,11 @@ const handleSkip = () => {
   doRegister()
 }
 
+const handleBackToStep1 = () => {
+  if (loading.value) return
+  step.value = 1
+}
+
 const handleStep2 = () => {
   doRegister({
     nickname: registerProfileForm.nickname.trim() || defaultRegisterNickname,
@@ -350,13 +358,25 @@ const handleStep2 = () => {
 }
 
 .step2-actions {
-  width: 100%;
-  display: flex;
-  gap: 12px;
-}
+   width: 100%;
+   display: flex;
+   gap: 12px;
+   align-items: center;
+ }
 
-.skip-btn,
-.confirm-btn {
-  flex: 1;
-}
+ .back-btn {
+   flex-shrink: 0;
+   padding: 0 16px;
+ }
+
+ .actions-right {
+   flex: 1;
+   display: flex;
+   gap: 12px;
+ }
+
+ .skip-btn,
+ .confirm-btn {
+   flex: 1;
+ }
 </style>

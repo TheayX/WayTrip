@@ -4,10 +4,10 @@
     <header class="shell-header">
       <div class="page-container">
         <div class="shell-header-bar glass-panel">
-          <div class="shell-left">
-            <router-link to="/" class="brand-link" aria-label="WayTrip 首页">
-              <img :src="brandLogoUrl" alt="WayTrip" class="brand-logo">
-            </router-link>
+           <div class="shell-left">
+             <router-link to="/" class="brand-link" :aria-label="`${APP_NAME} 首页`">
+               <img :src="brandLogoUrl" :alt="APP_NAME" class="brand-logo">
+             </router-link>
 
             <nav class="shell-nav">
               <router-link to="/" class="shell-nav-link" :class="{ active: isHomeActive }">首页</router-link>
