@@ -1,45 +1,42 @@
 <!-- 管理后台主布局组件 -->
 <template>
   <el-container class="layout-container">
-    <!-- 侧边栏: 外层用于制造浮动边距 -->
-    <div class="aside-wrapper" :style="{ width: isCollapse ? '80px' : '240px' }">
-      <el-aside width="100%" class="aside">
-        <!-- Logo 区域 -->
-        <div class="logo">
-          <img v-if="isCollapse" :src="brandMarkUrl" alt="" aria-hidden="true" class="logo-icon" />
-          <template v-else>
-            <img :src="brandLogoUrl" alt="WayTrip" class="logo-full" />
-            <span class="logo-text">Admin</span>
-          </template>
-        </div>
-        <!-- 导航菜单 -->
-        <el-menu
-          :default-active="$route.path"
-          :default-openeds="defaultOpenGroups"
-          :collapse="isCollapse"
-          :collapse-transition="false"
-          router
-          class="aside-menu"
-        >
-          <template v-for="group in groupedMenuList" :key="group.key">
-            <el-menu-item v-if="group.single && group.items.length === 1" :index="group.items[0].fullPath">
+    <!-- 侧边栏: 通栏贯穿设计 -->
+    <el-aside :width="isCollapse ? '80px' : '260px'" class="aside">
+      <!-- Logo 区域 -->
+      <div class="logo">
+        <img v-if="isCollapse" :src="brandMarkUrl" alt="" aria-hidden="true" class="logo-icon" />
+        <template v-else>
+          <img :src="brandLogoUrl" alt="WayTrip" class="logo-full" />
+        </template>
+      </div>
+      <!-- 导航菜单 -->
+      <el-menu
+        :default-active="$route.path"
+        :default-openeds="defaultOpenGroups"
+        :collapse="isCollapse"
+        :collapse-transition="false"
+        router
+        class="aside-menu"
+      >
+        <template v-for="group in groupedMenuList" :key="group.key">
+          <el-menu-item v-if="group.single && group.items.length === 1" :index="group.items[0].fullPath">
+            <el-icon><component :is="group.icon" /></el-icon>
+            <template #title>{{ group.items[0].meta.title }}</template>
+          </el-menu-item>
+          <el-sub-menu v-else :index="group.key">
+            <template #title>
               <el-icon><component :is="group.icon" /></el-icon>
-              <template #title>{{ group.items[0].meta.title }}</template>
+              <span>{{ group.title }}</span>
+            </template>
+            <el-menu-item v-for="item in group.items" :key="item.path" :index="item.fullPath">
+              <el-icon><component :is="item.meta.icon" /></el-icon>
+              <template #title>{{ item.meta.title }}</template>
             </el-menu-item>
-            <el-sub-menu v-else :index="group.key">
-              <template #title>
-                <el-icon><component :is="group.icon" /></el-icon>
-                <span>{{ group.title }}</span>
-              </template>
-              <el-menu-item v-for="item in group.items" :key="item.path" :index="item.fullPath">
-                <el-icon><component :is="item.meta.icon" /></el-icon>
-                <template #title>{{ item.meta.title }}</template>
-              </el-menu-item>
-            </el-sub-menu>
-          </template>
-        </el-menu>
-      </el-aside>
-    </div>
+          </el-sub-menu>
+        </template>
+      </el-menu>
+    </el-aside>
 
     <el-container class="main-container">
       <!-- 顶栏 -->
@@ -490,35 +487,27 @@ onMounted(async () => {
   display: flex;
 }
 
-/* 浮动侧边栏包裹器 */
-.aside-wrapper {
-  padding: 16px 0 16px 16px;
-  transition: width 0.3s cubic-bezier(0.2, 0, 0, 1) 0s;
-  flex-shrink: 0;
-}
-
 .aside {
   background: var(--wt-surface-panel);
-  border: 1px solid var(--wt-border-default);
+  border-right: 1px solid var(--wt-border-default);
   height: 100%;
-  border-radius: 24px;
-  box-shadow: var(--wt-shadow-card);
-  backdrop-filter: blur(20px);
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-right: none;
+  transition: width 0.2s cubic-bezier(0.2, 0, 0, 1) 0s;
+  flex-shrink: 0;
+  z-index: 10;
 
   .logo {
-    min-height: 112px;
+    height: 72px; /* 与 header 同高 */
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 18px 16px 14px;
+    padding: 0 20px;
     cursor: pointer;
     flex-shrink: 0;
-    flex-direction: column;
-    gap: 8px;
+    border-bottom: 1px solid var(--wt-border-default);
 
     .logo-icon {
       width: 28px;
@@ -528,20 +517,10 @@ onMounted(async () => {
     }
 
     .logo-full {
-      width: 148px;
+      width: 132px;
       height: auto;
       display: block;
       flex-shrink: 0;
-    }
-
-    .logo-text {
-      font-size: 30px;
-      font-weight: 700;
-      color: var(--el-text-color-primary);
-      background: linear-gradient(135deg, var(--el-color-primary), #6366f1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      white-space: nowrap;
     }
   }
 
@@ -550,26 +529,23 @@ onMounted(async () => {
     flex: 1;
     overflow-y: auto;
     background-color: transparent;
-    padding: 0 12px 16px;
+    padding: 16px 16px;
     
     &::-webkit-scrollbar {
-      width: 4px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: var(--wt-scrollbar-thumb);
-      border-radius: 4px;
+      width: 0; /* 隐藏侧边栏滚动条 */
     }
 
     :deep(.el-menu-item), :deep(.el-sub-menu__title) {
-      height: 44px;
-      line-height: 44px;
+      height: 40px;
+      line-height: 40px;
       border-radius: 8px;
       margin-bottom: 4px;
-      color: var(--el-text-color-regular);
+      color: var(--wt-text-regular);
+      font-size: 14px;
 
       &:hover {
-        background-color: var(--el-color-primary-light-9);
-        color: var(--el-color-primary);
+        background-color: var(--wt-surface-hover);
+        color: var(--wt-text-primary);
       }
     }
 
@@ -577,17 +553,6 @@ onMounted(async () => {
       background-color: var(--el-color-primary-light-9);
       color: var(--el-color-primary);
       font-weight: 600;
-      
-      &::before {
-        content: '';
-        position: absolute;
-        left: -12px;
-        top: 25%;
-        height: 50%;
-        width: 4px;
-        background: var(--el-color-primary);
-        border-radius: 0 4px 4px 0;
-      }
     }
   }
 }
@@ -604,13 +569,14 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 24px 0 16px;
-  background-color: transparent;
+  padding: 0 32px;
+  background-color: var(--wt-surface-panel);
+  border-bottom: 1px solid var(--wt-border-default);
 
   .header-left, .header-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
   }
 
   .action-icon {
@@ -684,20 +650,20 @@ onMounted(async () => {
     position: relative;
     display: flex;
     align-items: center;
-    background: var(--wt-surface-panel);
+    background: var(--wt-fill-striped);
     padding: 0 14px;
-    height: 40px;
-    border-radius: 999px;
+    height: 38px;
+    border-radius: 8px;
     color: var(--el-text-color-secondary);
     font-size: 14px;
     border: 1px solid var(--wt-border-default);
-    box-shadow: var(--wt-shadow-soft);
     min-width: 320px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.2s ease;
 
     &:focus-within {
-      border-color: var(--el-color-primary-light-5);
-      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12);
+      border-color: var(--el-color-primary);
+      box-shadow: 0 0 0 1px var(--el-color-primary);
+      background: var(--wt-surface-elevated);
     }
 
     .top-search-icon {

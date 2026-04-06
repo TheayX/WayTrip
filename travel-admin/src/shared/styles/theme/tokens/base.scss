@@ -4,11 +4,12 @@
    ═══════════════════════════════════════════════════════ */
 
 :root {
-  /* 品牌色 */
-  --wt-brand-primary-500: #2563eb;
-  --wt-brand-primary-600: #1d4ed8;
+  /* 品牌色 - 克制的蓝调 (Zinc 体系下的深海蓝 Accent) */
+  --wt-brand-primary-700: #1d4ed8;
+  --wt-brand-primary-600: #2563eb;
+  --wt-brand-primary-500: #3b82f6;
+  --wt-brand-primary-400: #60a5fa;
   --wt-brand-primary-300: #93c5fd;
-  --wt-brand-primary-200: #bfdbfe;
   --wt-brand-primary-100: #dbeafe;
   --wt-brand-primary-50: #eff6ff;
 
@@ -16,21 +17,22 @@
   --wt-success-500: #10b981;
   --wt-warning-500: #f59e0b;
   --wt-danger-500: #e11d48;
-  --wt-info-500: #64748b;
+  --wt-info-500: #71717a; /* Zinc 500 */
 
-  /* 圆角体系 */
-  --el-border-radius-base: 10px;
+  /* 圆角体系 (更方正、理性的 SaaS 风格) */
+  --el-border-radius-base: 8px;
   --el-border-radius-small: 6px;
-  --el-border-radius-round: 999px;
-  --wt-radius-card: 20px;
-  --wt-radius-card-large: 28px;
-  --wt-radius-input: 10px;
+  --el-border-radius-round: 9999px;
+  --wt-radius-card: 12px;
+  --wt-radius-card-large: 16px;
+  --wt-radius-input: 8px;
 
-  /* 阴影体系 */
-  --wt-shadow-card-light: 0 18px 48px rgba(15, 23, 42, 0.06);
-  --wt-shadow-soft-light: 0 10px 28px rgba(15, 23, 42, 0.05);
-  --wt-shadow-float-light: 0 24px 60px rgba(15, 23, 42, 0.12);
-  --wt-shadow-card-dark: 0 18px 48px rgba(2, 6, 23, 0.4);
-  --wt-shadow-soft-dark: 0 10px 28px rgba(2, 6, 23, 0.28);
-  --wt-shadow-float-dark: 0 24px 60px rgba(2, 6, 23, 0.52);
+  /* 阴影体系 (摒弃重阴影，转为硬朗的弥散光阴影或纯平) */
+  --wt-shadow-card-light: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03); /* Tailwind shadow-sm */
+  --wt-shadow-soft-light: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); /* Tailwind shadow */
+  --wt-shadow-float-light: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.03); /* Tailwind shadow-lg */
+  
+  --wt-shadow-card-dark: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
+  --wt-shadow-soft-dark: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --wt-shadow-float-dark: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
 }

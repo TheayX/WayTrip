@@ -1,28 +1,37 @@
-/* 浅色主题 */
+/* 浅色主题 - 极简 SaaS 风格 */
 
 :root,
 html[data-theme='light'] {
-  --bg-page:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.94) 44%, rgba(235, 240, 247, 1) 100%),
-    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  /* 基础颜色 - 移除复杂渐变，使用实心高级灰 */
+  --bg-page: #f9fafb; /* Canvas 基底 */
+  
+  --el-bg-color: #ffffff;
+  --el-bg-color-overlay: #ffffff;
+  --el-bg-color-page: #f9fafb;
 
   --el-text-color-primary: var(--wt-text-primary);
   --el-text-color-regular: var(--wt-text-regular);
   --el-text-color-secondary: var(--wt-text-secondary);
   --el-text-color-placeholder: var(--wt-text-placeholder);
+
   --el-border-color-light: var(--wt-border-default);
   --el-border-color-lighter: var(--wt-border-soft);
+  --el-border-color: var(--wt-border-default);
 
-  --el-input-bg-color: rgba(248, 250, 252, 0.88);
-  --el-input-border-color: var(--wt-border-default);
+  /* 输入框 */
+  --el-input-bg-color: #f1f5f9; /* Slate 100 */
+  --el-input-border-color: #e2e8f0; /* Slate 200 */
   --el-input-focus-border-color: var(--el-color-primary);
 
-  --el-table-header-bg-color: #f8fafc;
-  --el-table-header-text-color: #475569;
-  --el-table-border-color: var(--wt-divider-soft);
+  /* 表格 */
+  --el-table-header-bg-color: #ffffff;
+  --el-table-header-text-color: #64748b; /* Slate 500 */
+  --el-table-border-color: #f1f5f9;
+  --el-table-border: 1px solid #f1f5f9;
   --el-table-bg-color: #ffffff;
   --el-table-tr-bg-color: #ffffff;
 
-  --el-card-border-color: var(--wt-divider-soft);
+  /* 卡片 */
+  --el-card-border-color: #e2e8f0;
   --el-card-bg-color: #ffffff;
 }
