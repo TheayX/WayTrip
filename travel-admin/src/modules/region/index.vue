@@ -12,7 +12,7 @@
       </div>
     </section>
 
-    <section class="summary-grid">
+    <section class="summary-grid metric-cards--order">
       <el-card shadow="hover" class="summary-card">
         <div class="summary-label">一级地区</div>
         <div class="summary-value">{{ level1List.length }}</div>
@@ -323,41 +323,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
 
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  .summary-card {
-    border-radius: 22px;
-  }
-
-  .summary-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--wt-text-secondary);
-  }
-
-  .summary-value {
-    margin-top: 8px;
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 1.15;
-    color: var(--wt-text-primary);
-  }
-
-  .summary-value--sm {
-    font-size: 20px;
-    line-height: 1.3;
-  }
-
-  .summary-desc {
-    margin-top: 6px;
-    font-size: 12px;
-    line-height: 1.55;
-    color: var(--wt-text-secondary);
-  }
 
   .left-card {
     border-radius: 22px;

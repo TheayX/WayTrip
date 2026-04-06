@@ -12,7 +12,7 @@
       </div>
     </section>
 
-    <section class="insight-stat-row">
+    <section class="insight-stat-row metric-cards--order">
       <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">当前结果</div>
         <div class="insight-stat-value">{{ pagination.total }}</div>

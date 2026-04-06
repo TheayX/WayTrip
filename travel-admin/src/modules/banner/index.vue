@@ -15,7 +15,7 @@
       </div>
     </section>
 
-    <section class="summary-grid">
+    <section class="summary-grid metric-cards--order">
       <el-card shadow="hover" class="summary-card">
         <div class="summary-label">轮播总数</div>
         <div class="summary-value">{{ bannerList.length }}</div>
@@ -440,33 +440,8 @@ onMounted(() => {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
-}
-
-.summary-card {
-  border-radius: 20px;
-}
-
-.summary-label {
-  font-size: 12px;
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-.summary-value {
-  margin-top: 8px;
-  font-size: 24px;
-  line-height: 1.15;
-  font-weight: 700;
-  color: var(--wt-text-primary);
-}
-
-.summary-desc {
-  margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--wt-text-regular);
 }
 
 .table-actions {
@@ -474,6 +449,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
 }
+
 
 .banner-preview {
   width: 160px;

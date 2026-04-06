@@ -7,8 +7,17 @@
 
   .insight-stat-row {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
+
+    .summary-card {
+      min-height: 112px;
+      border-radius: 20px;
+
+      :deep(.el-card__body) {
+        padding: 14px 16px !important;
+      }
+    }
   }
 
   .insight-stat-card {
@@ -35,7 +44,7 @@
   .insight-stat-desc {
     margin-top: 6px;
     font-size: 12px;
-    line-height: 1.55;
+    line-height: 1.45;
     color: var(--wt-text-regular);
   }
 

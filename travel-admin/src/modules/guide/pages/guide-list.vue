@@ -15,7 +15,7 @@
       </div>
     </section>
 
-    <section class="summary-grid">
+    <section class="summary-grid metric-cards--order">
       <el-card shadow="hover" class="summary-card">
         <div class="summary-label">当前结果</div>
         <div class="summary-value">{{ total }}</div>
