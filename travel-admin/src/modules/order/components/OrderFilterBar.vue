@@ -42,6 +42,7 @@
             </el-select>
           </el-form-item>
           <el-button type="primary" link class="toggle-btn" @click="emit('toggle-advanced')">
+            <el-icon><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
             {{ showAdvanced ? '收起条件' : '更多条件' }}
           </el-button>
         </div>
@@ -62,8 +63,8 @@
 
       <!-- 低频条件默认折叠，避免页面顶部持续过厚 -->
       <el-collapse-transition>
-        <div v-show="showAdvanced" class="advanced-panel">
-          <el-form-item label="下单时间" class="filter-item">
+        <div v-show="showAdvanced" class="advanced-panel order-advanced-panel">
+          <el-form-item label="下单时间" class="filter-item date-filter-item">
             <el-date-picker
               :model-value="dateRange"
               type="daterange"
@@ -83,6 +84,8 @@
 </template>
 
 <script setup>
+import { CaretTop, Filter } from '@element-plus/icons-vue'
+
 defineProps({
   currentTab: { type: String, required: true },
   tabLabel: { type: String, required: true },
@@ -109,7 +112,23 @@ const handleDateChange = (value) => {
 }
 
 .date-picker {
-  width: 260px;
+  width: 320px;
+}
+
+.toggle-btn {
+  gap: 4px;
+}
+
+.order-advanced-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-filter-item {
+  margin-bottom: 0;
+  flex: 0 0 auto;
 }
 
 @media (max-width: 960px) {

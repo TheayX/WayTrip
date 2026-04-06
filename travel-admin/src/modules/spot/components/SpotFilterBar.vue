@@ -17,7 +17,7 @@
             />
           </el-form-item>
 
-          <el-form-item v-if="!showAdvanced" class="filter-item">
+          <el-form-item class="filter-item">
             <el-select
               v-model="uiFilters.published"
               placeholder="发布状态"
@@ -71,19 +71,6 @@
             />
           </el-form-item>
 
-          <el-form-item label="发布状态" class="filter-item">
-            <el-select
-              v-model="uiFilters.published"
-              placeholder="全部状态"
-              clearable
-              class="status-select"
-              @change="emitFilterChange"
-              @clear="emitFilterChange"
-            >
-              <el-option label="已发布" value="1" />
-              <el-option label="未发布" value="0" />
-            </el-select>
-          </el-form-item>
         </div>
       </el-collapse-transition>
     </el-form>
