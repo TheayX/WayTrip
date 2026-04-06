@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="favorite-page admin-page-shell">
     <section class="page-hero">
       <div>
@@ -12,17 +12,17 @@
     </section>
 
     <section class="insight-stat-row">
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">筛选结果</div>
         <div class="insight-stat-value">{{ pagination.total }}</div>
         <div class="insight-stat-desc">当前条件下的收藏记录总数</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">当前页用户数</div>
         <div class="insight-stat-value">{{ currentPageUserCount }}</div>
         <div class="insight-stat-desc">用于判断收藏行为是否集中在少数用户</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">当前页景点数</div>
         <div class="insight-stat-value">{{ currentPageSpotCount }}</div>
         <div class="insight-stat-desc">用于快速观察收藏覆盖的景点范围</div>
@@ -348,3 +348,4 @@ watch(
 }
 
 </style>
+

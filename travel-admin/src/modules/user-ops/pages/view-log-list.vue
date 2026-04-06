@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="view-log-page admin-page-shell">
     <section class="page-hero">
       <div>
@@ -12,17 +12,17 @@
     </section>
 
     <section class="insight-stat-row">
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">筛选结果</div>
         <div class="insight-stat-value">{{ pagination.total }}</div>
         <div class="insight-stat-desc">当前条件下的浏览记录总数</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">当前页平均停留</div>
         <div class="insight-stat-value">{{ averageDuration }} 秒</div>
         <div class="insight-stat-desc">用于快速判断当前筛选结果的浏览深度</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">当前页主要来源</div>
         <div class="insight-stat-value">{{ topSourceLabel }}</div>
         <div class="insight-stat-desc">帮助判断推荐、搜索、攻略等入口的贡献</div>
@@ -417,3 +417,4 @@ watch(
 }
 
 </style>
+

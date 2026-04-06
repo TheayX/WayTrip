@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="preference-page admin-page-shell">
     <section class="page-hero">
       <div>
@@ -12,17 +12,17 @@
     </section>
 
     <section class="insight-stat-row">
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">覆盖用户</div>
         <div class="insight-stat-value">{{ pagination.total }}</div>
         <div class="insight-stat-desc">当前筛选条件下的用户画像记录数</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">当前页标签数</div>
         <div class="insight-stat-value">{{ currentPageTagCount }}</div>
         <div class="insight-stat-desc">当前页所有用户偏好标签的累计数量</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">当前页高频偏好</div>
         <div class="insight-stat-value">{{ topPreferenceTag }}</div>
         <div class="insight-stat-desc">用于快速观察当前筛选结果的主导偏好方向</div>
@@ -331,3 +331,4 @@ watch(
 }
 
 </style>
+

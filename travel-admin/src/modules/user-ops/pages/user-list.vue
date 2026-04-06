@@ -1,4 +1,4 @@
-<!-- 用户管理页面 -->
+﻿<!-- 用户管理页面 -->
 <template>
   <div class="user-page admin-page-shell">
     <section class="page-hero">
@@ -13,17 +13,17 @@
     </section>
 
     <section class="insight-stat-row">
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">当前结果</div>
         <div class="insight-stat-value">{{ pagination.total }}</div>
         <div class="insight-stat-desc">符合当前搜索条件的用户数量</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">本页订单总数</div>
         <div class="insight-stat-value">{{ currentPageOrderCount }}</div>
         <div class="insight-stat-desc">当前页用户累计订单量，用于判断消费活跃度</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">本页互动总数</div>
         <div class="insight-stat-value">{{ currentPageEngagementCount }}</div>
         <div class="insight-stat-desc">当前页收藏、评价与浏览等行为汇总</div>
@@ -545,3 +545,4 @@ watch(
   }
 }
 </style>
+

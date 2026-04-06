@@ -339,15 +339,10 @@ html[data-theme='dark'] {
   }
 
   /* 摘要卡片在暗色模式下的样式 */
-  .insight-stat-card {
+  .summary-card {
     background:
       radial-gradient(circle at top right, rgba(96, 165, 250, 0.08) 0%, rgba(96, 165, 250, 0) 42%),
       linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%) !important;
-    border-color: var(--wt-border-default) !important;
-  }
-
-  .summary-card {
-    background: var(--wt-surface-panel) !important;
     border-color: var(--wt-border-default) !important;
   }
 }

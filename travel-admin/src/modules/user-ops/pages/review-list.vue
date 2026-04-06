@@ -1,4 +1,4 @@
-<!-- 评价管理页面 -->
+﻿<!-- 评价管理页面 -->
 <template>
   <div class="review-page admin-page-shell">
     <section class="page-hero">
@@ -13,17 +13,17 @@
     </section>
 
     <section class="insight-stat-row">
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">当前结果</div>
         <div class="insight-stat-value">{{ pagination.total }}</div>
         <div class="insight-stat-desc">符合当前筛选条件的评价数量</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">本页平均评分</div>
         <div class="insight-stat-value">{{ currentPageAverageScore }}</div>
         <div class="insight-stat-desc">用于快速判断当前页评价整体质量</div>
       </el-card>
-      <el-card shadow="hover" class="insight-stat-card">
+      <el-card shadow="hover" class="summary-card">
         <div class="insight-stat-label">低分评价</div>
         <div class="insight-stat-value">{{ lowScoreCount }}</div>
         <div class="insight-stat-desc">本页评分小于等于 2 分的评价数量</div>
@@ -318,3 +318,4 @@ onMounted(() => {
 }
 
 </style>
+
