@@ -375,20 +375,20 @@ onShow(async () => {
 }
 
 .ios-header {
-  padding: 42rpx 32rpx 26rpx;
+  padding: 34rpx 32rpx 20rpx;
   background: linear-gradient(180deg, rgba(248, 250, 255, 0.96) 0%, rgba(244, 246, 251, 0.88) 100%);
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(18rpx);
 }
-.header-top { display: flex; align-items: center; gap: 16rpx; }
-.brand-mark { width: 76rpx; height: 76rpx; display: block; flex-shrink: 0; }
+.header-top { display: flex; align-items: center; gap: 12rpx; }
+.brand-mark { width: 68rpx; height: 68rpx; display: block; flex-shrink: 0; }
 .search-bar { flex: 1; }
 .search-bar :deep(.uni-searchbar) { padding: 0; background: transparent; }
 .search-bar :deep(.uni-searchbar__box) {
   border: 2rpx solid rgba(255, 255, 255, 0.76);
-  height: 82rpx;
+  height: 74rpx;
   border-radius: 42rpx;
   backdrop-filter: blur(14rpx);
   box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
@@ -416,9 +416,9 @@ onShow(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10rpx;
-  min-height: 120rpx;
-  padding: 12rpx 8rpx;
+  gap: 8rpx;
+  min-height: 112rpx;
+  padding: 10rpx 8rpx;
   border-radius: 26rpx;
 }
 

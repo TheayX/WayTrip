@@ -65,7 +65,7 @@ defineEmits(['goLogin', 'refresh', 'more', 'click'])
 .prompt-content { display: flex; align-items: center; gap: 14rpx; }
 .prompt-text { font-size: 26rpx; color: #334155; font-weight: 600; }
 
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; }
 .section-title { font-size: 38rpx; font-weight: 700; color: #0f172a; }
 .section-actions { display: flex; gap: 32rpx; }
 .section-link { font-size: 26rpx; color: #6b7280; font-weight: 500; }

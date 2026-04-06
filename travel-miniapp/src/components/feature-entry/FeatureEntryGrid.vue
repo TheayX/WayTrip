@@ -31,8 +31,8 @@ const resolveThemeColor = (theme) => {
 
 <style scoped>
 .entry-grid-shell {
-  margin: 10rpx 32rpx 32rpx;
-  padding: 14rpx 18rpx 6rpx;
+  margin: 10rpx 32rpx 8rpx;
+  padding: 12rpx 18rpx 4rpx;
   border-radius: 36rpx;
   background: rgba(255, 255, 255, 0.86);
   box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
@@ -42,13 +42,13 @@ const resolveThemeColor = (theme) => {
 .entry-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10rpx 8rpx;
+  gap: 8rpx 8rpx;
 }
 
 .entry-item {
   min-width: 0;
-  min-height: 116rpx;
-  padding: 12rpx 10rpx 12rpx;
+  min-height: 108rpx;
+  padding: 10rpx 10rpx 10rpx;
   border-radius: 24rpx;
   display: flex;
   flex-direction: column;

@@ -67,8 +67,8 @@ defineEmits(['clickNearby', 'markerTap', 'moreHot', 'clickHot'])
 </script>
 
 <style scoped>
-.section { padding: 24rpx 0 48rpx; }
-.section-header { padding: 0 32rpx; margin-bottom: 24rpx; display: flex; align-items: center; justify-content: space-between;}
+.section { padding: 0 0 48rpx; }
+.section-header { padding: 0 32rpx; margin-bottom: 0; display: flex; align-items: center; justify-content: space-between;}
 .section-title { font-size: 38rpx; font-weight: 700; color: #0f172a; }
 .section-link { font-size: 26rpx; color: #6b7280; font-weight: 500; }
 
@@ -92,7 +92,7 @@ defineEmits(['clickNearby', 'markerTap', 'moreHot', 'clickHot'])
 
 /* Nearby Card */
 .nearby-card {
-  margin: 16rpx 32rpx 0; padding: 28rpx;
+  margin: 8rpx 32rpx 0; padding: 20rpx;
   background: rgba(255, 255, 255, 0.88); border-radius: 36rpx;
   box-shadow: 0 12rpx 36rpx rgba(15, 23, 42, 0.05);
   backdrop-filter: blur(18rpx);
