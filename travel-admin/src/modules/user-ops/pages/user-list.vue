@@ -12,21 +12,21 @@
       </div>
     </section>
 
-    <section class="summary-grid">
-      <el-card shadow="hover" class="summary-card">
-        <div class="summary-label">当前结果</div>
-        <div class="summary-value">{{ pagination.total }}</div>
-        <div class="summary-desc">符合当前搜索条件的用户数量</div>
+    <section class="insight-stat-row">
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">当前结果</div>
+        <div class="insight-stat-value">{{ pagination.total }}</div>
+        <div class="insight-stat-desc">符合当前搜索条件的用户数量</div>
       </el-card>
-      <el-card shadow="hover" class="summary-card">
-        <div class="summary-label">本页订单总数</div>
-        <div class="summary-value">{{ currentPageOrderCount }}</div>
-        <div class="summary-desc">当前页用户累计订单量，用于判断消费活跃度</div>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">本页订单总数</div>
+        <div class="insight-stat-value">{{ currentPageOrderCount }}</div>
+        <div class="insight-stat-desc">当前页用户累计订单量，用于判断消费活跃度</div>
       </el-card>
-      <el-card shadow="hover" class="summary-card">
-        <div class="summary-label">本页互动总数</div>
-        <div class="summary-value">{{ currentPageEngagementCount }}</div>
-        <div class="summary-desc">当前页收藏、评价与浏览等行为汇总</div>
+      <el-card shadow="hover" class="insight-stat-card">
+        <div class="insight-stat-label">本页互动总数</div>
+        <div class="insight-stat-value">{{ currentPageEngagementCount }}</div>
+        <div class="insight-stat-desc">当前页收藏、评价与浏览等行为汇总</div>
       </el-card>
     </section>
 
@@ -401,7 +401,59 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+@use '@/modules/user-ops/styles/user-ops.scss' as userOps;
+
 .user-page {
+  @include userOps.page-shell;
+  display: flex;
+  flex-direction: column;
+
+  .management-card {
+    border-radius: 22px;
+
+    :deep(.el-card__body) {
+      padding-top: 4px !important;
+    }
+
+    :deep(.search-form) {
+      margin-top: 4px !important;
+      margin-bottom: 4px !important;
+      padding-top: 10px !important;
+      padding-bottom: 10px !important;
+    }
+
+    :deep(.search-form .el-form-item) {
+      margin-bottom: 0 !important;
+    }
+
+    :deep(.user-table) {
+      margin-top: 0 !important;
+    }
+
+    :deep(.search-form + .user-table) {
+      margin-top: 0 !important;
+    }
+  }
+
+  .filter-caption {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .filter-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--wt-text-primary);
+  }
+
+  .filter-subtitle {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--wt-text-regular);
+  }
+
   .recent-orders {
     margin-top: 24px;
     h4 {
@@ -411,9 +463,11 @@ watch(
     }
   }
 
-  /* 用户详情弹窗内的 summary 用于展示偏好/收藏/浏览摘要 */
   .summary-grid {
     margin-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
   }
 
   .summary-card {
@@ -460,6 +514,18 @@ watch(
     margin: 0 6px;
     color: var(--wt-border-default);
   }
+
+  .table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .table-actions :deep(.el-button.is-link) {
+    padding: 4px 10px;
+    margin: 0;
+  }
 }
 
 .user-table {
@@ -476,5 +542,32 @@ watch(
 
 .nickname-link {
   font-weight: 600;
+}
+
+:deep(.user-table th.el-table__cell) {
+  background: var(--wt-fill-hover);
+  color: var(--wt-text-secondary);
+  font-weight: 600;
+}
+
+:deep(.borderless-table .el-table__inner-wrapper::before) {
+  display: none;
+}
+
+:deep(.borderless-table td.el-table__cell),
+:deep(.borderless-table th.el-table__cell.is-leaf) {
+  border-bottom: 1px solid var(--wt-divider-faint);
+}
+
+:deep(.user-table .el-table__row:hover > td.el-table__cell) {
+  background: var(--wt-row-gradient-hover) !important;
+}
+
+@media (max-width: 900px) {
+  .user-page {
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 }
 </style>

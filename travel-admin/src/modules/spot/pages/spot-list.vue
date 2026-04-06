@@ -805,8 +805,134 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+.spot-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hero-left {
+  flex: 1;
+}
+
+.subtitle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.hero-secondary-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px; /* Offset to align better with subtitle margin */
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  border-radius: 20px;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: var(--wt-text-secondary);
+  font-weight: 600;
+}
+
+.summary-value {
+  margin-top: 8px;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--wt-text-primary);
+}
+
+.summary-desc {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--wt-text-regular);
+}
+
+.management-card {
+  border-radius: 22px;
+}
+
+.management-card :deep(.el-card__body) {
+  padding-top: 4px !important;
+}
+
+.management-card :deep(.search-form.mb-6) {
+  margin-bottom: 4px !important;
+}
+
+.management-card :deep(.search-form) {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+.management-card :deep(.search-form .el-form-item) {
+  margin-bottom: 0 !important;
+}
+
+.management-card :deep(.premium-table) {
+  margin-top: 0 !important;
+}
+
+.hero-action-row {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  top: 32px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
 .pagination {
   justify-content: flex-end;
+}
+
+.floating-action-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(18px);
+}
+
+.floating-action-summary {
+  background: var(--wt-text-primary);
+  color: var(--wt-surface-elevated);
+  padding: 12px 16px;
+  font-weight: 600;
+}
+
+.floating-action-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--wt-surface-elevated);
 }
 
 :deep(.spot-highlight-row) {
@@ -816,4 +942,11 @@ watch(
     background-color: var(--el-color-primary-light-9) !important;
   }
 }
+
+@media (max-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>
