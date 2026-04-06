@@ -19,6 +19,11 @@ public class AppCacheProperties {
      */
     private Recommendation recommendation = new Recommendation();
 
+    /**
+     * 首页缓存配置。
+     */
+    private Home home = new Home();
+
     @Data
     /**
      * 推荐缓存细分配置。
@@ -34,6 +39,23 @@ public class AppCacheProperties {
          * 相似度矩阵缓存时长，单位：小时。
          */
         private Integer similarityTtlHours = 24;
+    }
+
+    @Data
+    /**
+     * 首页缓存细分配置。
+     */
+    public static class Home {
+
+        /**
+         * 首页热门景点缓存时长，单位：分钟。
+         */
+        private Integer hotSpotsTtlMinutes = 10;
+
+        /**
+         * 首页轮播图缓存时长，单位：分钟。
+         */
+        private Integer bannersTtlMinutes = 10;
     }
 
 }

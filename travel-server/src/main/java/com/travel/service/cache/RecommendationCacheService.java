@@ -2,6 +2,8 @@ package com.travel.service.cache;
 
 import com.travel.config.cache.AppCacheProperties;
 import com.travel.config.cache.RedisKeyManager;
+import com.travel.dto.banner.response.BannerResponse;
+import com.travel.dto.home.response.HotSpotResponse;
 import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.config.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.config.RecommendationConfigBundleDTO;
@@ -11,6 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -137,6 +140,73 @@ public class RecommendationCacheService {
      */
     public void saveStatus(Map<String, Object> statusMap) {
         redisTemplate.opsForValue().set(RedisKeyManager.recommendationStatus(), statusMap);
+    }
+
+    /**
+     * 获取首页热门景点缓存。
+     *
+     * @param limit 请求条数
+     * @return 首页热门景点响应；缓存不存在或类型不匹配时返回 null
+     */
+    public HotSpotResponse getHomeHotSpots(Integer limit) {
+        Object cached = redisTemplate.opsForValue().get(RedisKeyManager.homeHotSpots(limit));
+        return cached instanceof HotSpotResponse response ? response : null;
+    }
+
+    /**
+     * 保存首页热门景点缓存。
+     *
+     * @param limit 请求条数
+     * @param response 热门景点响应
+     */
+    public void saveHomeHotSpots(Integer limit, HotSpotResponse response) {
+        redisTemplate.opsForValue().set(
+            RedisKeyManager.homeHotSpots(limit),
+            response,
+            defaultInt(appCacheProperties.getHome().getHotSpotsTtlMinutes(), 10),
+            TimeUnit.MINUTES
+        );
+    }
+
+    /**
+     * 清理首页热门景点缓存（按不同 limit 全量失效）。
+     */
+    public void deleteHomeHotSpots() {
+        Set<String> keys = redisTemplate.keys("waytrip:home:hot:*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
+    }
+
+    /**
+     * 获取首页轮播图缓存。
+     *
+     * @return 轮播图响应；缓存不存在或类型不匹配时返回 null
+     */
+    public BannerResponse getHomeBanners() {
+        Object cached = redisTemplate.opsForValue().get(RedisKeyManager.homeBanners());
+        return cached instanceof BannerResponse response ? response : null;
+    }
+
+    /**
+     * 保存首页轮播图缓存。
+     *
+     * @param response 轮播图响应
+     */
+    public void saveHomeBanners(BannerResponse response) {
+        redisTemplate.opsForValue().set(
+            RedisKeyManager.homeBanners(),
+            response,
+            defaultInt(appCacheProperties.getHome().getBannersTtlMinutes(), 10),
+            TimeUnit.MINUTES
+        );
+    }
+
+    /**
+     * 清理首页轮播图缓存。
+     */
+    public void deleteHomeBanners() {
+        redisTemplate.delete(RedisKeyManager.homeBanners());
     }
 
     /**

@@ -17,6 +17,7 @@ import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.RecommendationService;
+import com.travel.service.cache.RecommendationCacheService;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.BeforeAll;
@@ -80,6 +81,9 @@ class SpotServiceImplTest {
     @Mock
     private RecommendationService recommendationService;
 
+    @Mock
+    private RecommendationCacheService recommendationCacheService;
+
     private SpotHeatServiceImpl spotHeatService;
 
     @BeforeEach
@@ -90,7 +94,8 @@ class SpotServiceImplTest {
             reviewMapper,
             userSpotViewMapper,
             orderMapper,
-            recommendationService
+            recommendationService,
+            recommendationCacheService
         );
     }
 

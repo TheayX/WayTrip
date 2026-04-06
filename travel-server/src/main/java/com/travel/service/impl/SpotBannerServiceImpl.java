@@ -10,6 +10,7 @@ import com.travel.entity.Spot;
 import com.travel.mapper.SpotBannerMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.SpotBannerService;
+import com.travel.service.cache.RecommendationCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,11 +33,17 @@ public class SpotBannerServiceImpl implements SpotBannerService {
 
     private final SpotBannerMapper spotBannerMapper;
     private final SpotMapper spotMapper;
+    private final RecommendationCacheService recommendationCacheService;
 
     // 用户端展示接口
 
     @Override
     public BannerResponse getBanners() {
+        BannerResponse cachedResponse = recommendationCacheService.getHomeBanners();
+        if (cachedResponse != null && cachedResponse.getList() != null) {
+            return cachedResponse;
+        }
+
         List<SpotBanner> banners = spotBannerMapper.selectEnabledBanners();
 
         BannerResponse response = new BannerResponse();
@@ -49,6 +56,8 @@ public class SpotBannerServiceImpl implements SpotBannerService {
             item.setSortOrder(banner.getSortOrder());
             return item;
         }).collect(Collectors.toList()));
+
+        recommendationCacheService.saveHomeBanners(response);
 
         return response;
     }
@@ -94,6 +103,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         banner.setSortOrder(targetSortOrder);
         banner.setIsEnabled(validRequest.getEnabled());
         spotBannerMapper.insert(banner);
+        recommendationCacheService.deleteHomeBanners();
         log.info("轮播图创建成功: bannerId={}, spotId={}", banner.getId(), banner.getSpotId());
     }
 
@@ -113,6 +123,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
                 .set(SpotBanner::getSortOrder, targetSortOrder)
                 .set(SpotBanner::getIsEnabled, validRequest.getEnabled())
         );
+        recommendationCacheService.deleteHomeBanners();
         log.info("轮播图更新成功: bannerId={}", id);
     }
 
@@ -124,6 +135,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         banner.setIsDeleted(1);
         spotBannerMapper.updateById(banner);
         compactSortOrdersAfterRemoval(id, removedSortOrder);
+        recommendationCacheService.deleteHomeBanners();
         log.info("轮播图已删除: bannerId={}", id);
     }
 
@@ -133,6 +145,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
 
         banner.setIsEnabled(banner.getIsEnabled() == 1 ? 0 : 1);
         spotBannerMapper.updateById(banner);
+        recommendationCacheService.deleteHomeBanners();
         log.info("轮播图启用状态切换: bannerId={}, enabled={}", id, banner.getIsEnabled());
     }
 

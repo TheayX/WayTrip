@@ -30,6 +30,9 @@ app:
     recommendation:
       user-rec-ttl-minutes: ${APP_CACHE_RECOMMENDATION_USER_REC_TTL_MINUTES:60}
       similarity-ttl-hours: ${APP_CACHE_RECOMMENDATION_SIMILARITY_TTL_HOURS:24}
+    home:
+      hot-spots-ttl-minutes: ${APP_CACHE_HOME_HOT_SPOTS_TTL_MINUTES:10}
+      banners-ttl-minutes: ${APP_CACHE_HOME_BANNERS_TTL_MINUTES:10}
   task:
     spot-heat-sync-cron: ${APP_TASK_SPOT_HEAT_SYNC_CRON:0 30 3 * * ?}
 

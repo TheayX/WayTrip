@@ -9,6 +9,7 @@ public final class RedisKeyManager {
 
     private static final String ROOT = "waytrip";
     private static final String RECOMMENDATION = ROOT + ":recommendation";
+    private static final String HOME = ROOT + ":home";
 
     private RedisKeyManager() {
     }
@@ -67,5 +68,24 @@ public final class RedisKeyManager {
      */
     public static String recommendationStatus() {
         return RECOMMENDATION + ":status";
+    }
+
+    /**
+     * 获取首页热门景点缓存 Key。
+     *
+     * @param limit 请求条数
+     * @return 热门景点缓存 Key
+     */
+    public static String homeHotSpots(Integer limit) {
+        return HOME + ":hot:" + limit;
+    }
+
+    /**
+     * 获取首页轮播图缓存 Key。
+     *
+     * @return 轮播图缓存 Key
+     */
+    public static String homeBanners() {
+        return HOME + ":banners";
     }
 }

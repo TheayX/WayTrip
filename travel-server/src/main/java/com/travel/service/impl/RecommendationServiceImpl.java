@@ -426,6 +426,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     public HotSpotResponse getHotSpots(Integer limit) {
         if (limit == null || limit <= 0) limit = 10;
 
+        HotSpotResponse cachedResponse = recommendationCacheService.getHomeHotSpots(limit);
+        if (cachedResponse != null && cachedResponse.getList() != null) {
+            return cachedResponse;
+        }
+
         List<Spot> spots = spotMapper.selectList(
             new LambdaQueryWrapper<Spot>()
                 .eq(Spot::getIsPublished, 1)
@@ -449,6 +454,8 @@ public class RecommendationServiceImpl implements RecommendationService {
             item.setCategoryName(categoryMap.get(spot.getCategoryId()));
             return item;
         }).collect(Collectors.toList()));
+
+        recommendationCacheService.saveHomeHotSpots(limit, response);
 
         return response;
     }

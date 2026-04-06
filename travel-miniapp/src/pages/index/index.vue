@@ -109,9 +109,13 @@ const nearbyLocation = ref(null)
 const nearbyLoading = ref(false)
 const locationStatus = ref('idle')
 const nearbySessionToken = ref('')
+const lastHomeRefreshAt = ref(0)
 
 // 常量配置
 const markerIcon = '/static/tabbar/spot-active.png'
+const HOME_BASE_CACHE_KEY = 'waytrip:miniapp:home:base'
+const HOME_BASE_CACHE_TTL_MS = 2 * 60 * 1000
+const HOME_REFRESH_INTERVAL_MS = 30 * 1000
 
 const homeEntryItems = getHomeEntryItems()
 
@@ -268,11 +272,40 @@ const resetNearbyState = () => {
   nearbySessionToken.value = ''
 }
 
+/**
+ * 首页基础区块（轮播 + 热门）优先读本地缓存，减少重复进入首页时的首屏等待。
+ */
+const restoreHomeBaseFromCache = () => {
+  try {
+    const cached = uni.getStorageSync(HOME_BASE_CACHE_KEY)
+    if (!cached || !cached.timestamp) {
+      return false
+    }
+    if (Date.now() - cached.timestamp > HOME_BASE_CACHE_TTL_MS) {
+      return false
+    }
+    banners.value = cached.banners || []
+    popularSpots.value = cached.popularSpots || []
+    return true
+  } catch (_error) {
+    return false
+  }
+}
+
+const persistHomeBaseCache = () => {
+  uni.setStorageSync(HOME_BASE_CACHE_KEY, {
+    timestamp: Date.now(),
+    banners: banners.value,
+    popularSpots: popularSpots.value
+  })
+}
+
 // 数据加载方法
 const fetchBanners = async () => {
   try {
     const res = await getBanners()
     banners.value = res.data?.list || []
+    persistHomeBaseCache()
   } catch (error) {
     console.error('获取轮播图失败', error)
   }
@@ -282,6 +315,7 @@ const fetchHotSpots = async () => {
   try {
     const res = await getHotSpots(6)
     popularSpots.value = res.data?.list || []
+    persistHomeBaseCache()
   } catch (error) {
     console.error('获取热门景点失败', error)
   }
@@ -556,13 +590,18 @@ const goMine = () => {
   uni.switchTab({ url: '/pages/mine/index' })
 }
 
-const refreshHome = async () => {
+const refreshHome = async ({ force = false } = {}) => {
+  const now = Date.now()
+  if (!force && now - lastHomeRefreshAt.value < HOME_REFRESH_INTERVAL_MS) {
+    return
+  }
+  lastHomeRefreshAt.value = now
   await Promise.all([fetchBanners(), fetchHotSpots(), fetchRecommendations()])
 }
 
 // 生命周期
 onPullDownRefresh(async () => {
-  await refreshHome()
+  await refreshHome({ force: true })
   uni.stopPullDownRefresh()
 })
 
@@ -574,8 +613,12 @@ onShow(() => {
       resetRecommendationState()
     }
   }
-  refreshHome()
-  tryLoadNearbyAutomatically()
+
+  if (!banners.value.length || !popularSpots.value.length) {
+    restoreHomeBaseFromCache()
+  }
+  void refreshHome({ force: false })
+  void tryLoadNearbyAutomatically()
 })
 </script>
 

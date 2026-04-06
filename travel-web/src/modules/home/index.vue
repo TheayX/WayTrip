@@ -118,11 +118,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Guide, MapLocation, Search, Star, Tickets } from '@element-plus/icons-vue'
-import HomeNearbySection from '@/modules/home/components/HomeNearbySection.vue'
 import HomeQuickActions from '@/modules/home/components/HomeQuickActions.vue'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { useUserStore } from '@/modules/account/store/user.js'
@@ -140,6 +139,9 @@ import {
 import { getLocationSnapshot, getCurrentLocation } from '@/shared/lib/location.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ArrowRight } from '@element-plus/icons-vue'
+
+// 附近模块改为异步加载，避免首页主包首屏携带地图相关渲染开销。
+const HomeNearbySection = defineAsyncComponent(() => import('@/modules/home/components/HomeNearbySection.vue'))
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -219,12 +221,12 @@ const maybeShowColdStartGuide = () => {
 }
 
 const fetchHomeBasics = async () => {
-  const [bannerRes, hotRes] = await Promise.all([
+  const [bannerResult, hotResult] = await Promise.allSettled([
     getBanners(),
     getHotSpots(4)
   ])
-  banners.value = bannerRes.data?.list || []
-  hotSpots.value = hotRes.data?.list || []
+  banners.value = bannerResult.status === 'fulfilled' ? (bannerResult.value.data?.list || []) : []
+  hotSpots.value = hotResult.status === 'fulfilled' ? (hotResult.value.data?.list || []) : []
 }
 
 const fetchNearbyPreview = async (location) => {
@@ -339,9 +341,14 @@ const goOrders = () => {
 
 onMounted(async () => {
   await fetchHomeBasics()
-  await fetchRecommendationList()
-  maybeShowColdStartGuide()
-  await tryLoadNearbyAutomatically()
+
+  // 推荐和附近探索属于次级区块，不阻塞首屏主内容显示。
+  fetchRecommendationList()
+    .then(() => {
+      maybeShowColdStartGuide()
+    })
+    .catch(() => {})
+  void tryLoadNearbyAutomatically()
 })
 </script>
 

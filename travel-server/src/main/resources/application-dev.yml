@@ -30,6 +30,9 @@ app:
     recommendation:
       user-rec-ttl-minutes: 60
       similarity-ttl-hours: 24
+    home:
+      hot-spots-ttl-minutes: 10
+      banners-ttl-minutes: 10
   task:
     spot-heat-sync-cron: 0 30 3 * * ?
 

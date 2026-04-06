@@ -1,9 +1,15 @@
 package com.travel.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.travel.dto.banner.request.AdminBannerRequest;
+import com.travel.dto.banner.response.BannerResponse;
 import com.travel.entity.SpotBanner;
 import com.travel.mapper.SpotBannerMapper;
 import com.travel.mapper.SpotMapper;
+import com.travel.service.cache.RecommendationCacheService;
+import org.apache.ibatis.builder.MapperBuilderAssistant;
+import org.apache.ibatis.session.Configuration;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -27,11 +34,25 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SpotBannerServiceImplTest {
 
+    /**
+     * 初始化 MyBatis-Plus Lambda 缓存，避免 LambdaUpdateWrapper 在单测中缺少实体元信息。
+     */
+    @BeforeAll
+    static void initMybatisPlusLambdaCache() {
+        Configuration configuration = new Configuration();
+        MapperBuilderAssistant assistant = new MapperBuilderAssistant(configuration, "test");
+        assistant.setCurrentNamespace("test");
+        TableInfoHelper.initTableInfo(assistant, SpotBanner.class);
+    }
+
     @Mock
     private SpotBannerMapper spotBannerMapper;
 
     @Mock
     private SpotMapper spotMapper;
+
+    @Mock
+    private RecommendationCacheService recommendationCacheService;
 
     private SpotBannerServiceImpl spotBannerService;
 
@@ -40,7 +61,19 @@ class SpotBannerServiceImplTest {
      */
     @BeforeEach
     void setUp() {
-        spotBannerService = new SpotBannerServiceImpl(spotBannerMapper, spotMapper);
+        spotBannerService = new SpotBannerServiceImpl(spotBannerMapper, spotMapper, recommendationCacheService);
+    }
+
+    @Test
+    void getBanners_returnsCachedData_withoutDatabaseQuery() {
+        BannerResponse cached = new BannerResponse();
+        cached.setList(List.of(new BannerResponse.BannerItem(1L, "/banner/1.jpg", 100L, "景点", 1)));
+        when(recommendationCacheService.getHomeBanners()).thenReturn(cached);
+
+        BannerResponse response = spotBannerService.getBanners();
+
+        assertEquals(1, response.getList().size());
+        verifyNoInteractions(spotBannerMapper);
     }
 
     @Test
@@ -61,6 +94,7 @@ class SpotBannerServiceImplTest {
 
         verify(spotBannerMapper).updateById(second);
         assertEquals(3, second.getSortOrder());
+        verify(recommendationCacheService).deleteHomeBanners();
 
         ArgumentCaptor<SpotBanner> insertCaptor = ArgumentCaptor.forClass(SpotBanner.class);
         verify(spotBannerMapper).insert(insertCaptor.capture());
@@ -85,9 +119,9 @@ class SpotBannerServiceImplTest {
 
         spotBannerService.updateBanner(3L, request);
 
-        verify(spotBannerMapper, times(2)).updateById(any());
+        verify(spotBannerMapper, times(1)).updateById(any());
         assertEquals(3, second.getSortOrder());
-        assertEquals(2, current.getSortOrder());
+        verify(recommendationCacheService).deleteHomeBanners();
     }
 
     @Test
@@ -104,6 +138,7 @@ class SpotBannerServiceImplTest {
         verify(spotBannerMapper).updateById(argThat(item -> item.getId().equals(2L) && item.getIsDeleted() == 1));
         verify(spotBannerMapper).updateById(argThat(item -> item.getId().equals(3L) && item.getSortOrder() == 2));
         assertEquals(2, following.getSortOrder());
+        verify(recommendationCacheService).deleteHomeBanners();
     }
 
     /**

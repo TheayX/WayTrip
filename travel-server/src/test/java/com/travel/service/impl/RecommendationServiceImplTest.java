@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import com.travel.dto.home.response.HotSpotResponse;
 import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.response.RecommendationResponse;
 import com.travel.entity.Order;
@@ -46,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -305,6 +307,32 @@ class RecommendationServiceImplTest {
         assertEquals(1, response.getList().size());
         assertEquals(401L, response.getList().get(0).getId());
         assertNull(response.getList().get(0).getScore());
+    }
+
+    @Test
+    void getHotSpots_returnsCachedResult_withoutDatabaseQuery() {
+        HotSpotResponse cached = new HotSpotResponse();
+        cached.setList(List.of(new HotSpotResponse.SpotItem(1L, "缓存热门", "/cover.jpg", null, null, 99, "分类")));
+        when(recommendationCacheService.getHomeHotSpots(3)).thenReturn(cached);
+
+        HotSpotResponse response = recommendationService.getHotSpots(3);
+
+        assertEquals(1, response.getList().size());
+        assertEquals(1L, response.getList().get(0).getId());
+        verifyNoInteractions(spotMapper);
+    }
+
+    @Test
+    void getHotSpots_savesCache_afterDatabaseQuery() {
+        Spot hotSpot = buildSpot(501L, "热门景点", 10L);
+        hotSpot.setHeatScore(120);
+        when(recommendationCacheService.getHomeHotSpots(2)).thenReturn(null);
+        when(spotMapper.selectList(any())).thenReturn(List.of(hotSpot));
+
+        HotSpotResponse response = recommendationService.getHotSpots(2);
+
+        assertEquals(1, response.getList().size());
+        verify(recommendationCacheService).saveHomeHotSpots(2, response);
     }
 
     /**

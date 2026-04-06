@@ -116,6 +116,7 @@ CREATE TABLE `spot` (
   KEY `idx_spot_region_id` (`region_id`),
   KEY `idx_spot_heat_score` (`heat_score`),
   KEY `idx_spot_published_deleted` (`is_published`, `is_deleted`),
+  KEY `idx_spot_published_deleted_heat` (`is_published`, `is_deleted`, `heat_score`, `id`),
   KEY `idx_spot_region_published` (`region_id`, `is_published`, `is_deleted`),
   CONSTRAINT `fk_spot_category` FOREIGN KEY (`category_id`) REFERENCES `spot_category` (`id`),
   CONSTRAINT `fk_spot_region` FOREIGN KEY (`region_id`) REFERENCES `spot_region` (`id`),
@@ -139,6 +140,7 @@ CREATE TABLE `guide` (
   KEY `idx_guide_category` (`category`),
   KEY `idx_guide_view_count` (`view_count`),
   KEY `idx_guide_published_deleted` (`is_published`, `is_deleted`),
+  KEY `idx_guide_publish_category_created` (`is_published`, `is_deleted`, `category`, `created_at`),
   KEY `idx_guide_admin_id` (`admin_id`),
   CONSTRAINT `fk_guide_admin` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='攻略表';
@@ -242,6 +244,7 @@ CREATE TABLE `user_spot_view` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_user_spot_view_user_spot` (`user_id`, `spot_id`),
+  KEY `idx_user_spot_view_user_created_id` (`user_id`, `created_at`, `id`),
   KEY `idx_user_spot_view_spot_id` (`spot_id`),
   KEY `idx_user_spot_view_created_at` (`created_at`),
   CONSTRAINT `fk_user_spot_view_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
@@ -270,6 +273,7 @@ CREATE TABLE `order` (
   UNIQUE KEY `uk_order_order_no` (`order_no`),
   KEY `idx_order_spot_id` (`spot_id`),
   KEY `idx_order_status` (`status`),
+  KEY `idx_order_status_deleted_created` (`status`, `is_deleted`, `created_at`),
   KEY `idx_order_created_at` (`created_at`),
   KEY `idx_order_user_deleted_created` (`user_id`, `is_deleted`, `created_at`),
   KEY `idx_order_user_status_deleted` (`user_id`, `status`, `is_deleted`),
