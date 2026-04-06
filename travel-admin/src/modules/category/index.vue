@@ -57,12 +57,12 @@
               @click="handleSelectParent(item.id)"
             >
               <div class="item-name">
-                <span style="vertical-align: middle;">{{ item.name }}</span>
-                <el-image 
+                <span class="align-middle">{{ item.name }}</span>
+                <el-image
                   v-if="item.iconUrl"
                   :src="getImageUrl(item.iconUrl)" 
                   fit="contain"
-                  style="width: 20px; height: 20px; margin-left: 8px; vertical-align: middle;"
+                  class="level1-icon"
                 />
               </div>
               <div class="item-actions">
@@ -97,7 +97,7 @@
                   v-if="row.iconUrl"
                   :src="getImageUrl(row.iconUrl)" 
                   fit="contain"
-                  style="width: 40px; height: 40px; border-radius: 4px;"
+                  class="level2-icon"
                 >
                   <template #error>
                     <div class="image-slot">
@@ -117,7 +117,7 @@
             </el-table-column>
             <el-table-column label="操作" width="150" fixed="right">
               <template #default="{ row }">
-                <div style="white-space: nowrap;">
+                <div class="row-actions-nowrap">
                   <el-button type="primary" link @click="handleEditLevel2(row)">编辑</el-button>
                   <el-button type="danger" link @click="handleDeleteLevel2(row)">删除</el-button>
                 </div>
@@ -461,20 +461,33 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.align-middle {
+  vertical-align: middle;
+}
+
+.level1-icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.level2-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+.row-actions-nowrap {
+  white-space: nowrap;
+}
+
 :deep(.content-table th.el-table__cell) {
   background: var(--wt-fill-hover);
   color: var(--wt-text-secondary);
   font-weight: 600;
 }
 
-:deep(.borderless-table .el-table__inner-wrapper::before) {
-  display: none;
-}
-
-:deep(.borderless-table td.el-table__cell),
-:deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid var(--wt-divider-faint);
-}
 
 :deep(.content-table .el-table__row:hover > td.el-table__cell) {
   background: var(--wt-row-gradient-hover) !important;

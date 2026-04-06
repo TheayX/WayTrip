@@ -12,7 +12,7 @@
         <span>{{ heatForm.heatScore ?? 0 }}</span>
       </el-form-item>
       <el-form-item label="热度档位" prop="heatLevel">
-        <el-select v-model="heatForm.heatLevel" style="width: 100%" placeholder="请选择热度档位">
+        <el-select v-model="heatForm.heatLevel" class="form-w-full" placeholder="请选择热度档位">
           <el-option
             v-for="item in heatLevelOptions"
             :key="item.value"

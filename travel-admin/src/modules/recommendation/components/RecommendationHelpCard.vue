@@ -143,7 +143,7 @@
 
       <el-collapse-item title="行为权重说明" name="weights">
         <div class="help-content">
-          <el-table :data="weightExplanations" stripe style="width: 100%">
+          <el-table :data="weightExplanations" stripe class="form-w-full">
             <el-table-column prop="behavior" label="行为类型" width="120" />
             <el-table-column prop="param" label="参数名" width="200" />
             <el-table-column prop="default" label="默认值" width="100" />
@@ -161,7 +161,7 @@
         <div class="help-content">
           <div class="data-field-group">
             <div class="data-field-title">离线矩阵主体字段</div>
-            <el-table :data="cfDataFieldReferences" stripe style="width: 100%">
+            <el-table :data="cfDataFieldReferences" stripe class="form-w-full">
               <el-table-column prop="table" label="表" width="180" />
               <el-table-column label="涉及字段" min-width="260">
                 <template #default="{ row }">
@@ -177,7 +177,7 @@
 
           <div class="data-field-group">
             <div class="data-field-title">冷启动与热门排序字段</div>
-            <el-table :data="coldStartDataFieldReferences" stripe style="width: 100%">
+            <el-table :data="coldStartDataFieldReferences" stripe class="form-w-full">
               <el-table-column prop="table" label="表" width="180" />
               <el-table-column label="涉及字段" min-width="260">
                 <template #default="{ row }">

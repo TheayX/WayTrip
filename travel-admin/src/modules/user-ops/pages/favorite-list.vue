@@ -39,7 +39,7 @@
             v-model="searchForm.nickname"
             placeholder="请输入用户昵称"
             clearable
-            style="width: 180px"
+            class="form-w-180"
             @keyup.enter="handleSearch"
             @clear="handleSearch"
           />
@@ -49,7 +49,7 @@
             v-model="searchForm.spotName"
             placeholder="请输入景点名称"
             clearable
-            style="width: 180px"
+            class="form-w-180"
             @keyup.enter="handleSearch"
             @clear="handleSearch"
           />
@@ -62,7 +62,7 @@
             start-placeholder="开始日期"
             end-placeholder="结束日期"
             value-format="YYYY-MM-DD"
-            style="width: 240px"
+            class="form-w-240"
             @change="handleSearch"
           />
         </el-form-item>
@@ -334,14 +334,6 @@ watch(
   font-weight: 600;
 }
 
-:deep(.borderless-table .el-table__inner-wrapper::before) {
-  display: none;
-}
-
-:deep(.borderless-table td.el-table__cell),
-:deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid var(--wt-divider-faint);
-}
 
 :deep(.ops-table .el-table__row:hover > td.el-table__cell) {
   background: var(--wt-row-gradient-hover) !important;
