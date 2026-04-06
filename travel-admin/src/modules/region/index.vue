@@ -33,7 +33,7 @@
     <el-row :gutter="20">
       <!-- 左侧：一级地区 -->
       <el-col :span="6">
-        <el-card shadow="hover" class="left-card">
+        <el-card shadow="hover" class="left-card hierarchy-panel">
           <template #header>
             <div class="card-header">
               <span>一级地区</span>
@@ -69,7 +69,7 @@
 
       <!-- 右侧：二级地区 -->
       <el-col :span="18">
-        <el-card shadow="hover" class="right-card">
+        <el-card shadow="hover" class="right-card hierarchy-content">
           <template #header>
             <div class="card-header">
               <span>二级地区</span>
@@ -319,143 +319,13 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.region-page {
-  display: flex;
-  flex-direction: column;
-
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
-  }
-
-  .summary-card {
-    border-radius: 22px;
-  }
-
-  .summary-label {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--wt-text-secondary);
-  }
-
-  .summary-value {
-    margin-top: 10px;
-    font-size: 34px;
-    font-weight: 700;
-    line-height: 1.05;
-    color: var(--wt-text-primary);
-  }
-
-  .summary-value--sm {
-    font-size: 24px;
-    line-height: 1.2;
-  }
-
-  .summary-desc {
-    margin-top: 10px;
-    font-size: 13px;
-    line-height: 1.6;
-    color: var(--wt-text-secondary);
-  }
-
-  .left-card {
-    border-radius: 22px;
-    min-height: 520px;
-
-    .parent-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-
-      .list-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        margin-bottom: 4px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 1px solid transparent;
-
-        &:hover {
-          background-color: var(--wt-fill-hover);
-          .item-actions { opacity: 1; }
-        }
-
-        &.active {
-          background-color: var(--el-color-primary-light-9);
-          color: var(--el-color-primary);
-          border-color: var(--el-color-primary-light-7);
-          font-weight: 600;
-        }
-
-        .item-actions {
-          opacity: 0;
-          transition: opacity 0.2s;
-          display: flex;
-          gap: 12px;
-
-          .action-icon {
-            color: var(--wt-text-secondary);
-            font-size: 30px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 6px;
-            transition: all 0.2s;
-
-            &:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
-            &.danger:hover { color: #ef4444; background: #fef2f2; }
-          }
-        }
-      }
-    }
-  }
-
-  .right-card {
-    border-radius: 22px;
-    min-height: 520px;
-  }
+.left-card {
+  min-height: 520px;
+  border-radius: 20px;
 }
 
-.content-table {
-  border-radius: 16px;
-  overflow: hidden;
+.right-card {
+  min-height: 520px;
+  border-radius: 20px;
 }
-
-:deep(.content-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-:deep(.borderless-table .el-table__inner-wrapper::before) {
-  display: none;
-}
-
-:deep(.borderless-table td.el-table__cell),
-:deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid var(--wt-divider-faint);
-}
-
-:deep(.content-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
-}
-.form-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--wt-text-secondary);
-}
-
-@media (max-width: 1200px) {
-  .region-page {
-    .summary-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-}
-
 </style>

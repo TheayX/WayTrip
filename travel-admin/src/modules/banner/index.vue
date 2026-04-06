@@ -405,16 +405,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.banner-page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.hero-left {
-  flex: 1;
-}
-
 .hero-actions {
   display: flex;
   flex-direction: column;
@@ -424,55 +414,6 @@ onMounted(() => {
 
 .hero-action-btn {
   margin-left: 0 !important;
-}
-
-.hero-action-btn-add {
-  position: relative;
-  top: 32px;
-}
-
-.subtitle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.summary-card {
-  border-radius: 20px;
-}
-
-.summary-label {
-  font-size: 13px;
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-.summary-value {
-  margin-top: 8px;
-  font-size: 28px;
-  line-height: 1.1;
-  font-weight: 700;
-  color: var(--wt-text-primary);
-}
-
-.summary-desc {
-  margin-top: 10px;
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--wt-text-regular);
-}
-
-.table-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .banner-preview {
@@ -498,35 +439,12 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.management-card :deep(.banner-table) {
-  margin-top: 0 !important;
-}
-
 .management-card :deep(.el-card__body) {
   padding-top: 0 !important;
 }
 
 .full-width-select {
   width: 100%;
-}
-
-:deep(.banner-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-:deep(.borderless-table .el-table__inner-wrapper::before) {
-  display: none;
-}
-
-:deep(.borderless-table td.el-table__cell),
-:deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid var(--wt-divider-faint);
-}
-
-:deep(.banner-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
 }
 
 .upload-container {
@@ -555,17 +473,6 @@ onMounted(() => {
     .el-icon { font-size: 28px; margin-bottom: 8px; }
     span { font-size: 12px; }
   }
-  .upload-tip {
-    font-size: 12px;
-    color: var(--wt-text-secondary);
-    margin-top: 8px;
-  }
-}
-.form-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--wt-text-secondary);
 }
 
 .spot-name-cell {
@@ -595,11 +502,4 @@ onMounted(() => {
 :deep(.spot-name-link .el-button__text) {
   text-align: left;
 }
-
-@media (max-width: 1200px) {
-  .summary-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 </style>

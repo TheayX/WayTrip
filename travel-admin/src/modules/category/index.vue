@@ -33,7 +33,7 @@
     <el-row :gutter="20">
       <!-- 左侧：一级分类 -->
       <el-col :span="6">
-        <el-card shadow="hover" class="left-card">
+        <el-card shadow="hover" class="left-card hierarchy-panel">
           <template #header>
             <div class="card-header">
               <span>一级分类</span>
@@ -77,7 +77,7 @@
 
       <!-- 右侧：二级分类 -->
       <el-col :span="18">
-        <el-card shadow="hover" class="right-card">
+        <el-card shadow="hover" class="right-card hierarchy-content">
           <template #header>
             <div class="card-header">
               <span>二级分类</span>
@@ -398,122 +398,16 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.category-page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  .summary-card {
-    border-radius: 20px;
-  }
-
-  .summary-label {
-    font-size: 13px;
-    color: var(--wt-text-secondary);
-    font-weight: 600;
-  }
-
-  .summary-value {
-    margin-top: 8px;
-    font-size: 28px;
-    line-height: 1.1;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .summary-value--sm {
-    font-size: 22px;
-    line-height: 1.35;
-  }
-
-  .summary-desc {
-    margin-top: 10px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
-  }
-
-  .left-card {
-    min-height: 520px;
-    border-radius: 22px;
-    .parent-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      .list-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        margin-bottom: 4px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 1px solid transparent;
-        &:hover {
-          background-color: var(--wt-fill-hover);
-          .item-actions { opacity: 1; }
-        }
-        &.active {
-          background-color: var(--el-color-primary-light-9);
-          color: var(--el-color-primary);
-          border-color: var(--el-color-primary-light-7);
-          font-weight: 600;
-        }
-        .item-actions {
-          opacity: 0;
-          transition: opacity 0.2s;
-          display: flex;
-          gap: 12px;
-          .action-icon {
-            color: var(--wt-text-secondary);
-            font-size: 30px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            &:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
-            &.danger:hover { color: #ef4444; background: #fef2f2; }
-          }
-        }
-      }
-    }
-  }
-  .right-card {
-    min-height: 520px;
-    border-radius: 22px;
-  }
+.left-card {
+  min-height: 520px;
+  border-radius: 20px;
 }
 
-.content-table {
-  border-radius: 16px;
-  overflow: hidden;
+.right-card {
+  min-height: 520px;
+  border-radius: 20px;
 }
 
-:deep(.content-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-:deep(.borderless-table .el-table__inner-wrapper::before) {
-  display: none;
-}
-
-:deep(.borderless-table td.el-table__cell),
-:deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid var(--wt-divider-faint);
-}
-
-:deep(.content-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
-}
 .upload-container {
   .avatar-uploader {
     :deep(.el-upload) {
@@ -539,18 +433,8 @@ onMounted(() => {
       }
     }
   }
-  .upload-tip {
-    font-size: 12px;
-    color: var(--wt-text-secondary);
-    margin-top: 8px;
-  }
 }
-.form-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--wt-text-secondary);
-}
+
 .image-slot {
   display: flex;
   justify-content: center;
@@ -561,13 +445,4 @@ onMounted(() => {
   font-size: 20px;
   border-radius: 8px;
 }
-
-@media (max-width: 1200px) {
-  .category-page {
-    .summary-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-}
-
 </style>

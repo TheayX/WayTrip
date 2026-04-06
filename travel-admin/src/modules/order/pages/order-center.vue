@@ -481,10 +481,6 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .order-page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-
   .price {
     color: #dc2626;
     font-weight: 700;
@@ -509,48 +505,7 @@ onMounted(() => {
   justify-content: flex-end;
   gap: 12px;
   margin-top: -10px;
-  margin-bottom: 5px;
-}
-
-.workspace-head {
-  display: none;
-}
-
-.workspace-title {
-  margin: 0;
-  color: var(--wt-text-primary);
-}
-.workspace-subtitle {
-  margin: 8px 0 0;
-  color: var(--wt-text-regular);
-}
-
-.workspace-card {
-  border: none;
-  border-radius: 20px;
-}
-
-.workspace-card :deep(.el-card__body) {
-  padding-top: 4px !important;
-}
-
-.workspace-card :deep(.search-form) {
-  margin-top: 4px !important;
-  margin-bottom: 4px !important;
-  padding-top: 12px !important;
-  padding-bottom: 12px !important;
-}
-
-.workspace-card :deep(.search-form .el-form-item) {
-  margin-bottom: 0 !important;
-}
-
-.workspace-card :deep(.order-table) {
-  margin-top: 0 !important;
-}
-
-.workspace-title {
-  font-size: 22px;
+  margin-bottom: 0;
 }
 
 .workspace-tabs {
@@ -560,11 +515,6 @@ onMounted(() => {
 .order-table {
   border-radius: 18px;
   overflow: hidden;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .order-link,
@@ -588,26 +538,8 @@ onMounted(() => {
   }
 }
 
-.table-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: flex-start;
-}
-
 :deep(.workspace-tabs .el-tabs__header) {
   margin: 0;
-}
-
-:deep(.order-table th.el-table__cell) {
-  background: var(--el-table-header-bg-color);
-  color: var(--wt-text-regular);
-  font-weight: 600;
-}
-
-:deep(.order-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-fill-hover);
 }
 
 :deep(.workspace-tabs .el-tabs__item.is-active) {
@@ -619,10 +551,6 @@ onMounted(() => {
 }
 
 @media (max-width: 960px) {
-  .workspace-head {
-    flex-direction: column;
-  }
-
   .workspace-tabs,
   .hero-actions {
     width: 100%;
