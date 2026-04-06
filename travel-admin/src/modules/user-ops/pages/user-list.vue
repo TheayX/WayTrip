@@ -41,7 +41,7 @@
             v-model="searchForm.nickname"
             placeholder="请输入昵称"
             clearable
-            style="width: 200px"
+            class="form-w-200"
             @keyup.enter="handleSearch"
             @clear="handleSearch"
           />
@@ -524,14 +524,6 @@ watch(
   font-weight: 600;
 }
 
-:deep(.borderless-table .el-table__inner-wrapper::before) {
-  display: none;
-}
-
-:deep(.borderless-table td.el-table__cell),
-:deep(.borderless-table th.el-table__cell.is-leaf) {
-  border-bottom: 1px solid var(--wt-divider-faint);
-}
 
 :deep(.user-table .el-table__row:hover > td.el-table__cell) {
   background: var(--wt-row-gradient-hover) !important;
