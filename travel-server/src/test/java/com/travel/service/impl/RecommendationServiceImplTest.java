@@ -42,7 +42,10 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -220,7 +223,9 @@ class RecommendationServiceImplTest {
             1L,
             4,
             false,
-            false
+            false,
+            false,
+            null
         );
 
         assertEquals("preference", response.getType());
@@ -230,7 +235,7 @@ class RecommendationServiceImplTest {
     }
 
     @Test
-    void handleColdStart_supplementsHotSpotsWhenPreferredSpotsAreInsufficient() {
+    void handleColdStart_returnsAvailableCandidatesWhenPreferredSpotsAreInsufficient() {
         UserPreference preference = new UserPreference();
         preference.setUserId(1L);
         preference.setTag("10");
@@ -255,13 +260,51 @@ class RecommendationServiceImplTest {
             1L,
             4,
             false,
-            false
+            false,
+            false,
+            null
         );
 
         assertEquals("preference", response.getType());
         assertFalse(response.getNeedPreference());
-        assertEquals(4, response.getList().size());
-        assertEquals(List.of(101L, 102L, 201L, 202L), response.getList().stream().map(RecommendationResponse.SpotItem::getId).toList());
+        assertEquals(2, response.getList().size());
+        assertEquals(List.of(201L, 202L), response.getList().stream().map(RecommendationResponse.SpotItem::getId).toList());
+    }
+
+    @Test
+    void getRecommendations_usesCachedScoreMap_andFiltersOfflineSpots() {
+        Spot publishedSpot = buildSpot(301L, "已上架景点", 10L);
+        Spot offlineSpot = buildSpot(302L, "下架景点", 10L);
+        offlineSpot.setIsPublished(0);
+
+        when(recommendationCacheService.getUserRecommendation(1L)).thenReturn(Map.of(301L, 2.5D, 302L, 1.8D));
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(publishedSpot, offlineSpot));
+        mockCategoryAndRegionMaps();
+
+        RecommendationResponse response = recommendationService.getRecommendations(1L, 5);
+
+        assertEquals("personalized", response.getType());
+        assertEquals(1, response.getList().size());
+        assertEquals(301L, response.getList().get(0).getId());
+        assertEquals(2.5D, response.getList().get(0).getScore());
+        // 命中缓存后不应再走行为计算链路。
+        verify(userSpotViewMapper, never()).selectList(any());
+    }
+
+    @Test
+    void getRecommendations_usesCachedIdList_withoutScore() {
+        Spot publishedSpot = buildSpot(401L, "缓存景点", 10L);
+
+        when(recommendationCacheService.getUserRecommendation(2L)).thenReturn(List.of(401L));
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(publishedSpot));
+        mockCategoryAndRegionMaps();
+
+        RecommendationResponse response = recommendationService.getRecommendations(2L, 3);
+
+        assertEquals("personalized", response.getType());
+        assertEquals(1, response.getList().size());
+        assertEquals(401L, response.getList().get(0).getId());
+        assertNull(response.getList().get(0).getScore());
     }
 
     /**

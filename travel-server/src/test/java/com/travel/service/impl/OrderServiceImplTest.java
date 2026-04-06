@@ -197,6 +197,46 @@ class OrderServiceImplTest {
         verify(orderMapper).updateById(order);
     }
 
+    @Test
+    void payOrder_isIdempotent_forPaidOrder() {
+        Order order = buildOrder(OrderStatus.PAID);
+        when(orderMapper.selectOne(any())).thenReturn(order);
+        when(spotMapper.selectById(order.getSpotId())).thenReturn(spot);
+
+        var response = orderService.payOrder(1L, order.getId(), "idem-paid");
+
+        assertEquals("paid", response.getStatus());
+        assertNotNull(response.getPaidAt());
+        verify(orderMapper, never()).updateById(order);
+    }
+
+    @Test
+    void refundOrder_marksPaidOrderAsRefunded() {
+        Order order = buildOrder(OrderStatus.PAID);
+        when(orderMapper.selectById(order.getId())).thenReturn(order);
+        when(orderMapper.updateById(order)).thenReturn(1);
+        when(spotMapper.selectById(order.getSpotId())).thenReturn(spot);
+
+        var response = orderService.refundOrder(order.getId());
+
+        assertEquals("refunded", response.getStatus());
+        assertEquals("已退款", response.getStatusText());
+        assertNotNull(response.getRefundedAt());
+        assertFalse(response.getCanPay());
+        assertFalse(response.getCanCancel());
+        verify(orderMapper).updateById(order);
+    }
+
+    @Test
+    void refundOrder_rejectsCompletedOrder() {
+        Order order = buildOrder(OrderStatus.COMPLETED);
+        when(orderMapper.selectById(order.getId())).thenReturn(order);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> orderService.refundOrder(order.getId()));
+
+        assertEquals("订单状态不允许退款", ex.getMessage());
+    }
+
     /**
      * 按指定状态构造订单夹具。
      */

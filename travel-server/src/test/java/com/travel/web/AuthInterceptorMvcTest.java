@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -50,7 +51,7 @@ class AuthInterceptorMvcTest {
         jwtUtils.init();
 
         AuthInterceptor authInterceptor = new AuthInterceptor();
-        ReflectionTestUtils.setField(authInterceptor, "jwtUtil", jwtUtils);
+        ReflectionTestUtils.setField(authInterceptor, "jwtUtils", jwtUtils);
 
         userAuthService = Mockito.mock(UserAuthService.class);
         userAccountService = Mockito.mock(UserAccountService.class);
@@ -171,5 +172,23 @@ class AuthInterceptorMvcTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.list[0].id").value(1))
                 .andExpect(jsonPath("$.data.list[0].openid").doesNotExist());
+    }
+
+    @Test
+    void protectedUserEndpoint_rejectsMalformedAuthorizationHeader() throws Exception {
+        String token = jwtUtils.generateUserToken(1L);
+
+        mockMvc.perform(get("/api/v1/user/info")
+                        .header("Authorization", token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(10002))
+                .andExpect(jsonPath("$.message").value("Token无效或过期"));
+    }
+
+    @Test
+    void optionsRequest_bypassesAuthInterceptor() throws Exception {
+        mockMvc.perform(options("/api/v1/user/info"))
+                .andExpect(status().isOk());
     }
 }
