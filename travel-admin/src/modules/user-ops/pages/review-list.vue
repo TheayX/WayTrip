@@ -30,7 +30,7 @@
       </el-card>
     </section>
 
-    <el-card shadow="hover" class="management-card">
+    <el-card shadow="hover" class="management-card admin-management-card">
 
 
       <!-- 搜索表单 -->
@@ -240,32 +240,6 @@ onMounted(() => {
   flex-direction: column;
   gap: 20px;
 
-  .management-card {
-    border-radius: 22px;
-
-    :deep(.el-card__body) {
-      padding-top: 4px !important;
-    }
-
-    :deep(.search-form) {
-      margin-top: 4px !important;
-      margin-bottom: 4px !important;
-      padding-top: 10px !important;
-      padding-bottom: 10px !important;
-    }
-
-    :deep(.search-form .el-form-item) {
-      margin-bottom: 0 !important;
-    }
-
-    :deep(.review-table) {
-      margin-top: 0 !important;
-    }
-
-    :deep(.search-form + .review-table) {
-      margin-top: 0 !important;
-    }
-  }
 
   .filter-caption {
     display: flex;

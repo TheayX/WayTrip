@@ -29,7 +29,7 @@
       </el-card>
     </section>
 
-    <el-card shadow="hover" class="management-card">
+    <el-card shadow="hover" class="management-card admin-management-card">
 
 
       <el-form :model="searchForm" inline class="search-form" @submit.prevent>
@@ -281,33 +281,6 @@ watch(
 
 .favorite-page {
   @include userOps.page-shell;
-
-  .management-card {
-    border-radius: 22px;
-
-    :deep(.el-card__body) {
-      padding-top: 4px !important;
-    }
-
-    :deep(.search-form) {
-      margin-top: 4px !important;
-      margin-bottom: 4px !important;
-      padding-top: 10px !important;
-      padding-bottom: 10px !important;
-    }
-
-    :deep(.search-form .el-form-item) {
-      margin-bottom: 0 !important;
-    }
-
-    :deep(.ops-table) {
-      margin-top: 0 !important;
-    }
-
-    :deep(.search-form + .ops-table) {
-      margin-top: 0 !important;
-    }
-  }
 }
 
 .filter-caption {

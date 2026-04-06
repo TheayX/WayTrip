@@ -9,13 +9,13 @@
           <p class="page-subtitle">维护后台管理员账号与启用状态。</p>
         </div>
       </div>
-      <div class="hero-actions" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-end;">
-        <el-button :loading="loading" @click="fetchData" style="margin-left: 0;">刷新数据</el-button>
-        <el-button type="primary" @click="handleAdd" class="hero-action-btn-add" style="margin-left: 0;">新增管理员</el-button>
+      <div class="hero-actions hero-actions-stack">
+        <el-button :loading="loading" @click="fetchData">刷新数据</el-button>
+        <el-button type="primary" class="hero-action-offset" @click="handleAdd">新增管理员</el-button>
       </div>
     </section>
 
-    <el-card shadow="hover" class="management-card">
+    <el-card shadow="hover" class="management-card admin-management-card">
 
 
 
@@ -447,31 +447,7 @@ onMounted(() => {
   margin-top: 8px;
 }
 
-.hero-action-btn-add {
-  position: relative;
-  top: 32px;
-}
-
-.management-card :deep(.el-card__body) {
-  padding-top: 4px !important;
-}
-
-.management-card :deep(.search-form) {
-  margin-top: 4px !important;
-  margin-bottom: 4px !important;
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
-}
-
-.management-card :deep(.search-form .el-form-item) {
-  margin-bottom: 0 !important;
-}
-
-.management-card :deep(.admin-table) {
-  margin-top: 0 !important;
-}
-
-  .table-actions {
+.table-actions {
     display: flex;
     align-items: center;
     justify-content: center;
