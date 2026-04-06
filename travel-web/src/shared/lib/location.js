@@ -78,7 +78,7 @@ export const getLocationSnapshot = async () => {
       latest,
       current: latest || cached || null
     }
-  } catch (_error) {
+  } catch {
     return {
       cached,
       latest: null,

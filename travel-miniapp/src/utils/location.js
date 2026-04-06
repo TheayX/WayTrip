@@ -45,7 +45,7 @@ export const ensureLocationPermission = async () => {
   try {
     await requestAuthorize()
     return true
-  } catch (_error) {
+  } catch {
     return openLocationSetting()
   }
 }
@@ -79,7 +79,7 @@ export const getLocationSnapshot = async () => {
       latest,
       current: latest || cached || null
     }
-  } catch (_error) {
+  } catch {
     return {
       cached,
       latest: null,

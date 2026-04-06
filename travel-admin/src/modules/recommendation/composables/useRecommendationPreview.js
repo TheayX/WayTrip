@@ -242,7 +242,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
       const res = await previewRecommendations({ ...debugForm })
       debugResult.value = res.data || null
       ElMessage.success('调试预览完成')
-    } catch (e) {
+    } catch {
       ElMessage.error('调试预览失败')
     } finally {
       previewing.value = false
@@ -259,7 +259,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
       const res = await previewSimilarityNeighbors({ ...similarityForm })
       similarityResult.value = res.data || null
       ElMessage.success('相似邻居预览完成')
-    } catch (e) {
+    } catch {
       ElMessage.error('相似邻居预览失败')
     } finally {
       similarityPreviewing.value = false
@@ -280,7 +280,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
       similarityResult.value = res.data || null
       ElMessage.success('矩阵更新完成，已加载最新相似邻居')
       await fetchStatus()
-    } catch (e) {
+    } catch {
       ElMessage.error('更新预览失败')
     } finally {
       similarityMatrixPreviewing.value = false

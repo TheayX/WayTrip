@@ -215,7 +215,7 @@ export function useRecommendationConfig() {
         return
       }
       ElMessage.success('配置已保存：当前改动会在新的推荐请求中立即生效')
-    } catch (e) {
+    } catch {
       ElMessage.error('保存配置失败')
     } finally {
       saving.value = false
