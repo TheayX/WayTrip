@@ -70,6 +70,7 @@ import { ref, reactive } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getOrderList, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
+import { guardLoginPage } from '@/utils/auth'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 常量配置
@@ -86,6 +87,7 @@ const currentTab = ref('')
 const orderList = ref([])
 const loading = ref(false)
 const noMore = ref(false)
+const accessGranted = ref(false)
 const pagination = reactive({ page: 1, pageSize: 10 })
 
 // 工具方法
@@ -173,10 +175,16 @@ const handleReview = (order) => {
 
 // 生命周期
 onLoad((options) => {
+  if (!guardLoginPage('登录后可查看订单列表，是否现在去登录？')) {
+    return
+  }
+
+  accessGranted.value = true
   currentTab.value = options?.status || ''
 })
 
 onShow(() => {
+  if (!accessGranted.value) return
   fetchOrders(true)
 })
 </script>

@@ -134,6 +134,7 @@ import { getViewHistory } from '@/api/spot'
 import { wxLogin } from '@/api/auth'
 import { getUserInfo } from '@/api/user'
 import AuthPopup from './components/AuthPopup.vue'
+import { consumeLoginRedirect } from '@/utils/auth'
 import { getAvatarUrl } from '@/utils/request'
 
 // 基础依赖与用户状态
@@ -246,6 +247,12 @@ const doLogin = async () => {
       await syncUserInfo()
       await loadMineOverview()
 
+      const redirect = consumeLoginRedirect()
+      if (redirect) {
+        uni.navigateTo({ url: redirect })
+        return
+      }
+
       if (res.data.isReactivated) {
         uni.showModal({
           title: '账户已恢复',
@@ -264,6 +271,11 @@ const doLogin = async () => {
 const onAuthSuccess = async () => {
   await syncUserInfo()
   await loadMineOverview()
+
+  const redirect = consumeLoginRedirect()
+  if (redirect) {
+    uni.navigateTo({ url: redirect })
+  }
 }
 
 const doLogout = () => {

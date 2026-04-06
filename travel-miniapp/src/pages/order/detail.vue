@@ -80,6 +80,7 @@
 import { ref, computed } from 'vue'
 import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
 import { getOrderDetail, payOrder, cancelOrder } from '@/api/order'
+import { guardLoginPage } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
@@ -93,6 +94,7 @@ let countdownTargetMs = null
 let hasTriggeredTimeoutRefresh = false
 let pendingTimeoutRefresh = false
 const timeoutRefreshInProgress = ref(false)
+const accessGranted = ref(false)
 let timeoutRetryTimer = null
 let timeoutRetryCount = 0
 const MAX_TIMEOUT_REFRESH_RETRIES = 6
@@ -235,7 +237,8 @@ const goSpot = () => {
 // 交互处理方法
 const handlePay = async () => {
   try {
-    await payOrder(orderId.value)
+    const idempotentKey = `${orderId.value}-${Date.now()}`
+    await payOrder(orderId.value, idempotentKey)
     uni.showToast({ title: '支付成功', icon: 'success' })
     fetchOrderDetail()
   } catch (e) {
@@ -267,11 +270,17 @@ const handleReview = () => {
 
 // 生命周期
 onLoad((options) => {
+  if (!guardLoginPage('登录后可查看订单详情，是否现在去登录？')) {
+    return
+  }
+
+  accessGranted.value = true
   orderId.value = options.id
   fetchOrderDetail()
 })
 
 onShow(() => {
+  if (!accessGranted.value) return
   if (orderId.value) {
     fetchOrderDetail()
   }

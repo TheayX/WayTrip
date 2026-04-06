@@ -174,6 +174,15 @@
       </view>
     </view>
   </view>
+
+  <view class="ios-page loading-page" v-else-if="loading">
+    <text class="state-text">正在加载景点详情...</text>
+  </view>
+
+  <view class="ios-page loading-page" v-else>
+    <text class="state-text">{{ loadErrorMessage || '景点信息不存在或已下架' }}</text>
+    <button class="state-btn" @click="goSpotList">返回景点列表</button>
+  </view>
 </template>
 
 <script setup>
@@ -182,7 +191,7 @@ import { onLoad, onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import { getSpotDetail, getSimilarSpots, recordSpotView } from '@/api/spot'
 import { addFavorite, removeFavorite } from '@/api/favorite'
 import { deleteReview, submitReview } from '@/api/review'
-import { guardLoginPage } from '@/utils/auth'
+import { guardLoginPage, promptLogin } from '@/utils/auth'
 import { getLocationSnapshot } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
@@ -192,6 +201,8 @@ import { useUserStore } from '@/stores/user'
 const spot = ref(null)
 const spotId = ref(null)
 const currentLocation = ref(null)
+const loading = ref(true)
+const loadErrorMessage = ref('')
 const userStore = useUserStore()
 let enterTime = 0
 let viewSource = SPOT_DETAIL_SOURCE.DETAIL
@@ -271,6 +282,8 @@ const saveSpotFootprint = (data) => {
 
 // 数据加载方法
 const fetchSpotDetail = async () => {
+  loading.value = true
+  loadErrorMessage.value = ''
   try {
     const res = await getSpotDetail(spotId.value)
     spot.value = res.data
@@ -280,11 +293,16 @@ const fetchSpotDetail = async () => {
       ratingForm.score = spot.value.userRating
     }
     if (openReviewByQuery.value && !reviewPopupOpened.value) {
-      ratingVisible.value = true
-      reviewPopupOpened.value = true
+      if (promptLogin('登录后可评价景点，是否现在去登录？')) {
+        ratingVisible.value = true
+        reviewPopupOpened.value = true
+      }
     }
   } catch (e) {
-    uni.showToast({ title: '加载失败', icon: 'none' })
+    spot.value = null
+    loadErrorMessage.value = e?.message || '加载失败，请稍后重试'
+  } finally {
+    loading.value = false
   }
 }
 
@@ -336,6 +354,10 @@ const previewImage = (index) => {
 }
 
 const toggleFavorite = async () => {
+  if (!promptLogin('登录后可收藏景点，是否现在去登录？')) {
+    return
+  }
+
   try {
     if (spot.value.isFavorite) {
       await removeFavorite(spotId.value)
@@ -371,10 +393,17 @@ const canDeleteComment = (comment) => {
 }
 
 const showRatingPopup = () => {
+  if (!promptLogin('登录后可评价景点，是否现在去登录？')) {
+    return
+  }
   ratingVisible.value = true
 }
 
 const submitRatingHandler = async () => {
+  if (!promptLogin('登录后可评价景点，是否现在去登录？')) {
+    return
+  }
+
   if (ratingForm.score < 1) {
     uni.showToast({ title: '请选择评分', icon: 'none' })
     return
@@ -394,6 +423,10 @@ const submitRatingHandler = async () => {
 }
 
 const handleDeleteComment = (comment) => {
+  if (!promptLogin('登录后可删除评价，是否现在去登录？')) {
+    return
+  }
+
   uni.showModal({
     title: '删除评价',
     content: '删除后评分会一并撤销，确认删除吗？',
@@ -412,11 +445,18 @@ const handleDeleteComment = (comment) => {
 
 // 页面跳转方法
 const goBuy = () => {
+  if (!promptLogin('登录后可创建订单，是否现在去登录？')) {
+    return
+  }
   uni.navigateTo({ url: `/pages/order/create?spotId=${spotId.value}` })
 }
 
 const goSimilarSpot = (id) => {
   uni.navigateTo({ url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.SIMILAR) })
+}
+
+const goSpotList = () => {
+  uni.navigateTo({ url: '/pages/spot/list' })
 }
 
 const formatSimilarity = (value) => {
@@ -427,16 +467,23 @@ const formatSimilarity = (value) => {
 // 生命周期
 onLoad((options) => {
   if (!guardLoginPage('登录后可查看景点详情，是否现在去登录？')) {
+    loading.value = false
     return
   }
 
   spotId.value = options.id
+  if (!spotId.value) {
+    loading.value = false
+    loadErrorMessage.value = '景点参数无效'
+    return
+  }
+
   viewSource = options.source || SPOT_DETAIL_SOURCE.DETAIL
   openReviewByQuery.value = options.openReview === '1'
   reviewPopupOpened.value = false
-  syncCurrentLocation()
+  void syncCurrentLocation()
   fetchSpotDetail()
-  fetchSimilarSpots()
+  void fetchSimilarSpots()
 })
 
 onShow(() => {
@@ -465,6 +512,33 @@ onUnload(() => {
   background: transparent;
   min-height: 100vh;
   padding-bottom: 160rpx;
+}
+
+.loading-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24rpx;
+  padding: 120rpx 40rpx;
+}
+
+.state-text {
+  font-size: 28rpx;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.state-btn {
+  min-width: 280rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 40rpx;
+  background: #18181b;
+  color: #fff;
+  font-size: 28rpx;
+  border: none;
 }
 
 /* 图片轮播 */

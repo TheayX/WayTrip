@@ -92,12 +92,14 @@ import { ref, reactive, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getSpotDetail } from '@/api/spot'
 import { createOrder } from '@/api/order'
+import { guardLoginPage } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 
 // 页面数据状态
 const spot = ref(null)
 const spotId = ref(null)
 const submitting = ref(false)
+const accessGranted = ref(false)
 
 const form = reactive({
   visitDate: '',
@@ -182,8 +184,15 @@ const handleSubmit = async () => {
 
 // 生命周期
 onLoad((options) => {
+  if (!guardLoginPage('登录后可创建订单，是否现在去登录？')) {
+    return
+  }
+
+  accessGranted.value = true
   spotId.value = options.spotId
-  fetchSpotDetail()
+  if (accessGranted.value) {
+    fetchSpotDetail()
+  }
 })
 </script>
 

@@ -58,8 +58,7 @@ export const getSimilarSpots = (spotId, limit = 6) => {
  * @returns {*}
  */
 export const recordSpotView = (spotId, source, duration) => {
-  // Query parameters
-  return post(`/spots/${spotId}/view?source=${source}&duration=${duration}`)
+  return post(`/spots/${spotId}/view`, null, { params: { source, duration } })
 }
 
 /**

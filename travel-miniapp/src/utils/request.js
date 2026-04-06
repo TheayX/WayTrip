@@ -33,19 +33,37 @@ export const getContentImageUrl = (url) => {
   return getImageUrl(url)
 }
 
+const appendQueryParams = (url, params) => {
+  if (!params || typeof params !== 'object') {
+    return url
+  }
+
+  const query = Object.entries(params)
+    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+    .join('&')
+
+  if (!query) {
+    return url
+  }
+
+  return `${url}${url.includes('?') ? '&' : '?'}${query}`
+}
+
 // 基础请求方法
 const request = (options) => {
   return new Promise((resolve, reject) => {
-    const { url, method = 'GET', data = {}, showLoading = true, rejectOnAuthExpired = false } = options
+    const { url, method = 'GET', data = {}, params = null, showLoading = true, rejectOnAuthExpired = false } = options
     const userStore = useUserStore()
     const hadToken = Boolean(userStore.token)
+    const requestUrl = appendQueryParams(BASE_URL + url, params)
 
     if (showLoading) {
       uni.showLoading({ title: '加载中...', mask: true })
     }
 
     uni.request({
-      url: BASE_URL + url,
+      url: requestUrl,
       method,
       data,
       header: {
