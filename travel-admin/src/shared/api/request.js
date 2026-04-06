@@ -6,6 +6,7 @@ import router from '@/app/router/index.js'
 
 const AUTH_EXPIRED_CODE = 10002
 const SUCCESS_CODE = 0
+const HTTP_UNAUTHORIZED_STATUS = 401
 const ACCESS_DENIED_CODE = 10003
 const AUTH_EXPIRED_MESSAGE = '登录状态已失效，请重新登录'
 const NETWORK_ERROR_MESSAGE = '网络异常，请稍后重试'
@@ -34,6 +35,12 @@ const redirectToLogin = async (message) => {
     authRedirectInProgress = false
   }
 }
+
+const handleAuthExpired = (message) => {
+  void redirectToLogin(message || AUTH_EXPIRED_MESSAGE)
+}
+
+const isNetworkError = (error) => !error?.response
 
 /**
  * 创建 Axios 实例
@@ -71,23 +78,26 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response) => {
     const res = response.data
-    // 业务错误处理
-    if (res.code !== SUCCESS_CODE) {
-      if (res.code === AUTH_EXPIRED_CODE) {
-        redirectToLogin(res.message || AUTH_EXPIRED_MESSAGE)
-      } else if (res.code === ACCESS_DENIED_CODE) {
-        ElMessage.warning(res.message || NO_PERMISSION_MESSAGE)
-      } else {
-        ElMessage.error(res.message || REQUEST_FAILED_MESSAGE)
-      }
-
-      return Promise.reject(new Error(res.message || REQUEST_FAILED_MESSAGE))
+    if (res.code === SUCCESS_CODE) {
+      return res
     }
-    return res
+
+    if (res.code === AUTH_EXPIRED_CODE) {
+      handleAuthExpired(res.message)
+      return Promise.reject(new Error(res.message || AUTH_EXPIRED_MESSAGE))
+    }
+
+    if (res.code === ACCESS_DENIED_CODE) {
+      ElMessage.warning(res.message || NO_PERMISSION_MESSAGE)
+      return Promise.reject(new Error(res.message || NO_PERMISSION_MESSAGE))
+    }
+
+    ElMessage.error(res.message || REQUEST_FAILED_MESSAGE)
+    return Promise.reject(new Error(res.message || REQUEST_FAILED_MESSAGE))
   },
   (error) => {
-    if (error?.response?.status === 401) {
-      redirectToLogin(AUTH_EXPIRED_MESSAGE)
+    if (error?.response?.status === HTTP_UNAUTHORIZED_STATUS) {
+      handleAuthExpired(AUTH_EXPIRED_MESSAGE)
       return Promise.reject(error)
     }
 
@@ -96,8 +106,12 @@ request.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // 网络错误或服务器异常
-    ElMessage.error(error.message || NETWORK_ERROR_MESSAGE)
+    if (isNetworkError(error)) {
+      ElMessage.error(NETWORK_ERROR_MESSAGE)
+      return Promise.reject(error)
+    }
+
+    ElMessage.error(error?.response?.data?.message || REQUEST_FAILED_MESSAGE)
     return Promise.reject(error)
   }
 )

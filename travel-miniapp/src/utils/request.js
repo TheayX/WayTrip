@@ -5,6 +5,7 @@ const SERVER_URL = 'http://localhost:8080'
 const BASE_URL = `${SERVER_URL.replace(/\/$/, '')}/api/v1`
 const SUCCESS_CODE = 0
 const AUTH_EXPIRED_CODE = 10002
+const HTTP_UNAUTHORIZED_STATUS = 401
 const ACCESS_DENIED_CODE = 10003
 const AUTH_EXPIRED_MESSAGE = '登录状态已失效，请重新登录'
 const NETWORK_ERROR_MESSAGE = '网络异常，请稍后重试'
@@ -59,6 +60,7 @@ const appendQueryParams = (url, params) => {
 
 // 全局 Loading 引用计数，避免并发请求造成 show/hide 不配对。
 let loadingRefCount = 0
+let authRedirectInProgress = false
 
 const showGlobalLoading = (title = '加载中...') => {
   loadingRefCount += 1
@@ -78,19 +80,18 @@ const hideGlobalLoading = () => {
   }
 }
 
-const promptReLogin = (hadToken) => {
-  if (!hadToken) {
+const redirectToLogin = () => {
+  if (authRedirectInProgress) {
     return
   }
 
-  uni.showModal({
-    title: '提示',
-    content: AUTH_EXPIRED_MESSAGE,
-    confirmText: '去登录',
-    success: (modalRes) => {
-      if (modalRes.confirm) {
-        uni.reLaunch({ url: '/pages/mine/index' })
-      }
+  authRedirectInProgress = true
+  uni.reLaunch({
+    url: '/pages/mine/index',
+    complete: () => {
+      globalThis.setTimeout(() => {
+        authRedirectInProgress = false
+      }, 300)
     }
   })
 }
@@ -108,6 +109,17 @@ const resolveOrRejectAuthExpired = ({ rejectOnAuthExpired, resolve, reject, mess
   }
 
   resolve(authExpiredResult)
+}
+
+const handleAuthExpired = ({ hadToken, userStore, rejectOnAuthExpired, resolve, reject, message }) => {
+  userStore.logout()
+
+  if (hadToken) {
+    uni.showToast({ title: message || AUTH_EXPIRED_MESSAGE, icon: 'none' })
+  }
+
+  redirectToLogin()
+  resolveOrRejectAuthExpired({ rejectOnAuthExpired, resolve, reject, message })
 }
 
 // 基础请求方法
@@ -139,9 +151,9 @@ const request = (options) => {
           if (result.code === SUCCESS_CODE) {
             resolve(result)
           } else if (result.code === AUTH_EXPIRED_CODE) {
-            userStore.logout()
-            promptReLogin(hadToken)
-            resolveOrRejectAuthExpired({
+            handleAuthExpired({
+              hadToken,
+              userStore,
               rejectOnAuthExpired,
               resolve,
               reject,
@@ -154,15 +166,13 @@ const request = (options) => {
             uni.showToast({ title: result.message || REQUEST_FAILED_MESSAGE, icon: 'none' })
             reject(result)
           }
-        } else if (res.statusCode === 401) {
-          userStore.logout()
-          promptReLogin(hadToken)
-          resolveOrRejectAuthExpired({ rejectOnAuthExpired, resolve, reject })
+        } else if (res.statusCode === HTTP_UNAUTHORIZED_STATUS) {
+          handleAuthExpired({ hadToken, userStore, rejectOnAuthExpired, resolve, reject })
         } else if (res.statusCode === 403) {
           uni.showToast({ title: NO_PERMISSION_MESSAGE, icon: 'none' })
           reject(res)
         } else {
-          uni.showToast({ title: NETWORK_ERROR_MESSAGE, icon: 'none' })
+          uni.showToast({ title: REQUEST_FAILED_MESSAGE, icon: 'none' })
           reject(res)
         }
       },
@@ -195,6 +205,7 @@ export const del = (url, data, options = {}) => {
 export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
   return new Promise((resolve, reject) => {
     const userStore = useUserStore()
+    const hadToken = Boolean(userStore.token)
     showGlobalLoading('上传中...')
     uni.uploadFile({
       url: BASE_URL + url,
@@ -208,20 +219,24 @@ export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
         hideGlobalLoading()
         if (res.statusCode === 200) {
           const result = JSON.parse(res.data)
-          if (result.code === 0) {
+          if (result.code === SUCCESS_CODE) {
             resolve(result)
+          } else if (result.code === AUTH_EXPIRED_CODE) {
+            handleAuthExpired({ hadToken, userStore, rejectOnAuthExpired: true, resolve, reject, message: result.message })
           } else {
             uni.showToast({ title: result.message || '上传失败', icon: 'none' })
             reject(result)
           }
+        } else if (res.statusCode === HTTP_UNAUTHORIZED_STATUS) {
+          handleAuthExpired({ hadToken, userStore, rejectOnAuthExpired: true, resolve, reject })
         } else {
-          uni.showToast({ title: '上传失败', icon: 'none' })
+          uni.showToast({ title: REQUEST_FAILED_MESSAGE, icon: 'none' })
           reject(res)
         }
       },
       fail: (err) => {
         hideGlobalLoading()
-        uni.showToast({ title: '上传失败', icon: 'none' })
+        uni.showToast({ title: NETWORK_ERROR_MESSAGE, icon: 'none' })
         reject(err)
       }
     })
