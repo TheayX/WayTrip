@@ -7,10 +7,13 @@
       <div class="detail-main">
         <div class="status-card card" :class="order.status">
           <div class="status-info">
-            <span class="status-icon">{{ getStatusIcon(order.status) }}</span>
+            <el-icon class="status-icon"><component :is="getStatusIcon(order.status)" /></el-icon>
             <div>
               <h2 class="status-text">{{ order.statusText }}</h2>
               <p class="status-desc">{{ getStatusDesc(order.status) }}</p>
+              <p v-if="order.status === 'pending' && countdownText" class="countdown-text">
+                剩余支付时间 {{ countdownText }}
+              </p>
             </div>
           </div>
         </div>
@@ -59,7 +62,7 @@
           <h3 class="card-title">价格明细</h3>
           <div class="info-row">
             <span class="label">门票单价</span>
-            <span class="value">¥{{ order.unitPrice }}</span>
+            <span class="value">￥{{ order.unitPrice }}</span>
           </div>
           <div class="info-row">
             <span class="label">购买数量</span>
@@ -68,7 +71,7 @@
           <el-divider />
           <div class="info-row total">
             <span class="label">实付金额</span>
-            <span class="total-price">¥{{ order.totalPrice }}</span>
+            <span class="total-price">￥{{ order.totalPrice }}</span>
           </div>
         </div>
       </div>
@@ -76,7 +79,13 @@
       <div class="detail-sidebar">
         <div class="sidebar-card card" v-if="showActions">
           <h3 class="card-title">操作</h3>
-          <el-button v-if="order.canPay" type="primary" size="large" class="action-btn" @click="handlePay">
+          <el-button
+            v-if="order.canPay && !timeoutRefreshInProgress"
+            type="primary"
+            size="large"
+            class="action-btn"
+            @click="handlePay"
+          >
             立即支付
           </el-button>
           <el-button v-if="order.canCancel" size="large" class="action-btn" @click="handleCancel">
@@ -95,74 +104,168 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ArrowRight, Timer, SuccessFilled, CircleCheckFilled, CircleCloseFilled, RefreshLeft, Document } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { getOrderDetail, payOrder, cancelOrder } from '@/modules/order/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
-import { ElMessage, ElMessageBox } from 'element-plus'
 
-// 基础依赖与路由状态
 const route = useRoute()
 const router = useRouter()
 
-// 页面数据状态
 const order = ref(null)
+const countdownText = ref('')
+const detailLoading = ref(false)
+const timeoutRefreshInProgress = ref(false)
 
-// 计算属性
+let countdownTimer = null
+let countdownTargetMs = null
+let hasTriggeredTimeoutRefresh = false
+let pendingTimeoutRefresh = false
+
 const showActions = computed(() => {
   if (!order.value) return false
   return order.value.canPay || order.value.canCancel || order.value.status === 'completed'
 })
 
-// 工具方法
 const getStatusIcon = (status) => {
-  const map = { pending: '⏳', paid: '✅', completed: '🎉', cancelled: '❌' }
-  return map[status] || '🧾'
+  const map = {
+    pending: Timer,
+    paid: SuccessFilled,
+    completed: CircleCheckFilled,
+    cancelled: CircleCloseFilled,
+    refunded: RefreshLeft
+  }
+  return map[status] || Document
 }
 
 const getStatusDesc = (status) => {
   const map = {
-    pending: '请尽快完成支付',
+    pending: '请在 5 分钟内完成支付',
     paid: '已支付成功，祝您旅途愉快',
     completed: '订单已完成，可前往评价',
-    cancelled: '订单已取消'
+    cancelled: '订单已取消',
+    refunded: '订单已退款'
   }
   return map[status] || ''
 }
 
-// 数据加载方法
-const fetchDetail = async () => {
+const parseDateTime = (value) => {
+  if (!value) return null
+  const normalized = value.includes('T') ? value : value.replace(' ', 'T')
+  const date = new Date(normalized)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const formatRemaining = (seconds) => {
+  if (seconds <= 0) return '00:00'
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = Math.floor(seconds % 60)
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+}
+
+const clearCountdown = () => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+  countdownTargetMs = null
+}
+
+const fetchDetail = async ({ autoCancelOnPending = false } = {}) => {
+  if (detailLoading.value) return
+
+  detailLoading.value = true
   try {
     const res = await getOrderDetail(route.params.id)
     order.value = res.data
-  } catch (e) {
+
+    if (autoCancelOnPending && order.value?.status === 'pending') {
+      await cancelOrder(order.value.id)
+      const refreshed = await getOrderDetail(route.params.id)
+      order.value = refreshed.data
+      // ElMessage.warning('订单支付超时，已自动取消')
+    }
+
+    if (order.value?.status !== 'pending') {
+      timeoutRefreshInProgress.value = false
+    }
+
+    setupCountdown()
+  } catch (_error) {
     ElMessage.error('获取订单详情失败')
+  } finally {
+    detailLoading.value = false
+    if (pendingTimeoutRefresh) {
+      pendingTimeoutRefresh = false
+      void fetchDetail({ autoCancelOnPending: true })
+    }
   }
 }
 
-// 交互处理方法
+const triggerTimeoutRefresh = async () => {
+  timeoutRefreshInProgress.value = true
+
+  if (detailLoading.value) {
+    pendingTimeoutRefresh = true
+    return
+  }
+
+  await fetchDetail({ autoCancelOnPending: true })
+}
+
+const setupCountdown = () => {
+  clearCountdown()
+  countdownText.value = ''
+
+  if (!order.value || order.value.status !== 'pending' || timeoutRefreshInProgress.value) {
+    return
+  }
+
+  const createdAt = parseDateTime(order.value.createdAt)
+  if (!createdAt) return
+
+  hasTriggeredTimeoutRefresh = false
+  countdownTargetMs = createdAt.getTime() + 5 * 60 * 1000
+
+  const tick = () => {
+    const remaining = Math.floor((countdownTargetMs - Date.now()) / 1000)
+    countdownText.value = formatRemaining(remaining)
+
+    if (remaining <= 0 && !hasTriggeredTimeoutRefresh) {
+      hasTriggeredTimeoutRefresh = true
+      clearCountdown()
+      void triggerTimeoutRefresh()
+    }
+  }
+
+  tick()
+  countdownTimer = window.setInterval(tick, 1000)
+}
+
 const handlePay = async () => {
   try {
     await ElMessageBox.confirm('确定要支付该订单吗？', '支付确认', { type: 'info' })
     const idempotentKey = `${order.value.id}-${Date.now()}`
     await payOrder(order.value.id, idempotentKey)
     ElMessage.success('支付成功')
-    fetchDetail()
-  } catch (e) {
-    // 用户取消支付确认或接口已提示失败原因时，这里保持静默。
+    timeoutRefreshInProgress.value = false
+    void fetchDetail()
+  } catch (_error) {
   }
 }
 
 const handleCancel = async () => {
   try {
-    const msg = order.value.status === 'paid' ? '确定要申请退款吗？' : '确定要取消订单吗？'
-    await ElMessageBox.confirm(msg, '提示', { type: 'warning' })
+    const message = order.value.status === 'paid' ? '确定要申请退款吗？' : '确定要取消订单吗？'
+    await ElMessageBox.confirm(message, '提示', { type: 'warning' })
     await cancelOrder(order.value.id)
     ElMessage.success('操作成功')
-    fetchDetail()
-  } catch (e) {
-    // 用户取消确认或接口已提示失败原因时，这里不再重复弹窗。
+    timeoutRefreshInProgress.value = false
+    void fetchDetail()
+  } catch (_error) {
   }
 }
 
@@ -170,9 +273,12 @@ const handleReview = () => {
   router.push(`/spots/${order.value.spotId}?openReview=1&source=order`)
 }
 
-// 生命周期
 onMounted(() => {
-  fetchDetail()
+  void fetchDetail()
+})
+
+onUnmounted(() => {
+  clearCountdown()
 })
 </script>
 
@@ -203,6 +309,7 @@ onMounted(() => {
   &.paid { background: linear-gradient(135deg, #e6f7e6, #c8f0c8); }
   &.completed { background: linear-gradient(135deg, #e6f0ff, #ccdeff); }
   &.cancelled { background: linear-gradient(135deg, #ffe6e6, #ffd6d6); }
+  &.refunded { background: linear-gradient(135deg, #fce7f3, #fbcfe8); }
 }
 
 .status-info {
@@ -224,6 +331,13 @@ onMounted(() => {
 .status-desc {
   font-size: 14px;
   color: #606266;
+}
+
+.countdown-text {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #8a5a00;
 }
 
 .info-card {
@@ -300,6 +414,7 @@ onMounted(() => {
   width: 100%;
   border-radius: 8px;
   margin-bottom: 8px;
+  margin-left: 0 !important;
 
   &:last-child {
     margin-bottom: 0;
