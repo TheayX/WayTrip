@@ -19,7 +19,6 @@ import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.RecommendationService;
 import com.travel.service.SpotHeatService;
-import com.travel.service.cache.RecommendationCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,14 +40,13 @@ public class SpotHeatServiceImpl implements SpotHeatService {
     private final UserSpotViewMapper userSpotViewMapper;
     private final OrderMapper orderMapper;
     private final RecommendationService recommendationService;
-    private final RecommendationCacheService recommendationCacheService;
 
     @Override
     @Transactional
     public void refreshSpotHeat(Long spotId) {
         Spot spot = getActiveSpot(spotId);
         applyHeatScore(spot);
-        recommendationCacheService.deleteHomeHotSpots();
+        recommendationService.invalidateGlobalRecommendationCaches();
     }
 
     @Override
@@ -63,7 +61,7 @@ public class SpotHeatServiceImpl implements SpotHeatService {
         for (Spot spot : spots) {
             applyHeatScore(spot);
         }
-        recommendationCacheService.deleteHomeHotSpots();
+        recommendationService.invalidateGlobalRecommendationCaches();
     }
 
     private void applyHeatScore(Spot spot) {

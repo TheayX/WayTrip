@@ -183,6 +183,7 @@ public class ReviewServiceImpl implements ReviewService {
     public void refreshSpotRating(Long spotId) {
         getAvailableSpot(spotId);
         updateSpotAvgRating(spotId);
+        recommendationService.invalidateGlobalRecommendationCaches();
     }
 
     @Override
@@ -197,6 +198,7 @@ public class ReviewServiceImpl implements ReviewService {
         for (Spot spot : spots) {
             updateSpotAvgRating(spot.getId());
         }
+        recommendationService.invalidateGlobalRecommendationCaches();
     }
 
     @Override

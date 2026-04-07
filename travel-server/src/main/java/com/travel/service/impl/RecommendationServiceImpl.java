@@ -125,6 +125,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         recommendationCacheService.deleteUserRecommendation(userId);
     }
 
+    @Override
+    public void invalidateGlobalRecommendationCaches() {
+        recommendationCacheService.deleteHomeHotSpots();
+        recommendationCacheService.deleteAllUserRecommendations();
+    }
+
     // 推荐结果计算与冷启动兜底
 
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
@@ -563,6 +569,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 simTTL,
                 topK
             );
+            invalidateGlobalRecommendationCaches();
         } finally {
             computing.set(false);
         }
@@ -728,6 +735,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     @Override
     public void updateConfig(RecommendationConfigBundleDTO config) {
         recommendationConfigSupport.updateConfig(config);
+        invalidateGlobalRecommendationCaches();
         log.info("推荐算法配置已更新 {}", config);
     }
 

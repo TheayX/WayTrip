@@ -99,6 +99,16 @@ public class RecommendationCacheService {
     }
 
     /**
+     * 删除所有用户推荐结果缓存。
+     */
+    public void deleteAllUserRecommendations() {
+        Set<String> keys = redisTemplate.keys("waytrip:recommendation:user:*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
+    }
+
+    /**
      * 获取指定景点的相似度缓存。
      *
      * @param spotId 景点 ID

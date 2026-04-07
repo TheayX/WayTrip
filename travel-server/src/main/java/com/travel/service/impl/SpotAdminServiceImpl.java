@@ -19,6 +19,7 @@ import com.travel.mapper.SpotMapper;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
+import com.travel.service.RecommendationService;
 import com.travel.service.SpotAdminService;
 import com.travel.service.support.spot.SpotResponseAssembler;
 import com.travel.service.support.spot.SpotTreeSupport;
@@ -49,6 +50,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     private final SpotResponseAssembler spotResponseAssembler;
     private final SpotTreeSupport spotTreeSupport;
     private final SpotWriteSupport spotWriteSupport;
+    private final RecommendationService recommendationService;
 
     @Override
     public PageResult<AdminSpotListResponse> getAdminSpotList(AdminSpotListRequest request) {
@@ -138,6 +140,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         spotWriteSupport.copyUpsertRequest(request, spot);
         spotMapper.insert(spot);
         spotWriteSupport.saveSpotImages(spot.getId(), request.getImages());
+        recommendationService.invalidateGlobalRecommendationCaches();
         log.info("景点创建成功: spotId={}, name={}", spot.getId(), spot.getName());
         return spot.getId();
     }
@@ -154,6 +157,8 @@ public class SpotAdminServiceImpl implements SpotAdminService {
             spotWriteSupport.saveSpotImages(spotId, request.getImages());
         }
 
+        recommendationService.invalidateGlobalRecommendationCaches();
+
         log.info("景点更新成功: spotId={}, name={}", spotId, request.getName());
     }
 
@@ -162,6 +167,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         Spot spot = getExistingSpot(spotId);
         spot.setIsPublished(Boolean.TRUE.equals(published) ? 1 : 0);
         spotMapper.updateById(spot);
+        recommendationService.invalidateGlobalRecommendationCaches();
         log.info("景点发布状态变更: spotId={}, published={}", spotId, published);
     }
 
@@ -172,6 +178,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         spotMapper.updateById(spot);
 
         markSpotImagesDeleted(spotId);
+        recommendationService.invalidateGlobalRecommendationCaches();
         log.info("景点已删除: spotId={}, name={}", spotId, spot.getName());
     }
 

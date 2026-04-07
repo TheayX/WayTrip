@@ -110,6 +110,11 @@ public interface RecommendationService {
     void invalidateUserRecommendationCache(Long userId);
 
     /**
+     * 清理全局推荐缓存。
+     */
+    void invalidateGlobalRecommendationCaches();
+
+    /**
      * 获取推荐引擎运行状态。
      *
      * @return 推荐引擎状态
