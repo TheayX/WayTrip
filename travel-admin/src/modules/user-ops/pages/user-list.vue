@@ -62,6 +62,7 @@
 
       <!-- 用户列表 -->
       <el-table v-else :data="userList" v-loading="loading" class="user-table borderless-table">
+        <el-table-column prop="id" label="ID" width="80" align="center" header-align="center" />
         <el-table-column label="头像" width="80">
           <template #default="{ row }">
             <el-avatar :src="row.avatar" :size="40">{{ row.nickname?.charAt(0) }}</el-avatar>

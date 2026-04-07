@@ -136,6 +136,10 @@ public class RecommendationSimilaritySupport {
      */
     public OfflineMatrixSnapshot buildOfflineInteractionMatrix(Set<Long> activeSpotIds, RecommendationAlgorithmConfigDTO algorithmConfig) {
         Map<Long, Map<Long, Double>> userItemMatrix = new HashMap<>();
+        Map<Long, Map<Long, Double>> viewMatrix = new HashMap<>();
+        Map<Long, Map<Long, Double>> favoriteMatrix = new HashMap<>();
+        Map<Long, Map<Long, Double>> reviewMatrix = new HashMap<>();
+        Map<Long, Map<Long, Double>> orderMatrix = new HashMap<>();
         Set<Long> allSpotIds = new HashSet<>();
 
         List<UserSpotView> allViews = userSpotViewMapper.selectList(
@@ -146,8 +150,8 @@ public class RecommendationSimilaritySupport {
             if (!activeSpotIds.contains(view.getSpotId())) {
                 continue;
             }
-            recommendationScoreSupport.mergeInteractionWeight(
-                userItemMatrix.computeIfAbsent(view.getUserId(), key -> new HashMap<>()),
+            recommendationScoreSupport.mergeBehaviorWeight(
+                viewMatrix.computeIfAbsent(view.getUserId(), key -> new HashMap<>()),
                 view.getSpotId(),
                 recommendationScoreSupport.calculateViewWeight(view, algorithmConfig)
             );
@@ -163,8 +167,8 @@ public class RecommendationSimilaritySupport {
             if (!activeSpotIds.contains(favorite.getSpotId())) {
                 continue;
             }
-            recommendationScoreSupport.mergeInteractionWeight(
-                userItemMatrix.computeIfAbsent(favorite.getUserId(), key -> new HashMap<>()),
+            recommendationScoreSupport.mergeBehaviorWeight(
+                favoriteMatrix.computeIfAbsent(favorite.getUserId(), key -> new HashMap<>()),
                 favorite.getSpotId(),
                 algorithmConfig.getWeightFavorite() == null ? 1.0 : algorithmConfig.getWeightFavorite()
             );
@@ -180,8 +184,8 @@ public class RecommendationSimilaritySupport {
             if (!activeSpotIds.contains(review.getSpotId())) {
                 continue;
             }
-            recommendationScoreSupport.mergeInteractionWeight(
-                userItemMatrix.computeIfAbsent(review.getUserId(), key -> new HashMap<>()),
+            recommendationScoreSupport.mergeBehaviorWeight(
+                reviewMatrix.computeIfAbsent(review.getUserId(), key -> new HashMap<>()),
                 review.getSpotId(),
                 review.getScore() * (algorithmConfig.getWeightReviewFactor() == null ? 0.4 : algorithmConfig.getWeightReviewFactor())
             );
@@ -198,8 +202,8 @@ public class RecommendationSimilaritySupport {
             if (!activeSpotIds.contains(order.getSpotId())) {
                 continue;
             }
-            recommendationScoreSupport.mergeInteractionWeight(
-                userItemMatrix.computeIfAbsent(order.getUserId(), key -> new HashMap<>()),
+            recommendationScoreSupport.mergeBehaviorWeight(
+                orderMatrix.computeIfAbsent(order.getUserId(), key -> new HashMap<>()),
                 order.getSpotId(),
                 order.getStatus() == OrderStatus.COMPLETED.getCode()
                     ? (algorithmConfig.getWeightOrderCompleted() == null ? 4.0 : algorithmConfig.getWeightOrderCompleted())
@@ -208,8 +212,20 @@ public class RecommendationSimilaritySupport {
             allSpotIds.add(order.getSpotId());
         }
 
+        mergeBehaviorMatrix(userItemMatrix, viewMatrix);
+        mergeBehaviorMatrix(userItemMatrix, favoriteMatrix);
+        mergeBehaviorMatrix(userItemMatrix, reviewMatrix);
+        mergeBehaviorMatrix(userItemMatrix, orderMatrix);
+
         recommendationScoreSupport.logUserItemMatrixSamples(userItemMatrix);
         return new OfflineMatrixSnapshot(userItemMatrix, allSpotIds);
+    }
+
+    private void mergeBehaviorMatrix(Map<Long, Map<Long, Double>> userItemMatrix, Map<Long, Map<Long, Double>> behaviorMatrix) {
+        behaviorMatrix.forEach((userId, spotWeights) -> {
+            Map<Long, Double> mergedWeights = userItemMatrix.computeIfAbsent(userId, key -> new HashMap<>());
+            recommendationScoreSupport.mergeInteractionWeight(mergedWeights, spotWeights);
+        });
     }
 
     public Map<Long, Integer> summarizeUserActivityCount(Map<Long, Map<Long, Double>> userItemMatrix) {

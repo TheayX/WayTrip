@@ -51,27 +51,31 @@ public class RecommendationScoreSupport {
 
     public Map<Long, Double> buildUserInteractionWeights(Long userId, RecommendationAlgorithmConfigDTO config) {
         Map<Long, Double> weights = new HashMap<>();
+        Map<Long, Double> viewWeights = new HashMap<>();
+        Map<Long, Double> favoriteWeights = new HashMap<>();
+        Map<Long, Double> reviewWeights = new HashMap<>();
+        Map<Long, Double> orderWeights = new HashMap<>();
 
         userSpotViewMapper.selectList(
             new LambdaQueryWrapper<UserSpotView>()
                 .eq(UserSpotView::getUserId, userId)
                 .select(UserSpotView::getSpotId, UserSpotView::getViewSource, UserSpotView::getViewDuration)
-        ).forEach(view -> mergeInteractionWeight(weights, view.getSpotId(), calculateViewWeight(view, config)));
+        ).forEach(view -> mergeBehaviorWeight(viewWeights, view.getSpotId(), calculateViewWeight(view, config)));
 
         userSpotFavoriteMapper.selectList(
             new LambdaQueryWrapper<UserSpotFavorite>()
                 .eq(UserSpotFavorite::getUserId, userId)
                 .eq(UserSpotFavorite::getIsDeleted, 0)
                 .select(UserSpotFavorite::getSpotId)
-        ).forEach(favorite -> mergeInteractionWeight(weights, favorite.getSpotId(), config.getWeightFavorite()));
+        ).forEach(favorite -> mergeBehaviorWeight(favoriteWeights, favorite.getSpotId(), config.getWeightFavorite()));
 
         reviewMapper.selectList(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
                 .eq(Review::getIsDeleted, 0)
                 .select(Review::getSpotId, Review::getScore)
-        ).forEach(review -> mergeInteractionWeight(
-            weights,
+        ).forEach(review -> mergeBehaviorWeight(
+            reviewWeights,
             review.getSpotId(),
             review.getScore() * config.getWeightReviewFactor()
         ));
@@ -86,9 +90,13 @@ public class RecommendationScoreSupport {
             double weight = order.getStatus() == OrderStatus.COMPLETED.getCode()
                 ? config.getWeightOrderCompleted()
                 : config.getWeightOrderPaid();
-            mergeInteractionWeight(weights, order.getSpotId(), weight);
+            mergeBehaviorWeight(orderWeights, order.getSpotId(), weight);
         });
 
+        mergeInteractionWeight(weights, viewWeights);
+        mergeInteractionWeight(weights, favoriteWeights);
+        mergeInteractionWeight(weights, reviewWeights);
+        mergeInteractionWeight(weights, orderWeights);
         return weights;
     }
 
@@ -104,6 +112,20 @@ public class RecommendationScoreSupport {
             return;
         }
         weights.merge(spotId, weight, Double::sum);
+    }
+
+    public void mergeBehaviorWeight(Map<Long, Double> weights, Long spotId, Double weight) {
+        if (weights == null || spotId == null || weight == null || weight <= 0) {
+            return;
+        }
+        weights.merge(spotId, weight, Math::max);
+    }
+
+    public void mergeInteractionWeight(Map<Long, Double> targetWeights, Map<Long, Double> behaviorWeights) {
+        if (targetWeights == null || behaviorWeights == null || behaviorWeights.isEmpty()) {
+            return;
+        }
+        behaviorWeights.forEach((spotId, weight) -> mergeInteractionWeight(targetWeights, spotId, weight));
     }
 
     public Map<Long, Double> applyHeatRerank(Map<Long, Double> scoreMap, RecommendationHeatConfigDTO config, boolean debug) {
