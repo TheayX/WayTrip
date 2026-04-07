@@ -404,6 +404,82 @@ public class RecommendationScoreSupport {
         debugInfo.setBehaviorDetails(details);
     }
 
+    public void populateInteractionDebugInfoDetailed(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> userInteractions) {
+        if (debugInfo == null) {
+            return;
+        }
+        debugInfo.setInteractionCount(userInteractions.size());
+        Map<Long, String> interactionDescriptions = buildInteractionDescriptions(debugInfo.getBehaviorDetails());
+        debugInfo.setUserInteractions(userInteractions.entrySet().stream()
+            .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+            .map(entry -> new RecommendationResponse.DebugEntry(
+                entry.getKey(),
+                recommendationQuerySupport.getSpotName(entry.getKey()),
+                entry.getValue(),
+                interactionDescriptions.getOrDefault(entry.getKey(), "用户对该景点的融合交互权重")
+            ))
+            .collect(Collectors.toList()));
+    }
+
+    private Map<Long, String> buildInteractionDescriptions(List<RecommendationResponse.BehaviorDetail> behaviorDetails) {
+        if (behaviorDetails == null || behaviorDetails.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<Long, Map<String, RecommendationResponse.BehaviorDetail>> groupedDetails = new LinkedHashMap<>();
+        for (RecommendationResponse.BehaviorDetail detail : behaviorDetails) {
+            if (detail == null || detail.getSpotId() == null || detail.getBehavior() == null) {
+                continue;
+            }
+
+            groupedDetails
+                .computeIfAbsent(detail.getSpotId(), key -> new LinkedHashMap<>())
+                .merge(detail.getBehavior(), detail, (left, right) -> {
+                    double leftScore = left.getScore() == null ? Double.NEGATIVE_INFINITY : left.getScore();
+                    double rightScore = right.getScore() == null ? Double.NEGATIVE_INFINITY : right.getScore();
+                    return rightScore > leftScore ? right : left;
+                });
+        }
+
+        Map<Long, String> descriptions = new HashMap<>();
+        for (Map.Entry<Long, Map<String, RecommendationResponse.BehaviorDetail>> entry : groupedDetails.entrySet()) {
+            List<RecommendationResponse.BehaviorDetail> details = new ArrayList<>(entry.getValue().values());
+            details.sort(
+                Comparator.comparingInt((RecommendationResponse.BehaviorDetail detail) -> getBehaviorPriority(detail.getBehavior()))
+                    .thenComparing(
+                        RecommendationResponse.BehaviorDetail::getScore,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                    )
+            );
+
+            String mergedDescription = details.stream()
+                .map(detail -> String.format(Locale.ROOT, "%s%.4f", detail.getBehavior(), defaultDouble(detail.getScore(), 0.0)))
+                .collect(Collectors.joining("+"));
+
+            descriptions.put(entry.getKey(), "用户对该景点的融合交互权重：" + mergedDescription);
+        }
+        return descriptions;
+    }
+
+    private int getBehaviorPriority(String behavior) {
+        if (behavior == null) {
+            return Integer.MAX_VALUE;
+        }
+        if (behavior.startsWith("订单")) {
+            return 0;
+        }
+        if ("评分".equals(behavior)) {
+            return 1;
+        }
+        if ("收藏".equals(behavior)) {
+            return 2;
+        }
+        if ("浏览".equals(behavior)) {
+            return 3;
+        }
+        return 4;
+    }
+
     public void populateScoreDebugEntries(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> scores, String description) {
         if (debugInfo == null) {
             return;

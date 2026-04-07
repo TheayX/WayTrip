@@ -152,8 +152,9 @@
               :key="section.key"
               :name="section.key"
               :title="`${section.title}（${section.items.length}）`"
+              :class="{ 'highlight-interactions-section': section.key === 'interactions' }"
             >
-              <el-table :data="section.items" stripe size="small">
+              <el-table :data="section.items" stripe size="small" :class="{ 'highlight-interactions-table': section.key === 'interactions' }">
                 <el-table-column prop="spotId" label="景点ID" width="100" />
                 <el-table-column prop="spotName" label="景点名称" min-width="180" />
                 <el-table-column label="分数/权重" width="140">
@@ -162,31 +163,12 @@
                     <span v-else class="score-empty">-</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="description" label="说明" min-width="260" />
-              </el-table>
-            </el-collapse-item>
-          </el-collapse>
-        </div>
-
-        <div v-if="resultContributions.length" class="debug-sections">
-          <div class="debug-block-title">结果贡献来源</div>
-          <el-collapse>
-            <el-collapse-item
-              v-for="item in resultContributions.slice(0, 8)"
-              :key="`contrib-${item.targetSpotId}`"
-              :title="`${item.targetSpotName}（最终分数 ${item.finalScore == null ? '-' : Number(item.finalScore).toFixed(4)}）`"
-              :name="`contrib-${item.targetSpotId}`"
-            >
-              <el-table :data="item.contributors" stripe size="small">
-                <el-table-column prop="spotId" label="历史景点ID" width="120" />
-                <el-table-column prop="spotName" label="历史景点名称" min-width="180" />
-                <el-table-column label="贡献分值" width="140">
+                <el-table-column label="说明" min-width="260">
                   <template #default="{ row }">
-                    <span v-if="row.score != null" class="score-text">{{ Number(row.score).toFixed(4) }}</span>
-                    <span v-else class="score-empty">-</span>
+                    <div v-if="section.key === 'interactions'" v-html="formatDescription(row.description)"></div>
+                    <div v-else>{{ row.description }}</div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="description" label="贡献说明" min-width="260" />
               </el-table>
             </el-collapse-item>
           </el-collapse>
@@ -214,6 +196,30 @@
           </div>
         </div>
 
+        <div v-if="resultContributions.length" class="debug-sections">
+          <div class="debug-block-title">结果贡献来源</div>
+          <el-collapse>
+            <el-collapse-item
+              v-for="item in resultContributions.slice(0, 8)"
+              :key="`contrib-${item.targetSpotId}`"
+              :title="`${item.targetSpotName}（最终分数 ${item.finalScore == null ? '-' : Number(item.finalScore).toFixed(4)}）`"
+              :name="`contrib-${item.targetSpotId}`"
+            >
+              <el-table :data="item.contributors" stripe size="small">
+                <el-table-column prop="spotId" label="历史景点ID" width="120" />
+                <el-table-column prop="spotName" label="历史景点名称" min-width="180" />
+                <el-table-column label="贡献分值" width="140">
+                  <template #default="{ row }">
+                    <span v-if="row.score != null" class="score-text">{{ Number(row.score).toFixed(4) }}</span>
+                    <span v-else class="score-empty">-</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="description" label="贡献说明" min-width="260" />
+              </el-table>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
+
         <div v-if="debugResult" class="debug-sections">
           <div class="debug-block-title">原始摘要</div>
           <el-collapse>
@@ -225,35 +231,42 @@
           </el-collapse>
         </div>
 
-        <el-table v-if="debugItems.length" :data="debugTableRows" stripe class="debug-table">
-          <el-table-column prop="rank" label="排名" width="80" />
-          <el-table-column prop="id" label="景点ID" width="100" />
-          <el-table-column prop="name" label="景点名称" min-width="180" />
-          <el-table-column prop="categoryName" label="分类" width="140" />
-          <el-table-column prop="regionName" label="地区" width="140" />
-          <el-table-column label="价格" width="120">
-            <template #default="{ row }">
-              <span>{{ row.priceText }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="评分概况" min-width="180">
-            <template #default="{ row }">
-              <span>{{ row.ratingText }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="推荐分数" width="160">
-            <template #default="{ row }">
-              <span v-if="row.score != null" class="score-text">{{ row.scoreText }}</span>
-              <span v-else class="score-empty">-</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="结果解读" min-width="260">
-            <template #default="{ row }">
-              <span>{{ row.reason }}</span>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-empty v-else :description="debugResult ? '本次请求已返回空列表，请结合上方调试输出查看原因' : '暂无调试结果'" />
+        <div class="debug-sections">
+          <div class="debug-block-title">完整推荐列表明细</div>
+          <el-collapse v-if="debugItems.length">
+            <el-collapse-item name="full-list" title="查看完整推荐列表及结果解读">
+              <el-table :data="debugTableRows" stripe class="debug-table">
+                <el-table-column prop="rank" label="排名" width="80" />
+                <el-table-column prop="id" label="景点ID" width="100" />
+                <el-table-column prop="name" label="景点名称" min-width="180" />
+                <el-table-column prop="categoryName" label="分类" width="140" />
+                <el-table-column prop="regionName" label="地区" width="140" />
+                <el-table-column label="价格" width="120">
+                  <template #default="{ row }">
+                    <span>{{ row.priceText }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="评分概况" min-width="180">
+                  <template #default="{ row }">
+                    <span>{{ row.ratingText }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="推荐分数" width="160">
+                  <template #default="{ row }">
+                    <span v-if="row.score != null" class="score-text">{{ row.scoreText }}</span>
+                    <span v-else class="score-empty">-</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="结果解读" min-width="260">
+                  <template #default="{ row }">
+                    <span>{{ row.reason }}</span>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-collapse-item>
+          </el-collapse>
+          <el-empty v-else :description="debugResult ? '本次请求已返回空列表，请结合上方调试输出查看原因' : '暂无调试结果'" />
+        </div>
       </el-tab-pane>
 
       <el-tab-pane label="相似邻居预览" name="similarity">
@@ -352,6 +365,12 @@ const emit = defineEmits([
   'preview-similarity-update'
 ])
 
+const formatDescription = (desc) => {
+  if (!desc) return ''
+  // 高亮带有小数的数字（通常是权重或分数）
+  return desc.replace(/(\d+\.\d+)/g, match => `<span class="highlight-number">${match}</span>`)
+}
+
 defineExpose({
   get $el() {
     return debugCardRef.value?.$el || debugCardRef.value
@@ -414,6 +433,29 @@ defineExpose({
 .debug-table { margin-top: 8px; }
 .score-text { font-family: 'Consolas', 'Menlo', monospace; color: #1677ff; font-weight: 600; }
 .score-empty { color: #bfbfbf; }
+
+.highlight-interactions-section :deep(.el-collapse-item__header) {
+  color: #ff6b18;
+  font-weight: 700;
+  background: linear-gradient(90deg, rgba(255, 107, 24, 0.08) 0%, transparent 100%);
+  padding-left: 12px;
+  border-left: 3px solid #ff6b18;
+}
+.highlight-interactions-table {
+  border: 1px solid rgba(255, 107, 24, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+:deep(.highlight-number) {
+  color: #ff6b18;
+  font-family: 'Consolas', 'Menlo', monospace;
+  font-weight: 700;
+  background: rgba(255, 107, 24, 0.1);
+  padding: 0 4px;
+  border-radius: 4px;
+  margin: 0 2px;
+}
+
 @media (max-width: 1200px) {
   .debug-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pipeline-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

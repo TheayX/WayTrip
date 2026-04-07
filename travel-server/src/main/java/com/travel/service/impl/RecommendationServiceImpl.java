@@ -656,7 +656,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private void populateInteractionDebugInfo(RecommendationResponse.DebugInfo debugInfo, Map<Long, Double> userInteractions) {
-        recommendationScoreSupport.populateInteractionDebugInfo(debugInfo, userInteractions);
+        recommendationScoreSupport.populateInteractionDebugInfoDetailed(debugInfo, userInteractions);
     }
 
     private void populateBehaviorStats(RecommendationResponse.DebugInfo debugInfo, Long userId) {
