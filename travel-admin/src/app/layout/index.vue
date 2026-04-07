@@ -86,11 +86,11 @@
                   @mousedown.prevent="handleSearchSelect(item)"
                   @mouseenter="activeSearchResultIndex = index"
                 >
-                  <div class="top-search-result-main">
+                  <span class="top-search-result-main">
                     <span class="top-search-result-title">{{ item.title }}</span>
                     <span class="top-search-result-group">{{ item.groupTitle }}</span>
-                  </div>
-                  <div class="top-search-result-desc">{{ item.description }}</div>
+                  </span>
+                  <span class="top-search-result-desc">{{ item.description }}</span>
                 </button>
               </div>
               <div v-else class="top-search-empty">
@@ -126,12 +126,72 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <!-- 消息通知角标 -->
-          <div class="action-icon">
-            <el-badge is-dot class="item">
-              <el-icon><Bell /></el-icon>
-            </el-badge>
-          </div>
+          <!-- 消息通知 -->
+          <el-popover
+            v-model:visible="notificationPopoverVisible"
+            trigger="click"
+            placement="bottom-end"
+            :width="420"
+            :teleported="false"
+            popper-class="admin-notification-popover"
+            @show="handleNotificationPopoverShow"
+          >
+            <template #reference>
+              <button type="button" class="action-icon notification-trigger" aria-label="消息通知">
+                <el-badge :value="notificationCount" :hidden="notificationCount === 0" :max="99">
+                  <el-icon><Bell /></el-icon>
+                </el-badge>
+              </button>
+            </template>
+
+            <div class="notification-panel">
+              <div class="notification-panel__header">
+                <div>
+                  <div class="notification-panel__title">消息通知</div>
+                  <div class="notification-panel__sub-title">{{ lastLoadedLabel || '最近注册用户和新订单会显示在这里' }}</div>
+                </div>
+                <el-button text size="small" :loading="notificationLoading" @click="refreshNotifications">刷新</el-button>
+              </div>
+
+              <el-alert
+                v-if="notificationErrorMessage"
+                :title="notificationErrorMessage"
+                type="warning"
+                show-icon
+                :closable="false"
+                class="notification-panel__alert"
+              />
+
+              <div v-if="notificationSections.some(section => section.items.length)" class="notification-panel__content">
+                <section v-for="section in notificationSections" :key="section.key" class="notification-section">
+                  <div class="notification-section__header">
+                    <span>{{ section.title }}</span>
+                    <el-tag effect="plain" size="small">{{ section.count }}</el-tag>
+                  </div>
+                  <div v-if="section.items.length" class="notification-list">
+                    <button
+                      v-for="item in section.items"
+                      :key="item.id"
+                      type="button"
+                      class="notification-item"
+                      @click="openNotification(item)"
+                    >
+                      <span class="notification-item__main">
+                        <span class="notification-item__title-row">
+                          <span class="notification-item__type">{{ item.typeLabel }}</span>
+                          <span class="notification-item__title">{{ item.title }}</span>
+                        </span>
+                        <span class="notification-item__desc">{{ item.description || '点击查看详情' }}</span>
+                      </span>
+                      <span class="notification-item__time">{{ item.timeLabel }}</span>
+                    </button>
+                  </div>
+                </section>
+              </div>
+
+              <el-empty v-else description="最近没有新的用户注册或订单" :image-size="72" />
+            </div>
+          </el-popover>
           <!-- 用户下拉菜单 -->
           <el-dropdown @command="handleCommand" trigger="click">
             <span class="user-info">
@@ -170,6 +230,8 @@ import { useUserStore } from '@/app/store/user.js'
 import { NAVIGATION_GROUPS, NAVIGATION_GROUP_MAP } from '@/shared/constants/navigation.js'
 import { THEME_MODE_OPTIONS } from '@/shared/constants/theme.js'
 import { useTheme } from '@/shared/composables/useTheme.js'
+import { useAdminNotifications } from '@/shared/composables/useAdminNotifications.js'
+import { ElMessage } from 'element-plus'
 import { Fold, Expand, Search, Bell, ArrowDown, Moon, Sunny } from '@element-plus/icons-vue'
 import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
 import brandLogoUrl from '@/shared/assets/brand/waytrip-logo.svg'
@@ -179,9 +241,19 @@ const route = useRoute()
 const userStore = useUserStore()
 const isCollapse = ref(false)
 const { currentTheme, isSystemMode, setThemeMode } = useTheme()
+const {
+  loading: notificationLoading,
+  errorMessage: notificationErrorMessage,
+  lastLoadedAt,
+  lastLoadedLabel,
+  notificationSections,
+  notificationCount,
+  loadNotifications
+} = useAdminNotifications()
 const globalSearchKeyword = ref('')
 const searchPanelVisible = ref(false)
 const activeSearchResultIndex = ref(0)
+const notificationPopoverVisible = ref(false)
 
 const GLOBAL_SEARCH_ITEMS = [
   {
@@ -371,6 +443,25 @@ const handleCommand = (command) => {
   }
 }
 
+const handleNotificationPopoverShow = () => {
+  if (!lastLoadedAt.value) {
+    void refreshNotifications()
+  }
+}
+
+const refreshNotifications = async () => {
+  await loadNotifications()
+  if (notificationErrorMessage.value) {
+    ElMessage.warning(notificationErrorMessage.value)
+  }
+}
+
+const openNotification = (item) => {
+  notificationPopoverVisible.value = false
+  if (!item?.route?.path) return
+  router.push({ path: item.route.path, query: item.route.query || {} })
+}
+
 const currentGroupTitle = computed(() => {
   return NAVIGATION_GROUP_MAP[route.meta?.group]?.title || ''
 })
@@ -473,7 +564,12 @@ onMounted(async () => {
     } catch (e) {
       userStore.logout()
       router.push('/login')
+      return
     }
+  }
+
+  if (userStore.token) {
+    void loadNotifications()
   }
 })
 </script>
@@ -557,12 +653,12 @@ onMounted(async () => {
         background-color: var(--wt-surface-hover);
         color: var(--wt-text-primary);
       }
-    }
 
-    :deep(.el-menu-item.is-active) {
-      background-color: var(--el-color-primary-light-9);
-      color: var(--el-color-primary);
-      font-weight: 600;
+      &.is-active {
+        background-color: var(--el-color-primary-light-9);
+        color: var(--el-color-primary);
+        font-weight: 600;
+      }
     }
   }
 }
@@ -605,6 +701,155 @@ onMounted(async () => {
       background-color: var(--wt-surface-hover);
       color: var(--el-text-color-primary);
     }
+  }
+
+  .notification-trigger {
+    padding: 0;
+    border: none;
+    background: transparent;
+    font: inherit;
+    appearance: none;
+  }
+
+  :deep(.admin-notification-popover) {
+    padding: 0;
+  }
+
+  :deep(.admin-notification-popover .el-popover__title) {
+    display: none;
+  }
+
+  :deep(.admin-notification-popover .el-popover__content) {
+    padding: 0;
+  }
+
+  .notification-panel {
+    padding: 16px;
+    border-radius: 16px;
+    background: var(--wt-surface-elevated);
+    box-shadow: var(--wt-shadow-soft);
+  }
+
+  .notification-panel__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .notification-panel__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--wt-text-primary);
+  }
+
+  .notification-panel__sub-title {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--wt-text-secondary);
+  }
+
+  .notification-panel__alert {
+    margin-bottom: 12px;
+  }
+
+  .notification-panel__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .notification-section {
+    padding: 12px;
+    border: 1px solid var(--wt-border-default);
+    border-radius: 12px;
+    background: var(--wt-surface-panel);
+  }
+
+  .notification-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wt-text-primary);
+  }
+
+  .notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .notification-item {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--wt-surface-elevated);
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--el-color-primary-light-5);
+      background: var(--el-color-primary-light-9);
+      transform: translateY(-1px);
+    }
+  }
+
+  .notification-item__main {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .notification-item__title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .notification-item__type {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--el-color-primary);
+    background: var(--el-color-primary-light-9);
+  }
+
+  .notification-item__title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wt-text-primary);
+  }
+
+  .notification-item__desc {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--wt-text-secondary);
+  }
+
+  .notification-item__time {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--wt-text-secondary);
+    white-space: nowrap;
   }
 
   .theme-switch {
