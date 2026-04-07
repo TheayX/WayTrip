@@ -4,6 +4,43 @@ import { getOrderList } from '@/modules/order/api.js'
 
 const DEFAULT_PAGE_SIZE = 5
 const RECENT_HOURS = 24
+const NOTIFICATION_READ_STORAGE_KEY = 'admin_notifications_read_state'
+
+// 全局响应式标志，用于触发更新
+const readStateUpdateTrigger = ref(0)
+
+// 通知已读状态管理
+const getReadNotifications = () => {
+  try {
+    const stored = localStorage.getItem(NOTIFICATION_READ_STORAGE_KEY)
+    return stored ? JSON.parse(stored) : {}
+  } catch {
+    return {}
+  }
+}
+
+const saveReadNotifications = (state) => {
+  try {
+    localStorage.setItem(NOTIFICATION_READ_STORAGE_KEY, JSON.stringify(state))
+  } catch (e) {
+    console.warn('Failed to save notification read state:', e)
+  }
+}
+
+const markNotificationAsRead = (notificationId) => {
+  const state = getReadNotifications()
+  state[notificationId] = Date.now()
+  saveReadNotifications(state)
+  // 更新触发器，使得依赖它的 computed 重新计算
+  readStateUpdateTrigger.value++
+}
+
+const isNotificationRead = (notificationId) => {
+  // 访问触发器确保这个函数总是被重新执行
+  readStateUpdateTrigger.value
+  const state = getReadNotifications()
+  return notificationId in state
+}
 
 const toTimestamp = (value) => {
   const time = new Date(value).getTime()
@@ -103,7 +140,13 @@ export function useAdminNotifications() {
     }
   ]))
 
-  const notificationCount = computed(() => userNotifications.value.length + orderNotifications.value.length)
+  // 只计算未读的消息数
+  const notificationCount = computed(() => {
+    const unreadUsers = userNotifications.value.filter(item => !isNotificationRead(item.id)).length
+    const unreadOrders = orderNotifications.value.filter(item => !isNotificationRead(item.id)).length
+    return unreadUsers + unreadOrders
+  })
+
   const hasNotifications = computed(() => notificationCount.value > 0)
   const lastLoadedLabel = computed(() => (lastLoadedAt.value ? `最近更新于 ${formatRelativeTime(lastLoadedAt.value)}` : ''))
 
@@ -145,7 +188,9 @@ export function useAdminNotifications() {
     notificationSections,
     notificationCount,
     hasNotifications,
-    loadNotifications
+    loadNotifications,
+    markNotificationAsRead,
+    isNotificationRead
   }
 }
 

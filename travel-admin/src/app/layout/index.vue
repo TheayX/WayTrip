@@ -168,24 +168,26 @@
                     <span>{{ section.title }}</span>
                     <el-tag effect="plain" size="small">{{ section.count }}</el-tag>
                   </div>
-                  <div v-if="section.items.length" class="notification-list">
-                    <button
-                      v-for="item in section.items"
-                      :key="item.id"
-                      type="button"
-                      class="notification-item"
-                      @click="openNotification(item)"
-                    >
-                      <span class="notification-item__main">
-                        <span class="notification-item__title-row">
-                          <span class="notification-item__type">{{ item.typeLabel }}</span>
-                          <span class="notification-item__title">{{ item.title }}</span>
-                        </span>
-                        <span class="notification-item__desc">{{ item.description || '点击查看详情' }}</span>
-                      </span>
-                      <span class="notification-item__time">{{ item.timeLabel }}</span>
-                    </button>
-                  </div>
+                   <div v-if="section.items.length" class="notification-list">
+                     <button
+                       v-for="item in section.items"
+                       :key="item.id"
+                       type="button"
+                       class="notification-item"
+                       :class="{ 'is-read': isNotificationRead(item.id) }"
+                       @click="openNotification(item)"
+                     >
+                       <span v-if="!isNotificationRead(item.id)" class="notification-item__badge"></span>
+                       <span class="notification-item__main">
+                         <span class="notification-item__title-row">
+                           <span class="notification-item__type">{{ item.typeLabel }}</span>
+                           <span class="notification-item__title">{{ item.title }}</span>
+                         </span>
+                         <span class="notification-item__desc">{{ item.description || '点击查看详情' }}</span>
+                       </span>
+                       <span class="notification-item__time">{{ item.timeLabel }}</span>
+                     </button>
+                   </div>
                 </section>
               </div>
 
@@ -248,7 +250,9 @@ const {
   lastLoadedLabel,
   notificationSections,
   notificationCount,
-  loadNotifications
+  loadNotifications,
+  markNotificationAsRead,
+  isNotificationRead
 } = useAdminNotifications()
 const globalSearchKeyword = ref('')
 const searchPanelVisible = ref(false)
@@ -458,6 +462,8 @@ const refreshNotifications = async () => {
 
 const openNotification = (item) => {
   notificationPopoverVisible.value = false
+  // 标记该通知为已读
+  markNotificationAsRead(item.id)
   if (!item?.route?.path) return
   router.push({ path: item.route.path, query: item.route.query || {} })
 }
@@ -786,31 +792,49 @@ onMounted(async () => {
     gap: 8px;
   }
 
-  .notification-item {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    background: var(--wt-surface-elevated);
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    transition: all 0.2s ease;
+   .notification-item {
+     width: 100%;
+     padding: 10px 12px;
+     border: 1px solid transparent;
+     border-radius: 10px;
+     background: var(--wt-surface-elevated);
+     text-align: left;
+     cursor: pointer;
+     display: flex;
+     align-items: flex-start;
+     justify-content: space-between;
+     gap: 12px;
+     transition: all 0.2s ease;
+     position: relative;
 
-    &:hover {
-      border-color: var(--el-color-primary-light-5);
-      background: var(--el-color-primary-light-9);
-      transform: translateY(-1px);
-    }
-  }
+     &:hover {
+       border-color: var(--el-color-primary-light-5);
+       background: var(--el-color-primary-light-9);
+       transform: translateY(-1px);
+     }
 
-  .notification-item__main {
-    min-width: 0;
-    flex: 1;
-  }
+     /* 未读状态 */
+     &:not(.is-read) {
+       background: var(--el-color-primary-light-9);
+     }
+   }
+
+   .notification-item__badge {
+     position: absolute;
+     top: 8px;
+     left: 8px;
+     width: 8px;
+     height: 8px;
+     border-radius: 50%;
+     background: var(--el-color-danger);
+     flex-shrink: 0;
+   }
+
+   .notification-item__main {
+     min-width: 0;
+     flex: 1;
+     margin-left: 12px;
+   }
 
   .notification-item__title-row {
     display: flex;
