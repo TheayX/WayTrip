@@ -1,7 +1,8 @@
 import { useUserStore } from '@/stores/user'
+import { getCurrentPageRoute, traceRuntime } from '@/utils/runtime-trace'
 
 // 常量配置
-const SERVER_URL = 'http://localhost:8080'
+const SERVER_URL = 'https://localhost:8443'
 const BASE_URL = `${SERVER_URL.replace(/\/$/, '')}/api/v1`
 const SUCCESS_CODE = 0
 const AUTH_EXPIRED_CODE = 10002
@@ -61,6 +62,7 @@ const appendQueryParams = (url, params) => {
 // 全局 Loading 引用计数，避免并发请求造成 show/hide 不配对。
 let loadingRefCount = 0
 let authRedirectInProgress = false
+let requestSequence = 0
 
 const showGlobalLoading = (title = '加载中...') => {
   loadingRefCount += 1
@@ -130,6 +132,45 @@ const request = (options) => {
     const userStore = useUserStore()
     const hadToken = Boolean(userStore.token)
     const requestUrl = appendQueryParams(BASE_URL + url, params)
+    const requestId = `${Date.now()}-${++requestSequence}`
+    const startTime = Date.now()
+    const route = getCurrentPageRoute()
+    let requestFinished = false
+
+    traceRuntime('request-start', {
+      requestId,
+      route,
+      method,
+      url,
+      requestUrl
+    })
+
+    const pendingWarningTimer = globalThis.setTimeout(() => {
+      if (requestFinished) return
+      traceRuntime('request-pending-warning', {
+        requestId,
+        route,
+        method,
+        url,
+        durationMs: Date.now() - startTime
+      })
+    }, 8000)
+
+    const finishRequest = (category, payload = {}) => {
+      if (requestFinished) return
+      requestFinished = true
+      if (pendingWarningTimer) {
+        globalThis.clearTimeout(pendingWarningTimer)
+      }
+      traceRuntime(category, {
+        requestId,
+        route,
+        method,
+        url,
+        durationMs: Date.now() - startTime,
+        ...payload
+      })
+    }
 
     if (showLoading) {
       showGlobalLoading('加载中...')
@@ -145,6 +186,10 @@ const request = (options) => {
       },
       success: (res) => {
         if (showLoading) hideGlobalLoading()
+        finishRequest('request-success', {
+          statusCode: res.statusCode,
+          resultCode: res.data?.code
+        })
 
         if (res.statusCode === 200) {
           const result = res.data
@@ -178,6 +223,9 @@ const request = (options) => {
       },
       fail: (err) => {
         if (showLoading) hideGlobalLoading()
+        finishRequest('request-fail', {
+          error: err?.errMsg || JSON.stringify(err || {})
+        })
         uni.showToast({ title: NETWORK_ERROR_MESSAGE, icon: 'none' })
         reject(err)
       }
@@ -206,6 +254,44 @@ export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
   return new Promise((resolve, reject) => {
     const userStore = useUserStore()
     const hadToken = Boolean(userStore.token)
+    const requestId = `${Date.now()}-${++requestSequence}`
+    const startTime = Date.now()
+    const route = getCurrentPageRoute()
+    let requestFinished = false
+
+    traceRuntime('upload-start', {
+      requestId,
+      route,
+      url,
+      filePath,
+      name
+    })
+
+    const pendingWarningTimer = globalThis.setTimeout(() => {
+      if (requestFinished) return
+      traceRuntime('upload-pending-warning', {
+        requestId,
+        route,
+        url,
+        durationMs: Date.now() - startTime
+      })
+    }, 8000)
+
+    const finishUpload = (category, payload = {}) => {
+      if (requestFinished) return
+      requestFinished = true
+      if (pendingWarningTimer) {
+        globalThis.clearTimeout(pendingWarningTimer)
+      }
+      traceRuntime(category, {
+        requestId,
+        route,
+        url,
+        durationMs: Date.now() - startTime,
+        ...payload
+      })
+    }
+
     showGlobalLoading('上传中...')
     uni.uploadFile({
       url: BASE_URL + url,
@@ -217,6 +303,9 @@ export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
       },
       success: (res) => {
         hideGlobalLoading()
+        finishUpload('upload-success', {
+          statusCode: res.statusCode
+        })
         if (res.statusCode === 200) {
           const result = JSON.parse(res.data)
           if (result.code === SUCCESS_CODE) {
@@ -236,6 +325,9 @@ export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
       },
       fail: (err) => {
         hideGlobalLoading()
+        finishUpload('upload-fail', {
+          error: err?.errMsg || JSON.stringify(err || {})
+        })
         uni.showToast({ title: NETWORK_ERROR_MESSAGE, icon: 'none' })
         reject(err)
       }

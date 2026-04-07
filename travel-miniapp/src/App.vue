@@ -1,20 +1,35 @@
 <script setup>
-import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
+import { onLaunch, onShow, onHide, onError, onUnhandledRejection } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
+import { getRuntimeTrace, traceRuntime } from '@/utils/runtime-trace'
 
 onLaunch(() => {
-  console.log('App Launch')
+  traceRuntime('app-launch')
   // 初始化用户状态
   const userStore = useUserStore()
   userStore.initFromStorage()
 })
 
 onShow(() => {
-  console.log('App Show')
+  traceRuntime('app-show')
 })
 
 onHide(() => {
-  console.log('App Hide')
+  traceRuntime('app-hide')
+})
+
+onError((error) => {
+  traceRuntime('app-error', {
+    error: typeof error === 'string' ? error : JSON.stringify(error),
+    recentTrace: getRuntimeTrace().slice(-10)
+  })
+})
+
+onUnhandledRejection((event) => {
+  traceRuntime('app-unhandled-rejection', {
+    reason: typeof event?.reason === 'string' ? event.reason : JSON.stringify(event?.reason || event),
+    recentTrace: getRuntimeTrace().slice(-10)
+  })
 })
 </script>
 
