@@ -39,7 +39,7 @@
         :format-distance="formatDistance"
         @more="goNearby"
         @action="goNearby"
-        @select="router.push(`/spots/${$event.id}?source=nearby`)"
+        @select="router.push(buildSpotDetailRoute($event.id, SPOT_DETAIL_SOURCE.NEARBY))"
       />
 
       <section class="section page-section">
@@ -57,7 +57,7 @@
             v-for="spot in hotSpots"
             :key="spot.id"
             :spot="spot"
-            @select="router.push(`/spots/${spot.id}?source=home`)"
+            @select="router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.HOME))"
           />
         </div>
         <el-empty v-else description="暂无热门景点" />
@@ -89,7 +89,7 @@
             v-for="spot in recommendations.slice(0, 4)"
             :key="spot.id"
             :spot="spot"
-            @select="router.push(`/spots/${spot.id}?source=home`)"
+            @select="router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.HOME))"
           />
         </div>
         <el-empty v-else :description="userStore.isLoggedIn ? '暂无推荐景点' : '登录后查看推荐景点'">
@@ -128,6 +128,7 @@ import { useUserStore } from '@/modules/account/store/user.js'
 import { APP_NAME } from '@/shared/constants/app.js'
 import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
 import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import ExploreKeywordGroup from '@/shared/ui/ExploreKeywordGroup.vue'
 import { getBanners, getHotSpots, getNearbySpots } from '@/modules/home/api.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
@@ -299,7 +300,7 @@ const handleRefresh = async () => {
 
 const handleBannerClick = (banner) => {
   if (banner?.spotId) {
-    router.push(`/spots/${banner.spotId}?source=home`)
+    router.push(buildSpotDetailRoute(banner.spotId, SPOT_DETAIL_SOURCE.HOME))
   }
 }
 

@@ -48,6 +48,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { fetchTrendingViewSpots } from '@/modules/trending-views/api.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const router = useRouter()
 
@@ -72,7 +73,7 @@ const loadTrendingSpots = async () => {
 }
 
 const goSpotDetail = (id) => {
-  router.push(`/spots/${id}?source=trending-views`)
+  router.push(buildSpotDetailRoute(id, SPOT_DETAIL_SOURCE.TRENDING_VIEWS))
 }
 
 onMounted(() => {

@@ -11,7 +11,7 @@
 
     <section v-if="activeTab === 'browse'" class="list-section">
       <div v-if="footprints.length" class="card-list">
-        <article v-for="item in footprints" :key="item.id" class="activity-card card" @click="$router.push(`/spots/${item.id}?source=footprint`)">
+        <article v-for="item in footprints" :key="item.id" class="activity-card card" @click="$router.push(buildSpotDetailRoute(item.id, SPOT_DETAIL_SOURCE.FOOTPRINT))">
           <img :src="getImageUrl(item.coverImage)" class="cover" alt="" />
           <div class="content">
             <h3>{{ item.name }}</h3>
@@ -25,7 +25,7 @@
 
     <section v-if="activeTab === 'favorite'" class="list-section">
       <div v-if="favoriteList.length" class="card-list">
-        <article v-for="spot in favoriteList" :key="spot.id" class="activity-card card" @click="$router.push(`/spots/${spot.id}?source=favorite`)">
+        <article v-for="spot in favoriteList" :key="spot.id" class="activity-card card" @click="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.FAVORITE))">
           <img :src="getImageUrl(spot.coverImage)" class="cover" alt="" />
           <div class="content">
             <h3>{{ spot.name }}</h3>
@@ -55,7 +55,7 @@
             <div class="review-actions">
               <button type="button" class="review-action-button" @click="openEdit(item)">编辑</button>
               <button type="button" class="review-action-button review-action-button--danger" @click="handleDeleteReview(item)">删除</button>
-              <button type="button" class="review-action-button" @click="$router.push(`/spots/${item.spotId}?source=review`)">查看景点</button>
+              <button type="button" class="review-action-button" @click="$router.push(buildSpotDetailRoute(item.spotId, SPOT_DETAIL_SOURCE.REVIEW))">查看景点</button>
             </div>
           </div>
         </article>
@@ -94,6 +94,7 @@ import { getFavoriteList, removeFavorite } from '@/modules/favorite/api.js'
 import { getViewHistory } from '@/modules/spot/api.js'
 import { getFootprints, setFootprints } from '@/shared/lib/footprint.js'
 import { getImageUrl } from '@/shared/api/client.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 // 基础依赖与路由状态
 const route = useRoute()
@@ -122,8 +123,7 @@ const formatViewedTime = (timestamp) => {
 
 // 数据加载方法
 const loadBrowseList = async () => {
-  const cached = getFootprints()
-  footprints.value = cached
+  footprints.value = getFootprints()
 
   try {
     const res = await getViewHistory(1, 20)

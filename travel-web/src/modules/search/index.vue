@@ -62,7 +62,7 @@
             v-for="spot in spotResults"
             :key="spot.id"
             class="result-card card"
-            @click="$router.push(`/spots/${spot.id}?source=search`)"
+            @click="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.SEARCH))"
           >
             <img :src="getImageUrl(spot.coverImage)" class="result-img" alt="" />
             <div class="result-info">
@@ -194,6 +194,7 @@ import { getGuideList } from '@/modules/guide/api.js'
 import { searchSpots } from '@/modules/spot/api.js'
 import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
 import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import ExploreKeywordGroup from '@/shared/ui/ExploreKeywordGroup.vue'
 import ExploreSuggestionGrid from '@/shared/ui/ExploreSuggestionGrid.vue'
 
@@ -298,7 +299,7 @@ const applyKeyword = async (value) => {
 }
 
 const handleFallbackSpotSelect = (item) => {
-  router.push(`/spots/${item.targetId}?source=search`)
+  router.push(buildSpotDetailRoute(item.targetId, SPOT_DETAIL_SOURCE.SEARCH))
 }
 
 const handleFallbackGuideSelect = (item) => {

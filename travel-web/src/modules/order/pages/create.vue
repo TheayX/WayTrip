@@ -3,7 +3,7 @@
   <div class="page-container" v-if="spot">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: `/spots/${spot.id}`, query: { source: 'order' } }">{{ spot.name }}</el-breadcrumb-item>
+      <el-breadcrumb-item :to="buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.ORDER)">{{ spot.name }}</el-breadcrumb-item>
       <el-breadcrumb-item>创建订单</el-breadcrumb-item>
     </el-breadcrumb>
 
@@ -82,6 +82,7 @@ import { getSpotDetail } from '@/modules/spot/api.js'
 import { createOrder } from '@/modules/order/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ElMessage } from 'element-plus'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 // 基础依赖与路由状态
 const route = useRoute()

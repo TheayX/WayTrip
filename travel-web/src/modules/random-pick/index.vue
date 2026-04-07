@@ -62,6 +62,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getImageUrl } from '@/shared/api/client.js'
 import { fetchRandomPickSpot } from '@/modules/random-pick/api.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const router = useRouter()
 
@@ -118,7 +119,7 @@ const drawSpot = async () => {
 
 const goDetail = () => {
   if (!spot.value?.id) return
-  router.push(`/spots/${spot.value.id}?source=random-pick`)
+  router.push(buildSpotDetailRoute(spot.value.id, SPOT_DETAIL_SOURCE.RANDOM_PICK))
 }
 
 onMounted(() => {

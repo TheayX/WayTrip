@@ -56,7 +56,7 @@ Vite 开发服务器当前约定：
 
 对应配置见：
 
-- [vite.config.js](/E:/Year-4/Grad-Project/WayTrip/travel-web/vite.config.js)
+- [vite.config.js](./vite.config.js)
 
 ## 目录结构
 
@@ -245,9 +245,9 @@ module/
 
 ## 景点详情来源参数
 
-景点详情页跳转需要传递 `source` 参数，用于浏览来源统计与推荐权重归类。
+景点详情页统一通过 `src/shared/constants/spot-detail.js` 构造跳转路由，并传递 `source` 参数，用于浏览来源统计与推荐权重归类。
 
-前端当前使用的来源值包括：
+当前前端使用的来源值包括：
 
 - `home`
 - `list`
@@ -270,9 +270,10 @@ module/
 说明：
 
 1. `home` 只表示首页来源，不作为全局默认值。
-2. 景点详情页自身的兜底来源是 `detail`。
+2. 景点详情页自身的兜底来源是 `detail`，由 `buildSpotDetailRoute(...)` 统一兜底。
 3. 前端保留页面级来源语义，方便后续做统计和排查。
-4. 后端推荐权重会再做别名归类，不要求前端来源值和算法来源桶完全同名。
+4. Web 端新增详情跳转时，优先复用 `SPOT_DETAIL_SOURCE` 和 `buildSpotDetailRoute(...)`，不要在页面里直接手写 `/spots/:id?...&source=xxx`。
+5. 后端推荐权重会再做别名归类，不要求前端来源值和算法来源桶完全同名。
 
 当前后端来源归类规则：
 
@@ -301,9 +302,9 @@ module/
 
 维护约定：
 
-1. 新增景点详情入口时，先确认前端 `source` 是否有独立统计价值。
-2. 如果只需要保留页面语义，可以新增来源值，再由后端统一归桶。
-3. 如果新来源会影响推荐权重，必须同步更新来源归类规则。
+1. 新增景点详情入口时，优先在 `src/shared/constants/spot-detail.js` 增加来源常量。
+2. 如果该来源需要影响推荐权重，再同步更新后端来源归类规则。
+3. 页面里不要直接拼接景点详情 URL，统一走 `buildSpotDetailRoute(...)`。
 
 ## 开发约定
 

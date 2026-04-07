@@ -8,7 +8,7 @@
         v-for="spot in favoriteList"
         :key="spot.id"
         class="fav-card card"
-        @click="$router.push(`/spots/${spot.id}?source=favorite`)"
+        @click="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.FAVORITE))"
       >
         <div class="fav-img-wrapper">
           <img :src="getImageUrl(spot.coverImage)" class="fav-img" alt="" />
@@ -53,6 +53,7 @@ import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vu
 import { getFavoriteList, removeFavorite } from '@/modules/favorite/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ElMessage } from 'element-plus'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 // 页面数据状态
 const favoriteList = ref([])

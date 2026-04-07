@@ -101,6 +101,7 @@ import {
   fetchBudgetTravelGuides,
   fetchBudgetTravelSpots
 } from '@/modules/budget-travel/api.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const router = useRouter()
 
@@ -184,7 +185,7 @@ const switchBudgetMode = (value) => {
 }
 
 const goSpotDetail = (id) => {
-  router.push(`/spots/${id}?source=budget-travel`)
+  router.push(buildSpotDetailRoute(id, SPOT_DETAIL_SOURCE.BUDGET_TRAVEL))
 }
 
 const goGuideDetail = (id) => {

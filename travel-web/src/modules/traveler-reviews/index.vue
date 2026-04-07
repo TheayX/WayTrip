@@ -71,6 +71,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { fetchTravelerReviewFeed } from '@/modules/traveler-reviews/api.js'
 import { getAvatarUrl } from '@/shared/api/client.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const router = useRouter()
 
@@ -105,7 +106,7 @@ const loadTravelerReviewFeed = async () => {
 
 const goSpotDetail = (spotId) => {
   if (!spotId) return
-  router.push(`/spots/${spotId}?source=traveler-reviews`)
+  router.push(buildSpotDetailRoute(spotId, SPOT_DETAIL_SOURCE.TRAVELER_REVIEWS))
 }
 
 onMounted(() => {

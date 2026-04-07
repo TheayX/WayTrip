@@ -27,7 +27,7 @@
         v-for="spot in recommendations"
         :key="spot.id"
         :spot="spot"
-        @select="$router.push(`/spots/${spot.id}?source=recommendation`)"
+        @select="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.RECOMMENDATION))"
       />
     </section>
 
@@ -61,6 +61,7 @@ import { ArrowRight } from '@element-plus/icons-vue'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 
 // 基础依赖与用户状态

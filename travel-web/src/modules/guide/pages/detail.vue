@@ -12,7 +12,7 @@
 
       <GuideRelatedSpotSidebar
         :spots="guide.relatedSpots || []"
-        @select="$router.push(`/spots/${$event.id}?source=guide`)"
+        @select="$router.push(buildSpotDetailRoute($event.id, SPOT_DETAIL_SOURCE.GUIDE))"
       />
     </div>
   </div>
@@ -29,6 +29,7 @@ import GuideRelatedSpotSidebar from '@/modules/guide/components/GuideRelatedSpot
 import { getGuideDetail } from '@/modules/guide/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ElMessage } from 'element-plus'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const GUIDE_DETAIL_UPDATED_KEY = 'guide_detail_updated'
 

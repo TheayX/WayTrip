@@ -129,7 +129,7 @@
           v-for="spot in recommendations.slice(0, 6)"
           :key="spot.id"
           :spot="spot"
-          @select="$router.push(`/spots/${spot.id}?source=recommendation`)"
+          @select="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.RECOMMENDATION))"
         />
       </div>
       <el-empty v-else :description="userStore.isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点'">
@@ -155,7 +155,7 @@
           v-for="spot in nearbySpots"
           :key="spot.id"
           :spot="spot"
-          @select="$router.push(`/spots/${spot.id}?source=nearby`)"
+          @select="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.NEARBY))"
         />
       </div>
       <el-empty v-else :description="nearbyEmptyText">
@@ -177,7 +177,7 @@
           v-for="spot in spotList"
           :key="spot.id"
           :spot="spot"
-          @select="$router.push(`/spots/${spot.id}?source=discover`)"
+          @select="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.DISCOVER))"
         />
       </div>
       <el-empty v-else description="当前条件暂无景点" />
@@ -237,6 +237,7 @@ import { useUserStore } from '@/modules/account/store/user.js'
 import { getCurrentLocation, getLocationSnapshot } from '@/shared/lib/location.js'
 import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
 import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import ExploreKeywordGroup from '@/shared/ui/ExploreKeywordGroup.vue'
 
 const DISCOVER_STATE_KEY = 'discover_state'

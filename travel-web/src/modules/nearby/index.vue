@@ -18,7 +18,7 @@
         v-for="spot in spots"
         :key="spot.id"
         :spot="spot"
-        @select="$router.push(`/spots/${spot.id}?source=nearby`)"
+        @select="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.NEARBY))"
       />
     </section>
 
@@ -36,6 +36,7 @@ import { useUserStore } from '@/modules/account/store/user.js'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { getNearbySpots } from '@/modules/home/api.js'
 import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import { getLocationSnapshot, getCurrentLocation } from '@/shared/lib/location.js'
 
 // 基础依赖与用户状态

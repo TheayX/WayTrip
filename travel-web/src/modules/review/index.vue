@@ -24,7 +24,7 @@
                 </div>
               </div>
               <p class="comment">{{ item.comment || '这条评价没有填写文字内容。' }}</p>
-              <button type="button" class="review-action-button" @click="$router.push(`/spots/${item.spotId}?source=review`)">查看景点</button>
+              <button type="button" class="review-action-button" @click="$router.push(buildSpotDetailRoute(item.spotId, SPOT_DETAIL_SOURCE.REVIEW))">查看景点</button>
             </div>
           </article>
         </div>
@@ -77,6 +77,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { deleteReview, getMyReviews, submitReview } from '@/modules/review/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 // 页面数据状态
 const loading = ref(false)

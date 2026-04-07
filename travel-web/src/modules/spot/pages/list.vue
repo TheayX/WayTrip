@@ -33,7 +33,7 @@
         v-for="spot in spotList"
         :key="spot.id"
         :spot="spot"
-        @select="router.push(`/spots/${spot.id}?source=list`)"
+        @select="router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.LIST))"
       />
     </section>
 
@@ -61,6 +61,7 @@ import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import SpotFilterBar from '@/modules/spot/components/SpotFilterBar.vue'
 import SpotListToolbar from '@/modules/spot/components/SpotListToolbar.vue'
 import { getSpotList, getFilters } from '@/modules/spot/api.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const SPOT_DETAIL_UPDATED_KEY = 'spot_detail_updated'
 

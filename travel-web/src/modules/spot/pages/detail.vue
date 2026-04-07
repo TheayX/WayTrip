@@ -25,7 +25,7 @@
             :items="similarSpots"
             :update-time="similarUpdateTime"
             :format-similarity="formatSimilarity"
-            @select="router.push(`/spots/${$event.spotId}?source=similar`)"
+            @select="router.push(buildSpotDetailRoute($event.spotId, SPOT_DETAIL_SOURCE.SIMILAR))"
           />
 
           <div class="info-section premium-card">
@@ -111,6 +111,7 @@ import { getSpotDetail, getSimilarSpots, recordSpotView } from '@/modules/spot/a
 import { addFavorite, removeFavorite } from '@/modules/favorite/api.js'
 import { deleteReview, getSpotReviews, submitReview } from '@/modules/review/api.js'
 import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import { getLocationSnapshot } from '@/shared/lib/location.js'
 import { saveSpotFootprint } from '@/shared/lib/footprint.js'
 import { getAvatarUrl, getImageUrl } from '@/shared/api/client.js'

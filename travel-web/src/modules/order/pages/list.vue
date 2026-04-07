@@ -59,6 +59,7 @@ import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vu
 import { getOrderList, cancelOrder, payOrder } from '@/modules/order/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 // 常量配置
 const tabs = [
@@ -140,7 +141,7 @@ const handlePay = async (order) => {
 }
 
 const handleReview = (order) => {
-  router.push(`/spots/${order.spotId}?openReview=1&source=order`)
+  router.push(buildSpotDetailRoute(order.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }))
 }
 
 // 生命周期

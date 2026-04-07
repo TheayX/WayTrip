@@ -18,7 +18,7 @@
           </div>
         </div>
 
-        <div class="info-card card" @click="$router.push(`/spots/${order.spotId}?source=order`)">
+        <div class="info-card card" @click="$router.push(buildSpotDetailRoute(order.spotId, SPOT_DETAIL_SOURCE.ORDER))">
           <h3 class="card-title">景点信息</h3>
           <div class="spot-row">
             <img :src="getImageUrl(order.spotImage)" class="spot-thumb" alt="" />
@@ -111,6 +111,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { getOrderDetail, payOrder, cancelOrder } from '@/modules/order/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
+import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -270,7 +271,7 @@ const handleCancel = async () => {
 }
 
 const handleReview = () => {
-  router.push(`/spots/${order.value.spotId}?openReview=1&source=order`)
+  router.push(buildSpotDetailRoute(order.value.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }))
 }
 
 onMounted(() => {
