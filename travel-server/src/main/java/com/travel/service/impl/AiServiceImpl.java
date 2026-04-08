@@ -499,12 +499,14 @@ public class AiServiceImpl implements AiService {
             return false;
         }
         String content = userMessage.trim();
-        return containsAny(content,
+        boolean explicitPersonalQuery = containsAny(content,
                 "我的订单", "我有几个订单", "帮我查订单", "查询我的订单", "查询一下我的订单", "看我的订单",
+                "查询我之前的订单", "我之前的订单", "以前的订单", "历史订单", "过往订单", "订单情况", "查一下订单",
                 "我的收藏", "我的账号", "我的资料", "我的信息", "我的发票", "我的优惠券", "我的个人信息",
-                "订单详情", "订单记录", "订单状态")
-                || (containsAny(content, "订单", "收藏", "账号", "资料", "信息", "发票")
-                && containsAny(content, "我的", "我有", "帮我查", "给我查", "替我查"));
+                "订单详情", "订单记录", "订单状态", "购买记录", "消费记录");
+        boolean inferredPersonalQuery = containsAny(content, "订单", "收藏", "账号", "资料", "信息", "发票", "记录")
+                && containsAny(content, "我的", "我有", "帮我查", "给我查", "替我查", "之前", "以前", "历史", "过往");
+        return explicitPersonalQuery || inferredPersonalQuery;
     }
 
     private boolean isPromptLeakAttempt(String content) {
