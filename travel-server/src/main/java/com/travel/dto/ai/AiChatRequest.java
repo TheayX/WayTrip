@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * AI 聊天请求
+ * AI 客服对话请求参数对象。
  */
 @Data
 public class AiChatRequest {

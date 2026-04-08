@@ -17,18 +17,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * AI chat endpoints.
+ * 用户端 AI 控制器，负责 AI 客服对话接口。
  */
-@Tag(name = "User AI", description = "AI chat APIs")
+@Tag(name = "用户端-AI 客服", description = "用户端 AI 客服对话接口")
 @RestController
 @RequestMapping("/api/v1/ai")
 @RequiredArgsConstructor
 public class AiController {
 
+    // 服务与鉴权依赖
+
     private final AiService aiService;
     private final JwtUtils jwtUtil;
 
-    @Operation(summary = "AI chat")
+    /**
+     * 处理用户发起的 AI 对话请求，并按需带入当前登录用户上下文。
+     */
+    @Operation(summary = "AI 客服对话")
     @PostMapping("/chat")
     public ApiResponse<AiChatResponse> chat(@Valid @RequestBody AiChatRequest request, HttpServletRequest httpRequest) {
         Long userId = resolveUserId(httpRequest.getHeader("Authorization"));
@@ -40,6 +45,8 @@ public class AiController {
         );
         return ApiResponse.success(new AiChatResponse(reply));
     }
+
+    // 请求上下文解析
 
     private Long resolveUserId(String authorization) {
         if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) {
@@ -53,6 +60,7 @@ public class AiController {
     }
 
     private String resolveClientIp(HttpServletRequest request) {
+        // 兼容反向代理场景下的真实客户端 IP 透传。
         String[] headers = new String[]{"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP"};
         for (String header : headers) {
             String ip = request.getHeader(header);

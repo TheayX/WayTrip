@@ -134,7 +134,6 @@ import { useUserStore } from '@/modules/account/store/user.js'
 import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
 import { APP_NAME } from '@/shared/constants/app.js'
 import { ROUTE_NAMES } from '@/shared/constants/route-names.js'
-import { AI_CHAT_VISIBLE_ROUTE_NAMES } from '@/shared/constants/ai-chat.js'
 import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -142,6 +141,7 @@ import { getAvatarUrl } from '@/shared/api/client.js'
 import { ArrowDown, ChatDotRound, Discount, MagicStick, Search, Setting, Stopwatch, Tickets, User, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
 import brandLogoUrl from '@/shared/assets/brand/standard.svg'
 import brandMarkUrl from '@/shared/assets/brand/standard-mark.svg'
+import { AI_CHAT_VISIBLE_ROUTE_NAMES } from '@/shared/constants/ai-chat.js'
 import AiChatWidget from '@/shared/ui/AiChatWidget.vue'
 
 // 基础依赖与路由状态
@@ -172,13 +172,15 @@ const showBackBar = computed(() => {
   }
   return !hiddenBackRoutes.includes(route.name)
 })
-const currentPageText = computed(() => route.meta?.title || '继续浏览当前内容')
+
 const shouldShowAiChat = computed(() => {
   if (typeof route.meta?.showAiChat === 'boolean') {
     return route.meta.showAiChat
   }
   return AI_CHAT_VISIBLE_ROUTE_NAMES.includes(route.name)
 })
+
+const currentPageText = computed(() => route.meta?.title || '继续浏览当前内容')
 
 // 交互处理方法
 const handleBack = () => {

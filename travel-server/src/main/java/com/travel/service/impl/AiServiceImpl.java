@@ -43,10 +43,15 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * AI 客服服务实现，负责对话编排、上下文构建、限流缓存与风险兜底。
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiServiceImpl implements AiService {
+
+    // 默认配置与安全阈值
 
     private static final String DEFAULT_SYSTEM_PROMPT =
             "你是 WayTrip 旅游助手。请始终使用简体中文，回答简洁、友好、可执行。"
@@ -62,6 +67,8 @@ public class AiServiceImpl implements AiService {
     private static final int MAX_SINGLE_MESSAGE_LENGTH = 800;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    // 外部模型与 AI 配置注入
 
     @Value("${ollama.base-url:http://127.0.0.1:11434}")
     private String ollamaBaseUrl;
@@ -99,6 +106,8 @@ public class AiServiceImpl implements AiService {
     @Value("${ollama.chat.hot-spot-summary-limit:6}")
     private Integer hotSpotSummaryLimit;
 
+    // 持久层、缓存与基础能力依赖
+
     private final RedisTemplate<String, Object> redisTemplate;
     private final OrderMapper orderMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
@@ -106,6 +115,8 @@ public class AiServiceImpl implements AiService {
     private final MeterRegistry meterRegistry;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
+    // AI 对话主链路
 
     @Override
     public String chat(String sessionId, String userMessage, Long userId, String clientIp) {
@@ -167,6 +178,8 @@ public class AiServiceImpl implements AiService {
             recordTimer("waytrip.ai.chat.latency", elapsedMs, "intent", intentType.name().toLowerCase(), "cache_hit", String.valueOf(cacheHit));
         }
     }
+
+    // 系统提示词与上下文构建
 
     private String buildSystemPrompt(IntentType intentType, String userMessage, Long userId) {
         String basePrompt = resolveBaseSystemPrompt();
@@ -289,6 +302,8 @@ public class AiServiceImpl implements AiService {
         return String.join("\n", lines);
     }
 
+    // 业务数据补充方法
+
     private Map<Long, String> loadSpotNames(Collection<Long> spotIds) {
         if (spotIds == null || spotIds.isEmpty()) {
             return Collections.emptyMap();
@@ -308,6 +323,8 @@ public class AiServiceImpl implements AiService {
         OrderStatus status = OrderStatus.fromCode(code);
         return status == null ? "未知状态" : status.getKey();
     }
+
+    // 风险控制与回复后处理
 
     private boolean isHighRiskQuestion(String userMessage) {
         return containsAny(userMessage,
@@ -338,6 +355,8 @@ public class AiServiceImpl implements AiService {
             throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 响应解析失败");
         }
     }
+
+    // 限流与缓存管理
 
     private void enforceRateLimit(String sessionId, String clientIp) {
         int ipLimit = getIpRateLimitPerMinute();
@@ -392,6 +411,8 @@ public class AiServiceImpl implements AiService {
         redisTemplate.opsForValue().set(cacheKey, reply, ttl, TimeUnit.MINUTES);
     }
 
+    // 会话历史读写
+
     @SuppressWarnings("unchecked")
     private List<Map<String, String>> loadHistoryMessages(String sessionId) {
         String cacheKey = RedisKeyManager.aiChatSession(sessionId);
@@ -432,6 +453,8 @@ public class AiServiceImpl implements AiService {
             log.warn("保存会话历史失败, sessionId={}", sessionId, e);
         }
     }
+
+    // 意图识别与输入清洗
 
     private Map<String, String> message(String role, String content) {
         Map<String, String> item = new HashMap<>();
@@ -539,6 +562,8 @@ public class AiServiceImpl implements AiService {
         return trimmed.length() <= MAX_SINGLE_MESSAGE_LENGTH ? trimmed : trimmed.substring(0, MAX_SINGLE_MESSAGE_LENGTH);
     }
 
+    // 指标埋点
+
     private void recordCounter(String metricName, String... tags) {
         try {
             if (tags == null || tags.length == 0) {
@@ -560,6 +585,8 @@ public class AiServiceImpl implements AiService {
         } catch (Exception ignored) {
         }
     }
+
+    // AI 意图枚举
 
     private enum IntentType {
         TRAVEL_GUIDE("意图=景点咨询。优先给出玩法、路线、时间安排，涉及实时票价和营业时间必须提示以页面为准。"),

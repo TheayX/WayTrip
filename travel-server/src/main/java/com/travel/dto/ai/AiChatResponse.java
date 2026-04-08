@@ -4,12 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * AI 聊天响应
+ * AI 客服对话响应对象。
  */
 @Data
 @AllArgsConstructor
 public class AiChatResponse {
 
+    /**
+     * AI 客服回复内容。
+     */
     private String reply;
 }
 

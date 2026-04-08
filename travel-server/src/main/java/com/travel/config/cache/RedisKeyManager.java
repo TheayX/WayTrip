@@ -8,9 +8,9 @@ package com.travel.config.cache;
 public final class RedisKeyManager {
 
     private static final String ROOT = "waytrip";
-    private static final String AI = ROOT + ":ai";
     private static final String RECOMMENDATION = ROOT + ":recommendation";
     private static final String HOME = ROOT + ":home";
+    private static final String AI = ROOT + ":ai";
 
     private RedisKeyManager() {
     }
@@ -72,51 +72,6 @@ public final class RedisKeyManager {
     }
 
     /**
-     * 获取 AI 客服会话历史缓存 Key。
-     *
-     * @param sessionId 会话 ID
-     * @return AI 会话历史缓存 Key
-     */
-    public static String aiChatSession(String sessionId) {
-        return AI + ":chat:session:" + sessionId;
-    }
-
-    /**
-     * 获取 AI 客服 IP 级限流缓存 Key。
-     *
-     * @param clientIp 客户端 IP
-     * @param minuteBucket 分钟桶
-     * @return AI 限流缓存 Key
-     */
-    public static String aiChatRateLimitIp(String clientIp, String minuteBucket) {
-        return AI + ":chat:rl:ip:" + clientIp + ":" + minuteBucket;
-    }
-
-    /**
-     * 获取 AI 客服会话级限流缓存 Key。
-     *
-     * @param sessionId 会话 ID
-     * @param minuteBucket 分钟桶
-     * @return AI 会话限流缓存 Key
-     */
-    public static String aiChatRateLimitSession(String sessionId, String minuteBucket) {
-        return AI + ":chat:rl:session:" + sessionId + ":" + minuteBucket;
-    }
-
-    /**
-     * 获取 AI 客服响应缓存 Key。
-     *
-     * @param model 模型名称
-     * @param intentType 意图类型
-     * @param userId 用户 ID
-     * @param digest 请求摘要
-     * @return AI 响应缓存 Key
-     */
-    public static String aiChatResponseCache(String model, String intentType, String userId, String sessionId, String digest) {
-        return AI + ":chat:cache:" + model + ":" + intentType + ":" + userId + ":" + sessionId + ":" + digest;
-    }
-
-    /**
      * 获取首页热门景点缓存 Key。
      *
      * @param limit 请求条数
@@ -133,5 +88,51 @@ public final class RedisKeyManager {
      */
     public static String homeBanners() {
         return HOME + ":banners";
+    }
+
+    /**
+     * 获取 AI 聊天会话历史缓存 Key。
+     *
+     * @param sessionId 会话 ID
+     * @return AI 聊天会话缓存 Key
+     */
+    public static String aiChatSession(String sessionId) {
+        return AI + ":chat:session:" + sessionId;
+    }
+
+    /**
+     * 获取按 IP 维度统计的 AI 聊天限流 Key。
+     *
+     * @param clientIp IP 地址
+     * @param minuteBucket 分钟时间桶
+     * @return AI 聊天 IP 限流 Key
+     */
+    public static String aiChatRateLimitIp(String clientIp, String minuteBucket) {
+        return AI + ":chat:rl:ip:" + clientIp + ":" + minuteBucket;
+    }
+
+    /**
+     * 获取按会话维度统计的 AI 聊天限流 Key。
+     *
+     * @param sessionId 会话 ID
+     * @param minuteBucket 分钟时间桶
+     * @return AI 聊天会话限流 Key
+     */
+    public static String aiChatRateLimitSession(String sessionId, String minuteBucket) {
+        return AI + ":chat:rl:session:" + sessionId + ":" + minuteBucket;
+    }
+
+    /**
+     * 获取 AI 回复缓存 Key。
+     *
+     * @param model 模型名称
+     * @param intentType 意图类型
+     * @param userId 用户标识
+     * @param sessionId 会话 ID
+     * @param digest 消息摘要
+     * @return AI 回复缓存 Key
+     */
+    public static String aiChatResponseCache(String model, String intentType, String userId, String sessionId, String digest) {
+        return AI + ":chat:cache:" + model + ":" + intentType + ":" + userId + ":" + sessionId + ":" + digest;
     }
 }
