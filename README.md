@@ -90,6 +90,7 @@ CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 开发环境建议：
 
+- 后端环境变量使用 `.env.example -> .env` 这套约定
 - 如果 `travel-server/src/main/resources/application.yml` 使用 `prod`，则在 `travel-server` 下创建 `.env`，参考 `travel-server/.env.example`
 - 如果切到 `dev`，则直接在 `travel-server/src/main/resources/application-dev.yml` 中填写本地数据库、Redis、JWT、微信与上传目录配置
 - `UPLOAD_PATH` 建议优先使用绝对路径；如果继续使用相对路径，请固定启动方式
@@ -108,6 +109,12 @@ mvn spring-boot:run
 - API 文档数据：`http://localhost:8080/v3/api-docs`
 
 ### 3. 启动 Web 用户端
+
+环境变量约定：
+
+- 前端环境变量使用 `.env.example -> .env.local` 这套约定
+- 默认情况下不复制环境文件也能直接启动
+- 只有在 HTTPS 反代、ngrok 或特殊代理联调时，才需要按各子项目 README 复制并修改 `.env.local`
 
 ```bash
 cd travel-web
@@ -144,6 +151,11 @@ npm run dev:mp-weixin
 
 # 打开微信开发者工具，导入 dist/dev/mp-weixin 运行
 ```
+
+补充说明：
+
+- 小程序端默认也可以直接联调本地后端
+- 如果需要通过 HTTPS 反代消除开发工具里的 HTTP 警告，再复制 `travel-miniapp/.env.example` 为 `.env.local` 并按需修改
 
 ## 接口约定
 

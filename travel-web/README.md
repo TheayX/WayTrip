@@ -58,6 +58,15 @@ Vite 开发服务器当前约定：
 
 - [vite.config.js](./vite.config.js)
 
+环境变量约定：
+
+- 默认不创建 `.env.local` 也能直接开发
+- 需要本机 HTTPS 反代、ngrok 或特殊代理联调时，再复制 `.env.example` 为 `.env.local`
+- 当前可选变量见：
+  - `VITE_DEV_PROXY_TARGET`
+  - `VITE_DEV_HOST`
+  - `VITE_DEV_ALLOWED_HOSTS`
+
 ## 目录结构
 
 当前源码目录：

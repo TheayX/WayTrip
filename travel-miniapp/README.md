@@ -147,6 +147,13 @@ travel-miniapp/
 3. 公共配置统一收口，避免首页和更多页各自维护一套。
 4. 不为了“规范”引入过深目录层级。
 
+## 环境变量说明
+
+- 默认不创建 `.env.local` 也能直接联调本地后端
+- 需要通过 HTTPS 反代消除微信开发者工具里的 HTTP 警告时，再复制 `.env.example` 为 `.env.local`
+- 当前可选变量见：
+  - `VITE_API_ORIGIN`
+
 ## 景点详情来源参数
 
 景点详情页统一通过 `src/utils/spot-detail.js` 构造跳转 URL，并传递 `source` 参数。
