@@ -8,13 +8,13 @@
 
 ## 数据库基础信息
 
-| 项 | 值 |
-| --- | --- |
-| 数据库名 | `waytrip_db` |
-| 数据库 | MySQL 8.0 |
-| 字符集 | `utf8mb4` |
+| 项    | 值                    |
+|------|----------------------|
+| 数据库名 | `waytrip_db`         |
+| 数据库  | MySQL 8.0            |
+| 字符集  | `utf8mb4`            |
 | 排序规则 | `utf8mb4_unicode_ci` |
-| 存储引擎 | InnoDB |
+| 存储引擎 | InnoDB               |
 
 ## 表总览
 
@@ -224,8 +224,8 @@ erDiagram
 
 状态值：
 
-| 值 | 含义 |
-| --- | --- |
+| 值 | 含义  |
+|---|-----|
 | 0 | 待支付 |
 | 1 | 已支付 |
 | 2 | 已取消 |
@@ -294,17 +294,17 @@ erDiagram
 
 ## 当前索引设计重点
 
-| 表 | 关键索引 | 用途 |
-| --- | --- | --- |
-| `user` | `uk_openid`, `uk_phone` | 登录与绑定查找 |
-| `spot` | `idx_category_id`, `idx_region_id`, `idx_heat_score`, `idx_is_published` | 列表筛选排序 |
-| `guide` | `idx_category`, `idx_view_count`, `idx_is_published` | 攻略筛选与展示 |
-| `order` | `uk_order_no`, `idx_status`, `idx_user_id_status` | 订单详情、订单列表 |
-| `user_spot_review` | `uk_user_spot`, `idx_spot_list` | 评分去重、评论列表 |
-| `user_spot_favorite` | `uk_user_spot`, `idx_user_id_is_deleted_created_at` | 收藏去重、收藏列表 |
-| `user_spot_view` | `idx_user_spot`, `idx_spot_id`, `idx_created_at` | 浏览行为回放、推荐统计、热度同步统计 |
-| `spot_banner` | `idx_is_enabled_sort` | 首页轮播图读取 |
-| `guide_spot_relation` | `uk_guide_spot`, `idx_guide_id_is_deleted_sort` | 关联景点读取 |
+| 表                     | 关键索引                                                                     | 用途                 |
+|-----------------------|--------------------------------------------------------------------------|--------------------|
+| `user`                | `uk_openid`, `uk_phone`                                                  | 登录与绑定查找            |
+| `spot`                | `idx_category_id`, `idx_region_id`, `idx_heat_score`, `idx_is_published` | 列表筛选排序             |
+| `guide`               | `idx_category`, `idx_view_count`, `idx_is_published`                     | 攻略筛选与展示            |
+| `order`               | `uk_order_no`, `idx_status`, `idx_user_id_status`                        | 订单详情、订单列表          |
+| `user_spot_review`    | `uk_user_spot`, `idx_spot_list`                                          | 评分去重、评论列表          |
+| `user_spot_favorite`  | `uk_user_spot`, `idx_user_id_is_deleted_created_at`                      | 收藏去重、收藏列表          |
+| `user_spot_view`      | `idx_user_spot`, `idx_spot_id`, `idx_created_at`                         | 浏览行为回放、推荐统计、热度同步统计 |
+| `spot_banner`         | `idx_is_enabled_sort`                                                    | 首页轮播图读取            |
+| `guide_spot_relation` | `uk_guide_spot`, `idx_guide_id_is_deleted_sort`                          | 关联景点读取             |
 
 ## Redis 使用现状
 
@@ -322,6 +322,11 @@ erDiagram
 
 3. 景点热度浏览去重
 - `waytrip:spot:heat:view:{spotId}:{userId}`
+
+补充说明：
+
+- 近期浏览入口的数据主来源仍为 MySQL 行为表 `user_spot_view`
+- Redis 去重键用于限制热度累计频率，不替代行为明细存储
 
 当前 TTL 约定：
 
