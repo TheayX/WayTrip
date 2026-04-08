@@ -129,6 +129,10 @@ public class AiServiceImpl implements AiService {
             String safeUserMessage = sanitizeUserMessage(userMessage);
 
             enforceRateLimit(safeSessionId, clientIp);
+            if (requiresLoginContext(safeUserMessage, userId)) {
+                recordCounter("waytrip.ai.guardrail.blocked", "type", "login_required");
+                return "你当前还未登录。查询我的订单、收藏、账号资料等个人信息前，请先登录；登录后我再继续帮你处理。";
+            }
             if (isPromptLeakAttempt(safeUserMessage)) {
                 recordCounter("waytrip.ai.guardrail.blocked", "type", "prompt_leak");
                 return "这个请求涉及系统内部策略，我不能提供。你可以直接描述你的出行或订单问题，我会继续帮你。";
@@ -487,6 +491,20 @@ public class AiServiceImpl implements AiService {
             }
         }
         return false;
+    }
+
+    private boolean requiresLoginContext(String userMessage, Long userId) {
+        // 仅拦截明确指向“我的数据”的个人信息查询，保留未登录下的通用咨询能力。
+        if (userId != null || !StringUtils.hasText(userMessage)) {
+            return false;
+        }
+        String content = userMessage.trim();
+        return containsAny(content,
+                "我的订单", "我有几个订单", "帮我查订单", "查询我的订单", "查询一下我的订单", "看我的订单",
+                "我的收藏", "我的账号", "我的资料", "我的信息", "我的发票", "我的优惠券", "我的个人信息",
+                "订单详情", "订单记录", "订单状态")
+                || (containsAny(content, "订单", "收藏", "账号", "资料", "信息", "发票")
+                && containsAny(content, "我的", "我有", "帮我查", "给我查", "替我查"));
     }
 
     private boolean isPromptLeakAttempt(String content) {
