@@ -19,14 +19,14 @@ WayTrip 采用前后端分离架构，由 4 个主要子项目组成：
 
 ## 当前技术栈
 
-| 层级 | 技术 |
-| --- | --- |
-| 后端 | Java 17、Spring Boot 3.5.11、MyBatis-Plus 3.5.5 |
-| 数据 | MySQL 8.0、Redis |
-| Web 用户端 | Vue 3、Vite、Element Plus、Pinia、Axios |
-| 管理端 | Vue 3、Vite、Element Plus、ECharts、Pinia、Axios |
-| 小程序端 | Uni-app、Vue 3、Pinia |
-| 文档 | SpringDoc / OpenAPI 3 |
+| 层级      | 技术                                            |
+|---------|-----------------------------------------------|
+| 后端      | Java 17、Spring Boot 3.5.11、MyBatis-Plus 3.5.5 |
+| 数据      | MySQL 8.0、Redis                               |
+| Web 用户端 | Vue 3、Vite、Element Plus、Pinia、Axios           |
+| 管理端     | Vue 3、Vite、Element Plus、ECharts、Pinia、Axios   |
+| 小程序端    | Uni-app、Vue 3、Pinia                           |
+| 文档      | SpringDoc / OpenAPI 3                         |
 
 ## 逻辑架构
 
@@ -46,6 +46,7 @@ graph TB
     ORDER[订单]
     REC[推荐]
     DASH[仪表板]
+    REVIEWMGR[评论管理]
     BANNER[轮播图]
     USER[用户管理]
     INSIGHT[用户洞察]
@@ -70,6 +71,7 @@ graph TB
     API --> ORDER
     API --> REC
     API --> DASH
+    API --> REVIEWMGR
     API --> BANNER
     API --> USER
     API --> INSIGHT
@@ -86,6 +88,7 @@ graph TB
     FAV --> MYSQL
     ORDER --> MYSQL
     DASH --> MYSQL
+    REVIEWMGR --> MYSQL
     BANNER --> MYSQL
     USER --> MYSQL
     INSIGHT --> MYSQL
@@ -202,6 +205,7 @@ graph TB
 - 首页已从“单列表展示”升级为“推荐 + 附近 + 快捷入口”结构
 - 小程序端与 Web 用户端均具备发现、推荐、附近主入口
 - Web 端附近页使用浏览器定位，小程序端附近页使用地图能力
+- 首页支持读取近期浏览内容作为回访入口
 
 ### 3. 景点模块
 
@@ -298,6 +302,7 @@ stateDiagram-v2
 管理端当前包含：
 
 - 仪表板
+- 评论管理
 - 景点管理
 - 攻略管理
 - 轮播图管理
