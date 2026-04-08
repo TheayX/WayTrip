@@ -3,7 +3,7 @@
 ## 文档说明
 
 - 对齐基线：当前仓库实现
-- 更新时间：2026-03-30
+- 更新时间：2026-04-08
 - 说明：本版同步四端重构后的系统结构，补齐 Web 用户端与小程序端对齐后的页面架构与推荐链路设计
 
 ## 系统概览
@@ -26,7 +26,7 @@ WayTrip 采用前后端分离架构，由 4 个主要子项目组成：
 | Web 用户端 | Vue 3、Vite、Element Plus、Pinia、Axios |
 | 管理端 | Vue 3、Vite、Element Plus、ECharts、Pinia、Axios |
 | 小程序端 | Uni-app、Vue 3、Pinia |
-| 文档 | Knife4j / OpenAPI 3 |
+| 文档 | SpringDoc / OpenAPI 3 |
 
 ## 逻辑架构
 

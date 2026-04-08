@@ -1,11 +1,11 @@
 # WayTrip - 个性化旅游推荐系统
 
-WayTrip 是一个面向旅游场景的个性化推荐系统，当前包含 4 个可独立运行的子项目：
+WayTrip 是一个面向旅游场景的个性化推荐系统，当前由 4 个可独立运行的子项目组成：
 
-- `travel-miniapp`：微信小程序用户端
-- `travel-web`：Web 用户端
 - `travel-admin`：Web 管理后台
+- `travel-miniapp`：微信小程序用户端
 - `travel-server`：统一后端服务
+- `travel-web`：Web 用户端
 > 小程序端与 Web 用户端可独立运行（仅使用 Web 或仅使用小程序均可正常体验）
 
 **🤖分支说明：项目另有 `ai-chatbot` 分支，用于 AI 客服相关实验与实现，与 `main` 主线分支隔离维护。**
@@ -15,55 +15,52 @@ WayTrip 是一个面向旅游场景的个性化推荐系统，当前包含 4 个
 | 模块 | 技术 |
 | --- | --- |
 | 后端 | Java 17 + Spring Boot 3.5.11 + MyBatis-Plus 3.5.5 |
-| 数据库 | MySQL 8.0 + Redis |
+| 缓存与中间件 | Redis |
+| 数据库 | MySQL 8.0 |
 | 小程序端 | Uni-app + Vue 3 + Pinia |
-| Web 用户端 | Vue 3 + Vite + Element Plus + Pinia |
-| 管理端 | Vue 3 + Vite + Element Plus + Pinia + ECharts |
-| API 文档 | SpringDoc（OpenAPI 3） |
+| Web 用户端 | Vue 3 + Vite 5 + Element Plus + Pinia |
+| 管理端 | Vue 3 + Vite 5 + Element Plus + Pinia + ECharts |
+| API 文档 | SpringDoc / OpenAPI 3 |
 
-## 项目结构
+## 仓库结构
 
 ```text
 WayTrip/
-├── .kiro/              # 项目文档（需求、设计、API、数据库、任务）
-├── travel-admin/       # 管理后台
-├── travel-miniapp/     # 小程序端
-├── travel-server/      # 后端服务
-└── travel-web/         # Web 用户端
+├─ docs/                            项目文档与规格说明
+├─ travel-admin/                    管理后台
+├─ travel-miniapp/                  微信小程序端
+├─ travel-server/                   后端服务
+├─ travel-web/                      Web 用户端
+└─ README.md
 ```
 
-## 功能概览
+## 当前能力
 
-### 用户端（小程序 + Web）
+### 用户端
 
-- 用户认证与资料管理
-- 首页轮播图、热门推荐、个性化推荐
-- 发现页聚合浏览
-- 附近景点探索
-- 景点列表、搜索、筛选、详情
-- 攻略列表、攻略详情、关联景点跳转
-- 评分评论、收藏、浏览足迹
-- 门票订单创建、支付、取消、查看
-- 个人中心、我的互动、设置、偏好标签
+- 用户认证、资料维护、偏好设置、密码修改、账户注销
+- 首页轮播图、热门推荐、个性化推荐、冷启动偏好引导
+- 发现页聚合浏览、搜索、附近探索、更多玩法入口
+- 景点列表、筛选、详情、相似景点、浏览足迹
+- 攻略列表、详情、分类、关联景点
+- 评分评论、收藏、我的互动
+- 订单创建、支付、取消、列表与详情
 
 ### 管理端
 
 - 仪表板与运营概览
-- 景点管理、热度同步、评分回刷
-- 攻略管理与关联景点维护
+- 景点、攻略、轮播图、地区、分类维护
 - 订单流转管理
-- 用户管理、管理员管理
-- 地区管理、分类管理、轮播图管理
-- 推荐总览、推荐配置、推荐调试预览、相似邻居预览
+- 用户管理、管理员管理、用户洞察
+- 推荐总览、推荐配置、运行状态、调试预览
 
-### 后端推荐系统
+### 后端
 
-- 基于 ItemCF 的个性化推荐
-- 融合评分、收藏、订单、浏览行为
-- 浏览行为支持来源与停留时长加权
-- 冷启动兜底与偏好引导
-- 热度重排与结果过滤
-- Redis 存储推荐配置、运行状态、用户推荐缓存和相似度矩阵
+- 用户端与管理端统一 REST API
+- JWT 鉴权与角色隔离
+- 文件上传与静态资源访问
+- 基于 ItemCF 的景点推荐
+- Redis 推荐缓存、状态缓存、相似度矩阵与热度去重
 
 ## 快速开始
 
@@ -81,17 +78,19 @@ WayTrip/
 CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-导入以下脚本：
+导入脚本：
 
-- `travel-server/src/main/resources/db/schema.sql`
-- `travel-server/src/main/resources/db/data.sql`
+- [schema.sql](./travel-server/src/main/resources/db/schema.sql)
+- [data.sql](./travel-server/src/main/resources/db/data.sql)
 
-### 2. 启动后端服务
+### 2. 启动后端
 
-开发环境建议：
+后端环境变量约定：
 
-- 后端环境变量使用 `.env.example -> .env` 这套约定
-- 如果 `travel-server/src/main/resources/application.yml` 使用 `prod`，则在 `travel-server` 下创建 `.env`，参考 `travel-server/.env.example`
+- 使用 `travel-server/.env.example -> travel-server/.env`
+- 本地开发可直接按模板填写数据库、Redis、JWT、微信与上传目录配置
+- 默认 [profile](./travel-server/src/main/resources/application.yml) 为 `prod`
+- 如果继续使用 `prod`，则在 `travel-server` 下创建 `.env`，参考 `travel-server/.env.example`
 - 如果切到 `dev`，则直接在 `travel-server/src/main/resources/application-dev.yml` 中填写本地数据库、Redis、JWT、微信与上传目录配置
 - `UPLOAD_PATH` 建议优先使用绝对路径；如果继续使用相对路径，请固定启动方式
 
@@ -102,7 +101,7 @@ cd travel-server
 mvn spring-boot:run
 ```
 
-启动后可访问：
+默认地址：
 
 - API 服务：`http://localhost:8080`
 - API 文档界面：`http://localhost:8080/swagger-ui/index.html`
@@ -110,11 +109,11 @@ mvn spring-boot:run
 
 ### 3. 启动 Web 用户端
 
-环境变量约定：
+前端环境变量约定：
 
-- 前端环境变量使用 `.env.example -> .env.local` 这套约定
-- 默认情况下不复制环境文件也能直接启动
-- 只有在 HTTPS 反代、ngrok 或特殊代理联调时，才需要按各子项目 README 复制并修改 `.env.local`
+- `travel-web`、`travel-admin`、`travel-miniapp` 统一使用 `.env.example -> .env.local`
+- 默认情况下不复制 `.env.local` 也能直接联调本地后端
+- 只有在 HTTPS 反代、ngrok 或特殊代理联调时，才需要覆盖本地环境变量
 
 ```bash
 cd travel-web
@@ -124,9 +123,9 @@ npm install
 npm run dev
 ```
 
-默认访问：`http://localhost:3001`
+默认地址：`http://localhost:3001`
 
-### 4. 启动管理后台
+### 4. 启动管理端
 
 ```bash
 cd travel-admin
@@ -136,7 +135,7 @@ npm install
 npm run dev
 ```
 
-默认访问：`http://localhost:3000`
+默认地址：`http://localhost:3000`
 
 默认管理员账号：`admin / admin123`
 
@@ -154,10 +153,10 @@ npm run dev:mp-weixin
 
 补充说明：
 
-- 小程序端默认也可以直接联调本地后端
-- 如果需要通过 HTTPS 反代消除开发工具里的 HTTP 警告，再复制 `travel-miniapp/.env.example` 为 `.env.local` 并按需修改
+- 小程序默认可直接联调本地 `http://localhost:8080`
+- 如果需要通过 HTTPS 反代消除开发工具中的 HTTP 警告，可参考 [docs/dev-https-proxy.md](./docs/dev-https-proxy.md)
 
-## 接口约定
+## 接口前缀
 
 | 端 | 前缀 | 说明 |
 | --- | --- | --- |
@@ -171,12 +170,9 @@ npm run dev:mp-weixin
 
 ## 文档
 
-- [需求文档](./.kiro/specs/travel-recommendation-system/requirements.md)
-- [设计文档](./.kiro/specs/travel-recommendation-system/design.md)
-- [API 文档](./.kiro/specs/travel-recommendation-system/api.md)
-- [数据库设计](./.kiro/specs/travel-recommendation-system/database.md)
-- [开发任务](./.kiro/specs/travel-recommendation-system/tasks.md)
-
-## License
-
-MIT
+- [文档索引](./docs/README.md)
+- [需求文档](./docs/specs/travel-recommendation-system/requirements.md)
+- [设计文档](./docs/specs/travel-recommendation-system/design.md)
+- [API 文档](./docs/specs/travel-recommendation-system/api.md)
+- [数据库文档](./docs/specs/travel-recommendation-system/database.md)
+- [任务文档](./docs/specs/travel-recommendation-system/tasks.md)
