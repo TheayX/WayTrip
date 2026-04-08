@@ -2,7 +2,13 @@ import { useUserStore } from '@/stores/user'
 import { getCurrentPageRoute, traceRuntime } from '@/utils/runtime-trace'
 
 // 常量配置
-const SERVER_URL = 'https://localhost:8443'
+const DEFAULT_SERVER_URL = 'http://localhost:8080'
+
+// 默认保持“拉下来即可联调”，因此小程序开发环境直接走本地 8080。
+// 如果需要消除微信开发者工具里的 HTTP 警告，可在 .env.local 中把
+// VITE_API_ORIGIN 改为本机 Nginx 反代出的 HTTPS 地址，例如 https://localhost:8443。
+const SERVER_URL = (import.meta.env.VITE_API_ORIGIN || DEFAULT_SERVER_URL).replace(/\/$/, '')
+
 const BASE_URL = `${SERVER_URL.replace(/\/$/, '')}/api/v1`
 const SUCCESS_CODE = 0
 const AUTH_EXPIRED_CODE = 10002
@@ -23,10 +29,10 @@ const toHttps = (value) => value.replace(/^http:\/\//i, 'https://')
 export const getImageUrl = (url) => {
   if (!url) return ''
   if (isAbsoluteUrl(url)) {
-    // WeChat mini program disallows HTTP images; upgrade when not localhost.
+    // 小程序本地联调默认允许 localhost 继续走 HTTP，避免把 HTTPS 反代变成必选项。
     return isHttpUrl(url) && !isLocalHostUrl(url) ? toHttps(url) : url
   }
-  const base = SERVER_URL.replace(/\/$/, '')
+  const base = SERVER_URL
   const path = url.startsWith('/') ? url : `/${url}`
   const fullUrl = `${base}${path}`
   return isHttpUrl(fullUrl) && !isLocalHostUrl(fullUrl) ? toHttps(fullUrl) : fullUrl

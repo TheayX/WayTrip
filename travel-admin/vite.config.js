@@ -3,9 +3,24 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
+const parseAllowedHosts = (value) => {
+  if (!value) {
+    return undefined
+  }
+
+  const hosts = value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+  return hosts.length > 0 ? hosts : undefined
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const proxyTarget = env.VITE_DEV_PROXY_TARGET || 'http://localhost:8080'
+  const devHost = env.VITE_DEV_HOST || undefined
+  const allowedHosts = parseAllowedHosts(env.VITE_DEV_ALLOWED_HOSTS)
 
   return {
     // Vite 插件配置
@@ -75,6 +90,13 @@ export default defineConfig(({ mode }) => {
     // 开发服务器配置
     server: {
       port: 3000,
+
+      // 默认不强绑特定 Host，只有在 Nginx 反代或内网穿透时再通过环境变量显式指定。
+      ...(devHost ? { host: devHost } : {}),
+
+      // 免费 ngrok 域名会频繁变化，因此允许的外部 Host 通过环境变量临时注入。
+      ...(allowedHosts ? { allowedHosts } : {}),
+
       proxy: {
         // 接口请求代理到后端服务
         '/api': {
