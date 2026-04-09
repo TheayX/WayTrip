@@ -49,6 +49,7 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
+// 导航项集中定义，保证文案、图标和跳转路径在账户中心保持一致。
 const navItems = computed(() => [
   { label: '个人中心', desc: '查看基础信息与偏好摘要', path: ACCOUNT_ROUTE_PATHS.profile, icon: User },
   { label: '我的互动', desc: '回看评论、足迹和最近操作', path: ACCOUNT_ROUTE_PATHS.activity, icon: ChatDotRound },
@@ -59,6 +60,7 @@ const navItems = computed(() => [
 ])
 
 const isActive = (item) => {
+  // “个人中心”是账户根页，需要避免被其他 /account/* 子路径误判为激活。
   if (item.path === ACCOUNT_ROUTE_PATHS.profile) {
     return route.path === ACCOUNT_ROUTE_PATHS.profile
   }

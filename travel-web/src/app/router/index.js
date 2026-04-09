@@ -12,6 +12,7 @@ const router = createRouter({
   }
 })
 
+// 守卫逻辑统一在独立文件注册，路由实例职责只保留基础配置。
 setupRouterGuards(router)
 
 export default router

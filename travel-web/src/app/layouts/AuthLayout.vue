@@ -24,6 +24,8 @@
 <script setup>
 import { APP_NAME } from '@/shared/constants/app.js'
 import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
+
+// 认证布局仅承接品牌露出和页面插槽，登录/注册表单逻辑都留在各自页面内部。
 </script>
 
 <style lang="scss" scoped>
