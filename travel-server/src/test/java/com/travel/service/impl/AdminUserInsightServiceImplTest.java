@@ -32,9 +32,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * 用户运营洞察服务测试。
+ * <p>
+ * 重点覆盖偏好标签解析与列表装配这类容易受脏数据影响的边界场景。
+ */
 @ExtendWith(MockitoExtension.class)
 class AdminUserInsightServiceImplTest {
 
+    /**
+     * 初始化 MyBatis-Plus Lambda 缓存，避免测试里使用 LambdaQueryWrapper 时缺少表元信息。
+     */
     @BeforeAll
     static void initMybatisPlusLambdaCache() {
         Configuration configuration = new Configuration();

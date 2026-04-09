@@ -4,6 +4,8 @@ import java.util.Map;
 
 /**
  * 景点热度档位常量类，定义热度档位与基础热度分值的映射关系。
+ * <p>
+ * 热度档位常量集中维护后，后台配置、热度同步和推荐重排都可以复用同一套基准值。
  */
 public final class SpotHeatLevelConstants {
 

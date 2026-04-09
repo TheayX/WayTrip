@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 
 /**
  * 景点持久化实体，对应 spot 表。
+ * <p>
+ * 同时承接基础表字段和少量联表补充字段，是景点查询和后台管理的核心实体。
  */
 @Data
 @TableName("spot")

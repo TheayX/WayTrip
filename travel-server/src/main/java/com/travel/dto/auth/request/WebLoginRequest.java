@@ -7,6 +7,8 @@ import lombok.Data;
 
 /**
  * Web 端登录请求对象。
+ * <p>
+ * 用于接收 Web 登录所需的最小身份凭证，保持登录链路输入简单稳定。
  */
 @Data
 public class WebLoginRequest {

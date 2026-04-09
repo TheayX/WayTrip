@@ -4,6 +4,8 @@ import lombok.Getter;
 
 /**
  * 订单状态枚举，对应 order.status 字段取值。
+ * <p>
+ * 统一封装数据库状态码、前端状态标识和业务能力判断，避免状态流转规则散落在服务层。
  */
 @Getter
 public enum OrderStatus {

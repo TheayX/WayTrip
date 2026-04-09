@@ -16,13 +16,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * 全局异常处理 MVC 测试
+ * 全局异常处理 MVC 测试。
+ * <p>
  * 覆盖权限异常与参数校验异常的标准返回结构。
  */
 class GlobalExceptionHandlerMvcTest {
 
     private MockMvc mockMvc;
 
+    /**
+     * 仅挂载测试控制器和异常处理器，验证标准错误响应结构是否稳定。
+     */
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
