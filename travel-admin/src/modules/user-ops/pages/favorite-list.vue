@@ -1,4 +1,5 @@
-﻿<template>
+<!-- 用户收藏列表页面 -->
+<template>
   <div class="favorite-page admin-page-shell">
     <section class="page-hero">
       <div>

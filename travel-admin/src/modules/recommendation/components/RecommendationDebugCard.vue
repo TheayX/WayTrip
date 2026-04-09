@@ -1,3 +1,4 @@
+<!-- 推荐预览与调试卡片 -->
 <template>
   <el-card ref="debugCardRef" shadow="hover" class="debug-card preview-card">
     <template #header>
@@ -367,11 +368,12 @@ const emit = defineEmits([
 
 const formatDescription = (desc) => {
   if (!desc) return ''
-  // 高亮带有小数的数字（通常是权重或分数）
+  // 高亮带有小数的数字，方便在长说明里快速定位权重和分数变化。
   return desc.replace(/(\d+\.\d+)/g, match => `<span class="highlight-number">${match}</span>`)
 }
 
 defineExpose({
+  // 暴露根节点给页面层做滚动定位，避免在父层直接依赖内部模板结构。
   get $el() {
     return debugCardRef.value?.$el || debugCardRef.value
   }

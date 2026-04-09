@@ -1,3 +1,4 @@
+<!-- 景点新增与编辑抽屉 -->
 <template>
   <!-- 新增/编辑景点抽屉表单 -->
   <el-drawer
@@ -197,7 +198,7 @@
                     <div class="gallery-list" v-if="form.images?.length">
                       <div class="gallery-item relative group" v-for="(img, index) in form.images" :key="`${img}-${index}`">
                         <el-image :src="getImageUrl(img)" fit="cover" class="gallery-image rounded-lg" />
-                        <!-- Hover mask with delete button -->
+                        <!-- 悬停时显示删除入口，避免图库区域始终堆满操作按钮 -->
                         <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
                           <el-button type="danger" circle size="small" @click.stop="emit('remove-gallery-image', index)">
                             <el-icon><Delete /></el-icon>
@@ -266,7 +267,7 @@ const emit = defineEmits([
   'update:visible', 'submit', 'parent-category-change', 'remove-gallery-image'
 ])
 
-// 重置步骤状态
+// 抽屉每次重新打开时都从第一步开始，避免保留上一次编辑进度造成误导。
 watch(() => props.visible, (newVal) => {
   if (newVal) {
     activeStep.value = 0
@@ -283,6 +284,7 @@ const stepOptions = [
   { title: '图文素材', icon: Picture }
 ]
 
+// 分步校验只覆盖当前步骤的必填项，减少一次性报错对录入体验的打断。
 const stepValidateFields = {
   0: ['name', 'regionPath', 'parentCategoryId', 'categoryId', 'price'],
   1: ['address', 'heatLevel']
@@ -304,6 +306,7 @@ const validateStep = async (stepIndex) => {
 }
 
 const goToStep = (stepIndex) => {
+  // 新建态禁止自由跳步，避免在基础字段缺失时提前录入后续信息。
   if (!isEditMode.value) {
     return
   }
@@ -370,7 +373,7 @@ defineExpose({
   border-bottom: 2px solid var(--wt-divider-soft);
 }
 
-/* Custom Input overwrites for form */
+/* 表单输入组件样式覆写 */
 .custom-form {
   :deep(.el-form-item__label) {
     font-weight: 600;
@@ -488,7 +491,7 @@ defineExpose({
 .rounded-xl { border-radius: 12px; }
 .shadow-\[0_-4px_6px_-1px_rgba\(0\,0\,0\,0\.05\)\] { box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05); }
 
-/* Fade in animation */
+/* 步骤切换淡入动画 */
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
 }

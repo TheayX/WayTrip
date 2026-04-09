@@ -1,3 +1,4 @@
+<!-- 攻略管理筛选栏 -->
 <template>
   <div class="search-form admin-filter-bar">
     <el-form :inline="true" :model="queryParams" @submit.prevent>
@@ -51,6 +52,7 @@
 </template>
 
 <script setup>
+// 组件只维护输入控件，筛选字段解释与请求节奏交给父页面统一控制。
 defineProps({
   queryParams: { type: Object, required: true },
   uiFilters: { type: Object, required: true },
@@ -58,6 +60,8 @@ defineProps({
 })
 
 const emit = defineEmits(['search', 'reset', 'filter-change'])
+
+// 过滤条件变更和显式搜索分开上抛，便于父层区分即时筛选与手动触发查询。
 </script>
 
 <style lang="scss" scoped>

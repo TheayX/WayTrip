@@ -1,3 +1,4 @@
+<!-- 订单状态概览卡片组 -->
 <template>
   <section class="summary-grid" v-loading="loading">
     <button
@@ -16,12 +17,14 @@
 </template>
 
 <script setup>
+// 卡片点击只负责切换页签，具体统计口径和数据计算由父页面统一维护。
 defineProps({
   loading: { type: Boolean, default: false },
   currentTab: { type: String, required: true },
   cards: { type: Array, required: true }
 })
 
+// 子组件只抛出页签切换意图，避免把订单状态枚举硬编码到多个地方。
 const emit = defineEmits(['change-tab'])
 </script>
 

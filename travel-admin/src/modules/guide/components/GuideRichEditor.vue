@@ -1,3 +1,4 @@
+<!-- 攻略富文本编辑器 -->
 <template>
   <div class="guide-rich-editor">
     <div ref="toolbarRef" class="editor-toolbar"></div>
@@ -21,6 +22,7 @@ const editorRef = ref(null)
 let editor = null
 
 const syncEditorHtml = (html) => {
+  // 避免父子双向同步时重复写回，减少编辑器光标抖动。
   if (!editor) {
     return
   }
@@ -35,6 +37,7 @@ const createEditor = async () => {
     return
   }
 
+  // 编辑器实例只在组件挂载后创建，确保工具栏和内容容器都已就绪。
   editor = new E(toolbarRef.value, editorRef.value)
   editor.config.placeholder = props.placeholder
   editor.config.zIndex = 10

@@ -1,3 +1,4 @@
+<!-- 推荐参数配置卡片 -->
 <template>
   <el-card shadow="hover" class="config-card">
     <template #header>
@@ -359,12 +360,15 @@
 <script setup>
 import { DataLine, Setting, Clock } from '@element-plus/icons-vue'
 
+// 该卡片只承接配置展示与表单双向绑定，不直接触发保存动作。
 defineProps({
   config: { type: Object, required: true },
   impactOverviewCards: { type: Array, required: true },
   immediateChangeSummary: { type: Object, required: true },
   matrixChangeSummary: { type: Object, required: true }
 })
+
+// 配置值直接双向写入父层模型，确保预览区和执行区能立即感知最新参数。
 </script>
 
 <style lang="scss" scoped>

@@ -1,3 +1,4 @@
+<!-- 订单中心筛选栏 -->
 <template>
   <div class="search-form admin-filter-bar">
     <el-form :model="searchForm" @submit.prevent>
@@ -86,6 +87,7 @@
 <script setup>
 import { CaretTop, Filter } from '@element-plus/icons-vue'
 
+// 筛选项由父页面持有，组件只负责输入与筛选事件分发。
 defineProps({
   currentTab: { type: String, required: true },
   tabLabel: { type: String, required: true },
@@ -97,6 +99,7 @@ defineProps({
 const emit = defineEmits(['search', 'reset', 'toggle-advanced', 'update:date-range'])
 
 const handleDateChange = (value) => {
+  // 日期组件清空时统一回传空数组，避免父层额外兼容 null。
   emit('update:date-range', value || [])
 }
 </script>

@@ -76,6 +76,7 @@ import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
 import { useTheme } from '@/shared/composables/useTheme.js'
 import { THEME_MODE_OPTIONS } from '@/shared/constants/theme.js'
 
+// 登录页同时承接账号认证和主题切换入口，避免未登录状态下还要跳去别处改主题。
 const router = useRouter()
 const userStore = useUserStore()
 const { themeMode, currentTheme, setThemeMode } = useTheme()
@@ -93,6 +94,7 @@ const rules = {
 }
 
 const handleLogin = async () => {
+  // 先走表单校验，再发起登录请求，避免无效请求频繁打到认证接口。
   if (!formRef.value) return
   await formRef.value.validate()
   loading.value = true
