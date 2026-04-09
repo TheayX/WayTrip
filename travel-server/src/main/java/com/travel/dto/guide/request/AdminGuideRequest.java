@@ -18,6 +18,10 @@ public class AdminGuideRequest {
     
     @NotBlank(message = "内容不能为空")
     private String content;
+
+    private Long adminId;
+
+    private String adminName;
     
     private Boolean published = false;
 

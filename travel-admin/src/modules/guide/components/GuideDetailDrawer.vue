@@ -35,6 +35,7 @@
         <h3 class="section-title">基础信息</h3>
         <el-descriptions :column="1" border class="custom-desc">
           <el-descriptions-item label="分类">{{ detail.category || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="创建者">{{ detail.adminName || '-' }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ formatDate(detail.createdAt) || '-' }}</el-descriptions-item>
           <el-descriptions-item label="修改时间">{{ formatDate(detail.updatedAt) || '-' }}</el-descriptions-item>
         </el-descriptions>

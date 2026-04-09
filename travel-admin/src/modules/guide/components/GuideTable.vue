@@ -24,6 +24,11 @@
         <el-tag effect="plain" type="info" size="small">{{ row.category || '未分类' }}</el-tag>
       </template>
     </el-table-column>
+    <el-table-column prop="adminName" label="创建者" width="140" align="center" show-overflow-tooltip>
+      <template #default="{ row }">
+        <span class="admin-name-text">{{ row.adminName || '未记录' }}</span>
+      </template>
+    </el-table-column>
     <el-table-column prop="viewCount" label="浏览量" width="100" align="center">
       <template #default="{ row }">
         <span class="count-text">{{ row.viewCount ?? 0 }}</span>
@@ -144,6 +149,11 @@ const handleCommand = (command, row) => {
   font-weight: 600;
   color: var(--wt-text-primary);
   font-variant-numeric: tabular-nums;
+}
+
+.admin-name-text {
+  color: var(--wt-text-regular);
+  font-weight: 500;
 }
 
 .borderless-table {

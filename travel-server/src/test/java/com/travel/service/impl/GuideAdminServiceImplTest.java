@@ -3,16 +3,21 @@ package com.travel.service.impl;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.guide.request.AdminGuideRequest;
+import com.travel.common.result.PageResult;
 import com.travel.entity.Admin;
+import com.travel.entity.Guide;
 import com.travel.mapper.AdminMapper;
 import com.travel.mapper.GuideMapper;
 import com.travel.mapper.GuideSpotRelationMapper;
 import com.travel.mapper.SpotMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -60,5 +65,63 @@ class GuideAdminServiceImplTest {
 
         assertEquals(ResultCode.ADMIN_DISABLED.getCode(), ex.getCode());
         verify(guideMapper, never()).insert(any());
+    }
+
+    @Test
+    void getAdminGuideList_includesAdminName() {
+        Guide guide = new Guide();
+        guide.setId(1L);
+        guide.setTitle("西湖攻略");
+        guide.setAdminId(9L);
+        guide.setIsDeleted(0);
+        guide.setIsPublished(1);
+        guide.setViewCount(12);
+
+        Admin admin = new Admin();
+        admin.setId(9L);
+        admin.setRealName("系统管理员");
+        admin.setUsername("admin");
+
+        Page<Guide> page = new Page<>(1, 10);
+        page.setRecords(List.of(guide));
+        page.setTotal(1L);
+
+        when(guideMapper.selectPage(any(), any())).thenReturn(page);
+        when(adminMapper.selectBatchIds(List.of(9L))).thenReturn(List.of(admin));
+
+        PageResult<com.travel.dto.guide.response.AdminGuideListResponse> result =
+            guideAdminService.getAdminGuideList(new com.travel.dto.guide.request.AdminGuideListRequest());
+
+        assertEquals(1, result.getList().size());
+        assertEquals(9L, result.getList().get(0).getAdminId());
+        assertEquals("系统管理员", result.getList().get(0).getAdminName());
+    }
+
+    @Test
+    void getAdminGuideDetail_includesAdminName() {
+        Guide guide = new Guide();
+        guide.setId(1L);
+        guide.setTitle("西湖攻略");
+        guide.setAdminId(9L);
+        guide.setCategory("自然风光");
+        guide.setContent("详情内容");
+        guide.setIsDeleted(0);
+        guide.setIsPublished(1);
+        guide.setViewCount(12);
+
+        Admin admin = new Admin();
+        admin.setId(9L);
+        admin.setRealName("系统管理员");
+        admin.setUsername("admin");
+
+        when(guideMapper.selectById(1L)).thenReturn(guide);
+        when(adminMapper.selectById(9L)).thenReturn(admin);
+        when(guideSpotRelationMapper.selectList(any())).thenReturn(List.of());
+
+        AdminGuideRequest result = guideAdminService.getAdminGuideDetail(1L);
+
+        assertEquals(9L, result.getAdminId());
+        assertEquals("系统管理员", result.getAdminName());
+        assertEquals("西湖攻略", result.getTitle());
     }
 }

@@ -503,6 +503,8 @@ const openGuideDetail = async (row) => {
     title: row.title,
     category: res.data.category || row.category,
     coverImage: res.data.coverImage || row.coverImage,
+    adminId: row.adminId ?? res.data.adminId,
+    adminName: row.adminName || res.data.adminName,
     published: res.data.published ?? row.published,
     viewCount: row.viewCount,
     createdAt: row.createdAt,

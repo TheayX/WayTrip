@@ -64,8 +64,19 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         wrapper.orderByAsc(Guide::getId);
 
         Page<Guide> result = guideMapper.selectPage(page, wrapper);
+        List<Guide> guides = result.getRecords();
+        List<Long> adminIds = guides.stream()
+            .map(Guide::getAdminId)
+            .filter(id -> id != null)
+            .distinct()
+            .collect(Collectors.toList());
+        // 列表页批量补齐创建管理员信息，避免表格逐行查询产生 N+1。
+        java.util.Map<Long, Admin> adminMap = adminIds.isEmpty()
+            ? java.util.Map.of()
+            : adminMapper.selectBatchIds(adminIds).stream()
+                .collect(Collectors.toMap(Admin::getId, admin -> admin));
         List<AdminGuideListResponse> list = result.getRecords().stream()
-            .map(this::convertToAdminListResponse)
+            .map(guide -> convertToAdminListResponse(guide, adminMap))
             .collect(Collectors.toList());
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
@@ -73,6 +84,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
     @Override
     public AdminGuideRequest getAdminGuideDetail(Long guideId) {
         Guide guide = getExistingGuide(guideId);
+        Admin admin = guide.getAdminId() == null ? null : adminMapper.selectById(guide.getAdminId());
         // 编辑态详情需要保留原有关联顺序，因此按排序字段回放关联景点。
         List<GuideSpotRelation> guideSpots = guideSpotRelationMapper.selectList(
             new LambdaQueryWrapper<GuideSpotRelation>()
@@ -102,6 +114,8 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         response.setCoverImage(guide.getCoverImageUrl());
         response.setCategory(guide.getCategory());
         response.setContent(guide.getContent());
+        response.setAdminId(guide.getAdminId());
+        response.setAdminName(resolveAdminName(guide.getAdminId(), admin));
         response.setPublished(guide.getIsPublished() == 1);
         response.setViewCount(guide.getViewCount());
         response.setSpotIds(filteredSpotIds);
@@ -182,17 +196,36 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         return guide;
     }
 
-    private AdminGuideListResponse convertToAdminListResponse(Guide guide) {
+    private AdminGuideListResponse convertToAdminListResponse(Guide guide, java.util.Map<Long, Admin> adminMap) {
+        Admin admin = guide.getAdminId() == null ? null : adminMap.get(guide.getAdminId());
         return AdminGuideListResponse.builder()
             .id(guide.getId())
             .title(guide.getTitle())
             .coverImage(guide.getCoverImageUrl())
             .category(guide.getCategory())
+            .adminId(guide.getAdminId())
+            .adminName(resolveAdminName(guide.getAdminId(), admin))
             .viewCount(guide.getViewCount())
             .published(guide.getIsPublished() == 1)
             .createdAt(guide.getCreatedAt())
             .updatedAt(guide.getUpdatedAt())
             .build();
+    }
+
+    /**
+     * 列表页优先显示管理员姓名，其次回退用户名，避免责任归属字段出现空白。
+     */
+    private String resolveAdminName(Long adminId, Admin admin) {
+        if (admin == null) {
+            return adminId == null ? "未记录" : "管理员#" + adminId;
+        }
+        if (StringUtils.hasText(admin.getRealName())) {
+            return admin.getRealName();
+        }
+        if (StringUtils.hasText(admin.getUsername())) {
+            return admin.getUsername();
+        }
+        return adminId == null ? "未记录" : "管理员#" + adminId;
     }
 
     private AdminGuideRequest.SpotOption convertToSpotOption(Spot spot) {
