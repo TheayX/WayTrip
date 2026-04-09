@@ -1,3 +1,4 @@
+<!-- 探索关键词分组组件 -->
 <template>
   <div class="keyword-group" :class="{ compact, boxed: !compact }">
     <span class="group-label">{{ title }}</span>
@@ -16,6 +17,7 @@
 </template>
 
 <script setup>
+// 关键词分组组件保持纯展示和事件分发，不持有筛选状态。
 defineProps({
   title: {
     type: String,
@@ -39,6 +41,7 @@ defineProps({
   }
 })
 
+// 关键词选择和清空动作都交给外层处理，避免组件内部出现状态分叉。
 defineEmits(['select', 'clear'])
 </script>
 

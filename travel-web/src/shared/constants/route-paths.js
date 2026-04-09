@@ -4,6 +4,7 @@ export const AUTH_ROUTE_PATHS = {
   register: '/register'
 }
 
+// 页面跳转统一依赖路径常量，减少硬编码字符串在业务层蔓延。
 export const APP_ROUTE_PATHS = {
   home: '/',
   discover: '/discover',

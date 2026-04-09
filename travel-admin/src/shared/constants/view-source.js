@@ -19,6 +19,7 @@ export const sourceOptions = [
   { label: '详情页', value: 'detail' }
 ]
 
+// 推荐算法只消费有限几个挡位，页面里看到的来源会先映射到这里。
 export const sourceBucketOptions = [
   { label: '首页挡位', value: 'home' },
   { label: '搜索挡位', value: 'search' },
@@ -27,6 +28,7 @@ export const sourceBucketOptions = [
   { label: '默认挡位', value: 'detail' }
 ]
 
+// 原始来源到算法挡位的映射统一从这里维护，避免前后文案解释不一致。
 export const sourceToBucketMap = {
   home: 'home',
   search: 'search',
@@ -51,6 +53,7 @@ export const getSourceLabel = (value) => {
   return sourceOptions.find(item => item.value === value)?.label || value || '未知'
 }
 
+// 未识别来源统一退回默认 detail 挡位，保证算法侧有稳定兜底。
 export const getSourceBucket = (source) => {
   return sourceToBucketMap[source] || 'detail'
 }

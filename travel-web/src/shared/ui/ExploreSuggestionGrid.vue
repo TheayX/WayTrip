@@ -1,3 +1,4 @@
+<!-- 探索建议网格组件 -->
 <template>
   <div class="suggestion-grid">
     <article
@@ -18,6 +19,7 @@
 <script setup>
 import { getImageUrl } from '@/shared/api/client.js'
 
+// 建议网格只负责渲染推荐项，选中后的跳转和行为埋点由父层决定。
 defineProps({
   items: {
     type: Array,
@@ -25,6 +27,7 @@ defineProps({
   }
 })
 
+// 统一上抛整项数据，方便发现页、搜索页和推荐区块复用同一组件。
 defineEmits(['select'])
 </script>
 

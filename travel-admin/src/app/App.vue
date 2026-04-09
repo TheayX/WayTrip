@@ -10,6 +10,7 @@ import { useTheme } from '@/shared/composables/useTheme.js'
 const { initTheme } = useTheme()
 
 onMounted(() => {
+  // 首屏挂载时立即同步主题，避免后台刷新后出现短暂闪白或主题错位。
   initTheme()
 })
 </script>

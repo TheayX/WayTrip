@@ -1,3 +1,5 @@
+/* 后台共享样式入口 */
+/* 后台全局样式只从这里集中引入，避免各页面重复拼装 token 和 override。 */
 @use './theme/tokens/base.scss' as token-base;
 @use './theme/tokens/semantic.scss' as token-semantic;
 @use './theme/tokens/light.scss' as token-light;

@@ -19,10 +19,18 @@ export const SPOT_DETAIL_SOURCE = {
   DETAIL: 'detail'
 }
 
+// 来源参数缺失时统一退回 detail，保证详情页埋点和回流逻辑稳定。
 export const resolveSpotDetailSource = (source) => {
   return typeof source === 'string' && source.trim() ? source : SPOT_DETAIL_SOURCE.DETAIL
 }
 
+/**
+ * 构建景点详情路由
+ * @param {number|string} spotId
+ * @param {string} [source]
+ * @param {{ openReview?: boolean }} [options]
+ * @returns {{ path: string, query: Record<string, string> }}
+ */
 export const buildSpotDetailRoute = (spotId, source = SPOT_DETAIL_SOURCE.DETAIL, options = {}) => {
   const query = {
     source: resolveSpotDetailSource(source)

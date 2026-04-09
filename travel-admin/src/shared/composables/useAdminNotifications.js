@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { getUserList } from '@/modules/user-ops/api/user.js'
 import { getOrderList } from '@/modules/order/api.js'
 
+// 通知面板只展示最近一段时间的新用户和新订单，避免头部长期堆积历史消息。
 const DEFAULT_PAGE_SIZE = 5
 const RECENT_HOURS = 24
 const NOTIFICATION_READ_STORAGE_KEY = 'admin_notifications_read_state'
@@ -9,7 +10,7 @@ const NOTIFICATION_READ_STORAGE_KEY = 'admin_notifications_read_state'
 // 全局响应式标志，用于触发更新
 const readStateUpdateTrigger = ref(0)
 
-// 通知已读状态管理
+// 通知已读状态统一落到 localStorage，保证刷新后红点状态不丢失。
 const getReadNotifications = () => {
   try {
     const stored = localStorage.getItem(NOTIFICATION_READ_STORAGE_KEY)
@@ -42,6 +43,7 @@ const isNotificationRead = (notificationId) => {
   return notificationId in state
 }
 
+// 时间处理统一收口在组合函数内部，避免头部组件重复实现相对时间格式化。
 const toTimestamp = (value) => {
   const time = new Date(value).getTime()
   return Number.isNaN(time) ? 0 : time
@@ -85,6 +87,7 @@ const maskPhone = (phone) => {
   return normalized
 }
 
+// 用户通知统一归一为面板消费格式，避免页面层区分原始接口字段。
 const normalizeUserNotification = (item) => ({
   id: `user-${item.id}`,
   type: 'user',
@@ -119,6 +122,7 @@ const normalizeOrderNotification = (item) => {
 const sortByLatest = (items) => items.sort((left, right) => toTimestamp(right.createdAt) - toTimestamp(left.createdAt))
 
 export function useAdminNotifications() {
+  // 组合函数统一维护通知列表、未读数和最近更新时间。
   const loading = ref(false)
   const errorMessage = ref('')
   const lastLoadedAt = ref('')
@@ -140,7 +144,7 @@ export function useAdminNotifications() {
     }
   ]))
 
-  // 只计算未读的消息数
+  // 只统计未读数量，保证头部红点与面板里的已读状态一致。
   const notificationCount = computed(() => {
     const unreadUsers = userNotifications.value.filter(item => !isNotificationRead(item.id)).length
     const unreadOrders = orderNotifications.value.filter(item => !isNotificationRead(item.id)).length
@@ -151,6 +155,7 @@ export function useAdminNotifications() {
   const lastLoadedLabel = computed(() => (lastLoadedAt.value ? `最近更新于 ${formatRelativeTime(lastLoadedAt.value)}` : ''))
 
   const loadNotifications = async () => {
+    // 用户和订单并行拉取，减少通知面板首开等待时间。
     loading.value = true
     errorMessage.value = ''
 
@@ -194,6 +199,7 @@ export function useAdminNotifications() {
   }
 }
 
+// 保留显式引用，避免构建阶段把组合函数误判成纯未使用代码。
 void useAdminNotifications
 
 
