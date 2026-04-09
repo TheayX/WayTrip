@@ -36,6 +36,8 @@ import java.util.stream.Collectors;
 
 /**
  * 景点管理服务实现，负责后台列表、详情和维护操作。
+ * <p>
+ * 该实现聚焦后台写能力与编辑态详情聚合，查询装配与树结构处理分别下沉到 support 层。
  */
 @Slf4j
 @Service
@@ -62,6 +64,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
             wrapper.like(Spot::getName, request.getKeyword());
         }
         if (request.getRegionId() != null) {
+            // 后台按树节点筛选时要自动展开子节点，避免管理员只能查到当前层级。
             Set<Long> regionIds = spotTreeSupport.findRegionAndChildrenIds(request.getRegionId());
             if (regionIds.isEmpty() || regionIds.size() == 1) {
                 wrapper.eq(Spot::getRegionId, request.getRegionId());
@@ -137,6 +140,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     @Transactional
     public Long createSpot(AdminSpotUpsertRequest request) {
         Spot spot = new Spot();
+        // 景点基础字段和图片写入统一交给写支持类，避免后台创建与更新逻辑分叉。
         spotWriteSupport.copyUpsertRequest(request, spot);
         spotMapper.insert(spot);
         spotWriteSupport.saveSpotImages(spot.getId(), request.getImages());
@@ -183,6 +187,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     }
 
     private Spot getExistingSpot(Long spotId) {
+        // 后台编辑、上下架和删除都复用同一存在性校验，减少重复判空分支。
         Spot spot = spotMapper.selectById(spotId);
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.SPOT_NOT_FOUND);

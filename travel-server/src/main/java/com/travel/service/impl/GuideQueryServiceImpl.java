@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 
 /**
  * 攻略查询服务实现，负责用户端列表、详情和分类查询。
+ * <p>
+ * 用户端攻略查询强调发布态过滤和展示态装配，和后台编辑态详情保持明确隔离。
  */
 @Service
 @RequiredArgsConstructor
@@ -93,6 +95,7 @@ public class GuideQueryServiceImpl implements GuideQueryService {
     public GuideDetailResponse getGuideDetail(Long guideId) {
         Guide guide = getPublishedGuide(guideId);
 
+        // 详情访问即记一次浏览量，保持用户端阅读行为与后台统计同步。
         int nextViewCount = (guide.getViewCount() == null ? 0 : guide.getViewCount()) + 1;
         guide.setViewCount(nextViewCount);
         guideMapper.update(
@@ -150,6 +153,7 @@ public class GuideQueryServiceImpl implements GuideQueryService {
     }
 
     private List<GuideDetailResponse.RelatedSpot> getRelatedSpots(Long guideId) {
+        // 详情页展示关联景点时只返回仍然可见的景点，避免跳转到已下线内容。
         List<GuideSpotRelation> guideSpots = guideSpotRelationMapper.selectList(
             new LambdaQueryWrapper<GuideSpotRelation>()
                 .eq(GuideSpotRelation::getGuideId, guideId)
@@ -182,6 +186,7 @@ public class GuideQueryServiceImpl implements GuideQueryService {
         if (content == null) {
             return null;
         }
+        // 摘要统一去掉富文本标签，避免列表页直接渲染 HTML 片段。
         String summary = content.replaceAll("<[^>]+>", "");
         if (summary.length() > 100) {
             return summary.substring(0, 100) + "...";
