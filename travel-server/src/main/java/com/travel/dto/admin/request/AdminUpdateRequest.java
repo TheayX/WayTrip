@@ -7,6 +7,8 @@ import lombok.Data;
 
 /**
  * 管理员更新请求对象。
+ * <p>
+ * 用于后台编辑管理员姓名和状态等资料，不承载密码修改语义。
  */
 @Data
 public class AdminUpdateRequest {

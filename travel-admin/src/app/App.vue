@@ -1,3 +1,4 @@
+<!-- 后台应用入口 -->
 <template>
   <router-view />
 </template>

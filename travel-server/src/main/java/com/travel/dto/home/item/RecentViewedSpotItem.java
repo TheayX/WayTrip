@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 
 /**
  * 最近都在看景点列表项。
+ * <p>
+ * 用于首页“最近都在看”模块承接轻量景点展示信息。
  */
 @Data
 public class RecentViewedSpotItem {

@@ -8,6 +8,8 @@ import java.util.List;
 
 /**
  * 管理端景点详情回显对象。
+ * <p>
+ * 面向后台编辑页，返回完整表单回填字段和附加运营指标。
  */
 @Data
 public class AdminSpotDetailResponse {

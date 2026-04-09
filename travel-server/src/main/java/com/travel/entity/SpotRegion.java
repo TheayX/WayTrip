@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 景点地区持久化实体，对应 spot_region 表。
+ * <p>
+ * 承接地区树层级关系与后台地区排序信息。
  */
 @Data
 @TableName("spot_region")

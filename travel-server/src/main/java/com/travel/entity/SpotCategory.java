@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 景点分类持久化实体，对应 spot_category 表。
+ * <p>
+ * 既承接分类树层级关系，也维护后台分类图标和排序信息。
  */
 @Data
 @TableName("spot_category")

@@ -5,6 +5,8 @@ import lombok.Data;
 
 /**
  * 管理端轮播图创建或更新请求对象。
+ * <p>
+ * 后台轮播图新增与编辑共用同一表单结构，保持首页资源维护口径一致。
  */
 @Data
 public class AdminBannerRequest {

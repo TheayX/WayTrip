@@ -6,6 +6,8 @@ import lombok.Data;
 
 /**
  * 管理端重置用户密码请求对象。
+ * <p>
+ * 仅承接后台重置用户密码场景所需的新密码字段。
  */
 @Data
 public class ResetUserPasswordRequest {

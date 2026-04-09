@@ -5,6 +5,8 @@ import lombok.Data;
 
 /**
  * 管理端用户收藏列表项。
+ * <p>
+ * 面向后台用户运营列表，承接单条收藏记录的展示字段。
  */
 @Data
 @Builder

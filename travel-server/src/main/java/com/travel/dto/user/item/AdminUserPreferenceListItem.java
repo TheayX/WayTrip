@@ -7,6 +7,8 @@ import java.util.List;
 
 /**
  * 管理端用户偏好列表项。
+ * <p>
+ * 用于后台查看用户偏好标签、关联分类和最近更新时间等信息。
  */
 @Data
 @Builder

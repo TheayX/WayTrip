@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 管理员持久化实体，对应 admin 表。
+ * <p>
+ * 承接后台管理员账号、启用状态和最后登录时间等核心信息。
  */
 @Data
 @TableName("admin")

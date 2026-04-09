@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * 管理端用户列表响应对象。
+ * <p>
+ * 统一封装后台用户列表和列表项结构，便于用户管理页直接消费。
  */
 @Data
 public class AdminUserListResponse {

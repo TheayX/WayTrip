@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 景点图片持久化实体，对应 spot_image 表。
+ * <p>
+ * 用于维护景点相册图片及其排序，支持后台整体替换图片集。
  */
 @Data
 @TableName("spot_image")

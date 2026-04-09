@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 用户景点收藏持久化实体，对应 user_spot_favorite 表。
+ * <p>
+ * 收藏记录使用软删除管理，便于取消收藏后仍保留历史关系。
  */
 @Data
 @TableName("user_spot_favorite")

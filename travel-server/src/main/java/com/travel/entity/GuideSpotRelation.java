@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 攻略与景点关联持久化实体，对应 guide_spot_relation 表。
+ * <p>
+ * 用于维护攻略与景点的关联关系以及前端展示顺序。
  */
 @Data
 @TableName("guide_spot_relation")

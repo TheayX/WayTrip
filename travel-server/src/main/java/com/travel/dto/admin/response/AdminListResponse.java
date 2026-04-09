@@ -7,6 +7,8 @@ import java.util.List;
 
 /**
  * 管理员列表响应对象。
+ * <p>
+ * 统一封装后台管理员分页列表与列表项结构，便于管理端表格直接消费。
  */
 @Data
 public class AdminListResponse {

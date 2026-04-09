@@ -7,6 +7,8 @@ import lombok.Data;
 
 /**
  * 用户端评价提交请求参数对象。
+ * <p>
+ * 只接收景点、评分和评论内容，评价归属用户由登录上下文统一补足。
  */
 @Data
 public class ReviewRequest {

@@ -4,6 +4,8 @@ import lombok.Data;
 
 /**
  * 用户端穷游攻略列表查询参数对象。
+ * <p>
+ * 面向穷游玩法页，承接分页和预算口径筛选参数。
  */
 @Data
 public class GuideBudgetListRequest {
