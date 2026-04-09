@@ -10,11 +10,13 @@ import com.travel.dto.guide.request.AdminGuideListRequest;
 import com.travel.dto.guide.request.AdminGuideRequest;
 import com.travel.dto.guide.request.AdminGuideViewCountRequest;
 import com.travel.dto.guide.response.AdminGuideListResponse;
+import com.travel.entity.Admin;
 import com.travel.entity.Guide;
 import com.travel.entity.GuideSpotRelation;
 import com.travel.entity.Spot;
 import com.travel.mapper.GuideMapper;
 import com.travel.mapper.GuideSpotRelationMapper;
+import com.travel.mapper.AdminMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.GuideAdminService;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
     private final GuideMapper guideMapper;
     private final GuideSpotRelationMapper guideSpotRelationMapper;
     private final SpotMapper spotMapper;
+    private final AdminMapper adminMapper;
 
     @Override
     public PageResult<AdminGuideListResponse> getAdminGuideList(AdminGuideListRequest request) {
@@ -109,6 +112,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
     @Override
     @Transactional
     public Long createGuide(AdminGuideRequest request, Long adminId) {
+        validateActiveAdmin(adminId);
         Guide guide = new Guide();
         guide.setTitle(request.getTitle());
         guide.setCoverImageUrl(request.getCoverImage());
@@ -264,6 +268,19 @@ public class GuideAdminServiceImpl implements GuideAdminService {
             .count();
         if (activeCount != spotIds.size()) {
             throw new BusinessException(ResultCode.PARAM_ERROR, "存在无效的景点ID");
+        }
+    }
+
+    /**
+     * 攻略创建不再依赖外键保护，必须先确认创建管理员仍然有效且启用。
+     */
+    private void validateActiveAdmin(Long adminId) {
+        Admin admin = adminMapper.selectById(adminId);
+        if (admin == null || admin.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.ADMIN_NOT_FOUND);
+        }
+        if (admin.getIsEnabled() == null || admin.getIsEnabled() != 1) {
+            throw new BusinessException(ResultCode.ADMIN_DISABLED);
         }
     }
 }

@@ -10,11 +10,17 @@ import com.travel.dto.spot.request.AdminSpotUpsertRequest;
 import com.travel.dto.spot.response.AdminSpotDetailResponse;
 import com.travel.dto.spot.response.AdminSpotListResponse;
 import com.travel.dto.review.stats.SpotRatingStats;
+import com.travel.entity.GuideSpotRelation;
+import com.travel.entity.Order;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotImage;
+import com.travel.entity.SpotBanner;
 import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.UserSpotView;
+import com.travel.mapper.GuideSpotRelationMapper;
+import com.travel.mapper.OrderMapper;
 import com.travel.mapper.SpotImageMapper;
+import com.travel.mapper.SpotBannerMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
@@ -46,6 +52,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
 
     private final SpotMapper spotMapper;
     private final SpotImageMapper spotImageMapper;
+    private final SpotBannerMapper spotBannerMapper;
+    private final GuideSpotRelationMapper guideSpotRelationMapper;
+    private final OrderMapper orderMapper;
     private final ReviewMapper reviewMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final UserSpotViewMapper userSpotViewMapper;
@@ -178,12 +187,45 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     @Override
     public void deleteSpot(Long spotId) {
         Spot spot = getExistingSpot(spotId);
+        validateNoActiveReferences(spotId);
         spot.setIsDeleted(1);
         spotMapper.updateById(spot);
 
         markSpotImagesDeleted(spotId);
         recommendationService.invalidateGlobalRecommendationCaches();
         log.info("景点已删除: spotId={}, name={}", spotId, spot.getName());
+    }
+
+    /**
+     * 景点删除先做保护式阻断，避免首页轮播、攻略关联和订单链路出现悬挂引用。
+     */
+    private void validateNoActiveReferences(Long spotId) {
+        Long activeBannerCount = spotBannerMapper.selectCount(
+            new LambdaQueryWrapper<SpotBanner>()
+                .eq(SpotBanner::getSpotId, spotId)
+                .eq(SpotBanner::getIsDeleted, 0)
+        );
+        if (activeBannerCount != null && activeBannerCount > 0) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "该景点仍被轮播图引用，请先解除轮播关联");
+        }
+
+        Long activeGuideRelationCount = guideSpotRelationMapper.selectCount(
+            new LambdaQueryWrapper<GuideSpotRelation>()
+                .eq(GuideSpotRelation::getSpotId, spotId)
+                .eq(GuideSpotRelation::getIsDeleted, 0)
+        );
+        if (activeGuideRelationCount != null && activeGuideRelationCount > 0) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "该景点仍被攻略引用，请先解除攻略关联");
+        }
+
+        Long activeOrderCount = orderMapper.selectCount(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getSpotId, spotId)
+                .eq(Order::getIsDeleted, 0)
+        );
+        if (activeOrderCount != null && activeOrderCount > 0) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "该景点仍有关联订单，请先处理订单数据");
+        }
     }
 
     private Spot getExistingSpot(Long spotId) {
