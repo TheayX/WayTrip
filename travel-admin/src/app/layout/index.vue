@@ -235,9 +235,10 @@ import { useTheme } from '@/shared/composables/useTheme.js'
 import { useAdminNotifications } from '@/shared/composables/useAdminNotifications.js'
 import { ElMessage } from 'element-plus'
 import { Fold, Expand, Search, Bell, ArrowDown, Moon, Sunny } from '@element-plus/icons-vue'
-import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
-import brandLogoUrl from '@/shared/assets/brand/waytrip-logo.svg'
+import brandMarkUrl from '@/shared/assets/brand/waytrip-standard-mark.svg'
+import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
 
+// 顶层布局状态：控制导航折叠、主题切换以及头部快捷交互。
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
@@ -259,6 +260,7 @@ const searchPanelVisible = ref(false)
 const activeSearchResultIndex = ref(0)
 const notificationPopoverVisible = ref(false)
 
+// 全局搜索直接映射到后台核心页面，并按页面支持的查询参数生成跳转条件。
 const GLOBAL_SEARCH_ITEMS = [
   {
     key: 'dashboard',
@@ -427,6 +429,7 @@ const GLOBAL_SEARCH_ITEMS = [
   }
 ]
 
+// 菜单数据从路由表派生，保证导航结构与实际可访问页面保持单一来源。
 const groupedMenuList = computed(() => {
   const mainRoute = router.options.routes.find(r => r.path === '/')
   const leafRoutes = (mainRoute?.children || []).map(item => ({
@@ -447,6 +450,7 @@ const handleCommand = (command) => {
   }
 }
 
+// 通知弹层第一次展开时再加载，减少后台首屏并发请求。
 const handleNotificationPopoverShow = () => {
   if (!lastLoadedAt.value) {
     void refreshNotifications()
@@ -462,12 +466,13 @@ const refreshNotifications = async () => {
 
 const openNotification = (item) => {
   notificationPopoverVisible.value = false
-  // 标记该通知为已读
+  // 已读状态先本地落下，保证跳转后再次打开面板时反馈及时。
   markNotificationAsRead(item.id)
   if (!item?.route?.path) return
   router.push({ path: item.route.path, query: item.route.query || {} })
 }
 
+// 当前分组标题同时服务于面包屑和侧边栏默认展开逻辑。
 const currentGroupTitle = computed(() => {
   return NAVIGATION_GROUP_MAP[route.meta?.group]?.title || ''
 })
@@ -516,6 +521,7 @@ const handleSearchFocus = () => {
 }
 
 const handleSearchBlur = () => {
+  // 失焦延迟关闭，给结果项点击留出时间，避免 mousedown 还没处理面板就消失。
   window.setTimeout(() => {
     searchPanelVisible.value = false
   }, 120)
@@ -535,6 +541,7 @@ const moveActiveResult = (direction) => {
 const handleSearchSelect = (item) => {
   const keyword = globalSearchKeyword.value.trim()
   closeSearchPanel()
+  // 搜索只负责跳转和透传筛选词，具体筛选行为由目标页面自行解释。
   router.push({
     path: item.path,
     query: item.buildQuery ? item.buildQuery(keyword) : {}
@@ -555,15 +562,18 @@ const clearSearchKeyword = () => {
   searchPanelVisible.value = true
 }
 
+// 输入变化后重置高亮项，避免旧索引越界或落在错误结果上。
 watch(globalSearchKeyword, () => {
   activeSearchResultIndex.value = 0
 })
 
+// 页面跳转后主动收起面板，避免布局切换时残留旧搜索结果。
 watch(() => route.fullPath, () => {
   closeSearchPanel()
 })
 
 onMounted(async () => {
+  // 刷新后若本地仍有 token，需要补拉管理员资料，保证头部信息完整。
   if (userStore.token && !userStore.adminInfo) {
     try {
       await userStore.getInfo()

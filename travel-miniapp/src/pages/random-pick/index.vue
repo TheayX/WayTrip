@@ -1,3 +1,4 @@
+<!-- 随心一选页面 -->
 <template>
   <view class="random-pick-page">
     <view class="hero-card" v-if="spot" @click="goDetail">
@@ -59,7 +60,7 @@ import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display
 import { getImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
-// 页面数据状态
+// 页面状态同时记录上一次抽中的景点，避免连续命中同一条结果。
 const spot = ref(null)
 const loading = ref(false)
 const lastSpotId = ref(null)
@@ -74,7 +75,7 @@ const randomPickReasons = [
 const fallbackCopy = '给自己一个随机出发的理由，今天就去看看新的风景。'
 const randomReason = ref(randomPickReasons[0])
 
-// 工具方法
+// 灵感文案随机切换，让重复抽取时的交互反馈不至于过于单调。
 const getRandomReason = () => {
   const index = Math.floor(Math.random() * randomPickReasons.length)
   return randomPickReasons[index]
@@ -83,7 +84,7 @@ const getRandomReason = () => {
 const formatRandomPickRating = (value) => formatFeatureRating(value)
 const formatRandomPickPrice = (value) => formatFeaturePrice(value)
 
-// 数据加载方法
+// 抽取逻辑统一收口在这里，便于后续扩展更多过滤条件或埋点。
 const drawSpot = async () => {
   if (loading.value) return
   loading.value = true
@@ -101,7 +102,7 @@ const drawSpot = async () => {
   }
 }
 
-// 页面跳转方法
+// 详情页属于登录后能力，这里在入口处拦截能减少无效跳转。
 const goDetail = () => {
   if (!spot.value?.id) return
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {

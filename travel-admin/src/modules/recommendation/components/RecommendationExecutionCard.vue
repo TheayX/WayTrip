@@ -1,3 +1,4 @@
+<!-- 推荐配置执行区卡片 -->
 <template>
   <el-card shadow="hover" class="execution-card">
     <template #header>
@@ -88,6 +89,7 @@
 <script setup>
 import { RefreshLeft, Check, Refresh } from '@element-plus/icons-vue'
 
+// 执行动作全部通过事件上抛，确保保存、重建矩阵的副作用仍集中在页面层。
 defineProps({
   status: {
     type: Object,
@@ -111,6 +113,7 @@ defineProps({
   }
 })
 
+// 组件本身不持有执行状态，只消费页面层传入的 loading 与摘要信息。
 const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 </script>
 

@@ -1,6 +1,7 @@
+<!-- 首页顶部搜索栏 -->
 <template>
   <view class="ios-header">
-    <image class="hero-brand-bg" src="/static/brand/standard.svg" mode="widthFix" />
+    <image class="hero-brand-bg" src="/static/brand/waytrip-standard.svg" mode="widthFix" />
     <view class="header-top">
       <view class="search-bar" @click="$emit('goSearch')">
         <uni-search-bar
@@ -19,9 +20,11 @@
 </template>
 
 <script setup>
+// 头部只透传搜索和个人中心入口，避免把首页导航逻辑拆散到样式组件里。
 defineProps({
   avatarUrl: { type: String, default: '' }
 })
+// 事件保持轻量，页面层可按登录态自行决定跳转还是弹出引导。
 defineEmits(['goSearch', 'goMine'])
 </script>
 

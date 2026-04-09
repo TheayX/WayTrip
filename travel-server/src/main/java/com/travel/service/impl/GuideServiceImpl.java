@@ -20,12 +20,14 @@ import java.util.List;
 
 /**
  * 攻略服务门面，统一承接 controller 调用并分发到具体子服务。
+ * <p>
+ * 通过门面把用户端查询与后台管理隔开，对外仍保持一套稳定的 GuideService 接口。
  */
 @Service
 @RequiredArgsConstructor
 public class GuideServiceImpl implements GuideService {
 
-    // 查询与管理子服务
+    // 查询与管理两类子服务分层注入，保证后续扩展不再回到“大接口大实现”的结构。
 
     private final GuideQueryService guideQueryService;
     private final GuideAdminService guideAdminService;

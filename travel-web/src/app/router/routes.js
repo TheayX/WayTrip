@@ -2,6 +2,7 @@
 import { ROUTE_NAMES } from '@/shared/constants/route-names.js'
 import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 
+// 面向游客和普通浏览场景的页面统一挂在应用主壳下。
 const publicRoutes = [
   { path: '', name: ROUTE_NAMES.home, component: () => import('@/modules/home/index.vue'), meta: { title: '首页', showAiChat: true, hideBackBar: true } },
   { path: 'discover', name: ROUTE_NAMES.discover, component: () => import('@/modules/discover/index.vue'), meta: { title: '发现' } },
@@ -20,6 +21,7 @@ const publicRoutes = [
   { path: 'search', name: ROUTE_NAMES.search, component: () => import('@/modules/search/index.vue'), meta: { title: '搜索' } }
 ]
 
+// 用户中心路由单独收拢，方便复用账户侧边栏布局与登录态要求。
 const accountRoutes = [
   { path: 'profile', name: ROUTE_NAMES.profile, component: () => import('@/modules/account/pages/profile.vue'), meta: { title: '个人中心', requiresAuth: true, showAiChat: true } },
   { path: 'activity', name: ROUTE_NAMES.activity, component: () => import('@/modules/account/pages/activity.vue'), meta: { title: '我的互动', requiresAuth: true } },
@@ -39,6 +41,7 @@ export const appShellRoutes = [
       {
         path: 'account',
         component: () => import('@/app/layouts/AccountLayout.vue'),
+        // 账户中心二级页面共享同一套侧边导航与内容容器。
         children: accountRoutes
       }
     ]

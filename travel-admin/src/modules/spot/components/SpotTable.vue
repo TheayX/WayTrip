@@ -1,3 +1,4 @@
+<!-- 景点管理数据表格 -->
 <template>
   <el-table
     :data="tableData"
@@ -85,6 +86,7 @@
 <script setup>
 import { ArrowDown, StarFilled } from '@element-plus/icons-vue'
 
+// 表格组件只负责展示和透传行级操作，业务处理全部回到页面层统一执行。
 defineProps({
   tableData: { type: Array, required: true },
   loading: { type: Boolean, required: true },
@@ -104,6 +106,7 @@ const handleSelectionChange = (selection) => {
 }
 
 const handleCommand = (command, row) => {
+  // 下拉命令统一在这里转成显式事件，避免模板里出现过长的内联判断。
   switch (command) {
     case 'detail': emit('view', row); break;
     case 'heat': emit('heat-edit', row); break;

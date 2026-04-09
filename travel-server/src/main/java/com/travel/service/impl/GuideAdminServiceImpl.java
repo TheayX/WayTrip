@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 
 /**
  * 攻略管理服务实现，负责后台列表、详情和维护操作。
+ * <p>
+ * 后台攻略的表单读写、关联景点维护和发布管理都统一在这里完成。
  */
 @Slf4j
 @Service
@@ -68,6 +70,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
     @Override
     public AdminGuideRequest getAdminGuideDetail(Long guideId) {
         Guide guide = getExistingGuide(guideId);
+        // 编辑态详情需要保留原有关联顺序，因此按排序字段回放关联景点。
         List<GuideSpotRelation> guideSpots = guideSpotRelationMapper.selectList(
             new LambdaQueryWrapper<GuideSpotRelation>()
                 .eq(GuideSpotRelation::getGuideId, guideId)
@@ -167,6 +170,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
     }
 
     private Guide getExistingGuide(Long guideId) {
+        // 后台写操作统一先校验攻略仍然存在且未被软删。
         Guide guide = guideMapper.selectById(guideId);
         if (guide == null || guide.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.GUIDE_NOT_FOUND);
@@ -213,6 +217,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
             return;
         }
 
+        // 先去重再保存，避免后台拖拽选择时产生重复关联记录。
         List<Long> uniqueSpotIds = spotIds.stream().distinct().collect(Collectors.toList());
         List<GuideSpotRelation> existingSpots = guideSpotRelationMapper.selectList(
             new LambdaQueryWrapper<GuideSpotRelation>()

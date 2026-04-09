@@ -27,6 +27,7 @@
 <script setup>
 import { getImageUrl } from '@/shared/api/client.js'
 
+// 相似推荐区只消费后端返回的相似结果，不在组件内二次推导推荐逻辑。
 defineProps({
   items: {
     type: Array,
@@ -42,6 +43,7 @@ defineProps({
   }
 })
 
+// 选中事件统一回到详情页处理，便于接入埋点和路由跳转。
 defineEmits(['select'])
 </script>
 

@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 
 /**
  * 推荐冷启动支撑，集中处理偏好兜底、热门补齐和用户偏好解析。
+ * <p>
+ * 冷启动链路拆到支撑类后，推荐主流程可以更专注协同过滤结果拼装，不必混入大量兜底分支。
  */
 @Component
 @RequiredArgsConstructor
@@ -49,6 +51,7 @@ public class RecommendationColdStartSupport {
         List<Long> categoryIds = getUserPreferenceCategoryIds(userId);
 
         if (!categoryIds.isEmpty()) {
+            // 有偏好时优先走偏好冷启动，只在结果不足时再回退热门补齐。
             int coldStartLimit = refresh ? Math.max(limit * coldStartExpandFactorProvider.applyAsInt(1), limit) : limit;
             List<Spot> spots = spotMapper.selectList(
                 new LambdaQueryWrapper<Spot>()
@@ -87,6 +90,7 @@ public class RecommendationColdStartSupport {
             return preferenceResponseBuilder.apply(spotIds);
         }
 
+        // 完全没有偏好时统一退回热门链路，保证新用户也能快速拿到可展示结果。
         List<HotSpotResponse.SpotItem> hotSpotList = new ArrayList<>(hotSpots.getList());
         if (refresh && !stable) {
             rotateHotItems.accept(hotSpotList, limit);
@@ -150,6 +154,7 @@ public class RecommendationColdStartSupport {
         try {
             return Long.parseLong(tag.trim());
         } catch (NumberFormatException ignored) {
+            // 历史脏数据直接忽略，避免单个异常偏好影响整条冷启动链路。
             return null;
         }
     }

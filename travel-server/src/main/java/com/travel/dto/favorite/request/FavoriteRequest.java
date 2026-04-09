@@ -5,6 +5,8 @@ import lombok.Data;
 
 /**
  * 收藏操作请求对象。
+ * <p>
+ * 仅承接收藏动作所需的景点标识，用户身份由登录上下文补足。
  */
 @Data
 public class FavoriteRequest {

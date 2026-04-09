@@ -7,6 +7,8 @@ import lombok.Data;
 
 /**
  * 小程序端绑定手机号请求对象。
+ * <p>
+ * 同时服务绑定已有账号和新用户注册，因此保留 openid、手机号和密码三类字段。
  */
 @Data
 public class WxBindPhoneRequest {

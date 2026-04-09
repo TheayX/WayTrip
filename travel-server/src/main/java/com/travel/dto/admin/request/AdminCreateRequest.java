@@ -8,6 +8,8 @@ import lombok.Data;
 
 /**
  * 管理员创建请求对象。
+ * <p>
+ * 用于后台新增管理员时接收基础身份信息、登录凭证和启用状态。
  */
 @Data
 public class AdminCreateRequest {

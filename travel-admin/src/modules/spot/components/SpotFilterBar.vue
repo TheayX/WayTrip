@@ -1,3 +1,4 @@
+<!-- 景点管理筛选栏 -->
 <template>
   <!-- 搜索筛选表单 -->
   <div class="search-form admin-filter-bar">
@@ -81,6 +82,7 @@
 import { ref } from 'vue'
 import { Search, Filter, CaretTop } from '@element-plus/icons-vue'
 
+// 高级筛选默认收起，优先保证列表页顶部信息密度稳定。
 defineProps({
   queryParams: { type: Object, required: true },
   uiFilters: { type: Object, required: true },
@@ -94,6 +96,7 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
 
 const showAdvanced = ref(false)
 
+// 事件函数保持无参透传，避免模板里重复出现 emit 细节。
 const emitSearch = () => emit('search')
 const emitReset = () => emit('reset')
 const emitFilterChange = () => emit('filter-change')

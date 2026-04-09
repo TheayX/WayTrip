@@ -1,3 +1,4 @@
+<!-- 攻略管理数据表格 -->
 <template>
   <el-table
     :data="tableData"
@@ -75,6 +76,7 @@
 <script setup>
 import { ArrowDown } from '@element-plus/icons-vue'
 
+// 列表仅负责渲染和事件分发，具体变更动作由页面层统一处理。
 defineProps({
   tableData: { type: Array, required: true },
   loading: { type: Boolean, required: true },
@@ -90,6 +92,7 @@ const handleSelectionChange = (selection) => {
 }
 
 const handleCommand = (command, row) => {
+  // 下拉菜单命令在组件内收口，避免模板里堆叠过多业务分支。
   switch (command) {
     case 'detail':
       emit('view', row)

@@ -15,6 +15,8 @@ import jakarta.validation.Valid;
 
 /**
  * 管理端用户控制器，负责用户查询与账号维护接口。
+ * <p>
+ * 这里聚焦后台用户账号治理，用户行为洞察则拆到独立控制器，避免接口语义混杂。
  */
 @Tag(name = "管理端-用户", description = "管理端用户管理相关接口")
 @RestController

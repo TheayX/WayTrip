@@ -2,6 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.travel.mapper.GuideMapper">
 
+    <!-- 攻略 Mapper XML：承载穷游攻略等需要联表聚合的定制查询。 -->
+
     <!-- 穷游攻略列表结果映射 -->
     <resultMap id="GuideBudgetQueryResultMap" type="com.travel.dto.guide.query.GuideBudgetQueryResult">
         <id column="id" property="id"/>
@@ -37,7 +39,7 @@
         WHERE g.is_deleted = 0
           AND g.is_published = 1
         <choose>
-            <when test="priceMode == 'free'">
+            <when test='priceMode == "free"'>
                 AND s.price = 0
             </when>
             <otherwise>
@@ -46,7 +48,7 @@
             </otherwise>
         </choose>
         GROUP BY g.id, g.title, g.cover_image_url, g.category, g.content, g.view_count, g.created_at
-        ORDER BY min_price ASC, g.created_at DESC
+        ORDER BY min_price, g.created_at DESC
     </select>
 
 </mapper>

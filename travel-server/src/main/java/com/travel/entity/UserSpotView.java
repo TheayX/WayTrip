@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 用户景点浏览记录持久化实体，对应 user_spot_view 表。
+ * <p>
+ * 浏览行为既用于“最近浏览”，也用于推荐和热度计算，因此单独建表沉淀原始记录。
  */
 @Data
 @TableName("user_spot_view")

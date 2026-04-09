@@ -1,3 +1,5 @@
+/* 用户运营模块共享样式 */
+/* 该 mixin 供用户、收藏、偏好、评价、浏览行为等页面复用统一壳层样式。 */
 @mixin page-shell {
   .card-header {
     display: flex;

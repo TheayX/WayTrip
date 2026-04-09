@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 用户偏好标签持久化实体，对应 user_preference 表。
+ * <p>
+ * 偏好标签会同时影响推荐冷启动和个人偏好展示，因此单独建表维护。
  */
 @Data
 @TableName("user_preference")

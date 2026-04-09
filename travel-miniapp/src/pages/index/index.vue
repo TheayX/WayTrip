@@ -112,7 +112,7 @@ const nearbySessionToken = ref('')
 const lastHomeRefreshAt = ref(0)
 
 // 常量配置
-const markerIcon = '/static/tabbar/spot-active.png'
+const markerIcon = '/static/marker/spot.png'
 const HOME_BASE_CACHE_KEY = 'waytrip:miniapp:home:base'
 const HOME_BASE_CACHE_TTL_MS = 2 * 60 * 1000
 const HOME_REFRESH_INTERVAL_MS = 30 * 1000
@@ -181,7 +181,7 @@ const nearbyMapCenter = computed(() => {
 })
 
 const nearbyMarkers = computed(() => {
-  const markers = displayNearbySpots.value.slice(0, 3).map((spot, index) => ({
+  return displayNearbySpots.value.slice(0, 3).map((spot, index) => ({
     id: Number(spot.id),
     latitude: spot.latitude,
     longitude: spot.longitude,
@@ -196,23 +196,6 @@ const nearbyMarkers = computed(() => {
       borderRadius: 10
     }
   }))
-
-  const locationLatitude = toFiniteNumber(nearbyLocation.value?.latitude)
-  const locationLongitude = toFiniteNumber(nearbyLocation.value?.longitude)
-  if (isValidCoordinate(locationLatitude, locationLongitude)) {
-    markers.push({
-      id: -1,
-      latitude: locationLatitude,
-      longitude: locationLongitude,
-      iconPath: markerIcon,
-      width: 18,
-      height: 22,
-      alpha: 0.7,
-      zIndex: 9
-    })
-  }
-
-  return markers
 })
 
 const nearbyHeadline = computed(() => {

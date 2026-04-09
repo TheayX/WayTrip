@@ -8,6 +8,8 @@ import java.util.List;
 
 /**
  * 用户端轮播图响应对象。
+ * <p>
+ * 面向首页轮播展示，返回前端直接可渲染的轮播图集合。
  */
 @Data
 public class BannerResponse {

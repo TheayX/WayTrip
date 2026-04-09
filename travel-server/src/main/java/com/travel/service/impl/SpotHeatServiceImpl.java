@@ -28,6 +28,8 @@ import java.util.List;
 
 /**
  * 景点热度服务实现，负责热度分重算和批量同步。
+ * <p>
+ * 热度分既受基础热度档位影响，也受用户行为影响，因此统一在这里汇总计算。
  */
 @Slf4j
 @Service
@@ -52,6 +54,7 @@ public class SpotHeatServiceImpl implements SpotHeatService {
     @Override
     @Transactional
     public void refreshAllSpotHeat() {
+        // 批量同步只拉取必要字段，减少全量重算时的无效数据加载。
         List<Spot> spots = spotMapper.selectList(
             new LambdaQueryWrapper<Spot>()
                 .eq(Spot::getIsDeleted, 0)
@@ -89,6 +92,7 @@ public class SpotHeatServiceImpl implements SpotHeatService {
     }
 
     private int calculateBehaviorHeatScore(Long spotId, RecommendationConfigBundleDTO config) {
+        // 各行为增量都从推荐配置读取，便于后台调参后直接复用同一套热度规则。
         long viewCount = userSpotViewMapper.selectCount(
             new LambdaQueryWrapper<UserSpotView>().eq(UserSpotView::getSpotId, spotId)
         );
@@ -131,6 +135,7 @@ public class SpotHeatServiceImpl implements SpotHeatService {
     }
 
     private int positiveOrDefault(Integer value, int fallback) {
+        // 配置缺失或非法时回退默认值，避免热度计算直接退化成 0。
         return value != null && value > 0 ? value : fallback;
     }
 }

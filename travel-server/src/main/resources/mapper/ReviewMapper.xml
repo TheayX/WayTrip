@@ -2,6 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.travel.mapper.ReviewMapper">
 
+    <!-- 评价 Mapper XML：承载评分统计、口碑流和后台评价检索等定制查询。 -->
+
     <!-- 评价实体及关联用户/景点字段映射 -->
     <resultMap id="ReviewResultMap" type="com.travel.entity.Review">
         <id column="id" property="id"/>

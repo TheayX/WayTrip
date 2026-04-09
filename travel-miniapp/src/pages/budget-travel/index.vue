@@ -1,3 +1,4 @@
+<!-- 穷游玩法页面 -->
 <template>
   <view class="budget-page">
     <view class="hero-card">
@@ -118,6 +119,7 @@ import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display
 import { getImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
+// 页内同时承接景点和攻略两类低预算内容，因此把标签与预算口径统一放在页面层管理。
 const tabs = [
   { label: '景点', value: 'spots' },
   { label: '攻略', value: 'guides' }
@@ -145,6 +147,7 @@ const budgetSummaryText = computed(() => {
 const formatBudgetPrice = (value) => formatFeaturePrice(value, { freeText: '¥0 免费' })
 const formatBudgetRating = (value) => formatFeatureRating(value)
 
+// 景点和攻略分别加载，避免切换标签时互相阻塞。
 const loadBudgetSpots = async () => {
   if (loadingSpots.value) return
   loadingSpots.value = true
@@ -162,6 +165,7 @@ const loadBudgetSpots = async () => {
   }
 }
 
+// 攻略列表默认按需加载，减少首次进入页面的等待成本。
 const loadBudgetGuides = async () => {
   if (loadingGuides.value || budgetGuides.value.length) return
   loadingGuides.value = true
@@ -179,6 +183,7 @@ const loadBudgetGuides = async () => {
   }
 }
 
+// 标签切换只触发当前视图需要的数据，保证交互响应更直接。
 const switchTab = (value) => {
   activeTab.value = value
   if (value === 'spots') {
@@ -188,6 +193,7 @@ const switchTab = (value) => {
   loadBudgetGuides()
 }
 
+// 预算口径变化后直接清空旧结果，避免新旧筛选结果并存造成误解。
 const switchBudgetMode = (value) => {
   if (budgetMode.value === value) return
   budgetMode.value = value
@@ -200,6 +206,7 @@ const switchBudgetMode = (value) => {
   loadBudgetGuides()
 }
 
+// 详情来源固定标记为穷游玩法，便于详情页统计不同功能入口。
 const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return

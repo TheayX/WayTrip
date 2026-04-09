@@ -14,6 +14,8 @@ import java.util.List;
 
 /**
  * 管理端景点分类控制器，负责分类树查询与维护接口。
+ * <p>
+ * 分类树维护独立成域，避免景点编辑页直接承担树结构增删改的复杂度。
  */
 @Tag(name = "管理端-景点分类", description = "管理端景点分类管理相关接口")
 @RestController

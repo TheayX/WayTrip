@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 
 /**
  * 推荐相似度支撑，集中处理相似景点读取、预览组装和离线相似度矩阵更新。
+ * <p>
+ * 相似度矩阵的读取、构建和预览都收在这里，便于后台调试与定时任务共用同一套逻辑。
  */
 @Component
 @RequiredArgsConstructor
@@ -49,6 +51,12 @@ public class RecommendationSimilaritySupport {
     private final RecommendationScoreSupport recommendationScoreSupport;
 
     @SuppressWarnings("unchecked")
+    /**
+     * 读取缓存中的相似景点集合。
+     *
+     * @param spotId 景点 ID
+     * @return 相似度映射
+     */
     public Map<Long, Double> getSimilarSpots(Long spotId) {
         Object cached = recommendationCacheService.getSimilarity(spotId);
         if (!(cached instanceof Map<?, ?> rawMap) || rawMap.isEmpty()) {
@@ -66,6 +74,11 @@ public class RecommendationSimilaritySupport {
         return similarities;
     }
 
+    /**
+     * 查询当前仍可参与推荐的景点 ID。
+     *
+     * @return 已发布且未删除的景点 ID 集合
+     */
     public Set<Long> getActiveSpotIds() {
         return spotMapper.selectList(
             new LambdaQueryWrapper<Spot>()
@@ -75,6 +88,14 @@ public class RecommendationSimilaritySupport {
         ).stream().map(Spot::getId).collect(Collectors.toSet());
     }
 
+    /**
+     * 基于 IUF 思路计算两景点的相似度。
+     *
+     * @param usersI 景点 I 的交互用户集合
+     * @param usersJ 景点 J 的交互用户集合
+     * @param userActivityCount 用户活跃度统计
+     * @return 相似度
+     */
     public double computeIUFSimilarity(Set<Long> usersI, Set<Long> usersJ, Map<Long, Integer> userActivityCount) {
         Set<Long> smaller = usersI.size() < usersJ.size() ? usersI : usersJ;
         Set<Long> larger = smaller == usersI ? usersJ : usersI;
@@ -110,6 +131,7 @@ public class RecommendationSimilaritySupport {
             return response;
         }
 
+        // 相似邻居预览要补齐展示字段，便于后台直接核对矩阵质量。
         Map<Long, String> categoryMap = recommendationQuerySupport.getCategoryMap();
         Map<Long, String> regionMap = recommendationQuerySupport.getRegionMap();
         Map<Long, Spot> spotMap = spotMapper.selectBatchIds(neighborIds).stream()
@@ -222,6 +244,7 @@ public class RecommendationSimilaritySupport {
     }
 
     private void mergeBehaviorMatrix(Map<Long, Map<Long, Double>> userItemMatrix, Map<Long, Map<Long, Double>> behaviorMatrix) {
+        // 不同行为先各自算权重，再在统一矩阵里按景点合并。
         behaviorMatrix.forEach((userId, spotWeights) -> {
             Map<Long, Double> mergedWeights = userItemMatrix.computeIfAbsent(userId, key -> new HashMap<>());
             recommendationScoreSupport.mergeInteractionWeight(mergedWeights, spotWeights);
@@ -259,6 +282,7 @@ public class RecommendationSimilaritySupport {
         int topK = algorithmConfig.getTopKNeighbors() == null ? 20 : Math.max(algorithmConfig.getTopKNeighbors(), 1);
         int simTTL = cacheConfig.getSimilarityTTLHours() == null ? 24 : cacheConfig.getSimilarityTTLHours();
 
+        // 离线阶段按景点两两计算后只缓存 Top-K，避免矩阵无限膨胀。
         for (int i = 0; i < spotIdList.size(); i++) {
             Long spotI = spotIdList.get(i);
             Set<Long> usersI = spotUserSets.getOrDefault(spotI, Collections.emptySet());

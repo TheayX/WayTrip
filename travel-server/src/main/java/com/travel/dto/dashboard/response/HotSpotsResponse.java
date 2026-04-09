@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * 热门景点统计响应对象。
+ * <p>
+ * 用于后台仪表板展示当前热度最高的景点及其辅助统计信息。
  */
 @Data
 public class HotSpotsResponse {

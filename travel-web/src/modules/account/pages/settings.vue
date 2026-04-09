@@ -27,7 +27,7 @@ import { APP_NAME } from '@/shared/constants/app.js'
 import { clearFootprints } from '@/shared/lib/footprint.js'
 import { clearLocationCache } from '@/shared/lib/location.js'
 
-// 交互处理方法
+// 设置页只承接低频辅助操作，避免和资料编辑、订单操作混在一起。
 const contactService = () => {
   ElMessageBox.alert('客服电话：400-123-4567', '联系客服', {
     confirmButtonText: '知道了'
@@ -41,6 +41,7 @@ const showAbout = () => {
 }
 
 const clearCache = async () => {
+  // 本地缓存清理统一收口在这里，避免不同模块各自残留冷启动和定位缓存。
   await ElMessageBox.confirm('确认清除本地缓存吗？这会清空浏览足迹、定位缓存和冷启动状态。', '清除缓存', {
     type: 'warning'
   })

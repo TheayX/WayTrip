@@ -1,3 +1,4 @@
+<!-- 首页横幅轮播 -->
 <template>
   <view class="banner-container" v-if="banners.length">
     <swiper class="banner" indicator-dots indicator-active-color="#fff" autoplay circular>
@@ -11,6 +12,8 @@
 <script setup>
 import { getContentImageUrl } from '@/utils/request'
 
+// 轮播组件保持纯展示，只接收父层整理好的横幅数据与点击事件。
+// 数据为空时直接不渲染，避免首页出现仅占位不承载信息的轮播区域。
 defineProps({
   banners: { type: Array, default: () => [] }
 })

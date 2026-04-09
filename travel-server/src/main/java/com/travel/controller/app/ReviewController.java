@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 用户端评价控制器，负责评价提交、查询与删除接口。
+ * <p>
+ * 评价写操作需要绑定当前用户，公开查询则保持无状态，便于详情页和口碑流复用。
  */
 @Tag(name = "用户端-评价", description = "用户评价提交与查看相关接口")
 @RestController
@@ -34,6 +36,7 @@ public class ReviewController {
     @Operation(summary = "提交评价")
     @PostMapping
     public ApiResponse<Void> submitReview(@Valid @RequestBody ReviewRequest request) {
+        // 用户身份不从请求体透传，避免出现替他人写评价的越权风险。
         Long userId = UserContextHolder.getUserId();
         reviewService.submitReview(userId, request);
         return ApiResponse.success();

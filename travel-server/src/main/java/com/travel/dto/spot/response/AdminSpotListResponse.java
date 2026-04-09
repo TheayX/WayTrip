@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 管理端景点列表项对象。
+ * <p>
+ * 用于后台景点表格展示，返回列表页所需的轻量景点信息。
  */
 @Data
 @Builder

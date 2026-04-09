@@ -19,6 +19,8 @@ import java.util.Map;
 
 /**
  * 管理端攻略控制器，负责攻略管理接口。
+ * <p>
+ * 后台攻略写操作集中在这里，和用户端只读浏览接口分离，便于权限隔离。
  */
 @Tag(name = "管理端-攻略", description = "管理端攻略管理相关接口")
 @RestController
@@ -49,6 +51,7 @@ public class AdminGuideController {
     @Operation(summary = "创建攻略")
     @PostMapping
     public ApiResponse<Map<String, Long>> createGuide(@Valid @RequestBody AdminGuideRequest request) {
+        // 创建人从管理员上下文读取，便于记录后台内容的责任归属。
         Long adminId = UserContextHolder.getAdminId();
         Long id = guideService.createGuide(request, adminId);
         return ApiResponse.success(Map.of("id", id));

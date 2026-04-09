@@ -20,12 +20,14 @@ import org.springframework.stereotype.Service;
 
 /**
  * 景点服务门面，统一承接 controller 调用并分发到具体子服务。
+ * <p>
+ * 通过门面把查询、写入、行为和热度几个子域对外收成一个接口，控制器层就不需要感知内部拆分。
  */
 @Service
 @RequiredArgsConstructor
 public class SpotServiceImpl implements SpotService {
 
-    // 查询、管理、行为和热度子服务
+    // 查询、管理、行为和热度四类子服务按职责注入，避免再次堆回单体 Service。
 
     private final SpotQueryService spotQueryService;
     private final SpotAdminService spotAdminService;

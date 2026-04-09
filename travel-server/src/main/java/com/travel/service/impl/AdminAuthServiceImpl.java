@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 
 /**
  * 管理员认证服务实现，负责后台登录校验与管理员信息查询。
+ * <p>
+ * 后台登录链路独立实现，便于和普通用户认证分开维护不同的账号状态和令牌策略。
  */
 @Service
 @RequiredArgsConstructor
@@ -46,6 +48,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
             throw new BusinessException(ResultCode.ADMIN_LOGIN_FAILED);
         }
 
+        // 登录成功后立即刷新最后登录时间，便于后台审计和账号活跃度统计。
         adminMapper.update(
                 null,
                 new LambdaUpdateWrapper<Admin>()
@@ -83,6 +86,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     }
 
     private AdminLoginResponse.AdminInfo buildAdminInfo(Admin admin) {
+        // 控制返回字段范围，避免把密码、状态等后台内部字段透出到登录响应。
         return AdminLoginResponse.AdminInfo.builder()
             .id(admin.getId())
             .username(admin.getUsername())

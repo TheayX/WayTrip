@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * 订单趋势响应对象。
+ * <p>
+ * 用于后台趋势图展示不同时间口径下的订单数量和金额变化。
  */
 @Data
 public class OrderTrendResponse {

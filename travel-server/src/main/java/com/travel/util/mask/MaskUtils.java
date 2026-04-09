@@ -9,6 +9,9 @@ import org.springframework.util.StringUtils;
  */
 public final class MaskUtils {
 
+    /**
+     * 工具类不允许实例化。
+     */
     private MaskUtils() {
     }
 
@@ -23,6 +26,7 @@ public final class MaskUtils {
             return phone;
         }
         String normalized = phone.trim();
+        // 非标准手机号直接返回原值，避免把邮箱或其他标识误处理成异常格式。
         if (!normalized.matches("^1\\d{10}$")) {
             return normalized;
         }

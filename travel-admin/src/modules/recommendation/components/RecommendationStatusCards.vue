@@ -1,3 +1,4 @@
+<!-- 推荐系统状态卡片组 -->
 <template>
   <!-- 状态卡片 -->
   <el-row :gutter="24" class="status-row">
@@ -66,12 +67,15 @@
 <script setup>
 import { Cpu, Timer, User, Location } from '@element-plus/icons-vue'
 
+// 状态卡片只做信息概览，具体详情和异常处理都留在总览页内部。
 defineProps({
   status: {
     type: Object,
     required: true
   }
 })
+
+// 纯展示组件不派发事件，状态变化全部由父页面拉取后重新渲染。
 </script>
 
 <style lang="scss" scoped>

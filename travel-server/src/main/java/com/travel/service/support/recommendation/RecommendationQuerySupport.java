@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 
 /**
  * 推荐查询支撑，集中处理景点名称、分类地区字典和推荐响应组装。
+ * <p>
+ * 推荐结果最终都要补齐展示字段，因此查询装配逻辑统一放在这里，避免主流程反复查字典。
  */
 @Component
 @RequiredArgsConstructor
@@ -27,11 +29,21 @@ public class RecommendationQuerySupport {
     private final SpotCategoryMapper categoryMapper;
     private final SpotRegionMapper spotRegionMapper;
 
+    /**
+     * 构建分类名称字典。
+     *
+     * @return 分类映射
+     */
     public Map<Long, String> getCategoryMap() {
         return categoryMapper.selectList(new LambdaQueryWrapper<SpotCategory>().eq(SpotCategory::getIsDeleted, 0)).stream()
             .collect(Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
     }
 
+    /**
+     * 构建地区名称字典。
+     *
+     * @return 地区映射
+     */
     public Map<Long, String> getRegionMap() {
         return spotRegionMapper.selectList(new LambdaQueryWrapper<SpotRegion>().eq(SpotRegion::getIsDeleted, 0)).stream()
             .collect(Collectors.toMap(SpotRegion::getId, SpotRegion::getName));
@@ -68,6 +80,7 @@ public class RecommendationQuerySupport {
             return response;
         }
 
+        // 推荐结果按输入顺序回放，避免批量查询后顺序被数据库返回结果打乱。
         List<Spot> spots = spotMapper.selectBatchIds(limitedIds);
         Map<Long, String> categoryMap = getCategoryMap();
         Map<Long, String> regionMap = getRegionMap();

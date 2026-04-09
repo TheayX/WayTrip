@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 穷游攻略查询结果对象。
+ * <p>
+ * 作为 Mapper 联表聚合结果载体，承接穷游攻略查询中的价格与关联景点统计字段。
  */
 @Data
 public class GuideBudgetQueryResult {

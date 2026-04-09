@@ -14,6 +14,8 @@ import java.util.Map;
 
 /**
  * 管理端文件上传控制器，负责后台资源上传接口。
+ * <p>
+ * 后台上传按业务场景分流，确保景点、攻略、轮播图等资源写入各自的目标目录。
  */
 @Tag(name = "管理端-文件上传", description = "管理端文件上传相关接口")
 @RestController
@@ -33,6 +35,7 @@ public class AdminUploadController {
             @RequestParam(value = "assetType", required = false) String assetType,
             @Parameter(description = "业务名称，用于生成景点或攻略 slug")
             @RequestParam(value = "name", required = false) String name) {
+        // 控制器层先按场景路由，避免上传服务对所有业务类型暴露同一组低层接口。
         return switch (scene) {
             case "spot" -> resolveSpotUpload(file, assetType, name);
             case "guide" -> fileUploadService.uploadGuideCover(file, name);

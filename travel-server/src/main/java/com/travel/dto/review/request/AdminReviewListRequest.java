@@ -4,6 +4,8 @@ import lombok.Data;
 
 /**
  * 管理端评价列表筛选参数对象。
+ * <p>
+ * 用于后台评价检索页接收昵称、景点和时间范围等筛选条件。
  */
 @Data
 public class AdminReviewListRequest {

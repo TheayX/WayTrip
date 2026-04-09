@@ -17,6 +17,7 @@
 <script setup>
 import { getImageUrl } from '@/shared/api/client.js'
 
+// 卡片只承接展示和选中事件，详情跳转策略由外层列表页面决定。
 defineProps({
   guide: {
     type: Object,
@@ -24,6 +25,7 @@ defineProps({
   }
 })
 
+// 选中事件统一上抛，便于列表页复用在网格、轮播等不同容器中。
 defineEmits(['select'])
 </script>
 

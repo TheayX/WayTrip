@@ -19,6 +19,8 @@ import java.util.Map;
 
 /**
  * 管理端景点控制器，负责景点管理与数据刷新接口。
+ * <p>
+ * 景点内容维护和评分、热度重算都在这一层收口，便于后台页面进行内容与指标联动操作。
  */
 @Tag(name = "管理端-景点", description = "管理端景点管理相关接口")
 @RestController
@@ -58,6 +60,7 @@ public class AdminSpotController {
     @Operation(summary = "更新发布状态")
     @PutMapping("/{spotId}/publish")
     public ApiResponse<Void> updatePublishStatus(@PathVariable("spotId") Long spotId, @RequestBody Map<String, Boolean> body) {
+        // 发布状态单独拆接口，避免后台每次上下架都传整份景点表单。
         spotService.updatePublishStatus(spotId, body.get("published"));
         return ApiResponse.success();
     }
@@ -79,6 +82,7 @@ public class AdminSpotController {
     @Operation(summary = "按评价表重算全部景点评分")
     @PostMapping("/rating/refresh")
     public ApiResponse<Void> refreshAllSpotRatings() {
+        // 后台保留批量重算入口，便于在脚本导数或评价修复后手动同步指标。
         reviewService.refreshAllSpotRatings();
         return ApiResponse.success();
     }

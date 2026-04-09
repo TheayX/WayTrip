@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * 管理端轮播图列表响应对象。
+ * <p>
+ * 面向后台轮播图管理页，承接分页外的列表型展示数据。
  */
 @Data
 public class AdminBannerListResponse {

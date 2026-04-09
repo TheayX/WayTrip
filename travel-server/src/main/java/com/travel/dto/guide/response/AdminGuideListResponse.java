@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 
 /**
  * 管理端攻略列表项响应对象。
+ * <p>
+ * 面向后台表格展示，返回攻略列表所需的轻量字段集合。
  */
 @Data
 @Builder

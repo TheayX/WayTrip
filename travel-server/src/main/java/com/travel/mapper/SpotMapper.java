@@ -13,6 +13,8 @@ import java.util.List;
 
 /**
  * 景点数据访问接口。
+ * <p>
+ * 景点 Mapper 同时承接后台分页、用户搜索和附近查询等定制 SQL，因此 XML 中保留了较多查询语句。
  */
 @Mapper
 public interface SpotMapper extends BaseMapper<Spot> {

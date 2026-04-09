@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 
 /**
  * 微信登录请求对象。
+ * <p>
+ * 小程序端只提交登录 code，后续会话换取和用户识别逻辑由服务端统一处理。
  */
 @Data
 public class WxLoginRequest {

@@ -16,6 +16,8 @@ import jakarta.validation.Valid;
 
 /**
  * 用户端账户控制器，负责资料、偏好与账号设置接口。
+ * <p>
+ * 所有需要登录后才能操作的个人资料能力统一放在这里，避免认证相关接口与资料接口职责混杂。
  */
 @Tag(name = "用户端-个人资料", description = "用户信息管理、偏好设置、密码修改、账户注销等接口")
 @RestController
@@ -43,6 +45,7 @@ public class UserAccountController {
     @Operation(summary = "设置偏好标签")
     @PostMapping("/preferences")
     public ApiResponse<Void> setPreferences(@Valid @RequestBody PreferencesRequest request) {
+        // 偏好直接影响推荐冷启动结果，因此在账户域统一维护更容易保证一致性。
         Long userId = UserContextHolder.getUserId();
         userAccountService.setPreferences(userId, request.getCategoryIds());
         return ApiResponse.success();

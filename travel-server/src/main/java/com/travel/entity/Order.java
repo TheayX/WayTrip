@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 
 /**
  * 订单持久化实体，对应 order 表。
+ * <p>
+ * 订单实体既承接用户下单主链路，也为后台状态流转和统计提供基础数据。
  */
 @Data
 @TableName("`order`")

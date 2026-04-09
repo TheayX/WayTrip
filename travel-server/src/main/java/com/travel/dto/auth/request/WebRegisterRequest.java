@@ -7,6 +7,8 @@ import lombok.Data;
 
 /**
  * Web 端注册请求对象。
+ * <p>
+ * 仅承接注册首阶段所需的昵称、手机号和密码，不混入资料完善类字段。
  */
 @Data
 public class WebRegisterRequest {

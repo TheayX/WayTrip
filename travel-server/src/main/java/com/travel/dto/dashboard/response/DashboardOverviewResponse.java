@@ -7,6 +7,8 @@ import java.util.List;
 
 /**
  * 仪表盘概览响应对象。
+ * <p>
+ * 聚合后台首页概览卡片、趋势和分布类统计所需的核心指标。
  */
 @Data
 public class DashboardOverviewResponse {

@@ -1,3 +1,4 @@
+<!-- 热门景点页面 -->
 <template>
   <view class="recent-page">
     <view class="hero-card">
@@ -50,6 +51,7 @@ import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display
 import { getImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
+// 页面状态只覆盖热门列表和统计周期，保持轻量展示页的职责边界。
 const trendingSpots = ref([])
 const trendingDays = ref(14)
 const loading = ref(false)
@@ -57,6 +59,7 @@ const loading = ref(false)
 const formatTrendingPrice = (value) => formatFeaturePrice(value, { freeText: '¥0 免费' })
 const formatTrendingRating = (value) => formatFeatureRating(value)
 
+// 热门页只做整页替换，避免这类短列表引入不必要的分页复杂度。
 const loadTrendingSpots = async () => {
   if (loading.value) return
   loading.value = true
@@ -73,6 +76,7 @@ const loadTrendingSpots = async () => {
   }
 }
 
+// 从热门页进入详情时显式标记来源，便于后续区分不同推荐入口。
 const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return

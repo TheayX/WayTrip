@@ -1,4 +1,5 @@
-﻿<template>
+<!-- 浏览行为列表页面 -->
+<template>
   <div class="view-log-page admin-page-shell">
     <section class="page-hero">
       <div>

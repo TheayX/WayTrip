@@ -1,3 +1,4 @@
+<!-- 景点详情抽屉 -->
 <template>
   <el-drawer
     :model-value="visible"
@@ -85,6 +86,7 @@
 <script setup>
 import { Location, StarFilled } from '@element-plus/icons-vue'
 
+// 详情抽屉只处理展示与开关，不在内部复制页面层的数据加工逻辑。
 defineProps({
   visible: { type: Boolean, required: true },
   detail: { type: Object, default: null },
@@ -95,6 +97,7 @@ defineProps({
 const emit = defineEmits(['update:visible'])
 
 const emitVisible = (val) => {
+  // 统一透传开关事件，方便父层继续沿用 v-model 风格控制抽屉显示。
   emit('update:visible', val)
 }
 </script>

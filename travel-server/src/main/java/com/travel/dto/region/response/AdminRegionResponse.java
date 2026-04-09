@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 管理端地区响应对象。
+ * <p>
+ * 面向后台地区管理页，承接地区树节点展示和编辑回填字段。
  */
 @Data
 @Schema(description = "管理端地区响应参数")

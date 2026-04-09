@@ -113,6 +113,7 @@ import { getOrderDetail, payOrder, cancelOrder } from '@/modules/order/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
+// 订单详情页同时负责状态展示、倒计时和支付后刷新，因此把时序状态集中在页面层维护。
 const route = useRoute()
 const router = useRouter()
 
@@ -131,6 +132,7 @@ const showActions = computed(() => {
   return order.value.canPay || order.value.canCancel || order.value.status === 'completed'
 })
 
+// 状态图标和文案在详情页统一映射，避免模板里堆叠多段条件判断。
 const getStatusIcon = (status) => {
   const map = {
     pending: Timer,
@@ -176,6 +178,7 @@ const clearCountdown = () => {
 }
 
 const fetchDetail = async ({ autoCancelOnPending = false } = {}) => {
+  // 倒计时超时后会复用同一套拉取逻辑，必要时顺带触发自动取消并刷新状态。
   if (detailLoading.value) return
 
   detailLoading.value = true
@@ -218,6 +221,7 @@ const triggerTimeoutRefresh = async () => {
 }
 
 const setupCountdown = () => {
+  // 只对待支付订单启动倒计时，其他状态直接清掉残留定时器。
   clearCountdown()
   countdownText.value = ''
 
@@ -271,6 +275,7 @@ const handleCancel = async () => {
 }
 
 const handleReview = () => {
+  // 评价入口直接回到景点详情，并通过 query/状态打开评价面板。
   router.push(buildSpotDetailRoute(order.value.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }))
 }
 

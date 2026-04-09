@@ -11,6 +11,8 @@ import java.util.List;
 
 /**
  * 管理端景点新增或编辑请求参数对象。
+ * <p>
+ * 后台景点新增与编辑共用同一表单结构，保证写入字段口径一致。
  */
 @Data
 public class AdminSpotUpsertRequest {

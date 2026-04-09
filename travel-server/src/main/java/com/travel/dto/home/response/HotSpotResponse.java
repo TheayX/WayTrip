@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * 首页热门景点响应对象。
+ * <p>
+ * 面向首页热门模块，返回按热度排序的景点列表与基础展示字段。
  */
 @Data
 public class HotSpotResponse {

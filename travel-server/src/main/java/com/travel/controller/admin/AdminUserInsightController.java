@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 管理端用户运营洞察控制器。
+ * <p>
+ * 专门提供偏好、收藏和浏览行为等运营数据检索能力，和基础账号管理接口分离。
  */
 @Tag(name = "管理端-用户运营", description = "用户偏好、收藏、浏览行为相关接口")
 @RestController

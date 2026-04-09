@@ -24,6 +24,7 @@
 <script setup>
 import { getImageUrl } from '@/shared/api/client.js'
 
+// 侧栏只展示当前攻略关联的景点摘要，不在组件内部再发起补充查询。
 defineProps({
   spots: {
     type: Array,
@@ -31,6 +32,7 @@ defineProps({
   }
 })
 
+// 选中景点后交回详情页决定跳转、埋点或其他联动动作。
 defineEmits(['select'])
 </script>
 

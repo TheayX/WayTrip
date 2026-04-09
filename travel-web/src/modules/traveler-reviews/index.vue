@@ -73,6 +73,7 @@ import { fetchTravelerReviewFeed } from '@/modules/traveler-reviews/api.js'
 import { getAvatarUrl } from '@/shared/api/client.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
+// 页面按正负口碑拆分展示，帮助用户先用评价情绪快速筛掉不合适的景点。
 const router = useRouter()
 
 const tabs = [
@@ -89,6 +90,7 @@ const emptyStateTitle = computed(() => (activeTab.value === 'positive' ? '暂时
 const emptyStateDesc = computed(() => (activeTab.value === 'positive' ? '当前没有高分评论内容。' : '当前没有低分评论内容。'))
 
 const loadTravelerReviewFeed = async () => {
+  // 口碑流一次拉回正负两组数据，切换页签时不再重复请求。
   if (loading.value) return
   loading.value = true
 

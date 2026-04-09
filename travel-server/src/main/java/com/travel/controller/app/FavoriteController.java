@@ -16,6 +16,8 @@ import java.util.Map;
 
 /**
  * 用户端收藏控制器，负责景点收藏相关接口。
+ * <p>
+ * 收藏能力全部绑定当前登录用户执行，控制器层不接受外部传入用户标识，避免越权操作。
  */
 @Tag(name = "用户端-收藏", description = "用户收藏管理相关接口")
 @RestController
@@ -28,6 +30,7 @@ public class FavoriteController {
     @Operation(summary = "添加收藏")
     @PostMapping
     public ApiResponse<Void> addFavorite(@Valid @RequestBody FavoriteRequest request) {
+        // 用户身份统一从上下文读取，防止前端伪造 userId 操作他人收藏。
         Long userId = UserContextHolder.getUserId();
         favoriteService.addFavorite(userId, request.getSpotId());
         return ApiResponse.success();

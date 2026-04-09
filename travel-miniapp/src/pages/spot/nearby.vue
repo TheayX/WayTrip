@@ -78,7 +78,7 @@ const loading = ref(false)
 const locationStatus = ref('idle')
 
 // 常量配置
-const markerIcon = '/static/tabbar/spot-active.png'
+const markerIcon = '/static/marker/spot.png'
 const MAX_NEARBY_DISTANCE_KM = 100
 
 // 工具方法
@@ -156,7 +156,7 @@ const mapCenter = computed(() => {
 })
 
 const markers = computed(() => {
-  const spotMarkers = displaySpots.value.map((spot, index) => ({
+  return displaySpots.value.map((spot, index) => ({
     id: Number(spot.id),
     latitude: spot.latitude,
     longitude: spot.longitude,
@@ -166,28 +166,11 @@ const markers = computed(() => {
     zIndex: 10 + index,
     callout: {
       content: `${spot.name} ${formatDistance(spot.distanceKm)}`,
-      display: 'BYCLICK',
+      display: 'ALWAYS',
       padding: 6,
       borderRadius: 10
     }
   }))
-
-  const locationLatitude = toFiniteNumber(locationInfo.value?.latitude)
-  const locationLongitude = toFiniteNumber(locationInfo.value?.longitude)
-  if (isValidCoordinate(locationLatitude, locationLongitude)) {
-    spotMarkers.push({
-      id: -1,
-      latitude: locationLatitude,
-      longitude: locationLongitude,
-      iconPath: markerIcon,
-      width: 18,
-      height: 22,
-      alpha: 0.7,
-      zIndex: 9
-    })
-  }
-
-  return spotMarkers
 })
 
 const emptyTitle = computed(() => {

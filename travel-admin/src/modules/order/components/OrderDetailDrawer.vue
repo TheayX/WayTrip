@@ -1,3 +1,4 @@
+<!-- 订单详情抽屉 -->
 <template>
   <el-drawer
     :model-value="visible"
@@ -102,6 +103,7 @@
 </template>
 
 <script setup>
+// 详情抽屉完全复用父层传入的格式化函数，避免状态文案在多个组件里分散定义。
 defineProps({
   visible: { type: Boolean, required: true },
   loading: { type: Boolean, default: false },
@@ -110,6 +112,7 @@ defineProps({
   getStatusTagType: { type: Function, required: true }
 })
 
+// 操作按钮只发出订单动作意图，真正的接口调用与二次确认仍由父层掌控。
 const emit = defineEmits(['update:visible', 'complete', 'refund', 'cancel', 'reopen'])
 </script>
 

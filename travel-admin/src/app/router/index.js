@@ -13,6 +13,7 @@ const routes = [
     path: '/',
     component: () => import('@/app/layout/index.vue'),
     redirect: '/dashboard',
+    // 后台所有业务页统一挂到主布局下，菜单分组与面包屑都依赖这里的 meta 信息。
     children: [
       {
         path: 'dashboard',
@@ -119,6 +120,7 @@ router.beforeEach((to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - WayTrip 管理端` : 'WayTrip 管理端'
 
   const userStore = useUserStore()
+  // 默认所有页面都需要登录，只有显式标记 requiresAuth: false 的页面才放行。
   const requiresAuth = to.meta.requiresAuth !== false
 
   if (requiresAuth && !userStore.token) {

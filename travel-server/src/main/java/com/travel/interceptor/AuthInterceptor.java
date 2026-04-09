@@ -16,13 +16,15 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 /**
- * 认证拦截器
+ * 认证拦截器。
+ * <p>
+ * 负责解析 Bearer Token，并把当前登录用户或管理员身份写入线程上下文。
  */
 @Slf4j
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
-    // Token 解析依赖
+    // Token 解析依赖统一通过工具类收口，避免拦截器直接耦合 JWT 细节。
     @Autowired
     private JwtUtils jwtUtils;
 
@@ -39,7 +41,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         String uri = request.getRequestURI();
         String token = getToken(request);
 
-        // 判断是用户端还是管理端
+        // 通过接口前缀区分用户端与管理端，保证两类 Token 不会混用。
         boolean isAdmin = uri.startsWith("/api/admin/");
 
         if (!StringUtils.hasText(token)) {
@@ -71,6 +73,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, @Nullable Exception ex) {
+        // 请求结束后清理上下文，避免线程复用时把上一个请求的身份串到下一个请求。
         UserContextHolder.clear();
     }
 

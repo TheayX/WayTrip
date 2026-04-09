@@ -1,3 +1,4 @@
+<!-- 攻略新增与编辑抽屉 -->
 <template>
   <el-drawer
     :model-value="visible"
@@ -170,6 +171,7 @@ const formRef = ref()
 const formContainerRef = ref()
 const activeSection = ref('basic')
 const sectionRefs = new Map()
+// 录入导航与正文区共享同一套 section key，保证滚动定位和高亮状态一致。
 const sections = [
   { key: 'basic', label: '基础信息', hint: '标题、分类、封面、发布状态' },
   { key: 'spots', label: '关联景点', hint: '补齐内容与景点关联' },
@@ -198,6 +200,7 @@ const scrollToSection = async (key) => {
 }
 
 const submit = (published) => {
+  // 发布态由按钮语义决定，避免在表单内部再额外维护一套提交分支。
   emit('submit', { published })
 }
 

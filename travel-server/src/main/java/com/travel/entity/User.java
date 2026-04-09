@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 /**
  * 用户持久化实体，对应 user 表。
+ * <p>
+ * 同时承接 Web 注册用户和小程序 openid 用户，因此账号字段设计兼容双端登录模式。
  */
 @Data
 @TableName("user")

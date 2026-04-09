@@ -1,4 +1,5 @@
-﻿<template>
+<!-- 用户偏好列表页面 -->
+<template>
   <div class="preference-page admin-page-shell">
     <section class="page-hero">
       <div>

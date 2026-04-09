@@ -7,6 +7,8 @@ import lombok.Data;
 
 /**
  * 用户资料更新请求对象。
+ * <p>
+ * 只承接用户可主动编辑的公开资料字段，避免和账户安全设置混在同一更新入口。
  */
 @Data
 public class UpdateUserInfoRequest {

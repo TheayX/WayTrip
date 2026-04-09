@@ -1,3 +1,4 @@
+<!-- 推荐系统帮助说明卡片 -->
 <template>
   <!-- 使用说明 -->
   <el-card shadow="hover" class="help-card">
@@ -208,6 +209,7 @@
 </template>
 
 <script setup>
+// 展开态由父页面控制，便于保留用户最近一次查阅位置。
 defineProps({
   activeCollapse: {
     type: Array,
@@ -227,6 +229,7 @@ defineProps({
   }
 })
 
+// 说明卡片只做知识展示，不在内部维护任何业务状态。
 const emit = defineEmits(['update:active-collapse'])
 </script>
 

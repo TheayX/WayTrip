@@ -1,3 +1,4 @@
+<!-- 攻略详情抽屉 -->
 <template>
   <el-drawer
     :model-value="visible"
@@ -67,6 +68,7 @@
 </template>
 
 <script setup>
+// 详情内容可能来自富文本或纯文本，两种展示方式在这里统一兜底。
 defineProps({
   visible: { type: Boolean, required: true },
   detail: { type: Object, default: null },
@@ -80,6 +82,7 @@ const emitVisible = (value) => {
   emit('update:visible', value)
 }
 
+// 历史数据里既有富文本也有纯文本，这里先做轻量判断再决定展示方式。
 const containsHtml = (content) => /<[^>]+>/.test(content || '')
 </script>
 

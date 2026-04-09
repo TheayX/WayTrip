@@ -1,9 +1,10 @@
+<!-- 账号绑定与注册弹窗 -->
 <template>
   <view>
     <!-- ========== 第一步：强制设置手机号和密码 ========== -->
     <view class="auth-mask" v-if="step === 1">
       <view class="auth-panel">
-        <image class="auth-brand-mark" src="/static/brand/standard-mark.svg" mode="aspectFit" />
+        <image class="auth-brand-mark" src="/static/brand/waytrip-standard-mark.svg" mode="aspectFit" />
         <view class="auth-head">
           <text class="auth-kicker">WayTrip Account</text>
           <text class="auth-title">完成账号设置</text>
@@ -56,7 +57,7 @@
     <!-- ========== 第二步：可选设置头像和昵称 ========== -->
     <view class="auth-mask" v-if="step === 2">
       <view class="auth-panel">
-        <image class="auth-brand-mark" src="/static/brand/standard-mark.svg" mode="aspectFit" />
+        <image class="auth-brand-mark" src="/static/brand/waytrip-standard-mark.svg" mode="aspectFit" />
         <view class="auth-head">
           <text class="auth-kicker">WayTrip Profile</text>
           <text class="auth-title">完善个人资料</text>
@@ -131,6 +132,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visibleStep', 'success'])
 
+// 弹窗步骤以父组件传值为准，内部只做同步显示，避免状态源分裂。
 const step = ref(props.visibleStep)
 watch(() => props.visibleStep, (val) => step.value = val)
 
@@ -150,6 +152,7 @@ const preferenceGuideVisible = ref(false)
 const preferenceGuideCategories = ref([])
 const preferenceGuideSelection = ref([])
 
+// 头像临时文件仅用于本次注册提交流程，避免提前污染用户资料状态。
 const onAuthChooseAvatar = (e) => {
   const url = e?.detail?.avatarUrl || ''
   if (url) {
@@ -162,6 +165,7 @@ const onNicknameBlur = (e) => {
   if (e.detail?.value) authForm.nickname = e.detail.value
 }
 
+// 第一步先把手机号校验和账户绑定预检查做完，避免用户填完整资料后才发现账号不可用。
 const submitStep1 = async () => {
   const phone = step1Form.phone.trim()
   const password = step1Form.password.trim()
@@ -196,6 +200,7 @@ const submitStep1 = async () => {
   }
 }
 
+// 注册完成后先写入登录态，再进入后续偏好冷启动流程，保证依赖用户态的逻辑可用。
 const finalizeRegister = async () => {
   const res = await wxBindPhone({
     openid: props.openid,
@@ -207,6 +212,7 @@ const finalizeRegister = async () => {
   emit('success') // Sync user state in parent
 }
 
+// 偏好分类只在首次打开时拉取，减少注册链路上的重复请求。
 const fetchPreferenceGuideCategories = async () => {
   if (preferenceGuideCategories.value.length) return
   try {
@@ -221,6 +227,7 @@ const openPreferenceGuide = async () => {
   preferenceGuideVisible.value = true
 }
 
+// 跳过资料完善不阻断注册主流程，但仍继续引导偏好设置以改善冷启动推荐。
 const skipStep2 = async () => {
   try {
     uni.showLoading({ title: '注册中...', mask: true })
@@ -234,6 +241,7 @@ const skipStep2 = async () => {
   }
 }
 
+// 第二步资料保存与注册完成串行处理，保证头像和昵称基于已登录用户提交。
 const submitStep2 = async () => {
   try {
     uni.showLoading({ title: '保存中...', mask: true })
@@ -266,6 +274,7 @@ const handlePreferenceLimitExceed = () => {
   uni.showToast({ title: '最多选择5个', icon: 'none' })
 }
 
+// 保存偏好后同步更新本地用户状态，确保首页推荐无需重进页面即可刷新。
 const saveRegisterPreferences = async () => {
   try {
     await setPreferences({ categoryIds: preferenceGuideSelection.value })
@@ -285,6 +294,7 @@ const saveRegisterPreferences = async () => {
   }
 }
 
+// 跳过偏好时也记录冷启动状态，避免后续反复弹出同一引导。
 const skipRegisterPreferences = () => {
   markColdStartGuideSkipped(userStore.userInfo?.id)
   preferenceGuideVisible.value = false

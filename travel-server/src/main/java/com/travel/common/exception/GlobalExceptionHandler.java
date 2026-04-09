@@ -46,6 +46,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        // 同一请求可能触发多个字段错误，这里合并后一次性返回，减少前端反复提交成本。
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
@@ -62,6 +63,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleBindException(BindException e) {
+        // 与 RequestBody 校验保持同一错误格式，前端无需区分参数来源。
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
@@ -78,6 +80,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleConstraintViolationException(ConstraintViolationException e) {
+        // 路径参数和查询参数的约束错误统一折叠成标准提示文案。
         String message = e.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining(", "));

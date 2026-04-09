@@ -1,4 +1,5 @@
 // 路由名称常量
+// 命名路由集中收口，方便高亮态、守卫和埋点逻辑共用同一来源。
 export const ROUTE_NAMES = {
   home: 'Home',
   discover: 'Discover',

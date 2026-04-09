@@ -1,3 +1,4 @@
+<!-- 运营概览页面 -->
 <template>
   <div class="dashboard premium-dashboard admin-page-shell">
     <section class="page-hero">
@@ -276,7 +277,7 @@ import { useTheme } from '@/shared/composables/useTheme.js'
 import { getChartThemeTokens } from '@/shared/theme/charts/index.js'
 import { getHotSpots, getOrderHeatmap, getOrderTrend, getOverview } from './api.js'
 
-// Refs for charts
+// 图表 DOM 引用统一集中管理，便于初始化、主题切换和销毁时批量处理。
 const sparklineRevenue = ref(null)
 const sparklineUsers = ref(null)
 const sparklineSpots = ref(null)
@@ -369,6 +370,7 @@ const dashboardTips = [
   }
 ]
 
+// 首屏先初始化图表实例，后续只更新 option，避免反复销毁重建带来闪烁。
 const initSparklines = () => {
   const palette = getChartPalette()
   const configs = [
@@ -402,6 +404,7 @@ const buildSparklineOption = (data, color, areaColor) => ({
   }]
 })
 
+// 概览指标刷新后只回填 sparkline 数据，不重新创建实例。
 const updateSparklines = () => {
   const palette = getChartPalette()
   const targets = [
@@ -643,6 +646,7 @@ const updateMainLineChart = (list) => {
   }
 
   if (!hasTrendAnimated) {
+    // 首次渲染先铺零值骨架，再播放一次完整入场动画，避免首屏跳变过硬。
     const labels = list.map(item => formatAxisLabel(item.date))
     const zeroOrderData = labels.map(() => 0)
     const zeroRevenueData = labels.map(() => 0)
@@ -708,6 +712,7 @@ const fetchData = async () => {
   const [trendResult, overviewResult, hotSpotsResult, heatmapResult] = results
   const failedSections = []
 
+  // 各区块允许局部失败，优先保留还能展示的数据，避免整个概览页直接空白。
   if (trendResult.status === 'fulfilled') {
     updateMainLineChart(trendResult.value.data?.list || [])
     mainLineChart?.resize()
@@ -785,6 +790,7 @@ onMounted(() => {
 })
 
 watch(currentTheme, async () => {
+  // 主题切换时同步刷新图表配色，保证深浅主题下图表对比度稳定。
   await nextTick()
   updateSparklines()
   updateHeatmap(heatmapYear.value, [])

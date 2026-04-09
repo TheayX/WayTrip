@@ -139,8 +139,10 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/shared/api/client.js'
 import { ArrowDown, ChatDotRound, Discount, MagicStick, Search, Setting, Stopwatch, Tickets, User, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
-import brandLogoUrl from '@/shared/assets/brand/standard.svg'
-import brandMarkUrl from '@/shared/assets/brand/standard-mark.svg'
+import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
+import brandMarkUrl from '@/shared/assets/brand/waytrip-standard-mark.svg'
+
+//
 import { AI_CHAT_VISIBLE_ROUTE_NAMES } from '@/shared/constants/ai-chat.js'
 import AiChatWidget from '@/shared/ui/AiChatWidget.vue'
 
@@ -148,6 +150,7 @@ import AiChatWidget from '@/shared/ui/AiChatWidget.vue'
 const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
+// 精选功能菜单与高亮态共用同一组路由定义，避免文案和激活规则分叉维护。
 const featureRouteNames = [
   ROUTE_NAMES.randomPick,
   ROUTE_NAMES.budgetTravel,
@@ -184,6 +187,7 @@ const currentPageText = computed(() => route.meta?.title || '继续浏览当前�
 
 // 交互处理方法
 const handleBack = () => {
+  // 优先回退浏览历史；若用户是直达当前页，则回到首页兜底。
   if (window.history.length > 1) {
     router.back()
     return
@@ -217,6 +221,7 @@ const handleCommand = (command) => {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
+        // 退出后使用 replace，避免浏览器回退又回到需要登录的个人页。
         userStore.logout()
         ElMessage.success('已退出登录')
         router.replace(AUTH_ROUTE_PATHS.login)

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * 景点行为服务实现，负责浏览记录和推荐缓存失效。
+ * <p>
+ * 行为落库失败不应阻断主业务浏览流程，因此这里采用记录失败仅告警的策略。
  */
 @Slf4j
 @Service
@@ -21,6 +23,7 @@ public class SpotBehaviorServiceImpl implements SpotBehaviorService {
 
     @Override
     public void recordView(Long spotId, Long userId, String source, Integer duration) {
+        // 未登录用户不记录私有行为，避免产生无法归属的浏览数据。
         if (userId == null) {
             return;
         }
@@ -31,6 +34,7 @@ public class SpotBehaviorServiceImpl implements SpotBehaviorService {
             view.setViewSource(source);
             view.setViewDuration(duration != null ? duration : 0);
             userSpotViewMapper.insert(view);
+            // 浏览行为会影响推荐结果，写入后立即让当前用户推荐缓存失效。
             recommendationService.invalidateUserRecommendationCache(userId);
         } catch (Exception e) {
             log.warn("记录浏览行为失败: userId={}, spotId={}", userId, spotId, e);

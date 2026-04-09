@@ -1,3 +1,4 @@
+<!-- 景点热度档位设置对话框 -->
 <template>
   <!-- 设置热度档位对话框 -->
   <el-dialog :model-value="visible" title="设置热度档位" width="420px" @update:model-value="emitVisible">
@@ -34,6 +35,7 @@ import { ref } from 'vue'
 
 const heatFormRef = ref()
 
+// 表单状态由父页面管理，弹窗只负责展示当前分数与提交校验。
 defineProps({
   visible: {
     type: Boolean,
@@ -64,6 +66,7 @@ const emitVisible = (value) => {
 }
 
 defineExpose({
+  // 暴露校验方法，便于父层统一控制“确定”按钮提交流程。
   validate: () => heatFormRef.value?.validate()
 })
 </script>
