@@ -59,11 +59,13 @@ const isOpen = ref(false)
 const loading = ref(false)
 const inputText = ref('')
 const messageListRef = ref(null)
+// 会话 ID 在组件初始化时就准备好，避免首次发送时再生成导致状态分叉。
 const sessionId = ref(getOrCreateSessionId())
 const messages = ref([buildWelcomeMessage()])
 
 function getOrCreateSessionId() {
   const cached = localStorage.getItem(AI_CHAT_SESSION_STORAGE_KEY)
+  // 优先复用当前浏览器内已有会话，保证刷新页面后还能延续短期上下文。
   if (cached) return cached
   const created = createSessionId()
   localStorage.setItem(AI_CHAT_SESSION_STORAGE_KEY, created)
@@ -71,6 +73,7 @@ function getOrCreateSessionId() {
 }
 
 function resetSessionId() {
+  // 清空会话时同时重建 sessionId，避免旧上下文继续影响后续问答。
   const created = createSessionId()
   localStorage.setItem(AI_CHAT_SESSION_STORAGE_KEY, created)
   sessionId.value = created
@@ -120,7 +123,7 @@ const sendMessage = async () => {
     const firstResponse = await chatWithAi(sessionId.value, content)
     let reply = getReplyContent(firstResponse)
 
-    // 空回复时做一次轻量重试，减少偶发空内容对话体验。
+    // 空回复时做一次轻量重试，减少模型偶发空内容时的直接失败感。
     if (!reply) {
       const retryResponse = await chatWithAi(sessionId.value, content)
       reply = getReplyContent(retryResponse)

@@ -142,7 +142,7 @@ import { ArrowDown, ChatDotRound, Discount, MagicStick, Search, Setting, Stopwat
 import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
 import brandMarkUrl from '@/shared/assets/brand/waytrip-standard-mark.svg'
 
-//
+// 智能客服
 import { AI_CHAT_VISIBLE_ROUTE_NAMES } from '@/shared/constants/ai-chat.js'
 import AiChatWidget from '@/shared/ui/AiChatWidget.vue'
 
@@ -176,6 +176,7 @@ const showBackBar = computed(() => {
   return !hiddenBackRoutes.includes(route.name)
 })
 
+// AI 客服入口在特定页面显示，优先级高于返回栏。通过路由元信息控制显示与隐藏，方便特殊页面（如登录注册页）调整。
 const shouldShowAiChat = computed(() => {
   if (typeof route.meta?.showAiChat === 'boolean') {
     return route.meta.showAiChat

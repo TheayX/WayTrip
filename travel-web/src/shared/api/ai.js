@@ -9,6 +9,7 @@ import request from '@/shared/api/client.js'
  */
 export const chatWithAi = (sessionId, message) => request.post(
   '/ai/chat',
+  // 会话 ID 与消息体一起上送，服务端依赖它串联历史对话与分钟级限流。
   { sessionId, message },
   { timeout: 60000 }
 )
