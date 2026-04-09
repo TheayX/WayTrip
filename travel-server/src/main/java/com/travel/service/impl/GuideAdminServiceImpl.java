@@ -219,6 +219,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
 
         // 先去重再保存，避免后台拖拽选择时产生重复关联记录。
         List<Long> uniqueSpotIds = spotIds.stream().distinct().collect(Collectors.toList());
+        validateSpotReferences(uniqueSpotIds);
         List<GuideSpotRelation> existingSpots = guideSpotRelationMapper.selectList(
             new LambdaQueryWrapper<GuideSpotRelation>()
                 .eq(GuideSpotRelation::getGuideId, guideId)
@@ -250,6 +251,19 @@ public class GuideAdminServiceImpl implements GuideAdminService {
             guideSpot.setSortOrder(i + 1);
             guideSpot.setIsDeleted(0);
             guideSpotRelationMapper.insert(guideSpot);
+        }
+    }
+
+    /**
+     * 攻略景点关联改由应用层维护后，写入前必须先校验景点引用有效。
+     */
+    private void validateSpotReferences(List<Long> spotIds) {
+        List<Spot> spots = spotMapper.selectBatchIds(spotIds);
+        long activeCount = spots.stream()
+            .filter(spot -> spot.getIsDeleted() == 0)
+            .count();
+        if (activeCount != spotIds.size()) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "存在无效的景点ID");
         }
     }
 }

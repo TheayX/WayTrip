@@ -1,7 +1,9 @@
 package com.travel.service.impl;
 
 import com.travel.dto.region.request.AdminRegionRequest;
+import com.travel.entity.Spot;
 import com.travel.entity.SpotRegion;
+import com.travel.mapper.SpotMapper;
 import com.travel.mapper.SpotRegionMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +31,9 @@ class SpotRegionServiceImplTest {
     @Mock
     private SpotRegionMapper spotRegionMapper;
 
+    @Mock
+    private SpotMapper spotMapper;
+
     private SpotRegionServiceImpl spotRegionService;
 
     /**
@@ -36,7 +41,7 @@ class SpotRegionServiceImplTest {
      */
     @BeforeEach
     void setUp() {
-        spotRegionService = new SpotRegionServiceImpl();
+        spotRegionService = new SpotRegionServiceImpl(spotMapper);
         ReflectionTestUtils.setField(spotRegionService, "baseMapper", spotRegionMapper);
     }
 
@@ -48,6 +53,7 @@ class SpotRegionServiceImplTest {
         SpotRegion targetSecond = buildRegion(6L, 20L, 2);
 
         when(spotRegionMapper.selectById(3L)).thenReturn(current);
+        when(spotRegionMapper.selectById(20L)).thenReturn(buildRegion(20L, null, 1));
         when(spotRegionMapper.selectList(any())).thenReturn(
             List.of(current, oldFollowing),
             List.of(targetFirst, targetSecond)
@@ -78,6 +84,7 @@ class SpotRegionServiceImplTest {
 
         when(spotRegionMapper.selectById(2L)).thenReturn(current);
         when(spotRegionMapper.selectCount(any())).thenReturn(0L);
+        when(spotMapper.selectCount(any())).thenReturn(0L);
         when(spotRegionMapper.updateById(any())).thenReturn(1);
         when(spotRegionMapper.selectList(any())).thenReturn(List.of(current, following));
 
@@ -86,6 +93,20 @@ class SpotRegionServiceImplTest {
         verify(spotRegionMapper).updateById(argThat(item -> item.getId().equals(2L) && item.getIsDeleted() == 1));
         verify(spotRegionMapper).updateById(argThat(item -> item.getId().equals(3L) && item.getSortOrder() == 2));
         assertEquals(2, following.getSortOrder());
+    }
+
+    @Test
+    void deleteRegion_rejectsWhenActiveSpotStillReferencesRegion() {
+        SpotRegion current = buildRegion(2L, 10L, 2);
+
+        when(spotRegionMapper.selectById(2L)).thenReturn(current);
+        when(spotRegionMapper.selectCount(any())).thenReturn(0L);
+        when(spotMapper.selectCount(any())).thenReturn(1L);
+
+        RuntimeException ex = org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class,
+            () -> spotRegionService.deleteRegion(2L));
+
+        assertEquals("该地区下仍有关联景点，请先调整景点地区", ex.getMessage());
     }
 
     /**

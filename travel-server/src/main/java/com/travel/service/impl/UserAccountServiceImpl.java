@@ -118,6 +118,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Override
     @Transactional
     public void setPreferences(Long userId, List<Long> categoryIds) {
+        getActiveUser(userId);
         validateCategoryIds(categoryIds);
         Set<Long> distinctCategoryIds = categoryIds == null
                 ? new LinkedHashSet<>()
@@ -182,7 +183,11 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
 
         Set<Long> distinctIds = new LinkedHashSet<>(categoryIds);
-        List<SpotCategory> categories = spotCategoryMapper.selectBatchIds(distinctIds);
+        List<SpotCategory> categories = spotCategoryMapper.selectList(
+                new LambdaQueryWrapper<SpotCategory>()
+                        .in(SpotCategory::getId, distinctIds)
+                        .eq(SpotCategory::getIsDeleted, 0)
+        );
         Set<Long> validIds = categories.stream().map(SpotCategory::getId).collect(Collectors.toSet());
 
         if (validIds.size() != distinctIds.size()) {

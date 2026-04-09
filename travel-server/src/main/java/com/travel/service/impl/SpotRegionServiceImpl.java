@@ -5,8 +5,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.travel.common.exception.BusinessException;
 import com.travel.dto.region.request.AdminRegionRequest;
 import com.travel.dto.region.response.AdminRegionResponse;
+import com.travel.entity.Spot;
 import com.travel.entity.SpotRegion;
+import com.travel.mapper.SpotMapper;
 import com.travel.mapper.SpotRegionMapper;
+import lombok.RequiredArgsConstructor;
 import com.travel.service.SpotRegionService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -20,7 +23,10 @@ import java.util.stream.Collectors;
  * 景点地区服务实现，负责管理端地区查询与层级维护。
  */
 @Service
+@RequiredArgsConstructor
 public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotRegion> implements SpotRegionService {
+
+    private final SpotMapper spotMapper;
 
     // 管理端地区查询与维护
 
@@ -46,6 +52,7 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
     @Transactional(rollbackFor = Exception.class)
     public void createRegion(AdminRegionRequest request) {
         AdminRegionRequest validRequest = Objects.requireNonNull(request);
+        validateParentRegion(validRequest.getParentId(), null);
         int targetSortOrder = prepareInsertSortOrder(validRequest.getParentId(), validRequest.getSortOrder());
         SpotRegion region = new SpotRegion();
         BeanUtils.copyProperties(validRequest, region);
@@ -59,6 +66,7 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
     public void updateRegion(Long id, AdminRegionRequest request) {
         AdminRegionRequest validRequest = Objects.requireNonNull(request);
         SpotRegion region = getActiveRegion(id);
+        validateParentRegion(validRequest.getParentId(), id);
         int targetSortOrder = prepareUpdateSortOrder(region, validRequest);
         BeanUtils.copyProperties(validRequest, region);
         region.setId(id);
@@ -81,6 +89,9 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
         if (count(wrapper) > 0) {
             throw new BusinessException(400, "该地区下还存在子地区，请先删除子地区");
         }
+        if (hasActiveSpotReference(id)) {
+            throw new BusinessException(400, "该地区下仍有关联景点，请先调整景点地区");
+        }
         
         int removedSortOrder = safeSortOrder(region.getSortOrder());
         Long parentId = region.getParentId();
@@ -98,6 +109,34 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
             throw new BusinessException(404, "地区不存在");
         }
         return region;
+    }
+
+    /**
+     * 地区树取消外键后，父地区引用必须在写入前显式校验。
+     */
+    private void validateParentRegion(Long parentId, Long currentId) {
+        if (parentId == null) {
+            return;
+        }
+        if (Objects.equals(parentId, currentId)) {
+            throw new BusinessException(400, "地区不能挂载到自身下");
+        }
+
+        SpotRegion parent = getById(parentId);
+        if (parent == null || parent.getIsDeleted() == 1) {
+            throw new BusinessException(404, "父地区不存在");
+        }
+    }
+
+    /**
+     * 删除地区前阻断仍被景点引用的节点，避免留下无效地区引用。
+     */
+    private boolean hasActiveSpotReference(Long regionId) {
+        return spotMapper.selectCount(
+            new LambdaQueryWrapper<Spot>()
+                .eq(Spot::getRegionId, regionId)
+                .eq(Spot::getIsDeleted, 0)
+        ) > 0;
     }
 
     /**

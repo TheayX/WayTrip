@@ -2,6 +2,8 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.travel.common.exception.BusinessException;
+import com.travel.common.result.ResultCode;
 import com.travel.dto.banner.request.AdminBannerRequest;
 import com.travel.dto.banner.response.AdminBannerListResponse;
 import com.travel.dto.banner.response.BannerResponse;
@@ -96,6 +98,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
     @Transactional(rollbackFor = Exception.class)
     public void createBanner(AdminBannerRequest request) {
         AdminBannerRequest validRequest = Objects.requireNonNull(request);
+        validateSpotReference(validRequest.getSpotId());
         int targetSortOrder = prepareInsertSortOrder(validRequest.getSortOrder());
         SpotBanner banner = new SpotBanner();
         banner.setImageUrl(validRequest.getImageUrl());
@@ -112,6 +115,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
     public void updateBanner(Long id, AdminBannerRequest request) {
         AdminBannerRequest validRequest = Objects.requireNonNull(request);
         SpotBanner banner = getActiveBanner(id);
+        validateSpotReference(validRequest.getSpotId());
         int targetSortOrder = prepareUpdateSortOrder(banner, validRequest.getSortOrder());
 
         spotBannerMapper.update(
@@ -296,6 +300,20 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         return spotMapper.selectBatchIds(spotIds).stream()
             .filter(spot -> spot.getIsDeleted() == 0)
             .collect(Collectors.toMap(Spot::getId, Spot::getName));
+    }
+
+    /**
+     * 轮播图取消外键后，关联景点必须在应用层保证仍然有效。
+     */
+    private void validateSpotReference(Long spotId) {
+        if (spotId == null) {
+            return;
+        }
+
+        Spot spot = spotMapper.selectById(spotId);
+        if (spot == null || spot.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "关联景点不存在或已删除");
+        }
     }
 }
 

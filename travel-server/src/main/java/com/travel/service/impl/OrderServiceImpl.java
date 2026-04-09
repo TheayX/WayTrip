@@ -3,6 +3,8 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.exception.BusinessException;
+import com.travel.common.result.ResultCode;
 import com.travel.dto.order.request.AdminOrderListRequest;
 import com.travel.dto.order.request.CreateOrderRequest;
 import com.travel.dto.order.request.OrderListRequest;
@@ -54,6 +56,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDetailResponse createOrder(Long userId, CreateOrderRequest request) {
+        getActiveUser(userId);
         Spot spot = spotMapper.selectById(request.getSpotId());
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new RuntimeException("景点不存在");
@@ -86,6 +89,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderListResponse getUserOrders(Long userId, OrderListRequest request) {
+        getActiveUser(userId);
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Order::getUserId, userId);
         wrapper.eq(Order::getIsDeleted, 0);
@@ -330,6 +334,7 @@ public class OrderServiceImpl implements OrderService {
      * 用户端订单操作统一按用户维度加载订单，避免遗漏 is_deleted 过滤条件。
      */
     private Order getUserOrder(Long userId, Long orderId) {
+        getActiveUser(userId);
         Order order = orderMapper.selectOne(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getId, orderId)
@@ -341,6 +346,17 @@ public class OrderServiceImpl implements OrderService {
         }
         refreshPendingTimeoutOrder(order);
         return order;
+    }
+
+    /**
+     * 用户侧订单链路取消外键后，统一先校验用户仍然有效。
+     */
+    private User getActiveUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+        return user;
     }
 
     /**

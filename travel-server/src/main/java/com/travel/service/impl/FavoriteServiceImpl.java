@@ -10,10 +10,12 @@ import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.SpotRegion;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotCategory;
+import com.travel.entity.User;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.SpotRegionMapper;
 import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.SpotMapper;
+import com.travel.mapper.UserMapper;
 import com.travel.service.FavoriteService;
 import com.travel.service.RecommendationService;
 import lombok.RequiredArgsConstructor;
@@ -37,12 +39,14 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final SpotMapper spotMapper;
     private final SpotRegionMapper spotRegionMapper;
     private final SpotCategoryMapper spotCategoryMapper;
+    private final UserMapper userMapper;
     private final RecommendationService recommendationService;
 
     // 收藏操作与状态判断
 
     @Override
     public void addFavorite(Long userId, Long spotId) {
+        getActiveUser(userId);
         // 只允许收藏仍然可见的景点，避免脏数据进入收藏列表。
         Spot spot = getAvailableSpot(spotId);
         if (spot.getIsPublished() != 1) {
@@ -75,6 +79,7 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     public void removeFavorite(Long userId, Long spotId) {
+        getActiveUser(userId);
         UserSpotFavorite deletedFavorite = new UserSpotFavorite();
         deletedFavorite.setIsDeleted(1);
         userSpotFavoriteMapper.update(
@@ -89,6 +94,7 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     public boolean isFavorite(Long userId, Long spotId) {
+        getActiveUser(userId);
         return userSpotFavoriteMapper.selectCount(
             new LambdaQueryWrapper<UserSpotFavorite>()
                 .eq(UserSpotFavorite::getUserId, userId)
@@ -101,6 +107,7 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     public PageResult<SpotListResponse> getFavoriteList(Long userId, Integer page, Integer pageSize) {
+        getActiveUser(userId);
         Page<UserSpotFavorite> pageObj = new Page<>(page, pageSize);
         Page<UserSpotFavorite> favoriteResult = userSpotFavoriteMapper.selectPage(pageObj,
             new LambdaQueryWrapper<UserSpotFavorite>()
@@ -128,6 +135,17 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     // 响应转换与名称补全
+
+    /**
+     * 收藏相关接口不再依赖数据库外键，先在应用层确认用户仍然有效。
+     */
+    private User getActiveUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+        return user;
+    }
 
     /**
      * 收藏操作只允许命中仍然存在的景点，统一收口景点可见性校验。

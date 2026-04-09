@@ -51,6 +51,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void submitReview(Long userId, ReviewRequest request) {
+        getActiveUser(userId);
         Spot spot = getAvailableSpot(request.getSpotId());
         if (spot.getIsPublished() != 1) {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
@@ -84,6 +85,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ReviewResponse getUserReview(Long userId, Long spotId) {
+        getActiveUser(userId);
         Review review = reviewMapper.selectOne(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -127,6 +129,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public PageResult<ReviewResponse> getUserReviews(Long userId, Integer page, Integer pageSize) {
+        getActiveUser(userId);
         Page<Review> pageObj = new Page<>(page, pageSize);
         pageObj = (Page<Review>) reviewMapper.selectUserReviewPage(pageObj, userId);
 
@@ -140,6 +143,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void deleteReview(Long userId, Long reviewId) {
+        getActiveUser(userId);
         Review review = reviewMapper.selectById(reviewId);
         if (review == null || review.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.REVIEW_NOT_FOUND);
@@ -171,6 +175,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public int getUserReviewCount(Long userId) {
+        getActiveUser(userId);
         return Math.toIntExact(reviewMapper.selectCount(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -214,6 +219,17 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // 景点评分同步与响应转换
+
+    /**
+     * 评价读写不再依赖物理外键兜底，先校验用户仍然处于有效状态。
+     */
+    private User getActiveUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+        return user;
+    }
 
     /**
      * 评价相关操作统一要求景点处于有效状态，避免不同入口各自散落相同校验。

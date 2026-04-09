@@ -185,11 +185,17 @@ class UserAccountServiceImplTest {
 
     @Test
     void setPreferences_replacesOldAndInsertsNew() {
+        User user = new User();
+        user.setId(1L);
+        user.setIsDeleted(0);
         SpotCategory c1 = new SpotCategory();
         c1.setId(1L);
+        c1.setIsDeleted(0);
         SpotCategory c2 = new SpotCategory();
         c2.setId(2L);
-        when(spotCategoryMapper.selectBatchIds(any())).thenReturn(List.of(c1, c2));
+        c2.setIsDeleted(0);
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(spotCategoryMapper.selectList(any())).thenReturn(List.of(c1, c2));
         when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
 
         userAccountService.setPreferences(1L, List.of(1L, 2L));
@@ -201,11 +207,17 @@ class UserAccountServiceImplTest {
 
     @Test
     void setPreferences_restoresExistingPreferenceWithoutDuplicateInsert() {
+        User user = new User();
+        user.setId(1L);
+        user.setIsDeleted(0);
         SpotCategory c1 = new SpotCategory();
         c1.setId(1L);
+        c1.setIsDeleted(0);
         SpotCategory c2 = new SpotCategory();
         c2.setId(2L);
-        when(spotCategoryMapper.selectBatchIds(any())).thenReturn(List.of(c1, c2));
+        c2.setIsDeleted(0);
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(spotCategoryMapper.selectList(any())).thenReturn(List.of(c1, c2));
 
         UserPreference existing = new UserPreference();
         existing.setId(10L);
@@ -224,11 +236,31 @@ class UserAccountServiceImplTest {
 
     @Test
     void setPreferences_allowsEmptySelection_andOnlyClearsPreferences() {
+        User user = new User();
+        user.setId(1L);
+        user.setIsDeleted(0);
+        when(userMapper.selectById(1L)).thenReturn(user);
+
         userAccountService.setPreferences(1L, List.of());
 
         verify(userPreferenceMapper).update(any(UserPreference.class), any());
         verify(userPreferenceMapper, never()).insert(any(UserPreference.class));
         verify(userPreferenceMapper, never()).updateById(any(UserPreference.class));
         verify(recommendationService).invalidateUserRecommendationCache(1L);
+    }
+
+    @Test
+    void setPreferences_rejectsDeletedCategory() {
+        User user = new User();
+        user.setId(1L);
+        user.setIsDeleted(0);
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(spotCategoryMapper.selectList(any())).thenReturn(List.of());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> userAccountService.setPreferences(1L, List.of(99L)));
+
+        assertEquals(ResultCode.PARAM_ERROR.getCode(), ex.getCode());
+        assertEquals("存在无效的分类ID", ex.getMessage());
     }
 }

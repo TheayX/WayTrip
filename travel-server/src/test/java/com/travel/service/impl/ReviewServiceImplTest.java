@@ -8,6 +8,7 @@ import com.travel.dto.review.request.ReviewRequest;
 import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
+import com.travel.entity.User;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
@@ -51,6 +52,7 @@ class ReviewServiceImplTest {
     private ReviewServiceImpl reviewService;
 
     private Review review;
+    private User user;
 
     /**
      * 构建基础评价夹具，供删除和更新相关测试复用。
@@ -63,10 +65,15 @@ class ReviewServiceImplTest {
         review.setSpotId(100L);
         review.setScore(5);
         review.setIsDeleted(0);
+
+        user = new User();
+        user.setId(1L);
+        user.setIsDeleted(0);
     }
 
     @Test
     void deleteReview_marksOwnReviewDeleted_andRefreshesSpotStats() {
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(reviewMapper.selectById(10L)).thenReturn(review);
         when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("3.5", 2L));
 
@@ -79,6 +86,7 @@ class ReviewServiceImplTest {
 
     @Test
     void deleteReview_rejectsDeletingOthersReview() {
+        when(userMapper.selectById(2L)).thenReturn(user);
         when(reviewMapper.selectById(10L)).thenReturn(review);
 
         BusinessException exception = assertThrows(BusinessException.class, () -> reviewService.deleteReview(2L, 10L));
@@ -90,6 +98,7 @@ class ReviewServiceImplTest {
 
     @Test
     void deleteReview_resetsSpotStatsWhenLastReviewRemoved() {
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(reviewMapper.selectById(10L)).thenReturn(review);
         when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("0.0", 0L));
 
@@ -107,6 +116,7 @@ class ReviewServiceImplTest {
         spot.setId(100L);
         spot.setIsDeleted(0);
         spot.setIsPublished(1);
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(spotMapper.selectById(100L)).thenReturn(spot);
         when(reviewMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(review);
         when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("4.0", 3L));
@@ -124,6 +134,23 @@ class ReviewServiceImplTest {
         verify(reviewMapper).updateById(review);
         verify(spotMapper).update(isNull(), any(UpdateWrapper.class));
         verify(recommendationService).invalidateUserRecommendationCache(1L);
+    }
+
+    @Test
+    void submitReview_rejectsDeletedUser() {
+        User deletedUser = new User();
+        deletedUser.setId(1L);
+        deletedUser.setIsDeleted(1);
+        when(userMapper.selectById(1L)).thenReturn(deletedUser);
+
+        ReviewRequest request = new ReviewRequest();
+        request.setSpotId(100L);
+        request.setScore(4);
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> reviewService.submitReview(1L, request));
+
+        assertEquals(ResultCode.TOKEN_INVALID.getCode(), exception.getCode());
+        verify(spotMapper, never()).selectById(any());
     }
 
     /**

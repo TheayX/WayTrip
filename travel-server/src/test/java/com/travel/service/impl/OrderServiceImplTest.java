@@ -3,6 +3,7 @@ package com.travel.service.impl;
 import com.travel.dto.order.request.CreateOrderRequest;
 import com.travel.entity.Order;
 import com.travel.entity.Spot;
+import com.travel.entity.User;
 import com.travel.enums.OrderStatus;
 import com.travel.mapper.OrderMapper;
 import com.travel.mapper.SpotMapper;
@@ -54,6 +55,7 @@ class OrderServiceImplTest {
     private OrderServiceImpl orderService;
 
     private Spot spot;
+    private User user;
 
     /**
      * 构建基础景点夹具，供订单响应断言使用。
@@ -66,11 +68,16 @@ class OrderServiceImplTest {
         spot.setCoverImageUrl("/uploads/spot/default/cover/default.jpg");
         spot.setPrice(BigDecimal.valueOf(80));
         spot.setIsDeleted(0);
+
+        user = new User();
+        user.setId(1L);
+        user.setIsDeleted(0);
     }
 
     @Test
     void cancelOrder_allowsPaidOrder_andMarksItCancelled() {
         Order order = buildOrder(OrderStatus.PAID);
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(orderMapper.selectOne(any())).thenReturn(order);
         when(orderMapper.updateById(order)).thenReturn(1);
         when(spotMapper.selectById(order.getSpotId())).thenReturn(spot);
@@ -89,6 +96,7 @@ class OrderServiceImplTest {
     void cancelOrder_isIdempotent_forCancelledOrder() {
         Order order = buildOrder(OrderStatus.CANCELLED);
         order.setCancelledAt(LocalDateTime.now().minusHours(1));
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(orderMapper.selectOne(any())).thenReturn(order);
         when(spotMapper.selectById(order.getSpotId())).thenReturn(spot);
 
@@ -130,6 +138,7 @@ class OrderServiceImplTest {
     void getOrderDetail_autoCancelsTimeoutPendingOrder() {
         Order order = buildOrder(OrderStatus.PENDING);
         order.setCreatedAt(LocalDateTime.now().minusMinutes(6));
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(orderMapper.selectOne(any())).thenReturn(order);
         when(orderMapper.updateById(order)).thenReturn(1);
         when(spotMapper.selectById(order.getSpotId())).thenReturn(spot);
@@ -157,6 +166,7 @@ class OrderServiceImplTest {
         page.setRecords(List.of(timeoutOrder, freshOrder));
         page.setTotal(2);
 
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(orderMapper.selectPage(any(), any())).thenReturn(page);
         when(orderMapper.updateById(timeoutOrder)).thenReturn(1);
         when(spotMapper.selectBatchIds(any())).thenReturn(List.of(spot));
@@ -174,6 +184,7 @@ class OrderServiceImplTest {
     void payOrder_rejectsTimeoutPendingOrderWithExplicitMessage() {
         Order order = buildOrder(OrderStatus.PENDING);
         order.setCreatedAt(LocalDateTime.now().minusMinutes(6));
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(orderMapper.selectOne(any())).thenReturn(order);
         when(orderMapper.updateById(order)).thenReturn(1);
 
@@ -187,6 +198,7 @@ class OrderServiceImplTest {
     void getOrderDetail_autoCancelsPendingOrderAtExactTimeoutBoundary() {
         Order order = buildOrder(OrderStatus.PENDING);
         order.setCreatedAt(LocalDateTime.now().minusMinutes(5));
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(orderMapper.selectOne(any())).thenReturn(order);
         when(orderMapper.updateById(order)).thenReturn(1);
         when(spotMapper.selectById(order.getSpotId())).thenReturn(spot);
@@ -201,6 +213,7 @@ class OrderServiceImplTest {
     @Test
     void payOrder_isIdempotent_forPaidOrder() {
         Order order = buildOrder(OrderStatus.PAID);
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(orderMapper.selectOne(any())).thenReturn(order);
         when(spotMapper.selectById(order.getSpotId())).thenReturn(spot);
 
@@ -240,6 +253,7 @@ class OrderServiceImplTest {
 
     @Test
     void getOrderDetail_rejectsOrderOfAnotherUser() {
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(orderMapper.selectOne(any())).thenReturn(null);
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> orderService.getOrderDetail(1L, 10L));
@@ -254,6 +268,7 @@ class OrderServiceImplTest {
         offlineSpot.setPrice(BigDecimal.valueOf(80));
         offlineSpot.setIsDeleted(0);
         offlineSpot.setIsPublished(0);
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(spotMapper.selectById(100L)).thenReturn(offlineSpot);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -262,6 +277,20 @@ class OrderServiceImplTest {
         assertEquals("景点已下架", ex.getMessage());
         verify(orderMapper, never()).insert(any());
         verify(recommendationService, never()).invalidateUserRecommendationCache(any());
+    }
+
+    @Test
+    void createOrder_rejectsDeletedUser() {
+        User deletedUser = new User();
+        deletedUser.setId(1L);
+        deletedUser.setIsDeleted(1);
+        when(userMapper.selectById(1L)).thenReturn(deletedUser);
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> orderService.createOrder(1L, buildCreateOrderRequest(100L)));
+
+        assertEquals("Token无效或过期", ex.getMessage());
+        verify(spotMapper, never()).selectById(any());
     }
 
     /**

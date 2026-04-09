@@ -1,7 +1,9 @@
 package com.travel.service.impl;
 
 import com.travel.dto.category.request.AdminCategoryRequest;
+import com.travel.entity.Spot;
 import com.travel.entity.SpotCategory;
+import com.travel.mapper.SpotMapper;
 import com.travel.mapper.SpotCategoryMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,9 @@ class SpotCategoryServiceImplTest {
     @Mock
     private SpotCategoryMapper spotCategoryMapper;
 
+    @Mock
+    private SpotMapper spotMapper;
+
     private SpotCategoryServiceImpl spotCategoryService;
 
     /**
@@ -37,7 +42,7 @@ class SpotCategoryServiceImplTest {
      */
     @BeforeEach
     void setUp() {
-        spotCategoryService = new SpotCategoryServiceImpl();
+        spotCategoryService = new SpotCategoryServiceImpl(spotMapper);
         ReflectionTestUtils.setField(spotCategoryService, "baseMapper", spotCategoryMapper);
     }
 
@@ -47,6 +52,7 @@ class SpotCategoryServiceImplTest {
         SpotCategory second = buildCategory(2L, 0L, 2);
 
         when(spotCategoryMapper.selectList(any())).thenReturn(List.of(first, second));
+        when(spotCategoryMapper.selectById(0L)).thenReturn(buildCategory(0L, null, 1));
         when(spotCategoryMapper.updateById(any())).thenReturn(1);
         when(spotCategoryMapper.insert(any())).thenReturn(1);
 
@@ -74,6 +80,7 @@ class SpotCategoryServiceImplTest {
         SpotCategory fourth = buildCategory(4L, 0L, 4);
 
         when(spotCategoryMapper.selectById(3L)).thenReturn(current);
+        when(spotCategoryMapper.selectById(0L)).thenReturn(buildCategory(0L, null, 1));
         when(spotCategoryMapper.selectList(any())).thenReturn(List.of(first, second, current, fourth));
         when(spotCategoryMapper.updateById(any())).thenReturn(1);
 
@@ -96,6 +103,7 @@ class SpotCategoryServiceImplTest {
 
         when(spotCategoryMapper.selectById(2L)).thenReturn(current);
         when(spotCategoryMapper.selectCount(any())).thenReturn(0L);
+        when(spotMapper.selectCount(any())).thenReturn(0L);
         when(spotCategoryMapper.updateById(any())).thenReturn(1);
         when(spotCategoryMapper.selectList(any())).thenReturn(List.of(current, following));
 
@@ -104,6 +112,20 @@ class SpotCategoryServiceImplTest {
         verify(spotCategoryMapper).updateById(argThat(item -> item.getId().equals(2L) && item.getIsDeleted() == 1));
         verify(spotCategoryMapper).updateById(argThat(item -> item.getId().equals(3L) && item.getSortOrder() == 2));
         assertEquals(2, following.getSortOrder());
+    }
+
+    @Test
+    void deleteCategory_rejectsWhenActiveSpotStillReferencesCategory() {
+        SpotCategory current = buildCategory(2L, 0L, 2);
+
+        when(spotCategoryMapper.selectById(2L)).thenReturn(current);
+        when(spotCategoryMapper.selectCount(any())).thenReturn(0L);
+        when(spotMapper.selectCount(any())).thenReturn(1L);
+
+        RuntimeException ex = org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class,
+            () -> spotCategoryService.deleteCategory(2L));
+
+        assertEquals("该分类下仍有关联景点，请先调整景点分类", ex.getMessage());
     }
 
     /**
