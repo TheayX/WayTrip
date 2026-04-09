@@ -15,12 +15,15 @@
 </template>
 
 <script setup>
+// 快捷入口卡片的数据和跳转处理由首页统一定义，组件只负责渲染和点击承接。
 defineProps({
   items: {
     type: Array,
     default: () => []
   }
 })
+
+// 组件不直接管理路由，点击动作直接复用父层传入的 handler。
 </script>
 
 <style lang="scss" scoped>

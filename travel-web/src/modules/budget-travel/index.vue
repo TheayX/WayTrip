@@ -103,6 +103,7 @@ import {
 } from '@/modules/budget-travel/api.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
+// 该页把“预算口径”和“内容类型”拆成两个维度，方便用户快速切换浏览方式。
 const router = useRouter()
 
 const tabs = [
@@ -117,6 +118,7 @@ const budgetGuides = ref([])
 const loadingSpots = ref(false)
 const loadingGuides = ref(false)
 
+// 当前加载态按页签切换，避免景点和攻略互相覆盖 loading 反馈。
 const currentLoading = computed(() => (activeTab.value === 'spots' ? loadingSpots.value : loadingGuides.value))
 const currentLoadingText = computed(() => (activeTab.value === 'spots' ? '正在筛选低预算景点...' : '正在整理低预算攻略...'))
 const currentBudgetModeLabel = computed(() => (budgetMode.value === BUDGET_MODE_FREE ? '免费' : '50 元以内'))

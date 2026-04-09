@@ -15,6 +15,7 @@
 </template>
 
 <script setup>
+// 工具栏只描述当前排序方式，不直接持有列表状态或请求逻辑。
 defineProps({
   description: {
     type: String,
@@ -26,6 +27,7 @@ defineProps({
   }
 })
 
+// 通过事件上抛排序和重置操作，便于列表页统一管理 query 参数。
 defineEmits(['sort-change', 'reset'])
 </script>
 

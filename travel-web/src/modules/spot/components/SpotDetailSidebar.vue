@@ -70,6 +70,7 @@
 </template>
 
 <script setup>
+// 时间格式化在侧栏内本地完成，避免为了展示型逻辑扩散全局工具函数。
 const formatDateTime = (value) => {
   if (!value) return '暂无信息'
   const raw = typeof value === 'string' ? value.replace(' ', 'T') : value
@@ -81,6 +82,7 @@ const formatDateTime = (value) => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
+// 侧栏集中承接购票、收藏和评价入口，详情页主体只保留内容展示。
 defineProps({
   spot: {
     type: Object,
@@ -100,6 +102,7 @@ defineProps({
   }
 })
 
+// 评价表单的输入和值变更都交回父层，便于和登录态、提交状态统一联动。
 defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:comment'])
 </script>
 

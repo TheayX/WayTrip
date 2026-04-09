@@ -22,6 +22,7 @@
 <script setup>
 import { ACCOUNT_ROUTE_PATHS } from '@/modules/account/constants/routes.js'
 
+// 账户页统一复用该头部，保证面包屑和标题结构在各子页保持一致。
 defineProps({
   title: {
     type: String,
@@ -32,6 +33,8 @@ defineProps({
     default: ''
   }
 })
+
+// 头部自身不管理动作逻辑，只通过具名插槽让各页面按需补充右侧操作区。
 </script>
 
 <style lang="scss" scoped>

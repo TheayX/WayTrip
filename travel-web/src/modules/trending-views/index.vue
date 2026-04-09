@@ -50,6 +50,7 @@ import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { fetchTrendingViewSpots } from '@/modules/trending-views/api.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
+// 近期热看页只关注浏览热度结果，避免和推荐算法页混淆为个性化推荐。
 const router = useRouter()
 
 const trendingSpots = ref([])
@@ -57,6 +58,7 @@ const trendingDays = ref(14)
 const loading = ref(false)
 
 const loadTrendingSpots = async () => {
+  // 读取期间阻止重复请求，避免用户来回切页时短时间内重复打接口。
   if (loading.value) return
   loading.value = true
 

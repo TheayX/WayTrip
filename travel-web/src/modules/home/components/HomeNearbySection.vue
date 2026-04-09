@@ -38,6 +38,7 @@
 <script setup>
 import { getImageUrl } from '@/shared/api/client.js'
 
+// 区块数据、文案和动作都由首页统一组织，组件只负责附近场景的视觉表达。
 defineProps({
   headline: {
     type: String,
@@ -65,6 +66,7 @@ defineProps({
   }
 })
 
+// “查看更多”“立即探索”和卡片选中分开上抛，便于首页区分不同入口行为。
 defineEmits(['more', 'action', 'select'])
 </script>
 

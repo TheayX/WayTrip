@@ -17,6 +17,7 @@
 </template>
 
 <script setup>
+// 工具栏只暴露排序与重置意图，实际查询参数和列表刷新由父页面统一维护。
 defineProps({
   description: {
     type: String,
@@ -28,6 +29,7 @@ defineProps({
   }
 })
 
+// 排序按钮只上抛排序键，避免工具栏和列表页双向维护排序状态细节。
 defineEmits(['sort-change', 'reset'])
 </script>
 

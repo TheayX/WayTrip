@@ -37,6 +37,7 @@
 </template>
 
 <script setup>
+// 筛选值由父层维护，组件只负责透传地区、分类变更和统一查询动作。
 defineProps({
   regionId: {
     type: [String, Number],
@@ -56,6 +57,7 @@ defineProps({
   }
 })
 
+// 通过 update 事件保持组件无状态，避免筛选栏和列表页出现双份源数据。
 defineEmits(['update:regionId', 'update:categoryId', 'change'])
 </script>
 

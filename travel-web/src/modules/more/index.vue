@@ -79,6 +79,7 @@ import {
 } from '@element-plus/icons-vue'
 import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 
+// 更多页只承担专题入口聚合，不重复承载首页和发现页已经存在的主路径内容。
 const router = useRouter()
 
 const featureEntries = [
@@ -96,6 +97,7 @@ const upcomingEntries = [
 ]
 
 const handleEntryClick = (item) => {
+  // 未开放入口统一给出轻提示，避免用户进入空白页或占位路由。
   if (item.available === false || !item.path) {
     ElMessage.info('功能开发中')
     return

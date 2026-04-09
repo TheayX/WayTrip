@@ -12,12 +12,15 @@
 </template>
 
 <script setup>
+// 详情头部只展示标题和元信息，避免把正文相关逻辑耦合进来。
 defineProps({
   guide: {
     type: Object,
     required: true
   }
 })
+
+// 纯展示头部不派发事件，详情页的收藏、跳转等操作都留给外层处理。
 </script>
 
 <style lang="scss" scoped>

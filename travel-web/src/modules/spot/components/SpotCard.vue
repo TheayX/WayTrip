@@ -33,6 +33,7 @@
 <script setup>
 import { getImageUrl } from '@/shared/api/client.js'
 
+// 景点卡片保持纯展示职责，点击后的路由跳转由父层统一处理。
 defineProps({
   spot: {
     type: Object,
@@ -40,6 +41,7 @@ defineProps({
   }
 })
 
+// 选中事件上抛后，列表和推荐区块都可以复用同一张卡片。
 defineEmits(['select'])
 </script>
 
