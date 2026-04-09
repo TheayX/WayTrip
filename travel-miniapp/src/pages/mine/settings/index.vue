@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-// 交互处理方法
+// 设置页动作都在本地完成，统一用弹窗反馈避免额外引入复杂状态管理。
 const contactService = () => {
   uni.showModal({
     title: '联系客服',
@@ -33,6 +33,7 @@ const contactService = () => {
   })
 }
 
+// 关于信息固定展示在本页，避免为静态说明单独维护页面路由。
 const showAbout = () => {
   uni.showModal({
     title: '关于我们',
@@ -41,6 +42,7 @@ const showAbout = () => {
   })
 }
 
+// 清缓存属于不可逆操作，先二次确认再清理本地存储。
 const clearCache = () => {
   uni.showModal({
     title: '清除缓存',

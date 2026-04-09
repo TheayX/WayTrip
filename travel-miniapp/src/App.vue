@@ -1,8 +1,10 @@
+<!-- 小程序应用入口 -->
 <script setup>
 import { onLaunch, onShow, onHide, onError, onUnhandledRejection } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { getRuntimeTrace, traceRuntime } from '@/utils/runtime-trace'
 
+// 应用启动时先恢复本地用户状态，保证首页和我的页都能直接读取到登录信息。
 onLaunch(() => {
   traceRuntime('app-launch')
   // 初始化用户状态
@@ -18,6 +20,7 @@ onHide(() => {
   traceRuntime('app-hide')
 })
 
+// 运行时异常统一记录最近轨迹，便于排查小程序端的偶发问题。
 onError((error) => {
   traceRuntime('app-error', {
     error: typeof error === 'string' ? error : JSON.stringify(error),
@@ -25,6 +28,7 @@ onError((error) => {
   })
 })
 
+// Promise 未捕获异常也纳入同一条链路，避免静默失败难以定位。
 onUnhandledRejection((event) => {
   traceRuntime('app-unhandled-rejection', {
     reason: typeof event?.reason === 'string' ? event.reason : JSON.stringify(event?.reason || event),

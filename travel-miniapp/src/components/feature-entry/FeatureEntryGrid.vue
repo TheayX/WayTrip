@@ -1,3 +1,4 @@
+<!-- 功能入口网格组件 -->
 <template>
   <view class="entry-grid-shell">
     <view class="entry-grid">
@@ -19,12 +20,15 @@
 <script setup>
 import { featureEntryThemeMap } from '@/constants/feature-entry-registry'
 
+// 入口网格只负责渲染和点击分发，跳转策略由页面层统一处理。
 defineProps({
   entries: { type: Array, default: () => [] }
 })
+// 点击事件直接回传完整入口对象，方便首页和更多页复用同一组件。
 defineEmits(['click'])
 
 const resolveThemeColor = (theme) => {
+  // 主题色从注册表统一读取，缺省时回退到中性色避免图标不可见。
   return featureEntryThemeMap[theme] || '#4b5563'
 }
 </script>

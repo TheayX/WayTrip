@@ -1,3 +1,4 @@
+<!-- 首页热门与附近区域 -->
 <template>
   <view class="section">
     <view class="section-header">
@@ -54,6 +55,8 @@
 <script setup>
 import { getContentImageUrl } from '@/utils/request'
 
+// 该区域同时承接热门卡片和附近地图，但数据都由首页统一提供，组件只负责展示与事件透传。
+// 地图、附近列表和热门列表分开透传事件，便于首页按入口来源处理跳转与埋点。
 defineProps({
   nearbyHeadline: { type: String, default: '附近探索' },
   canShowMap: { type: Boolean, default: false },

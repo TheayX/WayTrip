@@ -7,6 +7,7 @@ export const featureEntryThemeMap = {
   purple: '#7c3aed'
 }
 
+// 功能入口注册表是小程序端功能导航的单一来源，首页和更多页都从这里取数据。
 const featureEntryRegistry = [
   { id: 'spots', title: '景点大全', desc: '按区域和分类浏览', icon: 'location-filled', theme: 'blue', url: '/pages/spot/list?sortBy=heat', section: 'browse' },
   { id: 'guides', title: '出游攻略', desc: '看路线和游玩经验', icon: 'paperplane-filled', theme: 'orange', url: '/pages/guide/list?sortBy=time', section: 'browse' },
@@ -23,14 +24,17 @@ const featureEntryRegistry = [
   { id: 'activity-zone', title: '活动专区', desc: '后续活动和限时专题入口', icon: 'notifications-filled', theme: 'purple', section: 'placeholder', available: false }
 ]
 
+// 首页只展示一部分高频入口，顺序也统一由这里维护。
 const homeEntryIds = ['spots', 'guides', 'recommend', 'nearby', 'random-pick', 'budget', 'reviews', 'more']
 
 export const getFeatureEntryById = (id) => featureEntryRegistry.find(item => item.id === id) || null
 
+// 首页入口先按固定 id 顺序取，再过滤掉空值，避免注册表调整时渲染报错。
 export const getHomeEntryItems = () => homeEntryIds
   .map(id => getFeatureEntryById(id))
   .filter(Boolean)
 
+// 更多页分组同样从注册表派生，保证分区和入口定义不会分叉维护。
 export const getMoreEntryGroups = () => ([
   {
     title: '常用浏览',

@@ -1,3 +1,4 @@
+<!-- 游客口碑页面 -->
 <template>
   <view class="reviews-page">
     <view class="hero-card">
@@ -68,6 +69,7 @@ import { promptLogin } from '@/utils/auth'
 import { getAvatarUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
+// 好评与避雷分栏在页面层拆开，方便切换时直接复用同一套展示结构。
 const tabs = [
   { label: '高分种草', value: 'positive' },
   { label: '真实避雷', value: 'negative' }
@@ -81,6 +83,7 @@ const activeReviews = computed(() => (activeTab.value === 'positive' ? positiveR
 const emptyStateTitle = computed(() => (activeTab.value === 'positive' ? '暂时没有高分种草内容' : '暂时没有真实避雷内容'))
 const emptyStateDesc = computed(() => activeTab.value === 'positive' ? '当前没有高分评论内容。' : '当前没有低分评论内容。')
 
+// 口碑流会在进入页和返回页时都刷新，尽量减少长时间停留后的内容陈旧感。
 const loadTravelerReviewFeed = async () => {
   if (loading.value) return
   loading.value = true
@@ -97,6 +100,7 @@ const loadTravelerReviewFeed = async () => {
   }
 }
 
+// 详情页需要登录后查看，这里统一收口校验可减少卡片层重复逻辑。
 const goSpotDetail = (spotId) => {
   if (!spotId) return
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {

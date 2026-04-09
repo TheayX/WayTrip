@@ -1,3 +1,4 @@
+<!-- 更多功能页面 -->
 <template>
   <view class="more-page">
     <view class="hero-card">
@@ -30,12 +31,14 @@
 <script setup>
 import { featureEntryThemeMap, getMoreEntryGroups } from '@/constants/feature-entry-registry'
 
+// 图标主题色统一从注册表映射，避免展示层各自维护颜色常量。
 const resolveThemeColor = (theme) => featureEntryThemeMap[theme] || '#4b5563'
 
 const navigateTo = (url) => {
   uni.navigateTo({ url })
 }
 
+// 更多页只负责入口分发，不在这里处理业务状态，避免变成功能杂糅页。
 const handleEntryClick = (item) => {
   if (item.available === false || !item.url) {
     uni.showToast({ title: '功能开发中', icon: 'none' })
@@ -44,6 +47,7 @@ const handleEntryClick = (item) => {
   navigateTo(item.url)
 }
 
+// 分组数据直接复用注册表产物，确保首页和更多页的入口定义保持一致。
 const entryGroups = getMoreEntryGroups()
 </script>
 
