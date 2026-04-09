@@ -136,8 +136,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/shared/api/client.js'
 import { ArrowDown, ChatDotRound, Discount, MagicStick, Search, Setting, Stopwatch, Tickets, User, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
-import brandLogoUrl from '@/shared/assets/brand/standard.svg'
-import brandMarkUrl from '@/shared/assets/brand/standard-mark.svg'
+import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
+import brandMarkUrl from '@/shared/assets/brand/waytrip-standard-mark.svg'
 
 // 基础依赖与路由状态
 const userStore = useUserStore()

@@ -5,7 +5,7 @@
     <view class="profile-hero" :class="{ guest: !isLoggedIn }" @click="!isLoggedIn ? doLogin() : null">
       <image
         class="profile-brand"
-        :src="isLoggedIn ? '/static/brand/mono-mark.svg' : '/static/brand/mono.svg'"
+        :src="isLoggedIn ? '/static/brand/waytrip-mono-mark.svg' : '/static/brand/waytrip-mono.svg'"
         :mode="isLoggedIn ? 'aspectFit' : 'widthFix'"
       />
       <view class="profile-header">

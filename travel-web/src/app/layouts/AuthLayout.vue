@@ -3,7 +3,7 @@
   <div class="auth-layout">
     <header class="auth-header">
       <router-link to="/" class="brand-link" :aria-label="`${APP_NAME} 首页`">
-        <img :src="brandMarkUrl" :alt="APP_NAME" class="brand-mark">
+        <img :src="brandLogoUrl" :alt="APP_NAME" class="brand-mark">
       </router-link>
     </header>
 
@@ -23,7 +23,7 @@
 
 <script setup>
 import { APP_NAME } from '@/shared/constants/app.js'
-import brandMarkUrl from '@/shared/assets/brand/standard.svg'
+import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
 </script>
 
 <style lang="scss" scoped>

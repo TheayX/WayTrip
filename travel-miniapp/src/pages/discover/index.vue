@@ -15,7 +15,7 @@
             bgColor="rgba(255, 255, 255, 0.6)"
           />
         </view>
-        <image class="brand-mark" src="/static/brand/standard-mark.svg" mode="aspectFit" />
+        <image class="brand-mark" src="/static/brand/waytrip-standard-mark.svg" mode="aspectFit" />
       </view>
     </view>
 

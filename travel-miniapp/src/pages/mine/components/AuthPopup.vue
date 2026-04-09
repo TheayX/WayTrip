@@ -3,7 +3,7 @@
     <!-- ========== 第一步：强制设置手机号和密码 ========== -->
     <view class="auth-mask" v-if="step === 1">
       <view class="auth-panel">
-        <image class="auth-brand-mark" src="/static/brand/standard-mark.svg" mode="aspectFit" />
+        <image class="auth-brand-mark" src="/static/brand/waytrip-standard-mark.svg" mode="aspectFit" />
         <view class="auth-head">
           <text class="auth-kicker">WayTrip Account</text>
           <text class="auth-title">完成账号设置</text>
@@ -56,7 +56,7 @@
     <!-- ========== 第二步：可选设置头像和昵称 ========== -->
     <view class="auth-mask" v-if="step === 2">
       <view class="auth-panel">
-        <image class="auth-brand-mark" src="/static/brand/standard-mark.svg" mode="aspectFit" />
+        <image class="auth-brand-mark" src="/static/brand/waytrip-standard-mark.svg" mode="aspectFit" />
         <view class="auth-head">
           <text class="auth-kicker">WayTrip Profile</text>
           <text class="auth-title">完善个人资料</text>

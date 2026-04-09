@@ -235,8 +235,8 @@ import { useTheme } from '@/shared/composables/useTheme.js'
 import { useAdminNotifications } from '@/shared/composables/useAdminNotifications.js'
 import { ElMessage } from 'element-plus'
 import { Fold, Expand, Search, Bell, ArrowDown, Moon, Sunny } from '@element-plus/icons-vue'
-import brandMarkUrl from '@/shared/assets/brand/waytrip-mark.svg'
-import brandLogoUrl from '@/shared/assets/brand/waytrip-logo.svg'
+import brandMarkUrl from '@/shared/assets/brand/waytrip-standard-mark.svg'
+import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
 
 const router = useRouter()
 const route = useRoute()

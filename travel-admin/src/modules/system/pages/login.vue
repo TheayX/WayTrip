@@ -72,7 +72,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { ElMessage } from 'element-plus'
-import brandLogoUrl from '@/shared/assets/brand/waytrip-logo.svg'
+import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
 import { useTheme } from '@/shared/composables/useTheme.js'
 import { THEME_MODE_OPTIONS } from '@/shared/constants/theme.js'
 

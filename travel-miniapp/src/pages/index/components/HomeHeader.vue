@@ -1,6 +1,6 @@
 <template>
   <view class="ios-header">
-    <image class="hero-brand-bg" src="/static/brand/standard.svg" mode="widthFix" />
+    <image class="hero-brand-bg" src="/static/brand/waytrip-standard.svg" mode="widthFix" />
     <view class="header-top">
       <view class="search-bar" @click="$emit('goSearch')">
         <uni-search-bar
