@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 
 /**
  * 推荐分数支撑，集中处理用户行为权重、候选过滤重排与调试信息输出。
+ * <p>
+ * 推荐主流程涉及的权重计算、热度重排和调试日志都统一下沉到这里，避免服务实现过度膨胀。
  */
 @Slf4j
 @Component
@@ -49,6 +51,13 @@ public class RecommendationScoreSupport {
     private final RecommendationQuerySupport recommendationQuerySupport;
     private final RecommendationViewSourceClassifier recommendationViewSourceClassifier;
 
+    /**
+     * 汇总用户在各类行为上的景点交互权重。
+     *
+     * @param userId 用户 ID
+     * @param config 推荐算法配置
+     * @return 景点交互权重
+     */
     public Map<Long, Double> buildUserInteractionWeights(Long userId, RecommendationAlgorithmConfigDTO config) {
         Map<Long, Double> weights = new HashMap<>();
         Map<Long, Double> viewWeights = new HashMap<>();
@@ -100,6 +109,13 @@ public class RecommendationScoreSupport {
         return weights;
     }
 
+    /**
+     * 计算单次浏览行为的权重。
+     *
+     * @param view 浏览记录
+     * @param config 推荐算法配置
+     * @return 浏览权重
+     */
     public double calculateViewWeight(UserSpotView view, RecommendationAlgorithmConfigDTO config) {
         double baseWeight = config.getWeightView() == null ? 0.5 : config.getWeightView();
         return baseWeight
@@ -154,6 +170,7 @@ public class RecommendationScoreSupport {
             return new LinkedHashMap<>(scoreMap);
         }
 
+        // 热度重排只追加轻量加成，不覆盖协同过滤原始分，避免热门内容完全挤掉个性化结果。
         Map<Long, Double> rerankedScores = scoreMap.entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
@@ -181,6 +198,7 @@ public class RecommendationScoreSupport {
             return spotIds;
         }
 
+        // 已评分、已收藏和已下单景点默认从推荐结果中过滤，减少重复推荐。
         Set<Long> ratedIds = reviewMapper.selectList(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -225,6 +243,7 @@ public class RecommendationScoreSupport {
     }
 
     public Map<Long, Double> castScoreMap(Map<?, ?> rawMap) {
+        // Redis 取出的结构类型不稳定，这里统一做一次宽松转换。
         Map<Long, Double> scoreMap = new LinkedHashMap<>();
         for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
             Long spotId = castToLong(entry.getKey());

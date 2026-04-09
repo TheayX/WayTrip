@@ -11,6 +11,8 @@ import java.util.List;
 
 /**
  * 用户景点浏览记录数据访问接口。
+ * <p>
+ * 浏览记录既用于用户足迹，也用于推荐和热度计算，因此保留了定制查询 XML。
  */
 @Mapper
 public interface UserSpotViewMapper extends BaseMapper<UserSpotView> {

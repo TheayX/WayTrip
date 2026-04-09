@@ -1,3 +1,4 @@
+<!-- 轮播图 Mapper XML：维护首页轮播查询所需的定制 SQL。 -->
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.travel.mapper.SpotBannerMapper">

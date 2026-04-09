@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 
 /**
  * 景点树形支撑，集中处理分类地区树组装和层级 ID 查找。
+ * <p>
+ * 树结构展开逻辑统一放在这里，避免分类和地区的递归遍历散落到多个后台服务中。
  */
 @Component
 @RequiredArgsConstructor
@@ -126,6 +128,7 @@ public class SpotTreeSupport {
     }
 
     private List<SpotFilterResponse.FilterItem> buildFilterTree(List<SpotFilterResponse.FilterItem> items) {
+        // 先平铺建立索引，再回填父子关系，能同时兼容顶级节点和缺失父节点的数据。
         Map<Long, SpotFilterResponse.FilterItem> itemMap = items.stream()
             .collect(Collectors.toMap(SpotFilterResponse.FilterItem::getId, item -> item));
 
@@ -146,6 +149,7 @@ public class SpotTreeSupport {
     }
 
     private Set<Long> collectTreeIds(Long rootId, Map<Long, List<Long>> childrenMap) {
+        // 采用显式栈遍历，避免深层树结构时递归过深。
         Set<Long> allIds = new HashSet<>();
         List<Long> stack = new ArrayList<>();
         stack.add(rootId);

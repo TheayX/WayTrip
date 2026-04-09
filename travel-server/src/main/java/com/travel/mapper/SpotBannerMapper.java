@@ -8,6 +8,8 @@ import java.util.List;
 
 /**
  * 景点轮播图数据访问接口。
+ * <p>
+ * 轮播图大多走通用 CRUD，启用列表等面向首页的查询放到定制 SQL 中维护。
  */
 @Mapper
 public interface SpotBannerMapper extends BaseMapper<SpotBanner> {

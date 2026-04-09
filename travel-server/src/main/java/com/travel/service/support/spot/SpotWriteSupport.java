@@ -11,6 +11,8 @@ import java.util.List;
 
 /**
  * 景点写入支撑，集中处理后台写入字段映射和图片保存。
+ * <p>
+ * 景点表单到实体的映射细节统一收口，便于创建和更新共享同一套字段口径。
  */
 @Component
 @RequiredArgsConstructor
