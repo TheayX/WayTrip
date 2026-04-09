@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 管理端评价控制器，负责评价检索接口。
+ * <p>
+ * 后台评价管理只保留检索与清理能力，具体评分统计仍交给评价服务统一维护。
  */
 @Tag(name = "管理端-评价", description = "管理端评价查询相关接口")
 @RestController

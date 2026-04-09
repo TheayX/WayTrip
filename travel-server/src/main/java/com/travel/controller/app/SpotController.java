@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 用户端景点控制器，负责景点浏览、搜索与行为上报接口。
+ * <p>
+ * 这里同时承接公开查询和登录后行为上报，因此需要在接口层显式区分是否依赖用户上下文。
  */
 @Tag(name = "用户端-景点", description = "用户端景点浏览与搜索相关接口")
 @RestController
@@ -45,6 +47,7 @@ public class SpotController {
     public ApiResponse<PageResult<SpotViewHistoryResponse>> getViewHistory(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
+        // 浏览历史属于用户私有数据，只能从当前登录上下文读取。
         Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(spotService.getViewHistory(userId, page, pageSize));
     }
@@ -62,6 +65,7 @@ public class SpotController {
             @PathVariable("spotId") Long spotId,
             @RequestParam(defaultValue = "detail") String source,
             @RequestParam(defaultValue = "0") Integer duration) {
+        // 来源和停留时长直接透传给行为服务，用于后续热度和推荐打分。
         Long userId = UserContextHolder.getUserId();
         spotService.recordView(spotId, userId, source, duration);
         return ApiResponse.success(null);

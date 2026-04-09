@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 
 /**
  * 用户端首页控制器，负责首页聚合数据接口。
+ * <p>
+ * 首页所需数据在这一层做接口分组，前端可以按模块独立请求，也便于后续缓存和限流。
  */
 @Tag(name = "用户端-首页", description = "首页轮播图、热门景点相关接口")
 @RestController
@@ -53,6 +55,7 @@ public class HomeController {
             @RequestParam BigDecimal latitude,
             @RequestParam BigDecimal longitude,
             @RequestParam(defaultValue = "3") Integer limit) {
+        // 位置信息由客户端实时上送，服务端只负责按当前坐标返回附近结果。
         return ApiResponse.success(recommendationService.getNearbySpots(latitude, longitude, limit));
     }
 }

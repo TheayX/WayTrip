@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 用户端订单控制器，负责下单、支付与订单查询接口。
+ * <p>
+ * 订单状态流转全部围绕当前登录用户展开，控制器只负责鉴权后转发到服务层执行业务校验。
  */
 @Tag(name = "用户端-订单", description = "用户端订单相关接口")
 @RestController
@@ -27,6 +29,7 @@ public class OrderController {
     @Operation(summary = "创建订单")
     @PostMapping
     public ApiResponse<OrderDetailResponse> createOrder(@Valid @RequestBody CreateOrderRequest request) {
+        // 创建订单必须绑定当前用户，避免前端通过请求体替换归属关系。
         Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(orderService.createOrder(userId, request));
     }
@@ -50,6 +53,7 @@ public class OrderController {
     public ApiResponse<OrderDetailResponse> payOrder(
             @PathVariable("id") Long id,
             @RequestParam(required = false) String idempotentKey) {
+        // 幂等键保留在接口层透传，便于前端重复点击支付时做安全兜底。
         Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(orderService.payOrder(userId, id, idempotentKey));
     }

@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 用户端推荐控制器，负责推荐结果获取与刷新接口。
+ * <p>
+ * 推荐结果读取与强制刷新分开暴露，便于前端根据场景选择走缓存还是实时重算。
  */
 @Tag(name = "用户端-推荐", description = "个性化推荐相关接口")
 @RestController
@@ -25,6 +27,7 @@ public class RecommendationController {
     @GetMapping
     public ApiResponse<RecommendationResponse> getRecommendations(
             @RequestParam(defaultValue = "10") Integer limit) {
+        // 推荐结果永远基于当前用户上下文生成，不接受外部指定 userId。
         Long userId = UserContextHolder.getUserId();
         return ApiResponse.success(recommendationService.getRecommendations(userId, limit));
     }

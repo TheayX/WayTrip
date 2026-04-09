@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 管理端仪表板控制器，负责概览统计接口。
+ * <p>
+ * 统计接口统一收在仪表板控制器，便于后台首页一次性按模块取数。
  */
 @Tag(name = "管理端-仪表板", description = "管理端仪表板统计相关接口")
 @RestController

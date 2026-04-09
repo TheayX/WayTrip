@@ -17,6 +17,8 @@ import java.util.List;
 
 /**
  * 用户端攻略控制器，负责攻略浏览接口。
+ * <p>
+ * 该控制器只承接公开浏览能力，不负责后台写入动作，便于和管理端攻略维护接口分层。
  */
 @Tag(name = "用户端-攻略", description = "用户端攻略浏览相关接口")
 @RestController

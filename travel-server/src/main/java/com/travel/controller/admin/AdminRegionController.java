@@ -14,6 +14,8 @@ import java.util.List;
 
 /**
  * 管理端景点地区控制器，负责地区树查询与维护接口。
+ * <p>
+ * 地区树与分类树一样属于基础数据，单独拆出后更便于后台页面复用。
  */
 @Tag(name = "管理端-景点地区", description = "管理端景点地区管理相关接口")
 @RestController

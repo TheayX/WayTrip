@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 管理端轮播图控制器，负责轮播图管理接口。
+ * <p>
+ * 轮播图属于首页展示资源，单独抽成控制器便于和景点、攻略内容管理解耦。
  */
 @Tag(name = "管理端-轮播图", description = "管理端轮播图管理相关接口")
 @RestController

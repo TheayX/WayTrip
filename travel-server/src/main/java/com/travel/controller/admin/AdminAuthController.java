@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 
 /**
  * 管理端认证控制器，负责管理员登录与信息查询接口。
+ * <p>
+ * 管理员认证链路独立于普通用户，避免后台权限与前台用户令牌混用。
  */
 @Tag(name = "管理端-认证", description = "管理员登录、信息获取相关接口")
 @RestController
@@ -32,6 +34,7 @@ public class AdminAuthController {
     @Operation(summary = "获取管理员信息")
     @GetMapping("/info")
     public ApiResponse<AdminLoginResponse.AdminInfo> getInfo() {
+        // 管理员信息只从上下文取当前身份，后台不会开放按 ID 查询任意管理员资料的入口。
         Long adminId = UserContextHolder.getAdminId();
         return ApiResponse.success(adminAuthService.getAdminInfo(adminId));
     }

@@ -18,6 +18,8 @@ import java.util.Map;
 
 /**
  * 管理端管理员控制器，负责管理员管理接口。
+ * <p>
+ * 管理员账户维护与登录认证分离，避免认证入口承载过多后台账号治理逻辑。
  */
 @Tag(name = "管理端-管理员", description = "管理员账户管理相关接口")
 @RestController
@@ -43,6 +45,7 @@ public class AdminManagementController {
     @Operation(summary = "更新管理员信息")
     @PutMapping("/{id}")
     public ApiResponse<Void> updateAdmin(@PathVariable("id") Long id, @Valid @RequestBody AdminUpdateRequest request) {
+        // 当前操作者管理员 ID 一并下传，用于服务层执行自修改和权限边界校验。
         adminManagementService.updateAdmin(id, request, UserContextHolder.getAdminId());
         return ApiResponse.success();
     }

@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 管理端推荐控制器，负责推荐配置、状态查看与调试接口。
+ * <p>
+ * 推荐系统的运维、调试和配置能力只开放给后台，避免影响用户端稳定接口形态。
  */
 @Tag(name = "管理端-推荐系统", description = "管理端推荐系统控制接口")
 @RestController
@@ -42,6 +44,7 @@ public class AdminRecommendationController {
     @Operation(summary = "更新推荐算法配置")
     @PutMapping("/config")
     public ApiResponse<Void> updateConfig(@RequestBody RecommendationConfigBundleDTO config) {
+        // 配置修改统一走服务层校验，控制器只负责承接后台调参请求。
         recommendationService.updateConfig(config);
         return ApiResponse.success(null);
     }

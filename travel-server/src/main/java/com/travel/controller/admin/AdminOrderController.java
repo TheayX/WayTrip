@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 管理端订单控制器，负责订单查询与状态流转接口。
+ * <p>
+ * 后台订单接口不仅负责查单，还负责人工介入状态流转，因此和用户端订单域拆分处理。
  */
 @Tag(name = "管理端-订单", description = "管理端订单管理相关接口")
 @RestController
