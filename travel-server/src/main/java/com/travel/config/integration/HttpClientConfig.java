@@ -14,6 +14,9 @@ public class HttpClientConfig {
 
     /**
      * 注册 RestTemplate。
+     * <p>
+     * 第三方调用入口统一从 Spring 容器获取，后续如果要补超时、日志或拦截器，
+     * 只需要在这里集中调整即可。
      *
      * @return RestTemplate 实例
      */

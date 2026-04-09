@@ -11,6 +11,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class TravelApplication {
 
+    /**
+     * 启动后端服务进程。
+     *
+     * @param args 启动参数
+     */
     public static void main(String[] args) {
         SpringApplication.run(TravelApplication.class, args);
     }
