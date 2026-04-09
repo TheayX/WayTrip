@@ -1,7 +1,8 @@
-<!-- 景点 Mapper XML：集中维护后台分页、用户搜索和附近景点等定制查询。 -->
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.travel.mapper.SpotMapper">
+
+    <!-- 景点 Mapper XML：集中维护后台分页、用户搜索和附近景点等定制查询。 -->
 
     <!-- 景点实体及扩展字段映射 -->
     <resultMap id="SpotResultMap" type="com.travel.entity.Spot">
@@ -51,16 +52,16 @@
             </if>
         </where>
         <choose>
-            <when test="sortBy == 'heat'">
+            <when test='sortBy == "heat"'>
                 ORDER BY s.heat_score DESC
             </when>
-            <when test="sortBy == 'rating'">
+            <when test='sortBy == "rating"'>
                 ORDER BY s.avg_rating DESC
             </when>
-            <when test="sortBy == 'price_asc'">
+            <when test='sortBy == "price_asc"'>
                 ORDER BY s.price ASC
             </when>
-            <when test="sortBy == 'price_desc'">
+            <when test='sortBy == "price_desc"'>
                 ORDER BY s.price DESC
             </when>
             <otherwise>
