@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
+    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
+
     // 持久层依赖
     private final ReviewMapper reviewMapper;
     private final SpotMapper spotMapper;
@@ -278,12 +280,13 @@ public class ReviewServiceImpl implements ReviewService {
             user = userMapper.selectById(review.getUserId());
         }
 
+        boolean isActiveUser = user != null && user.getIsDeleted() != null && user.getIsDeleted() == 0;
         String nickname = review.getNickname() != null
             ? review.getNickname()
-            : (user != null ? user.getNickname() : "匿名用户");
+            : (isActiveUser ? user.getNickname() : DEACTIVATED_USER_NICKNAME);
         String avatar = review.getAvatarUrl() != null
             ? review.getAvatarUrl()
-            : (user != null ? user.getAvatarUrl() : null);
+            : (isActiveUser ? user.getAvatarUrl() : null);
 
         return ReviewResponse.builder()
             .id(review.getId())

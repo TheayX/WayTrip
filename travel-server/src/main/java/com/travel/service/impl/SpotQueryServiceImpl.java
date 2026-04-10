@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SpotQueryServiceImpl implements SpotQueryService {
 
+    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
     private static final DateTimeFormatter VIEW_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final SpotMapper spotMapper;
@@ -184,7 +185,10 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         UserInteractionState interactionState = loadUserInteractionState(userId, spotId);
         SpotRatingStats ratingStats = reviewMapper.selectSpotRatingStats(spotId);
 
-        List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5);
+        List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5).stream()
+            // 评价主体保留，但账号已失效时统一降级成注销文案，避免页面出现空昵称。
+            .map(this::normalizeCommentAuthor)
+            .collect(Collectors.toList());
         return SpotDetailResponse.builder()
             .id(spot.getId())
             .name(spot.getName())
@@ -259,5 +263,20 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     }
 
     private record UserInteractionState(boolean isFavorite, Integer userRating) {
+    }
+
+    /**
+     * 详情页最新评论允许展示已删除账号的历史评价，但需要隐藏原始身份信息。
+     */
+    private SpotDetailResponse.CommentItem normalizeCommentAuthor(SpotDetailResponse.CommentItem comment) {
+        if (comment == null) {
+            return null;
+        }
+        if (StringUtils.hasText(comment.getNickname())) {
+            return comment;
+        }
+        comment.setNickname(DEACTIVATED_USER_NICKNAME);
+        comment.setAvatar(null);
+        return comment;
     }
 }

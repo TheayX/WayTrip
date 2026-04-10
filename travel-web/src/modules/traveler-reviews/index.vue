@@ -33,7 +33,7 @@
           <div class="user-box">
             <img :src="getAvatarUrl(item.avatar)" class="avatar" alt="" />
             <div class="user-meta">
-              <strong>{{ item.nickname || '匿名用户' }}</strong>
+              <strong>{{ item.nickname || '已注销用户' }}</strong>
               <span>{{ item.spotName || '景点待补充' }}</span>
             </div>
           </div>

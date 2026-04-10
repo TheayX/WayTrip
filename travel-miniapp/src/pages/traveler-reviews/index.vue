@@ -33,7 +33,7 @@
         <view class="user-box">
           <image class="avatar" :src="getAvatarUrl(item.avatar)" mode="aspectFill" />
           <view class="user-meta">
-            <text class="nickname">{{ item.nickname || '匿名用户' }}</text>
+            <text class="nickname">{{ item.nickname || '已注销用户' }}</text>
             <text class="spot-name">{{ item.spotName || '景点待补充' }}</text>
           </view>
         </view>

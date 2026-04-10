@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.review.request.ReviewRequest;
+import com.travel.dto.review.response.ReviewResponse;
 import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
@@ -22,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -151,6 +153,29 @@ class ReviewServiceImplTest {
 
         assertEquals(ResultCode.TOKEN_INVALID.getCode(), exception.getCode());
         verify(spotMapper, never()).selectById(any());
+    }
+
+    @Test
+    void getUserReview_returnsDeactivatedNicknameWhenAuthorDeleted() {
+        Review deletedAuthorReview = new Review();
+        deletedAuthorReview.setId(20L);
+        deletedAuthorReview.setUserId(1L);
+        deletedAuthorReview.setSpotId(100L);
+        deletedAuthorReview.setScore(4);
+        deletedAuthorReview.setComment("保留历史评价");
+        deletedAuthorReview.setIsDeleted(0);
+
+        User deletedUser = new User();
+        deletedUser.setId(1L);
+        deletedUser.setIsDeleted(1);
+
+        when(userMapper.selectById(1L)).thenReturn(user, deletedUser);
+        when(reviewMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(deletedAuthorReview);
+
+        ReviewResponse response = reviewService.getUserReview(1L, 100L);
+
+        assertEquals("已注销用户", response.getNickname());
+        assertNull(response.getAvatar());
     }
 
     /**

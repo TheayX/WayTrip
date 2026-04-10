@@ -42,7 +42,7 @@
                 <el-avatar :size="44" :src="getAvatarUrl(comment.avatar)" icon="User" />
                 <div class="comment-body">
                   <div class="comment-top">
-                    <span class="comment-name">{{ comment.nickname }}</span>
+                    <span class="comment-name">{{ comment.nickname || '已注销用户' }}</span>
                     <div class="comment-actions">
                       <span class="star-text">★ {{ comment.score }}</span>
                       <el-button

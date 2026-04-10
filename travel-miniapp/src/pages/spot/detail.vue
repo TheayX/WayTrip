@@ -109,7 +109,7 @@
           <image class="comment-avatar" :src="getAvatarUrl(comment.avatar)" />
           <view class="comment-content">
             <view class="comment-header">
-              <text class="comment-name">{{ comment.nickname }}</text>
+              <text class="comment-name">{{ comment.nickname || '已注销用户' }}</text>
               <view class="comment-meta">
                 <view class="comment-score">
                   <uni-icons type="star-filled" size="13" color="#d97706" />
