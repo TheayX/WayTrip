@@ -76,7 +76,7 @@
         <el-table-column prop="userId" label="用户ID" width="90" />
         <el-table-column label="用户昵称" min-width="140">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleOpenUser(row)">{{ row.nickname }}</el-button>
+            <el-button link type="primary" :disabled="isDeactivatedUser(row)" @click="handleOpenUser(row)">{{ getDisplayNickname(row) }}</el-button>
           </template>
         </el-table-column>
         <el-table-column prop="phone" label="手机号" width="150" align="center">
@@ -137,6 +137,7 @@ const pagination = reactive({
   pageSize: 10,
   total: 0
 })
+const DEACTIVATED_USER_NICKNAME = '已注销用户'
 
 // 当前页统计
 const currentPageTagCount = computed(() => {
@@ -152,6 +153,8 @@ const topPreferenceTag = computed(() => {
   }, {})
   return Object.entries(counter).sort((a, b) => b[1] - a[1])[0]?.[0] || '暂无'
 })
+const getDisplayNickname = (row) => row?.nickname || DEACTIVATED_USER_NICKNAME
+const isDeactivatedUser = (row) => getDisplayNickname(row) === DEACTIVATED_USER_NICKNAME
 
 // 格式化手机号显示
 const formatPhone = (phone) => {
@@ -240,6 +243,7 @@ const applyRouteQuery = () => {
 }
 
 const handleOpenUser = (row) => {
+  if (isDeactivatedUser(row)) return
   router.push({ path: '/user', query: { nickname: row.nickname || '' } })
 }
 

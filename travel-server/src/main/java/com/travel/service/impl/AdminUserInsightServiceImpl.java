@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminUserInsightServiceImpl implements AdminUserInsightService {
 
+    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
+
     // 时间格式配置
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -115,7 +117,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
 
             return AdminUserPreferenceListItem.builder()
                 .userId(user.getId())
-                .nickname(user.getNickname())
+                .nickname(resolveDisplayNickname(user))
                 .phone(user.getPhone())
                 .preferenceTags(tags)
                 .updatedAt(latestUpdatedAt)
@@ -248,7 +250,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             return AdminUserFavoriteListItem.builder()
                 .id(favorite.getId())
                 .userId(favorite.getUserId())
-                .nickname(user != null ? user.getNickname() : "未知用户")
+                .nickname(resolveDisplayNickname(user))
                 .spotId(favorite.getSpotId())
                 .spotName(spot != null ? spot.getName() : "景点#" + favorite.getSpotId())
                 .coverImage(spot != null ? spot.getCoverImageUrl() : null)
@@ -276,7 +278,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             return AdminUserViewListItem.builder()
                 .id(view.getId())
                 .userId(view.getUserId())
-                .nickname(user != null ? user.getNickname() : "未知用户")
+                .nickname(resolveDisplayNickname(user))
                 .spotId(view.getSpotId())
                 .spotName(spot != null ? spot.getName() : "景点#" + view.getSpotId())
                 .coverImage(spot != null ? spot.getCoverImageUrl() : null)
@@ -322,6 +324,16 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
 
     private String formatDateTime(LocalDateTime dateTime) {
         return dateTime == null ? null : DATE_TIME_FORMATTER.format(dateTime);
+    }
+
+    /**
+     * 后台行为列表保留历史记录，但账号失效后统一降级成注销文案。
+     */
+    private String resolveDisplayNickname(User user) {
+        if (user == null || user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return DEACTIVATED_USER_NICKNAME;
+        }
+        return user.getNickname();
     }
 
     /**

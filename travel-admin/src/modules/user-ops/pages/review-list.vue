@@ -75,9 +75,15 @@
         <el-table-column label="用户" min-width="180">
           <template #default="{ row }">
             <div class="user-cell">
-              <el-avatar :src="row.avatar" :size="36">{{ row.nickname?.[0] }}</el-avatar>
-              <el-button link type="primary" class="nickname-link" @click="handleOpenUser(row)">
-                {{ row.nickname }}
+              <el-avatar :src="row.avatar" :size="36">{{ getDisplayNickname(row)?.[0] }}</el-avatar>
+              <el-button
+                link
+                type="primary"
+                class="nickname-link"
+                :disabled="isDeactivatedUser(row)"
+                @click="handleOpenUser(row)"
+              >
+                {{ getDisplayNickname(row) }}
               </el-button>
             </div>
           </template>
@@ -161,6 +167,10 @@ const currentPageAverageScore = computed(() => {
   return (totalScore / reviewList.value.length).toFixed(1)
 })
 const lowScoreCount = computed(() => reviewList.value.filter((item) => Number(item.score || 0) <= 2).length)
+const DEACTIVATED_USER_NICKNAME = '已注销用户'
+
+const getDisplayNickname = (row) => row?.nickname || DEACTIVATED_USER_NICKNAME
+const isDeactivatedUser = (row) => getDisplayNickname(row) === DEACTIVATED_USER_NICKNAME
 
 // 获取评价列表
 const fetchReviewList = async () => {
@@ -195,6 +205,7 @@ const handleReset = () => {
 }
 
 const handleOpenUser = (row) => {
+  if (isDeactivatedUser(row)) return
   router.push({ path: '/user', query: { nickname: row.nickname || '' } })
 }
 

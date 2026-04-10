@@ -85,7 +85,7 @@
         <el-table-column prop="id" label="记录ID" width="90" />
         <el-table-column label="用户昵称" width="160">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleOpenUser(row)">{{ row.nickname }}</el-button>
+            <el-button link type="primary" :disabled="isDeactivatedUser(row)" @click="handleOpenUser(row)">{{ getDisplayNickname(row) }}</el-button>
           </template>
         </el-table-column>
         <el-table-column label="景点" min-width="240">
@@ -149,10 +149,13 @@ const pagination = reactive({
   pageSize: 10,
   total: 0
 })
+const DEACTIVATED_USER_NICKNAME = '已注销用户'
 
 // 当前页统计
 const currentPageUserCount = computed(() => new Set(tableData.value.map(item => item.userId)).size)
 const currentPageSpotCount = computed(() => new Set(tableData.value.map(item => item.spotId)).size)
+const getDisplayNickname = (row) => row?.nickname || DEACTIVATED_USER_NICKNAME
+const isDeactivatedUser = (row) => getDisplayNickname(row) === DEACTIVATED_USER_NICKNAME
 
 // 获取收藏列表
 const fetchFavoriteList = async () => {
@@ -229,6 +232,7 @@ const applyRouteQuery = () => {
 
 // 跳转用户页
 const handleOpenUser = (row) => {
+  if (isDeactivatedUser(row)) return
   router.push({ path: '/user', query: { nickname: row.nickname || '' } })
 }
 
