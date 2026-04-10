@@ -71,7 +71,7 @@ WayTrip/
 - MySQL 8.0+
 - Redis 6.0+
 
-### 1. 初始化数据库
+### 0. 初始化数据库
 
 ```sql
 CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -82,7 +82,7 @@ CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 - [schema.sql](./travel-server/src/main/resources/db/schema.sql)
 - [data.sql](./travel-server/src/main/resources/db/data.sql)
 
-### 2. 启动后端
+### 1. 启动后端（[README](./travel-server/README.md)）
 
 后端环境约定：
 
@@ -105,7 +105,7 @@ mvn spring-boot:run
 - Swagger UI：`http://localhost:8080/swagger-ui/index.html`
 - OpenAPI JSON：`http://localhost:8080/v3/api-docs`
 
-### 3. 启动 Web 用户端
+### 2. 启动 Web 用户端（[README](./travel-web/README.md)）
 
 前端环境约定：
 
@@ -123,7 +123,7 @@ npm run dev
 
 默认地址：`http://localhost:3001`
 
-### 4. 启动管理端
+### 3. 启动管理端（[README](./travel-admin/README.md)）
 
 ```bash
 cd travel-admin
@@ -137,7 +137,7 @@ npm run dev
 
 默认管理员账号：`admin / admin123`
 
-### 5. 启动微信小程序
+### 4. 启动微信小程序（[README](./travel-miniapp/README.md)）
 
 ```bash
 cd travel-miniapp

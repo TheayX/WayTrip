@@ -76,27 +76,41 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ## 目录结构
 
 ```text
-src/main/java/com/travel/
-├─ common/                          通用结果与异常
-├─ config/                          配置层
-│  ├─ cache/                        缓存配置
-│  ├─ persistence/                  持久层配置
-│  ├─ security/                     安全配置
-│  └─ web/                          Web 配置
-├─ controller/                      接口层
-│  ├─ admin/                        管理端接口
-│  └─ app/                          用户端接口
-├─ dto/                             请求与响应对象
-├─ entity/                          实体
-├─ mapper/                          MyBatis Mapper
-├─ service/                         业务服务
-│  ├─ impl/                         服务实现
-│  └─ support/                      业务支撑逻辑
-├─ task/                            定时任务
-│  ├─ order/                        订单任务
-│  ├─ recommendation/               推荐任务
-│  └─ spot/                         景点任务
-└─ util/                            工具类
+travel-server/
+├─ .env.example                     环境变量模板，定义数据库、Redis、JWT、微信和上传配置
+├─ .env                             当前环境实际配置文件，由开发者或部署环境自行创建
+├─ .gitignore                       忽略 target、日志、IDE 文件、私有配置和上传目录
+├─ pom.xml                          Maven 构建入口，管理后端依赖、插件和打包行为
+└─ src/
+   └─ main/
+      ├─ java/com/travel/
+      │  ├─ common/                 通用结果与异常
+      │  ├─ config/                 配置层
+      │  │  ├─ cache/               缓存配置
+      │  │  ├─ persistence/         持久层配置
+      │  │  ├─ security/            安全配置
+      │  │  └─ web/                 Web 配置
+      │  ├─ controller/             接口层
+      │  │  ├─ admin/               管理端接口
+      │  │  └─ app/                 用户端接口
+      │  ├─ dto/                    请求与响应对象
+      │  ├─ entity/                 实体
+      │  ├─ mapper/                 MyBatis Mapper
+      │  ├─ service/                业务服务
+      │  │  ├─ impl/                服务实现
+      │  │  └─ support/             业务支撑逻辑
+      │  ├─ task/                   定时任务
+      │  │  ├─ order/               订单任务
+      │  │  ├─ recommendation/      推荐任务
+      │  │  └─ spot/                景点任务
+      │  └─ util/                   工具类
+      └─ resources/
+         ├─ application.yml         基础配置入口，负责导入 .env 并指定默认 profile
+         ├─ application-dev.yml     本地开发环境配置
+         ├─ application-prod.yml    生产环境配置
+         ├─ logback-spring.xml      日志输出配置
+         ├─ db/                     数据库初始化脚本
+         └─ mapper/                 MyBatis XML 映射文件
 ```
 
 服务模块内部按职责拆分：

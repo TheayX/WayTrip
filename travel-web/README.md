@@ -52,34 +52,47 @@ npm run preview
 ## 当前结构
 
 ```text
-src/
-├─ app/                             应用壳层
-│  ├─ router/                       路由
-│  └─ store/                        全局状态
-├─ shared/                          共享层
-│  ├─ api/                          公共请求能力
-│  ├─ constants/                    全局常量
-│  ├─ lib/                          通用工具
-│  ├─ styles/                       全局样式
-│  └─ ui/                           共享界面组件
-└─ modules/                         业务模块层
-   ├─ account/                      账户中心
-   ├─ auth/                         登录注册
-   ├─ budget-travel/                穷游玩法
-   ├─ discover/                     发现页
-   ├─ favorite/                     收藏
-   ├─ guide/                        攻略
-   ├─ home/                         首页
-   ├─ more/                         更多玩法
-   ├─ nearby/                       附近景点
-   ├─ order/                        订单
-   ├─ random-pick/                  随心一选
-   ├─ recommendation/               推荐页
-   ├─ review/                       评分评论
-   ├─ search/                       搜索
-   ├─ spot/                         景点
-   ├─ traveler-reviews/             游客口碑
-   └─ trending-views/               近期热看
+travel-web/
+├─ .env.example                     环境变量模板，定义代理目标与额外 Host 白名单
+├─ .env.local                       本机私有联调配置，由开发者自行创建，不提交 Git
+├─ .gitignore                       忽略依赖、构建产物和本地环境文件
+├─ eslint.config.mjs                ESLint Flat Config，约束 src 下 JS 代码规范
+├─ index.html                       Vite HTML 入口，定义页面标题、图标和挂载点
+├─ package.json                     依赖与脚本入口，维护 dev/build/preview/lint 等命令
+├─ package-lock.json                npm 依赖锁文件，固定团队安装结果
+├─ vite.config.js                   Vite 配置，负责别名、代理、拆包和 3001 端口
+└─ src/
+   ├─ App.vue                       Web 根组件，承接全局布局和路由出口
+   ├─ main.js                       应用启动入口，注册路由、Pinia 和全局样式
+   ├─ app/                          应用壳层
+   │  ├─ router/                    路由定义与导航守卫
+   │  └─ store/                     全局状态
+   ├─ shared/                       共享层
+   │  ├─ api/
+   │  │  └─ client.js               Axios 请求封装，统一接口访问与错误处理
+   │  ├─ constants/                 全局常量，如路由名、详情跳转和搜索配置
+   │  ├─ lib/                       通用工具，如足迹、定位、冷启动引导
+   │  ├─ styles/
+   │  │  └─ index.scss              全局样式总入口
+   │  └─ ui/                        跨模块复用界面组件
+   └─ modules/                      业务模块层
+      ├─ account/                   账户中心
+      ├─ auth/                      登录注册
+      ├─ budget-travel/             穷游玩法
+      ├─ discover/                  发现页
+      ├─ favorite/                  收藏
+      ├─ guide/                     攻略
+      ├─ home/                      首页
+      ├─ more/                      更多玩法
+      ├─ nearby/                    附近景点
+      ├─ order/                     订单
+      ├─ random-pick/               随心一选
+      ├─ recommendation/            推荐页
+      ├─ review/                    评分评论
+      ├─ search/                    搜索
+      ├─ spot/                      景点
+      ├─ traveler-reviews/          游客口碑
+      └─ trending-views/            近期热看
 ```
 
 模块内部按复杂度按需拆分：

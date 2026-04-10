@@ -48,27 +48,41 @@ npm run build
 ## 当前结构
 
 ```text
-src/
-├─ app/                             应用壳层
-│  ├─ layout/                       布局
-│  ├─ router/                       路由
-│  └─ store/                        全局状态
-├─ shared/                          共享层
-│  ├─ api/                          公共请求能力
-│  ├─ constants/                    全局常量
-│  ├─ lib/                          通用工具
-│  └─ styles/                       全局样式
-└─ modules/                         业务模块层
-   ├─ banner/                       轮播图管理
-   ├─ category/                     分类管理
-   ├─ overview/                     运营概览
-   ├─ region/                       地区管理
-   ├─ spot/                         景点管理
-   ├─ guide/                        攻略管理
-   ├─ order/                        订单中心
-   ├─ recommendation/               推荐系统
-   ├─ system/                       系统管理
-   └─ user-ops/                     用户运营
+travel-admin/
+├─ .env.example                     环境变量模板，定义代理目标、接口源站和开发 Host
+├─ .env.local                       本机私有联调配置，由开发者自行创建，不提交 Git
+├─ .gitignore                       忽略依赖、构建产物和本地环境文件
+├─ eslint.config.mjs                ESLint Flat Config，约束 src 下 JS 代码规范
+├─ index.html                       Vite HTML 入口，定义页面标题、图标和挂载点
+├─ package.json                     依赖与脚本入口，维护 dev/build/lint 等命令
+├─ package-lock.json                npm 依赖锁文件，固定团队安装结果
+├─ vite.config.js                   Vite 配置，负责别名、代理、拆包和 3000 端口
+└─ src/
+   ├─ app/                          应用壳层
+   │  ├─ App.vue                    后台根组件，挂接整体布局与路由视图
+   │  ├─ main.js                    应用启动入口，注册路由、状态和全局样式
+   │  ├─ layout/                    后台整体布局
+   │  ├─ router/                    路由定义与鉴权入口
+   │  └─ store/                     全局状态
+   ├─ shared/                       共享层
+   │  ├─ api/
+   │  │  └─ request.js              Axios 请求封装，统一鉴权、错误处理与基础配置
+   │  ├─ constants/                 全局常量，如导航、主题、页面来源
+   │  ├─ composables/               跨模块复用逻辑，如通知与主题切换
+   │  ├─ lib/                       通用工具，如资源地址和消息框封装
+   │  └─ styles/
+   │     └─ index.scss              全局样式总入口
+   └─ modules/                      业务模块层
+      ├─ banner/                    轮播图管理
+      ├─ category/                  分类管理
+      ├─ overview/                  运营概览
+      ├─ region/                    地区管理
+      ├─ spot/                      景点管理
+      ├─ guide/                     攻略管理
+      ├─ order/                     订单中心
+      ├─ recommendation/            推荐系统
+      ├─ system/                    系统管理
+      └─ user-ops/                  用户运营
 ```
 
 模块内部按复杂度按需拆分：
