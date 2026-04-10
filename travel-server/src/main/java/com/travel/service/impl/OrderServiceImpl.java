@@ -44,6 +44,7 @@ public class OrderServiceImpl implements OrderService {
 
     // 待支付订单超时阈值，需与兜底定时任务保持一致。
     private static final int PAYMENT_TIMEOUT_MINUTES = 5;
+    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
 
     // 持久层与服务依赖
     private final OrderMapper orderMapper;
@@ -512,11 +513,19 @@ public class OrderServiceImpl implements OrderService {
         item.setUpdatedAt(order.getUpdatedAt());
 
         User user = userMapper.selectById(order.getUserId());
-        if (user != null) {
-            item.setUserNickname(user.getNickname());
-        }
+        item.setUserNickname(resolveDisplayNickname(user));
 
         return item;
+    }
+
+    /**
+     * 管理端订单允许保留历史记录，但账号失效后需要统一展示注销文案。
+     */
+    private String resolveDisplayNickname(User user) {
+        if (user == null || user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return DEACTIVATED_USER_NICKNAME;
+        }
+        return user.getNickname();
     }
 
     private OrderDetailResponse buildOrderDetail(Order order) {
