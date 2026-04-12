@@ -207,6 +207,11 @@ const showGuideFilters = computed(() => activeTab.value === 'all' || activeTab.v
 const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
 const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
 
+// 发现页只接收详情页生成的有效预览对象，异常缓存直接丢弃。
+const isValidPreviewCache = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
+}
+
 // 数据加载方法
 const fetchSpotFilters = async () => {
   try {
@@ -346,22 +351,22 @@ const goGuideDetail = (id) => {
 // 生命周期
 onShow(async () => {
   const updatedSpot = uni.getStorageSync('spot_detail_updated')
-  if (updatedSpot?.id) {
+  if (isValidPreviewCache(updatedSpot)) {
     const index = spotList.value.findIndex(item => item.id === updatedSpot.id)
     if (index !== -1) {
       spotList.value.splice(index, 1, { ...spotList.value[index], ...updatedSpot })
     }
-    uni.removeStorageSync('spot_detail_updated')
   }
+  if (updatedSpot) uni.removeStorageSync('spot_detail_updated')
 
   const updatedGuide = uni.getStorageSync('guide_detail_updated')
-  if (updatedGuide?.id) {
+  if (isValidPreviewCache(updatedGuide)) {
     const index = guideList.value.findIndex(item => item.id === updatedGuide.id)
     if (index !== -1) {
       guideList.value.splice(index, 1, { ...guideList.value[index], ...updatedGuide })
     }
-    uni.removeStorageSync('guide_detail_updated')
   }
+  if (updatedGuide) uni.removeStorageSync('guide_detail_updated')
 
   if (!regions.value.length || !spotCategories.value.length) await fetchSpotFilters()
   if (!guideCategories.value.length) await fetchGuideCategories()

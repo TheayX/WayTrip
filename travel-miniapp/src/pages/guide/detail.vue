@@ -40,7 +40,7 @@
         >
           <image class="spot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="spot-info">
-            <text class="spot-name">{{ resolveGuideText(spot.name) }}</text>
+            <text class="spot-name">{{ resolveSpotText(spot.name) }}</text>
             <text class="spot-price">{{ spot.price || '--' }}</text>
             <text class="spot-link">查看详情</text>
           </view>
@@ -69,7 +69,11 @@ import { onLoad } from '@dcloudio/uni-app'
 import { getGuideDetail } from '@/api/guide'
 import { guardLoginPage } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
-import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
+import {
+  resolveMiniappGuideCategory,
+  resolveMiniappGuideDisplayText,
+  resolveMiniappSpotDisplayName
+} from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 页面数据状态
@@ -79,6 +83,7 @@ const loading = ref(true)
 const invalidMessage = ref('未知攻略，暂时无法查看详情')
 const resolveGuideText = (value) => resolveMiniappGuideDisplayText(value)
 const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
+const resolveSpotText = (value) => resolveMiniappSpotDisplayName(value)
 const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
 
 // 工具方法

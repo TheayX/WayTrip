@@ -3,10 +3,10 @@
   <div class="guide-page admin-page-shell">
     <section class="page-hero">
       <div class="hero-left">
-        <p class="page-kicker">攻略内容管理</p>
+        <p class="page-kicker">攻略管理台</p>
         <h1 class="page-title">攻略管理</h1>
         <div class="subtitle-row">
-          <p class="page-subtitle">维护攻略内容、发布状态与关联景点。</p>
+          <p class="page-subtitle">维护攻略信息、发布状态与关联景点。</p>
         </div>
       </div>
       <div class="hero-actions hero-actions-stack">
@@ -24,7 +24,7 @@
       <el-card shadow="hover" class="summary-card">
         <div class="summary-label">已发布</div>
         <div class="summary-value">{{ publishedCount }}</div>
-        <div class="summary-desc">正在前台展示的攻略内容</div>
+        <div class="summary-desc">正在前台展示的攻略数量</div>
       </el-card>
       <el-card shadow="hover" class="summary-card">
         <div class="summary-label">待处理</div>

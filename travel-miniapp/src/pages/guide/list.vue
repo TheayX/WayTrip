@@ -113,8 +113,17 @@ const hasMore = computed(() => guideList.value.length < total.value)
 const currentStateText = computed(() => {
   const categoryText = currentCategory.value ? currentCategory.value : '全部主题'
   const sortText = sortBy.value === 'category' ? '按主题整理' : '按发布时间整理'
-  return `${categoryText} · ${total.value} 篇内容 · ${sortText}`
+  return `${categoryText} · ${total.value} 篇攻略 · ${sortText}`
 })
+
+// 只消费结构明确的详情页回写缓存，避免旧数据污染列表。
+const isValidGuidePreview = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
+}
+
+const isValidGuideViewCache = (value) => {
+  return isValidGuidePreview(value) && typeof value.viewCount === 'number'
+}
 
 // 数据加载方法
 const fetchCategories = async () => {
@@ -208,7 +217,7 @@ onMounted(() => {
 
 onShow(() => {
   const updatedGuide = uni.getStorageSync('guide_detail_updated')
-  if (updatedGuide?.id) {
+  if (isValidGuidePreview(updatedGuide)) {
     const guideIndex = guideList.value.findIndex(item => item.id === updatedGuide.id)
     if (guideIndex !== -1) {
       guideList.value[guideIndex] = {
@@ -216,19 +225,20 @@ onShow(() => {
         ...updatedGuide
       }
     }
-    uni.removeStorageSync('guide_detail_updated')
   }
+  if (updatedGuide) uni.removeStorageSync('guide_detail_updated')
 
   const updated = uni.getStorageSync('guide_view_updated')
-  if (!updated || !updated.id) return
-  const idx = guideList.value.findIndex(item => item.id === updated.id)
-  if (idx !== -1) {
-    guideList.value[idx] = {
-      ...guideList.value[idx],
-      viewCount: updated.viewCount
+  if (isValidGuideViewCache(updated)) {
+    const idx = guideList.value.findIndex(item => item.id === updated.id)
+    if (idx !== -1) {
+      guideList.value[idx] = {
+        ...guideList.value[idx],
+        viewCount: updated.viewCount
+      }
     }
   }
-  uni.removeStorageSync('guide_view_updated')
+  if (updated) uni.removeStorageSync('guide_view_updated')
 })
 </script>
 

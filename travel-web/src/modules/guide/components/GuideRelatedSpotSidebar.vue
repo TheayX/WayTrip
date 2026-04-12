@@ -23,8 +23,9 @@
 
 <script setup>
 import { getImageUrl } from '@/shared/api/client.js'
+import { resolveWebSpotDisplayName } from '@/shared/constants/resource-display.js'
 
-const resolveSpotText = (value) => value || '--'
+const resolveSpotText = (value) => resolveWebSpotDisplayName(value)
 
 // 侧栏只展示当前攻略关联的景点摘要，不在组件内部再发起补充查询。
 defineProps({

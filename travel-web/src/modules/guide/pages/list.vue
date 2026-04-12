@@ -79,6 +79,10 @@ const currentStateText = computed(() => {
 })
 
 // 工具方法
+const isValidUpdatedGuide = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
+}
+
 const syncRouteQuery = () => {
   router.replace({
     path: '/guides',
@@ -93,7 +97,20 @@ const applyUpdatedGuide = () => {
   const raw = localStorage.getItem(GUIDE_DETAIL_UPDATED_KEY)
   if (!raw) return
 
-  const updatedGuide = JSON.parse(raw)
+  let updatedGuide = null
+  try {
+    updatedGuide = JSON.parse(raw)
+  } catch {
+    // 只要本地缓存结构异常就立即清理，避免列表页被脏数据打断。
+    localStorage.removeItem(GUIDE_DETAIL_UPDATED_KEY)
+    return
+  }
+
+  if (!isValidUpdatedGuide(updatedGuide)) {
+    localStorage.removeItem(GUIDE_DETAIL_UPDATED_KEY)
+    return
+  }
+
   const index = guideList.value.findIndex((item) => item.id === updatedGuide.id)
   if (index !== -1) {
     guideList.value[index] = { ...guideList.value[index], ...updatedGuide }
