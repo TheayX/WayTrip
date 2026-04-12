@@ -7,7 +7,8 @@
 
         <GuideDetailHeader :guide="guide" />
 
-        <div class="guide-content premium-card" v-html="guide.content"></div>
+        <div v-if="hasGuideHtmlContent" class="guide-content premium-card" v-html="guide.content"></div>
+        <div v-else class="guide-content guide-content--plain premium-card">{{ resolveGuideText(guide.content) }}</div>
       </div>
 
       <GuideRelatedSpotSidebar
@@ -22,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import GuideDetailHeader from '@/modules/guide/components/GuideDetailHeader.vue'
 import GuideRelatedSpotSidebar from '@/modules/guide/components/GuideRelatedSpotSidebar.vue'
@@ -32,12 +33,14 @@ import { ElMessage } from 'element-plus'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const GUIDE_DETAIL_UPDATED_KEY = 'guide_detail_updated'
+const resolveGuideText = (value) => value || '--'
 
 // 基础依赖与路由状态
 const route = useRoute()
 
 // 页面数据状态
 const guide = ref(null)
+const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
 
 // 数据加载方法
 const fetchDetail = async () => {
@@ -125,6 +128,10 @@ onMounted(() => {
     color: #475569;
     border-radius: 16px;
   }
+}
+
+.guide-content--plain {
+  white-space: pre-line;
 }
 
 @media (max-width: 992px) {

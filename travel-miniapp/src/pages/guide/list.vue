@@ -57,11 +57,11 @@
         <image class="guide-cover" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
         <view class="guide-info">
           <view class="guide-label-row">
-            <text class="guide-category">{{ guide.category }}</text>
-            <text class="guide-views">{{ guide.viewCount }} 次浏览</text>
+            <text class="guide-category">{{ resolveGuideCategory(guide.category) }}</text>
+            <text class="guide-views">{{ guide.viewCount || 0 }} 次浏览</text>
           </view>
-          <text class="guide-title">{{ guide.title }}</text>
-          <text class="guide-summary">{{ guide.summary }}</text>
+          <text class="guide-title">{{ resolveGuideText(guide.title) }}</text>
+          <text class="guide-summary">{{ resolveGuideSummary(guide.summary) }}</text>
           <view class="guide-meta">
             <text class="guide-meta-text">打开查看完整路线与行程建议</text>
           </view>
@@ -91,6 +91,10 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getGuideList, getCategories } from '@/api/guide'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+
+const resolveGuideText = (value) => value || '--'
+const resolveGuideCategory = (value) => value || '攻略'
+const resolveGuideSummary = (value) => value || '整理路线、玩法与出行经验，帮助你更快形成这次旅程的安排。'
 
 // 页面数据状态
 const categories = ref([])

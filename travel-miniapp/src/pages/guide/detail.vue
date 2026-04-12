@@ -7,17 +7,18 @@
     <!-- 攻略信息区域 -->
     <view class="guide-header card">
       <text class="guide-kicker">旅行攻略</text>
-      <text class="guide-title">{{ guide.title }}</text>
+      <text class="guide-title">{{ resolveGuideText(guide.title) }}</text>
       <view class="guide-meta">
-        <text class="guide-category">{{ guide.category }}</text>
-        <text class="guide-info">浏览 {{ guide.viewCount }} · {{ guide.createdAt }}</text>
+        <text class="guide-category">{{ resolveGuideCategory(guide.category) }}</text>
+        <text class="guide-info">浏览 {{ guide.viewCount || 0 }} · {{ guide.createdAt || '--' }}</text>
       </view>
       <text class="guide-intro">把路线、玩法和景点信息整理成一篇更适合随时翻看的出行笔记。</text>
     </view>
 
     <!-- 攻略内容区域 -->
     <view class="guide-content card">
-      <rich-text :nodes="guide.content"></rich-text>
+      <rich-text v-if="hasGuideHtmlContent" :nodes="guide.content"></rich-text>
+      <text v-else class="guide-content-text">{{ resolveGuideText(guide.content) }}</text>
     </view>
 
     <!-- 关联景点区域 -->
@@ -39,8 +40,8 @@
         >
           <image class="spot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="spot-info">
-            <text class="spot-name">{{ spot.name }}</text>
-            <text class="spot-price">{{ spot.price }}</text>
+            <text class="spot-name">{{ resolveGuideText(spot.name) }}</text>
+            <text class="spot-price">{{ spot.price || '--' }}</text>
             <text class="spot-link">查看详情</text>
           </view>
         </view>
@@ -55,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getGuideDetail } from '@/api/guide'
 import { guardLoginPage } from '@/utils/auth'
@@ -65,6 +66,9 @@ import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 // 页面数据状态
 const guide = ref(null)
 const guideId = ref(null)
+const resolveGuideText = (value) => value || '--'
+const resolveGuideCategory = (value) => value || '攻略'
+const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
 
 // 工具方法
 const syncGuidePreview = (data) => {
@@ -194,6 +198,11 @@ onLoad((options) => {
   color: #334155;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
+}
+
+.guide-content-text {
+  display: block;
+  white-space: pre-line;
 }
 
 .related-spots {

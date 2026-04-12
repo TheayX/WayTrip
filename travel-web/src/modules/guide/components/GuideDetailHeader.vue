@@ -2,16 +2,19 @@
 <template>
   <div class="guide-header premium-card">
     <p class="guide-kicker">旅行攻略</p>
-    <h1 class="guide-title">{{ guide.title }}</h1>
+    <h1 class="guide-title">{{ resolveGuideText(guide.title) }}</h1>
     <div class="guide-meta">
-      <span class="tag">{{ guide.category || '攻略' }}</span>
+      <span class="tag">{{ resolveGuideCategory(guide.category) }}</span>
       <span class="meta-item">浏览 {{ guide.viewCount || 0 }}</span>
-      <span class="meta-item">{{ guide.createdAt || '最近更新' }}</span>
+      <span class="meta-item">{{ guide.createdAt || '--' }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
+const resolveGuideText = (value) => value || '--'
+const resolveGuideCategory = (value) => value || '攻略'
+
 // 详情头部只展示标题和元信息，避免把正文相关逻辑耦合进来。
 defineProps({
   guide: {
