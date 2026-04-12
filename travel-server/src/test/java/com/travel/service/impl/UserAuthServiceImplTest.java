@@ -76,7 +76,7 @@ class UserAuthServiceImplTest {
 
         LoginResponse response = userAuthService.webLogin(request);
 
-        verify(userAccountService).reactivateAccountAfterLogin(7L);
+        verify(userAccountService).restoreUserAccountAfterLogin(7L);
         verify(userMapper).update(any(), any());
         assertTrue(Boolean.TRUE.equals(response.getUser().getIsReactivated()));
     }

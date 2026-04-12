@@ -50,15 +50,15 @@ public class AdminUserController {
 
     @Operation(summary = "封禁用户")
     @DeleteMapping("/{id}/account")
-    public ApiResponse<Void> deactivateUserAccount(@PathVariable("id") Long id) {
-        userAccountService.deactivateAccountByAdmin(id);
+    public ApiResponse<Void> suspendUserAccount(@PathVariable("id") Long id) {
+        userAccountService.suspendUserAccountByAdmin(id);
         return ApiResponse.success();
     }
 
     @Operation(summary = "解封用户")
     @PutMapping("/{id}/account/restore")
-    public ApiResponse<Void> reactivateUserAccount(@PathVariable("id") Long id) {
-        userAccountService.reactivateAccountByAdmin(id);
+    public ApiResponse<Void> restoreUserAccount(@PathVariable("id") Long id) {
+        userAccountService.restoreUserAccountByAdmin(id);
         return ApiResponse.success();
     }
 }

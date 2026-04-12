@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 用户账户服务接口。
  * <p>
- * 定义用户资料查询、资料修改、密码修改、注销和偏好设置能力。
+ * 定义用户资料查询、资料修改、密码修改、账号状态变更和偏好设置能力。
  */
 public interface UserAccountService {
 
@@ -42,28 +42,28 @@ public interface UserAccountService {
      *
      * @param userId 当前登录用户 ID
      */
-    void deactivateAccount(Long userId);
+    void deactivateCurrentAccount(Long userId);
 
     /**
      * 管理员封禁指定用户。
      *
      * @param userId 目标用户 ID
      */
-    void deactivateAccountByAdmin(Long userId);
+    void suspendUserAccountByAdmin(Long userId);
 
     /**
      * 管理员解封指定用户。
      *
      * @param userId 目标用户 ID
      */
-    void reactivateAccountByAdmin(Long userId);
+    void restoreUserAccountByAdmin(Long userId);
 
     /**
      * 用户端登录触发的账号恢复。
      *
      * @param userId 目标用户 ID
      */
-    void reactivateAccountAfterLogin(Long userId);
+    void restoreUserAccountAfterLogin(Long userId);
 
     /**
      * 设置当前用户偏好分类。

@@ -215,7 +215,7 @@
 import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { deactivateUserAccount, getUserList, getUserDetail, reactivateUserAccount, resetUserPassword } from '@/modules/user-ops/api/user.js'
+import { getUserList, getUserDetail, resetUserPassword, restoreUserAccount, suspendUserAccount } from '@/modules/user-ops/api/user.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getSourceBucketLabel, getSourceLabel as resolveSourceLabel } from '@/shared/constants/view-source.js'
@@ -351,10 +351,10 @@ const handleCommand = (command, row) => {
       handleResetPassword(row)
       break
     case 'deactivate-account':
-      handleDeactivateUser(row)
+      handleSuspendUser(row)
       break
     case 'reactivate-account':
-      handleReactivateUser(row)
+      handleRestoreUser(row)
       break
     case 'preference':
       handleOpenPreference(row)
@@ -404,7 +404,7 @@ const handleResetPassword = async (row) => {
 }
 
 // 管理端先以软删方式封禁用户，避免继续登录和参与当前状态型业务。
-const handleDeactivateUser = async (row) => {
+const handleSuspendUser = async (row) => {
   try {
     await ElMessageBox.confirm(
       `确定要封禁用户「${row.nickname}」吗？当前封禁功能按注销处理：该用户会被标记为已注销，收藏与偏好会一并失效，解封可恢复。`,
@@ -415,7 +415,7 @@ const handleDeactivateUser = async (row) => {
         cancelButtonText: '取消'
       }
     )
-    await deactivateUserAccount(row.id)
+    await suspendUserAccount(row.id)
     ElMessage.success('用户已封禁')
     if (detailVisible.value && currentUser.value?.id === row.id) {
       detailVisible.value = false
@@ -430,7 +430,7 @@ const handleDeactivateUser = async (row) => {
 }
 
 // 当前解封直接恢复软删用户与其当前状态型数据，便于后台做临时封禁后的恢复。
-const handleReactivateUser = async (row) => {
+const handleRestoreUser = async (row) => {
   try {
     await ElMessageBox.confirm(
       `确定要解封用户「${row.nickname}」吗？解封后会恢复账号登录能力，并重新启用原有收藏与偏好。`,
@@ -441,7 +441,7 @@ const handleReactivateUser = async (row) => {
         cancelButtonText: '取消'
       }
     )
-    await reactivateUserAccount(row.id)
+    await restoreUserAccount(row.id)
     ElMessage.success('用户已解封')
     if (detailVisible.value && currentUser.value?.id === row.id) {
       await handleDetail(row)

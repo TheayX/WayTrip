@@ -174,13 +174,13 @@ class UserAccountServiceImplTest {
     }
 
     @Test
-    void deactivateAccount_setsIsDeleted() {
+    void deactivateCurrentAccount_setsIsDeleted() {
         User user = new User();
         user.setId(1L);
         user.setIsDeleted(0);
         when(userMapper.selectById(1L)).thenReturn(user);
 
-        userAccountService.deactivateAccount(1L);
+        userAccountService.deactivateCurrentAccount(1L);
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userMapper).updateById(captor.capture());
@@ -188,13 +188,13 @@ class UserAccountServiceImplTest {
     }
 
     @Test
-    void deactivateAccountByAdmin_setsIsDeleted() {
+    void suspendUserAccountByAdmin_setsIsDeleted() {
         User user = new User();
         user.setId(2L);
         user.setIsDeleted(0);
         when(userMapper.selectById(2L)).thenReturn(user);
 
-        userAccountService.deactivateAccountByAdmin(2L);
+        userAccountService.suspendUserAccountByAdmin(2L);
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userMapper).updateById(captor.capture());
@@ -202,13 +202,13 @@ class UserAccountServiceImplTest {
     }
 
     @Test
-    void reactivateAccountByAdmin_restoresIsDeleted() {
+    void restoreUserAccountByAdmin_restoresIsDeleted() {
         User user = new User();
         user.setId(3L);
         user.setIsDeleted(1);
         when(userMapper.selectById(3L)).thenReturn(user);
 
-        userAccountService.reactivateAccountByAdmin(3L);
+        userAccountService.restoreUserAccountByAdmin(3L);
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userMapper).updateById(captor.capture());

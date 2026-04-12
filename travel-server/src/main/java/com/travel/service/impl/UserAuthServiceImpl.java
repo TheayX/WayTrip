@@ -68,7 +68,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         boolean isReactivated = false;
         LocalDateTime now = LocalDateTime.now();
         if (user.getIsDeleted() == 1) {
-            userAccountService.reactivateAccountAfterLogin(user.getId());
+            userAccountService.restoreUserAccountAfterLogin(user.getId());
             user.setIsDeleted(0);
             isReactivated = true;
             log.info("账户已恢复: userId={}", user.getId());
@@ -162,7 +162,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         boolean isReactivated = false;
         if (user.getIsDeleted() == 1) {
-            userAccountService.reactivateAccountAfterLogin(user.getId());
+            userAccountService.restoreUserAccountAfterLogin(user.getId());
             user.setIsDeleted(0);
             isReactivated = true;
             log.info("账户已恢复: userId={}", user.getId());

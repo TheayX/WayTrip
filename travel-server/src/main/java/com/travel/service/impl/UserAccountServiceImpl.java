@@ -112,39 +112,39 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     @Transactional
-    public void deactivateAccount(Long userId) {
+    public void deactivateCurrentAccount(Long userId) {
         User user = getActiveUser(userId);
-        deactivateUser(user);
+        applyAccountSuspension(user);
     }
 
     @Override
     @Transactional
-    public void deactivateAccountByAdmin(Long userId) {
+    public void suspendUserAccountByAdmin(Long userId) {
         User user = getManagedUser(userId);
         if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.PARAM_ERROR, "用户已被封禁");
         }
-        deactivateUser(user);
+        applyAccountSuspension(user);
     }
 
     @Override
     @Transactional
-    public void reactivateAccountByAdmin(Long userId) {
+    public void restoreUserAccountByAdmin(Long userId) {
         User user = getManagedUser(userId);
         if (user.getIsDeleted() == null || user.getIsDeleted() != 1) {
             throw new BusinessException(ResultCode.PARAM_ERROR, "用户当前无需解封");
         }
-        reactivateUser(user);
+        applyAccountRestore(user);
     }
 
     @Override
     @Transactional
-    public void reactivateAccountAfterLogin(Long userId) {
+    public void restoreUserAccountAfterLogin(Long userId) {
         User user = getManagedUser(userId);
         if (user.getIsDeleted() == null || user.getIsDeleted() != 1) {
             return;
         }
-        reactivateUser(user);
+        applyAccountRestore(user);
     }
 
     @Override
@@ -223,7 +223,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     /**
      * 账号软删时统一清理当前状态型数据，避免不同入口出现不一致的封禁后效果。
      */
-    private void deactivateUser(User user) {
+    private void applyAccountSuspension(User user) {
         Long userId = user.getId();
         // 注销后收起当前偏好和收藏状态，只保留订单、评价、浏览等强历史数据。
         softDeleteUserPreferences(userId);
@@ -236,7 +236,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     /**
      * 当前封禁复用软删语义，因此解封时也要同步恢复偏好和收藏状态，避免账号恢复后数据残缺。
      */
-    private void reactivateUser(User user) {
+    private void applyAccountRestore(User user) {
         Long userId = user.getId();
         restoreUserPreferences(userId);
         restoreUserFavorites(userId);
