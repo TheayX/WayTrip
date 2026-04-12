@@ -33,7 +33,7 @@
           <div class="user-box">
             <img :src="getAvatarUrl(item.avatar)" class="avatar" alt="" />
             <div class="user-meta">
-              <strong>{{ item.nickname || '已注销用户' }}</strong>
+              <strong>{{ item.nickname || UNKNOWN_USER_DISPLAY }}</strong>
               <span>{{ item.spotName || '景点待补充' }}</span>
             </div>
           </div>
@@ -75,6 +75,7 @@ import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spo
 
 // 页面按正负口碑拆分展示，帮助用户先用评价情绪快速筛掉不合适的景点。
 const router = useRouter()
+const UNKNOWN_USER_DISPLAY = '未知用户'
 
 const tabs = [
   { label: '高分种草', value: 'positive' },

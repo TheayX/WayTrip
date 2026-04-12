@@ -42,7 +42,7 @@
                 <el-avatar :size="44" :src="getAvatarUrl(comment.avatar)" icon="User" />
                 <div class="comment-body">
                   <div class="comment-top">
-                    <span class="comment-name">{{ comment.nickname || '已注销用户' }}</span>
+                    <span class="comment-name">{{ comment.nickname || UNKNOWN_USER_DISPLAY }}</span>
                     <div class="comment-actions">
                       <span class="star-text">★ {{ comment.score }}</span>
                       <el-button
@@ -117,6 +117,7 @@ import { saveSpotFootprint } from '@/shared/lib/footprint.js'
 import { getAvatarUrl, getImageUrl } from '@/shared/api/client.js'
 
 const SPOT_DETAIL_UPDATED_KEY = 'spot_detail_updated'
+const UNKNOWN_USER_DISPLAY = '未知用户'
 
 // 基础依赖与路由状态
 const route = useRoute()

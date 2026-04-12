@@ -33,7 +33,7 @@
         <view class="user-box">
           <image class="avatar" :src="getAvatarUrl(item.avatar)" mode="aspectFill" />
           <view class="user-meta">
-            <text class="nickname">{{ item.nickname || '已注销用户' }}</text>
+            <text class="nickname">{{ item.nickname || UNKNOWN_USER_DISPLAY }}</text>
             <text class="spot-name">{{ item.spotName || '景点待补充' }}</text>
           </view>
         </view>
@@ -70,6 +70,7 @@ import { getAvatarUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 好评与避雷分栏在页面层拆开，方便切换时直接复用同一套展示结构。
+const UNKNOWN_USER_DISPLAY = '未知用户'
 const tabs = [
   { label: '高分种草', value: 'positive' },
   { label: '真实避雷', value: 'negative' }
