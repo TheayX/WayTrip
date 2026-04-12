@@ -120,8 +120,21 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Override
     @Transactional
     public void deactivateAccountByAdmin(Long userId) {
-        User user = getExistingUser(userId);
+        User user = getManagedUser(userId);
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "用户已被封禁");
+        }
         deactivateUser(user);
+    }
+
+    @Override
+    @Transactional
+    public void reactivateAccountByAdmin(Long userId) {
+        User user = getManagedUser(userId);
+        if (user.getIsDeleted() == null || user.getIsDeleted() != 1) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "用户当前无需解封");
+        }
+        reactivateUser(user);
     }
 
     @Override
@@ -189,9 +202,9 @@ public class UserAccountServiceImpl implements UserAccountService {
     /**
      * 管理员封禁和用户主动注销都属于软删收口，统一复用同一套清理逻辑。
      */
-    private User getExistingUser(Long userId) {
+    private User getManagedUser(Long userId) {
         User user = userMapper.selectById(userId);
-        if (user == null || user.getIsDeleted() == 1) {
+        if (user == null) {
             throw new BusinessException(ResultCode.PARAM_ERROR, "用户不存在");
         }
         return user;
@@ -206,6 +219,18 @@ public class UserAccountServiceImpl implements UserAccountService {
         softDeleteUserPreferences(userId);
         softDeleteUserFavorites(userId);
         user.setIsDeleted(1);
+        userMapper.updateById(user);
+        recommendationService.invalidateUserRecommendationCache(userId);
+    }
+
+    /**
+     * 当前封禁复用软删语义，因此解封时也要同步恢复偏好和收藏状态，避免账号恢复后数据残缺。
+     */
+    private void reactivateUser(User user) {
+        Long userId = user.getId();
+        restoreUserPreferences(userId);
+        restoreUserFavorites(userId);
+        user.setIsDeleted(0);
         userMapper.updateById(user);
         recommendationService.invalidateUserRecommendationCache(userId);
     }
@@ -275,6 +300,30 @@ public class UserAccountServiceImpl implements UserAccountService {
         deletedFavorite.setIsDeleted(1);
         userSpotFavoriteMapper.update(
                 deletedFavorite,
+                new LambdaUpdateWrapper<UserSpotFavorite>().eq(UserSpotFavorite::getUserId, userId)
+        );
+    }
+
+    /**
+     * 解封账号时恢复历史偏好，保持“封禁仅限制使用、解封即可继续使用”的管理语义。
+     */
+    private void restoreUserPreferences(Long userId) {
+        UserPreference restoredPreference = new UserPreference();
+        restoredPreference.setIsDeleted(0);
+        userPreferenceMapper.update(
+                restoredPreference,
+                new LambdaUpdateWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
+        );
+    }
+
+    /**
+     * 解封后恢复用户收藏，避免后台封禁临时管控造成收藏状态永久丢失。
+     */
+    private void restoreUserFavorites(Long userId) {
+        UserSpotFavorite restoredFavorite = new UserSpotFavorite();
+        restoredFavorite.setIsDeleted(0);
+        userSpotFavoriteMapper.update(
+                restoredFavorite,
                 new LambdaUpdateWrapper<UserSpotFavorite>().eq(UserSpotFavorite::getUserId, userId)
         );
     }

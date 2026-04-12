@@ -47,12 +47,11 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     public AdminUserListResponse getAdminUsers(AdminUserListRequest request) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getIsDeleted, 0);
-        
+
         if (StringUtils.hasText(request.getNickname())) {
             wrapper.like(User::getNickname, request.getNickname());
         }
-        
+
         wrapper.orderByDesc(User::getCreatedAt);
 
         Page<User> page = new Page<>(request.getPage(), request.getPageSize());
@@ -71,7 +70,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public AdminUserDetailResponse getAdminUserDetail(Long userId) {
-        User user = getExistingUser(userId);
+        User user = getManagedUser(userId);
 
         AdminUserDetailResponse response = new AdminUserDetailResponse();
         response.setId(user.getId());
@@ -79,6 +78,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         response.setAvatar(user.getAvatarUrl());
         response.setPhone(MaskUtils.maskPhone(user.getPhone()));
         response.setPreferences(user.getPreferences());
+        response.setIsDeleted(user.getIsDeleted());
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
 
@@ -225,10 +225,21 @@ public class UserProfileServiceImpl implements UserProfileService {
     /**
      * 用户详情和密码重置都要求目标用户必须存在，统一收口存在性校验。
      */
-    private User getExistingUser(Long userId) {
+    private User getManagedUser(Long userId) {
         User user = userMapper.selectById(userId);
-        if (user == null || user.getIsDeleted() == 1) {
+        if (user == null) {
             throw new RuntimeException("用户不存在");
+        }
+        return user;
+    }
+
+    /**
+     * 密码重置属于当前可用账号维护动作，不允许对已封禁用户直接操作。
+     */
+    private User getActiveManagedUser(Long userId) {
+        User user = getManagedUser(userId);
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            throw new RuntimeException("用户已被封禁");
         }
         return user;
     }
@@ -310,6 +321,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         item.setNickname(user.getNickname());
         item.setAvatar(user.getAvatarUrl());
         item.setPhone(MaskUtils.maskPhone(user.getPhone()));
+        item.setIsDeleted(user.getIsDeleted());
         item.setCreatedAt(user.getCreatedAt());
         item.setUpdatedAt(user.getUpdatedAt());
 
@@ -323,7 +335,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public void resetUserPassword(Long userId, ResetUserPasswordRequest request) {
-        User user = getExistingUser(userId);
+        User user = getActiveManagedUser(userId);
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userMapper.updateById(user);
         log.info("用户密码已重置: userId={}", userId);

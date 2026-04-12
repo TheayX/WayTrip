@@ -14,6 +14,7 @@ import com.travel.entity.UserSpotFavorite;
 import com.travel.enums.OrderStatus;
 import com.travel.mapper.OrderMapper;
 import com.travel.mapper.ReviewMapper;
+import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserMapper;
@@ -85,6 +86,9 @@ class UserProfileServiceImplTest {
     private SpotMapper spotMapper;
 
     @Mock
+    private SpotCategoryMapper spotCategoryMapper;
+
+    @Mock
     private BCryptPasswordEncoder passwordEncoder;
 
     @InjectMocks
@@ -117,9 +121,32 @@ class UserProfileServiceImplTest {
         assertEquals(1L, item.getId());
         assertEquals("用户A", item.getNickname());
         assertEquals("138****8000", item.getPhone());
+        assertEquals(0, item.getIsDeleted());
         assertEquals(3, item.getOrderCount());
         assertEquals(2, item.getFavoriteCount());
         assertEquals(1, item.getRatingCount());
+    }
+
+    @Test
+    void getAdminUsers_keepsDeletedUsersForManagement() {
+        User user = buildUser(2L, "已封禁用户");
+        user.setIsDeleted(1);
+        Page<User> page = new Page<>(1, 10);
+        page.setRecords(List.of(user));
+        page.setTotal(1L);
+        when(userMapper.selectPage(any(Page.class), any())).thenReturn(page);
+        when(orderMapper.selectCount(any())).thenReturn(0L);
+        when(userSpotFavoriteMapper.selectCount(any())).thenReturn(0L);
+        when(reviewMapper.selectCount(any())).thenReturn(0L);
+
+        AdminUserListRequest request = new AdminUserListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+
+        AdminUserListResponse response = userService.getAdminUsers(request);
+
+        assertEquals(1, response.getList().size());
+        assertEquals(1, response.getList().get(0).getIsDeleted());
     }
 
     @Test
@@ -157,6 +184,7 @@ class UserProfileServiceImplTest {
         assertEquals(1L, response.getId());
         assertEquals("用户A", response.getNickname());
         assertEquals("138****8000", response.getPhone());
+        assertEquals(0, response.getIsDeleted());
         assertEquals("自然风光,历史文化", response.getPreferences());
         assertEquals(5, response.getOrderCount());
         assertEquals(4, response.getFavoriteCount());
@@ -167,6 +195,25 @@ class UserProfileServiceImplTest {
         assertEquals("T202603220001", recentOrder.getOrderNo());
         assertEquals("西湖", recentOrder.getSpotName());
         assertEquals("paid", recentOrder.getStatus());
+    }
+
+    @Test
+    void getAdminUserDetail_allowsDeletedUserForInspection() {
+        User user = buildUser(8L, "已封禁用户");
+        user.setIsDeleted(1);
+        when(userMapper.selectById(8L)).thenReturn(user);
+        when(orderMapper.selectCount(any())).thenReturn(0L);
+        when(userSpotFavoriteMapper.selectCount(any())).thenReturn(0L);
+        when(reviewMapper.selectCount(any())).thenReturn(0L);
+        when(userSpotViewMapper.selectCount(any())).thenReturn(0L);
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+        when(userSpotViewMapper.selectList(any())).thenReturn(List.of());
+        when(orderMapper.selectList(any())).thenReturn(List.of());
+
+        AdminUserDetailResponse response = userService.getAdminUserDetail(8L);
+
+        assertEquals(8L, response.getId());
+        assertEquals(1, response.getIsDeleted());
     }
 
     @Test
@@ -204,6 +251,19 @@ class UserProfileServiceImplTest {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.resetUserPassword(999L, request));
 
         assertEquals("用户不存在", ex.getMessage());
+    }
+
+    @Test
+    void resetUserPassword_throwsWhenUserDeleted() {
+        User user = buildUser(5L, "已封禁用户");
+        user.setIsDeleted(1);
+        when(userMapper.selectById(5L)).thenReturn(user);
+        ResetUserPasswordRequest request = new ResetUserPasswordRequest();
+        request.setNewPassword("newPass123");
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.resetUserPassword(5L, request));
+
+        assertEquals("用户已被封禁", ex.getMessage());
     }
 
     private User buildUser(Long id, String nickname) {

@@ -80,16 +80,21 @@
             {{ formatPhone(row.phone) }}
           </template>
         </el-table-column>
+        <el-table-column label="状态" width="100" align="center" header-align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.isDeleted === 1 ? 'warning' : 'success'" effect="light">
+              {{ row.isDeleted === 1 ? '已封禁' : '正常' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="orderCount" label="订单数" width="100" align="center" header-align="center" />
         <el-table-column prop="favoriteCount" label="收藏数" width="100" align="center" header-align="center" />
         <el-table-column prop="ratingCount" label="评价数" width="100" align="center" header-align="center" />
         <el-table-column prop="createdAt" label="注册时间" width="170" align="center" header-align="center" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" align="center" header-align="center" />
-        <el-table-column label="操作" width="190" fixed="right" align="center" header-align="center">
+        <el-table-column label="操作" width="150" fixed="right" align="center" header-align="center">
           <template #default="{ row }">
             <div class="table-actions">
-              <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
-              <el-button type="warning" link @click="handleDeactivateUser(row)">封禁用户</el-button>
               <el-dropdown trigger="click" @command="(command) => handleCommand(command, row)">
                 <el-button link type="primary">
                   更多 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
@@ -97,6 +102,12 @@
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item command="detail">查看详情</el-dropdown-item>
+                    <el-dropdown-item v-if="row.isDeleted !== 1" command="reset-password">重置密码</el-dropdown-item>
+                    <el-dropdown-item
+                      :command="row.isDeleted === 1 ? 'reactivate-account' : 'deactivate-account'"
+                    >
+                      {{ row.isDeleted === 1 ? '解封用户' : '封禁用户' }}
+                    </el-dropdown-item>
                     <el-dropdown-item command="preference">用户偏好</el-dropdown-item>
                     <el-dropdown-item command="favorite">用户收藏</el-dropdown-item>
                     <el-dropdown-item command="view-log">浏览行为</el-dropdown-item>
@@ -204,7 +215,7 @@
 import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { deactivateUserAccount, getUserList, getUserDetail, resetUserPassword } from '@/modules/user-ops/api/user.js'
+import { deactivateUserAccount, getUserList, getUserDetail, reactivateUserAccount, resetUserPassword } from '@/modules/user-ops/api/user.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getSourceBucketLabel, getSourceLabel as resolveSourceLabel } from '@/shared/constants/view-source.js'
@@ -336,6 +347,15 @@ const handleCommand = (command, row) => {
     case 'detail':
       handleDetail(row)
       break
+    case 'reset-password':
+      handleResetPassword(row)
+      break
+    case 'deactivate-account':
+      handleDeactivateUser(row)
+      break
+    case 'reactivate-account':
+      handleReactivateUser(row)
+      break
     case 'preference':
       handleOpenPreference(row)
       break
@@ -387,7 +407,7 @@ const handleResetPassword = async (row) => {
 const handleDeactivateUser = async (row) => {
   try {
     await ElMessageBox.confirm(
-      `确定要封禁用户「${row.nickname}」吗？封禁后该用户将被标记为已注销，无法继续登录，收藏与偏好会一并失效。`,
+      `确定要封禁用户「${row.nickname}」吗？当前封禁功能按注销处理：该用户会被标记为已注销，无法继续登录，收藏与偏好会一并失效。`,
       '封禁确认',
       {
         type: 'warning',
@@ -405,6 +425,31 @@ const handleDeactivateUser = async (row) => {
   } catch (e) {
     if (!isMessageBoxDismissed(e)) {
       console.error('封禁用户失败', e)
+    }
+  }
+}
+
+// 当前解封直接恢复软删用户与其当前状态型数据，便于后台做临时封禁后的恢复。
+const handleReactivateUser = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要解封用户「${row.nickname}」吗？解封后会恢复账号登录能力，并重新启用原有收藏与偏好。`,
+      '解封确认',
+      {
+        type: 'info',
+        confirmButtonText: '确认解封',
+        cancelButtonText: '取消'
+      }
+    )
+    await reactivateUserAccount(row.id)
+    ElMessage.success('用户已解封')
+    if (detailVisible.value && currentUser.value?.id === row.id) {
+      await handleDetail(row)
+    }
+    fetchUserList()
+  } catch (e) {
+    if (!isMessageBoxDismissed(e)) {
+      console.error('解封用户失败', e)
     }
   }
 }

@@ -37,3 +37,12 @@ export function resetUserPassword(id, data) {
 export function deactivateUserAccount(id) {
   return request.delete(`/users/${id}/account`)
 }
+
+/**
+ * 解封用户
+ * @param id
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export function reactivateUserAccount(id) {
+  return request.put(`/users/${id}/account/restore`)
+}

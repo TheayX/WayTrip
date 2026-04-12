@@ -16,6 +16,7 @@ public class AdminUserDetailResponse {
     private String avatar;
     private String phone;
     private String preferences;
+    private Integer isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

@@ -202,6 +202,23 @@ class UserAccountServiceImplTest {
     }
 
     @Test
+    void reactivateAccountByAdmin_restoresIsDeleted() {
+        User user = new User();
+        user.setId(3L);
+        user.setIsDeleted(1);
+        when(userMapper.selectById(3L)).thenReturn(user);
+
+        userAccountService.reactivateAccountByAdmin(3L);
+
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(userMapper).updateById(captor.capture());
+        assertEquals(0, captor.getValue().getIsDeleted());
+        verify(userPreferenceMapper, times(1)).update(any(UserPreference.class), any());
+        verify(userSpotFavoriteMapper, times(1)).update(any(), any());
+        verify(recommendationService).invalidateUserRecommendationCache(3L);
+    }
+
+    @Test
     void setPreferences_replacesOldAndInsertsNew() {
         User user = new User();
         user.setId(1L);

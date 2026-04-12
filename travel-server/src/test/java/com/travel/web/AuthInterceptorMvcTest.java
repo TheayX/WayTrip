@@ -99,6 +99,7 @@ class AuthInterceptorMvcTest {
                         "用户A",
                         "/uploads/avatar/avatar.jpg",
                         "13800138000",
+                        0,
                         1,
                         2,
                         3,

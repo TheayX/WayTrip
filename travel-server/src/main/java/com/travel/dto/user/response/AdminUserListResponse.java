@@ -28,6 +28,7 @@ public class AdminUserListResponse {
         private String nickname;
         private String avatar;
         private String phone;
+        private Integer isDeleted;
         private Integer orderCount;
         private Integer favoriteCount;
         private Integer ratingCount;

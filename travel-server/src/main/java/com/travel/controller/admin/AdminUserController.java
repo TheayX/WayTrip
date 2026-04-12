@@ -54,4 +54,11 @@ public class AdminUserController {
         userAccountService.deactivateAccountByAdmin(id);
         return ApiResponse.success();
     }
+
+    @Operation(summary = "解封用户")
+    @PutMapping("/{id}/account/restore")
+    public ApiResponse<Void> reactivateUserAccount(@PathVariable("id") Long id) {
+        userAccountService.reactivateAccountByAdmin(id);
+        return ApiResponse.success();
+    }
 }

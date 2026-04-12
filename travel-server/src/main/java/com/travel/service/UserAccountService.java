@@ -52,6 +52,13 @@ public interface UserAccountService {
     void deactivateAccountByAdmin(Long userId);
 
     /**
+     * 管理员解封指定用户。
+     *
+     * @param userId 目标用户 ID
+     */
+    void reactivateAccountByAdmin(Long userId);
+
+    /**
      * 设置当前用户偏好分类。
      *
      * @param userId 当前登录用户 ID
