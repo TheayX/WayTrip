@@ -7,13 +7,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * 用户端订单详情响应对象。
+ * 订单详情响应对象，供用户端与管理端复用。
  */
 @Data
 public class OrderDetailResponse {
 
     private Long id;
     private String orderNo;
+    private Long userId;
+    private String userNickname;
+    private String userPhone;
     private Long spotId;
     private String spotName;
     private String spotImage;

@@ -49,6 +49,15 @@
         </section>
 
         <section class="detail-section">
+          <h4 class="section-title">下单用户信息</h4>
+          <el-descriptions :column="1" border class="detail-descriptions">
+            <el-descriptions-item label="用户 ID">{{ detail.userId ?? '--' }}</el-descriptions-item>
+            <el-descriptions-item label="用户昵称">{{ detail.userNickname || '--' }}</el-descriptions-item>
+            <el-descriptions-item label="用户手机号">{{ detail.userPhone || '--' }}</el-descriptions-item>
+          </el-descriptions>
+        </section>
+
+        <section class="detail-section">
           <h4 class="section-title">景点与游玩信息</h4>
           <el-descriptions :column="1" border class="detail-descriptions">
             <el-descriptions-item label="景点名称">{{ detail.spotName || '--' }}</el-descriptions-item>
