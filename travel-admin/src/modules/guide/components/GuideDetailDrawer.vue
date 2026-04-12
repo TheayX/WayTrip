@@ -17,7 +17,7 @@
 
       <div class="info-section mb-6 pb-6 border-b border-gray-100">
         <h2 class="text-2xl font-bold text-gray-800 mb-2 mt-0">{{ resolveContentDisplayText(detail.title) }}</h2>
-        <p class="text-sm text-gray-500 mb-4">{{ detail.category || '未分类' }}</p>
+        <p class="text-sm text-gray-500 mb-4">{{ resolveCategoryDisplayName(detail.category) }}</p>
 
         <div class="flex gap-4">
           <div class="stat-item px-4 py-2 rounded-lg flex-1">
@@ -69,7 +69,7 @@
 </template>
 
 <script setup>
-import { resolveContentDisplayText, resolveSpotRecordDisplayName } from '@/shared/lib/resource-display.js'
+import { resolveCategoryDisplayName, resolveContentDisplayText, resolveSpotRecordDisplayName } from '@/shared/lib/resource-display.js'
 
 // 详情内容可能来自富文本或纯文本，两种展示方式在这里统一兜底。
 defineProps({

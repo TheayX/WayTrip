@@ -49,3 +49,8 @@ export const resolveContentDisplayText = (content) => {
 export const resolveAdminDisplayName = (adminName) => {
   return adminName || ADMIN_DISPLAY_TEXT.UNKNOWN
 }
+
+// 分类字段属于业务标签，不是资源失效态，统一回退到“未分类”。
+export const resolveCategoryDisplayName = (categoryName) => {
+  return categoryName || '未分类'
+}

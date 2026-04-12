@@ -21,7 +21,7 @@
     </el-table-column>
     <el-table-column prop="category" label="分类" width="120" align="center">
       <template #default="{ row }">
-        <el-tag effect="plain" type="info" size="small">{{ row.category || '未分类' }}</el-tag>
+        <el-tag effect="plain" type="info" size="small">{{ resolveCategoryDisplayName(row.category) }}</el-tag>
       </template>
     </el-table-column>
     <el-table-column prop="adminName" label="创建者" width="140" align="center" show-overflow-tooltip>
@@ -80,7 +80,7 @@
 
 <script setup>
 import { ArrowDown } from '@element-plus/icons-vue'
-import { resolveAdminDisplayName } from '@/shared/lib/resource-display.js'
+import { resolveAdminDisplayName, resolveCategoryDisplayName } from '@/shared/lib/resource-display.js'
 
 // 列表仅负责渲染和事件分发，具体变更动作由页面层统一处理。
 defineProps({
