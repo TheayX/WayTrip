@@ -52,6 +52,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final SpotCategoryMapper categoryMapper;
     private final SpotRegionMapper spotRegionMapper;
     private final UserPreferenceMapper userPreferenceMapper;
+    private final UserMapper userMapper;
     private final RecommendationCacheService recommendationCacheService;
     private final RecommendationQuerySupport recommendationQuerySupport;
     private final RecommendationConfigSupport recommendationConfigSupport;
@@ -60,6 +61,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final RecommendationColdStartSupport recommendationColdStartSupport;
 
     private final AtomicBoolean computing = new AtomicBoolean(false);
+    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
+    private static final String UNKNOWN_USER_NICKNAME = "未知用户";
 
     // 推荐主链路入口
 
@@ -808,7 +811,29 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 初始化调试载体，承接本次推荐流程中的各阶段诊断信息。
      */
     private RecommendationResponse.DebugInfo initDebugInfo(Long userId, Integer limit, boolean refresh) {
-        return recommendationScoreSupport.initDebugInfo(userId, limit, refresh);
+        RecommendationResponse.DebugInfo debugInfo = recommendationScoreSupport.initDebugInfo(userId, limit, refresh);
+        debugInfo.setUserNickname(resolveRecommendationDebugNickname(userId));
+        return debugInfo;
+    }
+
+    /**
+     * 调试预览直接回显目标用户昵称，方便后台确认当前查看的是谁的推荐结果。
+     */
+    private String resolveRecommendationDebugNickname(Long userId) {
+        if (userId == null) {
+            return UNKNOWN_USER_NICKNAME;
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return UNKNOWN_USER_NICKNAME;
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return DEACTIVATED_USER_NICKNAME;
+        }
+        if (user.getNickname() == null || user.getNickname().isBlank()) {
+            return "未命名用户";
+        }
+        return user.getNickname();
     }
 
     /**

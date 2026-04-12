@@ -40,6 +40,9 @@
 
         <div class="debug-meta" v-if="debugResult">
           <el-tag size="small" :type="recommendationTypeMeta.tagType">{{ recommendationTypeMeta.label }}</el-tag>
+          <el-tag v-if="debugInfo?.userNickname" size="small" type="warning">
+            用户：{{ debugInfo.userNickname }}
+          </el-tag>
           <el-tag size="small" :type="debugResult.needPreference ? 'warning' : 'success'">
             {{ debugResult.needPreference ? '需要补充偏好设置' : '无需偏好引导' }}
           </el-tag>

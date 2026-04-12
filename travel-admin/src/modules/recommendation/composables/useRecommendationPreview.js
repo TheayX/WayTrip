@@ -35,6 +35,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
 
     const lines = [
       `request.userId = ${debugForm.userId}`,
+      `request.userNickname = ${debugResult.value?.debugInfo?.userNickname || '未返回'}`,
       `request.limit = ${debugForm.limit}`,
       `request.refresh = ${debugForm.refresh}`,
       `request.debug = ${debugForm.debug}`,
