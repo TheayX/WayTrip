@@ -1,7 +1,7 @@
 // 统一维护管理端资源失效、主体失效和普通空值展示文案，避免页面各自硬编码。
 export const ADMIN_DISPLAY_TEXT = {
   PURGED: '已清除管理员',
-  UNKNOWN: '未记录'
+  UNKNOWN: '未知管理员'
 }
 
 export const USER_DISPLAY_TEXT = {
@@ -17,11 +17,11 @@ export const SPOT_DISPLAY_TEXT = {
   UNKNOWN: '未知景点'
 }
 
-export const CONTENT_DISPLAY_TEXT = {
-  OFFLINE: '已下架内容',
-  DELETED: '已删除内容',
-  PURGED: '已清除内容',
-  UNKNOWN: '未知内容'
+export const GUIDE_DISPLAY_TEXT = {
+  OFFLINE: '已下架攻略',
+  DELETED: '已删除攻略',
+  PURGED: '已清除攻略',
+  UNKNOWN: '未知攻略'
 }
 
 export const SOURCE_DISPLAY_TEXT = {

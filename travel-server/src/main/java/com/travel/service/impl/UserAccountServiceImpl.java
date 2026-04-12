@@ -122,7 +122,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     public void suspendUserAccountByAdmin(Long userId) {
         User user = getManagedUser(userId);
         if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            throw new BusinessException(ResultCode.PARAM_ERROR, "用户已被封禁");
+            throw new BusinessException(ResultCode.PARAM_ERROR, "用户已停用");
         }
         applyAccountSuspension(user);
     }
@@ -132,7 +132,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     public void restoreUserAccountByAdmin(Long userId) {
         User user = getManagedUser(userId);
         if (user.getIsDeleted() == null || user.getIsDeleted() != 1) {
-            throw new BusinessException(ResultCode.PARAM_ERROR, "用户当前无需解封");
+            throw new BusinessException(ResultCode.PARAM_ERROR, "用户当前无需恢复");
         }
         applyAccountRestore(user);
     }
@@ -210,7 +210,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     /**
-     * 管理员封禁和用户主动注销都属于软删收口，统一复用同一套清理逻辑。
+     * 管理端停用和用户主动注销都属于软删收口，统一复用同一套清理逻辑。
      */
     private User getManagedUser(Long userId) {
         User user = userMapper.selectById(userId);
@@ -221,7 +221,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     /**
-     * 账号软删时统一清理当前状态型数据，避免不同入口出现不一致的封禁后效果。
+     * 账号软删时统一清理当前状态型数据，避免不同入口出现不一致的停用后效果。
      */
     private void applyAccountSuspension(User user) {
         Long userId = user.getId();
@@ -234,7 +234,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     /**
-     * 当前封禁复用软删语义，因此解封时也要同步恢复偏好和收藏状态，避免账号恢复后数据残缺。
+     * 当前停用复用软删语义，因此恢复时也要同步启用偏好和收藏状态，避免账号恢复后数据残缺。
      */
     private void applyAccountRestore(User user) {
         Long userId = user.getId();
@@ -315,7 +315,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     /**
-     * 解封账号时恢复历史偏好，保持“封禁仅限制使用、解封即可继续使用”的管理语义。
+     * 恢复账号时同步启用历史偏好，保持“停用可撤销、恢复即可继续使用”的管理语义。
      */
     private void restoreUserPreferences(Long userId) {
         UserPreference restoredPreference = new UserPreference();
@@ -327,7 +327,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     /**
-     * 解封后恢复用户收藏，避免后台封禁临时管控造成收藏状态永久丢失。
+     * 恢复后同步启用用户收藏，避免后台临时停用造成收藏状态永久丢失。
      */
     private void restoreUserFavorites(Long userId) {
         UserSpotFavorite restoredFavorite = new UserSpotFavorite();

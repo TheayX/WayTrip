@@ -30,7 +30,7 @@ export function resetUserPassword(id, data) {
 }
 
 /**
- * 封禁用户
+ * 停用用户
  * @param id
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
@@ -39,7 +39,7 @@ export function suspendUserAccount(id) {
 }
 
 /**
- * 解封用户
+ * 恢复用户
  * @param id
  * @returns {Promise<axios.AxiosResponse<any>>}
  */

@@ -129,7 +129,7 @@ class UserProfileServiceImplTest {
 
     @Test
     void getAdminUsers_keepsDeletedUsersForManagement() {
-        User user = buildUser(2L, "已封禁用户");
+        User user = buildUser(2L, "已停用用户");
         user.setIsDeleted(1);
         Page<User> page = new Page<>(1, 10);
         page.setRecords(List.of(user));
@@ -199,7 +199,7 @@ class UserProfileServiceImplTest {
 
     @Test
     void getAdminUserDetail_allowsDeletedUserForInspection() {
-        User user = buildUser(8L, "已封禁用户");
+        User user = buildUser(8L, "已停用用户");
         user.setIsDeleted(1);
         when(userMapper.selectById(8L)).thenReturn(user);
         when(orderMapper.selectCount(any())).thenReturn(0L);
@@ -255,7 +255,7 @@ class UserProfileServiceImplTest {
 
     @Test
     void resetUserPassword_throwsWhenUserDeleted() {
-        User user = buildUser(5L, "已封禁用户");
+        User user = buildUser(5L, "已停用用户");
         user.setIsDeleted(1);
         when(userMapper.selectById(5L)).thenReturn(user);
         ResetUserPasswordRequest request = new ResetUserPasswordRequest();
@@ -263,7 +263,7 @@ class UserProfileServiceImplTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.resetUserPassword(5L, request));
 
-        assertEquals("用户已被封禁", ex.getMessage());
+        assertEquals("用户已停用", ex.getMessage());
     }
 
     private User buildUser(Long id, String nickname) {

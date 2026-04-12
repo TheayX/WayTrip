@@ -94,10 +94,8 @@ import { getFavoriteList, removeFavorite } from '@/modules/favorite/api.js'
 import { getViewHistory } from '@/modules/spot/api.js'
 import { getFootprints, setFootprints } from '@/shared/lib/footprint.js'
 import { getImageUrl } from '@/shared/api/client.js'
+import { isWebInvalidSpotDisplay, resolveWebSpotDisplayName } from '@/shared/constants/resource-display.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
-
-const UNKNOWN_SPOT_DISPLAY = '未知景点'
-const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', UNKNOWN_SPOT_DISPLAY]
 
 // 基础依赖与路由状态
 const route = useRoute()
@@ -124,8 +122,8 @@ const formatViewedTime = (timestamp) => {
   return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')} ${`${date.getHours()}`.padStart(2, '0')}:${`${date.getMinutes()}`.padStart(2, '0')}`
 }
 
-const resolveSpotDisplayName = (spotName) => INVALID_SPOT_NAMES.includes(spotName) ? UNKNOWN_SPOT_DISPLAY : (spotName || '--')
-const isInvalidSpot = (spotName) => INVALID_SPOT_NAMES.includes(resolveSpotDisplayName(spotName))
+const resolveSpotDisplayName = (spotName) => resolveWebSpotDisplayName(spotName)
+const isInvalidSpot = (spotName) => isWebInvalidSpotDisplay(spotName)
 const openSpotDetail = (spotId, spotName, source) => {
   if (isInvalidSpot(spotName)) return
   router.push(buildSpotDetailRoute(spotId, source))

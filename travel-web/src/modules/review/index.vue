@@ -78,10 +78,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { deleteReview, getMyReviews, submitReview } from '@/modules/review/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
+import { isWebInvalidSpotDisplay, resolveWebSpotDisplayName } from '@/shared/constants/resource-display.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
-const UNKNOWN_SPOT_DISPLAY = '未知景点'
-const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', UNKNOWN_SPOT_DISPLAY]
 const router = useRouter()
 
 // 页面数据状态
@@ -102,8 +101,8 @@ const editForm = reactive({
   comment: ''
 })
 
-const resolveSpotDisplayName = (spotName) => INVALID_SPOT_NAMES.includes(spotName) ? UNKNOWN_SPOT_DISPLAY : (spotName || '--')
-const isInvalidSpot = (spotName) => INVALID_SPOT_NAMES.includes(resolveSpotDisplayName(spotName))
+const resolveSpotDisplayName = (spotName) => resolveWebSpotDisplayName(spotName)
+const isInvalidSpot = (spotName) => isWebInvalidSpotDisplay(spotName)
 const openSpotDetail = (spotId, spotName) => {
   if (isInvalidSpot(spotName)) return
   router.push(buildSpotDetailRoute(spotId, SPOT_DETAIL_SOURCE.REVIEW))

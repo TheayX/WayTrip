@@ -48,14 +48,14 @@ public class AdminUserController {
         return ApiResponse.success();
     }
 
-    @Operation(summary = "封禁用户")
+    @Operation(summary = "停用用户")
     @DeleteMapping("/{id}/account")
     public ApiResponse<Void> suspendUserAccount(@PathVariable("id") Long id) {
         userAccountService.suspendUserAccountByAdmin(id);
         return ApiResponse.success();
     }
 
-    @Operation(summary = "解封用户")
+    @Operation(summary = "恢复用户")
     @PutMapping("/{id}/account/restore")
     public ApiResponse<Void> restoreUserAccount(@PathVariable("id") Long id) {
         userAccountService.restoreUserAccountByAdmin(id);

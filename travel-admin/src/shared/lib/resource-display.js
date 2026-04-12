@@ -44,9 +44,9 @@ export const resolveSpotRecordDisplayName = (spot) => {
   return resolveSpotDisplayName(spot.name)
 }
 
-// 内容资源当前先统一空值兜底，后续接入文章/攻略失效态时继续复用。
-export const resolveContentDisplayText = (content) => {
-  return content || COMMON_DISPLAY_TEXT.EMPTY
+// 攻略标题、正文这类普通文本字段统一按空值兜底，避免页面层重复处理。
+export const resolveGuideDisplayText = (text) => {
+  return text || COMMON_DISPLAY_TEXT.EMPTY
 }
 
 // 后台内容创建者属于运营主体，缺失时不再裸露技术占位值。

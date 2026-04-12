@@ -2,7 +2,7 @@
 <template>
   <el-drawer
     :model-value="visible"
-    :title="resolveContentDisplayText(detail?.title) === '--' ? '攻略详情' : resolveContentDisplayText(detail?.title)"
+    :title="resolveGuideDisplayText(detail?.title) === '--' ? '攻略详情' : resolveGuideDisplayText(detail?.title)"
     size="520px"
     class="guide-detail-drawer"
     @update:model-value="emitVisible"
@@ -16,7 +16,7 @@
       </div>
 
       <div class="info-section mb-6 pb-6 border-b border-gray-100">
-        <h2 class="text-2xl font-bold text-gray-800 mb-2 mt-0">{{ resolveContentDisplayText(detail.title) }}</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2 mt-0">{{ resolveGuideDisplayText(detail.title) }}</h2>
         <p class="text-sm text-gray-500 mb-4">{{ resolveCategoryDisplayName(detail.category) }}</p>
 
         <div class="flex gap-4">
@@ -34,8 +34,8 @@
       <div class="info-section mb-6">
         <h3 class="section-title">基础信息</h3>
         <el-descriptions :column="1" border class="custom-desc">
-          <el-descriptions-item label="分类">{{ resolveContentDisplayText(detail.category) }}</el-descriptions-item>
-          <el-descriptions-item label="创建者">{{ resolveContentDisplayText(detail.adminName) }}</el-descriptions-item>
+          <el-descriptions-item label="分类">{{ resolveCategoryDisplayName(detail.category) }}</el-descriptions-item>
+          <el-descriptions-item label="创建者">{{ resolveAdminDisplayName(detail.adminName) }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ formatDate(detail.createdAt) || '--' }}</el-descriptions-item>
           <el-descriptions-item label="修改时间">{{ formatDate(detail.updatedAt) || '--' }}</el-descriptions-item>
         </el-descriptions>
@@ -61,7 +61,7 @@
         <h3 class="section-title">攻略内容</h3>
         <div class="content-panel">
           <div v-if="containsHtml(detail.content)" v-html="detail.content"></div>
-          <div v-else class="plain-content">{{ resolveContentDisplayText(detail.content) }}</div>
+          <div v-else class="plain-content">{{ resolveGuideDisplayText(detail.content) }}</div>
         </div>
       </div>
     </div>
@@ -69,7 +69,12 @@
 </template>
 
 <script setup>
-import { resolveCategoryDisplayName, resolveContentDisplayText, resolveSpotRecordDisplayName } from '@/shared/lib/resource-display.js'
+import {
+  resolveAdminDisplayName,
+  resolveCategoryDisplayName,
+  resolveGuideDisplayText,
+  resolveSpotRecordDisplayName
+} from '@/shared/lib/resource-display.js'
 
 // 详情内容可能来自富文本或纯文本，两种展示方式在这里统一兜底。
 defineProps({

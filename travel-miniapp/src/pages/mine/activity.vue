@@ -151,9 +151,7 @@ import { getViewHistory } from '@/api/spot'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 import { getContentImageUrl, getImageUrl } from '@/utils/request'
-
-const UNKNOWN_SPOT_DISPLAY = '未知景点'
-const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', UNKNOWN_SPOT_DISPLAY]
+import { isMiniappInvalidSpotDisplay, resolveMiniappSpotDisplayName } from '@/utils/resource-display'
 
 // 常量配置
 const tabs = [
@@ -165,8 +163,8 @@ const tabs = [
 // 基础依赖与用户状态
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
-const resolveSpotDisplayName = (spotName) => INVALID_SPOT_NAMES.includes(spotName) ? UNKNOWN_SPOT_DISPLAY : (spotName || '--')
-const isInvalidSpot = (spotName) => INVALID_SPOT_NAMES.includes(resolveSpotDisplayName(spotName))
+const resolveSpotDisplayName = (spotName) => resolveMiniappSpotDisplayName(spotName)
+const isInvalidSpot = (spotName) => isMiniappInvalidSpotDisplay(spotName)
 
 // 页面数据状态
 const activeTab = ref('browse')

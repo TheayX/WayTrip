@@ -83,7 +83,7 @@
         <el-table-column label="状态" width="100" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag :type="row.isDeleted === 1 ? 'warning' : 'success'" effect="light">
-              {{ row.isDeleted === 1 ? '已封禁' : '正常' }}
+              {{ row.isDeleted === 1 ? '已停用' : '正常' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -106,7 +106,7 @@
                     <el-dropdown-item
                       :command="row.isDeleted === 1 ? 'restore-account' : 'suspend-account'"
                     >
-                      {{ row.isDeleted === 1 ? '解封用户' : '封禁用户' }}
+                      {{ row.isDeleted === 1 ? '恢复用户' : '停用用户' }}
                     </el-dropdown-item>
                     <el-dropdown-item command="preference">用户偏好</el-dropdown-item>
                     <el-dropdown-item command="favorite">用户收藏</el-dropdown-item>
@@ -403,20 +403,20 @@ const handleResetPassword = async (row) => {
   }
 }
 
-// 管理端封禁属于账号限制动作，当前会停用账号及其当前状态型数据。
+// 管理端停用属于账号限制动作，当前会同步停用收藏与偏好等当前状态数据。
 const handleSuspendUser = async (row) => {
   try {
     await ElMessageBox.confirm(
-      `确定要封禁用户「${row.nickname}」吗？当前限制动作会同步停用收藏与偏好；后续通过管理端解封或用户重新登录都可恢复。`,
-      '封禁确认',
+      `确定要停用用户「${row.nickname}」吗？当前操作会同步停用收藏与偏好；后续可通过管理端恢复，用户重新登录后也可恢复。`,
+      '停用确认',
       {
         type: 'warning',
-        confirmButtonText: '确认封禁',
+        confirmButtonText: '确认停用',
         cancelButtonText: '取消'
       }
     )
     await suspendUserAccount(row.id)
-    ElMessage.success('用户已封禁')
+    ElMessage.success('用户已停用')
     if (detailVisible.value && currentUser.value?.id === row.id) {
       detailVisible.value = false
       currentUser.value = null
@@ -424,32 +424,32 @@ const handleSuspendUser = async (row) => {
     fetchUserList()
   } catch (e) {
     if (!isMessageBoxDismissed(e)) {
-      console.error('封禁用户失败', e)
+      console.error('停用用户失败', e)
     }
   }
 }
 
-// 解封会恢复账号可用状态，并重新启用封禁期间停用的收藏与偏好。
+// 恢复会重新启用账号及其原有收藏、偏好，保持“限制可撤销”的管理语义。
 const handleRestoreUser = async (row) => {
   try {
     await ElMessageBox.confirm(
-      `确定要解封用户「${row.nickname}」吗？解封后会恢复账号登录能力，并重新启用原有收藏与偏好。`,
-      '解封确认',
+      `确定要恢复用户「${row.nickname}」吗？恢复后会重新启用账号登录能力，并同步恢复原有收藏与偏好。`,
+      '恢复确认',
       {
         type: 'info',
-        confirmButtonText: '确认解封',
+        confirmButtonText: '确认恢复',
         cancelButtonText: '取消'
       }
     )
     await restoreUserAccount(row.id)
-    ElMessage.success('用户已解封')
+    ElMessage.success('用户已恢复')
     if (detailVisible.value && currentUser.value?.id === row.id) {
       await handleDetail(row)
     }
     fetchUserList()
   } catch (e) {
     if (!isMessageBoxDismissed(e)) {
-      console.error('解封用户失败', e)
+      console.error('恢复用户失败', e)
     }
   }
 }

@@ -109,7 +109,7 @@
           <image class="comment-avatar" :src="getAvatarUrl(comment.avatar)" />
           <view class="comment-content">
             <view class="comment-header">
-              <text class="comment-name">{{ comment.nickname || UNKNOWN_USER_DISPLAY }}</text>
+              <text class="comment-name">{{ resolveMiniappUserDisplayName(comment.nickname) }}</text>
               <view class="comment-meta">
                 <view class="comment-score">
                   <uni-icons type="star-filled" size="13" color="#d97706" />
@@ -194,11 +194,11 @@ import { deleteReview, submitReview } from '@/api/review'
 import { guardLoginPage, promptLogin } from '@/utils/auth'
 import { getLocationSnapshot } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
+import { resolveMiniappUserDisplayName } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 
 // 基础依赖与用户状态
-const UNKNOWN_USER_DISPLAY = '未知用户'
 const spot = ref(null)
 const spotId = ref(null)
 const currentLocation = ref(null)

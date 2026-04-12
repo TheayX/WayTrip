@@ -19,7 +19,7 @@ public final class ResourceDisplayText {
 
     public static final class Admin {
         public static final String PURGED = "已清除管理员";
-        public static final String UNKNOWN = "未记录";
+        public static final String UNKNOWN = "未知管理员";
 
         private Admin() {
         }
@@ -35,13 +35,13 @@ public final class ResourceDisplayText {
         }
     }
 
-    public static final class Content {
-        public static final String OFFLINE = "已下架内容";
-        public static final String DELETED = "已删除内容";
-        public static final String PURGED = "已清除内容";
-        public static final String UNKNOWN = "未知内容";
+    public static final class Guide {
+        public static final String OFFLINE = "已下架攻略";
+        public static final String DELETED = "已删除攻略";
+        public static final String PURGED = "已清除攻略";
+        public static final String UNKNOWN = "未知攻略";
 
-        private Content() {
+        private Guide() {
         }
     }
 

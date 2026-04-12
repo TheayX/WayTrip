@@ -234,12 +234,12 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     /**
-     * 密码重置属于当前可用账号维护动作，不允许对已封禁用户直接操作。
+     * 密码重置属于当前可用账号维护动作，不允许对已停用用户直接操作。
      */
     private User getActiveManagedUser(Long userId) {
         User user = getManagedUser(userId);
         if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            throw new RuntimeException("用户已被封禁");
+            throw new RuntimeException("用户已停用");
         }
         return user;
     }
