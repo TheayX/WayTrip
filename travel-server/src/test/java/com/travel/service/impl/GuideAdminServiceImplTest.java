@@ -124,4 +124,47 @@ class GuideAdminServiceImplTest {
         assertEquals("系统管理员", result.getAdminName());
         assertEquals("西湖攻略", result.getTitle());
     }
+
+    @Test
+    void getAdminGuideList_returnsPurgedAdminWhenAdminRecordRemoved() {
+        Guide guide = new Guide();
+        guide.setId(2L);
+        guide.setTitle("灵隐寺攻略");
+        guide.setAdminId(10L);
+        guide.setIsDeleted(0);
+        guide.setIsPublished(1);
+        guide.setViewCount(8);
+
+        Page<Guide> page = new Page<>(1, 10);
+        page.setRecords(List.of(guide));
+        page.setTotal(1L);
+
+        when(guideMapper.selectPage(any(), any())).thenReturn(page);
+        when(adminMapper.selectBatchIds(List.of(10L))).thenReturn(List.of());
+
+        PageResult<com.travel.dto.guide.response.AdminGuideListResponse> result =
+            guideAdminService.getAdminGuideList(new com.travel.dto.guide.request.AdminGuideListRequest());
+
+        assertEquals("已清除管理员", result.getList().get(0).getAdminName());
+    }
+
+    @Test
+    void getAdminGuideDetail_returnsUnknownAdminWhenGuideHasNoAdminId() {
+        Guide guide = new Guide();
+        guide.setId(3L);
+        guide.setTitle("断桥攻略");
+        guide.setAdminId(null);
+        guide.setCategory("城市漫游");
+        guide.setContent("详情内容");
+        guide.setIsDeleted(0);
+        guide.setIsPublished(1);
+        guide.setViewCount(5);
+
+        when(guideMapper.selectById(3L)).thenReturn(guide);
+        when(guideSpotRelationMapper.selectList(any())).thenReturn(List.of());
+
+        AdminGuideRequest result = guideAdminService.getAdminGuideDetail(3L);
+
+        assertEquals("未知管理员", result.getAdminName());
+    }
 }

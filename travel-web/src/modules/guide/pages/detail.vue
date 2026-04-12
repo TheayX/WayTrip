@@ -17,8 +17,13 @@
       />
     </div>
   </div>
-  <div v-else class="page-container">
+  <div v-else-if="loading" class="page-container">
     <el-skeleton :rows="15" animated />
+  </div>
+  <div v-else class="page-container invalid-state">
+    <el-empty :description="invalidMessage">
+      <el-button type="primary" @click="$router.push('/guides')">返回攻略列表</el-button>
+    </el-empty>
   </div>
 </template>
 
@@ -40,7 +45,9 @@ const resolveGuideText = (value) => resolveWebGuideDisplayText(value)
 const route = useRoute()
 
 // 页面数据状态
+const loading = ref(true)
 const guide = ref(null)
+const invalidMessage = ref('未知攻略，暂时无法查看详情')
 const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
 
 // 数据加载方法
@@ -60,7 +67,20 @@ const fetchDetail = async () => {
       }))
     }
   } catch (e) {
+    guide.value = null
+    const message = e?.response?.data?.message
+    if (message === '攻略已下架') {
+      invalidMessage.value = '未知攻略，暂时无法查看详情'
+      return
+    }
+    if (message === '攻略不存在') {
+      invalidMessage.value = '未知攻略，暂时无法查看详情'
+      return
+    }
+    invalidMessage.value = '攻略详情加载失败，请稍后重试'
     ElMessage.error('获取攻略详情失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -133,6 +153,10 @@ onMounted(() => {
 
 .guide-content--plain {
   white-space: pre-line;
+}
+
+.invalid-state {
+  padding: 48px 0;
 }
 
 @media (max-width: 992px) {

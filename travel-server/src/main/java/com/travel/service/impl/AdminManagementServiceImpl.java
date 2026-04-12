@@ -10,9 +10,7 @@ import com.travel.dto.admin.response.AdminListResponse;
 import com.travel.dto.admin.request.AdminResetPasswordRequest;
 import com.travel.dto.admin.request.AdminUpdateRequest;
 import com.travel.entity.Admin;
-import com.travel.entity.Guide;
 import com.travel.mapper.AdminMapper;
-import com.travel.mapper.GuideMapper;
 import com.travel.service.AdminManagementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +32,6 @@ public class AdminManagementServiceImpl implements AdminManagementService {
     // 持久层与安全依赖
 
     private final AdminMapper adminMapper;
-    private final GuideMapper guideMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
     // 管理端管理员查询与维护
@@ -130,7 +127,6 @@ public class AdminManagementServiceImpl implements AdminManagementService {
         }
 
         Admin admin = getActiveAdmin(id);
-        validateNoActiveGuideReference(id);
         admin.setIsDeleted(1);
         adminMapper.updateById(admin);
         log.info("管理员已删除：adminId={}, username={}", id, admin.getUsername());
@@ -144,20 +140,6 @@ public class AdminManagementServiceImpl implements AdminManagementService {
             throw new BusinessException(ResultCode.ADMIN_NOT_FOUND);
         }
         return admin;
-    }
-
-    /**
-     * 管理员删除先做保护式阻断，避免攻略表留下无主 admin_id。
-     */
-    private void validateNoActiveGuideReference(Long adminId) {
-        Long activeGuideCount = guideMapper.selectCount(
-                new LambdaQueryWrapper<Guide>()
-                        .eq(Guide::getAdminId, adminId)
-                        .eq(Guide::getIsDeleted, 0)
-        );
-        if (activeGuideCount != null && activeGuideCount > 0) {
-            throw new BusinessException(ResultCode.PARAM_ERROR, "该管理员下仍有关联攻略，请先转移或删除攻略");
-        }
     }
 
     private AdminListResponse.AdminItem buildItem(Admin admin) {

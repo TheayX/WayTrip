@@ -53,6 +53,14 @@
       </view>
     </view>
   </view>
+  <view v-else-if="loading" class="guide-loading">
+    <text class="loading-text">正在加载攻略详情...</text>
+  </view>
+  <view v-else class="guide-invalid">
+    <text class="invalid-title">{{ invalidMessage }}</text>
+    <text class="invalid-desc">可以返回攻略列表，继续看看其他出游灵感。</text>
+    <view class="invalid-btn" @click="goGuideList">返回攻略列表</view>
+  </view>
 </template>
 
 <script setup>
@@ -67,6 +75,8 @@ import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 // 页面数据状态
 const guide = ref(null)
 const guideId = ref(null)
+const loading = ref(true)
+const invalidMessage = ref('未知攻略，暂时无法查看详情')
 const resolveGuideText = (value) => resolveMiniappGuideDisplayText(value)
 const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
 const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
@@ -98,8 +108,17 @@ const fetchGuideDetail = async () => {
       })
     }
   } catch (e) {
+    guide.value = null
     console.error('获取攻略详情失败', e)
+    const message = e?.data?.message || e?.message || e?.response?.data?.message
+    if (message === '攻略已下架' || message === '攻略不存在') {
+      invalidMessage.value = '未知攻略，暂时无法查看详情'
+      return
+    }
+    invalidMessage.value = '攻略详情加载失败，请稍后重试'
     uni.showToast({ title: '加载失败', icon: 'none' })
+  } finally {
+    loading.value = false
   }
 }
 
@@ -112,6 +131,10 @@ const goSpotDetail = (id) => {
 
 const goSpotList = () => {
   uni.navigateTo({ url: '/pages/spot/list?sortBy=heat' })
+}
+
+const goGuideList = () => {
+  uni.navigateTo({ url: '/pages/guide/list?sortBy=time' })
 }
 
 // 生命周期
@@ -130,6 +153,43 @@ onLoad((options) => {
   min-height: 100vh;
   padding-bottom: 40rpx;
   background: transparent;
+}
+
+.guide-loading,
+.guide-invalid {
+  min-height: 100vh;
+  padding: 120rpx 48rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.loading-text,
+.invalid-desc {
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: #64748b;
+}
+
+.invalid-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.invalid-desc {
+  margin-top: 16rpx;
+}
+
+.invalid-btn {
+  margin-top: 28rpx;
+  padding: 18rpx 36rpx;
+  border-radius: 999rpx;
+  background: #18181b;
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 600;
 }
 
 .guide-cover {
