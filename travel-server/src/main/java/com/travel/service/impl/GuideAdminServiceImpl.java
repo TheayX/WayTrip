@@ -3,6 +3,7 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
@@ -28,7 +29,9 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -97,12 +100,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
             .map(GuideSpotRelation::getSpotId)
             .collect(Collectors.toList());
 
-        List<AdminGuideRequest.SpotOption> spotOptions = new ArrayList<>();
-        if (!spotIds.isEmpty()) {
-            spotOptions = spotMapper.selectBatchIds(spotIds).stream()
-                .map(this::convertToSpotOption)
-                .collect(Collectors.toList());
-        }
+        List<AdminGuideRequest.SpotOption> spotOptions = buildSpotOptions(spotIds);
 
         List<Long> filteredSpotIds = spotOptions.stream()
             .filter(option -> option.getIsDeleted() == null || option.getIsDeleted() != 1)
@@ -234,6 +232,34 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         option.setName(spot.getName());
         option.setPublished(spot.getIsPublished());
         option.setIsDeleted(spot.getIsDeleted());
+        return option;
+    }
+
+    /**
+     * 编辑态需要保留关联顺序，哪怕景点被硬删，也要回显成“已清除景点”而不是直接丢失。
+     */
+    private List<AdminGuideRequest.SpotOption> buildSpotOptions(List<Long> spotIds) {
+        if (spotIds == null || spotIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Map<Long, Spot> spotMap = spotMapper.selectBatchIds(spotIds).stream()
+            .collect(Collectors.toMap(Spot::getId, spot -> spot, (left, right) -> left, LinkedHashMap::new));
+
+        return spotIds.stream()
+            .map(spotId -> {
+                Spot spot = spotMap.get(spotId);
+                return spot != null ? convertToSpotOption(spot) : buildPurgedSpotOption(spotId);
+            })
+            .collect(Collectors.toList());
+    }
+
+    private AdminGuideRequest.SpotOption buildPurgedSpotOption(Long spotId) {
+        AdminGuideRequest.SpotOption option = new AdminGuideRequest.SpotOption();
+        option.setId(spotId);
+        option.setName(ResourceDisplayText.Spot.PURGED);
+        option.setPublished(0);
+        option.setIsDeleted(1);
         return option;
     }
 
