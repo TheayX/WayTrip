@@ -54,3 +54,8 @@ export const resolveAdminDisplayName = (adminName) => {
 export const resolveCategoryDisplayName = (categoryName) => {
   return categoryName || '未分类'
 }
+
+// 地区字段在管理端分析视图里统一回退到“未知地区”，避免和业务文案混用。
+export const resolveRegionDisplayName = (regionName) => {
+  return regionName || '未知地区'
+}

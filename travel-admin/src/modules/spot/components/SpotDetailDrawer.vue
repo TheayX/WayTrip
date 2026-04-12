@@ -57,8 +57,8 @@
       <div class="info-section mb-6">
         <h3 class="text-sm font-bold text-gray-800 mb-3 border-l-4 border-primary pl-2 uppercase tracking-winder">基础信息</h3>
         <el-descriptions :column="1" border class="custom-desc">
-          <el-descriptions-item label="分类">{{ detail.categoryName || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="地区">{{ detail.regionName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="分类">{{ resolveCategoryDisplayName(detail.categoryName) }}</el-descriptions-item>
+          <el-descriptions-item label="地区">{{ resolveRegionDisplayName(detail.regionName) }}</el-descriptions-item>
           <el-descriptions-item label="开放时间">{{ detail.openTime || '-' }}</el-descriptions-item>
           <el-descriptions-item label="经纬度">E {{ detail.longitude || '-' }}, N {{ detail.latitude || '-' }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ formatDate(detail.createdAt) || '-' }}</el-descriptions-item>
@@ -85,6 +85,7 @@
 
 <script setup>
 import { Location, StarFilled } from '@element-plus/icons-vue'
+import { resolveCategoryDisplayName, resolveRegionDisplayName } from '@/shared/lib/resource-display.js'
 
 // 详情抽屉只处理展示与开关，不在内部复制页面层的数据加工逻辑。
 defineProps({

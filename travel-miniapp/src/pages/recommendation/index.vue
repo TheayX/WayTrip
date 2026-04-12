@@ -21,7 +21,7 @@
         <image class="card-image" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
         <view class="card-content">
           <view class="card-kicker">
-            <text class="card-tag">{{ spot.categoryName || '景点' }}</text>
+            <text class="card-tag">{{ resolveSpotCategory(spot.categoryName) }}</text>
             <text class="card-rating">{{ spot.avgRating || '4.5' }} 分</text>
           </view>
           <view class="card-header">
@@ -72,6 +72,8 @@ import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getContentImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
+
+const resolveSpotCategory = (value) => value || '景点'
 
 // 基础依赖与用户状态
 const userStore = useUserStore()

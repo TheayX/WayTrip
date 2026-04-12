@@ -66,8 +66,8 @@
           >
             <img :src="getImageUrl(spot.coverImage)" class="result-img" alt="" />
             <div class="result-info">
-              <h4 class="result-name">{{ spot.name }}</h4>
-              <p class="result-region">{{ spot.regionName }} · {{ spot.categoryName }}</p>
+              <h4 class="result-name">{{ resolveSpotText(spot.name) }}</h4>
+              <p class="result-region">{{ resolveSpotRegion(spot.regionName) }} · {{ resolveSpotCategory(spot.categoryName) }}</p>
               <p class="result-desc">{{ spot.intro || '暂无介绍' }}</p>
               <div class="result-bottom">
                 <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
@@ -205,6 +205,9 @@ const hotKeywords = SEARCH_HOT_KEYWORDS
 const resolveGuideText = (value) => value || '--'
 const resolveGuideCategory = (value) => value || '攻略'
 const resolveGuideSummary = (value) => value || '--'
+const resolveSpotText = (value) => value || '--'
+const resolveSpotCategory = (value) => value || '景点'
+const resolveSpotRegion = (value) => value || '--'
 
 // 基础依赖与路由状态
 const route = useRoute()
@@ -237,8 +240,8 @@ const fallbackSpotCards = computed(() => fallbackSpots.value.map((spot) => ({
   targetId: spot.id,
   type: 'spot',
   image: spot.coverImage,
-  title: spot.name,
-  subtitle: `${spot.regionName} · ${spot.categoryName || '景点'}`
+  title: resolveSpotText(spot.name),
+  subtitle: `${resolveSpotRegion(spot.regionName)} · ${resolveSpotCategory(spot.categoryName)}`
 })))
 const fallbackGuideCards = computed(() => fallbackGuides.value.map((guide) => ({
   id: `guide-${guide.id}`,

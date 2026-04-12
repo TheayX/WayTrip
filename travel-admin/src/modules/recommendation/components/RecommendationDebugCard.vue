@@ -187,7 +187,7 @@
                 <div class="top-result-name">{{ item.name }}</div>
                 <div class="top-result-meta">
                   <span>{{ resolveCategoryDisplayName(item.categoryName) }}</span>
-                  <span>{{ item.regionName || '未知地区' }}</span>
+                  <span>{{ resolveRegionDisplayName(item.regionName) }}</span>
                 </div>
               </div>
               <div class="top-result-score">
@@ -334,7 +334,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { resolveCategoryDisplayName } from '@/shared/lib/resource-display.js'
+import { resolveCategoryDisplayName, resolveRegionDisplayName } from '@/shared/lib/resource-display.js'
 
 const debugCardRef = ref()
 
