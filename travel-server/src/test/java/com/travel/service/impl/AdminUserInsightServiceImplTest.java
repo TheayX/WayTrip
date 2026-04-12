@@ -152,7 +152,7 @@ class AdminUserInsightServiceImplTest {
     }
 
     @Test
-    void getViewList_marksMissingUserAsDeactivated() {
+    void getViewList_marksMissingUserAsPurged() {
         UserSpotView view = new UserSpotView();
         view.setId(1L);
         view.setUserId(20L);
@@ -179,7 +179,7 @@ class AdminUserInsightServiceImplTest {
 
         PageResult<AdminUserViewListItem> result = service.getViewList(request);
 
-        assertEquals("已注销用户", result.getList().get(0).getNickname());
+        assertEquals("已清除用户", result.getList().get(0).getNickname());
     }
 }
 

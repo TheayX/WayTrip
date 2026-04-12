@@ -9,6 +9,7 @@ import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotCategory;
 import com.travel.entity.SpotRegion;
+import com.travel.entity.User;
 import com.travel.entity.UserPreference;
 import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.UserSpotView;
@@ -19,6 +20,7 @@ import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.SpotRegionMapper;
 import com.travel.mapper.UserPreferenceMapper;
+import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.cache.RecommendationCacheService;
@@ -98,6 +100,9 @@ class RecommendationServiceImplTest {
     private UserPreferenceMapper userPreferenceMapper;
 
     @Mock
+    private UserMapper userMapper;
+
+    @Mock
     private RecommendationCacheService recommendationCacheService;
 
     private RecommendationServiceImpl recommendationService;
@@ -147,6 +152,7 @@ class RecommendationServiceImplTest {
             categoryMapper,
             spotRegionMapper,
             userPreferenceMapper,
+            userMapper,
             recommendationCacheService,
             recommendationQuerySupport,
             recommendationConfigSupport,

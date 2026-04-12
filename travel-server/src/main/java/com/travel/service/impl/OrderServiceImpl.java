@@ -544,10 +544,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 管理端订单允许保留历史记录，但账号失效后需要统一展示注销文案。
+     * 管理端订单允许保留历史记录，但需区分账号已注销与用户记录已被清除。
      */
     private String resolveDisplayNickname(User user) {
-        if (user == null || user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+        if (user == null) {
+            return ResourceDisplayText.User.PURGED;
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
             return ResourceDisplayText.User.DEACTIVATED;
         }
         return user.getNickname();

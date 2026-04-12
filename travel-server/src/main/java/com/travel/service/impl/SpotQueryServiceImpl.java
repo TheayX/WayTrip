@@ -15,11 +15,13 @@ import com.travel.dto.spot.response.SpotViewHistoryResponse;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotImage;
+import com.travel.entity.User;
 import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.UserSpotView;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotImageMapper;
 import com.travel.mapper.SpotMapper;
+import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.SpotQueryService;
@@ -52,6 +54,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final ReviewMapper reviewMapper;
     private final UserSpotViewMapper userSpotViewMapper;
+    private final UserMapper userMapper;
     private final SpotResponseAssembler spotResponseAssembler;
     private final SpotTreeSupport spotTreeSupport;
 
@@ -266,7 +269,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     }
 
     /**
-     * 详情页最新评论允许展示已删除账号的历史评价，但需要隐藏原始身份信息。
+     * 详情页最新评论允许展示历史评价，但需要区分用户已注销与记录已被清除。
      */
     private SpotDetailResponse.CommentItem normalizeCommentAuthor(SpotDetailResponse.CommentItem comment) {
         if (comment == null) {
@@ -275,8 +278,22 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         if (StringUtils.hasText(comment.getNickname())) {
             return comment;
         }
-        comment.setNickname(ResourceDisplayText.User.DEACTIVATED);
+        User user = comment.getUserId() == null ? null : userMapper.selectById(comment.getUserId());
+        comment.setNickname(resolveCommentAuthorDisplayName(user));
         comment.setAvatar(null);
         return comment;
+    }
+
+    /**
+     * 评论作者缺失时，展示语义要与全站软删/硬删口径保持一致。
+     */
+    private String resolveCommentAuthorDisplayName(User user) {
+        if (user == null) {
+            return ResourceDisplayText.User.PURGED;
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return ResourceDisplayText.User.DEACTIVATED;
+        }
+        return user.getNickname();
     }
 }

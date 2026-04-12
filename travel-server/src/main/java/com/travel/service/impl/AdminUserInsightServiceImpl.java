@@ -326,10 +326,13 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
     }
 
     /**
-     * 后台行为列表保留历史记录，但账号失效后统一降级成注销文案。
+     * 后台行为列表保留历史记录，但需区分账号已注销与用户记录已被清除。
      */
     private String resolveDisplayNickname(User user) {
-        if (user == null || user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+        if (user == null) {
+            return ResourceDisplayText.User.PURGED;
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
             return ResourceDisplayText.User.DEACTIVATED;
         }
         return user.getNickname();

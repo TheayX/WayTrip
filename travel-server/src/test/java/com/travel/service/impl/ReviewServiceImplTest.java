@@ -7,6 +7,7 @@ import com.travel.common.result.ResultCode;
 import com.travel.dto.review.request.ReviewRequest;
 import com.travel.dto.review.response.ReviewResponse;
 import com.travel.dto.review.stats.SpotRatingStats;
+import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.entity.User;
@@ -25,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
@@ -176,6 +178,31 @@ class ReviewServiceImplTest {
 
         assertEquals("已注销用户", response.getNickname());
         assertNull(response.getAvatar());
+    }
+
+    @Test
+    void getSpotReviews_returnsPurgedNicknameWhenAuthorHardDeleted() {
+        Review purgedAuthorReview = new Review();
+        purgedAuthorReview.setId(21L);
+        purgedAuthorReview.setUserId(9L);
+        purgedAuthorReview.setSpotId(100L);
+        purgedAuthorReview.setScore(5);
+        purgedAuthorReview.setComment("历史评价");
+        purgedAuthorReview.setIsDeleted(0);
+
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Review> page =
+            new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 10);
+        page.setRecords(java.util.List.of(purgedAuthorReview));
+        page.setTotal(1L);
+
+        when(reviewMapper.selectReviewPage(any(), eq(100L))).thenReturn(page);
+        when(userMapper.selectById(9L)).thenReturn(null);
+        when(spotMapper.selectById(100L)).thenReturn(null);
+
+        var result = reviewService.getSpotReviews(100L, 1, 10);
+
+        assertEquals("已清除用户", result.getList().get(0).getNickname());
+        assertNull(result.getList().get(0).getAvatar());
     }
 
     /**

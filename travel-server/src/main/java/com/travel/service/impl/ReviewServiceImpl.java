@@ -286,7 +286,7 @@ public class ReviewServiceImpl implements ReviewService {
         boolean isActiveUser = user != null && user.getIsDeleted() != null && user.getIsDeleted() == 0;
         String nickname = review.getNickname() != null
             ? review.getNickname()
-            : (isActiveUser ? user.getNickname() : ResourceDisplayText.User.DEACTIVATED);
+            : resolveUserDisplayNickname(user);
         String avatar = review.getAvatarUrl() != null
             ? review.getAvatarUrl()
             : (isActiveUser ? user.getAvatarUrl() : null);
@@ -310,6 +310,19 @@ public class ReviewServiceImpl implements ReviewService {
             .createdAt(review.getCreatedAt() != null ? review.getCreatedAt().format(DATE_FORMATTER) : null)
             .updatedAt(review.getUpdatedAt() != null ? review.getUpdatedAt().format(DATE_FORMATTER) : null)
             .build();
+    }
+
+    /**
+     * 历史评价需要区分“账号已注销”和“用户记录已被硬删”，避免展示语义失真。
+     */
+    private String resolveUserDisplayNickname(User user) {
+        if (user == null) {
+            return ResourceDisplayText.User.PURGED;
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return ResourceDisplayText.User.DEACTIVATED;
+        }
+        return user.getNickname();
     }
 
     /**

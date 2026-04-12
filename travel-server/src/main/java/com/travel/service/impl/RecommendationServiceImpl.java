@@ -823,7 +823,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
         User user = userMapper.selectById(userId);
         if (user == null) {
-            return ResourceDisplayText.User.UNKNOWN;
+            return ResourceDisplayText.User.PURGED;
         }
         if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
             return ResourceDisplayText.User.DEACTIVATED;

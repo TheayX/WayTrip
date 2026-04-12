@@ -2,12 +2,16 @@ import { ADMIN_DISPLAY_TEXT, COMMON_DISPLAY_TEXT, SPOT_DISPLAY_TEXT, USER_DISPLA
 
 // 用户主体失效时统一降级到规范文案，避免页面层重复写同样的兜底判断。
 export const resolveUserDisplayName = (nickname) => {
-  return nickname || USER_DISPLAY_TEXT.DEACTIVATED
+  return nickname || USER_DISPLAY_TEXT.UNKNOWN
 }
 
-// 当前约定下，只要展示昵称落到“已注销用户”，页面就不再提供跳转能力。
+// 当前约定下，只要展示昵称落到失效主体文案，页面就不再提供跳转能力。
 export const isDeactivatedUserDisplay = (nickname) => {
-  return resolveUserDisplayName(nickname) === USER_DISPLAY_TEXT.DEACTIVATED
+  return [
+    USER_DISPLAY_TEXT.DEACTIVATED,
+    USER_DISPLAY_TEXT.PURGED,
+    USER_DISPLAY_TEXT.UNKNOWN
+  ].includes(resolveUserDisplayName(nickname))
 }
 
 // 景点名称展示统一走后端返回语义，前端只负责空值兜底。

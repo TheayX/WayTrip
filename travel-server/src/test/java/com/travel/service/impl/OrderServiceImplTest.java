@@ -323,6 +323,29 @@ class OrderServiceImplTest {
         assertEquals("已注销用户", response.getList().get(0).getUserNickname());
     }
 
+    @Test
+    void getAdminOrders_marksMissingUserAsPurged() {
+        Order order = buildOrder(OrderStatus.PAID);
+
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Order> page =
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 10);
+        page.setRecords(List.of(order));
+        page.setTotal(1);
+
+        when(orderMapper.selectPage(any(), any())).thenReturn(page);
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(spot));
+        when(userMapper.selectById(1L)).thenReturn(null);
+
+        AdminOrderListRequest request = new AdminOrderListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+
+        AdminOrderListResponse response = orderService.getAdminOrders(request);
+
+        assertEquals(1, response.getList().size());
+        assertEquals("已清除用户", response.getList().get(0).getUserNickname());
+    }
+
     /**
      * 按指定状态构造订单夹具。
      */

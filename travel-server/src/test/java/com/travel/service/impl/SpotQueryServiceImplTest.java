@@ -14,6 +14,7 @@ import com.travel.entity.UserSpotView;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotImageMapper;
 import com.travel.mapper.SpotMapper;
+import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.support.spot.SpotResponseAssembler;
@@ -78,6 +79,9 @@ class SpotQueryServiceImplTest {
     private UserSpotViewMapper userSpotViewMapper;
 
     @Mock
+    private UserMapper userMapper;
+
+    @Mock
     private SpotResponseAssembler spotResponseAssembler;
 
     @Mock
@@ -93,6 +97,7 @@ class SpotQueryServiceImplTest {
             userSpotFavoriteMapper,
             reviewMapper,
             userSpotViewMapper,
+            userMapper,
             spotResponseAssembler,
             spotTreeSupport
         );
