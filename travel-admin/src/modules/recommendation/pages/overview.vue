@@ -185,7 +185,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSourceLabel } from '@/shared/constants/view-source.js'
-import { USER_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
+import { resolveUserDisplayName } from '@/shared/lib/resource-display.js'
 import { getRecommendationStatus } from '@/modules/recommendation/api/recommendation.js'
 import { getFavoriteList } from '@/modules/user-ops/api/favorite.js'
 import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
@@ -229,7 +229,7 @@ const latestPreference = reactive({
 
 const resolveBehaviorNickname = (nickname, hasBehavior) => {
   if (nickname) return nickname
-  return hasBehavior ? USER_DISPLAY_TEXT.DEACTIVATED : ''
+  return hasBehavior ? resolveUserDisplayName('') : ''
 }
 
 // 工作台入口

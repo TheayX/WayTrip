@@ -158,7 +158,7 @@ import { deleteView, getViewList } from '@/modules/user-ops/api/view-log.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getResourceUrl } from '@/shared/lib/resource.js'
 import { getSourceBucketLabel, getSourceLabel, sourceOptions } from '@/shared/constants/view-source.js'
-import { USER_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
+import { isDeactivatedUserDisplay, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -201,8 +201,8 @@ const topSourceLabel = computed(() => {
   const topSource = Object.entries(sourceCounter).sort((a, b) => b[1] - a[1])[0]?.[0]
   return getSourceLabel(topSource)
 })
-const getDisplayNickname = (row) => row?.nickname || USER_DISPLAY_TEXT.DEACTIVATED
-const isDeactivatedUser = (row) => getDisplayNickname(row) === USER_DISPLAY_TEXT.DEACTIVATED
+const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
+const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
 
 // 获取浏览列表
 const fetchViewList = async () => {

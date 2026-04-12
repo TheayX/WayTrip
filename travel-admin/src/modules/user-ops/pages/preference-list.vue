@@ -114,7 +114,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
 import { getFilters } from '@/modules/spot/api.js'
-import { USER_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
+import { isDeactivatedUserDisplay, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -152,8 +152,8 @@ const topPreferenceTag = computed(() => {
   }, {})
   return Object.entries(counter).sort((a, b) => b[1] - a[1])[0]?.[0] || '暂无'
 })
-const getDisplayNickname = (row) => row?.nickname || USER_DISPLAY_TEXT.DEACTIVATED
-const isDeactivatedUser = (row) => getDisplayNickname(row) === USER_DISPLAY_TEXT.DEACTIVATED
+const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
+const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
 
 // 格式化手机号显示
 const formatPhone = (phone) => {
