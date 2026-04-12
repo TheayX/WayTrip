@@ -2,6 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.dto.user.request.AdminUserListRequest;
 import com.travel.dto.user.request.ResetUserPasswordRequest;
 import com.travel.dto.user.response.AdminUserDetailResponse;
@@ -174,7 +175,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
         Spot latestSpot = spotMapper.selectById(latestFavorite.getSpotId());
         AdminUserDetailResponse.FavoriteSummary summary = new AdminUserDetailResponse.FavoriteSummary();
-        summary.setLatestSpotName(latestSpot != null ? latestSpot.getName() : "景点#" + latestFavorite.getSpotId());
+        summary.setLatestSpotName(resolveSpotDisplayName(latestSpot));
         summary.setLatestCreatedAt(latestFavorite.getCreatedAt());
         return summary;
     }
@@ -205,7 +206,7 @@ public class UserProfileServiceImpl implements UserProfileService {
             .orElse(0));
 
         AdminUserDetailResponse.ViewSummary summary = new AdminUserDetailResponse.ViewSummary();
-        summary.setLatestSpotName(latestSpot != null ? latestSpot.getName() : "景点#" + latestView.getSpotId());
+        summary.setLatestSpotName(resolveSpotDisplayName(latestSpot));
         summary.setLatestCreatedAt(latestView.getCreatedAt());
         summary.setTopSource(sourceCounter.entrySet().stream()
             .max(java.util.Map.Entry.comparingByValue())
@@ -269,9 +270,25 @@ public class UserProfileServiceImpl implements UserProfileService {
     private java.util.Map<Long, String> buildSpotNameMap(java.util.Set<Long> spotIds) {
         java.util.Map<Long, String> spotNameMap = new java.util.HashMap<>();
         if (!spotIds.isEmpty()) {
-            spotMapper.selectBatchIds(spotIds).forEach(spot -> spotNameMap.put(spot.getId(), spot.getName()));
+            spotMapper.selectBatchIds(spotIds).forEach(spot -> spotNameMap.put(spot.getId(), resolveSpotDisplayName(spot)));
         }
         return spotNameMap;
+    }
+
+    /**
+     * 用户详情中的历史摘要同样保留记录，但景点失效后要明确展示当前状态。
+     */
+    private String resolveSpotDisplayName(Spot spot) {
+        if (spot == null) {
+            return ResourceDisplayText.Spot.PURGED;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return ResourceDisplayText.Spot.DELETED;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return ResourceDisplayText.Spot.OFFLINE;
+        }
+        return spot.getName();
     }
 
     private Long parseCategoryId(String tag) {

@@ -450,27 +450,51 @@ public class OrderServiceImpl implements OrderService {
 
         List<Spot> spots = spotMapper.selectBatchIds(spotIds);
         Map<Long, Spot> spotMap = spots.stream()
-            .filter(spot -> spot.getIsDeleted() == 0)
             .collect(Collectors.toMap(Spot::getId, s -> s));
 
         for (Order order : orders) {
             Spot spot = spotMap.get(order.getSpotId());
-            if (spot != null) {
-                order.setSpotName(spot.getName());
-                order.setSpotImage(spot.getCoverImageUrl());
-                order.setUnitPrice(spot.getPrice());
-            }
+            applySpotDisplay(order, spot);
         }
     }
 
     private void fillSpotInfoSingle(Order order) {
         if (order == null || order.getSpotId() == null) return;
         Spot spot = spotMapper.selectById(order.getSpotId());
-        if (spot != null && spot.getIsDeleted() == 0) {
-            order.setSpotName(spot.getName());
-            order.setSpotImage(spot.getCoverImageUrl());
-            order.setUnitPrice(spot.getPrice());
+        applySpotDisplay(order, spot);
+    }
+
+    /**
+     * 历史订单允许保留景点信息，但景点失效后需要降级为统一文案，避免页面出现空白。
+     */
+    private void applySpotDisplay(Order order, Spot spot) {
+        if (order == null) {
+            return;
         }
+        if (spot == null) {
+            order.setSpotName(ResourceDisplayText.Spot.PURGED);
+            order.setSpotImage(null);
+            return;
+        }
+        order.setSpotName(resolveSpotDisplayName(spot));
+        order.setSpotImage(spot.getCoverImageUrl());
+        order.setUnitPrice(spot.getPrice());
+    }
+
+    /**
+     * 景点名称展示统一按“有效、下架、软删、硬删”四种语义收口。
+     */
+    private String resolveSpotDisplayName(Spot spot) {
+        if (spot == null) {
+            return ResourceDisplayText.Spot.PURGED;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return ResourceDisplayText.Spot.DELETED;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return ResourceDisplayText.Spot.OFFLINE;
+        }
+        return spot.getName();
     }
 
     // 响应对象构建

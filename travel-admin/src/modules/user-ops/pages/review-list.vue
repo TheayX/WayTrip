@@ -99,7 +99,7 @@
                 preview-disabled
               />
               <el-button link type="primary" @click="handleOpenSpot(row)">
-                {{ row.spotName || `景点 #${row.spotId}` }}
+                {{ row.spotName || '--' }}
               </el-button>
             </div>
           </template>

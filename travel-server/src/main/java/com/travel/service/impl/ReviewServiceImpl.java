@@ -278,6 +278,10 @@ public class ReviewServiceImpl implements ReviewService {
         if (review.getNickname() == null || review.getAvatarUrl() == null) {
             user = userMapper.selectById(review.getUserId());
         }
+        Spot spot = null;
+        if (review.getSpotName() == null || review.getCoverImageUrl() == null) {
+            spot = spotMapper.selectById(review.getSpotId());
+        }
 
         boolean isActiveUser = user != null && user.getIsDeleted() != null && user.getIsDeleted() == 0;
         String nickname = review.getNickname() != null
@@ -286,13 +290,19 @@ public class ReviewServiceImpl implements ReviewService {
         String avatar = review.getAvatarUrl() != null
             ? review.getAvatarUrl()
             : (isActiveUser ? user.getAvatarUrl() : null);
+        String spotName = review.getSpotName() != null
+            ? resolveSpotDisplayName(spot, review.getSpotName())
+            : resolveSpotDisplayName(spot, null);
+        String coverImageUrl = review.getCoverImageUrl() != null
+            ? review.getCoverImageUrl()
+            : (spot != null ? spot.getCoverImageUrl() : null);
 
         return ReviewResponse.builder()
             .id(review.getId())
             .userId(review.getUserId())
             .spotId(review.getSpotId())
-            .spotName(review.getSpotName())
-            .coverImageUrl(review.getCoverImageUrl())
+            .spotName(spotName)
+            .coverImageUrl(coverImageUrl)
             .score(review.getScore())
             .comment(review.getComment())
             .nickname(nickname)
@@ -300,6 +310,22 @@ public class ReviewServiceImpl implements ReviewService {
             .createdAt(review.getCreatedAt() != null ? review.getCreatedAt().format(DATE_FORMATTER) : null)
             .updatedAt(review.getUpdatedAt() != null ? review.getUpdatedAt().format(DATE_FORMATTER) : null)
             .build();
+    }
+
+    /**
+     * 历史评价保留时，景点失效语义要比原始名称更重要，避免误导运营判断。
+     */
+    private String resolveSpotDisplayName(Spot spot, String currentSpotName) {
+        if (spot == null) {
+            return ResourceDisplayText.Spot.PURGED;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return ResourceDisplayText.Spot.DELETED;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return ResourceDisplayText.Spot.OFFLINE;
+        }
+        return currentSpotName != null ? currentSpotName : spot.getName();
     }
 
 }

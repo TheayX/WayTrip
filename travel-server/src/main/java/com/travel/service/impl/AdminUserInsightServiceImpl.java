@@ -251,8 +251,8 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
                 .userId(favorite.getUserId())
                 .nickname(resolveDisplayNickname(user))
                 .spotId(favorite.getSpotId())
-                .spotName(spot != null ? spot.getName() : "景点#" + favorite.getSpotId())
-                .coverImage(spot != null ? spot.getCoverImageUrl() : null)
+                .spotName(resolveSpotDisplayName(spot))
+                .coverImage(resolveSpotDisplayCover(spot))
                 .createdAt(formatDateTime(favorite.getCreatedAt()))
                 .build();
         }).collect(Collectors.toList());
@@ -279,8 +279,8 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
                 .userId(view.getUserId())
                 .nickname(resolveDisplayNickname(user))
                 .spotId(view.getSpotId())
-                .spotName(spot != null ? spot.getName() : "景点#" + view.getSpotId())
-                .coverImage(spot != null ? spot.getCoverImageUrl() : null)
+                .spotName(resolveSpotDisplayName(spot))
+                .coverImage(resolveSpotDisplayCover(spot))
                 .source(view.getViewSource())
                 .duration(view.getViewDuration())
                 .createdAt(formatDateTime(view.getCreatedAt()))
@@ -333,6 +333,26 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             return ResourceDisplayText.User.DEACTIVATED;
         }
         return user.getNickname();
+    }
+
+    /**
+     * 历史行为列表默认保留，但景点失效后必须显式告知当前状态，而不是退回 ID 占位名。
+     */
+    private String resolveSpotDisplayName(Spot spot) {
+        if (spot == null) {
+            return ResourceDisplayText.Spot.PURGED;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return ResourceDisplayText.Spot.DELETED;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return ResourceDisplayText.Spot.OFFLINE;
+        }
+        return spot.getName();
+    }
+
+    private String resolveSpotDisplayCover(Spot spot) {
+        return spot != null ? spot.getCoverImageUrl() : null;
     }
 
     /**
