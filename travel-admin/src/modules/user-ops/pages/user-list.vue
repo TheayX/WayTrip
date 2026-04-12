@@ -104,7 +104,7 @@
                     <el-dropdown-item command="detail">查看详情</el-dropdown-item>
                     <el-dropdown-item v-if="row.isDeleted !== 1" command="reset-password">重置密码</el-dropdown-item>
                     <el-dropdown-item
-                      :command="row.isDeleted === 1 ? 'reactivate-account' : 'deactivate-account'"
+                      :command="row.isDeleted === 1 ? 'restore-account' : 'suspend-account'"
                     >
                       {{ row.isDeleted === 1 ? '解封用户' : '封禁用户' }}
                     </el-dropdown-item>
@@ -350,10 +350,10 @@ const handleCommand = (command, row) => {
     case 'reset-password':
       handleResetPassword(row)
       break
-    case 'deactivate-account':
+    case 'suspend-account':
       handleSuspendUser(row)
       break
-    case 'reactivate-account':
+    case 'restore-account':
       handleRestoreUser(row)
       break
     case 'preference':
@@ -403,11 +403,11 @@ const handleResetPassword = async (row) => {
   }
 }
 
-// 管理端先以软删方式封禁用户，避免继续登录和参与当前状态型业务。
+// 管理端封禁属于账号限制动作，当前会停用账号及其当前状态型数据。
 const handleSuspendUser = async (row) => {
   try {
     await ElMessageBox.confirm(
-      `确定要封禁用户「${row.nickname}」吗？当前封禁功能按注销处理：该用户会被标记为已注销，收藏与偏好会一并失效，解封可恢复。`,
+      `确定要封禁用户「${row.nickname}」吗？当前限制动作会同步停用收藏与偏好；后续通过管理端解封或用户重新登录都可恢复。`,
       '封禁确认',
       {
         type: 'warning',
@@ -429,7 +429,7 @@ const handleSuspendUser = async (row) => {
   }
 }
 
-// 当前解封直接恢复软删用户与其当前状态型数据，便于后台做临时封禁后的恢复。
+// 解封会恢复账号可用状态，并重新启用封禁期间停用的收藏与偏好。
 const handleRestoreUser = async (row) => {
   try {
     await ElMessageBox.confirm(

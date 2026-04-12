@@ -9,7 +9,7 @@
     <view class="warning-card">
       <view class="warning-icon">风险提示</view>
       <text class="warning-title">注销账户</text>
-      <text class="warning-desc">注销后你将无法使用此账户登录，所有数据将被保留。</text>
+      <text class="warning-desc">注销后账号会进入停用状态，所有数据将被保留。</text>
     </view>
 
     <!-- 注销说明区域 -->
@@ -17,7 +17,7 @@
       <text class="info-title">注销说明</text>
       <view class="info-item">
         <text class="info-dot">•</text>
-        <text class="info-text">注销后无法立即使用此账户</text>
+        <text class="info-text">注销后账号会先进入停用状态</text>
       </view>
       <view class="info-item">
         <text class="info-dot">•</text>
@@ -59,7 +59,7 @@ const goBack = () => {
 const confirmDeactivate = () => {
   uni.showModal({
     title: '确认注销',
-    content: '注销账户后将无法登录，确定要继续吗？',
+    content: '注销后账号会进入停用状态，后续重新登录可恢复，确定要继续吗？',
     confirmText: '确认注销',
     cancelText: '取消',
     success: async (res) => {
