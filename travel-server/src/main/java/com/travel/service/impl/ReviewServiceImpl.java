@@ -329,6 +329,10 @@ public class ReviewServiceImpl implements ReviewService {
      * 历史评价保留时，景点失效语义要比原始名称更重要，避免误导运营判断。
      */
     private String resolveSpotDisplayName(Spot spot, String currentSpotName, boolean adminView) {
+        // 联表已经带回景点名称时，优先信任当前快照，避免实体未补查时被误判成“已清除景点”。
+        if (currentSpotName != null && spot == null) {
+            return currentSpotName;
+        }
         if (spot == null) {
             return adminView ? ResourceDisplayText.Spot.PURGED : ResourceDisplayText.Spot.UNKNOWN;
         }

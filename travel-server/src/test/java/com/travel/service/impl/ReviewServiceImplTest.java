@@ -205,6 +205,35 @@ class ReviewServiceImplTest {
         assertNull(result.getList().get(0).getAvatar());
     }
 
+    @Test
+    void getAdminReviews_keepsJoinedSpotNameWhenEntityIsNotQueried() {
+        Review adminReview = new Review();
+        adminReview.setId(30L);
+        adminReview.setUserId(1L);
+        adminReview.setSpotId(100L);
+        adminReview.setScore(5);
+        adminReview.setComment("后台评价记录");
+        adminReview.setSpotName("西湖");
+        adminReview.setCoverImageUrl("/uploads/spot/xihu.jpg");
+        adminReview.setIsDeleted(0);
+
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Review> page =
+            new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 10);
+        page.setRecords(java.util.List.of(adminReview));
+        page.setTotal(1L);
+
+        when(reviewMapper.selectAdminReviewPage(any(), any(), any())).thenReturn(page);
+
+        var request = new com.travel.dto.review.request.AdminReviewListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+
+        var result = reviewService.getAdminReviews(request);
+
+        assertEquals("西湖", result.getList().get(0).getSpotName());
+        assertEquals("/uploads/spot/xihu.jpg", result.getList().get(0).getCoverImageUrl());
+    }
+
     /**
      * 构造评分统计结果，模拟聚合查询返回值。
      */
