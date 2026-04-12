@@ -25,3 +25,22 @@ export const isInvalidSpotDisplay = (spotName) => {
     SPOT_DISPLAY_TEXT.UNKNOWN
   ].includes(displayName)
 }
+
+// 需要根据完整景点对象推导展示语义的场景，统一在这里收口，避免组件重复拼接括号文案。
+export const resolveSpotRecordDisplayName = (spot) => {
+  if (!spot) {
+    return SPOT_DISPLAY_TEXT.PURGED
+  }
+  if (Number(spot.isDeleted) === 1) {
+    return SPOT_DISPLAY_TEXT.DELETED
+  }
+  if (Number(spot.published) !== 1) {
+    return SPOT_DISPLAY_TEXT.OFFLINE
+  }
+  return resolveSpotDisplayName(spot.name)
+}
+
+// 内容资源当前先统一空值兜底，后续接入文章/攻略失效态时继续复用。
+export const resolveContentDisplayText = (content) => {
+  return content || COMMON_DISPLAY_TEXT.EMPTY
+}
