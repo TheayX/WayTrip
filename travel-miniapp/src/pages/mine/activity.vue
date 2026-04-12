@@ -26,11 +26,11 @@
             v-for="item in footprintList"
             :key="item.id"
             class="browse-card"
-            @click="goSpot(item.id, SPOT_DETAIL_SOURCE.FOOTPRINT)"
+            @click="goSpot(item.id, SPOT_DETAIL_SOURCE.FOOTPRINT, item.name)"
           >
             <image class="browse-image" :src="getContentImageUrl(item.coverImage)" mode="aspectFill" />
             <view class="browse-body">
-              <text class="browse-name">{{ item.name }}</text>
+              <text class="browse-name">{{ resolveSpotDisplayName(item.name) }}</text>
               <text class="browse-meta">{{ item.regionName || '景点' }}</text>
               <text class="browse-time">浏览于 {{ formatViewedTime(item.viewedAt) }}</text>
             </view>
@@ -49,11 +49,11 @@
             class="favorite-card"
             v-for="spot in favoriteList"
             :key="spot.id"
-            @click="goSpot(spot.id, SPOT_DETAIL_SOURCE.FAVORITE)"
+            @click="goSpot(spot.id, SPOT_DETAIL_SOURCE.FAVORITE, spot.name)"
           >
             <image class="favorite-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
             <view class="favorite-body">
-              <text class="favorite-name">{{ spot.name }}</text>
+              <text class="favorite-name">{{ resolveSpotDisplayName(spot.name) }}</text>
               <text class="favorite-meta">{{ spot.regionName }} · {{ spot.categoryName }}</text>
               <view class="favorite-bottom">
                 <view class="favorite-rating">
@@ -152,7 +152,8 @@ import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 import { getContentImageUrl, getImageUrl } from '@/utils/request'
 
-const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', '未知景点']
+const UNKNOWN_SPOT_DISPLAY = '未知景点'
+const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', UNKNOWN_SPOT_DISPLAY]
 
 // 常量配置
 const tabs = [
@@ -164,7 +165,7 @@ const tabs = [
 // 基础依赖与用户状态
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
-const resolveSpotDisplayName = (spotName) => spotName || '--'
+const resolveSpotDisplayName = (spotName) => INVALID_SPOT_NAMES.includes(spotName) ? UNKNOWN_SPOT_DISPLAY : (spotName || '--')
 const isInvalidSpot = (spotName) => INVALID_SPOT_NAMES.includes(resolveSpotDisplayName(spotName))
 
 // 页面数据状态

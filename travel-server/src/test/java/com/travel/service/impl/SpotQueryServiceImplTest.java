@@ -128,7 +128,7 @@ class SpotQueryServiceImplTest {
     }
 
     @Test
-    void getViewHistory_filtersOfflineSpots() {
+    void getViewHistory_keepsOfflineSpotsButDowngradesThemToUnknown() {
         UserSpotView publishedView = new UserSpotView();
         publishedView.setUserId(1L);
         publishedView.setSpotId(31L);
@@ -149,9 +149,11 @@ class SpotQueryServiceImplTest {
 
         var response = spotQueryService.getViewHistory(1L, 1, 10);
 
-        assertEquals(1L, response.getTotal());
-        assertEquals(1, response.getList().size());
-        assertEquals(31L, response.getList().get(0).getId());
+        assertEquals(2L, response.getTotal());
+        assertEquals(2, response.getList().size());
+        assertEquals(32L, response.getList().get(0).getId());
+        assertEquals("未知景点", response.getList().get(0).getName());
+        assertEquals(31L, response.getList().get(1).getId());
     }
 
     @Test

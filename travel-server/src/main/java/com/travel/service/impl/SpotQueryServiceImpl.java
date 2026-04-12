@@ -138,25 +138,20 @@ public class SpotQueryServiceImpl implements SpotQueryService {
 
         Set<Long> spotIds = latestViews.stream().map(UserSpotView::getSpotId).collect(Collectors.toSet());
         Map<Long, Spot> spotMap = spotMapper.selectBatchIds(spotIds).stream()
-            .filter(spot -> spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
             .collect(Collectors.toMap(Spot::getId, spot -> spot));
 
         List<SpotViewHistoryResponse> allItems = latestViews.stream()
             .map(view -> {
                 Spot spot = spotMap.get(view.getSpotId());
-                if (spot == null) {
-                    return null;
-                }
                 return SpotViewHistoryResponse.builder()
-                    .id(spot.getId())
-                    .name(spot.getName())
-                    .coverImage(spot.getCoverImageUrl())
-                    .regionName(spotResponseAssembler.getRegionName(spot.getRegionId()))
-                    .categoryName(spotResponseAssembler.getCategoryName(spot.getCategoryId()))
+                    .id(view.getSpotId())
+                    .name(resolveUserSpotDisplayName(spot))
+                    .coverImage(isVisibleSpot(spot) ? spot.getCoverImageUrl() : null)
+                    .regionName(isVisibleSpot(spot) ? spotResponseAssembler.getRegionName(spot.getRegionId()) : null)
+                    .categoryName(isVisibleSpot(spot) ? spotResponseAssembler.getCategoryName(spot.getCategoryId()) : null)
                     .viewedAt(view.getCreatedAt() == null ? null : view.getCreatedAt().format(VIEW_TIME_FORMATTER))
                     .build();
             })
-            .filter(java.util.Objects::nonNull)
             .sorted(Comparator.comparing(SpotViewHistoryResponse::getViewedAt, Comparator.nullsLast(Comparator.reverseOrder())))
             .collect(Collectors.toList());
 
@@ -289,11 +284,22 @@ public class SpotQueryServiceImpl implements SpotQueryService {
      */
     private String resolveCommentAuthorDisplayName(User user) {
         if (user == null) {
-            return ResourceDisplayText.User.PURGED;
+            return ResourceDisplayText.User.UNKNOWN;
         }
         if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            return ResourceDisplayText.User.DEACTIVATED;
+            return ResourceDisplayText.User.UNKNOWN;
         }
         return user.getNickname();
+    }
+
+    /**
+     * 用户端历史浏览只保留“是否还能识别这个景点”，不暴露后台治理语义。
+     */
+    private String resolveUserSpotDisplayName(Spot spot) {
+        return isVisibleSpot(spot) ? spot.getName() : ResourceDisplayText.Spot.UNKNOWN;
+    }
+
+    private boolean isVisibleSpot(Spot spot) {
+        return spot != null && spot.getIsDeleted() == 0 && spot.getIsPublished() == 1;
     }
 }

@@ -47,7 +47,7 @@
     <el-dialog v-model="editVisible" title="编辑评价" width="560px">
       <el-form :model="editForm" label-width="72px">
         <el-form-item label="景点">
-          <span>{{ currentReview?.spotName || '-' }}</span>
+          <span>{{ resolveSpotDisplayName(currentReview?.spotName) }}</span>
         </el-form-item>
         <el-form-item label="评分">
           <el-rate v-model="editForm.score" />
@@ -80,7 +80,8 @@ import { deleteReview, getMyReviews, submitReview } from '@/modules/review/api.j
 import { getImageUrl } from '@/shared/api/client.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
-const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', '未知景点']
+const UNKNOWN_SPOT_DISPLAY = '未知景点'
+const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', UNKNOWN_SPOT_DISPLAY]
 const router = useRouter()
 
 // 页面数据状态
@@ -101,7 +102,7 @@ const editForm = reactive({
   comment: ''
 })
 
-const resolveSpotDisplayName = (spotName) => spotName || '--'
+const resolveSpotDisplayName = (spotName) => INVALID_SPOT_NAMES.includes(spotName) ? UNKNOWN_SPOT_DISPLAY : (spotName || '--')
 const isInvalidSpot = (spotName) => INVALID_SPOT_NAMES.includes(resolveSpotDisplayName(spotName))
 const openSpotDetail = (spotId, spotName) => {
   if (isInvalidSpot(spotName)) return

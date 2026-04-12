@@ -180,7 +180,7 @@
   </view>
 
   <view class="ios-page loading-page" v-else>
-    <text class="state-text">{{ loadErrorMessage || '景点信息不存在或已下架' }}</text>
+    <text class="state-text">{{ loadErrorMessage || '未知景点，暂时无法查看详情' }}</text>
     <button class="state-btn" @click="goSpotList">返回景点列表</button>
   </view>
 </template>

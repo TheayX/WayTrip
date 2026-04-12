@@ -158,7 +158,7 @@ class ReviewServiceImplTest {
     }
 
     @Test
-    void getUserReview_returnsDeactivatedNicknameWhenAuthorDeleted() {
+    void getUserReview_returnsUnknownNicknameWhenAuthorDeleted() {
         Review deletedAuthorReview = new Review();
         deletedAuthorReview.setId(20L);
         deletedAuthorReview.setUserId(1L);
@@ -176,12 +176,12 @@ class ReviewServiceImplTest {
 
         ReviewResponse response = reviewService.getUserReview(1L, 100L);
 
-        assertEquals("已注销用户", response.getNickname());
+        assertEquals("未知用户", response.getNickname());
         assertNull(response.getAvatar());
     }
 
     @Test
-    void getSpotReviews_returnsPurgedNicknameWhenAuthorHardDeleted() {
+    void getSpotReviews_returnsUnknownNicknameWhenAuthorHardDeleted() {
         Review purgedAuthorReview = new Review();
         purgedAuthorReview.setId(21L);
         purgedAuthorReview.setUserId(9L);
@@ -201,7 +201,7 @@ class ReviewServiceImplTest {
 
         var result = reviewService.getSpotReviews(100L, 1, 10);
 
-        assertEquals("已清除用户", result.getList().get(0).getNickname());
+        assertEquals("未知用户", result.getList().get(0).getNickname());
         assertNull(result.getList().get(0).getAvatar());
     }
 

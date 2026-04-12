@@ -34,7 +34,7 @@
             <img :src="getAvatarUrl(item.avatar)" class="avatar" alt="" />
             <div class="user-meta">
               <strong>{{ item.nickname || UNKNOWN_USER_DISPLAY }}</strong>
-              <span>{{ item.spotName || '景点待补充' }}</span>
+              <span>{{ resolveSpotDisplayName(item.spotName) }}</span>
             </div>
           </div>
           <span class="score-badge" :class="Number(item.score) >= 4 ? 'positive' : 'negative'">
@@ -76,6 +76,8 @@ import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spo
 // 页面按正负口碑拆分展示，帮助用户先用评价情绪快速筛掉不合适的景点。
 const router = useRouter()
 const UNKNOWN_USER_DISPLAY = '未知用户'
+const UNKNOWN_SPOT_DISPLAY = '未知景点'
+const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', UNKNOWN_SPOT_DISPLAY]
 
 const tabs = [
   { label: '高分种草', value: 'positive' },
@@ -89,6 +91,7 @@ const loading = ref(false)
 const activeReviews = computed(() => (activeTab.value === 'positive' ? positiveReviews.value : negativeReviews.value))
 const emptyStateTitle = computed(() => (activeTab.value === 'positive' ? '暂时没有高分种草内容' : '暂时没有真实避雷内容'))
 const emptyStateDesc = computed(() => (activeTab.value === 'positive' ? '当前没有高分评论内容。' : '当前没有低分评论内容。'))
+const resolveSpotDisplayName = (spotName) => INVALID_SPOT_NAMES.includes(spotName) ? UNKNOWN_SPOT_DISPLAY : (spotName || '景点待补充')
 
 const loadTravelerReviewFeed = async () => {
   // 口碑流一次拉回正负两组数据，切换页签时不再重复请求。

@@ -2,6 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -124,11 +126,11 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .map(UserSpotFavorite::getSpotId)
                 .collect(Collectors.toList());
 
-        List<Spot> spots = spotMapper.selectBatchIds(spotIds);
+        Map<Long, Spot> spotMap = spotMapper.selectBatchIds(spotIds).stream()
+            .collect(Collectors.toMap(Spot::getId, spot -> spot));
 
-        List<SpotListResponse> list = spots.stream()
-                .filter(spot -> spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
-                .map(this::convertToListResponse)
+        List<SpotListResponse> list = favoriteResult.getRecords().stream()
+                .map(favorite -> convertToListResponse(spotMap.get(favorite.getSpotId()), favorite.getSpotId()))
                 .collect(Collectors.toList());
         
         return PageResult.of(list, favoriteResult.getTotal(), page, pageSize);
@@ -158,7 +160,19 @@ public class FavoriteServiceImpl implements FavoriteService {
         return spot;
     }
 
-    private SpotListResponse convertToListResponse(Spot spot) {
+    private SpotListResponse convertToListResponse(Spot spot, Long fallbackSpotId) {
+        if (spot == null || spot.getIsDeleted() == 1 || spot.getIsPublished() != 1) {
+            return SpotListResponse.builder()
+                .id(fallbackSpotId)
+                .name(ResourceDisplayText.Spot.UNKNOWN)
+                .coverImage(null)
+                .price(null)
+                .avgRating(null)
+                .ratingCount(null)
+                .regionName(null)
+                .categoryName(null)
+                .build();
+        }
         return SpotListResponse.builder()
                 .id(spot.getId())
                 .name(spot.getName())

@@ -11,10 +11,10 @@
 
     <section v-if="activeTab === 'browse'" class="list-section">
       <div v-if="footprints.length" class="card-list">
-        <article v-for="item in footprints" :key="item.id" class="activity-card card" @click="$router.push(buildSpotDetailRoute(item.id, SPOT_DETAIL_SOURCE.FOOTPRINT))">
+        <article v-for="item in footprints" :key="item.id" class="activity-card card" @click="openSpotDetail(item.id, item.name, SPOT_DETAIL_SOURCE.FOOTPRINT)">
           <img :src="getImageUrl(item.coverImage)" class="cover" alt="" />
           <div class="content">
-            <h3>{{ item.name }}</h3>
+            <h3>{{ resolveSpotDisplayName(item.name) }}</h3>
             <p>{{ item.regionName || '景点' }}</p>
             <span>浏览于 {{ formatViewedTime(item.viewedAt) }}</span>
           </div>
@@ -25,10 +25,10 @@
 
     <section v-if="activeTab === 'favorite'" class="list-section">
       <div v-if="favoriteList.length" class="card-list">
-        <article v-for="spot in favoriteList" :key="spot.id" class="activity-card card" @click="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.FAVORITE))">
+        <article v-for="spot in favoriteList" :key="spot.id" class="activity-card card" @click="openSpotDetail(spot.id, spot.name, SPOT_DETAIL_SOURCE.FAVORITE)">
           <img :src="getImageUrl(spot.coverImage)" class="cover" alt="" />
           <div class="content">
-            <h3>{{ spot.name }}</h3>
+            <h3>{{ resolveSpotDisplayName(spot.name) }}</h3>
             <p>{{ spot.regionName }} · {{ spot.categoryName }}</p>
             <div class="row">
               <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
@@ -96,7 +96,8 @@ import { getFootprints, setFootprints } from '@/shared/lib/footprint.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
-const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', '未知景点']
+const UNKNOWN_SPOT_DISPLAY = '未知景点'
+const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', UNKNOWN_SPOT_DISPLAY]
 
 // 基础依赖与路由状态
 const route = useRoute()
@@ -123,7 +124,7 @@ const formatViewedTime = (timestamp) => {
   return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')} ${`${date.getHours()}`.padStart(2, '0')}:${`${date.getMinutes()}`.padStart(2, '0')}`
 }
 
-const resolveSpotDisplayName = (spotName) => spotName || '--'
+const resolveSpotDisplayName = (spotName) => INVALID_SPOT_NAMES.includes(spotName) ? UNKNOWN_SPOT_DISPLAY : (spotName || '--')
 const isInvalidSpot = (spotName) => INVALID_SPOT_NAMES.includes(resolveSpotDisplayName(spotName))
 const openSpotDetail = (spotId, spotName, source) => {
   if (isInvalidSpot(spotName)) return

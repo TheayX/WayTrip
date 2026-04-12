@@ -98,7 +98,7 @@ public class ReviewServiceImpl implements ReviewService {
             return null;
         }
 
-        return convertToResponse(review);
+        return convertToResponse(review, false);
     }
 
     @Override
@@ -107,7 +107,7 @@ public class ReviewServiceImpl implements ReviewService {
         pageObj = (Page<Review>) reviewMapper.selectReviewPage(pageObj, spotId);
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
-            .map(this::convertToResponse)
+            .map(review -> convertToResponse(review, false))
             .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), page, pageSize);
@@ -122,7 +122,7 @@ public class ReviewServiceImpl implements ReviewService {
         pageObj = (Page<Review>) reviewMapper.selectReviewFeedPage(pageObj, minScore, maxScore);
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
-                .map(this::convertToResponse)
+                .map(review -> convertToResponse(review, false))
                 .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), request.getPage(), request.getPageSize());
@@ -135,7 +135,7 @@ public class ReviewServiceImpl implements ReviewService {
         pageObj = (Page<Review>) reviewMapper.selectUserReviewPage(pageObj, userId);
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
-            .map(this::convertToResponse)
+            .map(review -> convertToResponse(review, false))
             .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), page, pageSize);
@@ -168,7 +168,7 @@ public class ReviewServiceImpl implements ReviewService {
         pageObj = (Page<Review>) reviewMapper.selectAdminReviewPage(pageObj, request.getNickname(), request.getSpotName());
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
-            .map(this::convertToResponse)
+            .map(review -> convertToResponse(review, true))
             .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), request.getPage(), request.getPageSize());
@@ -273,7 +273,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // 响应对象转换方法
-    private ReviewResponse convertToResponse(Review review) {
+    private ReviewResponse convertToResponse(Review review, boolean adminView) {
         User user = null;
         if (review.getNickname() == null || review.getAvatarUrl() == null) {
             user = userMapper.selectById(review.getUserId());
@@ -286,13 +286,13 @@ public class ReviewServiceImpl implements ReviewService {
         boolean isActiveUser = user != null && user.getIsDeleted() != null && user.getIsDeleted() == 0;
         String nickname = review.getNickname() != null
             ? review.getNickname()
-            : resolveUserDisplayNickname(user);
+            : resolveUserDisplayNickname(user, adminView);
         String avatar = review.getAvatarUrl() != null
             ? review.getAvatarUrl()
             : (isActiveUser ? user.getAvatarUrl() : null);
         String spotName = review.getSpotName() != null
-            ? resolveSpotDisplayName(spot, review.getSpotName())
-            : resolveSpotDisplayName(spot, null);
+            ? resolveSpotDisplayName(spot, review.getSpotName(), adminView)
+            : resolveSpotDisplayName(spot, null, adminView);
         String coverImageUrl = review.getCoverImageUrl() != null
             ? review.getCoverImageUrl()
             : (spot != null ? spot.getCoverImageUrl() : null);
@@ -315,12 +315,12 @@ public class ReviewServiceImpl implements ReviewService {
     /**
      * 历史评价需要区分“账号已注销”和“用户记录已被硬删”，避免展示语义失真。
      */
-    private String resolveUserDisplayNickname(User user) {
+    private String resolveUserDisplayNickname(User user, boolean adminView) {
         if (user == null) {
-            return ResourceDisplayText.User.PURGED;
+            return adminView ? ResourceDisplayText.User.PURGED : ResourceDisplayText.User.UNKNOWN;
         }
         if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            return ResourceDisplayText.User.DEACTIVATED;
+            return adminView ? ResourceDisplayText.User.DEACTIVATED : ResourceDisplayText.User.UNKNOWN;
         }
         return user.getNickname();
     }
@@ -328,15 +328,15 @@ public class ReviewServiceImpl implements ReviewService {
     /**
      * 历史评价保留时，景点失效语义要比原始名称更重要，避免误导运营判断。
      */
-    private String resolveSpotDisplayName(Spot spot, String currentSpotName) {
+    private String resolveSpotDisplayName(Spot spot, String currentSpotName, boolean adminView) {
         if (spot == null) {
-            return ResourceDisplayText.Spot.PURGED;
+            return adminView ? ResourceDisplayText.Spot.PURGED : ResourceDisplayText.Spot.UNKNOWN;
         }
         if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
-            return ResourceDisplayText.Spot.DELETED;
+            return adminView ? ResourceDisplayText.Spot.DELETED : ResourceDisplayText.Spot.UNKNOWN;
         }
         if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
-            return ResourceDisplayText.Spot.OFFLINE;
+            return adminView ? ResourceDisplayText.Spot.OFFLINE : ResourceDisplayText.Spot.UNKNOWN;
         }
         return currentSpotName != null ? currentSpotName : spot.getName();
     }
