@@ -26,7 +26,7 @@
     </el-table-column>
     <el-table-column prop="adminName" label="创建者" width="140" align="center" show-overflow-tooltip>
       <template #default="{ row }">
-        <span class="admin-name-text">{{ row.adminName || '未记录' }}</span>
+        <span class="admin-name-text">{{ resolveAdminDisplayName(row.adminName) }}</span>
       </template>
     </el-table-column>
     <el-table-column prop="viewCount" label="浏览量" width="100" align="center">
@@ -80,6 +80,7 @@
 
 <script setup>
 import { ArrowDown } from '@element-plus/icons-vue'
+import { resolveAdminDisplayName } from '@/shared/lib/resource-display.js'
 
 // 列表仅负责渲染和事件分发，具体变更动作由页面层统一处理。
 defineProps({

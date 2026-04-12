@@ -215,7 +215,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
      */
     private String resolveAdminName(Long adminId, Admin admin) {
         if (admin == null) {
-            return adminId == null ? "未记录" : "管理员#" + adminId;
+            return adminId == null ? ResourceDisplayText.Admin.UNKNOWN : ResourceDisplayText.Admin.PURGED;
         }
         if (StringUtils.hasText(admin.getRealName())) {
             return admin.getRealName();
@@ -223,7 +223,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         if (StringUtils.hasText(admin.getUsername())) {
             return admin.getUsername();
         }
-        return adminId == null ? "未记录" : "管理员#" + adminId;
+        return adminId == null ? ResourceDisplayText.Admin.UNKNOWN : ResourceDisplayText.Admin.PURGED;
     }
 
     private AdminGuideRequest.SpotOption convertToSpotOption(Spot spot) {

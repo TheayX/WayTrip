@@ -1,4 +1,4 @@
-import { COMMON_DISPLAY_TEXT, SPOT_DISPLAY_TEXT, USER_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
+import { ADMIN_DISPLAY_TEXT, COMMON_DISPLAY_TEXT, SPOT_DISPLAY_TEXT, USER_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
 
 // 用户主体失效时统一降级到规范文案，避免页面层重复写同样的兜底判断。
 export const resolveUserDisplayName = (nickname) => {
@@ -43,4 +43,9 @@ export const resolveSpotRecordDisplayName = (spot) => {
 // 内容资源当前先统一空值兜底，后续接入文章/攻略失效态时继续复用。
 export const resolveContentDisplayText = (content) => {
   return content || COMMON_DISPLAY_TEXT.EMPTY
+}
+
+// 后台内容创建者属于运营主体，缺失时不再裸露技术占位值。
+export const resolveAdminDisplayName = (adminName) => {
+  return adminName || ADMIN_DISPLAY_TEXT.UNKNOWN
 }

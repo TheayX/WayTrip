@@ -1,4 +1,9 @@
 // 统一维护管理端资源失效、主体失效和普通空值展示文案，避免页面各自硬编码。
+export const ADMIN_DISPLAY_TEXT = {
+  PURGED: '已清除管理员',
+  UNKNOWN: '未记录'
+}
+
 export const USER_DISPLAY_TEXT = {
   DEACTIVATED: '已注销用户',
   PURGED: '已清除用户',

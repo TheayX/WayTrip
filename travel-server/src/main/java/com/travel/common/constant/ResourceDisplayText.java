@@ -17,6 +17,14 @@ public final class ResourceDisplayText {
         }
     }
 
+    public static final class Admin {
+        public static final String PURGED = "已清除管理员";
+        public static final String UNKNOWN = "未记录";
+
+        private Admin() {
+        }
+    }
+
     public static final class Spot {
         public static final String OFFLINE = "已下架景点";
         public static final String DELETED = "已删除景点";
