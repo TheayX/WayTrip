@@ -59,6 +59,13 @@ public interface UserAccountService {
     void reactivateAccountByAdmin(Long userId);
 
     /**
+     * 用户端登录触发的账号恢复。
+     *
+     * @param userId 目标用户 ID
+     */
+    void reactivateAccountAfterLogin(Long userId);
+
+    /**
      * 设置当前用户偏好分类。
      *
      * @param userId 当前登录用户 ID

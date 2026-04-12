@@ -407,7 +407,7 @@ const handleResetPassword = async (row) => {
 const handleDeactivateUser = async (row) => {
   try {
     await ElMessageBox.confirm(
-      `确定要封禁用户「${row.nickname}」吗？当前封禁功能按注销处理：该用户会被标记为已注销，无法继续登录，收藏与偏好会一并失效。`,
+      `确定要封禁用户「${row.nickname}」吗？当前封禁功能按注销处理：该用户会被标记为已注销，收藏与偏好会一并失效，解封可恢复。`,
       '封禁确认',
       {
         type: 'warning',

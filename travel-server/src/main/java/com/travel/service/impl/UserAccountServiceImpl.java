@@ -139,6 +139,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     @Transactional
+    public void reactivateAccountAfterLogin(Long userId) {
+        User user = getManagedUser(userId);
+        if (user.getIsDeleted() == null || user.getIsDeleted() != 1) {
+            return;
+        }
+        reactivateUser(user);
+    }
+
+    @Override
+    @Transactional
     public void setPreferences(Long userId, List<Long> categoryIds) {
         getActiveUser(userId);
         validateCategoryIds(categoryIds);
