@@ -92,8 +92,9 @@ import { getGuideList, getCategories } from '@/api/guide'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 
-const resolveGuideText = (value) => value || '--'
-const resolveGuideCategory = (value) => value || '攻略'
+const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
+const resolveGuideText = (value) => value || UNKNOWN_GUIDE_DISPLAY
+const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
 const resolveGuideSummary = (value) => value || '整理路线、玩法与出行经验，帮助你更快形成这次旅程的安排。'
 
 // 页面数据状态

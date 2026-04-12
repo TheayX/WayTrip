@@ -175,7 +175,8 @@ import { getImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 const resolveGuideText = (value) => value || '--'
-const resolveGuideCategory = (value) => value || '攻略'
+const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
+const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
 const resolveGuideSummary = (value) => value || '带上好心情，发现更多旅行灵感。'
 
 // 常量配置

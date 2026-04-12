@@ -203,7 +203,8 @@ const SEARCH_HISTORY_KEY = 'search_recent_keywords'
 const SEARCH_HISTORY_LIMIT = 8
 const hotKeywords = SEARCH_HOT_KEYWORDS
 const resolveGuideText = (value) => value || '--'
-const resolveGuideCategory = (value) => value || '攻略'
+const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
+const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
 const resolveGuideSummary = (value) => value || '--'
 const resolveSpotText = (value) => value || '--'
 const resolveSpotCategory = (value) => value || '景点'

@@ -120,7 +120,8 @@ import { getImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 const resolveGuideText = (value) => value || '--'
-const resolveGuideCategory = (value) => value || '攻略'
+const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
+const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
 const resolveGuideSummary = (value) => value || '这篇攻略里提到的景点更适合低预算出行。'
 
 // 页内同时承接景点和攻略两类低预算内容，因此把标签与预算口径统一放在页面层管理。

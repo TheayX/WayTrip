@@ -66,8 +66,9 @@ import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 // 页面数据状态
 const guide = ref(null)
 const guideId = ref(null)
-const resolveGuideText = (value) => value || '--'
-const resolveGuideCategory = (value) => value || '攻略'
+const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
+const resolveGuideText = (value) => value || UNKNOWN_GUIDE_DISPLAY
+const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
 const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
 
 // 工具方法

@@ -33,7 +33,8 @@ import { ElMessage } from 'element-plus'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const GUIDE_DETAIL_UPDATED_KEY = 'guide_detail_updated'
-const resolveGuideText = (value) => value || '--'
+const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
+const resolveGuideText = (value) => value || UNKNOWN_GUIDE_DISPLAY
 
 // 基础依赖与路由状态
 const route = useRoute()
