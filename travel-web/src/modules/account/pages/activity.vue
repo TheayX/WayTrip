@@ -47,7 +47,7 @@
           <img :src="getImageUrl(item.coverImageUrl)" class="cover" alt="" />
           <div class="content">
             <div class="row">
-              <h3>{{ item.spotName || `景点 #${item.spotId}` }}</h3>
+              <h3>{{ resolveSpotDisplayName(item.spotName) }}</h3>
               <span class="star-text">★ {{ item.score }}</span>
             </div>
             <p>{{ item.comment || '这条评价没有填写文字内容。' }}</p>
@@ -55,7 +55,7 @@
             <div class="review-actions">
               <button type="button" class="review-action-button" @click="openEdit(item)">编辑</button>
               <button type="button" class="review-action-button review-action-button--danger" @click="handleDeleteReview(item)">删除</button>
-              <button type="button" class="review-action-button" @click="$router.push(buildSpotDetailRoute(item.spotId, SPOT_DETAIL_SOURCE.REVIEW))">查看景点</button>
+              <button type="button" class="review-action-button" :disabled="isInvalidSpot(item.spotName)" @click="openSpotDetail(item.spotId, item.spotName, SPOT_DETAIL_SOURCE.REVIEW)">查看景点</button>
             </div>
           </div>
         </article>
@@ -66,7 +66,7 @@
     <el-dialog v-model="editVisible" title="编辑评价" width="560px">
       <el-form :model="editForm" label-width="72px">
         <el-form-item label="景点">
-          <span>{{ currentReview?.spotName || '-' }}</span>
+          <span>{{ resolveSpotDisplayName(currentReview?.spotName) }}</span>
         </el-form-item>
         <el-form-item label="评分">
           <el-rate v-model="editForm.score" />
@@ -96,6 +96,8 @@ import { getFootprints, setFootprints } from '@/shared/lib/footprint.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
+const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', '未知景点']
+
 // 基础依赖与路由状态
 const route = useRoute()
 const router = useRouter()
@@ -119,6 +121,13 @@ const formatViewedTime = (timestamp) => {
   const date = new Date(timestamp)
   if (Number.isNaN(date.getTime())) return timestamp
   return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')} ${`${date.getHours()}`.padStart(2, '0')}:${`${date.getMinutes()}`.padStart(2, '0')}`
+}
+
+const resolveSpotDisplayName = (spotName) => spotName || '--'
+const isInvalidSpot = (spotName) => INVALID_SPOT_NAMES.includes(resolveSpotDisplayName(spotName))
+const openSpotDetail = (spotId, spotName, source) => {
+  if (isInvalidSpot(spotName)) return
+  router.push(buildSpotDetailRoute(spotId, source))
 }
 
 // 数据加载方法

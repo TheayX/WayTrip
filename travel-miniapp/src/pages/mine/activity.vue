@@ -81,7 +81,7 @@
             <image class="review-image" :src="getContentImageUrl(item.coverImageUrl)" mode="aspectFill" />
             <view class="review-body">
               <view class="review-top">
-                <text class="review-name">{{ item.spotName || `景点 #${item.spotId}` }}</text>
+                <text class="review-name">{{ resolveSpotDisplayName(item.spotName) }}</text>
                 <view class="review-score">
                   <uni-icons type="star-filled" size="13" color="#d97706" />
                   <text class="review-score-text">{{ item.score }}</text>
@@ -92,7 +92,7 @@
               <view class="review-actions">
                 <button class="ghost-btn" @tap="openEdit(item)">编辑</button>
                 <button class="danger-btn" @tap="handleDelete(item)">删除</button>
-                <button class="link-btn" @tap="goSpot(item.spotId, SPOT_DETAIL_SOURCE.REVIEW)">查看景点</button>
+                <button class="link-btn" :disabled="isInvalidSpot(item.spotName)" @tap="goSpot(item.spotId, SPOT_DETAIL_SOURCE.REVIEW, item.spotName)">查看景点</button>
               </view>
             </view>
           </view>
@@ -115,7 +115,7 @@
     <view v-if="editVisible" class="popup-mask" @tap="closeEdit">
       <view class="popup-panel" @tap.stop>
         <text class="popup-title">编辑评价</text>
-        <text class="popup-spot">{{ currentReview?.spotName || '-' }}</text>
+        <text class="popup-spot">{{ resolveSpotDisplayName(currentReview?.spotName) }}</text>
         <view class="star-row">
           <view
             v-for="i in 5"
@@ -152,6 +152,8 @@ import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 import { getContentImageUrl, getImageUrl } from '@/utils/request'
 
+const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', '未知景点']
+
 // 常量配置
 const tabs = [
   { key: 'browse', label: '浏览' },
@@ -162,6 +164,8 @@ const tabs = [
 // 基础依赖与用户状态
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
+const resolveSpotDisplayName = (spotName) => spotName || '--'
+const isInvalidSpot = (spotName) => INVALID_SPOT_NAMES.includes(resolveSpotDisplayName(spotName))
 
 // 页面数据状态
 const activeTab = ref('browse')
@@ -412,7 +416,8 @@ const handleDelete = (item) => {
 }
 
 // 页面跳转方法
-const goSpot = (spotId, source) => {
+const goSpot = (spotId, source, spotName = '') => {
+  if (isInvalidSpot(spotName)) return
   uni.navigateTo({ url: buildSpotDetailUrl(spotId, source) })
 }
 

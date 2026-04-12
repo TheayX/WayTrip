@@ -271,6 +271,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         java.util.Map<Long, String> spotNameMap = new java.util.HashMap<>();
         if (!spotIds.isEmpty()) {
             spotMapper.selectBatchIds(spotIds).forEach(spot -> spotNameMap.put(spot.getId(), resolveSpotDisplayName(spot)));
+            spotIds.stream()
+                .filter(spotId -> !spotNameMap.containsKey(spotId))
+                .forEach(spotId -> spotNameMap.put(spotId, ResourceDisplayText.Spot.PURGED));
         }
         return spotNameMap;
     }

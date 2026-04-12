@@ -65,8 +65,8 @@
           <template #default="{ row }">
             <div class="spot-name-cell">
               <template v-if="row.spotId && row.spotName">
-                <el-button link type="primary" class="spot-name-link" @click="handleOpenSpot(row)">
-                  {{ row.spotName }}
+                <el-button link type="primary" class="spot-name-link" :disabled="isInvalidSpot(row)" @click="handleOpenSpot(row)">
+                  {{ getDisplaySpotName(row) }}
                 </el-button>
               </template>
               <template v-else>
@@ -195,6 +195,7 @@ import { getBannerList, createBanner, updateBanner, deleteBanner, toggleBannerEn
 import { useUserStore } from '@/app/store/user.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
+import { isInvalidSpotDisplay, resolveSpotDisplayName } from '@/shared/lib/resource-display.js'
 import { fetchAllSpotOptions } from '@/modules/spot/composables/useSpotOptions.js'
 
 const router = useRouter()
@@ -223,6 +224,8 @@ const spotList = ref([])
 const errorMessage = ref('')
 const enabledCount = computed(() => bannerList.value.filter((item) => Number(item.enabled) === 1).length)
 const linkedSpotCount = computed(() => bannerList.value.filter((item) => item.spotId && item.spotName).length)
+const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
+const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 
 // 对话框与表单状态
 const dialogVisible = ref(false)
@@ -372,10 +375,11 @@ const handleToggle = async (row) => {
 
 // 跳转景点页，并复用景点管理页的自动定位与详情打开能力。
 const handleOpenSpot = (row) => {
+  if (isInvalidSpot(row)) return
   router.push({
     path: '/spot',
     query: {
-      keyword: row.spotName || '',
+      keyword: getDisplaySpotName(row),
       spotId: row.spotId || ''
     }
   })

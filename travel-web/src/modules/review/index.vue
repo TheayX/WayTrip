@@ -11,7 +11,7 @@
             <div class="review-main">
               <div class="review-top">
                 <div>
-                  <h3 class="spot-name">{{ item.spotName || `景点 #${item.spotId}` }}</h3>
+                  <h3 class="spot-name">{{ resolveSpotDisplayName(item.spotName) }}</h3>
                   <div class="review-meta">
                     <span class="score">★ {{ item.score }}</span>
                     <span>创建于 {{ item.createdAt || '-' }}</span>
@@ -24,7 +24,7 @@
                 </div>
               </div>
               <p class="comment">{{ item.comment || '这条评价没有填写文字内容。' }}</p>
-              <button type="button" class="review-action-button" @click="$router.push(buildSpotDetailRoute(item.spotId, SPOT_DETAIL_SOURCE.REVIEW))">查看景点</button>
+              <button type="button" class="review-action-button" :disabled="isInvalidSpot(item.spotName)" @click="openSpotDetail(item.spotId, item.spotName)">查看景点</button>
             </div>
           </article>
         </div>
@@ -73,11 +73,15 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { deleteReview, getMyReviews, submitReview } from '@/modules/review/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
+
+const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', '未知景点']
+const router = useRouter()
 
 // 页面数据状态
 const loading = ref(false)
@@ -96,6 +100,13 @@ const editForm = reactive({
   score: 5,
   comment: ''
 })
+
+const resolveSpotDisplayName = (spotName) => spotName || '--'
+const isInvalidSpot = (spotName) => INVALID_SPOT_NAMES.includes(resolveSpotDisplayName(spotName))
+const openSpotDetail = (spotId, spotName) => {
+  if (isInvalidSpot(spotName)) return
+  router.push(buildSpotDetailRoute(spotId, SPOT_DETAIL_SOURCE.REVIEW))
+}
 
 // 数据加载方法
 const fetchReviewList = async () => {

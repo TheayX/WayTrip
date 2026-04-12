@@ -2,6 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.banner.request.AdminBannerRequest;
@@ -297,9 +298,29 @@ public class SpotBannerServiceImpl implements SpotBannerService {
             return Map.of();
         }
 
-        return spotMapper.selectBatchIds(spotIds).stream()
-            .filter(spot -> spot.getIsDeleted() == 0)
-            .collect(Collectors.toMap(Spot::getId, Spot::getName));
+        Map<Long, String> spotNameMap = spotMapper.selectBatchIds(spotIds).stream()
+            .collect(Collectors.toMap(Spot::getId, this::resolveSpotDisplayName));
+
+        spotIds.stream()
+            .filter(spotId -> !spotNameMap.containsKey(spotId))
+            .forEach(spotId -> spotNameMap.put(spotId, ResourceDisplayText.Spot.PURGED));
+        return spotNameMap;
+    }
+
+    /**
+     * 轮播图后台仍要保留历史关联信息，景点失效后统一降级成状态文案。
+     */
+    private String resolveSpotDisplayName(Spot spot) {
+        if (spot == null) {
+            return ResourceDisplayText.Spot.PURGED;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return ResourceDisplayText.Spot.DELETED;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return ResourceDisplayText.Spot.OFFLINE;
+        }
+        return spot.getName();
     }
 
     /**

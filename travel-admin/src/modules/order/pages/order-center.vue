@@ -67,7 +67,7 @@
           </el-table-column>
           <el-table-column label="景点名称" min-width="180" show-overflow-tooltip align="left">
             <template #default="{ row }">
-              <el-button link type="primary" class="spot-link" @click="handleOpenSpot(row)">{{ row.spotName }}</el-button>
+              <el-button link type="primary" class="spot-link" :disabled="isInvalidSpot(row)" @click="handleOpenSpot(row)">{{ getDisplaySpotName(row) }}</el-button>
             </template>
           </el-table-column>
           <el-table-column prop="userNickname" label="用户" width="120" align="left" />
@@ -139,6 +139,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getOrderList, getOrderDetail, completeOrder, refundOrder, reopenOrder, cancelOrder } from '@/modules/order/api.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
+import { isInvalidSpotDisplay, resolveSpotDisplayName } from '@/shared/lib/resource-display.js'
 import OrderFilterBar from '@/modules/order/components/OrderFilterBar.vue'
 import OrderSummaryCards from '@/modules/order/components/OrderSummaryCards.vue'
 import OrderDetailDrawer from '@/modules/order/components/OrderDetailDrawer.vue'
@@ -223,6 +224,9 @@ const formatCurrency = (value) => {
 const extractErrorMessage = (error, fallback) => {
   return error?.response?.data?.message || error?.message || fallback
 }
+
+const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
+const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 
 const mergeCompositeList = (responses, page, pageSize) => {
   const merged = responses
@@ -389,10 +393,11 @@ const handlePageSizeChange = (pageSize) => {
 }
 
 const handleOpenSpot = (row) => {
+  if (isInvalidSpot(row)) return
   router.push({
     path: '/spot',
     query: {
-      keyword: row.spotName || '',
+      keyword: getDisplaySpotName(row),
       spotId: row.spotId || ''
     }
   })

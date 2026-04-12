@@ -112,7 +112,7 @@
           <template #default="{ row }">
             <div class="spot-cell">
               <el-image v-if="row.coverImage" :src="getResourceUrl(row.coverImage)" fit="cover" class="spot-cover" />
-              <el-button link type="primary" @click="handleOpenSpot(row)">{{ row.spotName }}</el-button>
+              <el-button link type="primary" :disabled="isInvalidSpot(row)" @click="handleOpenSpot(row)">{{ getDisplaySpotName(row) }}</el-button>
             </div>
           </template>
         </el-table-column>
@@ -158,7 +158,7 @@ import { deleteView, getViewList } from '@/modules/user-ops/api/view-log.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getResourceUrl } from '@/shared/lib/resource.js'
 import { getSourceBucketLabel, getSourceLabel, sourceOptions } from '@/shared/constants/view-source.js'
-import { isDeactivatedUserDisplay, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
+import { isDeactivatedUserDisplay, isInvalidSpotDisplay, resolveSpotDisplayName, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -203,6 +203,8 @@ const topSourceLabel = computed(() => {
 })
 const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
 const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
+const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
+const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 
 // 获取浏览列表
 const fetchViewList = async () => {
@@ -289,10 +291,11 @@ const handleOpenUser = (row) => {
 
 // 跳转景点页
 const handleOpenSpot = (row) => {
+  if (isInvalidSpot(row)) return
   router.push({
     path: '/spot',
     query: {
-      keyword: row.spotName || '',
+      keyword: getDisplaySpotName(row),
       spotId: row.spotId || ''
     }
   })
