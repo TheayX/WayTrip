@@ -174,6 +174,7 @@ import {
 import { useUserStore } from '@/app/store/user.js'
 import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
 import { fetchAllSpotOptions } from '@/modules/spot/composables/useSpotOptions.js'
+import { resolveContentDisplayText } from '@/shared/lib/resource-display.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -186,7 +187,7 @@ const uploadHeaders = computed(() => ({
 }))
 const uploadData = computed(() => ({
   scene: 'guide',
-  name: form.title || ''
+  name: resolveContentDisplayText(form.title)
 }))
 
 // 补全图片访问地址

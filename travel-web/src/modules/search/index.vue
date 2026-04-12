@@ -109,13 +109,13 @@
             <img :src="getImageUrl(guide.coverImage)" class="guide-image" alt="" />
             <div class="guide-content">
               <div class="guide-top">
-                <h4 class="guide-title">{{ guide.title }}</h4>
-                <span class="guide-tag">{{ guide.category || '攻略' }}</span>
+                <h4 class="guide-title">{{ resolveGuideText(guide.title) }}</h4>
+                <span class="guide-tag">{{ resolveGuideCategory(guide.category) }}</span>
               </div>
-              <p class="guide-summary">{{ guide.summary || '暂无摘要' }}</p>
+              <p class="guide-summary">{{ resolveGuideSummary(guide.summary) }}</p>
               <div class="guide-bottom">
                 <span>浏览 {{ guide.viewCount || 0 }}</span>
-                <span>{{ guide.createdAt }}</span>
+                <span>{{ guide.createdAt || '--' }}</span>
               </div>
             </div>
           </article>
@@ -202,6 +202,9 @@ const SEARCH_TABS = ['all', 'spot', 'guide']
 const SEARCH_HISTORY_KEY = 'search_recent_keywords'
 const SEARCH_HISTORY_LIMIT = 8
 const hotKeywords = SEARCH_HOT_KEYWORDS
+const resolveGuideText = (value) => value || '--'
+const resolveGuideCategory = (value) => value || '攻略'
+const resolveGuideSummary = (value) => value || '--'
 
 // 基础依赖与路由状态
 const route = useRoute()
@@ -242,8 +245,8 @@ const fallbackGuideCards = computed(() => fallbackGuides.value.map((guide) => ({
   targetId: guide.id,
   type: 'guide',
   image: guide.coverImage,
-  title: guide.title,
-  subtitle: `${guide.category || '攻略'} · ${guide.createdAt}`
+  title: resolveGuideText(guide.title),
+  subtitle: `${resolveGuideCategory(guide.category)} · ${guide.createdAt || '--'}`
 })))
 const hintCards = computed(() => [
   ...fallbackSpotCards.value.slice(0, 2),
