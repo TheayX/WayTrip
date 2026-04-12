@@ -36,6 +36,21 @@ const markNotificationAsRead = (notificationId) => {
   readStateUpdateTrigger.value++
 }
 
+const markNotificationsAsRead = (notificationIds = []) => {
+  const validIds = notificationIds.filter(Boolean)
+  if (!validIds.length) {
+    return
+  }
+  const state = getReadNotifications()
+  const readAt = Date.now()
+  validIds.forEach((notificationId) => {
+    state[notificationId] = readAt
+  })
+  saveReadNotifications(state)
+  // 批量更新后统一触发一次响应式刷新，避免重复计算。
+  readStateUpdateTrigger.value++
+}
+
 const isNotificationRead = (notificationId) => {
   // 访问触发器确保这个函数总是被重新执行
   readStateUpdateTrigger.value
@@ -152,6 +167,7 @@ export function useAdminNotifications() {
   })
 
   const hasNotifications = computed(() => notificationCount.value > 0)
+  const hasUnreadNotifications = computed(() => notificationCount.value > 0)
   const lastLoadedLabel = computed(() => (lastLoadedAt.value ? `最近更新于 ${formatRelativeTime(lastLoadedAt.value)}` : ''))
 
   const loadNotifications = async () => {
@@ -193,8 +209,10 @@ export function useAdminNotifications() {
     notificationSections,
     notificationCount,
     hasNotifications,
+    hasUnreadNotifications,
     loadNotifications,
     markNotificationAsRead,
+    markNotificationsAsRead,
     isNotificationRead
   }
 }
