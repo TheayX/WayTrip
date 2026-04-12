@@ -12,9 +12,10 @@
 </template>
 
 <script setup>
-const resolveGuideText = (value) => value || '--'
-const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
-const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
+import { resolveWebGuideCategory, resolveWebGuideDisplayText } from '@/shared/constants/resource-display.js'
+
+const resolveGuideText = (value) => resolveWebGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveWebGuideCategory(value)
 
 // 详情头部只展示标题和元信息，避免把正文相关逻辑耦合进来。
 defineProps({

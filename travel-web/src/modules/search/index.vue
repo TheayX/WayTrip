@@ -109,7 +109,7 @@
             <img :src="getImageUrl(guide.coverImage)" class="guide-image" alt="" />
             <div class="guide-content">
               <div class="guide-top">
-                <h4 class="guide-title">{{ resolveGuideText(guide.title) }}</h4>
+                <h4 class="guide-title">{{ resolveGuideTitle(guide.title) }}</h4>
                 <span class="guide-tag">{{ resolveGuideCategory(guide.category) }}</span>
               </div>
               <p class="guide-summary">{{ resolveGuideSummary(guide.summary) }}</p>
@@ -194,6 +194,7 @@ import { getGuideList } from '@/modules/guide/api.js'
 import { searchSpots } from '@/modules/spot/api.js'
 import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
 import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { resolveWebGuideCategory, resolveWebGuideDisplayText } from '@/shared/constants/resource-display.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import ExploreKeywordGroup from '@/shared/ui/ExploreKeywordGroup.vue'
 import ExploreSuggestionGrid from '@/shared/ui/ExploreSuggestionGrid.vue'
@@ -202,9 +203,8 @@ const SEARCH_TABS = ['all', 'spot', 'guide']
 const SEARCH_HISTORY_KEY = 'search_recent_keywords'
 const SEARCH_HISTORY_LIMIT = 8
 const hotKeywords = SEARCH_HOT_KEYWORDS
-const resolveGuideText = (value) => value || '--'
-const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
-const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
+const resolveGuideTitle = (value) => resolveWebGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveWebGuideCategory(value)
 const resolveGuideSummary = (value) => value || '--'
 const resolveSpotText = (value) => value || '--'
 const resolveSpotCategory = (value) => value || '景点'
@@ -249,7 +249,7 @@ const fallbackGuideCards = computed(() => fallbackGuides.value.map((guide) => ({
   targetId: guide.id,
   type: 'guide',
   image: guide.coverImage,
-  title: resolveGuideText(guide.title),
+  title: resolveGuideTitle(guide.title),
   subtitle: `${resolveGuideCategory(guide.category)} · ${guide.createdAt || '--'}`
 })))
 const hintCards = computed(() => [

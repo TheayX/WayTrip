@@ -91,10 +91,10 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getGuideList, getCategories } from '@/api/guide'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 
-const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
-const resolveGuideText = (value) => value || UNKNOWN_GUIDE_DISPLAY
-const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
+const resolveGuideText = (value) => resolveMiniappGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
 const resolveGuideSummary = (value) => value || '整理路线、玩法与出行经验，帮助你更快形成这次旅程的安排。'
 
 // 页面数据状态

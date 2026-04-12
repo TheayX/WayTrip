@@ -61,14 +61,14 @@ import { onLoad } from '@dcloudio/uni-app'
 import { getGuideDetail } from '@/api/guide'
 import { guardLoginPage } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 页面数据状态
 const guide = ref(null)
 const guideId = ref(null)
-const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
-const resolveGuideText = (value) => value || UNKNOWN_GUIDE_DISPLAY
-const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
+const resolveGuideText = (value) => resolveMiniappGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
 const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
 
 // 工具方法

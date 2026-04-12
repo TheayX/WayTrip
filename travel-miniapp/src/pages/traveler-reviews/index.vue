@@ -33,8 +33,8 @@
         <view class="user-box">
           <image class="avatar" :src="getAvatarUrl(item.avatar)" mode="aspectFill" />
           <view class="user-meta">
-            <text class="nickname">{{ item.nickname || UNKNOWN_USER_DISPLAY }}</text>
-            <text class="spot-name">{{ resolveSpotDisplayName(item.spotName) }}</text>
+            <text class="nickname">{{ resolveMiniappUserDisplayName(item.nickname) }}</text>
+            <text class="spot-name">{{ resolveMiniappSpotDisplayName(item.spotName, '景点待补充') }}</text>
           </view>
         </view>
         <view class="score-badge" :class="item.score >= 4 ? 'positive' : 'negative'">
@@ -67,12 +67,10 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { fetchTravelerReviewFeed } from '@/services/traveler-reviews'
 import { promptLogin } from '@/utils/auth'
 import { getAvatarUrl } from '@/utils/request'
+import { resolveMiniappSpotDisplayName, resolveMiniappUserDisplayName } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 好评与避雷分栏在页面层拆开，方便切换时直接复用同一套展示结构。
-const UNKNOWN_USER_DISPLAY = '未知用户'
-const UNKNOWN_SPOT_DISPLAY = '未知景点'
-const INVALID_SPOT_NAMES = ['已下架景点', '已删除景点', '已清除景点', UNKNOWN_SPOT_DISPLAY]
 const tabs = [
   { label: '高分种草', value: 'positive' },
   { label: '真实避雷', value: 'negative' }
@@ -85,8 +83,6 @@ const loading = ref(false)
 const activeReviews = computed(() => (activeTab.value === 'positive' ? positiveReviews.value : negativeReviews.value))
 const emptyStateTitle = computed(() => (activeTab.value === 'positive' ? '暂时没有高分种草内容' : '暂时没有真实避雷内容'))
 const emptyStateDesc = computed(() => activeTab.value === 'positive' ? '当前没有高分评论内容。' : '当前没有低分评论内容。')
-const resolveSpotDisplayName = (spotName) => INVALID_SPOT_NAMES.includes(spotName) ? UNKNOWN_SPOT_DISPLAY : (spotName || '景点待补充')
-
 // 口碑流会在进入页和返回页时都刷新，尽量减少长时间停留后的内容陈旧感。
 const loadTravelerReviewFeed = async () => {
   if (loading.value) return

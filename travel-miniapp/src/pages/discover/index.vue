@@ -147,7 +147,7 @@
           <view class="guide-card" v-for="guide in guideList" :key="guide.id" @click="goGuideDetail(guide.id)">
             <image class="guide-image" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
             <view class="guide-content">
-              <text class="guide-title">{{ resolveGuideText(guide.title) }}</text>
+              <text class="guide-title">{{ resolveGuideTitle(guide.title) }}</text>
               <text class="guide-desc">{{ resolveGuideSummary(guide.summary) }}</text>
               <view class="guide-meta">
                 <text class="meta-tag">{{ resolveGuideCategory(guide.category) }}</text>
@@ -172,11 +172,12 @@ import { getGuideList, getCategories } from '@/api/guide'
 import { getSpotList, getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 const resolveGuideText = (value) => value || '--'
-const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
-const resolveGuideCategory = (value) => value || UNKNOWN_GUIDE_DISPLAY
+const resolveGuideTitle = (value) => resolveMiniappGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
 const resolveGuideSummary = (value) => value || '带上好心情，发现更多旅行灵感。'
 
 // 常量配置

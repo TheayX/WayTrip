@@ -30,11 +30,11 @@ import GuideRelatedSpotSidebar from '@/modules/guide/components/GuideRelatedSpot
 import { getGuideDetail } from '@/modules/guide/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ElMessage } from 'element-plus'
+import { resolveWebGuideDisplayText } from '@/shared/constants/resource-display.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const GUIDE_DETAIL_UPDATED_KEY = 'guide_detail_updated'
-const UNKNOWN_GUIDE_DISPLAY = '未知攻略'
-const resolveGuideText = (value) => value || UNKNOWN_GUIDE_DISPLAY
+const resolveGuideText = (value) => resolveWebGuideDisplayText(value)
 
 // 基础依赖与路由状态
 const route = useRoute()
