@@ -28,3 +28,12 @@ export function getUserDetail(id) {
 export function resetUserPassword(id, data) {
   return request.put(`/users/${id}/password`, data)
 }
+
+/**
+ * 封禁用户
+ * @param id
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export function deactivateUserAccount(id) {
+  return request.delete(`/users/${id}/account`)
+}

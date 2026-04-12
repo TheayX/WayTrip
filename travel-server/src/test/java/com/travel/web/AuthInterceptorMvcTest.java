@@ -115,7 +115,7 @@ class AuthInterceptorMvcTest {
                 .standaloneSetup(
                         new UserAccountController(userAccountService),
                         new com.travel.controller.app.AuthController(userAuthService),
-                        new com.travel.controller.admin.AdminUserController(userProfileService),
+                        new com.travel.controller.admin.AdminUserController(userProfileService, userAccountService),
                         new com.travel.controller.admin.AdminAuthController(adminAuthService)
                 )
                 .addInterceptors(authInterceptor)

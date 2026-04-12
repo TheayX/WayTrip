@@ -45,6 +45,13 @@ public interface UserAccountService {
     void deactivateAccount(Long userId);
 
     /**
+     * 管理员封禁指定用户。
+     *
+     * @param userId 目标用户 ID
+     */
+    void deactivateAccountByAdmin(Long userId);
+
+    /**
      * 设置当前用户偏好分类。
      *
      * @param userId 当前登录用户 ID

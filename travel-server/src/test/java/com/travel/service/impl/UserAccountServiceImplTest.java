@@ -9,6 +9,7 @@ import com.travel.dto.user.response.UserInfoResponse;
 import com.travel.entity.SpotCategory;
 import com.travel.entity.User;
 import com.travel.entity.UserPreference;
+import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserPreferenceMapper;
@@ -63,6 +64,9 @@ class UserAccountServiceImplTest {
 
     @Mock
     private SpotCategoryMapper spotCategoryMapper;
+
+    @Mock
+    private UserSpotFavoriteMapper userSpotFavoriteMapper;
 
     @Mock
     private RecommendationService recommendationService;
@@ -177,6 +181,20 @@ class UserAccountServiceImplTest {
         when(userMapper.selectById(1L)).thenReturn(user);
 
         userAccountService.deactivateAccount(1L);
+
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(userMapper).updateById(captor.capture());
+        assertEquals(1, captor.getValue().getIsDeleted());
+    }
+
+    @Test
+    void deactivateAccountByAdmin_setsIsDeleted() {
+        User user = new User();
+        user.setId(2L);
+        user.setIsDeleted(0);
+        when(userMapper.selectById(2L)).thenReturn(user);
+
+        userAccountService.deactivateAccountByAdmin(2L);
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userMapper).updateById(captor.capture());

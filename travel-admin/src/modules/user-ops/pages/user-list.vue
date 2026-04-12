@@ -89,6 +89,7 @@
           <template #default="{ row }">
             <div class="table-actions">
               <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
+              <el-button type="warning" link @click="handleDeactivateUser(row)">封禁用户</el-button>
               <el-dropdown trigger="click" @command="(command) => handleCommand(command, row)">
                 <el-button link type="primary">
                   更多 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
@@ -203,7 +204,7 @@
 import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { getUserList, getUserDetail, resetUserPassword } from '@/modules/user-ops/api/user.js'
+import { deactivateUserAccount, getUserList, getUserDetail, resetUserPassword } from '@/modules/user-ops/api/user.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getSourceBucketLabel, getSourceLabel as resolveSourceLabel } from '@/shared/constants/view-source.js'
@@ -379,6 +380,32 @@ const handleResetPassword = async (row) => {
     ElMessage.success('密码重置成功')
   } catch (e) {
     if (!isMessageBoxDismissed(e)) console.error('重置密码失败', e)
+  }
+}
+
+// 管理端先以软删方式封禁用户，避免继续登录和参与当前状态型业务。
+const handleDeactivateUser = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要封禁用户「${row.nickname}」吗？封禁后该用户将被标记为已注销，无法继续登录，收藏与偏好会一并失效。`,
+      '封禁确认',
+      {
+        type: 'warning',
+        confirmButtonText: '确认封禁',
+        cancelButtonText: '取消'
+      }
+    )
+    await deactivateUserAccount(row.id)
+    ElMessage.success('用户已封禁')
+    if (detailVisible.value && currentUser.value?.id === row.id) {
+      detailVisible.value = false
+      currentUser.value = null
+    }
+    fetchUserList()
+  } catch (e) {
+    if (!isMessageBoxDismissed(e)) {
+      console.error('封禁用户失败', e)
+    }
   }
 }
 

@@ -114,13 +114,14 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Transactional
     public void deactivateAccount(Long userId) {
         User user = getActiveUser(userId);
+        deactivateUser(user);
+    }
 
-        // 注销后收起当前偏好和收藏状态，只保留订单、评价、浏览等强历史数据。
-        softDeleteUserPreferences(userId);
-        softDeleteUserFavorites(userId);
-        user.setIsDeleted(1);
-        userMapper.updateById(user);
-        recommendationService.invalidateUserRecommendationCache(userId);
+    @Override
+    @Transactional
+    public void deactivateAccountByAdmin(Long userId) {
+        User user = getExistingUser(userId);
+        deactivateUser(user);
     }
 
     @Override
@@ -183,6 +184,30 @@ public class UserAccountServiceImpl implements UserAccountService {
             throw new BusinessException(ResultCode.TOKEN_INVALID);
         }
         return user;
+    }
+
+    /**
+     * 管理员封禁和用户主动注销都属于软删收口，统一复用同一套清理逻辑。
+     */
+    private User getExistingUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "用户不存在");
+        }
+        return user;
+    }
+
+    /**
+     * 账号软删时统一清理当前状态型数据，避免不同入口出现不一致的封禁后效果。
+     */
+    private void deactivateUser(User user) {
+        Long userId = user.getId();
+        // 注销后收起当前偏好和收藏状态，只保留订单、评价、浏览等强历史数据。
+        softDeleteUserPreferences(userId);
+        softDeleteUserFavorites(userId);
+        user.setIsDeleted(1);
+        userMapper.updateById(user);
+        recommendationService.invalidateUserRecommendationCache(userId);
     }
 
     private void validateCategoryIds(List<Long> categoryIds) {
