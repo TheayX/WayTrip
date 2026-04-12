@@ -92,22 +92,24 @@
         <el-table-column prop="ratingCount" label="评价数" width="100" align="center" header-align="center" />
         <el-table-column prop="createdAt" label="注册时间" width="170" align="center" header-align="center" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" align="center" header-align="center" />
-        <el-table-column label="操作" width="150" fixed="right" align="center" header-align="center">
+        <el-table-column label="操作" width="260" fixed="right" align="left" header-align="center">
           <template #default="{ row }">
             <div class="table-actions">
-              <el-dropdown trigger="click" @command="(command) => handleCommand(command, row)">
+              <el-button v-if="row.isDeleted !== 1" link type="warning" @click="handleResetPassword(row)">重置密码</el-button>
+              <el-button
+                link
+                :type="row.isDeleted === 1 ? 'success' : 'danger'"
+                @click="row.isDeleted === 1 ? handleRestoreUser(row) : handleSuspendUser(row)"
+              >
+                {{ row.isDeleted === 1 ? '恢复用户' : '停用用户' }}
+              </el-button>
+              <el-dropdown class="more-action" trigger="click" @command="(command) => handleCommand(command, row)">
                 <el-button link type="primary">
                   更多 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item command="detail">查看详情</el-dropdown-item>
-                    <el-dropdown-item v-if="row.isDeleted !== 1" command="reset-password">重置密码</el-dropdown-item>
-                    <el-dropdown-item
-                      :command="row.isDeleted === 1 ? 'restore-account' : 'suspend-account'"
-                    >
-                      {{ row.isDeleted === 1 ? '恢复用户' : '停用用户' }}
-                    </el-dropdown-item>
                     <el-dropdown-item command="preference">用户偏好</el-dropdown-item>
                     <el-dropdown-item command="favorite">用户收藏</el-dropdown-item>
                     <el-dropdown-item command="view-log">浏览行为</el-dropdown-item>
@@ -347,15 +349,6 @@ const handleCommand = (command, row) => {
     case 'detail':
       handleDetail(row)
       break
-    case 'reset-password':
-      handleResetPassword(row)
-      break
-    case 'suspend-account':
-      handleSuspendUser(row)
-      break
-    case 'restore-account':
-      handleRestoreUser(row)
-      break
     case 'preference':
       handleOpenPreference(row)
       break
@@ -565,8 +558,13 @@ watch(
   .table-actions {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .table-actions .more-action {
+    margin-left: auto;
   }
 
   .table-actions :deep(.el-button.is-link) {
