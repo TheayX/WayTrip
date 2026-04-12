@@ -10,9 +10,11 @@ import com.travel.dto.user.response.UserInfoResponse;
 import com.travel.entity.SpotCategory;
 import com.travel.entity.User;
 import com.travel.entity.UserPreference;
+import com.travel.entity.UserSpotFavorite;
 import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserPreferenceMapper;
+import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.service.RecommendationService;
 import com.travel.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     // 持久层与服务依赖
     private final UserMapper userMapper;
     private final UserPreferenceMapper userPreferenceMapper;
+    private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final SpotCategoryMapper spotCategoryMapper;
     private final RecommendationService recommendationService;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -108,11 +111,16 @@ public class UserAccountServiceImpl implements UserAccountService {
     // 账户状态与偏好维护
 
     @Override
+    @Transactional
     public void deactivateAccount(Long userId) {
         User user = getActiveUser(userId);
 
+        // 注销后收起当前偏好和收藏状态，只保留订单、评价、浏览等强历史数据。
+        softDeleteUserPreferences(userId);
+        softDeleteUserFavorites(userId);
         user.setIsDeleted(1);
         userMapper.updateById(user);
+        recommendationService.invalidateUserRecommendationCache(userId);
     }
 
     @Override
@@ -220,5 +228,29 @@ public class UserAccountServiceImpl implements UserAccountService {
         } catch (NumberFormatException ignored) {
             return null;
         }
+    }
+
+    /**
+     * 注销后偏好画像不再视为当前有效状态，但保留历史记录供后续审计或恢复使用。
+     */
+    private void softDeleteUserPreferences(Long userId) {
+        UserPreference deletedPreference = new UserPreference();
+        deletedPreference.setIsDeleted(1);
+        userPreferenceMapper.update(
+                deletedPreference,
+                new LambdaUpdateWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
+        );
+    }
+
+    /**
+     * 收藏属于当前偏好状态，账号注销后统一软删，避免继续参与前台状态展示。
+     */
+    private void softDeleteUserFavorites(Long userId) {
+        UserSpotFavorite deletedFavorite = new UserSpotFavorite();
+        deletedFavorite.setIsDeleted(1);
+        userSpotFavoriteMapper.update(
+                deletedFavorite,
+                new LambdaUpdateWrapper<UserSpotFavorite>().eq(UserSpotFavorite::getUserId, userId)
+        );
     }
 }
