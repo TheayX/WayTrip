@@ -3,6 +3,7 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
@@ -36,8 +37,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
-
-    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
 
     // 持久层依赖
     private final ReviewMapper reviewMapper;
@@ -283,7 +282,7 @@ public class ReviewServiceImpl implements ReviewService {
         boolean isActiveUser = user != null && user.getIsDeleted() != null && user.getIsDeleted() == 0;
         String nickname = review.getNickname() != null
             ? review.getNickname()
-            : (isActiveUser ? user.getNickname() : DEACTIVATED_USER_NICKNAME);
+            : (isActiveUser ? user.getNickname() : ResourceDisplayText.User.DEACTIVATED);
         String avatar = review.getAvatarUrl() != null
             ? review.getAvatarUrl()
             : (isActiveUser ? user.getAvatarUrl() : null);

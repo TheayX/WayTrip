@@ -114,6 +114,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
 import { getFilters } from '@/modules/spot/api.js'
+import { USER_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -137,8 +138,6 @@ const pagination = reactive({
   pageSize: 10,
   total: 0
 })
-const DEACTIVATED_USER_NICKNAME = '已注销用户'
-
 // 当前页统计
 const currentPageTagCount = computed(() => {
   return tableData.value.reduce((sum, item) => sum + (item.preferenceTags?.length || 0), 0)
@@ -153,8 +152,8 @@ const topPreferenceTag = computed(() => {
   }, {})
   return Object.entries(counter).sort((a, b) => b[1] - a[1])[0]?.[0] || '暂无'
 })
-const getDisplayNickname = (row) => row?.nickname || DEACTIVATED_USER_NICKNAME
-const isDeactivatedUser = (row) => getDisplayNickname(row) === DEACTIVATED_USER_NICKNAME
+const getDisplayNickname = (row) => row?.nickname || USER_DISPLAY_TEXT.DEACTIVATED
+const isDeactivatedUser = (row) => getDisplayNickname(row) === USER_DISPLAY_TEXT.DEACTIVATED
 
 // 格式化手机号显示
 const formatPhone = (phone) => {

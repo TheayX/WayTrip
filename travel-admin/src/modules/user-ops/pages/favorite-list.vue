@@ -126,6 +126,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteFavorite, getFavoriteList } from '@/modules/user-ops/api/favorite.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getResourceUrl } from '@/shared/lib/resource.js'
+import { USER_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -149,13 +150,11 @@ const pagination = reactive({
   pageSize: 10,
   total: 0
 })
-const DEACTIVATED_USER_NICKNAME = '已注销用户'
-
 // 当前页统计
 const currentPageUserCount = computed(() => new Set(tableData.value.map(item => item.userId)).size)
 const currentPageSpotCount = computed(() => new Set(tableData.value.map(item => item.spotId)).size)
-const getDisplayNickname = (row) => row?.nickname || DEACTIVATED_USER_NICKNAME
-const isDeactivatedUser = (row) => getDisplayNickname(row) === DEACTIVATED_USER_NICKNAME
+const getDisplayNickname = (row) => row?.nickname || USER_DISPLAY_TEXT.DEACTIVATED
+const isDeactivatedUser = (row) => getDisplayNickname(row) === USER_DISPLAY_TEXT.DEACTIVATED
 
 // 获取收藏列表
 const fetchFavoriteList = async () => {

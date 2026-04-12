@@ -185,13 +185,13 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSourceLabel } from '@/shared/constants/view-source.js'
+import { USER_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
 import { getRecommendationStatus } from '@/modules/recommendation/api/recommendation.js'
 import { getFavoriteList } from '@/modules/user-ops/api/favorite.js'
 import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
 import { getViewList } from '@/modules/user-ops/api/view-log.js'
 
 const router = useRouter()
-const DEACTIVATED_USER_NICKNAME = '已注销用户'
 const loading = ref(false)
 const errorMessage = ref('')
 const partialWarning = ref('')
@@ -229,7 +229,7 @@ const latestPreference = reactive({
 
 const resolveBehaviorNickname = (nickname, hasBehavior) => {
   if (nickname) return nickname
-  return hasBehavior ? DEACTIVATED_USER_NICKNAME : ''
+  return hasBehavior ? USER_DISPLAY_TEXT.DEACTIVATED : ''
 }
 
 // 工作台入口

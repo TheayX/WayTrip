@@ -1,6 +1,7 @@
 package com.travel.service.support.recommendation;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.dto.recommendation.response.RecommendationResponse;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotCategory;
@@ -51,10 +52,10 @@ public class RecommendationQuerySupport {
 
     public String getSpotName(Long spotId) {
         if (spotId == null) {
-            return "未知景点";
+            return ResourceDisplayText.Spot.UNKNOWN;
         }
         Spot spot = spotMapper.selectById(spotId);
-        return spot == null || spot.getName() == null ? "未知景点" : spot.getName();
+        return spot == null || spot.getName() == null ? ResourceDisplayText.Spot.UNKNOWN : spot.getName();
     }
 
     /**

@@ -2,6 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
@@ -44,7 +45,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SpotQueryServiceImpl implements SpotQueryService {
 
-    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
     private static final DateTimeFormatter VIEW_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final SpotMapper spotMapper;
@@ -275,7 +275,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         if (StringUtils.hasText(comment.getNickname())) {
             return comment;
         }
-        comment.setNickname(DEACTIVATED_USER_NICKNAME);
+        comment.setNickname(ResourceDisplayText.User.DEACTIVATED);
         comment.setAvatar(null);
         return comment;
     }

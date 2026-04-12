@@ -2,6 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
@@ -30,8 +31,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AdminUserInsightServiceImpl implements AdminUserInsightService {
-
-    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
 
     // 时间格式配置
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -331,7 +330,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
      */
     private String resolveDisplayNickname(User user) {
         if (user == null || user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            return DEACTIVATED_USER_NICKNAME;
+            return ResourceDisplayText.User.DEACTIVATED;
         }
         return user.getNickname();
     }

@@ -141,6 +141,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteReview, getReviewList } from '@/modules/user-ops/api/review.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
+import { USER_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
 
 const router = useRouter()
 
@@ -167,10 +168,8 @@ const currentPageAverageScore = computed(() => {
   return (totalScore / reviewList.value.length).toFixed(1)
 })
 const lowScoreCount = computed(() => reviewList.value.filter((item) => Number(item.score || 0) <= 2).length)
-const DEACTIVATED_USER_NICKNAME = '已注销用户'
-
-const getDisplayNickname = (row) => row?.nickname || DEACTIVATED_USER_NICKNAME
-const isDeactivatedUser = (row) => getDisplayNickname(row) === DEACTIVATED_USER_NICKNAME
+const getDisplayNickname = (row) => row?.nickname || USER_DISPLAY_TEXT.DEACTIVATED
+const isDeactivatedUser = (row) => getDisplayNickname(row) === USER_DISPLAY_TEXT.DEACTIVATED
 
 // 获取评价列表
 const fetchReviewList = async () => {

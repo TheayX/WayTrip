@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.order.request.AdminOrderListRequest;
 import com.travel.dto.order.request.CreateOrderRequest;
@@ -44,8 +45,7 @@ public class OrderServiceImpl implements OrderService {
 
     // 待支付订单超时阈值，需与兜底定时任务保持一致。
     private static final int PAYMENT_TIMEOUT_MINUTES = 5;
-    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
-    private static final String DEACTIVATED_USER_PHONE = "--";
+    private static final String DEACTIVATED_USER_PHONE = ResourceDisplayText.Common.EMPTY;
 
     // 持久层与服务依赖
     private final OrderMapper orderMapper;
@@ -524,7 +524,7 @@ public class OrderServiceImpl implements OrderService {
      */
     private String resolveDisplayNickname(User user) {
         if (user == null || user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            return DEACTIVATED_USER_NICKNAME;
+            return ResourceDisplayText.User.DEACTIVATED;
         }
         return user.getNickname();
     }

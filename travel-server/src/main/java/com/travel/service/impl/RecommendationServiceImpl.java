@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.home.response.HotSpotResponse;
@@ -61,9 +62,6 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final RecommendationColdStartSupport recommendationColdStartSupport;
 
     private final AtomicBoolean computing = new AtomicBoolean(false);
-    private static final String DEACTIVATED_USER_NICKNAME = "已注销用户";
-    private static final String UNKNOWN_USER_NICKNAME = "未知用户";
-
     // 推荐主链路入口
 
     @Override
@@ -821,14 +819,14 @@ public class RecommendationServiceImpl implements RecommendationService {
      */
     private String resolveRecommendationDebugNickname(Long userId) {
         if (userId == null) {
-            return UNKNOWN_USER_NICKNAME;
+            return ResourceDisplayText.User.UNKNOWN;
         }
         User user = userMapper.selectById(userId);
         if (user == null) {
-            return UNKNOWN_USER_NICKNAME;
+            return ResourceDisplayText.User.UNKNOWN;
         }
         if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            return DEACTIVATED_USER_NICKNAME;
+            return ResourceDisplayText.User.DEACTIVATED;
         }
         if (user.getNickname() == null || user.getNickname().isBlank()) {
             return "未命名用户";
