@@ -130,6 +130,11 @@ const handleLimitExceed = () => {
   uni.showToast({ title: '最多选择5个', icon: 'none' })
 }
 
+// 推荐列表只合并详情页写回的有效景点快照，避免旧缓存覆盖推荐结果。
+const isValidSpotPreview = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
+}
+
 const savePreferences = async () => {
   try {
     await persistPreferences()
@@ -157,17 +162,16 @@ onMounted(() => {
 
 onShow(() => {
   const updatedSpot = uni.getStorageSync('spot_detail_updated')
-  if (!updatedSpot?.id) return
-
-  const index = recommendations.value.findIndex(item => item.id === updatedSpot.id)
-  if (index !== -1) {
-    recommendations.value[index] = {
-      ...recommendations.value[index],
-      ...updatedSpot
+  if (isValidSpotPreview(updatedSpot)) {
+    const index = recommendations.value.findIndex(item => item.id === updatedSpot.id)
+    if (index !== -1) {
+      recommendations.value[index] = {
+        ...recommendations.value[index],
+        ...updatedSpot
+      }
     }
   }
-
-  uni.removeStorageSync('spot_detail_updated')
+  if (updatedSpot) uni.removeStorageSync('spot_detail_updated')
 })
 </script>
 
