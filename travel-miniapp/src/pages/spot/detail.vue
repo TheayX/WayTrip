@@ -251,6 +251,14 @@ const similarUpdateTimeText = computed(() => {
 })
 
 // 工具方法
+const resolveSpotInvalidMessage = (error) => {
+  const message = error?.data?.message || error?.response?.data?.message || error?.message
+  if (message === '景点已下架' || message === '景点不存在') {
+    return '未知景点，暂时无法查看详情'
+  }
+  return '加载失败，请稍后重试'
+}
+
 const syncSpotPreview = (data) => {
   if (!data?.id) return
   uni.setStorageSync('spot_detail_updated', {
@@ -301,7 +309,7 @@ const fetchSpotDetail = async () => {
     }
   } catch (e) {
     spot.value = null
-    loadErrorMessage.value = e?.message || '加载失败，请稍后重试'
+    loadErrorMessage.value = resolveSpotInvalidMessage(e)
   } finally {
     loading.value = false
   }

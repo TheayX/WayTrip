@@ -217,6 +217,9 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         if (admin == null) {
             return adminId == null ? ResourceDisplayText.Admin.UNKNOWN : ResourceDisplayText.Admin.PURGED;
         }
+        if (admin.getIsEnabled() != null && admin.getIsEnabled() != 1) {
+            return ResourceDisplayText.Admin.DEACTIVATED;
+        }
         if (StringUtils.hasText(admin.getRealName())) {
             return admin.getRealName();
         }

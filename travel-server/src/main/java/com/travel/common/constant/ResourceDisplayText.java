@@ -18,6 +18,7 @@ public final class ResourceDisplayText {
     }
 
     public static final class Admin {
+        public static final String DEACTIVATED = "已停用管理员";
         public static final String PURGED = "已清除管理员";
         public static final String UNKNOWN = "未知管理员";
 
