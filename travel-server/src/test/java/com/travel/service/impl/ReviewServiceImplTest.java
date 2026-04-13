@@ -5,9 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.review.request.ReviewRequest;
+import com.travel.dto.review.response.ReviewResponse;
 import com.travel.dto.review.stats.SpotRatingStats;
+import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
+import com.travel.entity.User;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
@@ -21,7 +24,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
@@ -51,6 +56,7 @@ class ReviewServiceImplTest {
     private ReviewServiceImpl reviewService;
 
     private Review review;
+    private User user;
 
     /**
      * 构建基础评价夹具，供删除和更新相关测试复用。
@@ -63,10 +69,15 @@ class ReviewServiceImplTest {
         review.setSpotId(100L);
         review.setScore(5);
         review.setIsDeleted(0);
+
+        user = new User();
+        user.setId(1L);
+        user.setIsDeleted(0);
     }
 
     @Test
     void deleteReview_marksOwnReviewDeleted_andRefreshesSpotStats() {
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(reviewMapper.selectById(10L)).thenReturn(review);
         when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("3.5", 2L));
 
@@ -79,6 +90,7 @@ class ReviewServiceImplTest {
 
     @Test
     void deleteReview_rejectsDeletingOthersReview() {
+        when(userMapper.selectById(2L)).thenReturn(user);
         when(reviewMapper.selectById(10L)).thenReturn(review);
 
         BusinessException exception = assertThrows(BusinessException.class, () -> reviewService.deleteReview(2L, 10L));
@@ -90,6 +102,7 @@ class ReviewServiceImplTest {
 
     @Test
     void deleteReview_resetsSpotStatsWhenLastReviewRemoved() {
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(reviewMapper.selectById(10L)).thenReturn(review);
         when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("0.0", 0L));
 
@@ -107,6 +120,7 @@ class ReviewServiceImplTest {
         spot.setId(100L);
         spot.setIsDeleted(0);
         spot.setIsPublished(1);
+        when(userMapper.selectById(1L)).thenReturn(user);
         when(spotMapper.selectById(100L)).thenReturn(spot);
         when(reviewMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(review);
         when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("4.0", 3L));
@@ -124,6 +138,100 @@ class ReviewServiceImplTest {
         verify(reviewMapper).updateById(review);
         verify(spotMapper).update(isNull(), any(UpdateWrapper.class));
         verify(recommendationService).invalidateUserRecommendationCache(1L);
+    }
+
+    @Test
+    void submitReview_rejectsDeletedUser() {
+        User deletedUser = new User();
+        deletedUser.setId(1L);
+        deletedUser.setIsDeleted(1);
+        when(userMapper.selectById(1L)).thenReturn(deletedUser);
+
+        ReviewRequest request = new ReviewRequest();
+        request.setSpotId(100L);
+        request.setScore(4);
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> reviewService.submitReview(1L, request));
+
+        assertEquals(ResultCode.TOKEN_INVALID.getCode(), exception.getCode());
+        verify(spotMapper, never()).selectById(any());
+    }
+
+    @Test
+    void getUserReview_returnsUnknownNicknameWhenAuthorDeleted() {
+        Review deletedAuthorReview = new Review();
+        deletedAuthorReview.setId(20L);
+        deletedAuthorReview.setUserId(1L);
+        deletedAuthorReview.setSpotId(100L);
+        deletedAuthorReview.setScore(4);
+        deletedAuthorReview.setComment("保留历史评价");
+        deletedAuthorReview.setIsDeleted(0);
+
+        User deletedUser = new User();
+        deletedUser.setId(1L);
+        deletedUser.setIsDeleted(1);
+
+        when(userMapper.selectById(1L)).thenReturn(user, deletedUser);
+        when(reviewMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(deletedAuthorReview);
+
+        ReviewResponse response = reviewService.getUserReview(1L, 100L);
+
+        assertEquals("未知用户", response.getNickname());
+        assertNull(response.getAvatar());
+    }
+
+    @Test
+    void getSpotReviews_returnsUnknownNicknameWhenAuthorHardDeleted() {
+        Review purgedAuthorReview = new Review();
+        purgedAuthorReview.setId(21L);
+        purgedAuthorReview.setUserId(9L);
+        purgedAuthorReview.setSpotId(100L);
+        purgedAuthorReview.setScore(5);
+        purgedAuthorReview.setComment("历史评价");
+        purgedAuthorReview.setIsDeleted(0);
+
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Review> page =
+            new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 10);
+        page.setRecords(java.util.List.of(purgedAuthorReview));
+        page.setTotal(1L);
+
+        when(reviewMapper.selectReviewPage(any(), eq(100L))).thenReturn(page);
+        when(userMapper.selectById(9L)).thenReturn(null);
+        when(spotMapper.selectById(100L)).thenReturn(null);
+
+        var result = reviewService.getSpotReviews(100L, 1, 10);
+
+        assertEquals("未知用户", result.getList().get(0).getNickname());
+        assertNull(result.getList().get(0).getAvatar());
+    }
+
+    @Test
+    void getAdminReviews_keepsJoinedSpotNameWhenEntityIsNotQueried() {
+        Review adminReview = new Review();
+        adminReview.setId(30L);
+        adminReview.setUserId(1L);
+        adminReview.setSpotId(100L);
+        adminReview.setScore(5);
+        adminReview.setComment("后台评价记录");
+        adminReview.setSpotName("西湖");
+        adminReview.setCoverImageUrl("/uploads/spot/xihu.jpg");
+        adminReview.setIsDeleted(0);
+
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Review> page =
+            new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 10);
+        page.setRecords(java.util.List.of(adminReview));
+        page.setTotal(1L);
+
+        when(reviewMapper.selectAdminReviewPage(any(), any(), any())).thenReturn(page);
+
+        var request = new com.travel.dto.review.request.AdminReviewListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+
+        var result = reviewService.getAdminReviews(request);
+
+        assertEquals("西湖", result.getList().get(0).getSpotName());
+        assertEquals("/uploads/spot/xihu.jpg", result.getList().get(0).getCoverImageUrl());
     }
 
     /**

@@ -3,6 +3,7 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
@@ -10,11 +11,13 @@ import com.travel.dto.guide.request.AdminGuideListRequest;
 import com.travel.dto.guide.request.AdminGuideRequest;
 import com.travel.dto.guide.request.AdminGuideViewCountRequest;
 import com.travel.dto.guide.response.AdminGuideListResponse;
+import com.travel.entity.Admin;
 import com.travel.entity.Guide;
 import com.travel.entity.GuideSpotRelation;
 import com.travel.entity.Spot;
 import com.travel.mapper.GuideMapper;
 import com.travel.mapper.GuideSpotRelationMapper;
+import com.travel.mapper.AdminMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.GuideAdminService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +29,9 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +47,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
     private final GuideMapper guideMapper;
     private final GuideSpotRelationMapper guideSpotRelationMapper;
     private final SpotMapper spotMapper;
+    private final AdminMapper adminMapper;
 
     @Override
     public PageResult<AdminGuideListResponse> getAdminGuideList(AdminGuideListRequest request) {
@@ -61,8 +67,19 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         wrapper.orderByAsc(Guide::getId);
 
         Page<Guide> result = guideMapper.selectPage(page, wrapper);
+        List<Guide> guides = result.getRecords();
+        List<Long> adminIds = guides.stream()
+            .map(Guide::getAdminId)
+            .filter(id -> id != null)
+            .distinct()
+            .collect(Collectors.toList());
+        // 列表页批量补齐创建管理员信息，避免表格逐行查询产生 N+1。
+        java.util.Map<Long, Admin> adminMap = adminIds.isEmpty()
+            ? java.util.Map.of()
+            : adminMapper.selectBatchIds(adminIds).stream()
+                .collect(Collectors.toMap(Admin::getId, admin -> admin));
         List<AdminGuideListResponse> list = result.getRecords().stream()
-            .map(this::convertToAdminListResponse)
+            .map(guide -> convertToAdminListResponse(guide, adminMap))
             .collect(Collectors.toList());
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
@@ -70,6 +87,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
     @Override
     public AdminGuideRequest getAdminGuideDetail(Long guideId) {
         Guide guide = getExistingGuide(guideId);
+        Admin admin = guide.getAdminId() == null ? null : adminMapper.selectById(guide.getAdminId());
         // 编辑态详情需要保留原有关联顺序，因此按排序字段回放关联景点。
         List<GuideSpotRelation> guideSpots = guideSpotRelationMapper.selectList(
             new LambdaQueryWrapper<GuideSpotRelation>()
@@ -82,12 +100,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
             .map(GuideSpotRelation::getSpotId)
             .collect(Collectors.toList());
 
-        List<AdminGuideRequest.SpotOption> spotOptions = new ArrayList<>();
-        if (!spotIds.isEmpty()) {
-            spotOptions = spotMapper.selectBatchIds(spotIds).stream()
-                .map(this::convertToSpotOption)
-                .collect(Collectors.toList());
-        }
+        List<AdminGuideRequest.SpotOption> spotOptions = buildSpotOptions(spotIds);
 
         List<Long> filteredSpotIds = spotOptions.stream()
             .filter(option -> option.getIsDeleted() == null || option.getIsDeleted() != 1)
@@ -99,6 +112,8 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         response.setCoverImage(guide.getCoverImageUrl());
         response.setCategory(guide.getCategory());
         response.setContent(guide.getContent());
+        response.setAdminId(guide.getAdminId());
+        response.setAdminName(resolveAdminName(guide.getAdminId(), admin));
         response.setPublished(guide.getIsPublished() == 1);
         response.setViewCount(guide.getViewCount());
         response.setSpotIds(filteredSpotIds);
@@ -109,6 +124,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
     @Override
     @Transactional
     public Long createGuide(AdminGuideRequest request, Long adminId) {
+        validateActiveAdmin(adminId);
         Guide guide = new Guide();
         guide.setTitle(request.getTitle());
         guide.setCoverImageUrl(request.getCoverImage());
@@ -178,17 +194,39 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         return guide;
     }
 
-    private AdminGuideListResponse convertToAdminListResponse(Guide guide) {
+    private AdminGuideListResponse convertToAdminListResponse(Guide guide, java.util.Map<Long, Admin> adminMap) {
+        Admin admin = guide.getAdminId() == null ? null : adminMap.get(guide.getAdminId());
         return AdminGuideListResponse.builder()
             .id(guide.getId())
             .title(guide.getTitle())
             .coverImage(guide.getCoverImageUrl())
             .category(guide.getCategory())
+            .adminId(guide.getAdminId())
+            .adminName(resolveAdminName(guide.getAdminId(), admin))
             .viewCount(guide.getViewCount())
             .published(guide.getIsPublished() == 1)
             .createdAt(guide.getCreatedAt())
             .updatedAt(guide.getUpdatedAt())
             .build();
+    }
+
+    /**
+     * 列表页优先显示管理员姓名，其次回退用户名，避免责任归属字段出现空白。
+     */
+    private String resolveAdminName(Long adminId, Admin admin) {
+        if (admin == null) {
+            return adminId == null ? ResourceDisplayText.Admin.UNKNOWN : ResourceDisplayText.Admin.PURGED;
+        }
+        if (admin.getIsEnabled() != null && admin.getIsEnabled() != 1) {
+            return ResourceDisplayText.Admin.DEACTIVATED;
+        }
+        if (StringUtils.hasText(admin.getRealName())) {
+            return admin.getRealName();
+        }
+        if (StringUtils.hasText(admin.getUsername())) {
+            return admin.getUsername();
+        }
+        return adminId == null ? ResourceDisplayText.Admin.UNKNOWN : ResourceDisplayText.Admin.PURGED;
     }
 
     private AdminGuideRequest.SpotOption convertToSpotOption(Spot spot) {
@@ -197,6 +235,34 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         option.setName(spot.getName());
         option.setPublished(spot.getIsPublished());
         option.setIsDeleted(spot.getIsDeleted());
+        return option;
+    }
+
+    /**
+     * 编辑态需要保留关联顺序，哪怕景点被硬删，也要回显成“已清除景点”而不是直接丢失。
+     */
+    private List<AdminGuideRequest.SpotOption> buildSpotOptions(List<Long> spotIds) {
+        if (spotIds == null || spotIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Map<Long, Spot> spotMap = spotMapper.selectBatchIds(spotIds).stream()
+            .collect(Collectors.toMap(Spot::getId, spot -> spot, (left, right) -> left, LinkedHashMap::new));
+
+        return spotIds.stream()
+            .map(spotId -> {
+                Spot spot = spotMap.get(spotId);
+                return spot != null ? convertToSpotOption(spot) : buildPurgedSpotOption(spotId);
+            })
+            .collect(Collectors.toList());
+    }
+
+    private AdminGuideRequest.SpotOption buildPurgedSpotOption(Long spotId) {
+        AdminGuideRequest.SpotOption option = new AdminGuideRequest.SpotOption();
+        option.setId(spotId);
+        option.setName(ResourceDisplayText.Spot.PURGED);
+        option.setPublished(0);
+        option.setIsDeleted(1);
         return option;
     }
 
@@ -219,6 +285,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
 
         // 先去重再保存，避免后台拖拽选择时产生重复关联记录。
         List<Long> uniqueSpotIds = spotIds.stream().distinct().collect(Collectors.toList());
+        validateSpotReferences(uniqueSpotIds);
         List<GuideSpotRelation> existingSpots = guideSpotRelationMapper.selectList(
             new LambdaQueryWrapper<GuideSpotRelation>()
                 .eq(GuideSpotRelation::getGuideId, guideId)
@@ -250,6 +317,32 @@ public class GuideAdminServiceImpl implements GuideAdminService {
             guideSpot.setSortOrder(i + 1);
             guideSpot.setIsDeleted(0);
             guideSpotRelationMapper.insert(guideSpot);
+        }
+    }
+
+    /**
+     * 攻略景点关联改由应用层维护后，写入前必须先校验景点引用有效。
+     */
+    private void validateSpotReferences(List<Long> spotIds) {
+        List<Spot> spots = spotMapper.selectBatchIds(spotIds);
+        long activeCount = spots.stream()
+            .filter(spot -> spot.getIsDeleted() == 0)
+            .count();
+        if (activeCount != spotIds.size()) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "存在无效的景点ID");
+        }
+    }
+
+    /**
+     * 攻略创建不再依赖外键保护，必须先确认创建管理员仍然有效且启用。
+     */
+    private void validateActiveAdmin(Long adminId) {
+        Admin admin = adminMapper.selectById(adminId);
+        if (admin == null || admin.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.ADMIN_NOT_FOUND);
+        }
+        if (admin.getIsEnabled() == null || admin.getIsEnabled() != 1) {
+            throw new BusinessException(ResultCode.ADMIN_DISABLED);
         }
     }
 }

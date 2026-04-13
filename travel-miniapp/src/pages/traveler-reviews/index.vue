@@ -28,13 +28,19 @@
       </view>
     </view>
 
-    <view class="review-card" v-for="item in activeReviews" :key="item.id" @click="goSpotDetail(item.spotId)">
+    <view
+      class="review-card"
+      v-for="item in activeReviews"
+      :key="item.id"
+      :class="{ disabled: isInvalidSpot(item.spotName) }"
+      @click="goSpotDetail(item.spotId, item.spotName)"
+    >
       <view class="review-header">
         <view class="user-box">
           <image class="avatar" :src="getAvatarUrl(item.avatar)" mode="aspectFill" />
           <view class="user-meta">
-            <text class="nickname">{{ item.nickname || '匿名用户' }}</text>
-            <text class="spot-name">{{ item.spotName || '景点待补充' }}</text>
+            <text class="nickname">{{ resolveMiniappUserDisplayName(item.nickname) }}</text>
+            <text class="spot-name">{{ resolveMiniappSpotDisplayName(item.spotName, '景点待补充') }}</text>
           </view>
         </view>
         <view class="score-badge" :class="item.score >= 4 ? 'positive' : 'negative'">
@@ -46,7 +52,7 @@
 
       <view class="review-footer">
         <text class="footer-text">{{ item.createdAt || '最近发布' }}</text>
-        <text class="footer-link">查看景点详情</text>
+        <text class="footer-link">{{ isInvalidSpot(item.spotName) ? '景点暂不可查看' : '查看景点详情' }}</text>
       </view>
     </view>
 
@@ -67,6 +73,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { fetchTravelerReviewFeed } from '@/services/traveler-reviews'
 import { promptLogin } from '@/utils/auth'
 import { getAvatarUrl } from '@/utils/request'
+import { isMiniappInvalidSpotDisplay, resolveMiniappSpotDisplayName, resolveMiniappUserDisplayName } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 好评与避雷分栏在页面层拆开，方便切换时直接复用同一套展示结构。
@@ -82,7 +89,7 @@ const loading = ref(false)
 const activeReviews = computed(() => (activeTab.value === 'positive' ? positiveReviews.value : negativeReviews.value))
 const emptyStateTitle = computed(() => (activeTab.value === 'positive' ? '暂时没有高分种草内容' : '暂时没有真实避雷内容'))
 const emptyStateDesc = computed(() => activeTab.value === 'positive' ? '当前没有高分评论内容。' : '当前没有低分评论内容。')
-
+const isInvalidSpot = (spotName) => isMiniappInvalidSpotDisplay(spotName)
 // 口碑流会在进入页和返回页时都刷新，尽量减少长时间停留后的内容陈旧感。
 const loadTravelerReviewFeed = async () => {
   if (loading.value) return
@@ -101,8 +108,8 @@ const loadTravelerReviewFeed = async () => {
 }
 
 // 详情页需要登录后查看，这里统一收口校验可减少卡片层重复逻辑。
-const goSpotDetail = (spotId) => {
-  if (!spotId) return
+const goSpotDetail = (spotId, spotName) => {
+  if (!spotId || isInvalidSpot(spotName)) return
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
   }
@@ -132,6 +139,7 @@ onShow(() => {
 .tab-item { flex: 1; height: 76rpx; line-height: 76rpx; text-align: center; border-radius: 24rpx; font-size: 28rpx; font-weight: 600; color: #6b7280; }
 .tab-item.active { background: #18181b; color: #fff; }
 .review-card { margin-top: 22rpx; padding: 26rpx; }
+.review-card.disabled { opacity: 0.92; }
 .review-header { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
 .user-box { display: flex; align-items: center; gap: 16rpx; min-width: 0; }
 .avatar { width: 72rpx; height: 72rpx; border-radius: 50%; background: #e5e7eb; }

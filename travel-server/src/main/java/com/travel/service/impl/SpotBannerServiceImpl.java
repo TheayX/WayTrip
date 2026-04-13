@@ -2,6 +2,9 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.travel.common.constant.ResourceDisplayText;
+import com.travel.common.exception.BusinessException;
+import com.travel.common.result.ResultCode;
 import com.travel.dto.banner.request.AdminBannerRequest;
 import com.travel.dto.banner.response.AdminBannerListResponse;
 import com.travel.dto.banner.response.BannerResponse;
@@ -96,6 +99,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
     @Transactional(rollbackFor = Exception.class)
     public void createBanner(AdminBannerRequest request) {
         AdminBannerRequest validRequest = Objects.requireNonNull(request);
+        validateSpotReference(validRequest.getSpotId());
         int targetSortOrder = prepareInsertSortOrder(validRequest.getSortOrder());
         SpotBanner banner = new SpotBanner();
         banner.setImageUrl(validRequest.getImageUrl());
@@ -112,6 +116,7 @@ public class SpotBannerServiceImpl implements SpotBannerService {
     public void updateBanner(Long id, AdminBannerRequest request) {
         AdminBannerRequest validRequest = Objects.requireNonNull(request);
         SpotBanner banner = getActiveBanner(id);
+        validateSpotReference(validRequest.getSpotId());
         int targetSortOrder = prepareUpdateSortOrder(banner, validRequest.getSortOrder());
 
         spotBannerMapper.update(
@@ -293,9 +298,43 @@ public class SpotBannerServiceImpl implements SpotBannerService {
             return Map.of();
         }
 
-        return spotMapper.selectBatchIds(spotIds).stream()
-            .filter(spot -> spot.getIsDeleted() == 0)
-            .collect(Collectors.toMap(Spot::getId, Spot::getName));
+        Map<Long, String> spotNameMap = spotMapper.selectBatchIds(spotIds).stream()
+            .collect(Collectors.toMap(Spot::getId, this::resolveSpotDisplayName));
+
+        spotIds.stream()
+            .filter(spotId -> !spotNameMap.containsKey(spotId))
+            .forEach(spotId -> spotNameMap.put(spotId, ResourceDisplayText.Spot.PURGED));
+        return spotNameMap;
+    }
+
+    /**
+     * 轮播图后台仍要保留历史关联信息，景点失效后统一降级成状态文案。
+     */
+    private String resolveSpotDisplayName(Spot spot) {
+        if (spot == null) {
+            return ResourceDisplayText.Spot.PURGED;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return ResourceDisplayText.Spot.DELETED;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return ResourceDisplayText.Spot.OFFLINE;
+        }
+        return spot.getName();
+    }
+
+    /**
+     * 轮播图取消外键后，关联景点必须在应用层保证仍然有效。
+     */
+    private void validateSpotReference(Long spotId) {
+        if (spotId == null) {
+            return;
+        }
+
+        Spot spot = spotMapper.selectById(spotId);
+        if (spot == null || spot.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "关联景点不存在或已删除");
+        }
     }
 }
 

@@ -26,11 +26,11 @@
             v-for="item in footprintList"
             :key="item.id"
             class="browse-card"
-            @click="goSpot(item.id, SPOT_DETAIL_SOURCE.FOOTPRINT)"
+            @click="goSpot(item.id, SPOT_DETAIL_SOURCE.FOOTPRINT, item.name)"
           >
             <image class="browse-image" :src="getContentImageUrl(item.coverImage)" mode="aspectFill" />
             <view class="browse-body">
-              <text class="browse-name">{{ item.name }}</text>
+              <text class="browse-name">{{ resolveSpotDisplayName(item.name) }}</text>
               <text class="browse-meta">{{ item.regionName || '景点' }}</text>
               <text class="browse-time">浏览于 {{ formatViewedTime(item.viewedAt) }}</text>
             </view>
@@ -49,11 +49,11 @@
             class="favorite-card"
             v-for="spot in favoriteList"
             :key="spot.id"
-            @click="goSpot(spot.id, SPOT_DETAIL_SOURCE.FAVORITE)"
+            @click="goSpot(spot.id, SPOT_DETAIL_SOURCE.FAVORITE, spot.name)"
           >
             <image class="favorite-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
             <view class="favorite-body">
-              <text class="favorite-name">{{ spot.name }}</text>
+              <text class="favorite-name">{{ resolveSpotDisplayName(spot.name) }}</text>
               <text class="favorite-meta">{{ spot.regionName }} · {{ spot.categoryName }}</text>
               <view class="favorite-bottom">
                 <view class="favorite-rating">
@@ -81,7 +81,7 @@
             <image class="review-image" :src="getContentImageUrl(item.coverImageUrl)" mode="aspectFill" />
             <view class="review-body">
               <view class="review-top">
-                <text class="review-name">{{ item.spotName || `景点 #${item.spotId}` }}</text>
+                <text class="review-name">{{ resolveSpotDisplayName(item.spotName) }}</text>
                 <view class="review-score">
                   <uni-icons type="star-filled" size="13" color="#d97706" />
                   <text class="review-score-text">{{ item.score }}</text>
@@ -92,7 +92,7 @@
               <view class="review-actions">
                 <button class="ghost-btn" @tap="openEdit(item)">编辑</button>
                 <button class="danger-btn" @tap="handleDelete(item)">删除</button>
-                <button class="link-btn" @tap="goSpot(item.spotId, SPOT_DETAIL_SOURCE.REVIEW)">查看景点</button>
+                <button class="link-btn" :disabled="isInvalidSpot(item.spotName)" @tap="goSpot(item.spotId, SPOT_DETAIL_SOURCE.REVIEW, item.spotName)">查看景点</button>
               </view>
             </view>
           </view>
@@ -115,7 +115,7 @@
     <view v-if="editVisible" class="popup-mask" @tap="closeEdit">
       <view class="popup-panel" @tap.stop>
         <text class="popup-title">编辑评价</text>
-        <text class="popup-spot">{{ currentReview?.spotName || '-' }}</text>
+        <text class="popup-spot">{{ resolveSpotDisplayName(currentReview?.spotName) }}</text>
         <view class="star-row">
           <view
             v-for="i in 5"
@@ -151,6 +151,7 @@ import { getViewHistory } from '@/api/spot'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 import { getContentImageUrl, getImageUrl } from '@/utils/request'
+import { isMiniappInvalidSpotDisplay, resolveMiniappSpotDisplayName } from '@/utils/resource-display'
 
 // 常量配置
 const tabs = [
@@ -162,6 +163,8 @@ const tabs = [
 // 基础依赖与用户状态
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
+const resolveSpotDisplayName = (spotName) => resolveMiniappSpotDisplayName(spotName)
+const isInvalidSpot = (spotName) => isMiniappInvalidSpotDisplay(spotName)
 
 // 页面数据状态
 const activeTab = ref('browse')
@@ -412,7 +415,8 @@ const handleDelete = (item) => {
 }
 
 // 页面跳转方法
-const goSpot = (spotId, source) => {
+const goSpot = (spotId, source, spotName = '') => {
+  if (isInvalidSpot(spotName)) return
   uni.navigateTo({ url: buildSpotDetailUrl(spotId, source) })
 }
 

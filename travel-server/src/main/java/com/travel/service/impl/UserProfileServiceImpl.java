@@ -2,6 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.dto.user.request.AdminUserListRequest;
 import com.travel.dto.user.request.ResetUserPasswordRequest;
 import com.travel.dto.user.response.AdminUserDetailResponse;
@@ -46,12 +47,11 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     public AdminUserListResponse getAdminUsers(AdminUserListRequest request) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getIsDeleted, 0);
-        
+
         if (StringUtils.hasText(request.getNickname())) {
             wrapper.like(User::getNickname, request.getNickname());
         }
-        
+
         wrapper.orderByDesc(User::getCreatedAt);
 
         Page<User> page = new Page<>(request.getPage(), request.getPageSize());
@@ -70,7 +70,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public AdminUserDetailResponse getAdminUserDetail(Long userId) {
-        User user = getExistingUser(userId);
+        User user = getManagedUser(userId);
 
         AdminUserDetailResponse response = new AdminUserDetailResponse();
         response.setId(user.getId());
@@ -78,6 +78,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         response.setAvatar(user.getAvatarUrl());
         response.setPhone(MaskUtils.maskPhone(user.getPhone()));
         response.setPreferences(user.getPreferences());
+        response.setIsDeleted(user.getIsDeleted());
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
 
@@ -174,7 +175,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
         Spot latestSpot = spotMapper.selectById(latestFavorite.getSpotId());
         AdminUserDetailResponse.FavoriteSummary summary = new AdminUserDetailResponse.FavoriteSummary();
-        summary.setLatestSpotName(latestSpot != null ? latestSpot.getName() : "景点#" + latestFavorite.getSpotId());
+        summary.setLatestSpotName(resolveSpotDisplayName(latestSpot));
         summary.setLatestCreatedAt(latestFavorite.getCreatedAt());
         return summary;
     }
@@ -205,7 +206,7 @@ public class UserProfileServiceImpl implements UserProfileService {
             .orElse(0));
 
         AdminUserDetailResponse.ViewSummary summary = new AdminUserDetailResponse.ViewSummary();
-        summary.setLatestSpotName(latestSpot != null ? latestSpot.getName() : "景点#" + latestView.getSpotId());
+        summary.setLatestSpotName(resolveSpotDisplayName(latestSpot));
         summary.setLatestCreatedAt(latestView.getCreatedAt());
         summary.setTopSource(sourceCounter.entrySet().stream()
             .max(java.util.Map.Entry.comparingByValue())
@@ -224,10 +225,21 @@ public class UserProfileServiceImpl implements UserProfileService {
     /**
      * 用户详情和密码重置都要求目标用户必须存在，统一收口存在性校验。
      */
-    private User getExistingUser(Long userId) {
+    private User getManagedUser(Long userId) {
         User user = userMapper.selectById(userId);
-        if (user == null || user.getIsDeleted() == 1) {
+        if (user == null) {
             throw new RuntimeException("用户不存在");
+        }
+        return user;
+    }
+
+    /**
+     * 密码重置属于当前可用账号维护动作，不允许对已停用用户直接操作。
+     */
+    private User getActiveManagedUser(Long userId) {
+        User user = getManagedUser(userId);
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            throw new RuntimeException("用户已停用");
         }
         return user;
     }
@@ -269,9 +281,28 @@ public class UserProfileServiceImpl implements UserProfileService {
     private java.util.Map<Long, String> buildSpotNameMap(java.util.Set<Long> spotIds) {
         java.util.Map<Long, String> spotNameMap = new java.util.HashMap<>();
         if (!spotIds.isEmpty()) {
-            spotMapper.selectBatchIds(spotIds).forEach(spot -> spotNameMap.put(spot.getId(), spot.getName()));
+            spotMapper.selectBatchIds(spotIds).forEach(spot -> spotNameMap.put(spot.getId(), resolveSpotDisplayName(spot)));
+            spotIds.stream()
+                .filter(spotId -> !spotNameMap.containsKey(spotId))
+                .forEach(spotId -> spotNameMap.put(spotId, ResourceDisplayText.Spot.PURGED));
         }
         return spotNameMap;
+    }
+
+    /**
+     * 用户详情中的历史摘要同样保留记录，但景点失效后要明确展示当前状态。
+     */
+    private String resolveSpotDisplayName(Spot spot) {
+        if (spot == null) {
+            return ResourceDisplayText.Spot.PURGED;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return ResourceDisplayText.Spot.DELETED;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return ResourceDisplayText.Spot.OFFLINE;
+        }
+        return spot.getName();
     }
 
     private Long parseCategoryId(String tag) {
@@ -290,6 +321,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         item.setNickname(user.getNickname());
         item.setAvatar(user.getAvatarUrl());
         item.setPhone(MaskUtils.maskPhone(user.getPhone()));
+        item.setIsDeleted(user.getIsDeleted());
         item.setCreatedAt(user.getCreatedAt());
         item.setUpdatedAt(user.getUpdatedAt());
 
@@ -303,7 +335,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public void resetUserPassword(Long userId, ResetUserPasswordRequest request) {
-        User user = getExistingUser(userId);
+        User user = getActiveManagedUser(userId);
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userMapper.updateById(user);
         log.info("用户密码已重置: userId={}", userId);

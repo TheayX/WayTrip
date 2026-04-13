@@ -28,3 +28,21 @@ export function getUserDetail(id) {
 export function resetUserPassword(id, data) {
   return request.put(`/users/${id}/password`, data)
 }
+
+/**
+ * 停用用户
+ * @param id
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export function suspendUserAccount(id) {
+  return request.delete(`/users/${id}/account`)
+}
+
+/**
+ * 恢复用户
+ * @param id
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export function restoreUserAccount(id) {
+  return request.put(`/users/${id}/account/restore`)
+}

@@ -80,16 +80,30 @@
             {{ formatPhone(row.phone) }}
           </template>
         </el-table-column>
+        <el-table-column label="状态" width="100" align="center" header-align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.isDeleted === 1 ? 'warning' : 'success'" effect="light">
+              {{ row.isDeleted === 1 ? '已停用' : '正常' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="orderCount" label="订单数" width="100" align="center" header-align="center" />
         <el-table-column prop="favoriteCount" label="收藏数" width="100" align="center" header-align="center" />
         <el-table-column prop="ratingCount" label="评价数" width="100" align="center" header-align="center" />
         <el-table-column prop="createdAt" label="注册时间" width="170" align="center" header-align="center" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" align="center" header-align="center" />
-        <el-table-column label="操作" width="190" fixed="right" align="center" header-align="center">
+        <el-table-column label="操作" width="260" fixed="right" align="left" header-align="center">
           <template #default="{ row }">
             <div class="table-actions">
-              <el-button type="warning" link @click="handleResetPassword(row)">重置密码</el-button>
-              <el-dropdown trigger="click" @command="(command) => handleCommand(command, row)">
+              <el-button v-if="row.isDeleted !== 1" link type="warning" @click="handleResetPassword(row)">重置密码</el-button>
+              <el-button
+                link
+                :type="row.isDeleted === 1 ? 'success' : 'danger'"
+                @click="row.isDeleted === 1 ? handleRestoreUser(row) : handleSuspendUser(row)"
+              >
+                {{ row.isDeleted === 1 ? '恢复用户' : '停用用户' }}
+              </el-button>
+              <el-dropdown class="more-action" trigger="click" @command="(command) => handleCommand(command, row)">
                 <el-button link type="primary">
                   更多 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
                 </el-button>
@@ -203,7 +217,7 @@
 import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { getUserList, getUserDetail, resetUserPassword } from '@/modules/user-ops/api/user.js'
+import { getUserList, getUserDetail, resetUserPassword, restoreUserAccount, suspendUserAccount } from '@/modules/user-ops/api/user.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getSourceBucketLabel, getSourceLabel as resolveSourceLabel } from '@/shared/constants/view-source.js'
@@ -382,6 +396,57 @@ const handleResetPassword = async (row) => {
   }
 }
 
+// 管理端停用属于账号限制动作，当前会同步停用收藏与偏好等当前状态数据。
+const handleSuspendUser = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要停用用户「${row.nickname}」吗？当前操作会同步停用收藏与偏好；后续可通过管理端恢复，用户重新登录后也可恢复。`,
+      '停用确认',
+      {
+        type: 'warning',
+        confirmButtonText: '确认停用',
+        cancelButtonText: '取消'
+      }
+    )
+    await suspendUserAccount(row.id)
+    ElMessage.success('用户已停用')
+    if (detailVisible.value && currentUser.value?.id === row.id) {
+      detailVisible.value = false
+      currentUser.value = null
+    }
+    fetchUserList()
+  } catch (e) {
+    if (!isMessageBoxDismissed(e)) {
+      console.error('停用用户失败', e)
+    }
+  }
+}
+
+// 恢复会重新启用账号及其原有收藏、偏好，保持“限制可撤销”的管理语义。
+const handleRestoreUser = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要恢复用户「${row.nickname}」吗？恢复后会重新启用账号登录能力，并同步恢复原有收藏与偏好。`,
+      '恢复确认',
+      {
+        type: 'info',
+        confirmButtonText: '确认恢复',
+        cancelButtonText: '取消'
+      }
+    )
+    await restoreUserAccount(row.id)
+    ElMessage.success('用户已恢复')
+    if (detailVisible.value && currentUser.value?.id === row.id) {
+      await handleDetail(row)
+    }
+    fetchUserList()
+  } catch (e) {
+    if (!isMessageBoxDismissed(e)) {
+      console.error('恢复用户失败', e)
+    }
+  }
+}
+
 // 页面初始化
 onMounted(() => {
   applyRouteQuery()
@@ -493,8 +558,13 @@ watch(
   .table-actions {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .table-actions .more-action {
+    margin-left: auto;
   }
 
   .table-actions :deep(.el-button.is-link) {

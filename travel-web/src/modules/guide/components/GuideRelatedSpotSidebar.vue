@@ -12,9 +12,9 @@
       >
         <img :src="getImageUrl(spot.coverImage)" class="related-img" alt="" />
         <div class="related-info">
-          <span class="related-name">{{ spot.name }}</span>
+          <span class="related-name">{{ resolveSpotText(spot.name) }}</span>
           <span class="related-meta">{{ spot.regionName || '精选景点' }}</span>
-          <span class="price">¥{{ spot.price }}</span>
+          <span class="price">¥{{ spot.price || '--' }}</span>
         </div>
       </div>
     </div>
@@ -23,6 +23,9 @@
 
 <script setup>
 import { getImageUrl } from '@/shared/api/client.js'
+import { resolveWebSpotDisplayName } from '@/shared/constants/resource-display.js'
+
+const resolveSpotText = (value) => resolveWebSpotDisplayName(value)
 
 // 侧栏只展示当前攻略关联的景点摘要，不在组件内部再发起补充查询。
 defineProps({

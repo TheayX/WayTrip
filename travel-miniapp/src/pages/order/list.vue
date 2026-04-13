@@ -30,7 +30,7 @@
           <view class="order-content">
             <image class="spot-image" :src="getImageUrl(order.spotImage)" mode="aspectFill" />
             <view class="spot-info">
-              <text class="spot-name">{{ order.spotName }}</text>
+              <text class="spot-name">{{ resolveSpotDisplayName(order.spotName) }}</text>
               <text class="visit-date">游玩日期：{{ order.visitDate }}</text>
               <view class="price-row">
                 <text class="price">¥{{ order.totalPrice }}</text>
@@ -44,7 +44,12 @@
               {{ order.status === 'paid' ? '申请退款' : '取消订单' }}
             </button>
             <button v-if="order.status === 'pending'" class="action-btn pay" @click.stop="handlePay(order)">去支付</button>
-            <button v-if="order.status === 'completed'" class="action-btn review" @click.stop="handleReview(order)">
+            <button
+              v-if="order.status === 'completed'"
+              class="action-btn review"
+              :disabled="isInvalidSpot(order.spotName)"
+              @click.stop="handleReview(order)"
+            >
               去评价
             </button>
           </view>
@@ -71,6 +76,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getOrderList, cancelOrder } from '@/api/order'
 import { getImageUrl } from '@/utils/request'
 import { guardLoginPage } from '@/utils/auth'
+import { isMiniappInvalidSpotDisplay, resolveMiniappSpotDisplayName } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 常量配置
@@ -94,6 +100,8 @@ const pagination = reactive({ page: 1, pageSize: 10 })
 const showActions = (order) => {
   return order.status === 'pending' || order.status === 'paid' || order.status === 'completed'
 }
+const resolveSpotDisplayName = (spotName) => resolveMiniappSpotDisplayName(spotName)
+const isInvalidSpot = (spotName) => isMiniappInvalidSpotDisplay(spotName)
 
 // 数据加载方法
 const fetchOrders = async (refresh = false) => {
@@ -170,6 +178,7 @@ const handlePay = (order) => {
 }
 
 const handleReview = (order) => {
+  if (isInvalidSpot(order?.spotName)) return
   uni.navigateTo({ url: buildSpotDetailUrl(order.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }) })
 }
 

@@ -3,9 +3,9 @@
   <article class="guide-card premium-card" @click="$emit('select', guide)">
     <img :src="getImageUrl(guide.coverImage)" class="guide-image" alt="" />
     <div class="guide-content">
-      <span class="guide-category">{{ guide.category || '攻略' }}</span>
-      <h3 class="guide-title">{{ guide.title }}</h3>
-      <p class="guide-summary">{{ guide.summary || '整理路线、玩法与出行经验，帮助你更快形成这次旅程的安排。' }}</p>
+      <span class="guide-category">{{ resolveGuideCategory(guide.category) }}</span>
+      <h3 class="guide-title">{{ resolveGuideText(guide.title) }}</h3>
+      <p class="guide-summary">{{ resolveGuideSummary(guide.summary) }}</p>
       <div class="guide-meta">
         <span class="guide-views">浏览 {{ guide.viewCount || 0 }}</span>
         <span class="guide-link">继续阅读</span>
@@ -16,6 +16,11 @@
 
 <script setup>
 import { getImageUrl } from '@/shared/api/client.js'
+import { resolveWebGuideCategory, resolveWebGuideDisplayText } from '@/shared/constants/resource-display.js'
+
+const resolveGuideText = (value) => resolveWebGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveWebGuideCategory(value)
+const resolveGuideSummary = (value) => value || '整理路线、玩法与出行经验，帮助你更快形成这次旅程的安排。'
 
 // 卡片只承接展示和选中事件，详情跳转策略由外层列表页面决定。
 defineProps({

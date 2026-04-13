@@ -5,6 +5,7 @@ import com.travel.dto.user.request.AdminUserListRequest;
 import com.travel.dto.user.request.ResetUserPasswordRequest;
 import com.travel.dto.user.response.AdminUserDetailResponse;
 import com.travel.dto.user.response.AdminUserListResponse;
+import com.travel.service.UserAccountService;
 import com.travel.service.UserProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +26,7 @@ import jakarta.validation.Valid;
 public class AdminUserController {
 
     private final UserProfileService userProfileService;
+    private final UserAccountService userAccountService;
 
     @Operation(summary = "获取用户列表")
     @GetMapping
@@ -43,6 +45,20 @@ public class AdminUserController {
     public ApiResponse<Void> resetUserPassword(@PathVariable("id") Long id,
                                                 @Valid @RequestBody ResetUserPasswordRequest request) {
         userProfileService.resetUserPassword(id, request);
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "停用用户")
+    @DeleteMapping("/{id}/account")
+    public ApiResponse<Void> suspendUserAccount(@PathVariable("id") Long id) {
+        userAccountService.suspendUserAccountByAdmin(id);
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "恢复用户")
+    @PutMapping("/{id}/account/restore")
+    public ApiResponse<Void> restoreUserAccount(@PathVariable("id") Long id) {
+        userAccountService.restoreUserAccountByAdmin(id);
         return ApiResponse.success();
     }
 }

@@ -2,10 +2,14 @@ package com.travel.interceptor;
 
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
+import com.travel.entity.Admin;
+import com.travel.entity.User;
+import com.travel.mapper.AdminMapper;
+import com.travel.mapper.UserMapper;
 import com.travel.util.security.JwtUtils;
 import com.travel.util.web.UserContextHolder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -22,11 +26,13 @@ import org.springframework.lang.Nullable;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
 
     // Token 解析依赖统一通过工具类收口，避免拦截器直接耦合 JWT 细节。
-    @Autowired
-    private JwtUtils jwtUtils;
+    private final JwtUtils jwtUtils;
+    private final UserMapper userMapper;
+    private final AdminMapper adminMapper;
 
     /**
      * 拦截请求并根据接口前缀写入当前用户上下文。
@@ -54,12 +60,14 @@ public class AuthInterceptor implements HandlerInterceptor {
                 if (adminId == null) {
                     throw new BusinessException(ResultCode.TOKEN_INVALID);
                 }
+                validateActiveAdmin(adminId);
                 UserContextHolder.setAdminId(adminId);
             } else {
                 Long userId = jwtUtils.getUserIdFromToken(token);
                 if (userId == null) {
                     throw new BusinessException(ResultCode.TOKEN_INVALID);
                 }
+                validateActiveUser(userId);
                 UserContextHolder.setUserId(userId);
             }
             return true;
@@ -86,5 +94,28 @@ public class AuthInterceptor implements HandlerInterceptor {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    /**
+     * 用户端认证不能只信任 JWT，账号已被删除时必须在入口层立即失效。
+     */
+    private void validateActiveUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+    }
+
+    /**
+     * 管理端除了解析 Token，还要校验管理员未被删除且仍处于启用状态。
+     */
+    private void validateActiveAdmin(Long adminId) {
+        Admin admin = adminMapper.selectById(adminId);
+        if (admin == null || admin.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+        if (admin.getIsEnabled() == null || admin.getIsEnabled() != 1) {
+            throw new BusinessException(ResultCode.ADMIN_DISABLED);
+        }
     }
 }

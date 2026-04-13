@@ -147,10 +147,10 @@
           <view class="guide-card" v-for="guide in guideList" :key="guide.id" @click="goGuideDetail(guide.id)">
             <image class="guide-image" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
             <view class="guide-content">
-              <text class="guide-title">{{ guide.title }}</text>
-              <text class="guide-desc">{{ guide.summary || '带上好心情，发现更多旅行灵感。' }}</text>
+              <text class="guide-title">{{ resolveGuideTitle(guide.title) }}</text>
+              <text class="guide-desc">{{ resolveGuideSummary(guide.summary) }}</text>
               <view class="guide-meta">
-                <text class="meta-tag">{{ guide.category || '攻略' }}</text>
+                <text class="meta-tag">{{ resolveGuideCategory(guide.category) }}</text>
                 <view class="meta-view"><uni-icons type="eye" size="14" color="#9ca3af"/> {{ guide.viewCount || 0 }}</view>
               </view>
             </view>
@@ -172,7 +172,13 @@ import { getGuideList, getCategories } from '@/api/guide'
 import { getSpotList, getFilters } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
+
+const resolveGuideText = (value) => value || '--'
+const resolveGuideTitle = (value) => resolveMiniappGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
+const resolveGuideSummary = (value) => value || '带上好心情，发现更多旅行灵感。'
 
 // 常量配置
 const DISCOVER_STATE_KEY = 'discover_state'
@@ -200,6 +206,11 @@ const showSpotFilters = computed(() => activeTab.value === 'all' || activeTab.va
 const showGuideFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
 const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
 const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
+
+// 发现页只接收详情页生成的有效预览对象，异常缓存直接丢弃。
+const isValidPreviewCache = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
+}
 
 // 数据加载方法
 const fetchSpotFilters = async () => {
@@ -340,22 +351,22 @@ const goGuideDetail = (id) => {
 // 生命周期
 onShow(async () => {
   const updatedSpot = uni.getStorageSync('spot_detail_updated')
-  if (updatedSpot?.id) {
+  if (isValidPreviewCache(updatedSpot)) {
     const index = spotList.value.findIndex(item => item.id === updatedSpot.id)
     if (index !== -1) {
       spotList.value.splice(index, 1, { ...spotList.value[index], ...updatedSpot })
     }
-    uni.removeStorageSync('spot_detail_updated')
   }
+  if (updatedSpot) uni.removeStorageSync('spot_detail_updated')
 
   const updatedGuide = uni.getStorageSync('guide_detail_updated')
-  if (updatedGuide?.id) {
+  if (isValidPreviewCache(updatedGuide)) {
     const index = guideList.value.findIndex(item => item.id === updatedGuide.id)
     if (index !== -1) {
       guideList.value.splice(index, 1, { ...guideList.value[index], ...updatedGuide })
     }
-    uni.removeStorageSync('guide_detail_updated')
   }
+  if (updatedGuide) uni.removeStorageSync('guide_detail_updated')
 
   if (!regions.value.length || !spotCategories.value.length) await fetchSpotFilters()
   if (!guideCategories.value.length) await fetchGuideCategories()

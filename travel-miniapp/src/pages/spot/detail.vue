@@ -109,7 +109,7 @@
           <image class="comment-avatar" :src="getAvatarUrl(comment.avatar)" />
           <view class="comment-content">
             <view class="comment-header">
-              <text class="comment-name">{{ comment.nickname }}</text>
+              <text class="comment-name">{{ resolveMiniappUserDisplayName(comment.nickname) }}</text>
               <view class="comment-meta">
                 <view class="comment-score">
                   <uni-icons type="star-filled" size="13" color="#d97706" />
@@ -180,7 +180,7 @@
   </view>
 
   <view class="ios-page loading-page" v-else>
-    <text class="state-text">{{ loadErrorMessage || '景点信息不存在或已下架' }}</text>
+    <text class="state-text">{{ loadErrorMessage || '未知景点，暂时无法查看详情' }}</text>
     <button class="state-btn" @click="goSpotList">返回景点列表</button>
   </view>
 </template>
@@ -194,6 +194,7 @@ import { deleteReview, submitReview } from '@/api/review'
 import { guardLoginPage, promptLogin } from '@/utils/auth'
 import { getLocationSnapshot } from '@/utils/location'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
+import { resolveMiniappUserDisplayName } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 
@@ -250,6 +251,14 @@ const similarUpdateTimeText = computed(() => {
 })
 
 // 工具方法
+const resolveSpotInvalidMessage = (error) => {
+  const message = error?.data?.message || error?.response?.data?.message || error?.message
+  if (message === '景点已下架' || message === '景点不存在') {
+    return '未知景点，暂时无法查看详情'
+  }
+  return '加载失败，请稍后重试'
+}
+
 const syncSpotPreview = (data) => {
   if (!data?.id) return
   uni.setStorageSync('spot_detail_updated', {
@@ -300,7 +309,7 @@ const fetchSpotDetail = async () => {
     }
   } catch (e) {
     spot.value = null
-    loadErrorMessage.value = e?.message || '加载失败，请稍后重试'
+    loadErrorMessage.value = resolveSpotInvalidMessage(e)
   } finally {
     loading.value = false
   }

@@ -42,7 +42,7 @@
                 <el-avatar :size="44" :src="getAvatarUrl(comment.avatar)" icon="User" />
                 <div class="comment-body">
                   <div class="comment-top">
-                    <span class="comment-name">{{ comment.nickname }}</span>
+                    <span class="comment-name">{{ resolveWebUserDisplayName(comment.nickname) }}</span>
                     <div class="comment-actions">
                       <span class="star-text">★ {{ comment.score }}</span>
                       <el-button
@@ -111,6 +111,7 @@ import { getSpotDetail, getSimilarSpots, recordSpotView } from '@/modules/spot/a
 import { addFavorite, removeFavorite } from '@/modules/favorite/api.js'
 import { deleteReview, getSpotReviews, submitReview } from '@/modules/review/api.js'
 import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { resolveWebUserDisplayName } from '@/shared/constants/resource-display.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import { getLocationSnapshot } from '@/shared/lib/location.js'
 import { saveSpotFootprint } from '@/shared/lib/footprint.js'

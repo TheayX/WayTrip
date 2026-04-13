@@ -2,7 +2,7 @@
 <template>
   <el-drawer
     :model-value="visible"
-    :title="detail?.title || '攻略详情'"
+    :title="resolveGuideDisplayText(detail?.title) === '--' ? '攻略详情' : resolveGuideDisplayText(detail?.title)"
     size="520px"
     class="guide-detail-drawer"
     @update:model-value="emitVisible"
@@ -16,8 +16,8 @@
       </div>
 
       <div class="info-section mb-6 pb-6 border-b border-gray-100">
-        <h2 class="text-2xl font-bold text-gray-800 mb-2 mt-0">{{ detail.title }}</h2>
-        <p class="text-sm text-gray-500 mb-4">{{ detail.category || '未分类' }}</p>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2 mt-0">{{ resolveGuideDisplayText(detail.title) }}</h2>
+        <p class="text-sm text-gray-500 mb-4">{{ resolveCategoryDisplayName(detail.category) }}</p>
 
         <div class="flex gap-4">
           <div class="stat-item px-4 py-2 rounded-lg flex-1">
@@ -34,9 +34,10 @@
       <div class="info-section mb-6">
         <h3 class="section-title">基础信息</h3>
         <el-descriptions :column="1" border class="custom-desc">
-          <el-descriptions-item label="分类">{{ detail.category || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ formatDate(detail.createdAt) || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="修改时间">{{ formatDate(detail.updatedAt) || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="分类">{{ resolveCategoryDisplayName(detail.category) }}</el-descriptions-item>
+          <el-descriptions-item label="创建者">{{ resolveAdminDisplayName(detail.adminName) }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatDate(detail.createdAt) || '--' }}</el-descriptions-item>
+          <el-descriptions-item label="修改时间">{{ formatDate(detail.updatedAt) || '--' }}</el-descriptions-item>
         </el-descriptions>
       </div>
 
@@ -50,7 +51,7 @@
             :type="spot.isDeleted === 1 ? 'danger' : (spot.published === 1 ? 'success' : 'warning')"
             effect="light"
           >
-            {{ spot.name }}{{ spot.isDeleted === 1 ? '（已删除）' : (spot.published === 1 ? '' : '（已下架）') }}
+            {{ resolveSpotRecordDisplayName(spot) }}
           </el-tag>
         </div>
         <el-empty v-else description="暂无关联景点" :image-size="60" />
@@ -60,7 +61,7 @@
         <h3 class="section-title">攻略内容</h3>
         <div class="content-panel">
           <div v-if="containsHtml(detail.content)" v-html="detail.content"></div>
-          <div v-else class="plain-content">{{ detail.content || '暂无内容' }}</div>
+          <div v-else class="plain-content">{{ resolveGuideDisplayText(detail.content) }}</div>
         </div>
       </div>
     </div>
@@ -68,6 +69,13 @@
 </template>
 
 <script setup>
+import {
+  resolveAdminDisplayName,
+  resolveCategoryDisplayName,
+  resolveGuideDisplayText,
+  resolveSpotRecordDisplayName
+} from '@/shared/lib/resource-display.js'
+
 // 详情内容可能来自富文本或纯文本，两种展示方式在这里统一兜底。
 defineProps({
   visible: { type: Boolean, required: true },

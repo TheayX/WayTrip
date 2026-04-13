@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
@@ -10,11 +11,15 @@ import com.travel.dto.spot.request.AdminSpotUpsertRequest;
 import com.travel.dto.spot.response.AdminSpotDetailResponse;
 import com.travel.dto.spot.response.AdminSpotListResponse;
 import com.travel.dto.review.stats.SpotRatingStats;
+import com.travel.entity.GuideSpotRelation;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotImage;
+import com.travel.entity.SpotBanner;
 import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.UserSpotView;
+import com.travel.mapper.GuideSpotRelationMapper;
 import com.travel.mapper.SpotImageMapper;
+import com.travel.mapper.SpotBannerMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
@@ -30,7 +35,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,6 +53,8 @@ public class SpotAdminServiceImpl implements SpotAdminService {
 
     private final SpotMapper spotMapper;
     private final SpotImageMapper spotImageMapper;
+    private final SpotBannerMapper spotBannerMapper;
+    private final GuideSpotRelationMapper guideSpotRelationMapper;
     private final ReviewMapper reviewMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final UserSpotViewMapper userSpotViewMapper;
@@ -176,14 +185,54 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     }
 
     @Override
+    @Transactional
     public void deleteSpot(Long spotId) {
         Spot spot = getExistingSpot(spotId);
+        // 景点删除会先自动清理弱引用关系，再保留订单等强历史数据，避免后台长期卡在“无法删除”状态。
+        softDeleteLinkedBanners(spotId);
+        softDeleteGuideRelations(spotId);
         spot.setIsDeleted(1);
         spotMapper.updateById(spot);
 
         markSpotImagesDeleted(spotId);
         recommendationService.invalidateGlobalRecommendationCaches();
         log.info("景点已删除: spotId={}, name={}", spotId, spot.getName());
+    }
+
+    /**
+     * 轮播图属于当前展示资源，景点删除时自动失效并整理排序，避免管理员手动逐条解绑。
+     */
+    private void softDeleteLinkedBanners(Long spotId) {
+        List<SpotBanner> linkedBanners = spotBannerMapper.selectList(
+            new LambdaQueryWrapper<SpotBanner>()
+                .eq(SpotBanner::getSpotId, spotId)
+                .eq(SpotBanner::getIsDeleted, 0)
+                .orderByAsc(SpotBanner::getSortOrder)
+                .orderByAsc(SpotBanner::getId)
+        );
+        if (linkedBanners.isEmpty()) {
+            return;
+        }
+
+        linkedBanners.forEach((banner) -> {
+            banner.setIsDeleted(1);
+            spotBannerMapper.updateById(banner);
+            compactBannerSortOrdersAfterRemoval(banner.getId(), safeBannerSortOrder(banner.getSortOrder()));
+        });
+    }
+
+    /**
+     * 攻略保留内容主体，景点删除时只软删关联关系，避免内容页因为单个景点失效而整体不可维护。
+     */
+    private void softDeleteGuideRelations(Long spotId) {
+        GuideSpotRelation deletedRelation = new GuideSpotRelation();
+        deletedRelation.setIsDeleted(1);
+        guideSpotRelationMapper.update(
+            deletedRelation,
+            new LambdaUpdateWrapper<GuideSpotRelation>()
+                .eq(GuideSpotRelation::getSpotId, spotId)
+                .eq(GuideSpotRelation::getIsDeleted, 0)
+        );
     }
 
     private Spot getExistingSpot(Long spotId) {
@@ -205,5 +254,28 @@ public class SpotAdminServiceImpl implements SpotAdminService {
             deletedImage,
             new LambdaQueryWrapper<SpotImage>().eq(SpotImage::getSpotId, spotId)
         );
+    }
+
+    /**
+     * 自动清理轮播图时仍要维持顺序连续，避免首页出现排序空洞。
+     */
+    private void compactBannerSortOrdersAfterRemoval(Long currentId, int removedSortOrder) {
+        spotBannerMapper.selectList(
+            new LambdaQueryWrapper<SpotBanner>()
+                .eq(SpotBanner::getIsDeleted, 0)
+                .orderByAsc(SpotBanner::getSortOrder)
+                .orderByAsc(SpotBanner::getId)
+        ).stream()
+            .filter(item -> !Objects.equals(item.getId(), currentId))
+            .filter(item -> safeBannerSortOrder(item.getSortOrder()) > removedSortOrder)
+            .sorted(Comparator.comparingInt(item -> safeBannerSortOrder(item.getSortOrder())))
+            .forEach((item) -> {
+                item.setSortOrder(safeBannerSortOrder(item.getSortOrder()) - 1);
+                spotBannerMapper.updateById(item);
+            });
+    }
+
+    private int safeBannerSortOrder(Integer sortOrder) {
+        return sortOrder == null ? 1 : sortOrder;
     }
 }

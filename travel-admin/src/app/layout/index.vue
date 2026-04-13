@@ -150,7 +150,17 @@
                   <div class="notification-panel__title">消息通知</div>
                   <div class="notification-panel__sub-title">{{ lastLoadedLabel || '最近注册用户和新订单会显示在这里' }}</div>
                 </div>
-                <el-button text size="small" :loading="notificationLoading" @click="refreshNotifications">刷新</el-button>
+                <div class="notification-panel__actions">
+                  <el-button
+                    text
+                    size="small"
+                    :disabled="!hasUnreadNotifications"
+                    @click="markAllNotificationsAsRead"
+                  >
+                    全部已读
+                  </el-button>
+                  <el-button text size="small" :loading="notificationLoading" @click="refreshNotifications">刷新</el-button>
+                </div>
               </div>
 
               <el-alert
@@ -251,8 +261,10 @@ const {
   lastLoadedLabel,
   notificationSections,
   notificationCount,
+  hasUnreadNotifications,
   loadNotifications,
   markNotificationAsRead,
+  markNotificationsAsRead,
   isNotificationRead
 } = useAdminNotifications()
 const globalSearchKeyword = ref('')
@@ -462,6 +474,20 @@ const refreshNotifications = async () => {
   if (notificationErrorMessage.value) {
     ElMessage.warning(notificationErrorMessage.value)
   }
+}
+
+const markAllNotificationsAsRead = () => {
+  const unreadNotificationIds = notificationSections.value
+    .flatMap(section => section.items)
+    .filter(item => !isNotificationRead(item.id))
+    .map(item => item.id)
+
+  if (!unreadNotificationIds.length) {
+    return
+  }
+
+  // 批量已读只更新当前面板中的未读项，和现有本地存储策略保持一致。
+  markNotificationsAsRead(unreadNotificationIds)
 }
 
 const openNotification = (item) => {
@@ -752,6 +778,13 @@ onMounted(async () => {
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 12px;
+  }
+
+  .notification-panel__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
   }
 
   .notification-panel__title {

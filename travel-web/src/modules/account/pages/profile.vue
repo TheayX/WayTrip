@@ -136,7 +136,7 @@
             title="注销说明"
             type="warning"
             :closable="false"
-            description="注销后你将无法使用此账户登录，所有数据会保留。使用同一账户重新登录时可以恢复。"
+            description="注销后账号会进入停用状态，资料与历史数据会保留；使用同一账户重新登录时可以恢复。"
           />
           <el-button type="danger" style="margin-top: 24px" @click="handleDeactivate">确认注销账户</el-button>
         </div>
@@ -354,7 +354,7 @@ const handleChangePassword = async () => {
 }
 
 const handleDeactivate = async () => {
-  await ElMessageBox.confirm('注销后你将无法使用此账户登录，确定继续吗？', '确认注销', {
+  await ElMessageBox.confirm('注销后账号会进入停用状态，后续重新登录可恢复，确定继续吗？', '确认注销', {
     type: 'warning'
   })
   await deactivateAccount()

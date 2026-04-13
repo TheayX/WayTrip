@@ -1,3 +1,5 @@
+import { SOURCE_DISPLAY_TEXT } from '@/shared/constants/resource-display.js'
+
 // 原始来源与算法挡位分层管理，避免展示文案和代码枚举混在一起。
 export const sourceOptions = [
   { label: '首页', value: 'home' },
@@ -50,7 +52,7 @@ export const sourceToBucketMap = {
 }
 
 export const getSourceLabel = (value) => {
-  return sourceOptions.find(item => item.value === value)?.label || value || '未知'
+  return sourceOptions.find(item => item.value === value)?.label || SOURCE_DISPLAY_TEXT.UNKNOWN
 }
 
 // 未识别来源统一退回默认 detail 挡位，保证算法侧有稳定兜底。

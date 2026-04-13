@@ -1,6 +1,7 @@
 package com.travel.service.support.recommendation;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.config.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.response.SimilarityPreviewResponse;
@@ -141,7 +142,7 @@ public class RecommendationSimilaritySupport {
             SimilarityPreviewResponse.NeighborItem item = new SimilarityPreviewResponse.NeighborItem();
             Spot spot = spotMap.get(id);
             item.setSpotId(id);
-            item.setSpotName(spot == null ? "未知景点" : spot.getName());
+            item.setSpotName(spot == null ? ResourceDisplayText.Spot.UNKNOWN : spot.getName());
             item.setCoverImage(spot == null ? null : spot.getCoverImageUrl());
             item.setPrice(spot == null ? null : spot.getPrice());
             item.setAvgRating(spot == null ? null : spot.getAvgRating());

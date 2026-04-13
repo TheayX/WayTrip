@@ -7,7 +7,8 @@
 
         <GuideDetailHeader :guide="guide" />
 
-        <div class="guide-content premium-card" v-html="guide.content"></div>
+        <div v-if="hasGuideHtmlContent" class="guide-content premium-card" v-html="guide.content"></div>
+        <div v-else class="guide-content guide-content--plain premium-card">{{ resolveGuideText(guide.content) }}</div>
       </div>
 
       <GuideRelatedSpotSidebar
@@ -16,28 +17,38 @@
       />
     </div>
   </div>
-  <div v-else class="page-container">
+  <div v-else-if="loading" class="page-container">
     <el-skeleton :rows="15" animated />
+  </div>
+  <div v-else class="page-container invalid-state">
+    <el-empty :description="invalidMessage">
+      <el-button type="primary" @click="$router.push('/guides')">返回攻略列表</el-button>
+    </el-empty>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import GuideDetailHeader from '@/modules/guide/components/GuideDetailHeader.vue'
 import GuideRelatedSpotSidebar from '@/modules/guide/components/GuideRelatedSpotSidebar.vue'
 import { getGuideDetail } from '@/modules/guide/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
 import { ElMessage } from 'element-plus'
+import { resolveWebGuideDisplayText } from '@/shared/constants/resource-display.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 const GUIDE_DETAIL_UPDATED_KEY = 'guide_detail_updated'
+const resolveGuideText = (value) => resolveWebGuideDisplayText(value)
 
 // 基础依赖与路由状态
 const route = useRoute()
 
 // 页面数据状态
+const loading = ref(true)
 const guide = ref(null)
+const invalidMessage = ref('未知攻略，暂时无法查看详情')
+const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
 
 // 数据加载方法
 const fetchDetail = async () => {
@@ -56,7 +67,20 @@ const fetchDetail = async () => {
       }))
     }
   } catch (e) {
+    guide.value = null
+    const message = e?.response?.data?.message
+    if (message === '攻略已下架') {
+      invalidMessage.value = '未知攻略，暂时无法查看详情'
+      return
+    }
+    if (message === '攻略不存在') {
+      invalidMessage.value = '未知攻略，暂时无法查看详情'
+      return
+    }
+    invalidMessage.value = '攻略详情加载失败，请稍后重试'
     ElMessage.error('获取攻略详情失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -125,6 +149,14 @@ onMounted(() => {
     color: #475569;
     border-radius: 16px;
   }
+}
+
+.guide-content--plain {
+  white-space: pre-line;
+}
+
+.invalid-state {
+  padding: 48px 0;
 }
 
 @media (max-width: 992px) {

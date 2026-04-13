@@ -2,6 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
@@ -14,11 +15,13 @@ import com.travel.dto.spot.response.SpotViewHistoryResponse;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotImage;
+import com.travel.entity.User;
 import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.UserSpotView;
 import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.SpotImageMapper;
 import com.travel.mapper.SpotMapper;
+import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.SpotQueryService;
@@ -51,6 +54,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final ReviewMapper reviewMapper;
     private final UserSpotViewMapper userSpotViewMapper;
+    private final UserMapper userMapper;
     private final SpotResponseAssembler spotResponseAssembler;
     private final SpotTreeSupport spotTreeSupport;
 
@@ -134,25 +138,20 @@ public class SpotQueryServiceImpl implements SpotQueryService {
 
         Set<Long> spotIds = latestViews.stream().map(UserSpotView::getSpotId).collect(Collectors.toSet());
         Map<Long, Spot> spotMap = spotMapper.selectBatchIds(spotIds).stream()
-            .filter(spot -> spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
             .collect(Collectors.toMap(Spot::getId, spot -> spot));
 
         List<SpotViewHistoryResponse> allItems = latestViews.stream()
             .map(view -> {
                 Spot spot = spotMap.get(view.getSpotId());
-                if (spot == null) {
-                    return null;
-                }
                 return SpotViewHistoryResponse.builder()
-                    .id(spot.getId())
-                    .name(spot.getName())
-                    .coverImage(spot.getCoverImageUrl())
-                    .regionName(spotResponseAssembler.getRegionName(spot.getRegionId()))
-                    .categoryName(spotResponseAssembler.getCategoryName(spot.getCategoryId()))
+                    .id(view.getSpotId())
+                    .name(resolveUserSpotDisplayName(spot))
+                    .coverImage(isVisibleSpot(spot) ? spot.getCoverImageUrl() : null)
+                    .regionName(isVisibleSpot(spot) ? spotResponseAssembler.getRegionName(spot.getRegionId()) : null)
+                    .categoryName(isVisibleSpot(spot) ? spotResponseAssembler.getCategoryName(spot.getCategoryId()) : null)
                     .viewedAt(view.getCreatedAt() == null ? null : view.getCreatedAt().format(VIEW_TIME_FORMATTER))
                     .build();
             })
-            .filter(java.util.Objects::nonNull)
             .sorted(Comparator.comparing(SpotViewHistoryResponse::getViewedAt, Comparator.nullsLast(Comparator.reverseOrder())))
             .collect(Collectors.toList());
 
@@ -184,7 +183,10 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         UserInteractionState interactionState = loadUserInteractionState(userId, spotId);
         SpotRatingStats ratingStats = reviewMapper.selectSpotRatingStats(spotId);
 
-        List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5);
+        List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5).stream()
+            // 评价主体保留，但账号已失效时统一降级成注销文案，避免页面出现空昵称。
+            .map(this::normalizeCommentAuthor)
+            .collect(Collectors.toList());
         return SpotDetailResponse.builder()
             .id(spot.getId())
             .name(spot.getName())
@@ -259,5 +261,45 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     }
 
     private record UserInteractionState(boolean isFavorite, Integer userRating) {
+    }
+
+    /**
+     * 详情页最新评论允许展示历史评价，但需要区分用户已注销与记录已被清除。
+     */
+    private SpotDetailResponse.CommentItem normalizeCommentAuthor(SpotDetailResponse.CommentItem comment) {
+        if (comment == null) {
+            return null;
+        }
+        if (StringUtils.hasText(comment.getNickname())) {
+            return comment;
+        }
+        User user = comment.getUserId() == null ? null : userMapper.selectById(comment.getUserId());
+        comment.setNickname(resolveCommentAuthorDisplayName(user));
+        comment.setAvatar(null);
+        return comment;
+    }
+
+    /**
+     * 评论作者缺失时，展示语义要与全站软删/硬删口径保持一致。
+     */
+    private String resolveCommentAuthorDisplayName(User user) {
+        if (user == null) {
+            return ResourceDisplayText.User.UNKNOWN;
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return ResourceDisplayText.User.UNKNOWN;
+        }
+        return user.getNickname();
+    }
+
+    /**
+     * 用户端历史浏览只保留“是否还能识别这个景点”，不暴露后台治理语义。
+     */
+    private String resolveUserSpotDisplayName(Spot spot) {
+        return isVisibleSpot(spot) ? spot.getName() : ResourceDisplayText.Spot.UNKNOWN;
+    }
+
+    private boolean isVisibleSpot(Spot spot) {
+        return spot != null && spot.getIsDeleted() == 0 && spot.getIsPublished() == 1;
     }
 }

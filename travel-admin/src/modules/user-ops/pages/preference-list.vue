@@ -76,7 +76,7 @@
         <el-table-column prop="userId" label="用户ID" width="90" />
         <el-table-column label="用户昵称" min-width="140">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleOpenUser(row)">{{ row.nickname }}</el-button>
+            <el-button link type="primary" :disabled="isDeactivatedUser(row)" @click="handleOpenUser(row)">{{ getDisplayNickname(row) }}</el-button>
           </template>
         </el-table-column>
         <el-table-column prop="phone" label="手机号" width="150" align="center">
@@ -86,7 +86,7 @@
           <template #default="{ row }">
             <div class="tag-list">
               <el-tag v-for="tag in row.preferenceTags || []" :key="tag" effect="light" round>{{ tag }}</el-tag>
-              <span v-if="!row.preferenceTags?.length" class="empty-text">未设置</span>
+              <span v-if="!row.preferenceTags?.length" class="empty-text">{{ getPreferenceEmptyText(row) }}</span>
             </div>
           </template>
         </el-table-column>
@@ -114,6 +114,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
 import { getFilters } from '@/modules/spot/api.js'
+import { isDeactivatedUserDisplay, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -137,7 +138,6 @@ const pagination = reactive({
   pageSize: 10,
   total: 0
 })
-
 // 当前页统计
 const currentPageTagCount = computed(() => {
   return tableData.value.reduce((sum, item) => sum + (item.preferenceTags?.length || 0), 0)
@@ -152,6 +152,11 @@ const topPreferenceTag = computed(() => {
   }, {})
   return Object.entries(counter).sort((a, b) => b[1] - a[1])[0]?.[0] || '暂无'
 })
+const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
+const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
+const getPreferenceEmptyText = (row) => {
+  return isDeactivatedUser(row) ? '账号已停用，偏好已收起' : '未设置'
+}
 
 // 格式化手机号显示
 const formatPhone = (phone) => {
@@ -240,6 +245,7 @@ const applyRouteQuery = () => {
 }
 
 const handleOpenUser = (row) => {
+  if (isDeactivatedUser(row)) return
   router.push({ path: '/user', query: { nickname: row.nickname || '' } })
 }
 

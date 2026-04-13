@@ -2,6 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
@@ -115,7 +116,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
 
             return AdminUserPreferenceListItem.builder()
                 .userId(user.getId())
-                .nickname(user.getNickname())
+                .nickname(resolveDisplayNickname(user))
                 .phone(user.getPhone())
                 .preferenceTags(tags)
                 .updatedAt(latestUpdatedAt)
@@ -248,10 +249,10 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             return AdminUserFavoriteListItem.builder()
                 .id(favorite.getId())
                 .userId(favorite.getUserId())
-                .nickname(user != null ? user.getNickname() : "未知用户")
+                .nickname(resolveDisplayNickname(user))
                 .spotId(favorite.getSpotId())
-                .spotName(spot != null ? spot.getName() : "景点#" + favorite.getSpotId())
-                .coverImage(spot != null ? spot.getCoverImageUrl() : null)
+                .spotName(resolveSpotDisplayName(spot))
+                .coverImage(resolveSpotDisplayCover(spot))
                 .createdAt(formatDateTime(favorite.getCreatedAt()))
                 .build();
         }).collect(Collectors.toList());
@@ -276,10 +277,10 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             return AdminUserViewListItem.builder()
                 .id(view.getId())
                 .userId(view.getUserId())
-                .nickname(user != null ? user.getNickname() : "未知用户")
+                .nickname(resolveDisplayNickname(user))
                 .spotId(view.getSpotId())
-                .spotName(spot != null ? spot.getName() : "景点#" + view.getSpotId())
-                .coverImage(spot != null ? spot.getCoverImageUrl() : null)
+                .spotName(resolveSpotDisplayName(spot))
+                .coverImage(resolveSpotDisplayCover(spot))
                 .source(view.getViewSource())
                 .duration(view.getViewDuration())
                 .createdAt(formatDateTime(view.getCreatedAt()))
@@ -322,6 +323,39 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
 
     private String formatDateTime(LocalDateTime dateTime) {
         return dateTime == null ? null : DATE_TIME_FORMATTER.format(dateTime);
+    }
+
+    /**
+     * 后台行为列表保留历史记录，但需区分账号已注销与用户记录已被清除。
+     */
+    private String resolveDisplayNickname(User user) {
+        if (user == null) {
+            return ResourceDisplayText.User.PURGED;
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return ResourceDisplayText.User.DEACTIVATED;
+        }
+        return user.getNickname();
+    }
+
+    /**
+     * 历史行为列表默认保留，但景点失效后必须显式告知当前状态，而不是退回 ID 占位名。
+     */
+    private String resolveSpotDisplayName(Spot spot) {
+        if (spot == null) {
+            return ResourceDisplayText.Spot.PURGED;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return ResourceDisplayText.Spot.DELETED;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return ResourceDisplayText.Spot.OFFLINE;
+        }
+        return spot.getName();
+    }
+
+    private String resolveSpotDisplayCover(Spot spot) {
+        return spot != null ? spot.getCoverImageUrl() : null;
     }
 
     /**

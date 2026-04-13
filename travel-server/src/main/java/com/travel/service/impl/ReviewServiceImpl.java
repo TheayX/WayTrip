@@ -3,6 +3,7 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
@@ -51,6 +52,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void submitReview(Long userId, ReviewRequest request) {
+        getActiveUser(userId);
         Spot spot = getAvailableSpot(request.getSpotId());
         if (spot.getIsPublished() != 1) {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
@@ -84,6 +86,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ReviewResponse getUserReview(Long userId, Long spotId) {
+        getActiveUser(userId);
         Review review = reviewMapper.selectOne(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -95,7 +98,7 @@ public class ReviewServiceImpl implements ReviewService {
             return null;
         }
 
-        return convertToResponse(review);
+        return convertToResponse(review, false);
     }
 
     @Override
@@ -104,7 +107,7 @@ public class ReviewServiceImpl implements ReviewService {
         pageObj = (Page<Review>) reviewMapper.selectReviewPage(pageObj, spotId);
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
-            .map(this::convertToResponse)
+            .map(review -> convertToResponse(review, false))
             .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), page, pageSize);
@@ -119,7 +122,7 @@ public class ReviewServiceImpl implements ReviewService {
         pageObj = (Page<Review>) reviewMapper.selectReviewFeedPage(pageObj, minScore, maxScore);
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
-                .map(this::convertToResponse)
+                .map(review -> convertToResponse(review, false))
                 .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), request.getPage(), request.getPageSize());
@@ -127,11 +130,12 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public PageResult<ReviewResponse> getUserReviews(Long userId, Integer page, Integer pageSize) {
+        getActiveUser(userId);
         Page<Review> pageObj = new Page<>(page, pageSize);
         pageObj = (Page<Review>) reviewMapper.selectUserReviewPage(pageObj, userId);
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
-            .map(this::convertToResponse)
+            .map(review -> convertToResponse(review, false))
             .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), page, pageSize);
@@ -140,6 +144,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void deleteReview(Long userId, Long reviewId) {
+        getActiveUser(userId);
         Review review = reviewMapper.selectById(reviewId);
         if (review == null || review.getIsDeleted() == 1) {
             throw new BusinessException(ResultCode.REVIEW_NOT_FOUND);
@@ -163,7 +168,7 @@ public class ReviewServiceImpl implements ReviewService {
         pageObj = (Page<Review>) reviewMapper.selectAdminReviewPage(pageObj, request.getNickname(), request.getSpotName());
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
-            .map(this::convertToResponse)
+            .map(review -> convertToResponse(review, true))
             .collect(Collectors.toList());
 
         return PageResult.of(list, pageObj.getTotal(), request.getPage(), request.getPageSize());
@@ -171,6 +176,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public int getUserReviewCount(Long userId) {
+        getActiveUser(userId);
         return Math.toIntExact(reviewMapper.selectCount(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -216,6 +222,17 @@ public class ReviewServiceImpl implements ReviewService {
     // 景点评分同步与响应转换
 
     /**
+     * 评价读写不再依赖物理外键兜底，先校验用户仍然处于有效状态。
+     */
+    private User getActiveUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+        return user;
+    }
+
+    /**
      * 评价相关操作统一要求景点处于有效状态，避免不同入口各自散落相同校验。
      */
     private Spot getAvailableSpot(Long spotId) {
@@ -256,25 +273,36 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // 响应对象转换方法
-    private ReviewResponse convertToResponse(Review review) {
+    private ReviewResponse convertToResponse(Review review, boolean adminView) {
         User user = null;
         if (review.getNickname() == null || review.getAvatarUrl() == null) {
             user = userMapper.selectById(review.getUserId());
         }
+        Spot spot = null;
+        if (review.getSpotName() == null || review.getCoverImageUrl() == null) {
+            spot = spotMapper.selectById(review.getSpotId());
+        }
 
+        boolean isActiveUser = user != null && user.getIsDeleted() != null && user.getIsDeleted() == 0;
         String nickname = review.getNickname() != null
             ? review.getNickname()
-            : (user != null ? user.getNickname() : "匿名用户");
+            : resolveUserDisplayNickname(user, adminView);
         String avatar = review.getAvatarUrl() != null
             ? review.getAvatarUrl()
-            : (user != null ? user.getAvatarUrl() : null);
+            : (isActiveUser ? user.getAvatarUrl() : null);
+        String spotName = review.getSpotName() != null
+            ? resolveSpotDisplayName(spot, review.getSpotName(), adminView)
+            : resolveSpotDisplayName(spot, null, adminView);
+        String coverImageUrl = review.getCoverImageUrl() != null
+            ? review.getCoverImageUrl()
+            : (spot != null ? spot.getCoverImageUrl() : null);
 
         return ReviewResponse.builder()
             .id(review.getId())
             .userId(review.getUserId())
             .spotId(review.getSpotId())
-            .spotName(review.getSpotName())
-            .coverImageUrl(review.getCoverImageUrl())
+            .spotName(spotName)
+            .coverImageUrl(coverImageUrl)
             .score(review.getScore())
             .comment(review.getComment())
             .nickname(nickname)
@@ -282,6 +310,39 @@ public class ReviewServiceImpl implements ReviewService {
             .createdAt(review.getCreatedAt() != null ? review.getCreatedAt().format(DATE_FORMATTER) : null)
             .updatedAt(review.getUpdatedAt() != null ? review.getUpdatedAt().format(DATE_FORMATTER) : null)
             .build();
+    }
+
+    /**
+     * 历史评价需要区分“账号已注销”和“用户记录已被硬删”，避免展示语义失真。
+     */
+    private String resolveUserDisplayNickname(User user, boolean adminView) {
+        if (user == null) {
+            return adminView ? ResourceDisplayText.User.PURGED : ResourceDisplayText.User.UNKNOWN;
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return adminView ? ResourceDisplayText.User.DEACTIVATED : ResourceDisplayText.User.UNKNOWN;
+        }
+        return user.getNickname();
+    }
+
+    /**
+     * 历史评价保留时，景点失效语义要比原始名称更重要，避免误导运营判断。
+     */
+    private String resolveSpotDisplayName(Spot spot, String currentSpotName, boolean adminView) {
+        // 联表已经带回景点名称时，优先信任当前快照，避免实体未补查时被误判成“已清除景点”。
+        if (currentSpotName != null && spot == null) {
+            return currentSpotName;
+        }
+        if (spot == null) {
+            return adminView ? ResourceDisplayText.Spot.PURGED : ResourceDisplayText.Spot.UNKNOWN;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return adminView ? ResourceDisplayText.Spot.DELETED : ResourceDisplayText.Spot.UNKNOWN;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return adminView ? ResourceDisplayText.Spot.OFFLINE : ResourceDisplayText.Spot.UNKNOWN;
+        }
+        return currentSpotName != null ? currentSpotName : spot.getName();
     }
 
 }

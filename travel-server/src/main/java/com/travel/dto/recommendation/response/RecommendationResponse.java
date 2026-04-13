@@ -58,6 +58,7 @@ public class RecommendationResponse {
     @Data
     public static class DebugInfo {
         private Long userId;
+        private String userNickname;
         private Integer requestLimit;
         private Boolean refresh;
         private Boolean debugEnabled;

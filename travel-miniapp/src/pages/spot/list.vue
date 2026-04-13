@@ -289,6 +289,10 @@ const currentSubRegions = computed(() => {
 })
 
 // 工具方法
+const isValidSpotPreview = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
+}
+
 const parseNumberOption = (value) => {
   if (value === undefined || value === null || value === '') {
     return null
@@ -519,17 +523,16 @@ const goDetail = (id) => {
 // 生命周期
 onShow(() => {
   const updated = uni.getStorageSync('spot_detail_updated')
-  if (!updated || !updated.id) return
-
-  const index = spotList.value.findIndex(item => item.id === updated.id)
-  if (index !== -1) {
-    spotList.value[index] = {
-      ...spotList.value[index],
-      ...updated
+  if (isValidSpotPreview(updated)) {
+    const index = spotList.value.findIndex(item => item.id === updated.id)
+    if (index !== -1) {
+      spotList.value[index] = {
+        ...spotList.value[index],
+        ...updated
+      }
     }
   }
-
-  uni.removeStorageSync('spot_detail_updated')
+  if (updated) uni.removeStorageSync('spot_detail_updated')
 })
 
 onLoad((options) => {

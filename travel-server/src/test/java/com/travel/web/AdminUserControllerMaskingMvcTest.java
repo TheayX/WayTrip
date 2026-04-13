@@ -17,6 +17,7 @@ import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
+import com.travel.service.UserAccountService;
 import com.travel.service.impl.UserProfileServiceImpl;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
@@ -85,6 +86,7 @@ class AdminUserControllerMaskingMvcTest {
         spotMapper = mock(SpotMapper.class);
         spotCategoryMapper = mock(SpotCategoryMapper.class);
         passwordEncoder = mock(BCryptPasswordEncoder.class);
+        UserAccountService userAccountService = mock(UserAccountService.class);
 
         UserProfileServiceImpl userService = new UserProfileServiceImpl(
                 userMapper,
@@ -97,7 +99,7 @@ class AdminUserControllerMaskingMvcTest {
                 spotCategoryMapper,
                 passwordEncoder
         );
-        AdminUserController controller = new AdminUserController(userService);
+        AdminUserController controller = new AdminUserController(userService, userAccountService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 

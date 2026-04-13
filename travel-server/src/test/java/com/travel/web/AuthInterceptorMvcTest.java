@@ -3,9 +3,13 @@ package com.travel.web;
 import com.travel.common.exception.GlobalExceptionHandler;
 import com.travel.controller.app.UserAccountController;
 import com.travel.dto.auth.response.AdminLoginResponse;
+import com.travel.entity.Admin;
+import com.travel.entity.User;
 import com.travel.dto.user.response.UserInfoResponse;
 import com.travel.dto.user.response.AdminUserListResponse;
 import com.travel.interceptor.AuthInterceptor;
+import com.travel.mapper.AdminMapper;
+import com.travel.mapper.UserMapper;
 import com.travel.service.AdminAuthService;
 import com.travel.service.UserAccountService;
 import com.travel.service.UserAuthService;
@@ -38,6 +42,8 @@ class AuthInterceptorMvcTest {
     private UserAccountService userAccountService;
     private AdminAuthService adminAuthService;
     private UserProfileService userProfileService;
+    private UserMapper userMapper;
+    private AdminMapper adminMapper;
 
     /**
      * 构建带鉴权拦截器的 MockMvc 测试环境。
@@ -50,8 +56,20 @@ class AuthInterceptorMvcTest {
         ReflectionTestUtils.setField(jwtUtils, "adminExpiration", 86400000L);
         jwtUtils.init();
 
-        AuthInterceptor authInterceptor = new AuthInterceptor();
-        ReflectionTestUtils.setField(authInterceptor, "jwtUtils", jwtUtils);
+        userMapper = Mockito.mock(UserMapper.class);
+        adminMapper = Mockito.mock(AdminMapper.class);
+        AuthInterceptor authInterceptor = new AuthInterceptor(jwtUtils, userMapper, adminMapper);
+
+        User user = new User();
+        user.setId(1L);
+        user.setIsDeleted(0);
+        Mockito.when(userMapper.selectById(1L)).thenReturn(user);
+
+        Admin admin = new Admin();
+        admin.setId(99L);
+        admin.setIsDeleted(0);
+        admin.setIsEnabled(1);
+        Mockito.when(adminMapper.selectById(99L)).thenReturn(admin);
 
         userAuthService = Mockito.mock(UserAuthService.class);
         userAccountService = Mockito.mock(UserAccountService.class);
@@ -81,6 +99,7 @@ class AuthInterceptorMvcTest {
                         "用户A",
                         "/uploads/avatar/avatar.jpg",
                         "13800138000",
+                        0,
                         1,
                         2,
                         3,
@@ -97,7 +116,7 @@ class AuthInterceptorMvcTest {
                 .standaloneSetup(
                         new UserAccountController(userAccountService),
                         new com.travel.controller.app.AuthController(userAuthService),
-                        new com.travel.controller.admin.AdminUserController(userProfileService),
+                        new com.travel.controller.admin.AdminUserController(userProfileService, userAccountService),
                         new com.travel.controller.admin.AdminAuthController(adminAuthService)
                 )
                 .addInterceptors(authInterceptor)
@@ -199,5 +218,38 @@ class AuthInterceptorMvcTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(10002))
                 .andExpect(jsonPath("$.message").value("Token无效或过期"));
+    }
+
+    @Test
+    void protectedUserEndpoint_rejectsDeletedUserToken() throws Exception {
+        User deletedUser = new User();
+        deletedUser.setId(2L);
+        deletedUser.setIsDeleted(1);
+        Mockito.when(userMapper.selectById(2L)).thenReturn(deletedUser);
+        String token = jwtUtils.generateUserToken(2L);
+
+        mockMvc.perform(get("/api/v1/user/info")
+                        .header("Authorization", "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(10002))
+                .andExpect(jsonPath("$.message").value("Token无效或过期"));
+    }
+
+    @Test
+    void protectedAdminEndpoint_rejectsDisabledAdminToken() throws Exception {
+        Admin disabledAdmin = new Admin();
+        disabledAdmin.setId(100L);
+        disabledAdmin.setIsDeleted(0);
+        disabledAdmin.setIsEnabled(0);
+        Mockito.when(adminMapper.selectById(100L)).thenReturn(disabledAdmin);
+        String token = jwtUtils.generateAdminToken(100L);
+
+        mockMvc.perform(get("/api/admin/v1/auth/info")
+                        .header("Authorization", "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(10008))
+                .andExpect(jsonPath("$.message").value("当前管理员已被禁用"));
     }
 }

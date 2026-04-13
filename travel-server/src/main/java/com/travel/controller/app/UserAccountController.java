@@ -61,9 +61,9 @@ public class UserAccountController {
 
     @Operation(summary = "注销账户")
     @DeleteMapping("/account")
-    public ApiResponse<Void> deactivateAccount() {
+    public ApiResponse<Void> deactivateCurrentAccount() {
         Long userId = UserContextHolder.getUserId();
-        userAccountService.deactivateAccount(userId);
+        userAccountService.deactivateCurrentAccount(userId);
         return ApiResponse.success();
     }
 }

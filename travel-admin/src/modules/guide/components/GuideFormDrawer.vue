@@ -107,7 +107,7 @@
                   <el-option
                     v-for="spot in mergedSpotOptions"
                     :key="spot.id"
-                    :label="spot.isDeleted === 1 ? `${spot.name}（已删除）` : (spot.published ? spot.name : `${spot.name}（已下架）`)"
+                    :label="resolveSpotRecordDisplayName(spot)"
                     :value="spot.id"
                     :disabled="spot.isDeleted === 1"
                   />
@@ -147,6 +147,7 @@
 import { Edit, Plus } from '@element-plus/icons-vue'
 import { nextTick, ref } from 'vue'
 import GuideRichEditor from '@/modules/guide/components/GuideRichEditor.vue'
+import { resolveSpotRecordDisplayName } from '@/shared/lib/resource-display.js'
 
 defineProps({
   visible: { type: Boolean, required: true },

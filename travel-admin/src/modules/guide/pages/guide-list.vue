@@ -3,10 +3,10 @@
   <div class="guide-page admin-page-shell">
     <section class="page-hero">
       <div class="hero-left">
-        <p class="page-kicker">攻略内容管理</p>
+        <p class="page-kicker">攻略管理台</p>
         <h1 class="page-title">攻略管理</h1>
         <div class="subtitle-row">
-          <p class="page-subtitle">维护攻略内容、发布状态与关联景点。</p>
+          <p class="page-subtitle">维护攻略信息、发布状态与关联景点。</p>
         </div>
       </div>
       <div class="hero-actions hero-actions-stack">
@@ -24,7 +24,7 @@
       <el-card shadow="hover" class="summary-card">
         <div class="summary-label">已发布</div>
         <div class="summary-value">{{ publishedCount }}</div>
-        <div class="summary-desc">正在前台展示的攻略内容</div>
+        <div class="summary-desc">正在前台展示的攻略数量</div>
       </el-card>
       <el-card shadow="hover" class="summary-card">
         <div class="summary-label">待处理</div>
@@ -174,6 +174,7 @@ import {
 import { useUserStore } from '@/app/store/user.js'
 import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
 import { fetchAllSpotOptions } from '@/modules/spot/composables/useSpotOptions.js'
+import { resolveGuideDisplayText } from '@/shared/lib/resource-display.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -186,7 +187,7 @@ const uploadHeaders = computed(() => ({
 }))
 const uploadData = computed(() => ({
   scene: 'guide',
-  name: form.title || ''
+  name: resolveGuideDisplayText(form.title)
 }))
 
 // 补全图片访问地址
@@ -503,6 +504,8 @@ const openGuideDetail = async (row) => {
     title: row.title,
     category: res.data.category || row.category,
     coverImage: res.data.coverImage || row.coverImage,
+    adminId: row.adminId ?? res.data.adminId,
+    adminName: row.adminName || res.data.adminName,
     published: res.data.published ?? row.published,
     viewCount: row.viewCount,
     createdAt: row.createdAt,

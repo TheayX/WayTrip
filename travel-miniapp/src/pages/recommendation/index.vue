@@ -21,7 +21,7 @@
         <image class="card-image" :src="getContentImageUrl(spot.coverImage)" mode="aspectFill" />
         <view class="card-content">
           <view class="card-kicker">
-            <text class="card-tag">{{ spot.categoryName || '景点' }}</text>
+            <text class="card-tag">{{ resolveSpotCategory(spot.categoryName) }}</text>
             <text class="card-rating">{{ spot.avgRating || '4.5' }} 分</text>
           </view>
           <view class="card-header">
@@ -72,6 +72,8 @@ import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getContentImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
+
+const resolveSpotCategory = (value) => value || '景点'
 
 // 基础依赖与用户状态
 const userStore = useUserStore()
@@ -128,6 +130,11 @@ const handleLimitExceed = () => {
   uni.showToast({ title: '最多选择5个', icon: 'none' })
 }
 
+// 推荐列表只合并详情页写回的有效景点快照，避免旧缓存覆盖推荐结果。
+const isValidSpotPreview = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
+}
+
 const savePreferences = async () => {
   try {
     await persistPreferences()
@@ -155,17 +162,16 @@ onMounted(() => {
 
 onShow(() => {
   const updatedSpot = uni.getStorageSync('spot_detail_updated')
-  if (!updatedSpot?.id) return
-
-  const index = recommendations.value.findIndex(item => item.id === updatedSpot.id)
-  if (index !== -1) {
-    recommendations.value[index] = {
-      ...recommendations.value[index],
-      ...updatedSpot
+  if (isValidSpotPreview(updatedSpot)) {
+    const index = recommendations.value.findIndex(item => item.id === updatedSpot.id)
+    if (index !== -1) {
+      recommendations.value[index] = {
+        ...recommendations.value[index],
+        ...updatedSpot
+      }
     }
   }
-
-  uni.removeStorageSync('spot_detail_updated')
+  if (updatedSpot) uni.removeStorageSync('spot_detail_updated')
 })
 </script>
 

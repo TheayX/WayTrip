@@ -22,7 +22,7 @@
     <el-table-column prop="regionName" label="地区" width="110" align="center" />
     <el-table-column prop="categoryName" label="分类" width="110" align="center">
       <template #default="{ row }">
-        <el-tag effect="plain" type="info" size="small">{{ row.categoryName || '未分类' }}</el-tag>
+        <el-tag effect="plain" type="info" size="small">{{ resolveCategoryDisplayName(row.categoryName) }}</el-tag>
       </template>
     </el-table-column>
     <el-table-column prop="price" label="价格" width="100" align="center">
@@ -85,6 +85,7 @@
 
 <script setup>
 import { ArrowDown, StarFilled } from '@element-plus/icons-vue'
+import { resolveCategoryDisplayName } from '@/shared/lib/resource-display.js'
 
 // 表格组件只负责展示和透传行级操作，业务处理全部回到页面层统一执行。
 defineProps({

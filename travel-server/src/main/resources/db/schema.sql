@@ -119,8 +119,6 @@ CREATE TABLE `spot` (
   KEY `idx_spot_published_deleted` (`is_published`, `is_deleted`),
   KEY `idx_spot_published_deleted_heat` (`is_published`, `is_deleted`, `heat_score`, `id`),
   KEY `idx_spot_region_published` (`region_id`, `is_published`, `is_deleted`),
-  CONSTRAINT `fk_spot_category` FOREIGN KEY (`category_id`) REFERENCES `spot_category` (`id`),
-  CONSTRAINT `fk_spot_region` FOREIGN KEY (`region_id`) REFERENCES `spot_region` (`id`),
   CONSTRAINT `chk_spot_heat_level` CHECK (`heat_level` IN (0, 1, 2, 3)),
   CONSTRAINT `chk_spot_avg_rating` CHECK (`avg_rating` >= 0.0 AND `avg_rating` <= 5.0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点表';
@@ -142,8 +140,7 @@ CREATE TABLE `guide` (
   KEY `idx_guide_view_count` (`view_count`),
   KEY `idx_guide_published_deleted` (`is_published`, `is_deleted`),
   KEY `idx_guide_publish_category_created` (`is_published`, `is_deleted`, `category`, `created_at`),
-  KEY `idx_guide_admin_id` (`admin_id`),
-  CONSTRAINT `fk_guide_admin` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`id`)
+  KEY `idx_guide_admin_id` (`admin_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='攻略表';
 
 CREATE TABLE `spot_banner` (
@@ -157,8 +154,7 @@ CREATE TABLE `spot_banner` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_banner_enabled_deleted_sort` (`is_enabled`, `is_deleted`, `sort_order`),
-  KEY `idx_banner_spot_deleted` (`spot_id`, `is_deleted`),
-  CONSTRAINT `fk_banner_spot` FOREIGN KEY (`spot_id`) REFERENCES `spot` (`id`)
+  KEY `idx_banner_spot_deleted` (`spot_id`, `is_deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点轮播图表';
 
 CREATE TABLE `spot_image` (
@@ -170,8 +166,7 @@ CREATE TABLE `spot_image` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  KEY `idx_spot_image_spot_deleted_sort` (`spot_id`, `is_deleted`, `sort_order`),
-  CONSTRAINT `fk_spot_image_spot` FOREIGN KEY (`spot_id`) REFERENCES `spot` (`id`)
+  KEY `idx_spot_image_spot_deleted_sort` (`spot_id`, `is_deleted`, `sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='景点图片表';
 
 CREATE TABLE `guide_spot_relation` (
@@ -185,9 +180,7 @@ CREATE TABLE `guide_spot_relation` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_guide_spot_relation` (`guide_id`, `spot_id`),
   KEY `idx_guide_spot_relation_guide_deleted_sort` (`guide_id`, `is_deleted`, `sort_order`),
-  KEY `idx_guide_spot_relation_spot_deleted` (`spot_id`, `is_deleted`),
-  CONSTRAINT `fk_guide_spot_relation_guide` FOREIGN KEY (`guide_id`) REFERENCES `guide` (`id`),
-  CONSTRAINT `fk_guide_spot_relation_spot` FOREIGN KEY (`spot_id`) REFERENCES `spot` (`id`)
+  KEY `idx_guide_spot_relation_spot_deleted` (`spot_id`, `is_deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='攻略景点关联表';
 
 CREATE TABLE `user_preference` (
@@ -199,8 +192,7 @@ CREATE TABLE `user_preference` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_user_preference_user_tag` (`user_id`, `tag`),
-  KEY `idx_user_preference_user_deleted` (`user_id`, `is_deleted`),
-  CONSTRAINT `fk_user_preference_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+  KEY `idx_user_preference_user_deleted` (`user_id`, `is_deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户偏好标签表';
 
 CREATE TABLE `user_spot_favorite` (
@@ -213,9 +205,7 @@ CREATE TABLE `user_spot_favorite` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_user_spot_favorite` (`user_id`, `spot_id`),
   KEY `idx_user_spot_favorite_user_deleted_created` (`user_id`, `is_deleted`, `created_at`),
-  KEY `idx_user_spot_favorite_spot_deleted` (`spot_id`, `is_deleted`),
-  CONSTRAINT `fk_user_spot_favorite_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
-  CONSTRAINT `fk_user_spot_favorite_spot` FOREIGN KEY (`spot_id`) REFERENCES `spot` (`id`)
+  KEY `idx_user_spot_favorite_spot_deleted` (`spot_id`, `is_deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='收藏表';
 
 CREATE TABLE `user_spot_review` (
@@ -231,8 +221,6 @@ CREATE TABLE `user_spot_review` (
   UNIQUE KEY `uk_user_spot_review` (`user_id`, `spot_id`),
   KEY `idx_user_spot_review_created_at` (`created_at`),
   KEY `idx_user_spot_review_spot_deleted_created` (`spot_id`, `is_deleted`, `created_at`),
-  CONSTRAINT `fk_user_spot_review_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
-  CONSTRAINT `fk_user_spot_review_spot` FOREIGN KEY (`spot_id`) REFERENCES `spot` (`id`),
   CONSTRAINT `chk_user_spot_review_score` CHECK (`score` BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评价表';
 
@@ -247,9 +235,7 @@ CREATE TABLE `user_spot_view` (
   KEY `idx_user_spot_view_user_spot` (`user_id`, `spot_id`),
   KEY `idx_user_spot_view_user_created_id` (`user_id`, `created_at`, `id`),
   KEY `idx_user_spot_view_spot_id` (`spot_id`),
-  KEY `idx_user_spot_view_created_at` (`created_at`),
-  CONSTRAINT `fk_user_spot_view_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
-  CONSTRAINT `fk_user_spot_view_spot` FOREIGN KEY (`spot_id`) REFERENCES `spot` (`id`)
+  KEY `idx_user_spot_view_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户景点浏览记录表';
 
 CREATE TABLE `order` (
@@ -280,7 +266,5 @@ CREATE TABLE `order` (
   KEY `idx_order_user_status_deleted` (`user_id`, `status`, `is_deleted`),
   KEY `idx_order_spot_status_deleted` (`spot_id`, `status`, `is_deleted`),
   KEY `idx_order_user_spot` (`user_id`, `spot_id`),
-  CONSTRAINT `fk_order_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
-  CONSTRAINT `fk_order_spot` FOREIGN KEY (`spot_id`) REFERENCES `spot` (`id`),
   CONSTRAINT `chk_order_status` CHECK (`status` IN (0, 1, 2, 3, 4))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';

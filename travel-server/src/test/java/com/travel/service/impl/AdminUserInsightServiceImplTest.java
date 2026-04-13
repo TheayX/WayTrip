@@ -3,10 +3,17 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.result.PageResult;
+import com.travel.dto.user.item.AdminUserFavoriteListItem;
 import com.travel.dto.user.item.AdminUserPreferenceListItem;
+import com.travel.dto.user.item.AdminUserViewListItem;
+import com.travel.dto.user.request.AdminUserFavoriteListRequest;
 import com.travel.dto.user.request.AdminUserPreferenceListRequest;
+import com.travel.dto.user.request.AdminUserViewListRequest;
 import com.travel.entity.User;
 import com.travel.entity.UserPreference;
+import com.travel.entity.UserSpotFavorite;
+import com.travel.entity.UserSpotView;
+import com.travel.entity.Spot;
 import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
@@ -107,6 +114,72 @@ class AdminUserInsightServiceImplTest {
         assertEquals(0, result.getList().get(0).getPreferenceTags().size());
 
         verify(spotCategoryMapper, never()).selectBatchIds(any());
+    }
+
+    @Test
+    void getFavoriteList_marksDeletedUserAsDeactivated() {
+        UserSpotFavorite favorite = new UserSpotFavorite();
+        favorite.setId(1L);
+        favorite.setUserId(10L);
+        favorite.setSpotId(100L);
+        favorite.setIsDeleted(0);
+        favorite.setCreatedAt(LocalDateTime.now());
+
+        Page<UserSpotFavorite> page = new Page<>(1, 10);
+        page.setRecords(List.of(favorite));
+        page.setTotal(1L);
+        when(userSpotFavoriteMapper.selectPage(any(Page.class), any())).thenReturn(page);
+
+        User deletedUser = new User();
+        deletedUser.setId(10L);
+        deletedUser.setNickname("原昵称");
+        deletedUser.setIsDeleted(1);
+
+        Spot spot = new Spot();
+        spot.setId(100L);
+        spot.setName("测试景点");
+
+        when(userMapper.selectBatchIds(any())).thenReturn(List.of(deletedUser));
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(spot));
+
+        AdminUserFavoriteListRequest request = new AdminUserFavoriteListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+
+        PageResult<AdminUserFavoriteListItem> result = service.getFavoriteList(request);
+
+        assertEquals("已注销用户", result.getList().get(0).getNickname());
+    }
+
+    @Test
+    void getViewList_marksMissingUserAsPurged() {
+        UserSpotView view = new UserSpotView();
+        view.setId(1L);
+        view.setUserId(20L);
+        view.setSpotId(200L);
+        view.setViewSource("detail");
+        view.setViewDuration(30);
+        view.setCreatedAt(LocalDateTime.now());
+
+        Page<UserSpotView> page = new Page<>(1, 10);
+        page.setRecords(List.of(view));
+        page.setTotal(1L);
+        when(userSpotViewMapper.selectPage(any(Page.class), any())).thenReturn(page);
+
+        Spot spot = new Spot();
+        spot.setId(200L);
+        spot.setName("另一个景点");
+
+        when(userMapper.selectBatchIds(any())).thenReturn(List.of());
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(spot));
+
+        AdminUserViewListRequest request = new AdminUserViewListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+
+        PageResult<AdminUserViewListItem> result = service.getViewList(request);
+
+        assertEquals("已清除用户", result.getList().get(0).getNickname());
     }
 }
 

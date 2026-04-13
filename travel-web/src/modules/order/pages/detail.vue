@@ -18,15 +18,15 @@
           </div>
         </div>
 
-        <div class="info-card card" @click="$router.push(buildSpotDetailRoute(order.spotId, SPOT_DETAIL_SOURCE.ORDER))">
+        <div class="info-card card" :class="{ 'is-disabled': isInvalidSpot(order?.spotName) }" @click="openSpotDetail">
           <h3 class="card-title">景点信息</h3>
           <div class="spot-row">
             <img :src="getImageUrl(order.spotImage)" class="spot-thumb" alt="" />
             <div class="spot-info">
-              <span class="spot-name">{{ order.spotName }}</span>
+              <span class="spot-name">{{ resolveSpotDisplayName(order.spotName) }}</span>
               <span class="spot-date">游玩日期：{{ order.visitDate }}</span>
             </div>
-            <el-icon><ArrowRight /></el-icon>
+            <el-icon v-if="!isInvalidSpot(order?.spotName)"><ArrowRight /></el-icon>
           </div>
         </div>
 
@@ -91,7 +91,14 @@
           <el-button v-if="order.canCancel" size="large" class="action-btn" @click="handleCancel">
             {{ order.status === 'paid' ? '申请退款' : '取消订单' }}
           </el-button>
-          <el-button v-if="order.status === 'completed'" type="primary" size="large" class="action-btn" @click="handleReview">
+          <el-button
+            v-if="order.status === 'completed'"
+            type="primary"
+            size="large"
+            class="action-btn"
+            :disabled="isInvalidSpot(order?.spotName)"
+            @click="handleReview"
+          >
             去评价
           </el-button>
         </div>
@@ -111,6 +118,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { getOrderDetail, payOrder, cancelOrder } from '@/modules/order/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
+import { isWebInvalidSpotDisplay, resolveWebSpotDisplayName } from '@/shared/constants/resource-display.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 // 订单详情页同时负责状态展示、倒计时和支付后刷新，因此把时序状态集中在页面层维护。
@@ -131,6 +139,8 @@ const showActions = computed(() => {
   if (!order.value) return false
   return order.value.canPay || order.value.canCancel || order.value.status === 'completed'
 })
+const resolveSpotDisplayName = (spotName) => resolveWebSpotDisplayName(spotName)
+const isInvalidSpot = (spotName) => isWebInvalidSpotDisplay(spotName)
 
 // 状态图标和文案在详情页统一映射，避免模板里堆叠多段条件判断。
 const getStatusIcon = (status) => {
@@ -276,7 +286,13 @@ const handleCancel = async () => {
 
 const handleReview = () => {
   // 评价入口直接回到景点详情，并通过 query/状态打开评价面板。
+  if (isInvalidSpot(order.value?.spotName)) return
   router.push(buildSpotDetailRoute(order.value.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }))
+}
+
+const openSpotDetail = () => {
+  if (isInvalidSpot(order.value?.spotName)) return
+  router.push(buildSpotDetailRoute(order.value.spotId, SPOT_DETAIL_SOURCE.ORDER))
 }
 
 onMounted(() => {
@@ -351,6 +367,10 @@ onUnmounted(() => {
   border-radius: 12px;
 }
 
+.info-card.is-disabled {
+  cursor: default;
+}
+
 .card-title {
   font-size: 16px;
   font-weight: 600;
@@ -362,6 +382,10 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   cursor: pointer;
+}
+
+.info-card.is-disabled .spot-row {
+  cursor: default;
 }
 
 .spot-thumb {

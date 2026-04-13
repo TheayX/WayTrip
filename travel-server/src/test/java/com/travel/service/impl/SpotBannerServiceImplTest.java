@@ -3,6 +3,7 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.travel.dto.banner.request.AdminBannerRequest;
 import com.travel.dto.banner.response.BannerResponse;
+import com.travel.entity.Spot;
 import com.travel.entity.SpotBanner;
 import com.travel.mapper.SpotBannerMapper;
 import com.travel.mapper.SpotMapper;
@@ -25,6 +26,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 /**
@@ -122,6 +124,24 @@ class SpotBannerServiceImplTest {
         verify(spotBannerMapper, times(1)).updateById(any());
         assertEquals(3, second.getSortOrder());
         verify(recommendationCacheService).deleteHomeBanners();
+    }
+
+    @Test
+    void createBanner_rejectsDeletedSpotReference() {
+        Spot deletedSpot = new Spot();
+        deletedSpot.setId(100L);
+        deletedSpot.setIsDeleted(1);
+        when(spotMapper.selectById(100L)).thenReturn(deletedSpot);
+
+        AdminBannerRequest request = new AdminBannerRequest();
+        request.setImageUrl("/banner/new.jpg");
+        request.setSpotId(100L);
+
+        RuntimeException ex = org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class,
+            () -> spotBannerService.createBanner(request));
+
+        assertEquals("关联景点不存在或已删除", ex.getMessage());
+        verify(spotBannerMapper, never()).insert(any());
     }
 
     @Test

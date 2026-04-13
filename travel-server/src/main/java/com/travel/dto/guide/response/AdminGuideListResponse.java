@@ -16,6 +16,8 @@ public class AdminGuideListResponse {
     private String title;
     private String coverImage;
     private String category;
+    private Long adminId;
+    private String adminName;
     private Integer viewCount;
     private Boolean published;
     private LocalDateTime createdAt;

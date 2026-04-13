@@ -103,21 +103,21 @@
               <div class="summary-title">最新收藏</div>
               <div class="summary-main">{{ latestFavorite.spotName || '暂无数据' }}</div>
               <div class="summary-sub">
-                {{ latestFavorite.nickname ? `${latestFavorite.nickname} 收藏于 ${latestFavorite.createdAt}` : '可从这里快速回看显式偏好行为' }}
+                {{ latestFavorite.displayNickname ? `${latestFavorite.displayNickname} 收藏于 ${latestFavorite.createdAt}` : '可从这里快速回看显式偏好行为' }}
               </div>
             </div>
             <div class="summary-panel">
               <div class="summary-title">最新浏览</div>
               <div class="summary-main">{{ latestView.spotName || '暂无数据' }}</div>
               <div class="summary-sub">
-                {{ latestView.nickname ? `${latestView.nickname} 来自 ${latestView.sourceLabel}，浏览于 ${latestView.createdAt}` : '可从这里快速观察最新流量入口' }}
+                {{ latestView.displayNickname ? `${latestView.displayNickname} 来自 ${latestView.sourceLabel}，浏览于 ${latestView.createdAt}` : '可从这里快速观察最新流量入口' }}
               </div>
             </div>
             <div class="summary-panel">
               <div class="summary-title">高频偏好</div>
               <div class="summary-main">{{ latestPreference.tag || '暂无数据' }}</div>
               <div class="summary-sub">
-                {{ latestPreference.nickname ? `${latestPreference.nickname} 的画像最近一次更新时间为 ${latestPreference.updatedAt || '暂无'}` : '可从这里快速观察当前画像标签' }}
+                {{ latestPreference.displayNickname ? `${latestPreference.displayNickname} 的画像最近一次更新时间为 ${latestPreference.updatedAt || '暂无'}` : '可从这里快速观察当前画像标签' }}
               </div>
             </div>
           </div>
@@ -185,6 +185,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSourceLabel } from '@/shared/constants/view-source.js'
+import { resolveUserDisplayName } from '@/shared/lib/resource-display.js'
 import { getRecommendationStatus } from '@/modules/recommendation/api/recommendation.js'
 import { getFavoriteList } from '@/modules/user-ops/api/favorite.js'
 import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
@@ -206,12 +207,14 @@ const status = reactive({
 // 最近行为摘要
 const latestFavorite = reactive({
   nickname: '',
+  displayNickname: '',
   spotName: '',
   createdAt: ''
 })
 
 const latestView = reactive({
   nickname: '',
+  displayNickname: '',
   spotName: '',
   createdAt: '',
   sourceLabel: ''
@@ -219,9 +222,15 @@ const latestView = reactive({
 
 const latestPreference = reactive({
   nickname: '',
+  displayNickname: '',
   tag: '',
   updatedAt: ''
 })
+
+const resolveBehaviorNickname = (nickname, hasBehavior) => {
+  if (nickname) return nickname
+  return hasBehavior ? resolveUserDisplayName('') : ''
+}
 
 // 工作台入口
 const entryCards = [
@@ -323,12 +332,14 @@ const fetchBehaviorSummary = async () => {
 
   Object.assign(latestFavorite, {
     nickname: favorite?.nickname || '',
+    displayNickname: resolveBehaviorNickname(favorite?.nickname || '', Boolean(favorite?.spotName || favorite?.createdAt)),
     spotName: favorite?.spotName || '',
     createdAt: favorite?.createdAt || ''
   })
 
   Object.assign(latestView, {
     nickname: view?.nickname || '',
+    displayNickname: resolveBehaviorNickname(view?.nickname || '', Boolean(view?.spotName || view?.createdAt)),
     spotName: view?.spotName || '',
     createdAt: view?.createdAt || '',
     sourceLabel: getSourceLabel(view?.source)
@@ -336,6 +347,7 @@ const fetchBehaviorSummary = async () => {
 
   Object.assign(latestPreference, {
     nickname: preference?.nickname || '',
+    displayNickname: resolveBehaviorNickname(preference?.nickname || '', Boolean(preference?.preferenceTags?.length || preference?.updatedAt)),
     tag: preference?.preferenceTags?.[0] || '',
     updatedAt: preference?.updatedAt || ''
   })

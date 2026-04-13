@@ -1,6 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.common.constant.ResourceDisplayText;
 import com.travel.dto.dashboard.response.DashboardOverviewResponse;
 import com.travel.dto.dashboard.response.HotSpotsResponse;
 import com.travel.dto.dashboard.response.OrderHeatmapResponse;
@@ -359,7 +360,7 @@ public class DashboardServiceImpl implements DashboardService {
 
                 HotSpotsResponse.SpotItem item = new HotSpotsResponse.SpotItem();
                 item.setId(spotId);
-                item.setName(spot != null ? spot.getName() : "未知景点");
+                item.setName(spot != null ? spot.getName() : ResourceDisplayText.Spot.UNKNOWN);
                 item.setOrderCount((long) spotOrders.size());
                 item.setRevenue(sumRevenue(spotOrders));
                 item.setAvgRating(spot != null ? spot.getAvgRating() : BigDecimal.ZERO);

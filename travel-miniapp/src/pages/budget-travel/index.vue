@@ -79,14 +79,14 @@
         <image class="guide-image" :src="getImageUrl(item.coverImage)" mode="aspectFill" />
         <view class="guide-content">
           <view class="guide-header">
-            <text class="guide-title">{{ item.title }}</text>
-            <text class="guide-price">{{ item.priceLabel }}</text>
+            <text class="guide-title">{{ resolveGuideTitle(item.title) }}</text>
+            <text class="guide-price">{{ item.priceLabel || '--' }}</text>
           </view>
-          <text class="guide-summary">{{ item.summary || '这篇攻略里提到的景点更适合低预算出行。' }}</text>
+          <text class="guide-summary">{{ resolveGuideSummary(item.summary) }}</text>
           <view class="guide-meta">
-            <text class="meta-tag">{{ item.category || '攻略' }}</text>
+            <text class="meta-tag">{{ resolveGuideCategory(item.category) }}</text>
             <text class="meta-tag">{{ item.viewCount || 0 }} 次浏览</text>
-            <text class="meta-tag">关联景点 {{ item.relatedCount }}</text>
+            <text class="meta-tag">关联景点 {{ item.relatedCount || 0 }}</text>
           </view>
         </view>
       </view>
@@ -117,7 +117,13 @@ import {
 import { promptLogin } from '@/utils/auth'
 import { formatFeaturePrice, formatFeatureRating } from '@/utils/feature-display'
 import { getImageUrl } from '@/utils/request'
+import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
+
+const resolveGuideText = (value) => value || '--'
+const resolveGuideTitle = (value) => resolveMiniappGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
+const resolveGuideSummary = (value) => value || '这篇攻略里提到的景点更适合低预算出行。'
 
 // 页内同时承接景点和攻略两类低预算内容，因此把标签与预算口径统一放在页面层管理。
 const tabs = [

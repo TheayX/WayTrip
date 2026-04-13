@@ -1,9 +1,16 @@
 package com.travel.service.support.spot;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.common.exception.BusinessException;
+import com.travel.common.result.ResultCode;
 import com.travel.dto.spot.request.AdminSpotUpsertRequest;
 import com.travel.entity.Spot;
+import com.travel.entity.SpotCategory;
 import com.travel.entity.SpotImage;
+import com.travel.entity.SpotRegion;
+import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.SpotImageMapper;
+import com.travel.mapper.SpotRegionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,11 +26,14 @@ import java.util.List;
 public class SpotWriteSupport {
 
     private final SpotImageMapper spotImageMapper;
+    private final SpotCategoryMapper spotCategoryMapper;
+    private final SpotRegionMapper spotRegionMapper;
 
     /**
      * 后台新增和更新共用同一套字段映射，避免写入口径在两处漂移。
      */
     public void copyUpsertRequest(AdminSpotUpsertRequest request, Spot spot) {
+        validateAssociation(request);
         if (request.getName() != null) {
             spot.setName(request.getName());
         }
@@ -59,6 +69,33 @@ public class SpotWriteSupport {
         }
         if (request.getHeatLevel() != null) {
             spot.setHeatLevel(request.getHeatLevel());
+        }
+    }
+
+    /**
+     * 景点写入改为纯应用层约束后，分类和地区引用必须在落库前校验。
+     */
+    private void validateAssociation(AdminSpotUpsertRequest request) {
+        if (request.getCategoryId() != null) {
+            SpotCategory category = spotCategoryMapper.selectOne(
+                new LambdaQueryWrapper<SpotCategory>()
+                    .eq(SpotCategory::getId, request.getCategoryId())
+                    .eq(SpotCategory::getIsDeleted, 0)
+            );
+            if (category == null) {
+                throw new BusinessException(ResultCode.PARAM_ERROR, "景点分类不存在或已删除");
+            }
+        }
+
+        if (request.getRegionId() != null) {
+            SpotRegion region = spotRegionMapper.selectOne(
+                new LambdaQueryWrapper<SpotRegion>()
+                    .eq(SpotRegion::getId, request.getRegionId())
+                    .eq(SpotRegion::getIsDeleted, 0)
+            );
+            if (region == null) {
+                throw new BusinessException(ResultCode.PARAM_ERROR, "景点地区不存在或已删除");
+            }
         }
     }
 

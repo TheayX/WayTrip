@@ -3,6 +3,9 @@ package com.travel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.exception.BusinessException;
+import com.travel.common.constant.ResourceDisplayText;
+import com.travel.common.result.ResultCode;
 import com.travel.dto.order.request.AdminOrderListRequest;
 import com.travel.dto.order.request.CreateOrderRequest;
 import com.travel.dto.order.request.OrderListRequest;
@@ -42,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
 
     // 待支付订单超时阈值，需与兜底定时任务保持一致。
     private static final int PAYMENT_TIMEOUT_MINUTES = 5;
+    private static final String DEACTIVATED_USER_PHONE = ResourceDisplayText.Common.EMPTY;
 
     // 持久层与服务依赖
     private final OrderMapper orderMapper;
@@ -54,6 +58,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDetailResponse createOrder(Long userId, CreateOrderRequest request) {
+        getActiveUser(userId);
         Spot spot = spotMapper.selectById(request.getSpotId());
         if (spot == null || spot.getIsDeleted() == 1) {
             throw new RuntimeException("景点不存在");
@@ -81,11 +86,12 @@ public class OrderServiceImpl implements OrderService {
         order.setSpotImage(spot.getCoverImageUrl());
         order.setUnitPrice(spot.getPrice());
 
-        return buildOrderDetail(order);
+        return buildOrderDetail(order, false);
     }
 
     @Override
     public OrderListResponse getUserOrders(Long userId, OrderListRequest request) {
+        getActiveUser(userId);
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Order::getUserId, userId);
         wrapper.eq(Order::getIsDeleted, 0);
@@ -107,7 +113,7 @@ public class OrderServiceImpl implements OrderService {
 
         OrderListResponse response = new OrderListResponse();
         response.setList(result.getRecords().stream()
-            .map(this::buildOrderItem)
+            .map(order -> buildOrderItem(order, false))
             .collect(Collectors.toList()));
         response.setTotal(result.getTotal());
         response.setPage(request.getPage());
@@ -120,7 +126,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderDetailResponse getOrderDetail(Long userId, Long orderId) {
         Order order = getUserOrder(userId, orderId);
         fillSpotInfoSingle(order);
-        return buildOrderDetail(order);
+        return buildOrderDetail(order, false);
     }
 
     @Override
@@ -131,7 +137,7 @@ public class OrderServiceImpl implements OrderService {
         // 支付接口按幂等返回，避免重复请求造成前端报错。
         if (order.getStatus() == OrderStatus.PAID.getCode()) {
             fillSpotInfoSingle(order);
-            return buildOrderDetail(order);
+            return buildOrderDetail(order, false);
         }
 
         if (order.getStatus() == OrderStatus.CANCELLED.getCode() && order.getCancelledAt() != null) {
@@ -150,7 +156,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("订单支付成功: orderId={}, userId={}, orderNo={}", orderId, userId, order.getOrderNo());
 
         fillSpotInfoSingle(order);
-        return buildOrderDetail(order);
+        return buildOrderDetail(order, false);
     }
 
     @Override
@@ -161,7 +167,7 @@ public class OrderServiceImpl implements OrderService {
         // 取消接口同样按幂等返回，兼容用户重复点击。
         if (order.getStatus() == OrderStatus.CANCELLED.getCode()) {
             fillSpotInfoSingle(order);
-            return buildOrderDetail(order);
+            return buildOrderDetail(order, false);
         }
 
         if (order.getStatus() != OrderStatus.PENDING.getCode()
@@ -177,7 +183,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("订单已取消: orderId={}, userId={}, orderNo={}", orderId, userId, order.getOrderNo());
 
         fillSpotInfoSingle(order);
-        return buildOrderDetail(order);
+        return buildOrderDetail(order, false);
     }
 
     // 管理端订单查询与状态流转
@@ -240,7 +246,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderDetailResponse getAdminOrderDetail(Long orderId) {
         Order order = getExistingOrder(orderId);
         fillSpotInfoSingle(order);
-        return buildOrderDetail(order);
+        return buildOrderDetail(order, true);
     }
 
     @Override
@@ -249,7 +255,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = getExistingOrder(orderId);
         if (order.getStatus() == OrderStatus.COMPLETED.getCode()) {
             fillSpotInfoSingle(order);
-            return buildOrderDetail(order);
+            return buildOrderDetail(order, true);
         }
         if (order.getStatus() != OrderStatus.PAID.getCode()) {
             throw new RuntimeException("订单状态不允许完成");
@@ -260,7 +266,7 @@ public class OrderServiceImpl implements OrderService {
         recommendationService.invalidateUserRecommendationCache(order.getUserId());
         log.info("订单已完成: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
-        return buildOrderDetail(order);
+        return buildOrderDetail(order, true);
     }
 
     @Override
@@ -269,7 +275,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = getExistingOrder(orderId);
         if (order.getStatus() == OrderStatus.REFUNDED.getCode()) {
             fillSpotInfoSingle(order);
-            return buildOrderDetail(order);
+            return buildOrderDetail(order, true);
         }
         if (order.getStatus() != OrderStatus.PAID.getCode()) {
             throw new RuntimeException("订单状态不允许退款");
@@ -280,7 +286,7 @@ public class OrderServiceImpl implements OrderService {
         recommendationService.invalidateUserRecommendationCache(order.getUserId());
         log.info("订单已退款: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
-        return buildOrderDetail(order);
+        return buildOrderDetail(order, true);
     }
 
     @Override
@@ -289,7 +295,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = getExistingOrder(orderId);
         if (order.getStatus() == OrderStatus.CANCELLED.getCode()) {
             fillSpotInfoSingle(order);
-            return buildOrderDetail(order);
+            return buildOrderDetail(order, true);
         }
         if (order.getStatus() != OrderStatus.PENDING.getCode()) {
             throw new RuntimeException("订单状态不允许取消");
@@ -300,7 +306,7 @@ public class OrderServiceImpl implements OrderService {
         recommendationService.invalidateUserRecommendationCache(order.getUserId());
         log.info("管理员取消订单: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
-        return buildOrderDetail(order);
+        return buildOrderDetail(order, true);
     }
 
     @Override
@@ -321,7 +327,7 @@ public class OrderServiceImpl implements OrderService {
         order.setCompletedAt(null);
         log.info("管理员恢复订单: orderId={}, orderNo={}", orderId, order.getOrderNo());
         fillSpotInfoSingle(order);
-        return buildOrderDetail(order);
+        return buildOrderDetail(order, true);
     }
 
     // 内部状态转换与响应组装
@@ -330,6 +336,7 @@ public class OrderServiceImpl implements OrderService {
      * 用户端订单操作统一按用户维度加载订单，避免遗漏 is_deleted 过滤条件。
      */
     private Order getUserOrder(Long userId, Long orderId) {
+        getActiveUser(userId);
         Order order = orderMapper.selectOne(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getId, orderId)
@@ -341,6 +348,17 @@ public class OrderServiceImpl implements OrderService {
         }
         refreshPendingTimeoutOrder(order);
         return order;
+    }
+
+    /**
+     * 用户侧订单链路取消外键后，统一先校验用户仍然有效。
+     */
+    private User getActiveUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.TOKEN_INVALID);
+        }
+        return user;
     }
 
     /**
@@ -432,36 +450,60 @@ public class OrderServiceImpl implements OrderService {
 
         List<Spot> spots = spotMapper.selectBatchIds(spotIds);
         Map<Long, Spot> spotMap = spots.stream()
-            .filter(spot -> spot.getIsDeleted() == 0)
             .collect(Collectors.toMap(Spot::getId, s -> s));
 
         for (Order order : orders) {
             Spot spot = spotMap.get(order.getSpotId());
-            if (spot != null) {
-                order.setSpotName(spot.getName());
-                order.setSpotImage(spot.getCoverImageUrl());
-                order.setUnitPrice(spot.getPrice());
-            }
+            applySpotDisplay(order, spot);
         }
     }
 
     private void fillSpotInfoSingle(Order order) {
         if (order == null || order.getSpotId() == null) return;
         Spot spot = spotMapper.selectById(order.getSpotId());
-        if (spot != null && spot.getIsDeleted() == 0) {
-            order.setSpotName(spot.getName());
-            order.setSpotImage(spot.getCoverImageUrl());
-            order.setUnitPrice(spot.getPrice());
+        applySpotDisplay(order, spot);
+    }
+
+    /**
+     * 历史订单允许保留景点信息，但景点失效后需要降级为统一文案，避免页面出现空白。
+     */
+    private void applySpotDisplay(Order order, Spot spot) {
+        if (order == null) {
+            return;
         }
+        if (spot == null) {
+            order.setSpotName(ResourceDisplayText.Spot.PURGED);
+            order.setSpotImage(null);
+            return;
+        }
+        order.setSpotName(resolveSpotDisplayName(spot));
+        order.setSpotImage(spot.getCoverImageUrl());
+        order.setUnitPrice(spot.getPrice());
+    }
+
+    /**
+     * 景点名称展示统一按“有效、下架、软删、硬删”四种语义收口。
+     */
+    private String resolveSpotDisplayName(Spot spot) {
+        if (spot == null) {
+            return ResourceDisplayText.Spot.PURGED;
+        }
+        if (spot.getIsDeleted() != null && spot.getIsDeleted() == 1) {
+            return ResourceDisplayText.Spot.DELETED;
+        }
+        if (spot.getIsPublished() != null && spot.getIsPublished() != 1) {
+            return ResourceDisplayText.Spot.OFFLINE;
+        }
+        return spot.getName();
     }
 
     // 响应对象构建
-    private OrderListResponse.OrderItem buildOrderItem(Order order) {
+    private OrderListResponse.OrderItem buildOrderItem(Order order, boolean adminView) {
         OrderListResponse.OrderItem item = new OrderListResponse.OrderItem();
         item.setId(order.getId());
         item.setOrderNo(order.getOrderNo());
         item.setSpotId(order.getSpotId());
-        item.setSpotName(order.getSpotName());
+        item.setSpotName(resolveUserSideSpotDisplayName(order.getSpotName(), adminView));
         item.setSpotImage(order.getSpotImage());
         item.setUnitPrice(order.getUnitPrice());
         item.setQuantity(order.getQuantity());
@@ -496,19 +538,44 @@ public class OrderServiceImpl implements OrderService {
         item.setUpdatedAt(order.getUpdatedAt());
 
         User user = userMapper.selectById(order.getUserId());
-        if (user != null) {
-            item.setUserNickname(user.getNickname());
-        }
+        item.setUserNickname(resolveDisplayNickname(user));
 
         return item;
     }
 
-    private OrderDetailResponse buildOrderDetail(Order order) {
+    /**
+     * 管理端订单允许保留历史记录，但需区分账号已注销与用户记录已被清除。
+     */
+    private String resolveDisplayNickname(User user) {
+        if (user == null) {
+            return ResourceDisplayText.User.PURGED;
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return ResourceDisplayText.User.DEACTIVATED;
+        }
+        return user.getNickname();
+    }
+
+    /**
+     * 管理端查看历史订单时，注销账号不再暴露原手机号。
+     */
+    private String resolveDisplayPhone(User user) {
+        if (user == null || user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            return DEACTIVATED_USER_PHONE;
+        }
+        return user.getPhone();
+    }
+
+    private OrderDetailResponse buildOrderDetail(Order order, boolean adminView) {
         OrderDetailResponse response = new OrderDetailResponse();
+        User user = userMapper.selectById(order.getUserId());
         response.setId(order.getId());
         response.setOrderNo(order.getOrderNo());
+        response.setUserId(order.getUserId());
+        response.setUserNickname(resolveDisplayNickname(user));
+        response.setUserPhone(resolveDisplayPhone(user));
         response.setSpotId(order.getSpotId());
-        response.setSpotName(order.getSpotName());
+        response.setSpotName(resolveUserSideSpotDisplayName(order.getSpotName(), adminView));
         response.setSpotImage(order.getSpotImage());
         response.setUnitPrice(order.getUnitPrice());
         response.setQuantity(order.getQuantity());
@@ -530,6 +597,20 @@ public class OrderServiceImpl implements OrderService {
         response.setCanCancel(orderStatus != null && orderStatus.canCancel());
 
         return response;
+    }
+
+    /**
+     * 用户端只保留“景点是否可识别”的语义，管理端继续展示下架/删除/清除的区别。
+     */
+    private String resolveUserSideSpotDisplayName(String spotName, boolean adminView) {
+        if (!adminView && (
+            ResourceDisplayText.Spot.PURGED.equals(spotName)
+                || ResourceDisplayText.Spot.DELETED.equals(spotName)
+                || ResourceDisplayText.Spot.OFFLINE.equals(spotName)
+        )) {
+            return ResourceDisplayText.Spot.UNKNOWN;
+        }
+        return spotName;
     }
 
 }

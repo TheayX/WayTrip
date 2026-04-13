@@ -57,11 +57,11 @@
         <image class="guide-cover" :src="getImageUrl(guide.coverImage)" mode="aspectFill" />
         <view class="guide-info">
           <view class="guide-label-row">
-            <text class="guide-category">{{ guide.category }}</text>
-            <text class="guide-views">{{ guide.viewCount }} 次浏览</text>
+            <text class="guide-category">{{ resolveGuideCategory(guide.category) }}</text>
+            <text class="guide-views">{{ guide.viewCount || 0 }} 次浏览</text>
           </view>
-          <text class="guide-title">{{ guide.title }}</text>
-          <text class="guide-summary">{{ guide.summary }}</text>
+          <text class="guide-title">{{ resolveGuideText(guide.title) }}</text>
+          <text class="guide-summary">{{ resolveGuideSummary(guide.summary) }}</text>
           <view class="guide-meta">
             <text class="guide-meta-text">打开查看完整路线与行程建议</text>
           </view>
@@ -91,6 +91,11 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getGuideList, getCategories } from '@/api/guide'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
+
+const resolveGuideText = (value) => resolveMiniappGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
+const resolveGuideSummary = (value) => value || '整理路线、玩法与出行经验，帮助你更快形成这次旅程的安排。'
 
 // 页面数据状态
 const categories = ref([])
@@ -108,8 +113,17 @@ const hasMore = computed(() => guideList.value.length < total.value)
 const currentStateText = computed(() => {
   const categoryText = currentCategory.value ? currentCategory.value : '全部主题'
   const sortText = sortBy.value === 'category' ? '按主题整理' : '按发布时间整理'
-  return `${categoryText} · ${total.value} 篇内容 · ${sortText}`
+  return `${categoryText} · ${total.value} 篇攻略 · ${sortText}`
 })
+
+// 只消费结构明确的详情页回写缓存，避免旧数据污染列表。
+const isValidGuidePreview = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
+}
+
+const isValidGuideViewCache = (value) => {
+  return isValidGuidePreview(value) && typeof value.viewCount === 'number'
+}
 
 // 数据加载方法
 const fetchCategories = async () => {
@@ -203,7 +217,7 @@ onMounted(() => {
 
 onShow(() => {
   const updatedGuide = uni.getStorageSync('guide_detail_updated')
-  if (updatedGuide?.id) {
+  if (isValidGuidePreview(updatedGuide)) {
     const guideIndex = guideList.value.findIndex(item => item.id === updatedGuide.id)
     if (guideIndex !== -1) {
       guideList.value[guideIndex] = {
@@ -211,19 +225,20 @@ onShow(() => {
         ...updatedGuide
       }
     }
-    uni.removeStorageSync('guide_detail_updated')
   }
+  if (updatedGuide) uni.removeStorageSync('guide_detail_updated')
 
   const updated = uni.getStorageSync('guide_view_updated')
-  if (!updated || !updated.id) return
-  const idx = guideList.value.findIndex(item => item.id === updated.id)
-  if (idx !== -1) {
-    guideList.value[idx] = {
-      ...guideList.value[idx],
-      viewCount: updated.viewCount
+  if (isValidGuideViewCache(updated)) {
+    const idx = guideList.value.findIndex(item => item.id === updated.id)
+    if (idx !== -1) {
+      guideList.value[idx] = {
+        ...guideList.value[idx],
+        viewCount: updated.viewCount
+      }
     }
   }
-  uni.removeStorageSync('guide_view_updated')
+  if (updated) uni.removeStorageSync('guide_view_updated')
 })
 </script>
 

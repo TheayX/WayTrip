@@ -11,10 +11,10 @@
 
     <section v-if="activeTab === 'browse'" class="list-section">
       <div v-if="footprints.length" class="card-list">
-        <article v-for="item in footprints" :key="item.id" class="activity-card card" @click="$router.push(buildSpotDetailRoute(item.id, SPOT_DETAIL_SOURCE.FOOTPRINT))">
+        <article v-for="item in footprints" :key="item.id" class="activity-card card" @click="openSpotDetail(item.id, item.name, SPOT_DETAIL_SOURCE.FOOTPRINT)">
           <img :src="getImageUrl(item.coverImage)" class="cover" alt="" />
           <div class="content">
-            <h3>{{ item.name }}</h3>
+            <h3>{{ resolveSpotDisplayName(item.name) }}</h3>
             <p>{{ item.regionName || '景点' }}</p>
             <span>浏览于 {{ formatViewedTime(item.viewedAt) }}</span>
           </div>
@@ -25,10 +25,10 @@
 
     <section v-if="activeTab === 'favorite'" class="list-section">
       <div v-if="favoriteList.length" class="card-list">
-        <article v-for="spot in favoriteList" :key="spot.id" class="activity-card card" @click="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.FAVORITE))">
+        <article v-for="spot in favoriteList" :key="spot.id" class="activity-card card" @click="openSpotDetail(spot.id, spot.name, SPOT_DETAIL_SOURCE.FAVORITE)">
           <img :src="getImageUrl(spot.coverImage)" class="cover" alt="" />
           <div class="content">
-            <h3>{{ spot.name }}</h3>
+            <h3>{{ resolveSpotDisplayName(spot.name) }}</h3>
             <p>{{ spot.regionName }} · {{ spot.categoryName }}</p>
             <div class="row">
               <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
@@ -47,7 +47,7 @@
           <img :src="getImageUrl(item.coverImageUrl)" class="cover" alt="" />
           <div class="content">
             <div class="row">
-              <h3>{{ item.spotName || `景点 #${item.spotId}` }}</h3>
+              <h3>{{ resolveSpotDisplayName(item.spotName) }}</h3>
               <span class="star-text">★ {{ item.score }}</span>
             </div>
             <p>{{ item.comment || '这条评价没有填写文字内容。' }}</p>
@@ -55,7 +55,7 @@
             <div class="review-actions">
               <button type="button" class="review-action-button" @click="openEdit(item)">编辑</button>
               <button type="button" class="review-action-button review-action-button--danger" @click="handleDeleteReview(item)">删除</button>
-              <button type="button" class="review-action-button" @click="$router.push(buildSpotDetailRoute(item.spotId, SPOT_DETAIL_SOURCE.REVIEW))">查看景点</button>
+              <button type="button" class="review-action-button" :disabled="isInvalidSpot(item.spotName)" @click="openSpotDetail(item.spotId, item.spotName, SPOT_DETAIL_SOURCE.REVIEW)">查看景点</button>
             </div>
           </div>
         </article>
@@ -66,7 +66,7 @@
     <el-dialog v-model="editVisible" title="编辑评价" width="560px">
       <el-form :model="editForm" label-width="72px">
         <el-form-item label="景点">
-          <span>{{ currentReview?.spotName || '-' }}</span>
+          <span>{{ resolveSpotDisplayName(currentReview?.spotName) }}</span>
         </el-form-item>
         <el-form-item label="评分">
           <el-rate v-model="editForm.score" />
@@ -94,6 +94,7 @@ import { getFavoriteList, removeFavorite } from '@/modules/favorite/api.js'
 import { getViewHistory } from '@/modules/spot/api.js'
 import { getFootprints, setFootprints } from '@/shared/lib/footprint.js'
 import { getImageUrl } from '@/shared/api/client.js'
+import { isWebInvalidSpotDisplay, resolveWebSpotDisplayName } from '@/shared/constants/resource-display.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 // 基础依赖与路由状态
@@ -119,6 +120,13 @@ const formatViewedTime = (timestamp) => {
   const date = new Date(timestamp)
   if (Number.isNaN(date.getTime())) return timestamp
   return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')} ${`${date.getHours()}`.padStart(2, '0')}:${`${date.getMinutes()}`.padStart(2, '0')}`
+}
+
+const resolveSpotDisplayName = (spotName) => resolveWebSpotDisplayName(spotName)
+const isInvalidSpot = (spotName) => isWebInvalidSpotDisplay(spotName)
+const openSpotDetail = (spotId, spotName, source) => {
+  if (isInvalidSpot(spotName)) return
+  router.push(buildSpotDetailRoute(spotId, source))
 }
 
 // 数据加载方法

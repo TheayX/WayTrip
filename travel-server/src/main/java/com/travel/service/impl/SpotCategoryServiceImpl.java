@@ -5,8 +5,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.travel.common.exception.BusinessException;
 import com.travel.dto.category.request.AdminCategoryRequest;
 import com.travel.dto.category.response.AdminCategoryResponse;
+import com.travel.entity.Spot;
 import com.travel.entity.SpotCategory;
+import com.travel.mapper.SpotMapper;
 import com.travel.mapper.SpotCategoryMapper;
+import lombok.RequiredArgsConstructor;
 import com.travel.service.SpotCategoryService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -20,7 +23,10 @@ import java.util.stream.Collectors;
  * 景点分类服务实现，负责管理端分类查询与层级维护。
  */
 @Service
+@RequiredArgsConstructor
 public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, SpotCategory> implements SpotCategoryService {
+
+    private final SpotMapper spotMapper;
 
     // 管理端分类查询与维护
 
@@ -46,6 +52,7 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
     @Transactional(rollbackFor = Exception.class)
     public void createCategory(AdminCategoryRequest request) {
         AdminCategoryRequest validRequest = Objects.requireNonNull(request);
+        validateParentCategory(validRequest.getParentId(), null);
         int targetSortOrder = prepareInsertSortOrder(validRequest.getParentId(), validRequest.getSortOrder());
         SpotCategory category = new SpotCategory();
         BeanUtils.copyProperties(validRequest, category);
@@ -59,6 +66,7 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
     public void updateCategory(Long id, AdminCategoryRequest request) {
         AdminCategoryRequest validRequest = Objects.requireNonNull(request);
         SpotCategory category = getActiveCategory(id);
+        validateParentCategory(validRequest.getParentId(), id);
         int targetSortOrder = prepareUpdateSortOrder(category, validRequest);
         BeanUtils.copyProperties(validRequest, category);
         category.setId(id);
@@ -81,6 +89,9 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
         if (count(wrapper) > 0) {
             throw new BusinessException(400, "该分类下还存在子分类，请先删除子分类");
         }
+        if (hasActiveSpotReference(id)) {
+            throw new BusinessException(400, "该分类下仍有关联景点，请先调整景点分类");
+        }
         
         int removedSortOrder = safeSortOrder(category.getSortOrder());
         Long parentId = category.getParentId();
@@ -98,6 +109,34 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
             throw new BusinessException(404, "分类不存在");
         }
         return category;
+    }
+
+    /**
+     * 分类树不再依赖外键后，父节点引用必须由应用层显式校验。
+     */
+    private void validateParentCategory(Long parentId, Long currentId) {
+        if (parentId == null) {
+            return;
+        }
+        if (Objects.equals(parentId, currentId)) {
+            throw new BusinessException(400, "分类不能挂载到自身下");
+        }
+
+        SpotCategory parent = getById(parentId);
+        if (parent == null || parent.getIsDeleted() == 1) {
+            throw new BusinessException(404, "父分类不存在");
+        }
+    }
+
+    /**
+     * 删除分类前阻断仍被景点引用的节点，避免景点数据留下悬挂分类。
+     */
+    private boolean hasActiveSpotReference(Long categoryId) {
+        return spotMapper.selectCount(
+            new LambdaQueryWrapper<Spot>()
+                .eq(Spot::getCategoryId, categoryId)
+                .eq(Spot::getIsDeleted, 0)
+        ) > 0;
     }
 
     /**

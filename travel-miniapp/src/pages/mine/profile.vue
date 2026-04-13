@@ -51,7 +51,7 @@
       </view>
       <view class="link-cell danger-cell" @click="goDeactivate">
         <text class="link-title danger-text">注销账户</text>
-        <text class="link-desc">注销后可通过同一微信重新登录恢复账户</text>
+        <text class="link-desc">注销后账号会停用，后续可通过同一微信重新登录恢复</text>
         <text class="link-arrow danger-text">›</text>
       </view>
     </view>

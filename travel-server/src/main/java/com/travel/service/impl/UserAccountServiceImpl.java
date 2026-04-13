@@ -10,9 +10,11 @@ import com.travel.dto.user.response.UserInfoResponse;
 import com.travel.entity.SpotCategory;
 import com.travel.entity.User;
 import com.travel.entity.UserPreference;
+import com.travel.entity.UserSpotFavorite;
 import com.travel.mapper.SpotCategoryMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserPreferenceMapper;
+import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.service.RecommendationService;
 import com.travel.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     // 持久层与服务依赖
     private final UserMapper userMapper;
     private final UserPreferenceMapper userPreferenceMapper;
+    private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final SpotCategoryMapper spotCategoryMapper;
     private final RecommendationService recommendationService;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -108,16 +111,46 @@ public class UserAccountServiceImpl implements UserAccountService {
     // 账户状态与偏好维护
 
     @Override
-    public void deactivateAccount(Long userId) {
+    @Transactional
+    public void deactivateCurrentAccount(Long userId) {
         User user = getActiveUser(userId);
+        applyAccountSuspension(user);
+    }
 
-        user.setIsDeleted(1);
-        userMapper.updateById(user);
+    @Override
+    @Transactional
+    public void suspendUserAccountByAdmin(Long userId) {
+        User user = getManagedUser(userId);
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "用户已停用");
+        }
+        applyAccountSuspension(user);
+    }
+
+    @Override
+    @Transactional
+    public void restoreUserAccountByAdmin(Long userId) {
+        User user = getManagedUser(userId);
+        if (user.getIsDeleted() == null || user.getIsDeleted() != 1) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "用户当前无需恢复");
+        }
+        applyAccountRestore(user);
+    }
+
+    @Override
+    @Transactional
+    public void restoreUserAccountAfterLogin(Long userId) {
+        User user = getManagedUser(userId);
+        if (user.getIsDeleted() == null || user.getIsDeleted() != 1) {
+            return;
+        }
+        applyAccountRestore(user);
     }
 
     @Override
     @Transactional
     public void setPreferences(Long userId, List<Long> categoryIds) {
+        getActiveUser(userId);
         validateCategoryIds(categoryIds);
         Set<Long> distinctCategoryIds = categoryIds == null
                 ? new LinkedHashSet<>()
@@ -176,13 +209,53 @@ public class UserAccountServiceImpl implements UserAccountService {
         return user;
     }
 
+    /**
+     * 管理端停用和用户主动注销都属于软删收口，统一复用同一套清理逻辑。
+     */
+    private User getManagedUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "用户不存在");
+        }
+        return user;
+    }
+
+    /**
+     * 账号软删时统一清理当前状态型数据，避免不同入口出现不一致的停用后效果。
+     */
+    private void applyAccountSuspension(User user) {
+        Long userId = user.getId();
+        // 注销后收起当前偏好和收藏状态，只保留订单、评价、浏览等强历史数据。
+        softDeleteUserPreferences(userId);
+        softDeleteUserFavorites(userId);
+        user.setIsDeleted(1);
+        userMapper.updateById(user);
+        recommendationService.invalidateUserRecommendationCache(userId);
+    }
+
+    /**
+     * 当前停用复用软删语义，因此恢复时也要同步启用偏好和收藏状态，避免账号恢复后数据残缺。
+     */
+    private void applyAccountRestore(User user) {
+        Long userId = user.getId();
+        restoreUserPreferences(userId);
+        restoreUserFavorites(userId);
+        user.setIsDeleted(0);
+        userMapper.updateById(user);
+        recommendationService.invalidateUserRecommendationCache(userId);
+    }
+
     private void validateCategoryIds(List<Long> categoryIds) {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return;
         }
 
         Set<Long> distinctIds = new LinkedHashSet<>(categoryIds);
-        List<SpotCategory> categories = spotCategoryMapper.selectBatchIds(distinctIds);
+        List<SpotCategory> categories = spotCategoryMapper.selectList(
+                new LambdaQueryWrapper<SpotCategory>()
+                        .in(SpotCategory::getId, distinctIds)
+                        .eq(SpotCategory::getIsDeleted, 0)
+        );
         Set<Long> validIds = categories.stream().map(SpotCategory::getId).collect(Collectors.toSet());
 
         if (validIds.size() != distinctIds.size()) {
@@ -215,5 +288,53 @@ public class UserAccountServiceImpl implements UserAccountService {
         } catch (NumberFormatException ignored) {
             return null;
         }
+    }
+
+    /**
+     * 注销后偏好画像不再视为当前有效状态，但保留历史记录供后续审计或恢复使用。
+     */
+    private void softDeleteUserPreferences(Long userId) {
+        UserPreference deletedPreference = new UserPreference();
+        deletedPreference.setIsDeleted(1);
+        userPreferenceMapper.update(
+                deletedPreference,
+                new LambdaUpdateWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
+        );
+    }
+
+    /**
+     * 收藏属于当前偏好状态，账号注销后统一软删，避免继续参与前台状态展示。
+     */
+    private void softDeleteUserFavorites(Long userId) {
+        UserSpotFavorite deletedFavorite = new UserSpotFavorite();
+        deletedFavorite.setIsDeleted(1);
+        userSpotFavoriteMapper.update(
+                deletedFavorite,
+                new LambdaUpdateWrapper<UserSpotFavorite>().eq(UserSpotFavorite::getUserId, userId)
+        );
+    }
+
+    /**
+     * 恢复账号时同步启用历史偏好，保持“停用可撤销、恢复即可继续使用”的管理语义。
+     */
+    private void restoreUserPreferences(Long userId) {
+        UserPreference restoredPreference = new UserPreference();
+        restoredPreference.setIsDeleted(0);
+        userPreferenceMapper.update(
+                restoredPreference,
+                new LambdaUpdateWrapper<UserPreference>().eq(UserPreference::getUserId, userId)
+        );
+    }
+
+    /**
+     * 恢复后同步启用用户收藏，避免后台临时停用造成收藏状态永久丢失。
+     */
+    private void restoreUserFavorites(Long userId) {
+        UserSpotFavorite restoredFavorite = new UserSpotFavorite();
+        restoredFavorite.setIsDeleted(0);
+        userSpotFavoriteMapper.update(
+                restoredFavorite,
+                new LambdaUpdateWrapper<UserSpotFavorite>().eq(UserSpotFavorite::getUserId, userId)
+        );
     }
 }

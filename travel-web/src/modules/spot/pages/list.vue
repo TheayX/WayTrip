@@ -134,11 +134,28 @@ const activeFilterTags = computed(() => {
 })
 
 // 工具方法
+const isValidUpdatedSpot = (value) => {
+  return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
+}
+
 const applyUpdatedSpot = () => {
   const raw = localStorage.getItem(SPOT_DETAIL_UPDATED_KEY)
   if (!raw) return
 
-  const updatedSpot = JSON.parse(raw)
+  let updatedSpot = null
+  try {
+    updatedSpot = JSON.parse(raw)
+  } catch {
+    // 脏缓存会直接干扰列表页回显，这里统一按无效数据清理。
+    localStorage.removeItem(SPOT_DETAIL_UPDATED_KEY)
+    return
+  }
+
+  if (!isValidUpdatedSpot(updatedSpot)) {
+    localStorage.removeItem(SPOT_DETAIL_UPDATED_KEY)
+    return
+  }
+
   const index = spotList.value.findIndex((item) => item.id === updatedSpot.id)
   if (index !== -1) {
     spotList.value[index] = { ...spotList.value[index], ...updatedSpot }

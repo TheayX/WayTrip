@@ -11,6 +11,7 @@ import com.travel.dto.auth.request.WxBindPhoneRequest;
 import com.travel.dto.auth.response.WxLoginResponse;
 import com.travel.entity.User;
 import com.travel.mapper.UserMapper;
+import com.travel.service.UserAccountService;
 import com.travel.service.UserAuthService;
 import com.travel.util.security.JwtUtils;
 import com.travel.util.wechat.WxApiClient;
@@ -38,6 +39,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final UserMapper userMapper;
     private final JwtUtils jwtUtils;
     private final WxApiClient wxApiClient;
+    private final UserAccountService userAccountService;
     private final BCryptPasswordEncoder passwordEncoder;
 
     // 微信登录与绑定流程
@@ -65,15 +67,16 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         boolean isReactivated = false;
         LocalDateTime now = LocalDateTime.now();
-        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<User>()
-                .eq(User::getId, user.getId())
-                .set(User::getLastLoginAt, now);
         if (user.getIsDeleted() == 1) {
-            updateWrapper.set(User::getIsDeleted, 0);
+            userAccountService.restoreUserAccountAfterLogin(user.getId());
+            user.setIsDeleted(0);
             isReactivated = true;
             log.info("账户已恢复: userId={}", user.getId());
         }
-        userMapper.update(null, updateWrapper);
+        userMapper.update(null,
+                new LambdaUpdateWrapper<User>()
+                        .eq(User::getId, user.getId())
+                        .set(User::getLastLoginAt, now));
 
         String token = jwtUtils.generateUserToken(user.getId());
 
@@ -159,6 +162,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         boolean isReactivated = false;
         if (user.getIsDeleted() == 1) {
+            userAccountService.restoreUserAccountAfterLogin(user.getId());
             user.setIsDeleted(0);
             isReactivated = true;
             log.info("账户已恢复: userId={}", user.getId());
@@ -167,8 +171,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         userMapper.update(null,
                 new LambdaUpdateWrapper<User>()
                         .eq(User::getId, user.getId())
-                        .set(User::getLastLoginAt, LocalDateTime.now())
-                        .set(User::getIsDeleted, user.getIsDeleted()));
+                        .set(User::getLastLoginAt, LocalDateTime.now()));
 
         String token = jwtUtils.generateUserToken(user.getId());
 

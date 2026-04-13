@@ -7,17 +7,18 @@
     <!-- 攻略信息区域 -->
     <view class="guide-header card">
       <text class="guide-kicker">旅行攻略</text>
-      <text class="guide-title">{{ guide.title }}</text>
+      <text class="guide-title">{{ resolveGuideText(guide.title) }}</text>
       <view class="guide-meta">
-        <text class="guide-category">{{ guide.category }}</text>
-        <text class="guide-info">浏览 {{ guide.viewCount }} · {{ guide.createdAt }}</text>
+        <text class="guide-category">{{ resolveGuideCategory(guide.category) }}</text>
+        <text class="guide-info">浏览 {{ guide.viewCount || 0 }} · {{ guide.createdAt || '--' }}</text>
       </view>
       <text class="guide-intro">把路线、玩法和景点信息整理成一篇更适合随时翻看的出行笔记。</text>
     </view>
 
     <!-- 攻略内容区域 -->
     <view class="guide-content card">
-      <rich-text :nodes="guide.content"></rich-text>
+      <rich-text v-if="hasGuideHtmlContent" :nodes="guide.content"></rich-text>
+      <text v-else class="guide-content-text">{{ resolveGuideText(guide.content) }}</text>
     </view>
 
     <!-- 关联景点区域 -->
@@ -39,8 +40,8 @@
         >
           <image class="spot-image" :src="getImageUrl(spot.coverImage)" mode="aspectFill" />
           <view class="spot-info">
-            <text class="spot-name">{{ spot.name }}</text>
-            <text class="spot-price">{{ spot.price }}</text>
+            <text class="spot-name">{{ resolveSpotText(spot.name) }}</text>
+            <text class="spot-price">{{ spot.price || '--' }}</text>
             <text class="spot-link">查看详情</text>
           </view>
         </view>
@@ -52,19 +53,38 @@
       </view>
     </view>
   </view>
+  <view v-else-if="loading" class="guide-loading">
+    <text class="loading-text">正在加载攻略详情...</text>
+  </view>
+  <view v-else class="guide-invalid">
+    <text class="invalid-title">{{ invalidMessage }}</text>
+    <text class="invalid-desc">可以返回攻略列表，继续看看其他出游灵感。</text>
+    <view class="invalid-btn" @click="goGuideList">返回攻略列表</view>
+  </view>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getGuideDetail } from '@/api/guide'
 import { guardLoginPage } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+import {
+  resolveMiniappGuideCategory,
+  resolveMiniappGuideDisplayText,
+  resolveMiniappSpotDisplayName
+} from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 页面数据状态
 const guide = ref(null)
 const guideId = ref(null)
+const loading = ref(true)
+const invalidMessage = ref('未知攻略，暂时无法查看详情')
+const resolveGuideText = (value) => resolveMiniappGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
+const resolveSpotText = (value) => resolveMiniappSpotDisplayName(value)
+const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
 
 // 工具方法
 const syncGuidePreview = (data) => {
@@ -93,8 +113,17 @@ const fetchGuideDetail = async () => {
       })
     }
   } catch (e) {
+    guide.value = null
     console.error('获取攻略详情失败', e)
+    const message = e?.data?.message || e?.message || e?.response?.data?.message
+    if (message === '攻略已下架' || message === '攻略不存在') {
+      invalidMessage.value = '未知攻略，暂时无法查看详情'
+      return
+    }
+    invalidMessage.value = '攻略详情加载失败，请稍后重试'
     uni.showToast({ title: '加载失败', icon: 'none' })
+  } finally {
+    loading.value = false
   }
 }
 
@@ -107,6 +136,10 @@ const goSpotDetail = (id) => {
 
 const goSpotList = () => {
   uni.navigateTo({ url: '/pages/spot/list?sortBy=heat' })
+}
+
+const goGuideList = () => {
+  uni.navigateTo({ url: '/pages/guide/list?sortBy=time' })
 }
 
 // 生命周期
@@ -125,6 +158,43 @@ onLoad((options) => {
   min-height: 100vh;
   padding-bottom: 40rpx;
   background: transparent;
+}
+
+.guide-loading,
+.guide-invalid {
+  min-height: 100vh;
+  padding: 120rpx 48rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.loading-text,
+.invalid-desc {
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: #64748b;
+}
+
+.invalid-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.invalid-desc {
+  margin-top: 16rpx;
+}
+
+.invalid-btn {
+  margin-top: 28rpx;
+  padding: 18rpx 36rpx;
+  border-radius: 999rpx;
+  background: #18181b;
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 600;
 }
 
 .guide-cover {
@@ -194,6 +264,11 @@ onLoad((options) => {
   color: #334155;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
+}
+
+.guide-content-text {
+  display: block;
+  white-space: pre-line;
 }
 
 .related-spots {

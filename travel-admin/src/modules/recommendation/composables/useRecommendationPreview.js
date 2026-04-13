@@ -1,5 +1,6 @@
 import { computed, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { resolveCategoryDisplayName, resolveRegionDisplayName } from '@/shared/lib/resource-display.js'
 import {
   previewRecommendations,
   previewSimilarityNeighbors,
@@ -35,6 +36,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
 
     const lines = [
       `request.userId = ${debugForm.userId}`,
+      `request.userNickname = ${debugResult.value?.debugInfo?.userNickname || '未返回'}`,
       `request.limit = ${debugForm.limit}`,
       `request.refresh = ${debugForm.refresh}`,
       `request.debug = ${debugForm.debug}`,
@@ -54,7 +56,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
       lines.push(
         `item[${index}] = { id: ${item.id}, name: ${item.name}, score: ${
           item.score == null ? 'null' : Number(item.score).toFixed(4)
-        }, category: ${item.categoryName || '-'}, region: ${item.regionName || '-'} }`
+        }, category: ${resolveCategoryDisplayName(item.categoryName)}, region: ${resolveRegionDisplayName(item.regionName)} }`
       )
     })
 

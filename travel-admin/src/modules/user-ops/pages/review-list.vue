@@ -75,9 +75,15 @@
         <el-table-column label="用户" min-width="180">
           <template #default="{ row }">
             <div class="user-cell">
-              <el-avatar :src="row.avatar" :size="36">{{ row.nickname?.[0] }}</el-avatar>
-              <el-button link type="primary" class="nickname-link" @click="handleOpenUser(row)">
-                {{ row.nickname }}
+              <el-avatar :src="row.avatar" :size="36">{{ getDisplayNickname(row)?.[0] }}</el-avatar>
+              <el-button
+                link
+                type="primary"
+                class="nickname-link"
+                :disabled="isDeactivatedUser(row)"
+                @click="handleOpenUser(row)"
+              >
+                {{ getDisplayNickname(row) }}
               </el-button>
             </div>
           </template>
@@ -92,8 +98,8 @@
                 class="spot-cover"
                 preview-disabled
               />
-              <el-button link type="primary" @click="handleOpenSpot(row)">
-                {{ row.spotName || `景点 #${row.spotId}` }}
+              <el-button link type="primary" :disabled="isInvalidSpot(row)" @click="handleOpenSpot(row)">
+                {{ getDisplaySpotName(row) }}
               </el-button>
             </div>
           </template>
@@ -135,6 +141,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteReview, getReviewList } from '@/modules/user-ops/api/review.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
+import { isDeactivatedUserDisplay, isInvalidSpotDisplay, resolveSpotDisplayName, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
 
 const router = useRouter()
 
@@ -161,6 +168,10 @@ const currentPageAverageScore = computed(() => {
   return (totalScore / reviewList.value.length).toFixed(1)
 })
 const lowScoreCount = computed(() => reviewList.value.filter((item) => Number(item.score || 0) <= 2).length)
+const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
+const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
+const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
+const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 
 // 获取评价列表
 const fetchReviewList = async () => {
@@ -195,15 +206,17 @@ const handleReset = () => {
 }
 
 const handleOpenUser = (row) => {
+  if (isDeactivatedUser(row)) return
   router.push({ path: '/user', query: { nickname: row.nickname || '' } })
 }
 
 // 跳转景点页，并复用景点管理页的自动定位与详情打开能力。
 const handleOpenSpot = (row) => {
+  if (isInvalidSpot(row)) return
   router.push({
     path: '/spot',
     query: {
-      keyword: row.spotName || '',
+      keyword: getDisplaySpotName(row),
       spotId: row.spotId || ''
     }
   })
