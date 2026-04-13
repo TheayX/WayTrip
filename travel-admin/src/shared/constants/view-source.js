@@ -52,7 +52,7 @@ export const sourceToBucketMap = {
 }
 
 export const getSourceLabel = (value) => {
-  return sourceOptions.find(item => item.value === value)?.label || value || SOURCE_DISPLAY_TEXT.UNKNOWN
+  return sourceOptions.find(item => item.value === value)?.label || SOURCE_DISPLAY_TEXT.UNKNOWN
 }
 
 // 未识别来源统一退回默认 detail 挡位，保证算法侧有稳定兜底。

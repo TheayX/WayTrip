@@ -86,7 +86,7 @@
           <template #default="{ row }">
             <div class="tag-list">
               <el-tag v-for="tag in row.preferenceTags || []" :key="tag" effect="light" round>{{ tag }}</el-tag>
-              <span v-if="!row.preferenceTags?.length" class="empty-text">未设置</span>
+              <span v-if="!row.preferenceTags?.length" class="empty-text">{{ getPreferenceEmptyText(row) }}</span>
             </div>
           </template>
         </el-table-column>
@@ -154,6 +154,9 @@ const topPreferenceTag = computed(() => {
 })
 const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
 const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
+const getPreferenceEmptyText = (row) => {
+  return isDeactivatedUser(row) ? '账号已停用，偏好已收起' : '未设置'
+}
 
 // 格式化手机号显示
 const formatPhone = (phone) => {
