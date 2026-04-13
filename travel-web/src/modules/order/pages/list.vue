@@ -16,7 +16,7 @@
         <div class="order-body">
           <img :src="getImageUrl(order.spotImage)" class="order-img" alt="" />
           <div class="order-info">
-            <h3 class="order-spot-name">{{ order.spotName }}</h3>
+            <h3 class="order-spot-name">{{ resolveSpotDisplayName(order.spotName) }}</h3>
             <p class="order-date">游玩日期：{{ order.visitDate }}</p>
             <div class="order-price-row">
               <span class="price">¥{{ order.totalPrice }}</span>
@@ -31,7 +31,13 @@
           <el-button v-if="order.status === 'pending'" type="primary" size="small" @click.stop="handlePay(order)">
             去支付
           </el-button>
-          <el-button v-if="order.status === 'completed'" type="primary" size="small" @click.stop="handleReview(order)">
+          <el-button
+            v-if="order.status === 'completed'"
+            type="primary"
+            size="small"
+            :disabled="isInvalidSpot(order.spotName)"
+            @click.stop="handleReview(order)"
+          >
             去评价
           </el-button>
         </div>
@@ -58,6 +64,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AccountPageHeader from '@/modules/account/components/AccountPageHeader.vue'
 import { getOrderList, cancelOrder, payOrder } from '@/modules/order/api.js'
 import { getImageUrl } from '@/shared/api/client.js'
+import { isWebInvalidSpotDisplay, resolveWebSpotDisplayName } from '@/shared/constants/resource-display.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
@@ -87,6 +94,8 @@ const statusType = (status) => {
   const map = { pending: 'warning', paid: 'success', completed: 'info', cancelled: 'danger' }
   return map[status] || 'info'
 }
+const resolveSpotDisplayName = (spotName) => resolveWebSpotDisplayName(spotName)
+const isInvalidSpot = (spotName) => isWebInvalidSpotDisplay(spotName)
 
 const showActions = (order) => {
   return order.status === 'pending' || order.status === 'paid' || order.status === 'completed'
@@ -141,6 +150,7 @@ const handlePay = async (order) => {
 }
 
 const handleReview = (order) => {
+  if (isInvalidSpot(order?.spotName)) return
   router.push(buildSpotDetailRoute(order.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }))
 }
 

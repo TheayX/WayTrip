@@ -28,7 +28,13 @@
     </section>
 
     <section v-if="activeReviews.length" class="review-list">
-      <article v-for="item in activeReviews" :key="item.id" class="review-card premium-card" @click="goSpotDetail(item.spotId)">
+      <article
+        v-for="item in activeReviews"
+        :key="item.id"
+        class="review-card premium-card"
+        :class="{ 'is-disabled': isInvalidSpot(item.spotName) }"
+        @click="goSpotDetail(item.spotId, item.spotName)"
+      >
         <div class="review-header">
           <div class="user-box">
             <img :src="getAvatarUrl(item.avatar)" class="avatar" alt="" />
@@ -46,7 +52,7 @@
 
         <div class="review-footer">
           <span>{{ item.createdAt || '最近发布' }}</span>
-          <span class="footer-link">查看景点详情</span>
+          <span class="footer-link">{{ isInvalidSpot(item.spotName) ? '景点暂不可查看' : '查看景点详情' }}</span>
         </div>
       </article>
     </section>
@@ -71,7 +77,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { fetchTravelerReviewFeed } from '@/modules/traveler-reviews/api.js'
 import { getAvatarUrl } from '@/shared/api/client.js'
-import { resolveWebSpotDisplayName, resolveWebUserDisplayName } from '@/shared/constants/resource-display.js'
+import { isWebInvalidSpotDisplay, resolveWebSpotDisplayName, resolveWebUserDisplayName } from '@/shared/constants/resource-display.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 
 // 页面按正负口碑拆分展示，帮助用户先用评价情绪快速筛掉不合适的景点。
@@ -89,6 +95,7 @@ const loading = ref(false)
 const activeReviews = computed(() => (activeTab.value === 'positive' ? positiveReviews.value : negativeReviews.value))
 const emptyStateTitle = computed(() => (activeTab.value === 'positive' ? '暂时没有高分种草内容' : '暂时没有真实避雷内容'))
 const emptyStateDesc = computed(() => (activeTab.value === 'positive' ? '当前没有高分评论内容。' : '当前没有低分评论内容。'))
+const isInvalidSpot = (spotName) => isWebInvalidSpotDisplay(spotName)
 const loadTravelerReviewFeed = async () => {
   // 口碑流一次拉回正负两组数据，切换页签时不再重复请求。
   if (loading.value) return
@@ -106,8 +113,8 @@ const loadTravelerReviewFeed = async () => {
   }
 }
 
-const goSpotDetail = (spotId) => {
-  if (!spotId) return
+const goSpotDetail = (spotId, spotName) => {
+  if (!spotId || isInvalidSpot(spotName)) return
   router.push(buildSpotDetailRoute(spotId, SPOT_DETAIL_SOURCE.TRAVELER_REVIEWS))
 }
 
@@ -208,6 +215,10 @@ onMounted(() => {
 .review-card {
   padding: 22px;
   cursor: pointer;
+}
+
+.review-card.is-disabled {
+  cursor: default;
 }
 
 .review-header,

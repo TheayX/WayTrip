@@ -12,13 +12,13 @@
     </view>
 
     <!-- 景点信息区域 -->
-    <view class="spot-card" @click="goSpot">
+    <view class="spot-card" :class="{ disabled: isInvalidSpot(order?.spotName) }" @click="goSpot">
       <image class="spot-image" :src="getImageUrl(order.spotImage)" mode="aspectFill" />
       <view class="spot-info">
-        <text class="spot-name">{{ order.spotName }}</text>
+        <text class="spot-name">{{ resolveSpotDisplayName(order.spotName) }}</text>
         <text class="visit-date">游玩日期：{{ order.visitDate }}</text>
       </view>
-      <text class="arrow">›</text>
+      <text v-if="!isInvalidSpot(order?.spotName)" class="arrow">›</text>
     </view>
 
     <view class="info-card">
@@ -71,7 +71,14 @@
         {{ order.status === 'paid' ? '申请退款' : '取消订单' }}
       </button>
       <button v-if="order.canPay && !timeoutRefreshInProgress" class="action-btn pay" @click="handlePay">立即支付</button>
-      <button v-if="order.status === 'completed'" class="action-btn review" @click="handleReview">去评价</button>
+      <button
+        v-if="order.status === 'completed'"
+        class="action-btn review"
+        :disabled="isInvalidSpot(order?.spotName)"
+        @click="handleReview"
+      >
+        去评价
+      </button>
     </view>
   </view>
 </template>
@@ -82,6 +89,7 @@ import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
 import { getOrderDetail, payOrder, cancelOrder } from '@/api/order'
 import { guardLoginPage } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
+import { isMiniappInvalidSpotDisplay, resolveMiniappSpotDisplayName } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
 // 页面数据状态
@@ -105,6 +113,8 @@ const showActions = computed(() => {
   if (!order.value) return false
   return order.value.canPay || order.value.canCancel || order.value.status === 'completed'
 })
+const resolveSpotDisplayName = (spotName) => resolveMiniappSpotDisplayName(spotName)
+const isInvalidSpot = (spotName) => isMiniappInvalidSpotDisplay(spotName)
 
 // 数据加载方法
 const fetchOrderDetail = async () => {
@@ -231,6 +241,7 @@ const setupCountdown = () => {
 
 // 页面跳转方法
 const goSpot = () => {
+  if (isInvalidSpot(order.value?.spotName)) return
   uni.navigateTo({ url: buildSpotDetailUrl(order.value.spotId, SPOT_DETAIL_SOURCE.ORDER) })
 }
 
@@ -265,6 +276,7 @@ const handleCancel = () => {
 }
 
 const handleReview = () => {
+  if (isInvalidSpot(order.value?.spotName)) return
   uni.navigateTo({ url: buildSpotDetailUrl(order.value.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }) })
 }
 
@@ -376,6 +388,10 @@ onUnload(() => {
   box-shadow:
     0 18rpx 48rpx rgba(15, 23, 42, 0.08),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.82);
+}
+
+.spot-card.disabled {
+  opacity: 0.92;
 }
 
 .spot-image {
