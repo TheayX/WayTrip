@@ -7,6 +7,7 @@
 ### 开发与联调
 
 - [开发期 HTTPS 与反代说明](./dev-https-proxy.md)
+- [资源可见性与展示语义约定](./resource-visibility-display.md)
 
 ### 规格说明
 
