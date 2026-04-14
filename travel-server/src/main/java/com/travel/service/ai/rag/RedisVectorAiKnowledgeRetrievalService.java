@@ -32,6 +32,7 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
             return List.of();
         }
 
+        long startedAt = System.currentTimeMillis();
         AiKnowledgeDomain domain = resolveDomain(scenario);
         SearchRequest request = SearchRequest.builder()
                 .query(userMessage.trim())
@@ -40,9 +41,25 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
                 .build();
 
         try {
-            return mapToSnippets(vectorStore.similaritySearch(request), domain);
+            List<AiKnowledgeSnippet> snippets = mapToSnippets(vectorStore.similaritySearch(request), domain);
+            log.info(
+                    "AI RAG 检索完成: scenario={}, domain={}, queryLength={}, hitCount={}, latencyMs={}",
+                    scenario,
+                    domain,
+                    userMessage.trim().length(),
+                    snippets.size(),
+                    System.currentTimeMillis() - startedAt
+            );
+            return snippets;
         } catch (Exception exception) {
-            log.error("AI 向量检索失败, scenario={}", scenario, exception);
+            log.error(
+                    "AI 向量检索失败: scenario={}, domain={}, queryLength={}, latencyMs={}",
+                    scenario,
+                    domain,
+                    userMessage.trim().length(),
+                    System.currentTimeMillis() - startedAt,
+                    exception
+            );
             return List.of();
         }
     }

@@ -32,12 +32,14 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void rebuildDocumentIndex(AiKnowledgeDocument document, List<AiKnowledgeChunk> chunks) {
+        long startedAt = System.currentTimeMillis();
         List<String> previousVectorIds = loadExistingVectorIds(document.getId());
         if (!previousVectorIds.isEmpty()) {
             vectorStore.delete(previousVectorIds);
         }
 
         if (chunks == null || chunks.isEmpty()) {
+            log.info("AI 知识向量索引跳过: documentId={}, title={}, reason=no_chunks", document.getId(), document.getTitle());
             return;
         }
 
@@ -56,8 +58,23 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
                 chunk.setEmbeddingStatus(1);
                 aiKnowledgeChunkMapper.updateById(chunk);
             }
+            log.info(
+                    "AI 知识向量索引完成: documentId={}, title={}, chunkCount={}, previousVectorCount={}, latencyMs={}",
+                    document.getId(),
+                    document.getTitle(),
+                    chunks.size(),
+                    previousVectorIds.size(),
+                    System.currentTimeMillis() - startedAt
+            );
         } catch (Exception exception) {
-            log.error("AI 知识向量索引构建失败, documentId={}", document.getId(), exception);
+            log.error(
+                    "AI 知识向量索引构建失败: documentId={}, title={}, chunkCount={}, latencyMs={}",
+                    document.getId(),
+                    document.getTitle(),
+                    chunks.size(),
+                    System.currentTimeMillis() - startedAt,
+                    exception
+            );
             for (AiKnowledgeChunk chunk : chunks) {
                 chunk.setEmbeddingStatus(2);
                 aiKnowledgeChunkMapper.updateById(chunk);
