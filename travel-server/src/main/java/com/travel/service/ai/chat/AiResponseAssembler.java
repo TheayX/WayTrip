@@ -1,6 +1,7 @@
 package com.travel.service.ai.chat;
 
 import com.travel.dto.ai.response.AiChatMessageResponse;
+import com.travel.dto.ai.response.AiCitationItem;
 import com.travel.dto.ai.response.AiToolCallItem;
 import com.travel.enums.ai.AiScenarioType;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class AiResponseAssembler {
      * @return 聊天响应
      */
     public AiChatMessageResponse assemble(String sessionId, String messageId, AiScenarioType scenario, String reply,
-                                          List<AiToolCallItem> toolCalls) {
+                                          List<AiToolCallItem> toolCalls, List<AiCitationItem> citations) {
         AiChatMessageResponse response = new AiChatMessageResponse();
         response.setSessionId(sessionId);
         response.setMessageId(messageId);
@@ -34,6 +35,9 @@ public class AiResponseAssembler {
         response.setSuggestions(defaultSuggestions(scenario));
         if (toolCalls != null && !toolCalls.isEmpty()) {
             response.setToolCalls(toolCalls);
+        }
+        if (citations != null && !citations.isEmpty()) {
+            response.setCitations(citations);
         }
         return response;
     }

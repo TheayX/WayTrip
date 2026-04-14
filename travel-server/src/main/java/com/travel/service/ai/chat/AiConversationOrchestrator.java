@@ -9,6 +9,8 @@ import com.travel.service.ai.guardrail.AiGuardrailService;
 import com.travel.service.ai.memory.AiConversationMemoryService;
 import com.travel.service.ai.memory.AiConversationTurn;
 import com.travel.service.ai.memory.AiSessionIdService;
+import com.travel.service.ai.rag.AiKnowledgeRetrievalService;
+import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import com.travel.service.ai.tool.AiToolContextHolder;
 import com.travel.service.ai.tool.OrderAiTools;
 import com.travel.service.ai.tool.RecommendationAiTools;
@@ -37,6 +39,7 @@ public class AiConversationOrchestrator {
     private final AiScenarioRouter aiScenarioRouter;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
+    private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
     private final AiToolContextHolder aiToolContextHolder;
     private final RecommendationAiTools recommendationAiTools;
     private final OrderAiTools orderAiTools;
@@ -59,8 +62,9 @@ public class AiConversationOrchestrator {
 
         List<AiConversationTurn> history = aiConversationMemoryService.loadHistory(sessionId);
         AiScenarioType scenario = aiScenarioRouter.route(userMessage, request.getScenarioHint(), request.getSourcePage());
+        List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
         String systemPrompt = aiPromptService.buildSystemPrompt(scenario);
-        String userPrompt = aiPromptService.buildUserPrompt(history, userMessage);
+        String userPrompt = aiPromptService.buildUserPrompt(history, userMessage, knowledgeSnippets);
         String messageId = aiSessionIdService.createSessionId();
 
         try {
@@ -81,7 +85,8 @@ public class AiConversationOrchestrator {
                     messageId,
                     scenario,
                     reply,
-                    aiToolContextHolder.getToolTraces()
+                    aiToolContextHolder.getToolTraces(),
+                    knowledgeSnippets.stream().map(AiKnowledgeSnippet::toCitationItem).toList()
             );
         } catch (BusinessException e) {
             throw e;

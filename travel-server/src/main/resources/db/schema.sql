@@ -19,6 +19,9 @@ DROP TABLE IF EXISTS `user_spot_view`;
 DROP TABLE IF EXISTS `user_spot_review`;
 DROP TABLE IF EXISTS `user_spot_favorite`;
 DROP TABLE IF EXISTS `user_preference`;
+DROP TABLE IF EXISTS `ai_knowledge_chunk`;
+DROP TABLE IF EXISTS `ai_knowledge_document`;
+DROP TABLE IF EXISTS `ai_feedback`;
 DROP TABLE IF EXISTS `guide_spot_relation`;
 DROP TABLE IF EXISTS `spot_image`;
 DROP TABLE IF EXISTS `spot_banner`;
@@ -31,6 +34,52 @@ DROP TABLE IF EXISTS `spot_category`;
 DROP TABLE IF EXISTS `spot_region`;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE `ai_knowledge_document` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '知识文档ID',
+  `title` varchar(128) NOT NULL COMMENT '文档标题',
+  `knowledge_domain` varchar(32) NOT NULL COMMENT '知识域',
+  `source_type` varchar(32) NOT NULL DEFAULT 'manual' COMMENT '来源类型',
+  `source_ref` varchar(256) NOT NULL DEFAULT '' COMMENT '来源引用',
+  `content` mediumtext COMMENT '完整文档内容',
+  `tags` varchar(256) NOT NULL DEFAULT '' COMMENT '标签集合',
+  `version` int NOT NULL DEFAULT 1 COMMENT '版本号',
+  `is_enabled` tinyint NOT NULL DEFAULT 1 COMMENT '是否启用：0-禁用，1-启用',
+  `is_deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_doc_domain_enabled_deleted` (`knowledge_domain`, `is_enabled`, `is_deleted`),
+  KEY `idx_ai_doc_updated_at` (`updated_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI知识文档表';
+
+CREATE TABLE `ai_knowledge_chunk` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '知识分片ID',
+  `document_id` bigint unsigned NOT NULL COMMENT '知识文档ID',
+  `chunk_index` int NOT NULL DEFAULT 0 COMMENT '分片序号',
+  `chunk_text` text COMMENT '分片正文',
+  `chunk_summary` varchar(512) NOT NULL DEFAULT '' COMMENT '分片摘要',
+  `embedding_status` tinyint NOT NULL DEFAULT 0 COMMENT '向量化状态：0-未处理，1-已完成',
+  `vector_id` varchar(128) NOT NULL DEFAULT '' COMMENT '向量存储ID',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_chunk_document_index` (`document_id`, `chunk_index`),
+  KEY `idx_ai_chunk_embedding_status` (`embedding_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI知识分片表';
+
+CREATE TABLE `ai_feedback` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '反馈ID',
+  `session_id` varchar(64) NOT NULL COMMENT '会话ID',
+  `message_id` varchar(64) NOT NULL COMMENT '消息ID',
+  `user_id` bigint unsigned DEFAULT NULL COMMENT '用户ID',
+  `feedback_type` varchar(16) NOT NULL COMMENT '反馈类型',
+  `comment` varchar(512) NOT NULL DEFAULT '' COMMENT '补充说明',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_feedback_session_message` (`session_id`, `message_id`),
+  KEY `idx_ai_feedback_user_created` (`user_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI反馈表';
 
 CREATE TABLE `admin` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '管理员ID',

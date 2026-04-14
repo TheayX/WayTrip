@@ -3,6 +3,7 @@ package com.travel.service.ai.chat;
 import com.travel.config.ai.AiProperties;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.memory.AiConversationTurn;
+import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -83,12 +84,23 @@ public class AiPromptService {
      * @param currentMessage 当前消息
      * @return 合并后的用户输入
      */
-    public String buildUserPrompt(List<AiConversationTurn> history, String currentMessage) {
+    public String buildUserPrompt(List<AiConversationTurn> history, String currentMessage, List<AiKnowledgeSnippet> knowledgeSnippets) {
         StringBuilder prompt = new StringBuilder();
         if (history != null && !history.isEmpty()) {
             prompt.append("最近对话上下文：\n");
             for (AiConversationTurn turn : history) {
                 prompt.append(turn.getRole()).append(": ").append(turn.getContent()).append('\n');
+            }
+            prompt.append('\n');
+        }
+        if (knowledgeSnippets != null && !knowledgeSnippets.isEmpty()) {
+            prompt.append("知识参考：\n");
+            for (AiKnowledgeSnippet snippet : knowledgeSnippets) {
+                prompt.append("- [")
+                        .append(snippet.getTitle())
+                        .append("] ")
+                        .append(snippet.getSnippet())
+                        .append('\n');
             }
             prompt.append('\n');
         }
