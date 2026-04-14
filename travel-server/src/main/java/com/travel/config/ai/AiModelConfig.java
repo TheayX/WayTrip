@@ -8,18 +8,18 @@ import org.springframework.ai.embedding.TokenCountBatchingStrategy;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.observation.VectorStoreObservationConvention;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.ai.vectorstore.redis.autoconfigure.RedisVectorStoreProperties;
-import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.util.StringUtils;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisPooled;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -54,8 +54,7 @@ public class AiModelConfig {
      * 注册 AI 专用向量存储，统一承载知识库分片索引。
      *
      * @param embeddingModel 嵌入模型
-     * @param jedisConnectionFactory Redis 连接工厂
-     * @param properties Redis 向量存储配置
+     * @param aiProperties AI 配置
      * @param observationRegistry 观测注册表
      * @param customObservationConvention 自定义观测约定
      * @param batchingStrategy 批处理策略
@@ -64,18 +63,18 @@ public class AiModelConfig {
     @Bean
     @Primary
     public VectorStore aiVectorStore(EmbeddingModel embeddingModel,
-                                     JedisConnectionFactory jedisConnectionFactory,
-                                     RedisVectorStoreProperties properties,
+                                     AiProperties aiProperties,
                                      ObjectProvider<ObservationRegistry> observationRegistry,
                                      ObjectProvider<VectorStoreObservationConvention> customObservationConvention,
                                      BatchingStrategy batchingStrategy) {
-        return RedisVectorStore.builder(createJedisPooled(jedisConnectionFactory), embeddingModel)
-                .initializeSchema(properties.isInitializeSchema())
+        AiProperties.RedisProperties redisProperties = aiProperties.getVector().getRedis();
+        return RedisVectorStore.builder(createJedisPooled(redisProperties), embeddingModel)
+                .initializeSchema(Boolean.TRUE.equals(redisProperties.getInitializeSchema()))
                 .observationRegistry(observationRegistry.getIfUnique(() -> ObservationRegistry.NOOP))
                 .customObservationConvention(customObservationConvention.getIfAvailable(() -> null))
                 .batchingStrategy(batchingStrategy)
-                .indexName(properties.getIndexName())
-                .prefix(properties.getPrefix())
+                .indexName(redisProperties.getIndexName())
+                .prefix(redisProperties.getPrefix())
                 .metadataFields(List.of(
                         RedisVectorStore.MetadataField.numeric("documentId"),
                         RedisVectorStore.MetadataField.numeric("chunkId"),
@@ -87,15 +86,19 @@ public class AiModelConfig {
                 .build();
     }
 
-    private JedisPooled createJedisPooled(JedisConnectionFactory jedisConnectionFactory) {
-        JedisClientConfig clientConfig = DefaultJedisClientConfig.builder()
-                .ssl(jedisConnectionFactory.isUseSsl())
-                .clientName(jedisConnectionFactory.getClientName())
-                .timeoutMillis(jedisConnectionFactory.getTimeout())
-                .password(jedisConnectionFactory.getPassword())
-                .build();
+    private JedisPooled createJedisPooled(AiProperties.RedisProperties redisProperties) {
+        int timeoutSeconds = redisProperties.getTimeoutSeconds() != null ? redisProperties.getTimeoutSeconds() : 3;
+        Duration timeout = Duration.ofSeconds(Math.max(1, timeoutSeconds));
+        DefaultJedisClientConfig.Builder builder = DefaultJedisClientConfig.builder()
+                .ssl(Boolean.TRUE.equals(redisProperties.getSslEnabled()))
+                .clientName(redisProperties.getClientName())
+                .timeoutMillis((int) timeout.toMillis());
+        if (StringUtils.hasText(redisProperties.getPassword())) {
+            builder.password(redisProperties.getPassword());
+        }
+        JedisClientConfig clientConfig = builder.build();
         return new JedisPooled(
-                new HostAndPort(jedisConnectionFactory.getHostName(), jedisConnectionFactory.getPort()),
+                new HostAndPort(redisProperties.getHost(), redisProperties.getPort()),
                 clientConfig
         );
     }

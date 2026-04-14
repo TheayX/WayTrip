@@ -20,11 +20,6 @@ spring:
     model:
       chat: ollama
       embedding: ollama
-    vectorstore:
-      redis:
-        initialize-schema: true
-        index-name: ${APP_AI_RAG_VECTOR_INDEX_NAME:waytrip-ai-knowledge-index}
-        prefix: ${APP_AI_RAG_VECTOR_PREFIX:waytrip:ai:chunk:}
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
       chat:
@@ -74,6 +69,17 @@ app:
       enabled: ${APP_AI_RAG_ENABLED:false}
       top-k: ${APP_AI_RAG_TOP_K:4}
       min-score: ${APP_AI_RAG_MIN_SCORE:0.65}
+    vector:
+      redis:
+        host: ${APP_AI_VECTOR_REDIS_HOST:127.0.0.1}
+        port: ${APP_AI_VECTOR_REDIS_PORT:6379}
+        password: ${APP_AI_VECTOR_REDIS_PASSWORD:}
+        client-name: ${APP_AI_VECTOR_REDIS_CLIENT_NAME:waytrip-ai-vector}
+        timeout-seconds: ${APP_AI_VECTOR_REDIS_TIMEOUT_SECONDS:3}
+        ssl-enabled: ${APP_AI_VECTOR_REDIS_SSL_ENABLED:false}
+        index-name: ${APP_AI_VECTOR_REDIS_INDEX_NAME:waytrip-ai-knowledge-index}
+        prefix: ${APP_AI_VECTOR_REDIS_PREFIX:waytrip:ai:chunk:}
+        initialize-schema: ${APP_AI_VECTOR_REDIS_INITIALIZE_SCHEMA:true}
     memory:
       ttl-minutes: ${APP_AI_MEMORY_TTL_MINUTES:60}
       history-rounds: ${APP_AI_MEMORY_HISTORY_ROUNDS:8}

@@ -14,6 +14,7 @@ public class AiProperties {
     private ChatProperties chat = new ChatProperties();
     private ToolProperties tool = new ToolProperties();
     private RagProperties rag = new RagProperties();
+    private VectorProperties vector = new VectorProperties();
     private MemoryProperties memory = new MemoryProperties();
     private GuardrailProperties guardrail = new GuardrailProperties();
     private MetricsProperties metrics = new MetricsProperties();
@@ -45,6 +46,24 @@ public class AiProperties {
         private Boolean enabled = Boolean.FALSE;
         private Integer topK = 4;
         private Double minScore = 0.65D;
+    }
+
+    @Data
+    public static class VectorProperties {
+        private RedisProperties redis = new RedisProperties();
+    }
+
+    @Data
+    public static class RedisProperties {
+        private String host = "127.0.0.1";
+        private Integer port = 6379;
+        private String password = "";
+        private String clientName = "waytrip-ai-vector";
+        private Integer timeoutSeconds = 3;
+        private Boolean sslEnabled = Boolean.FALSE;
+        private String indexName = "waytrip-ai-knowledge-index";
+        private String prefix = "waytrip:ai:chunk:";
+        private Boolean initializeSchema = Boolean.TRUE;
     }
 
     @Data
