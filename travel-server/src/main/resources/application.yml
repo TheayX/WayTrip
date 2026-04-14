@@ -16,6 +16,19 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
     default-property-inclusion: non_null
+  ai:
+    model:
+      chat: ollama
+      embedding: ollama
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
+      chat:
+        options:
+          model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen2.5:7b}
+          temperature: ${APP_AI_CHAT_TEMPERATURE:0.2}
+      embedding:
+        options:
+          model: ${APP_AI_PROVIDER_EMBEDDING_MODEL:nomic-embed-text}
 
 # MyBatis-Plus 配置
 mybatis-plus:
@@ -38,22 +51,31 @@ logging:
     root: INFO
     com.travel: DEBUG
 
-ollama:
-  base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
-  model: ${OLLAMA_MODEL:qwen2.5:1.5b}
-  system-prompt: ${OLLAMA_SYSTEM_PROMPT:}
-  chat:
-    # AI 客服对话历史、缓存与上下文注入配置
-    max-history-rounds: ${OLLAMA_CHAT_MAX_HISTORY_ROUNDS:6}
-    history-ttl-minutes: ${OLLAMA_CHAT_HISTORY_TTL_MINUTES:30}
-    response-cache-minutes: ${OLLAMA_CHAT_RESPONSE_CACHE_MINUTES:2}
-    hot-spot-summary-limit: ${OLLAMA_CHAT_HOT_SPOT_SUMMARY_LIMIT:6}
-    personalization:
-      # 个性化上下文中携带的最近订单与收藏数量
-      recent-order-limit: ${OLLAMA_CHAT_PERSONALIZATION_RECENT_ORDER_LIMIT:3}
-      recent-favorite-limit: ${OLLAMA_CHAT_PERSONALIZATION_RECENT_FAVORITE_LIMIT:5}
-    rate-limit:
-      # AI 客服分钟级限流阈值
-      ip-per-minute: ${OLLAMA_CHAT_RATE_LIMIT_IP_PER_MINUTE:24}
-      session-per-minute: ${OLLAMA_CHAT_RATE_LIMIT_SESSION_PER_MINUTE:12}
+app:
+  ai:
+    provider:
+      type: ${APP_AI_PROVIDER_TYPE:ollama}
+      chat-model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen2.5:7b}
+      embedding-model: ${APP_AI_PROVIDER_EMBEDDING_MODEL:nomic-embed-text}
+    chat:
+      timeout-seconds: ${APP_AI_CHAT_TIMEOUT_SECONDS:60}
+      max-input-length: ${APP_AI_CHAT_MAX_INPUT_LENGTH:800}
+      max-history-rounds: ${APP_AI_CHAT_MAX_HISTORY_ROUNDS:8}
+      system-prompt: ${APP_AI_CHAT_SYSTEM_PROMPT:你是 WayTrip 旅游助手。请始终使用简体中文，回答简洁、友好、可执行。涉及价格、库存、退款、时效时，必须明确说明以页面规则和系统真实数据为准。}
+    tool:
+      enabled: ${APP_AI_TOOL_ENABLED:true}
+      max-calls-per-request: ${APP_AI_TOOL_MAX_CALLS_PER_REQUEST:6}
+    rag:
+      enabled: ${APP_AI_RAG_ENABLED:false}
+      top-k: ${APP_AI_RAG_TOP_K:4}
+      min-score: ${APP_AI_RAG_MIN_SCORE:0.65}
+    memory:
+      ttl-minutes: ${APP_AI_MEMORY_TTL_MINUTES:60}
+      history-rounds: ${APP_AI_MEMORY_HISTORY_ROUNDS:8}
+      summary-enabled: ${APP_AI_MEMORY_SUMMARY_ENABLED:true}
+    guardrail:
+      rate-limit-ip-per-minute: ${APP_AI_GUARDRAIL_RATE_LIMIT_IP_PER_MINUTE:24}
+      rate-limit-session-per-minute: ${APP_AI_GUARDRAIL_RATE_LIMIT_SESSION_PER_MINUTE:12}
+    metrics:
+      enabled: ${APP_AI_METRICS_ENABLED:true}
 

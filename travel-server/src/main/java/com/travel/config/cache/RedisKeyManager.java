@@ -91,48 +91,44 @@ public final class RedisKeyManager {
     }
 
     /**
-     * 获取 AI 聊天会话历史缓存 Key。
+     * 获取 AI 会话消息缓存 Key。
      *
      * @param sessionId 会话 ID
-     * @return AI 聊天会话缓存 Key
+     * @return AI 会话缓存 Key
      */
-    public static String aiChatSession(String sessionId) {
-        return AI + ":chat:session:" + sessionId;
+    public static String aiConversationSession(String sessionId) {
+        return AI + ":conversation:session:" + sessionId;
     }
 
     /**
-     * 获取按 IP 维度统计的 AI 聊天限流 Key。
+     * 获取 AI 会话摘要缓存 Key。
+     *
+     * @param sessionId 会话 ID
+     * @return AI 会话摘要缓存 Key
+     */
+    public static String aiConversationSummary(String sessionId) {
+        return AI + ":conversation:summary:" + sessionId;
+    }
+
+    /**
+     * 获取按 IP 维度统计的 AI 风控限流 Key。
      *
      * @param clientIp IP 地址
      * @param minuteBucket 分钟时间桶
-     * @return AI 聊天 IP 限流 Key
+     * @return AI IP 限流 Key
      */
-    public static String aiChatRateLimitIp(String clientIp, String minuteBucket) {
-        return AI + ":chat:rl:ip:" + clientIp + ":" + minuteBucket;
+    public static String aiGuardrailRateLimitIp(String clientIp, String minuteBucket) {
+        return AI + ":guardrail:rl:ip:" + clientIp + ":" + minuteBucket;
     }
 
     /**
-     * 获取按会话维度统计的 AI 聊天限流 Key。
+     * 获取按会话维度统计的 AI 风控限流 Key。
      *
      * @param sessionId 会话 ID
      * @param minuteBucket 分钟时间桶
-     * @return AI 聊天会话限流 Key
+     * @return AI 会话限流 Key
      */
-    public static String aiChatRateLimitSession(String sessionId, String minuteBucket) {
-        return AI + ":chat:rl:session:" + sessionId + ":" + minuteBucket;
-    }
-
-    /**
-     * 获取 AI 回复缓存 Key。
-     *
-     * @param model 模型名称
-     * @param intentType 意图类型
-     * @param userId 用户标识
-     * @param sessionId 会话 ID
-     * @param digest 消息摘要
-     * @return AI 回复缓存 Key
-     */
-    public static String aiChatResponseCache(String model, String intentType, String userId, String sessionId, String digest) {
-        return AI + ":chat:cache:" + model + ":" + intentType + ":" + userId + ":" + sessionId + ":" + digest;
+    public static String aiGuardrailRateLimitSession(String sessionId, String minuteBucket) {
+        return AI + ":guardrail:rl:session:" + sessionId + ":" + minuteBucket;
     }
 }
