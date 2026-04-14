@@ -21,7 +21,7 @@ public class AiProperties {
     @Data
     public static class ProviderProperties {
         private String type = "ollama";
-        private String chatModel = "qwen2.5:7b";
+        private String chatModel = "qwen2.5:1.5b";
         private String embeddingModel = "nomic-embed-text";
     }
 

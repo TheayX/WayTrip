@@ -24,7 +24,7 @@ spring:
       base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
       chat:
         options:
-          model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen2.5:7b}
+          model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen2.5:1.5b}
           temperature: ${APP_AI_CHAT_TEMPERATURE:0.2}
       embedding:
         options:
@@ -55,7 +55,7 @@ app:
   ai:
     provider:
       type: ${APP_AI_PROVIDER_TYPE:ollama}
-      chat-model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen2.5:7b}
+      chat-model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen2.5:1.5b}
       embedding-model: ${APP_AI_PROVIDER_EMBEDDING_MODEL:nomic-embed-text}
     chat:
       timeout-seconds: ${APP_AI_CHAT_TIMEOUT_SECONDS:60}

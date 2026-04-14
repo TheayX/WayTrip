@@ -16,6 +16,7 @@ import com.travel.service.ai.tool.SpotAiTools;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -78,6 +79,12 @@ public class AiConversationOrchestrator {
             return aiResponseAssembler.assemble(sessionId, messageId, scenario, reply);
         } catch (BusinessException e) {
             throw e;
+        } catch (NonTransientAiException e) {
+            log.error("AI 模型调用失败, sessionId={}, scenario={}", sessionId, scenario, e);
+            if (e.getMessage() != null && e.getMessage().contains("model") && e.getMessage().contains("not found")) {
+                throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 模型未就绪，请先确认 Ollama 已拉取配置中的模型");
+            }
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 服务响应异常，请稍后重试");
         } catch (Exception e) {
             log.error("AI 对话执行失败, sessionId={}, scenario={}", sessionId, scenario, e);
             throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 服务暂时不可用，请稍后重试");
