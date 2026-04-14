@@ -25,6 +25,10 @@ public class AiPromptService {
      */
     public String buildSystemPrompt(AiScenarioType scenario) {
         StringBuilder prompt = new StringBuilder(aiProperties.getChat().getSystemPrompt());
+        prompt.append("\n通用要求：")
+                .append("\n1. 当可用工具能够提供真实业务数据时，优先调用工具，不要凭空猜测。")
+                .append("\n2. 涉及订单、推荐、景点详情等事实信息时，以工具返回结果为准。")
+                .append("\n3. 无法确认时，明确说明信息不足，不要编造。");
         switch (scenario) {
             case ORDER_ADVISOR -> prompt.append("\n补充要求：优先说明订单状态、售后入口和下一步操作，不得编造金额与时效。");
             case TRAVEL_PLANNER -> prompt.append("\n补充要求：优先给出旅游建议、时间安排和玩法思路，回答要简洁可执行。");

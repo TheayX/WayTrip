@@ -9,6 +9,10 @@ import com.travel.service.ai.guardrail.AiGuardrailService;
 import com.travel.service.ai.memory.AiConversationMemoryService;
 import com.travel.service.ai.memory.AiConversationTurn;
 import com.travel.service.ai.memory.AiSessionIdService;
+import com.travel.service.ai.tool.AiToolContextHolder;
+import com.travel.service.ai.tool.OrderAiTools;
+import com.travel.service.ai.tool.RecommendationAiTools;
+import com.travel.service.ai.tool.SpotAiTools;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -32,6 +36,10 @@ public class AiConversationOrchestrator {
     private final AiScenarioRouter aiScenarioRouter;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
+    private final AiToolContextHolder aiToolContextHolder;
+    private final RecommendationAiTools recommendationAiTools;
+    private final OrderAiTools orderAiTools;
+    private final SpotAiTools spotAiTools;
 
     /**
      * 处理单轮聊天请求。
@@ -55,11 +63,14 @@ public class AiConversationOrchestrator {
         String messageId = aiSessionIdService.createSessionId();
 
         try {
-            String reply = aiChatClient.prompt()
+            aiToolContextHolder.setCurrentUserId(userId);
+            ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
                     .system(systemPrompt)
-                    .user(userPrompt)
-                    .call()
-                    .content();
+                    .user(userPrompt);
+            if (shouldEnableTools(scenario)) {
+                requestSpec = requestSpec.tools(resolveTools(scenario));
+            }
+            String reply = requestSpec.call().content();
             if (!StringUtils.hasText(reply)) {
                 throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 返回内容为空");
             }
@@ -70,6 +81,22 @@ public class AiConversationOrchestrator {
         } catch (Exception e) {
             log.error("AI 对话执行失败, sessionId={}, scenario={}", sessionId, scenario, e);
             throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 服务暂时不可用，请稍后重试");
+        } finally {
+            aiToolContextHolder.clear();
         }
+    }
+
+    private boolean shouldEnableTools(AiScenarioType scenario) {
+        return scenario != AiScenarioType.CUSTOMER_SERVICE;
+    }
+
+    private Object[] resolveTools(AiScenarioType scenario) {
+        return switch (scenario) {
+            case ORDER_ADVISOR -> new Object[]{orderAiTools, spotAiTools};
+            case RECOMMENDATION_EXPLAINER, TRAVEL_PLANNER -> new Object[]{recommendationAiTools, spotAiTools, orderAiTools};
+            case USER_PROFILE_ANALYZER -> new Object[]{recommendationAiTools, orderAiTools};
+            case OPERATION_ANALYZER -> new Object[]{recommendationAiTools};
+            default -> new Object[0];
+        };
     }
 }
