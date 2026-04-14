@@ -1,7 +1,10 @@
 package com.travel.service.ai.analysis;
 
 import com.travel.dto.ai.feedback.SubmitAiFeedbackRequest;
+import com.travel.entity.AiFeedback;
+import com.travel.mapper.AiFeedbackMapper;
 import com.travel.service.ai.AiFeedbackService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -10,11 +13,20 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AiFeedbackServiceImpl implements AiFeedbackService {
+
+    private final AiFeedbackMapper aiFeedbackMapper;
 
     @Override
     public void submitFeedback(SubmitAiFeedbackRequest request, Long userId) {
-        // 第一阶段先将反馈收口到日志，后续再接正式表结构与管理端统计。
+        AiFeedback feedback = new AiFeedback();
+        feedback.setSessionId(request.getSessionId());
+        feedback.setMessageId(request.getMessageId());
+        feedback.setUserId(userId);
+        feedback.setFeedbackType(request.getFeedbackType().name());
+        feedback.setComment(request.getComment() == null ? "" : request.getComment().trim());
+        aiFeedbackMapper.insert(feedback);
         log.info(
                 "收到 AI 反馈：userId={}, sessionId={}, messageId={}, feedbackType={}, comment={}",
                 userId,
