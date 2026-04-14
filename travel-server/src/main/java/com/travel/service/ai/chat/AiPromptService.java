@@ -28,14 +28,50 @@ public class AiPromptService {
         prompt.append("\n通用要求：")
                 .append("\n1. 当可用工具能够提供真实业务数据时，优先调用工具，不要凭空猜测。")
                 .append("\n2. 涉及订单、推荐、景点详情等事实信息时，以工具返回结果为准。")
-                .append("\n3. 无法确认时，明确说明信息不足，不要编造。");
+                .append("\n3. 无法确认时，明确说明信息不足，不要编造。")
+                .append("\n4. 回答保持简洁，优先给结论和下一步建议。");
         switch (scenario) {
-            case ORDER_ADVISOR -> prompt.append("\n补充要求：优先说明订单状态、售后入口和下一步操作，不得编造金额与时效。");
-            case TRAVEL_PLANNER -> prompt.append("\n补充要求：优先给出旅游建议、时间安排和玩法思路，回答要简洁可执行。");
-            case RECOMMENDATION_EXPLAINER -> prompt.append("\n补充要求：解释推荐理由时，只能基于真实推荐结果和用户行为摘要。");
-            case USER_PROFILE_ANALYZER -> prompt.append("\n补充要求：用户画像结论必须谨慎，不要夸大推断。");
-            case OPERATION_ANALYZER -> prompt.append("\n补充要求：运营分析必须以真实统计数据为依据。");
-            default -> prompt.append("\n补充要求：优先解决用户问题，信息不足时明确说明缺失信息。");
+            case ORDER_ADVISOR -> prompt.append("""
+
+                    \n订单顾问要求：
+                    \n- 先判断用户是否在问某个具体订单；能查订单时先调用订单工具。
+                    \n- 优先输出：当前状态、用户可执行动作、是否建议去订单页确认。
+                    \n- 涉及退款金额、到账时间、赔付规则时，不得编造，必须提醒以订单页规则为准。
+                    \n- 如果用户没有提供订单号，但明显在问自己的订单，先帮助缩小范围或建议查看最近订单。
+                    """);
+            case TRAVEL_PLANNER -> prompt.append("""
+
+                    \n旅游规划要求：
+                    \n- 先识别预算、天数、人群、距离、偏好等约束。
+                    \n- 优先调用推荐、热门景点、附近景点、景点详情或攻略工具获取真实候选内容。
+                    \n- 输出时尽量给出“推荐理由 + 行程顺序 + 注意事项”。
+                    \n- 如果用户条件不足，先给一个保守方案，并提示还缺哪些条件。
+                    """);
+            case RECOMMENDATION_EXPLAINER -> prompt.append("""
+
+                    \n推荐解释要求：
+                    \n- 只基于真实推荐结果和工具可见信息解释。
+                    \n- 不要伪造“你一定喜欢”这类强结论。
+                    \n- 优先解释：景点类型、热度、相似性或通用适配原因。
+                    """);
+            case USER_PROFILE_ANALYZER -> prompt.append("""
+
+                    \n画像分析要求：
+                    \n- 结论必须谨慎，使用“倾向于”“更可能”这类表述。
+                    \n- 如无足够数据，直接说明暂时无法稳定判断。
+                    """);
+            case OPERATION_ANALYZER -> prompt.append("""
+
+                    \n运营分析要求：
+                    \n- 分析结论必须以工具返回统计为依据。
+                    \n- 优先给出变化趋势、异常点和建议动作，不输出空泛结论。
+                    """);
+            default -> prompt.append("""
+
+                    \n客服要求：
+                    \n- 优先解决用户当前问题。
+                    \n- 超出可确认范围时，明确说明并给出下一步建议。
+                    """);
         }
         return prompt.toString();
     }

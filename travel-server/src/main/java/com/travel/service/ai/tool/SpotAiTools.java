@@ -38,6 +38,12 @@ public class SpotAiTools {
     public Map<String, Object> getSpotDetails(
             @ToolParam(description = "景点 ID", required = true) Long spotId) {
         SpotDetailResponse detail = spotService.getSpotDetail(spotId, aiToolContextHolder.getCurrentUserId());
+        aiToolContextHolder.addToolTrace(
+                "getSpotDetails",
+                "spot",
+                true,
+                "已查询景点详情，景点名称为 " + detail.getName()
+        );
         return simplifySpotDetail(detail);
     }
 
@@ -58,6 +64,12 @@ public class SpotAiTools {
             @ToolParam(description = "返回条数，建议 3 到 10 之间", required = false) Integer limit) {
         if (keyword != null && !keyword.isBlank()) {
             PageResult<SpotListResponse> response = spotService.searchSpots(keyword.trim(), 1, normalizeLimit(limit, 5));
+            aiToolContextHolder.addToolTrace(
+                    "searchSpots",
+                    "spot",
+                    true,
+                    "已按关键词搜索景点，共 " + response.getTotal() + " 条"
+            );
             return Map.of("total", response.getTotal(), "list", simplifySpotList(response.getList()));
         }
         SpotListRequest request = new SpotListRequest();
@@ -66,6 +78,12 @@ public class SpotAiTools {
         request.setCategoryId(categoryId);
         request.setRegionId(regionId);
         PageResult<SpotListResponse> response = spotService.getSpotList(request);
+        aiToolContextHolder.addToolTrace(
+                "searchSpots",
+                "spot",
+                true,
+                "已按分类或地区筛选景点，共 " + response.getTotal() + " 条"
+        );
         return Map.of("total", response.getTotal(), "list", simplifySpotList(response.getList()));
     }
 
@@ -85,6 +103,12 @@ public class SpotAiTools {
         request.setPage(1);
         request.setPageSize(normalizeLimit(limit, 5));
         PageResult<GuideListResponse> response = guideService.getGuideList(request);
+        aiToolContextHolder.addToolTrace(
+                "getGuideSummariesByKeyword",
+                "guide",
+                true,
+                "已查询相关攻略摘要，共 " + response.getTotal() + " 条"
+        );
         return Map.of("total", response.getTotal(), "list", simplifyGuideList(response.getList()));
     }
 

@@ -36,6 +36,12 @@ public class RecommendationAiTools {
             @ToolParam(description = "返回条数，建议 3 到 10 之间", required = false) Integer limit) {
         RecommendationResponse response =
                 recommendationService.getRecommendations(aiToolContextHolder.requireCurrentUserId(), normalizeLimit(limit, 5));
+        aiToolContextHolder.addToolTrace(
+                "getPersonalizedRecommendations",
+                "recommendation",
+                true,
+                "已查询当前登录用户的个性化推荐结果，共 " + (response.getList() == null ? 0 : response.getList().size()) + " 条"
+        );
         return Map.of(
                 "type", response.getType(),
                 "needPreference", Boolean.TRUE.equals(response.getNeedPreference()),
@@ -53,6 +59,12 @@ public class RecommendationAiTools {
     public Map<String, Object> getHotSpotRecommendations(
             @ToolParam(description = "返回条数，建议 3 到 10 之间", required = false) Integer limit) {
         HotSpotResponse response = recommendationService.getHotSpots(normalizeLimit(limit, 5));
+        aiToolContextHolder.addToolTrace(
+                "getHotSpotRecommendations",
+                "recommendation",
+                true,
+                "已查询热门景点，共 " + (response.getList() == null ? 0 : response.getList().size()) + " 条"
+        );
         return Map.of("spots", response.getList());
     }
 
@@ -74,6 +86,12 @@ public class RecommendationAiTools {
                 BigDecimal.valueOf(longitude),
                 normalizeLimit(limit, 3)
         );
+        aiToolContextHolder.addToolTrace(
+                "getNearbySpots",
+                "recommendation",
+                true,
+                "已按经纬度查询附近景点，共 " + response.getTotal() + " 条"
+        );
         return Map.of(
                 "total", response.getTotal(),
                 "nearestDistanceKm", response.getNearestDistanceKm(),
@@ -93,6 +111,12 @@ public class RecommendationAiTools {
             @ToolParam(description = "景点 ID", required = true) Long spotId,
             @ToolParam(description = "返回条数，建议 3 到 8 之间", required = false) Integer limit) {
         SimilarityPreviewResponse response = recommendationService.previewSimilarityNeighbors(spotId, normalizeLimit(limit, 5));
+        aiToolContextHolder.addToolTrace(
+                "getSimilarSpots",
+                "recommendation",
+                true,
+                "已查询景点 " + spotId + " 的相似景点，共 " + (response.getNeighbors() == null ? 0 : response.getNeighbors().size()) + " 条"
+        );
         return Map.of(
                 "spotId", response.getSpotId(),
                 "spotName", response.getSpotName(),

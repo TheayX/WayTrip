@@ -76,7 +76,13 @@ public class AiConversationOrchestrator {
                 throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 返回内容为空");
             }
             aiConversationMemoryService.saveConversation(sessionId, history, userMessage, reply.trim());
-            return aiResponseAssembler.assemble(sessionId, messageId, scenario, reply);
+            return aiResponseAssembler.assemble(
+                    sessionId,
+                    messageId,
+                    scenario,
+                    reply,
+                    aiToolContextHolder.getToolTraces()
+            );
         } catch (BusinessException e) {
             throw e;
         } catch (NonTransientAiException e) {

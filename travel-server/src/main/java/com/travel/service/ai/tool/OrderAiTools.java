@@ -39,6 +39,12 @@ public class OrderAiTools {
         request.setPage(1);
         request.setPageSize(normalizeLimit(limit, 5));
         OrderListResponse response = orderService.getUserOrders(aiToolContextHolder.requireCurrentUserId(), request);
+        aiToolContextHolder.addToolTrace(
+                "getMyOrders",
+                "order",
+                true,
+                "已查询当前登录用户的订单列表，共 " + response.getTotal() + " 条"
+        );
         return Map.of(
                 "total", response.getTotal(),
                 "list", simplifyOrderItems(response.getList())
@@ -55,6 +61,12 @@ public class OrderAiTools {
     public Map<String, Object> getOrderDetail(
             @ToolParam(description = "订单 ID", required = true) Long orderId) {
         OrderDetailResponse response = orderService.getOrderDetail(aiToolContextHolder.requireCurrentUserId(), orderId);
+        aiToolContextHolder.addToolTrace(
+                "getOrderDetail",
+                "order",
+                true,
+                "已查询订单详情，订单号为 " + response.getOrderNo()
+        );
         return simplifyOrderDetail(response);
     }
 
@@ -68,6 +80,12 @@ public class OrderAiTools {
     public Map<String, Object> getOrderAfterSalePolicy(
             @ToolParam(description = "订单 ID", required = true) Long orderId) {
         OrderDetailResponse detail = orderService.getOrderDetail(aiToolContextHolder.requireCurrentUserId(), orderId);
+        aiToolContextHolder.addToolTrace(
+                "getOrderAfterSalePolicy",
+                "order",
+                true,
+                "已根据订单状态生成售后建议，当前状态为 " + detail.getStatusText()
+        );
         return Map.of(
                 "orderId", detail.getId(),
                 "orderNo", detail.getOrderNo(),
