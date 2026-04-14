@@ -25,6 +25,7 @@ public class AiKnowledgeIngestionServiceImpl implements AiKnowledgeIngestionServ
 
     private final AiKnowledgeDocumentMapper aiKnowledgeDocumentMapper;
     private final AiKnowledgeChunkMapper aiKnowledgeChunkMapper;
+    private final AiKnowledgeVectorIndexService aiKnowledgeVectorIndexService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -54,6 +55,7 @@ public class AiKnowledgeIngestionServiceImpl implements AiKnowledgeIngestionServ
         aiKnowledgeChunkMapper.delete(new LambdaQueryWrapper<AiKnowledgeChunk>()
                 .eq(AiKnowledgeChunk::getDocumentId, documentId));
         List<String> segments = splitToSegments(document.getContent());
+        List<AiKnowledgeChunk> chunks = new ArrayList<>();
         for (int i = 0; i < segments.size(); i++) {
             AiKnowledgeChunk chunk = new AiKnowledgeChunk();
             chunk.setDocumentId(documentId);
@@ -63,7 +65,9 @@ public class AiKnowledgeIngestionServiceImpl implements AiKnowledgeIngestionServ
             chunk.setEmbeddingStatus(0);
             chunk.setVectorId("");
             aiKnowledgeChunkMapper.insert(chunk);
+            chunks.add(chunk);
         }
+        aiKnowledgeVectorIndexService.rebuildDocumentIndex(document, chunks);
     }
 
     private List<String> splitToSegments(String content) {

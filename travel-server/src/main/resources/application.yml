@@ -20,6 +20,11 @@ spring:
     model:
       chat: ollama
       embedding: ollama
+    vectorstore:
+      redis:
+        initialize-schema: true
+        index-name: ${APP_AI_RAG_VECTOR_INDEX_NAME:waytrip-ai-knowledge-index}
+        prefix: ${APP_AI_RAG_VECTOR_PREFIX:waytrip:ai:chunk:}
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
       chat:

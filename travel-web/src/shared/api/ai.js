@@ -1,16 +1,33 @@
 import request from '@/shared/api/client.js'
 
 /**
- * 调用 AI 客服对话接口。
+ * 创建新的 AI 会话。
+ *
+ * @returns {Promise<any>} 会话创建结果
+ */
+export const createAiSession = () => request.post('/ai/sessions')
+
+/**
+ * 清空指定 AI 会话。
  *
  * @param {string} sessionId 会话 ID
- * @param {string} message 用户消息
- * @returns {Promise<any>} AI 客服回复结果
+ * @returns {Promise<any>} 清空结果
  */
-export const chatWithAi = (sessionId, message) => request.post(
-  '/ai/chat',
-  // 会话 ID 与消息体一起上送，服务端依赖它串联历史对话与分钟级限流。
-  { sessionId, message },
-  { timeout: 60000 }
-)
+export const clearAiSession = (sessionId) => request.delete(`/ai/sessions/${sessionId}`)
+
+/**
+ * 调用 AI 对话接口。
+ *
+ * @param {Object} payload 对话请求参数
+ * @returns {Promise<any>} AI 对话响应
+ */
+export const chatWithAi = (payload) => request.post('/ai/chat', payload, { timeout: 60000 })
+
+/**
+ * 提交 AI 回复反馈。
+ *
+ * @param {Object} payload 反馈请求参数
+ * @returns {Promise<any>} 反馈结果
+ */
+export const submitAiFeedback = (payload) => request.post('/ai/feedback', payload)
 
