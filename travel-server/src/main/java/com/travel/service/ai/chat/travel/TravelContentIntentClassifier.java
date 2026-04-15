@@ -77,6 +77,10 @@ public class TravelContentIntentClassifier {
         if (intent == TravelContentIntent.NONE) {
             return TravelContentIntent.NONE.name().equals(fallback.intent()) ? classified : fallback;
         }
+        TravelContentIntent fallbackIntent = parseIntent(fallback.intent());
+        if (intent == TravelContentIntent.SPOT_SEARCH && fallbackIntent == TravelContentIntent.SPOT_FACT) {
+            return fallback;
+        }
         String keyword = StringUtils.hasText(classified.slotAsString(AiIntentSlots.KEYWORD))
                 ? TravelContentKeywordNormalizer.normalizeSearchKeyword(classified.slotAsString(AiIntentSlots.KEYWORD))
                 : fallback.slotAsString(AiIntentSlots.KEYWORD);

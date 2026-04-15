@@ -5,7 +5,10 @@ import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.chat.intent.AiIntentClassificationResult;
 import com.travel.service.ai.chat.intent.AiIntentSlots;
 import com.travel.service.ai.chat.intent.AiJsonIntentClassificationSupport;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.ai.chat.client.ChatClient;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -18,6 +21,27 @@ class TravelContentIntentClassifierTest {
             new AiJsonIntentClassificationSupport(null, new ObjectMapper()),
             new TravelContentIntentResolver()
     );
+
+    private TravelContentIntentClassifier runtimeClassifier;
+    private ChatClient.ChatClientRequestSpec requestSpec;
+
+    @BeforeEach
+    void setUpRuntimeClassifier() {
+        ChatClient chatClient = Mockito.mock(ChatClient.class);
+        requestSpec = Mockito.mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.CallResponseSpec responseSpec = Mockito.mock(ChatClient.CallResponseSpec.class);
+        Mockito.when(chatClient.prompt()).thenReturn(requestSpec);
+        Mockito.when(requestSpec.system(Mockito.anyString())).thenReturn(requestSpec);
+        Mockito.when(requestSpec.user(Mockito.anyString())).thenReturn(requestSpec);
+        Mockito.when(requestSpec.call()).thenReturn(responseSpec);
+        Mockito.when(responseSpec.content()).thenReturn("""
+                {"intent":"SPOT_SEARCH","keyword":"故宫","spotName":"故宫","city":"北京","limit":5}
+                """);
+        runtimeClassifier = new TravelContentIntentClassifier(
+                new AiJsonIntentClassificationSupport(chatClient, new ObjectMapper()),
+                new TravelContentIntentResolver()
+        );
+    }
 
     @Test
     void parseSpotFactModelReply() throws Exception {
@@ -46,6 +70,14 @@ class TravelContentIntentClassifierTest {
                 {"intent":"SPOT_FACT","keyword":"故宫","spotName":"故宫","city":"北京","factField":"openTime","limit":5}
                 """, AiScenarioType.SPOT_QA);
 
+        assertEquals("openTime", result.slotAsString(AiIntentSlots.FACT_FIELD));
+    }
+
+    @Test
+    void classifyUsesFallbackFactIntentWhenModelReturnsSpotSearch() {
+        AiIntentClassificationResult result = runtimeClassifier.classify("故宫开放时间", AiScenarioType.SPOT_QA);
+
+        assertEquals(TravelContentIntent.SPOT_FACT.name(), result.intent());
         assertEquals("openTime", result.slotAsString(AiIntentSlots.FACT_FIELD));
     }
 
