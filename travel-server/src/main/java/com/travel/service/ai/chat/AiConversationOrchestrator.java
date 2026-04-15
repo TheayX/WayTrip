@@ -6,6 +6,7 @@ import com.travel.dto.ai.request.AiChatMessageRequest;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.chat.order.OrderAiDirectResponseService;
+import com.travel.service.ai.chat.planner.TravelPlanDirectResponseService;
 import com.travel.service.ai.chat.travel.TravelContentDirectResponseService;
 import com.travel.service.ai.guardrail.AiGuardrailService;
 import com.travel.service.ai.memory.AiConversationMemoryService;
@@ -42,6 +43,7 @@ public class AiConversationOrchestrator {
     private final AiScenarioRouter aiScenarioRouter;
     private final OrderAiDirectResponseService orderAiDirectResponseService;
     private final TravelContentDirectResponseService travelContentDirectResponseService;
+    private final TravelPlanDirectResponseService travelPlanDirectResponseService;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
@@ -223,6 +225,7 @@ public class AiConversationOrchestrator {
         String reply = switch (scenario) {
             case ORDER_ADVISOR -> orderAiDirectResponseService.tryReply(userMessage);
             case SPOT_QA, GUIDE_QA -> travelContentDirectResponseService.tryReply(userMessage, scenario);
+            case TRAVEL_PLANNER -> travelPlanDirectResponseService.tryReply(userMessage);
             default -> "";
         };
         if (!StringUtils.hasText(reply)) {

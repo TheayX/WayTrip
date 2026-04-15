@@ -14,6 +14,7 @@ public final class AiIntentSlots {
     public static final String BUDGET = "budget";
     public static final String DAYS = "days";
     public static final String GROUP = "group";
+    public static final String PREFERENCES = "preferences";
 
     private AiIntentSlots() {
     }
