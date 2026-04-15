@@ -72,18 +72,6 @@ public class AiPromptService {
                     \n- 不要伪造“你一定喜欢”这类强结论。
                     \n- 优先解释：景点类型、热度、相似性或通用适配原因。
                     """);
-            case USER_PROFILE_ANALYZER -> prompt.append("""
-
-                    \n画像分析要求：
-                    \n- 结论必须谨慎，使用“倾向于”“更可能”这类表述。
-                    \n- 如无足够数据，直接说明暂时无法稳定判断。
-                    """);
-            case OPERATION_ANALYZER -> prompt.append("""
-
-                    \n运营分析要求：
-                    \n- 分析结论必须以工具返回统计为依据。
-                    \n- 优先给出变化趋势、异常点和建议动作，不输出空泛结论。
-                    """);
             default -> prompt.append("""
 
                     \n客服要求：

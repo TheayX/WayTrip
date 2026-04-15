@@ -71,8 +71,6 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
             case ORDER_ADVISOR -> AiKnowledgeDomain.PLATFORM_POLICY;
             case SPOT_QA, TRAVEL_PLANNER, RECOMMENDATION_EXPLAINER -> AiKnowledgeDomain.SPOT_KNOWLEDGE;
             case GUIDE_QA -> AiKnowledgeDomain.GUIDE_KNOWLEDGE;
-            case USER_PROFILE_ANALYZER -> AiKnowledgeDomain.ACCOUNT_HELP;
-            case OPERATION_ANALYZER -> AiKnowledgeDomain.PLATFORM_POLICY;
             default -> AiKnowledgeDomain.PLATFORM_POLICY;
         };
     }

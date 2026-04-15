@@ -200,8 +200,6 @@ public class AiConversationOrchestrator {
             case ORDER_ADVISOR -> new Object[]{orderAiTools, spotAiTools};
             case SPOT_QA, GUIDE_QA -> new Object[]{spotAiTools};
             case RECOMMENDATION_EXPLAINER, TRAVEL_PLANNER -> new Object[]{recommendationAiTools, spotAiTools, orderAiTools};
-            case USER_PROFILE_ANALYZER -> new Object[]{recommendationAiTools, orderAiTools};
-            case OPERATION_ANALYZER -> new Object[]{recommendationAiTools};
             default -> new Object[0];
         };
     }

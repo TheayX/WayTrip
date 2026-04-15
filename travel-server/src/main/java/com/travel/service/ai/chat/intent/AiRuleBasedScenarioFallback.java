@@ -32,12 +32,6 @@ public class AiRuleBasedScenarioFallback {
         if (containsAny(merged, "为什么推荐", "推荐理由", "解释推荐")) {
             return AiScenarioType.RECOMMENDATION_EXPLAINER;
         }
-        if (containsAny(merged, "画像", "偏好", "我喜欢什么")) {
-            return AiScenarioType.USER_PROFILE_ANALYZER;
-        }
-        if (containsAny(merged, "运营", "趋势", "统计分析", "汇总")) {
-            return AiScenarioType.OPERATION_ANALYZER;
-        }
         if (containsAny(merged, "推荐", "行程", "路线", "去哪玩", "怎么玩", "预算")) {
             return AiScenarioType.TRAVEL_PLANNER;
         }
