@@ -5,16 +5,9 @@ import com.travel.common.result.ResultCode;
 import com.travel.dto.ai.request.AiChatMessageRequest;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
-import com.travel.service.ai.chat.order.OrderAiDirectResponseService;
-import com.travel.service.ai.chat.operation.OperationAiDirectResponseService;
-import com.travel.service.ai.chat.planner.TravelPlanDirectResponseService;
-import com.travel.service.ai.chat.profile.UserProfileAiDirectResponseService;
-import com.travel.service.ai.chat.recommendation.RecommendationExplainDirectResponseService;
-import com.travel.service.ai.chat.travel.TravelContentDirectResponseService;
 import com.travel.service.ai.guardrail.AiGuardrailService;
-import com.travel.service.ai.memory.AiConversationMemoryService;
-import com.travel.service.ai.memory.AiConversationTurn;
 import com.travel.service.ai.memory.AiSessionIdService;
+import com.travel.service.ai.memory.RedisChatMemory;
 import com.travel.service.ai.rag.AiKnowledgeRetrievalService;
 import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import com.travel.service.ai.tool.AiToolContextHolder;
@@ -26,10 +19,14 @@ import com.travel.service.ai.tool.UserProfileAiTools;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,14 +41,8 @@ public class AiConversationOrchestrator {
     private final ChatClient aiChatClient;
     private final AiSessionIdService aiSessionIdService;
     private final AiGuardrailService aiGuardrailService;
-    private final AiConversationMemoryService aiConversationMemoryService;
+    private final RedisChatMemory redisChatMemory;
     private final AiScenarioRouter aiScenarioRouter;
-    private final OrderAiDirectResponseService orderAiDirectResponseService;
-    private final TravelContentDirectResponseService travelContentDirectResponseService;
-    private final TravelPlanDirectResponseService travelPlanDirectResponseService;
-    private final RecommendationExplainDirectResponseService recommendationExplainDirectResponseService;
-    private final UserProfileAiDirectResponseService userProfileAiDirectResponseService;
-    private final OperationAiDirectResponseService operationAiDirectResponseService;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
@@ -78,19 +69,17 @@ public class AiConversationOrchestrator {
         aiGuardrailService.ensureLoginIfNeeded(userMessage, userId);
         aiGuardrailService.ensureNoPromptInjection(userMessage);
 
-        List<AiConversationTurn> history = aiConversationMemoryService.loadHistory(sessionId);
         AiScenarioType scenario = aiScenarioRouter.route(userMessage, request.getScenarioHint(), request.getSourcePage());
         List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
         String systemPrompt = aiPromptService.buildSystemPrompt(scenario);
         String messageId = aiSessionIdService.createSessionId();
         log.info(
-                "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 来源页面={}, 历史轮次={}, RAG命中数={}, 用户问题预览={}",
+                "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 来源页面={}, RAG命中数={}, 用户问题预览={}",
                 sessionId,
                 messageId,
                 userId,
                 scenario,
                 request.getSourcePage(),
-                history.size(),
                 knowledgeSnippets.size(),
                 previewText(userMessage, 80)
         );
@@ -98,34 +87,15 @@ public class AiConversationOrchestrator {
         try {
             aiToolContextHolder.setCurrentUserId(userId);
             aiToolContextHolder.setCurrentAdminId(adminId);
-            AiChatMessageResponse directResponse = tryBuildDirectResponse(
-                    sessionId,
-                    messageId,
-                    scenario,
-                    userMessage,
-                    knowledgeSnippets
-            );
-            if (directResponse != null) {
-                aiConversationMemoryService.saveConversation(sessionId, history, userMessage, directResponse.getReply());
-                log.info(
-                        "AI 对话完成：会话ID={}, 消息ID={}, 场景={}, 是否命中RAG={}, RAG标题={}, 工具调用数量={}, 工具调用详情={}, 回复长度={}, 回复预览={}, 总耗时Ms={}, 响应模式=直答",
-                        sessionId,
-                        messageId,
-                        scenario,
-                        !knowledgeSnippets.isEmpty(),
-                        knowledgeSnippets.stream().map(AiKnowledgeSnippet::getTitle).toList(),
-                        aiToolContextHolder.getToolTraces().size(),
-                        aiToolContextHolder.getToolTraces().stream().map(item -> item.getToolName() + ":" + item.getSuccess()).toList(),
-                        directResponse.getReply().length(),
-                        previewText(directResponse.getReply(), 120),
-                        System.currentTimeMillis() - startedAt
-                    );
-                return directResponse;
-            }
-            String userPrompt = aiPromptService.buildUserPrompt(history, userMessage, knowledgeSnippets);
+            
+            String userPrompt = aiPromptService.buildUserPrompt(new ArrayList<>(), userMessage, knowledgeSnippets);
+            List<Message> history = redisChatMemory.get(sessionId);
+            
             ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
                     .system(systemPrompt)
+                    .messages(history)
                     .user(userPrompt);
+            
             if (shouldEnableTools(scenario)) {
                 requestSpec = requestSpec.tools(resolveTools(scenario));
             }
@@ -133,7 +103,12 @@ public class AiConversationOrchestrator {
             if (!StringUtils.hasText(reply)) {
                 throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 返回内容为空");
             }
-            aiConversationMemoryService.saveConversation(sessionId, history, userMessage, reply.trim());
+            
+            redisChatMemory.add(sessionId, List.of(
+                    new UserMessage(userMessage),
+                    new AssistantMessage(reply.trim())
+            ));
+            
             List<String> toolNames = aiToolContextHolder.getToolTraces().stream()
                     .map(item -> item.getToolName() + ":" + item.getSuccess())
                     .collect(Collectors.toList());
@@ -211,48 +186,8 @@ public class AiConversationOrchestrator {
             case RECOMMENDATION_EXPLAINER, TRAVEL_PLANNER -> new Object[]{recommendationAiTools, spotAiTools, orderAiTools};
             case USER_PROFILE_ANALYZER -> new Object[]{userProfileAiTools};
             case OPERATION_ANALYZER -> new Object[]{operationAiTools};
-            default -> new Object[0];
+            default -> new Object[]{spotAiTools};
         };
-    }
-
-    /**
-     * 对订单模块问题走确定性直答，避免模型绕过工具和业务规则直接编写事实。
-     *
-     * @param sessionId 会话 ID
-     * @param messageId 消息 ID
-     * @param scenario 场景类型
-     * @param userMessage 用户问题
-     * @param knowledgeSnippets RAG 结果
-     * @return 可直接返回的响应；若无需直答则返回 null
-     */
-    private AiChatMessageResponse tryBuildDirectResponse(String sessionId,
-                                                         String messageId,
-                                                         AiScenarioType scenario,
-                                                         String userMessage,
-                                                         List<AiKnowledgeSnippet> knowledgeSnippets) {
-        if (!StringUtils.hasText(userMessage)) {
-            return null;
-        }
-        String reply = switch (scenario) {
-            case ORDER_ADVISOR -> orderAiDirectResponseService.tryReply(userMessage);
-            case SPOT_QA, GUIDE_QA -> travelContentDirectResponseService.tryReply(userMessage, scenario);
-            case TRAVEL_PLANNER -> travelPlanDirectResponseService.tryReply(userMessage);
-            case RECOMMENDATION_EXPLAINER -> recommendationExplainDirectResponseService.tryReply(userMessage);
-            case USER_PROFILE_ANALYZER -> userProfileAiDirectResponseService.tryReply(userMessage);
-            case OPERATION_ANALYZER -> operationAiDirectResponseService.tryReply(userMessage);
-            default -> "";
-        };
-        if (!StringUtils.hasText(reply)) {
-            return null;
-        }
-        return aiResponseAssembler.assemble(
-                sessionId,
-                messageId,
-                scenario,
-                reply,
-                aiToolContextHolder.getToolTraces(),
-                knowledgeSnippets.stream().map(AiKnowledgeSnippet::toCitationItem).toList()
-        );
     }
 
     private String previewText(String text, int maxLength) {

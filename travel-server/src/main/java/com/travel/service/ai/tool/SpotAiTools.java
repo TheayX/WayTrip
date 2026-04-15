@@ -8,7 +8,7 @@ import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.dto.spot.response.SpotListResponse;
 import com.travel.service.GuideService;
 import com.travel.service.SpotService;
-import com.travel.service.ai.chat.travel.TravelContentKeywordNormalizer;
+    // TravelContentKeywordNormalizer removed
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -65,7 +65,7 @@ public class SpotAiTools {
             @ToolParam(description = "地区 ID", required = false) Long regionId,
             @ToolParam(description = "返回条数，建议 3 到 10 之间", required = false) Integer limit) {
         if (StringUtils.hasText(keyword)) {
-            String normalizedKeyword = TravelContentKeywordNormalizer.normalizeSearchKeyword(keyword);
+            String normalizedKeyword = keyword.trim();
             PageResult<SpotListResponse> response = searchSpotByAiKeyword(normalizedKeyword, limit);
             aiToolContextHolder.addToolTrace(
                     "searchSpots",
@@ -91,8 +91,9 @@ public class SpotAiTools {
     }
 
     private PageResult<SpotListResponse> searchSpotByAiKeyword(String keyword, Integer limit) {
-        for (String candidate : TravelContentKeywordNormalizer.buildFallbackKeywords(keyword)) {
-            PageResult<SpotListResponse> response = spotService.searchSpots(candidate, 1, normalizeLimit(limit, 5));
+        String baseKeyword = keyword.replace("门票", "").replace("攻略", "").replace("游玩", "");
+        if (!baseKeyword.isEmpty() && !baseKeyword.equals(keyword)) {
+            PageResult<SpotListResponse> response = spotService.searchSpots(baseKeyword, 1, normalizeLimit(limit, 5));
             if (response.getTotal() > 0 || (response.getList() != null && !response.getList().isEmpty())) {
                 return response;
             }

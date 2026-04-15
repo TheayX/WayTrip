@@ -97,22 +97,16 @@ public class AiPromptService {
     }
 
     /**
-     * 将最近轮次历史压缩成一段文本，避免第一阶段引入过重的消息模型拼装。
+     * 将最近轮次历史压缩成一段文本，避免第一阶段引入过重的话题检索。
      *
-     * @param history 最近会话历史
+     * @param history 最近会话历史 (废弃: 由 ChatMemory 托管)
      * @param currentMessage 当前消息
      * @return 合并后的用户输入
      */
     public String buildUserPrompt(List<AiConversationTurn> history, String currentMessage,
                                   List<AiKnowledgeSnippet> knowledgeSnippets) {
         StringBuilder prompt = new StringBuilder();
-        if (history != null && !history.isEmpty()) {
-            prompt.append("最近对话上下文：\n");
-            for (AiConversationTurn turn : history) {
-                prompt.append(turn.getRole()).append(": ").append(turn.getContent()).append('\n');
-            }
-            prompt.append('\n');
-        }
+        
         if (knowledgeSnippets != null && !knowledgeSnippets.isEmpty()) {
             prompt.append("知识参考：\n");
             for (AiKnowledgeSnippet snippet : knowledgeSnippets) {
