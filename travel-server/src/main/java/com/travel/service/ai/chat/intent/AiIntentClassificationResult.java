@@ -48,4 +48,19 @@ public record AiIntentClassificationResult(
             return fallback;
         }
     }
+
+    public long slotAsLong(String key, long fallback) {
+        Object value = slots == null ? null : slots.get(key);
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        if (!StringUtils.hasText(Objects.toString(value, ""))) {
+            return fallback;
+        }
+        try {
+            return Long.parseLong(Objects.toString(value));
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
 }

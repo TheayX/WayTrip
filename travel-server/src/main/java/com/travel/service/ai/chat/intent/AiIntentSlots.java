@@ -9,6 +9,7 @@ public final class AiIntentSlots {
     public static final String STATUS = "status";
     public static final String LIMIT = "limit";
     public static final String SPOT_NAME = "spotName";
+    public static final String SPOT_ID = "spotId";
     public static final String CITY = "city";
     public static final String KEYWORD = "keyword";
     public static final String BUDGET = "budget";
