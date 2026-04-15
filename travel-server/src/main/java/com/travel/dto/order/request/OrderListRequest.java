@@ -9,7 +9,7 @@ import lombok.Data;
 public class OrderListRequest {
 
     /**
-     * 订单状态筛选：pending/paid/completed/cancelled
+     * 订单状态筛选：pending/paid/completed/cancelled/refunded
      */
     private String status;
 
