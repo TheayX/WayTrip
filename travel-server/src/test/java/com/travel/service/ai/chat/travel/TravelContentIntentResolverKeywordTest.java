@@ -20,5 +20,6 @@ class TravelContentIntentResolverKeywordTest {
 
         assertEquals(TravelContentIntent.SPOT_FACT.name(), result.intent());
         assertEquals("故宫", result.slotAsString(AiIntentSlots.KEYWORD));
+        assertEquals("openTime", result.slotAsString(AiIntentSlots.FACT_FIELD));
     }
 }

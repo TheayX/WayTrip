@@ -12,6 +12,7 @@ public final class AiIntentSlots {
     public static final String SPOT_ID = "spotId";
     public static final String CITY = "city";
     public static final String KEYWORD = "keyword";
+    public static final String FACT_FIELD = "factField";
     public static final String BUDGET = "budget";
     public static final String DAYS = "days";
     public static final String GROUP = "group";

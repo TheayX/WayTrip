@@ -36,4 +36,27 @@ class TravelContentResponseComposerDetailTest {
         assertTrue(reply.contains("开放时间：全天开放"));
         assertTrue(reply.contains("地址：杭州市西湖区"));
     }
+
+    @Test
+    void composeOpenTimeOnlyWhenFactFieldIsOpenTime() {
+        String reply = composer.compose(new TravelContentToolResult(
+                TravelContentIntent.SPOT_FACT,
+                Map.of(
+                        "factField", "openTime",
+                        "total", 1,
+                        "list", List.of(Map.of("id", 1L, "name", "故宫博物院")),
+                        "detail", Map.of(
+                                "name", "故宫博物院",
+                                "price", "60.00",
+                                "openTime", "08:30-17:00（周一闭馆）",
+                                "address", "北京市东城区景山前街4号",
+                                "avgRating", "4.8"
+                        )
+                )
+        ));
+
+        assertTrue(reply.contains("故宫博物院开放时间：08:30-17:00（周一闭馆）"));
+        org.junit.jupiter.api.Assertions.assertFalse(reply.contains("门票/价格"));
+        org.junit.jupiter.api.Assertions.assertFalse(reply.contains("地址：北京市"));
+    }
 }

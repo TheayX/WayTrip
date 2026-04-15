@@ -1,6 +1,7 @@
 package com.travel.service.ai.chat.travel;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,10 @@ public class TravelContentResponseComposer {
         if (!(first instanceof Map<?, ?> row)) {
             return "已查询到景点结果，但暂时无法整理详情，请到景点页查看。";
         }
+        String factField = Objects.toString(payload.get("factField"), "");
+        if (StringUtils.hasText(factField) && !"all".equals(factField)) {
+            return formatSingleSpotFactReply(row, factField);
+        }
         StringBuilder reply = new StringBuilder("查询到较匹配的景点：");
         reply.append("\n- 名称：").append(Objects.toString(row.get("name"), "未命名景点"));
         reply.append("\n- 门票/价格：").append(Objects.toString(row.get("price"), "以页面展示为准"));
@@ -52,6 +57,20 @@ public class TravelContentResponseComposer {
             reply.append("\n如果这不是你要找的景点，可以补充城市或更完整的景点名称。");
         }
         return reply.toString();
+    }
+
+    private String formatSingleSpotFactReply(Map<?, ?> row, String factField) {
+        String name = Objects.toString(row.get("name"), "这个景点");
+        return switch (factField) {
+            case "openTime" -> name + "开放时间：" + Objects.toString(row.get("openTime"), "以页面展示为准")
+                    + "。开放安排可能调整，请以景点详情页为准。";
+            case "price" -> name + "门票/价格：" + Objects.toString(row.get("price"), "以页面展示为准")
+                    + "。价格和可订状态请以景点详情页为准。";
+            case "address" -> name + "地址：" + Objects.toString(row.get("address"), "以页面展示为准") + "。";
+            case "rating" -> name + "评分：" + Objects.toString(row.get("avgRating"), "暂无评分") + "。";
+            case "summary" -> name + "简介：" + Objects.toString(row.get("description"), "暂无简介") + "。";
+            default -> name + "信息请以景点详情页展示为准。";
+        };
     }
 
     private String formatSpotSearchReply(Map<String, Object> payload) {

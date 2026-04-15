@@ -28,8 +28,9 @@ public class TravelContentIntentClassifier {
             - GUIDE_SEARCH：搜索攻略、询问怎么玩、避坑建议、玩法摘要
             - NONE：不属于景点或攻略问答
             输出 JSON 字段：
-            {"intent":"...","keyword":"","spotName":"","city":"","limit":5}
+            {"intent":"...","keyword":"","spotName":"","city":"","factField":"","limit":5}
             keyword 填最适合用于搜索的关键词；spotName 仅在明确提到具体景点时填写。
+            factField 仅在 SPOT_FACT 时填写，可选值：price、openTime、address、rating、summary、all。
             """;
 
     private final AiJsonIntentClassificationSupport intentClassificationSupport;
@@ -64,9 +65,10 @@ public class TravelContentIntentClassifier {
         );
         String spotName = TravelContentKeywordNormalizer.normalizeSearchKeyword(root.path("spotName").asText(""));
         String city = root.path("city").asText("");
+        String factField = normalizeFactField(root.path("factField").asText(""));
         int limit = normalizeLimit(root.path("limit").asInt(5));
         AiScenarioType resolvedScenario = intent == TravelContentIntent.GUIDE_SEARCH ? AiScenarioType.GUIDE_QA : scenario;
-        return toIntentPackage(resolvedScenario, intent, keyword, spotName, city, limit);
+        return toIntentPackage(resolvedScenario, intent, keyword, spotName, city, factField, limit);
     }
 
     private AiIntentClassificationResult normalizeClassifiedResult(AiIntentClassificationResult classified,
@@ -84,11 +86,14 @@ public class TravelContentIntentClassifier {
         String city = StringUtils.hasText(classified.slotAsString(AiIntentSlots.CITY))
                 ? classified.slotAsString(AiIntentSlots.CITY)
                 : fallback.slotAsString(AiIntentSlots.CITY);
+        String factField = StringUtils.hasText(classified.slotAsString(AiIntentSlots.FACT_FIELD))
+                ? normalizeFactField(classified.slotAsString(AiIntentSlots.FACT_FIELD))
+                : fallback.slotAsString(AiIntentSlots.FACT_FIELD);
         int limit = classified.slotAsInt(AiIntentSlots.LIMIT, fallback.slotAsInt(AiIntentSlots.LIMIT, 5));
         if (!StringUtils.hasText(keyword) && !StringUtils.hasText(spotName)) {
             return fallback;
         }
-        return toIntentPackage(classified.scenario(), intent, keyword, spotName, city, normalizeLimit(limit));
+        return toIntentPackage(classified.scenario(), intent, keyword, spotName, city, factField, normalizeLimit(limit));
     }
 
     private AiIntentClassificationResult toIntentPackage(AiScenarioType scenario,
@@ -96,6 +101,7 @@ public class TravelContentIntentClassifier {
                                                         String keyword,
                                                         String spotName,
                                                         String city,
+                                                        String factField,
                                                         int limit) {
         Map<String, Object> slots = new LinkedHashMap<>();
         if (StringUtils.hasText(keyword)) {
@@ -106,6 +112,9 @@ public class TravelContentIntentClassifier {
         }
         if (StringUtils.hasText(city)) {
             slots.put(AiIntentSlots.CITY, city.trim());
+        }
+        if (StringUtils.hasText(factField)) {
+            slots.put(AiIntentSlots.FACT_FIELD, normalizeFactField(factField));
         }
         if (limit > 0) {
             slots.put(AiIntentSlots.LIMIT, normalizeLimit(limit));
@@ -133,6 +142,16 @@ public class TravelContentIntentClassifier {
 
     private String firstText(String first, String second) {
         return StringUtils.hasText(first) ? first.trim() : StringUtils.hasText(second) ? second.trim() : "";
+    }
+
+    private String normalizeFactField(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "";
+        }
+        return switch (value.trim()) {
+            case "price", "openTime", "address", "rating", "summary", "all" -> value.trim();
+            default -> "";
+        };
     }
 
     private int normalizeLimit(int value) {

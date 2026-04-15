@@ -24,29 +24,33 @@ public class TravelContentIntentResolver {
      */
     public AiIntentClassificationResult resolve(String userMessage, AiScenarioType scenario) {
         if (!StringUtils.hasText(userMessage)) {
-            return toIntentPackage(scenario, TravelContentIntent.NONE, "", 0);
+            return toIntentPackage(scenario, TravelContentIntent.NONE, "", "", 0);
         }
         String keyword = normalizeKeyword(userMessage);
         if (scenario == AiScenarioType.GUIDE_QA || containsAny(userMessage, "攻略", "避坑", "怎么玩", "玩法")) {
-            return toIntentPackage(AiScenarioType.GUIDE_QA, TravelContentIntent.GUIDE_SEARCH, keyword, 5);
+            return toIntentPackage(AiScenarioType.GUIDE_QA, TravelContentIntent.GUIDE_SEARCH, keyword, "", 5);
         }
         if (scenario == AiScenarioType.SPOT_QA || containsAny(userMessage, "景点", "门票", "开放时间", "地址", "评分")) {
             TravelContentIntent intent = containsAny(userMessage, "门票", "开放时间", "地址", "评分", "多少钱")
                     ? TravelContentIntent.SPOT_FACT
                     : TravelContentIntent.SPOT_SEARCH;
-            return toIntentPackage(AiScenarioType.SPOT_QA, intent, keyword, 5);
+            return toIntentPackage(AiScenarioType.SPOT_QA, intent, keyword, resolveFactField(userMessage), 5);
         }
-        return toIntentPackage(scenario, TravelContentIntent.NONE, "", 0);
+        return toIntentPackage(scenario, TravelContentIntent.NONE, "", "", 0);
     }
 
     private AiIntentClassificationResult toIntentPackage(AiScenarioType scenario,
                                                         TravelContentIntent intent,
                                                         String keyword,
+                                                        String factField,
                                                         int limit) {
         Map<String, Object> slots = new LinkedHashMap<>();
         if (StringUtils.hasText(keyword)) {
             slots.put(AiIntentSlots.KEYWORD, keyword);
             slots.put(AiIntentSlots.SPOT_NAME, keyword);
+        }
+        if (StringUtils.hasText(factField)) {
+            slots.put(AiIntentSlots.FACT_FIELD, factField);
         }
         if (limit > 0) {
             slots.put(AiIntentSlots.LIMIT, Math.min(limit, 10));
@@ -66,6 +70,25 @@ public class TravelContentIntentResolver {
                 .replace("攻略", "")
                 .trim();
         return StringUtils.hasText(normalized) ? normalized : userMessage.trim();
+    }
+
+    private String resolveFactField(String userMessage) {
+        if (containsAny(userMessage, "开放时间", "营业时间", "开门", "闭馆", "几点")) {
+            return "openTime";
+        }
+        if (containsAny(userMessage, "门票", "票价", "多少钱", "价格")) {
+            return "price";
+        }
+        if (containsAny(userMessage, "地址", "在哪里", "在哪")) {
+            return "address";
+        }
+        if (containsAny(userMessage, "评分", "评价")) {
+            return "rating";
+        }
+        if (containsAny(userMessage, "介绍", "简介")) {
+            return "summary";
+        }
+        return "all";
     }
 
     private boolean containsAny(String source, String... keywords) {

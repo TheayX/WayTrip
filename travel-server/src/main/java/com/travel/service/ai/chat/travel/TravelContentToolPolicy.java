@@ -36,6 +36,11 @@ public class TravelContentToolPolicy {
             case GUIDE_SEARCH -> spotAiTools.getGuideSummariesByKeyword(keyword, limit);
             default -> Map.of();
         };
+        if (intent == TravelContentIntent.SPOT_FACT && !payload.isEmpty()) {
+            Map<String, Object> mutablePayload = new LinkedHashMap<>(payload);
+            mutablePayload.put(AiIntentSlots.FACT_FIELD, intentResult.slotAsString(AiIntentSlots.FACT_FIELD));
+            payload = mutablePayload;
+        }
         return new TravelContentToolResult(intent, payload);
     }
 

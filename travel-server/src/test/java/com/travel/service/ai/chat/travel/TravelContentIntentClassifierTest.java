@@ -41,6 +41,15 @@ class TravelContentIntentClassifierTest {
     }
 
     @Test
+    void parseSpotFactModelReplyWithFactField() throws Exception {
+        AiIntentClassificationResult result = classifier.parseModelReply("""
+                {"intent":"SPOT_FACT","keyword":"故宫","spotName":"故宫","city":"北京","factField":"openTime","limit":5}
+                """, AiScenarioType.SPOT_QA);
+
+        assertEquals("openTime", result.slotAsString(AiIntentSlots.FACT_FIELD));
+    }
+
+    @Test
     void parseGuideSearchModelReply() throws Exception {
         AiIntentClassificationResult result = classifier.parseModelReply("""
                 ```json
