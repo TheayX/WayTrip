@@ -1,11 +1,16 @@
 package com.travel.service.ai.chat.order;
 
+import com.travel.enums.ai.AiScenarioType;
+import com.travel.service.ai.chat.intent.AiIntentClassificationResult;
+import com.travel.service.ai.chat.intent.AiIntentSlots;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * 订单 AI 意图解析器，避免在编排器里堆叠零散关键词判断。
@@ -21,29 +26,29 @@ public class OrderAiIntentResolver {
      * @param userMessage 用户原始问题
      * @return 意图解析结果
      */
-    public OrderAiIntentResult resolve(String userMessage) {
+    public AiIntentClassificationResult resolve(String userMessage) {
         if (!StringUtils.hasText(userMessage)) {
-            return OrderAiIntentResult.none();
+            return toIntentPackage(OrderAiIntent.NONE, "", null, 0);
         }
 
         String normalized = normalize(userMessage);
         String orderNo = extractOrderNo(userMessage);
         if (StringUtils.hasText(orderNo)) {
             if (isRefundEligibilityIntent(normalized)) {
-                return new OrderAiIntentResult(OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO, orderNo, null, 0);
+                return toIntentPackage(OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO, orderNo, null, 0);
             }
-            return new OrderAiIntentResult(OrderAiIntent.DETAIL_BY_ORDER_NO, orderNo, null, 0);
+            return toIntentPackage(OrderAiIntent.DETAIL_BY_ORDER_NO, orderNo, null, 0);
         }
 
         OrderAiIntent guideIntent = resolveGuideIntent(normalized);
         if (guideIntent != OrderAiIntent.NONE) {
-            return new OrderAiIntentResult(guideIntent, "", null, 0);
+            return toIntentPackage(guideIntent, "", null, 0);
         }
 
         if (isOrderListIntent(normalized)) {
-            return new OrderAiIntentResult(OrderAiIntent.LIST_ORDERS, "", resolveStatus(normalized), 10);
+            return toIntentPackage(OrderAiIntent.LIST_ORDERS, "", resolveStatus(normalized), 10);
         }
-        return OrderAiIntentResult.none();
+        return toIntentPackage(OrderAiIntent.NONE, "", null, 0);
     }
 
     private OrderAiIntent resolveGuideIntent(String normalized) {
@@ -115,5 +120,32 @@ public class OrderAiIntentResolver {
             }
         }
         return false;
+    }
+
+    private AiIntentClassificationResult toIntentPackage(OrderAiIntent intent, String orderNo, String status, int limit) {
+        Map<String, Object> slots = new LinkedHashMap<>();
+        if (StringUtils.hasText(orderNo)) {
+            slots.put(AiIntentSlots.ORDER_NO, orderNo);
+        }
+        if (StringUtils.hasText(status)) {
+            slots.put(AiIntentSlots.STATUS, status);
+        }
+        if (limit > 0) {
+            slots.put(AiIntentSlots.LIMIT, Math.min(limit, 10));
+        }
+        return new AiIntentClassificationResult(
+                AiScenarioType.ORDER_ADVISOR,
+                intent.name(),
+                slots,
+                intent == OrderAiIntent.NONE ? 0D : 0.8D,
+                requiresLogin(intent),
+                intent != OrderAiIntent.NONE
+        );
+    }
+
+    private boolean requiresLogin(OrderAiIntent intent) {
+        return intent == OrderAiIntent.LIST_ORDERS
+                || intent == OrderAiIntent.DETAIL_BY_ORDER_NO
+                || intent == OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO;
     }
 }

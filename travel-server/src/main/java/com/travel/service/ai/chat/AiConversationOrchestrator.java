@@ -98,7 +98,7 @@ public class AiConversationOrchestrator {
             if (directResponse != null) {
                 aiConversationMemoryService.saveConversation(sessionId, history, userMessage, directResponse.getReply());
                 log.info(
-                        "AI 对话完成：会话ID={}, 消息ID={}, 场景={}, 是否命中RAG={}, RAG标题={}, 工具调用数量={}, 工具调用详情={}, 预取事实预览={}, 回复长度={}, 回复预览={}, 总耗时Ms={}, 响应模式=直答",
+                        "AI 对话完成：会话ID={}, 消息ID={}, 场景={}, 是否命中RAG={}, RAG标题={}, 工具调用数量={}, 工具调用详情={}, 回复长度={}, 回复预览={}, 总耗时Ms={}, 响应模式=直答",
                         sessionId,
                         messageId,
                         scenario,
@@ -106,15 +106,13 @@ public class AiConversationOrchestrator {
                         knowledgeSnippets.stream().map(AiKnowledgeSnippet::getTitle).toList(),
                         aiToolContextHolder.getToolTraces().size(),
                         aiToolContextHolder.getToolTraces().stream().map(item -> item.getToolName() + ":" + item.getSuccess()).toList(),
-                        "直答未走预取",
                         directResponse.getReply().length(),
                         previewText(directResponse.getReply(), 120),
                         System.currentTimeMillis() - startedAt
                     );
                 return directResponse;
             }
-            List<String> prefetchedFacts = prefetchBusinessFacts(scenario, userMessage);
-            String userPrompt = aiPromptService.buildUserPrompt(history, userMessage, knowledgeSnippets, prefetchedFacts);
+            String userPrompt = aiPromptService.buildUserPrompt(history, userMessage, knowledgeSnippets);
             ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
                     .system(systemPrompt)
                     .user(userPrompt);
@@ -130,7 +128,7 @@ public class AiConversationOrchestrator {
                     .map(item -> item.getToolName() + ":" + item.getSuccess())
                     .collect(Collectors.toList());
             log.info(
-                    "AI 对话完成：会话ID={}, 消息ID={}, 场景={}, 是否命中RAG={}, RAG标题={}, 工具调用数量={}, 工具调用详情={}, 预取事实预览={}, 回复长度={}, 回复预览={}, 总耗时Ms={}",
+                    "AI 对话完成：会话ID={}, 消息ID={}, 场景={}, 是否命中RAG={}, RAG标题={}, 工具调用数量={}, 工具调用详情={}, 回复长度={}, 回复预览={}, 总耗时Ms={}",
                     sessionId,
                     messageId,
                     scenario,
@@ -138,7 +136,6 @@ public class AiConversationOrchestrator {
                     knowledgeSnippets.stream().map(AiKnowledgeSnippet::getTitle).toList(),
                     aiToolContextHolder.getToolTraces().size(),
                     toolNames,
-                    previewFacts(prefetchedFacts),
                     reply.trim().length(),
                     previewText(reply.trim(), 120),
                     System.currentTimeMillis() - startedAt
@@ -205,10 +202,6 @@ public class AiConversationOrchestrator {
             case OPERATION_ANALYZER -> new Object[]{recommendationAiTools};
             default -> new Object[0];
         };
-    }
-
-    private List<String> prefetchBusinessFacts(AiScenarioType scenario, String userMessage) {
-        return List.of();
     }
 
     /**
@@ -374,15 +367,6 @@ public class AiConversationOrchestrator {
         } catch (NumberFormatException e) {
             return 0L;
         }
-    }
-
-    private String previewFacts(List<String> facts) {
-        if (facts == null || facts.isEmpty()) {
-            return "无";
-        }
-        return facts.stream()
-                .map(item -> previewText(item, 120))
-                .collect(Collectors.joining(" | "));
     }
 
     private String previewText(String text, int maxLength) {

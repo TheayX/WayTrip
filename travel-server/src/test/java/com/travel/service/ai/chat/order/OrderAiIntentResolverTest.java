@@ -1,5 +1,7 @@
 package com.travel.service.ai.chat.order;
 
+import com.travel.service.ai.chat.intent.AiIntentClassificationResult;
+import com.travel.service.ai.chat.intent.AiIntentSlots;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,55 +15,55 @@ class OrderAiIntentResolverTest {
 
     @Test
     void resolveAllOrdersAsOrderList() {
-        OrderAiIntentResult result = resolver.resolve("帮我查看所有订单");
+        AiIntentClassificationResult result = resolver.resolve("帮我查看所有订单");
 
-        assertEquals(OrderAiIntent.LIST_ORDERS, result.intent());
-        assertEquals(10, result.limit());
+        assertEquals(OrderAiIntent.LIST_ORDERS.name(), result.intent());
+        assertEquals(10, result.slotAsInt(AiIntentSlots.LIMIT, 0));
     }
 
     @Test
     void resolveInformalOrderListAsOrderList() {
-        OrderAiIntentResult result = resolver.resolve("我的单子都列出来");
+        AiIntentClassificationResult result = resolver.resolve("我的单子都列出来");
 
-        assertEquals(OrderAiIntent.LIST_ORDERS, result.intent());
+        assertEquals(OrderAiIntent.LIST_ORDERS.name(), result.intent());
     }
 
     @Test
     void resolvePaidOrdersWithStatusSlot() {
-        OrderAiIntentResult result = resolver.resolve("查一下已支付订单");
+        AiIntentClassificationResult result = resolver.resolve("查一下已支付订单");
 
-        assertEquals(OrderAiIntent.LIST_ORDERS, result.intent());
-        assertEquals("paid", result.status());
+        assertEquals(OrderAiIntent.LIST_ORDERS.name(), result.intent());
+        assertEquals("paid", result.slotAsString(AiIntentSlots.STATUS));
     }
 
     @Test
     void resolveOrderStatusGuideBeforeOrderList() {
-        OrderAiIntentResult result = resolver.resolve("帮我看看订单状态说明");
+        AiIntentClassificationResult result = resolver.resolve("帮我看看订单状态说明");
 
-        assertEquals(OrderAiIntent.GUIDE_STATUS, result.intent());
+        assertEquals(OrderAiIntent.GUIDE_STATUS.name(), result.intent());
     }
 
     @Test
     void resolveOrderNoDetail() {
-        OrderAiIntentResult result = resolver.resolve("帮我看看订单 T202604150001");
+        AiIntentClassificationResult result = resolver.resolve("帮我看看订单 T202604150001");
 
-        assertEquals(OrderAiIntent.DETAIL_BY_ORDER_NO, result.intent());
-        assertEquals("T202604150001", result.orderNo());
+        assertEquals(OrderAiIntent.DETAIL_BY_ORDER_NO.name(), result.intent());
+        assertEquals("T202604150001", result.slotAsString(AiIntentSlots.ORDER_NO));
     }
 
     @Test
     void resolveOrderNoDetailWithoutSpace() {
-        OrderAiIntentResult result = resolver.resolve("帮我看看订单T202604121416166706");
+        AiIntentClassificationResult result = resolver.resolve("帮我看看订单T202604121416166706");
 
-        assertEquals(OrderAiIntent.DETAIL_BY_ORDER_NO, result.intent());
-        assertEquals("T202604121416166706", result.orderNo());
+        assertEquals(OrderAiIntent.DETAIL_BY_ORDER_NO.name(), result.intent());
+        assertEquals("T202604121416166706", result.slotAsString(AiIntentSlots.ORDER_NO));
     }
 
     @Test
     void resolveRefundEligibilityWithOrderNo() {
-        OrderAiIntentResult result = resolver.resolve("T202604121416166706这个订单能退款吗");
+        AiIntentClassificationResult result = resolver.resolve("T202604121416166706这个订单能退款吗");
 
-        assertEquals(OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO, result.intent());
-        assertEquals("T202604121416166706", result.orderNo());
+        assertEquals(OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO.name(), result.intent());
+        assertEquals("T202604121416166706", result.slotAsString(AiIntentSlots.ORDER_NO));
     }
 }

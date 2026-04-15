@@ -46,7 +46,7 @@ public class OrderAiIntentClassifier {
      * @return 分类结果
      */
     public AiIntentClassificationResult classify(String userMessage) {
-        AiIntentClassificationResult fallback = toIntentPackage(fallbackResolver.resolve(userMessage));
+        AiIntentClassificationResult fallback = fallbackResolver.resolve(userMessage);
         return intentClassificationSupport.classify(
                 "订单 AI",
                 SYSTEM_PROMPT,
@@ -65,7 +65,7 @@ public class OrderAiIntentClassifier {
         String orderNo = root.path("orderNo").asText("");
         String status = normalizeStatus(root.path("status").asText(""));
         int limit = normalizeLimit(root.path("limit").asInt(10));
-        return toIntentPackage(new OrderAiIntentResult(intent, orderNo, status, limit));
+        return toIntentPackage(intent, orderNo, status, limit);
     }
 
     private AiIntentClassificationResult normalizeClassifiedResult(AiIntentClassificationResult classified,
@@ -85,7 +85,7 @@ public class OrderAiIntentClassifier {
         if (requiresOrderNo(intent) && !StringUtils.hasText(orderNo)) {
             return fallback;
         }
-        return toIntentPackage(new OrderAiIntentResult(intent, orderNo, status, normalizeLimit(limit)));
+        return toIntentPackage(intent, orderNo, status, normalizeLimit(limit));
     }
 
     private boolean requiresOrderNo(OrderAiIntent intent) {
@@ -121,24 +121,24 @@ public class OrderAiIntentClassifier {
         return Math.min(value, 10);
     }
 
-    private AiIntentClassificationResult toIntentPackage(OrderAiIntentResult result) {
+    private AiIntentClassificationResult toIntentPackage(OrderAiIntent intent, String orderNo, String status, int limit) {
         Map<String, Object> slots = new LinkedHashMap<>();
-        if (StringUtils.hasText(result.orderNo())) {
-            slots.put(AiIntentSlots.ORDER_NO, result.orderNo());
+        if (StringUtils.hasText(orderNo)) {
+            slots.put(AiIntentSlots.ORDER_NO, orderNo.trim());
         }
-        if (StringUtils.hasText(result.status())) {
-            slots.put(AiIntentSlots.STATUS, result.status());
+        if (StringUtils.hasText(status)) {
+            slots.put(AiIntentSlots.STATUS, status);
         }
-        if (result.limit() > 0) {
-            slots.put(AiIntentSlots.LIMIT, normalizeLimit(result.limit()));
+        if (limit > 0) {
+            slots.put(AiIntentSlots.LIMIT, normalizeLimit(limit));
         }
         return new AiIntentClassificationResult(
                 AiScenarioType.ORDER_ADVISOR,
-                result.intent().name(),
+                intent.name(),
                 slots,
-                result.intent() == OrderAiIntent.NONE ? 0D : 0.8D,
-                requiresLogin(result.intent()),
-                requiresTool(result.intent())
+                intent == OrderAiIntent.NONE ? 0D : 0.8D,
+                requiresLogin(intent),
+                requiresTool(intent)
         );
     }
 
