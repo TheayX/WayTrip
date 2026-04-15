@@ -5,6 +5,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Locale;
 
 /**
  * 订单 AI 意图解析器，避免在编排器里堆叠零散关键词判断。
@@ -100,7 +101,7 @@ public class OrderAiIntentResolver {
 
     private String extractOrderNo(String userMessage) {
         Matcher matcher = ORDER_NO_PATTERN.matcher(userMessage);
-        return matcher.find() ? matcher.group() : "";
+        return matcher.find() ? matcher.group().toUpperCase(Locale.ROOT) : "";
     }
 
     private String normalize(String value) {

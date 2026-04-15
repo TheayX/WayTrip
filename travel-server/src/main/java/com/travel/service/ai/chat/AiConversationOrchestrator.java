@@ -6,7 +6,7 @@ import com.travel.dto.ai.request.AiChatMessageRequest;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.chat.order.OrderAiIntent;
-import com.travel.service.ai.chat.order.OrderAiIntentResolver;
+import com.travel.service.ai.chat.order.OrderAiIntentClassifier;
 import com.travel.service.ai.chat.order.OrderAiIntentResult;
 import com.travel.service.ai.guardrail.AiGuardrailService;
 import com.travel.service.ai.memory.AiConversationMemoryService;
@@ -43,7 +43,7 @@ public class AiConversationOrchestrator {
     private final AiGuardrailService aiGuardrailService;
     private final AiConversationMemoryService aiConversationMemoryService;
     private final AiScenarioRouter aiScenarioRouter;
-    private final OrderAiIntentResolver orderAiIntentResolver;
+    private final OrderAiIntentClassifier orderAiIntentClassifier;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
@@ -228,7 +228,7 @@ public class AiConversationOrchestrator {
         if (scenario != AiScenarioType.ORDER_ADVISOR || !StringUtils.hasText(userMessage)) {
             return null;
         }
-        OrderAiIntentResult intentResult = orderAiIntentResolver.resolve(userMessage);
+        OrderAiIntentResult intentResult = orderAiIntentClassifier.classify(userMessage);
         if (intentResult.intent() == OrderAiIntent.NONE) {
             return null;
         }
