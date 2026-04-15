@@ -27,10 +27,11 @@ public class AiPromptService {
     public String buildSystemPrompt(AiScenarioType scenario) {
         StringBuilder prompt = new StringBuilder(aiProperties.getChat().getSystemPrompt());
         prompt.append("\n通用要求：")
-                .append("\n1. 当可用工具能够提供真实业务数据时，优先调用工具，不要凭空猜测。")
-                .append("\n2. 涉及订单、推荐、景点详情等事实信息时，以工具返回结果为准。")
-                .append("\n3. 无法确认时，明确说明信息不足，不要编造。")
-                .append("\n4. 回答保持简洁，优先给结论和下一步建议。");
+                .append("\n1. 当可用工具能够提供真实数据时，【必须立即调用工具】，不要用抱歉或引导语回复用户。")
+                .append("\n2. 所有涉及个人的查询（我的订单、我的收藏、推荐），工具已自动绑定上下文用户，【绝对不要】向用户索要账号、登录名或ID！直接调用！")
+                .append("\n3. 工具的非必填参数（如状态、偏好等）如果用户没说，【直接不传或传空调用即可】，绝对不要向用户提问索要可选参数！")
+                .append("\n4. 涉及订单、推荐、景点详情等事实信息时，以工具返回结果为准，无法确认时，明确说明信息不足，不要编造。")
+                .append("\n5. 回答保持简洁，优先给结论和下一步建议。");
         switch (scenario) {
             case ORDER_ADVISOR -> prompt.append("""
 

@@ -39,11 +39,17 @@ public class AiScenarioRouter {
             if (msg.contains("推荐") || msg.contains("去哪")) {
                 return AiScenarioType.RECOMMENDATION_EXPLAINER;
             }
+            if (msg.contains("路线") || msg.contains("规划") || msg.contains("行程")) {
+                return AiScenarioType.TRAVEL_PLANNER;
+            }
+            if (msg.contains("收藏") || msg.contains("偏好") || msg.contains("画像") || msg.contains("我喜欢")) {
+                return AiScenarioType.USER_PROFILE_ANALYZER;
+            }
             if (msg.contains("攻略") || msg.contains("怎么玩")) {
                 return AiScenarioType.GUIDE_QA;
             }
-            if (msg.contains("行程") || msg.contains("规划") || msg.contains("路线")) {
-                return AiScenarioType.TRAVEL_PLANNER;
+            if (msg.contains("景点") || msg.contains("门票") || msg.contains("好玩吗")) {
+                return AiScenarioType.SPOT_QA;
             }
         }
 
