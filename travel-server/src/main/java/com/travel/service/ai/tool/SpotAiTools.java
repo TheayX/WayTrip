@@ -8,10 +8,12 @@ import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.dto.spot.response.SpotListResponse;
 import com.travel.service.GuideService;
 import com.travel.service.SpotService;
+import com.travel.service.ai.chat.travel.TravelContentKeywordNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -62,13 +64,14 @@ public class SpotAiTools {
             @ToolParam(description = "分类 ID", required = false) Long categoryId,
             @ToolParam(description = "地区 ID", required = false) Long regionId,
             @ToolParam(description = "返回条数，建议 3 到 10 之间", required = false) Integer limit) {
-        if (keyword != null && !keyword.isBlank()) {
-            PageResult<SpotListResponse> response = spotService.searchSpots(keyword.trim(), 1, normalizeLimit(limit, 5));
+        if (StringUtils.hasText(keyword)) {
+            String normalizedKeyword = TravelContentKeywordNormalizer.normalizeSearchKeyword(keyword);
+            PageResult<SpotListResponse> response = searchSpotByAiKeyword(normalizedKeyword, limit);
             aiToolContextHolder.addToolTrace(
                     "searchSpots",
                     "spot",
                     true,
-                    "已按关键词搜索景点，共 " + response.getTotal() + " 条"
+                    "已按关键词搜索景点，关键词为 " + normalizedKeyword + "，共 " + response.getTotal() + " 条"
             );
             return Map.of("total", response.getTotal(), "list", simplifySpotList(response.getList()));
         }
@@ -85,6 +88,16 @@ public class SpotAiTools {
                 "已按分类或地区筛选景点，共 " + response.getTotal() + " 条"
         );
         return Map.of("total", response.getTotal(), "list", simplifySpotList(response.getList()));
+    }
+
+    private PageResult<SpotListResponse> searchSpotByAiKeyword(String keyword, Integer limit) {
+        for (String candidate : TravelContentKeywordNormalizer.buildFallbackKeywords(keyword)) {
+            PageResult<SpotListResponse> response = spotService.searchSpots(candidate, 1, normalizeLimit(limit, 5));
+            if (response.getTotal() > 0 || (response.getList() != null && !response.getList().isEmpty())) {
+                return response;
+            }
+        }
+        return spotService.searchSpots(keyword, 1, normalizeLimit(limit, 5));
     }
 
     /**

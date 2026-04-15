@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * 旅行内容关键词规范化工具，避免把问法噪音直接带入景点搜索。
  */
-final class TravelContentKeywordNormalizer {
+public final class TravelContentKeywordNormalizer {
 
     private static final List<String> NOISE_WORDS = List.of(
             "帮我", "看看", "查询", "搜索", "查一下", "请问", "一下",
@@ -29,7 +29,7 @@ final class TravelContentKeywordNormalizer {
      * @param keyword 原始关键词
      * @return 清洗后的关键词
      */
-    static String normalizeSearchKeyword(String keyword) {
+    public static String normalizeSearchKeyword(String keyword) {
         if (!StringUtils.hasText(keyword)) {
             return "";
         }
@@ -46,7 +46,7 @@ final class TravelContentKeywordNormalizer {
      * @param keyword 已清洗关键词
      * @return 候选关键词列表
      */
-    static List<String> buildFallbackKeywords(String keyword) {
+    public static List<String> buildFallbackKeywords(String keyword) {
         String normalized = normalizeSearchKeyword(keyword);
         if (!StringUtils.hasText(normalized)) {
             return List.of();
