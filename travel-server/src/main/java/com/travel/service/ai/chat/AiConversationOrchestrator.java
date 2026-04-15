@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -86,6 +87,31 @@ public class AiConversationOrchestrator {
 
         try {
             aiToolContextHolder.setCurrentUserId(userId);
+            AiChatMessageResponse directResponse = tryBuildDirectResponse(
+                    sessionId,
+                    messageId,
+                    scenario,
+                    userMessage,
+                    knowledgeSnippets
+            );
+            if (directResponse != null) {
+                aiConversationMemoryService.saveConversation(sessionId, history, userMessage, directResponse.getReply());
+                log.info(
+                        "AI 对话完成：会话ID={}, 消息ID={}, 场景={}, 是否命中RAG={}, RAG标题={}, 工具调用数量={}, 工具调用详情={}, 预取事实预览={}, 回复长度={}, 回复预览={}, 总耗时Ms={}, 响应模式=直答",
+                        sessionId,
+                        messageId,
+                        scenario,
+                        !knowledgeSnippets.isEmpty(),
+                        knowledgeSnippets.stream().map(AiKnowledgeSnippet::getTitle).toList(),
+                        aiToolContextHolder.getToolTraces().size(),
+                        aiToolContextHolder.getToolTraces().stream().map(item -> item.getToolName() + ":" + item.getSuccess()).toList(),
+                        "直答未走预取",
+                        directResponse.getReply().length(),
+                        previewText(directResponse.getReply(), 120),
+                        System.currentTimeMillis() - startedAt
+                    );
+                return directResponse;
+            }
             List<String> prefetchedFacts = prefetchBusinessFacts(scenario, userMessage);
             String userPrompt = aiPromptService.buildUserPrompt(history, userMessage, knowledgeSnippets, prefetchedFacts);
             ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
@@ -206,6 +232,69 @@ public class AiConversationOrchestrator {
             return List.of(stringifyFact(orderAiTools.getMyOrders(resolveOrderStatus(normalized), 5)));
         }
         return List.of();
+    }
+
+    /**
+     * 对订单通用帮助类问题走确定性直答，避免模型把规则说明误写成当前订单事实。
+     *
+     * @param sessionId 会话 ID
+     * @param messageId 消息 ID
+     * @param scenario 场景类型
+     * @param userMessage 用户问题
+     * @param knowledgeSnippets RAG 结果
+     * @return 可直接返回的响应；若无需直答则返回 null
+     */
+    private AiChatMessageResponse tryBuildDirectResponse(String sessionId,
+                                                         String messageId,
+                                                         AiScenarioType scenario,
+                                                         String userMessage,
+                                                         List<AiKnowledgeSnippet> knowledgeSnippets) {
+        if (scenario != AiScenarioType.ORDER_ADVISOR || !StringUtils.hasText(userMessage)) {
+            return null;
+        }
+        String guideTopic = resolveOrderGuideTopic(userMessage.trim());
+        if (!StringUtils.hasText(guideTopic)) {
+            return null;
+        }
+        Map<String, Object> guide = orderAiTools.getOrderSupportGuide(guideTopic);
+        String reply = formatOrderGuideReply(guide);
+        return aiResponseAssembler.assemble(
+                sessionId,
+                messageId,
+                scenario,
+                reply,
+                aiToolContextHolder.getToolTraces(),
+                knowledgeSnippets.stream().map(AiKnowledgeSnippet::toCitationItem).toList()
+        );
+    }
+
+    private String resolveOrderGuideTopic(String userMessage) {
+        if (containsAny(userMessage, "订单状态说明", "状态说明")) {
+            return "status";
+        }
+        if (containsAny(userMessage, "退款流程", "怎么退款", "退款怎么走", "售后流程")) {
+            return "refund";
+        }
+        if (containsAny(userMessage, "订单页", "看什么", "怎么看订单")) {
+            return "page";
+        }
+        return null;
+    }
+
+    private String formatOrderGuideReply(Map<String, Object> guide) {
+        if (guide == null || guide.isEmpty()) {
+            return "暂时无法获取订单说明，请稍后重试。";
+        }
+        String title = Objects.toString(guide.get("title"), "订单说明");
+        Object content = guide.get("content");
+        if (!(content instanceof List<?> items) || items.isEmpty()) {
+            return title;
+        }
+        String body = items.stream()
+                .map(String::valueOf)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.joining("\n"));
+        return title + "：\n" + body;
     }
 
     private String resolveOrderStatus(String userMessage) {

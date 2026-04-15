@@ -29,21 +29,6 @@
               <template v-else>{{ item.content }}</template>
             </div>
 
-            <div v-if="item.role === 'assistant' && item.toolCalls?.length" class="assistant-meta">
-              <div class="meta-title">本次调用的能力</div>
-              <div class="meta-list">
-                <div
-                  v-for="tool in item.toolCalls"
-                  :key="`${item.id}-${tool.toolName}-${tool.summary}`"
-                  class="meta-chip"
-                  :class="{ danger: tool.success === false }"
-                >
-                  <el-icon><Operation /></el-icon>
-                  <span>{{ tool.summary || tool.toolName }}</span>
-                </div>
-              </div>
-            </div>
-
             <div v-if="item.role === 'assistant' && item.citations?.length" class="assistant-meta">
               <div class="meta-title">知识参考</div>
               <div class="citation-list">
@@ -125,7 +110,7 @@
 import { nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Bottom, Operation, Top } from '@element-plus/icons-vue'
+import { Bottom, Top } from '@element-plus/icons-vue'
 import { storeToRefs } from 'pinia'
 import { resolveAiErrorMessage } from '@/shared/lib/ai-chat.js'
 import { useAiChatStore } from '@/shared/store/ai-chat.js'
