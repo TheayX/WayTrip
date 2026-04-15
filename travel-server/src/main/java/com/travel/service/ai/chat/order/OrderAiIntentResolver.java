@@ -35,7 +35,7 @@ public class OrderAiIntentResolver {
         String orderNo = extractOrderNo(userMessage);
         if (StringUtils.hasText(orderNo)) {
             if (isRefundEligibilityIntent(normalized)) {
-                return toIntentPackage(OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO, orderNo, null, 0);
+                return toIntentPackage(OrderAiIntent.REFUND_ELIGIBILITY, orderNo, null, 0);
             }
             return toIntentPackage(OrderAiIntent.DETAIL_BY_ORDER_NO, orderNo, null, 0);
         }
@@ -146,6 +146,6 @@ public class OrderAiIntentResolver {
     private boolean requiresLogin(OrderAiIntent intent) {
         return intent == OrderAiIntent.LIST_ORDERS
                 || intent == OrderAiIntent.DETAIL_BY_ORDER_NO
-                || intent == OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO;
+                || intent == OrderAiIntent.REFUND_ELIGIBILITY;
     }
 }

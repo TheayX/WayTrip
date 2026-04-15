@@ -20,8 +20,14 @@ public class AiRuleBasedScenarioFallback {
      */
     public AiScenarioType route(String userMessage, String scenarioHint, String sourcePage) {
         String merged = String.join(" ", normalize(userMessage), normalize(scenarioHint), normalize(sourcePage)).toLowerCase();
+        if (containsAny(merged, "运营概览", "运营分析", "后台数据", "订单趋势", "热门景点", "营收趋势", "经营情况")) {
+            return AiScenarioType.OPERATION_ANALYZER;
+        }
         if (containsAny(merged, "退款", "退票", "改签", "订单", "售后", "赔付")) {
             return AiScenarioType.ORDER_ADVISOR;
+        }
+        if (containsAny(merged, "我的偏好", "我的画像", "我喜欢什么", "我适合什么", "浏览行为", "收藏行为", "旅游偏好")) {
+            return AiScenarioType.USER_PROFILE_ANALYZER;
         }
         if (containsAny(merged, "攻略", "避坑", "玩法", "怎么玩")) {
             return AiScenarioType.GUIDE_QA;

@@ -28,10 +28,12 @@ public class AiScenarioRouter {
             - GUIDE_QA：攻略搜索、怎么玩、避坑建议、玩法摘要、目的地攻略
             - TRAVEL_PLANNER：行程规划、路线安排、预算玩法、去哪玩、怎么玩
             - RECOMMENDATION_EXPLAINER：推荐理由、相似景点、为什么推荐
+            - USER_PROFILE_ANALYZER：当前用户旅游偏好、浏览收藏订单评价行为画像
+            - OPERATION_ANALYZER：管理端运营概览、订单趋势、热门景点、营收统计
             - CUSTOMER_SERVICE：平台功能、登录帮助、其他客服兜底
             输出 JSON 字段：
             {"scenario":"...","intent":"","slots":{},"confidence":0.0,"requiresLogin":false,"requiresTool":false}
-            confidence 取 0 到 1。涉及个人订单、收藏时 requiresLogin=true。
+            confidence 取 0 到 1。涉及个人订单、收藏、用户画像或运营统计时 requiresLogin=true。
             """;
 
     private final AiJsonIntentClassificationSupport intentClassificationSupport;
@@ -94,16 +96,10 @@ public class AiScenarioRouter {
             return AiScenarioType.CUSTOMER_SERVICE;
         }
         try {
-            AiScenarioType scenario = AiScenarioType.valueOf(value.trim().toUpperCase());
-            return isDeferredScenario(scenario) ? AiScenarioType.CUSTOMER_SERVICE : scenario;
+            return AiScenarioType.valueOf(value.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             return AiScenarioType.CUSTOMER_SERVICE;
         }
-    }
-
-    private boolean isDeferredScenario(AiScenarioType scenario) {
-        return scenario == AiScenarioType.USER_PROFILE_ANALYZER
-                || scenario == AiScenarioType.OPERATION_ANALYZER;
     }
 
     private double normalizeConfidence(double confidence) {

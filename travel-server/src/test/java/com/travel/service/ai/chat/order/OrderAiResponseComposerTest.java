@@ -17,7 +17,7 @@ class OrderAiResponseComposerTest {
     @Test
     void composeRefundEligibilityForPaidOrder() {
         String reply = composer.compose(new OrderAiToolResult(
-                OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO,
+                OrderAiIntent.REFUND_ELIGIBILITY,
                 Map.of(
                         "found", true,
                         "orderNo", "T202604121416166706",

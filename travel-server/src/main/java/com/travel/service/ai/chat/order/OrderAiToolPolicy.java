@@ -34,7 +34,7 @@ public class OrderAiToolPolicy {
                     normalizeEmptyToNull(intentResult.slotAsString(AiIntentSlots.STATUS)),
                     intentResult.slotAsInt(AiIntentSlots.LIMIT, 10)
             );
-            case REFUND_ELIGIBILITY_BY_ORDER_NO, DETAIL_BY_ORDER_NO ->
+            case REFUND_ELIGIBILITY, DETAIL_BY_ORDER_NO ->
                     orderAiTools.getOrderDetailByOrderNo(intentResult.slotAsString(AiIntentSlots.ORDER_NO));
             default -> Map.of();
         };

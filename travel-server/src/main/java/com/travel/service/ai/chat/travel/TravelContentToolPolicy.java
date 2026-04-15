@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,11 +31,27 @@ public class TravelContentToolPolicy {
         String keyword = resolveKeyword(intentResult);
         Integer limit = intentResult.slotAsInt(AiIntentSlots.LIMIT, 5);
         Map<String, Object> payload = switch (intent) {
-            case SPOT_SEARCH, SPOT_FACT -> spotAiTools.searchSpots(keyword, null, null, limit);
+            case SPOT_FACT -> fetchSpotFact(keyword, limit);
+            case SPOT_SEARCH -> spotAiTools.searchSpots(keyword, null, null, limit);
             case GUIDE_SEARCH -> spotAiTools.getGuideSummariesByKeyword(keyword, limit);
             default -> Map.of();
         };
         return new TravelContentToolResult(intent, payload);
+    }
+
+    private Map<String, Object> fetchSpotFact(String keyword, Integer limit) {
+        Map<String, Object> searchPayload = spotAiTools.searchSpots(keyword, null, null, limit);
+        Object listValue = searchPayload.get("list");
+        if (!(listValue instanceof List<?> list) || list.isEmpty()) {
+            return searchPayload;
+        }
+        Object first = list.get(0);
+        if (!(first instanceof Map<?, ?> row) || !(row.get("id") instanceof Number id)) {
+            return searchPayload;
+        }
+        Map<String, Object> payload = new LinkedHashMap<>(searchPayload);
+        payload.put("detail", spotAiTools.getSpotDetails(id.longValue()));
+        return payload;
     }
 
     private String resolveKeyword(AiIntentClassificationResult intentResult) {

@@ -6,7 +6,9 @@ import com.travel.dto.ai.request.AiChatMessageRequest;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.chat.order.OrderAiDirectResponseService;
+import com.travel.service.ai.chat.operation.OperationAiDirectResponseService;
 import com.travel.service.ai.chat.planner.TravelPlanDirectResponseService;
+import com.travel.service.ai.chat.profile.UserProfileAiDirectResponseService;
 import com.travel.service.ai.chat.recommendation.RecommendationExplainDirectResponseService;
 import com.travel.service.ai.chat.travel.TravelContentDirectResponseService;
 import com.travel.service.ai.guardrail.AiGuardrailService;
@@ -16,9 +18,11 @@ import com.travel.service.ai.memory.AiSessionIdService;
 import com.travel.service.ai.rag.AiKnowledgeRetrievalService;
 import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import com.travel.service.ai.tool.AiToolContextHolder;
+import com.travel.service.ai.tool.OperationAiTools;
 import com.travel.service.ai.tool.OrderAiTools;
 import com.travel.service.ai.tool.RecommendationAiTools;
 import com.travel.service.ai.tool.SpotAiTools;
+import com.travel.service.ai.tool.UserProfileAiTools;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -46,6 +50,8 @@ public class AiConversationOrchestrator {
     private final TravelContentDirectResponseService travelContentDirectResponseService;
     private final TravelPlanDirectResponseService travelPlanDirectResponseService;
     private final RecommendationExplainDirectResponseService recommendationExplainDirectResponseService;
+    private final UserProfileAiDirectResponseService userProfileAiDirectResponseService;
+    private final OperationAiDirectResponseService operationAiDirectResponseService;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
@@ -53,6 +59,8 @@ public class AiConversationOrchestrator {
     private final RecommendationAiTools recommendationAiTools;
     private final OrderAiTools orderAiTools;
     private final SpotAiTools spotAiTools;
+    private final UserProfileAiTools userProfileAiTools;
+    private final OperationAiTools operationAiTools;
 
     /**
      * 处理单轮聊天请求。
@@ -62,7 +70,7 @@ public class AiConversationOrchestrator {
      * @param clientIp 客户端 IP
      * @return 聊天响应
      */
-    public AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, String clientIp) {
+    public AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp) {
         long startedAt = System.currentTimeMillis();
         String sessionId = aiSessionIdService.normalizeSessionId(request.getSessionId());
         String userMessage = aiGuardrailService.sanitizeUserMessage(request.getMessage());
@@ -89,6 +97,7 @@ public class AiConversationOrchestrator {
 
         try {
             aiToolContextHolder.setCurrentUserId(userId);
+            aiToolContextHolder.setCurrentAdminId(adminId);
             AiChatMessageResponse directResponse = tryBuildDirectResponse(
                     sessionId,
                     messageId,
@@ -200,6 +209,8 @@ public class AiConversationOrchestrator {
             case ORDER_ADVISOR -> new Object[]{orderAiTools, spotAiTools};
             case SPOT_QA, GUIDE_QA -> new Object[]{spotAiTools};
             case RECOMMENDATION_EXPLAINER, TRAVEL_PLANNER -> new Object[]{recommendationAiTools, spotAiTools, orderAiTools};
+            case USER_PROFILE_ANALYZER -> new Object[]{userProfileAiTools};
+            case OPERATION_ANALYZER -> new Object[]{operationAiTools};
             default -> new Object[0];
         };
     }
@@ -227,6 +238,8 @@ public class AiConversationOrchestrator {
             case SPOT_QA, GUIDE_QA -> travelContentDirectResponseService.tryReply(userMessage, scenario);
             case TRAVEL_PLANNER -> travelPlanDirectResponseService.tryReply(userMessage);
             case RECOMMENDATION_EXPLAINER -> recommendationExplainDirectResponseService.tryReply(userMessage);
+            case USER_PROFILE_ANALYZER -> userProfileAiDirectResponseService.tryReply(userMessage);
+            case OPERATION_ANALYZER -> operationAiDirectResponseService.tryReply(userMessage);
             default -> "";
         };
         if (!StringUtils.hasText(reply)) {

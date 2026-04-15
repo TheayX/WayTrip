@@ -16,7 +16,7 @@ public class AiChatServiceImpl implements AiChatService {
     private final AiConversationOrchestrator aiConversationOrchestrator;
 
     @Override
-    public AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, String clientIp) {
-        return aiConversationOrchestrator.chat(request, userId, clientIp);
+    public AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp) {
+        return aiConversationOrchestrator.chat(request, userId, adminId, clientIp);
     }
 }

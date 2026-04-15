@@ -69,7 +69,10 @@ public class AiGuardrailService {
         String content = message.trim();
         boolean personalQuery = containsAny(content,
                 "我的订单", "帮我查订单", "查一下订单", "历史订单", "我的收藏",
-                "我的账号", "我的资料", "我的信息", "消费记录", "购买记录");
+                "我的账号", "我的资料", "我的信息", "消费记录", "购买记录",
+                "我的单子", "单子都列出来", "购票记录", "我的偏好", "我的画像",
+                "我喜欢什么", "我适合什么", "浏览行为", "收藏行为")
+                || content.matches(".*[Tt]\\d{10,}.*");
         if (personalQuery) {
             throw new BusinessException(ResultCode.ACCESS_DENIED, "请先登录后再查询个人订单、收藏和账号信息");
         }

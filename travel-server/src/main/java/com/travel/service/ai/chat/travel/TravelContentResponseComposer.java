@@ -32,13 +32,18 @@ public class TravelContentResponseComposer {
         if (list.isEmpty()) {
             return "没有查询到匹配的景点。你可以换一个更具体的景点名称再问。";
         }
-        Object first = list.get(0);
+        Object first = payload.get("detail");
+        if (first == null) {
+            first = list.get(0);
+        }
         if (!(first instanceof Map<?, ?> row)) {
             return "已查询到景点结果，但暂时无法整理详情，请到景点页查看。";
         }
         StringBuilder reply = new StringBuilder("查询到较匹配的景点：");
         reply.append("\n- 名称：").append(Objects.toString(row.get("name"), "未命名景点"));
         reply.append("\n- 门票/价格：").append(Objects.toString(row.get("price"), "以页面展示为准"));
+        reply.append("\n- 开放时间：").append(Objects.toString(row.get("openTime"), "以页面展示为准"));
+        reply.append("\n- 地址：").append(Objects.toString(row.get("address"), "以页面展示为准"));
         reply.append("\n- 评分：").append(Objects.toString(row.get("avgRating"), "暂无评分"));
         reply.append("\n- 分类：").append(Objects.toString(row.get("categoryName"), "未分类"));
         reply.append("\n- 地区：").append(Objects.toString(row.get("regionName"), "未知地区"));

@@ -49,6 +49,8 @@ public class AiResponseAssembler {
             case GUIDE_QA -> List.of("这个地方怎么玩", "有什么避坑建议", "推荐几篇相关攻略");
             case TRAVEL_PLANNER -> List.of("帮我做 1 日游路线", "预算 500 的玩法有哪些", "适合周末出行的景点");
             case RECOMMENDATION_EXPLAINER -> List.of("为什么推荐这个景点", "还有相似景点吗");
+            case USER_PROFILE_ANALYZER -> List.of("总结一下我的旅游偏好", "我最近更适合什么景点", "我的浏览收藏说明什么");
+            case OPERATION_ANALYZER -> List.of("看一下运营概览", "最近 7 天订单趋势", "当前热门景点有哪些");
             default -> List.of("推荐几个适合周末去的景点", "订单问题可以怎么处理");
         };
     }

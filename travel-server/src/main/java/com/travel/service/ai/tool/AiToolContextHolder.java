@@ -15,6 +15,7 @@ import java.util.List;
 public class AiToolContextHolder {
 
     private static final ThreadLocal<Long> CURRENT_USER_ID = new ThreadLocal<>();
+    private static final ThreadLocal<Long> CURRENT_ADMIN_ID = new ThreadLocal<>();
     private static final ThreadLocal<List<AiToolCallItem>> TOOL_TRACES = ThreadLocal.withInitial(ArrayList::new);
 
     /**
@@ -36,6 +37,24 @@ public class AiToolContextHolder {
     }
 
     /**
+     * 绑定当前请求管理员 ID。
+     *
+     * @param adminId 管理员 ID，可为空
+     */
+    public void setCurrentAdminId(Long adminId) {
+        CURRENT_ADMIN_ID.set(adminId);
+    }
+
+    /**
+     * 获取当前请求管理员 ID。
+     *
+     * @return 管理员 ID，可为空
+     */
+    public Long getCurrentAdminId() {
+        return CURRENT_ADMIN_ID.get();
+    }
+
+    /**
      * 获取当前已登录用户 ID，不存在时抛出异常。
      *
      * @return 用户 ID
@@ -46,6 +65,19 @@ public class AiToolContextHolder {
             throw new BusinessException(ResultCode.ACCESS_DENIED, "当前 AI 工具需要登录后使用");
         }
         return userId;
+    }
+
+    /**
+     * 获取当前已登录管理员 ID，不存在时抛出异常。
+     *
+     * @return 管理员 ID
+     */
+    public Long requireCurrentAdminId() {
+        Long adminId = CURRENT_ADMIN_ID.get();
+        if (adminId == null) {
+            throw new BusinessException(ResultCode.ACCESS_DENIED, "当前 AI 工具需要管理端登录后使用");
+        }
+        return adminId;
     }
 
     /**
@@ -74,6 +106,7 @@ public class AiToolContextHolder {
      */
     public void clear() {
         CURRENT_USER_ID.remove();
+        CURRENT_ADMIN_ID.remove();
         TOOL_TRACES.remove();
     }
 }

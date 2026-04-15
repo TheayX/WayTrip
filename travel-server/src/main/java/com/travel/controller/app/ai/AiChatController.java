@@ -41,13 +41,14 @@ public class AiChatController {
                                                    HttpServletRequest httpRequest) {
         AiChatMessageResponse response = aiChatService.chat(
                 request,
-                resolveUserId(httpRequest.getHeader("Authorization")),
+                resolveUserId(resolveToken(httpRequest.getHeader("Authorization"))),
+                resolveAdminId(resolveToken(httpRequest.getHeader("Authorization"))),
                 resolveClientIp(httpRequest)
         );
         return ApiResponse.success(response);
     }
 
-    private Long resolveUserId(String authorization) {
+    private String resolveToken(String authorization) {
         if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) {
             return null;
         }
@@ -55,7 +56,21 @@ public class AiChatController {
         if (!StringUtils.hasText(token)) {
             return null;
         }
+        return token;
+    }
+
+    private Long resolveUserId(String token) {
+        if (!StringUtils.hasText(token)) {
+            return null;
+        }
         return jwtUtils.getUserIdFromToken(token);
+    }
+
+    private Long resolveAdminId(String token) {
+        if (!StringUtils.hasText(token)) {
+            return null;
+        }
+        return jwtUtils.getAdminIdFromToken(token);
     }
 
     private String resolveClientIp(HttpServletRequest request) {

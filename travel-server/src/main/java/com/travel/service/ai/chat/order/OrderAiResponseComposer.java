@@ -24,7 +24,7 @@ public class OrderAiResponseComposer {
         return switch (toolResult.intent()) {
             case GUIDE_STATUS, GUIDE_REFUND, GUIDE_PAGE -> formatOrderGuideReply(toolResult.payload());
             case LIST_ORDERS -> formatOrderListReply(toolResult.payload());
-            case REFUND_ELIGIBILITY_BY_ORDER_NO -> formatRefundEligibilityReply(toolResult.payload());
+            case REFUND_ELIGIBILITY -> formatRefundEligibilityReply(toolResult.payload());
             case DETAIL_BY_ORDER_NO -> formatOrderDetailReply(toolResult.payload());
             default -> "暂时无法确认这个订单问题，请换个问法或稍后重试。";
         };

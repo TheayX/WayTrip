@@ -21,10 +21,10 @@ class OrderAiIntentClassifierTest {
     @Test
     void parsePlainJsonModelReply() throws Exception {
         AiIntentClassificationResult result = classifier.parseModelReply("""
-                {"intent":"REFUND_ELIGIBILITY_BY_ORDER_NO","orderNo":"T202604121416166706","status":"","limit":10}
+                {"intent":"REFUND_ELIGIBILITY","orderNo":"T202604121416166706","status":"","limit":10}
                 """);
 
-        assertEquals(OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO.name(), result.intent());
+        assertEquals(OrderAiIntent.REFUND_ELIGIBILITY.name(), result.intent());
         assertEquals("T202604121416166706", result.slotAsString(AiIntentSlots.ORDER_NO));
     }
 

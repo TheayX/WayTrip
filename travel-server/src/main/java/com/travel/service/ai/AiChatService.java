@@ -13,8 +13,9 @@ public interface AiChatService {
      *
      * @param request 聊天请求
      * @param userId 当前登录用户 ID，可为空
+     * @param adminId 当前登录管理员 ID，可为空
      * @param clientIp 客户端 IP，可为空
      * @return 聊天响应
      */
-    AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, String clientIp);
+    AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp);
 }

@@ -28,7 +28,7 @@ public class OrderAiIntentClassifier {
             - GUIDE_PAGE：询问订单页怎么看、订单页要看什么
             - LIST_ORDERS：查询我的订单列表、全部订单、历史订单、某状态订单
             - DETAIL_BY_ORDER_NO：查询某个订单号的订单详情
-            - REFUND_ELIGIBILITY_BY_ORDER_NO：询问某个订单号是否能退款、能否售后、可不可以退
+            - REFUND_ELIGIBILITY：询问某个订单号是否能退款、能否售后、可不可以退
             - NONE：不属于订单模块或意图不足
             输出 JSON 字段：
             {"intent":"...","orderNo":"","status":"","limit":10}
@@ -89,7 +89,7 @@ public class OrderAiIntentClassifier {
     }
 
     private boolean requiresOrderNo(OrderAiIntent intent) {
-        return intent == OrderAiIntent.DETAIL_BY_ORDER_NO || intent == OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO;
+        return intent == OrderAiIntent.DETAIL_BY_ORDER_NO || intent == OrderAiIntent.REFUND_ELIGIBILITY;
     }
 
     private OrderAiIntent parseIntent(String value) {
@@ -145,7 +145,7 @@ public class OrderAiIntentClassifier {
     private boolean requiresLogin(OrderAiIntent intent) {
         return intent == OrderAiIntent.LIST_ORDERS
                 || intent == OrderAiIntent.DETAIL_BY_ORDER_NO
-                || intent == OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO;
+                || intent == OrderAiIntent.REFUND_ELIGIBILITY;
     }
 
     private boolean requiresTool(OrderAiIntent intent) {
