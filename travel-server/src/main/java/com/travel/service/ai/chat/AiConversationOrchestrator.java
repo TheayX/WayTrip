@@ -5,6 +5,9 @@ import com.travel.common.result.ResultCode;
 import com.travel.dto.ai.request.AiChatMessageRequest;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
+import com.travel.service.ai.chat.order.OrderAiIntent;
+import com.travel.service.ai.chat.order.OrderAiIntentResolver;
+import com.travel.service.ai.chat.order.OrderAiIntentResult;
 import com.travel.service.ai.guardrail.AiGuardrailService;
 import com.travel.service.ai.memory.AiConversationMemoryService;
 import com.travel.service.ai.memory.AiConversationTurn;
@@ -25,8 +28,6 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -37,13 +38,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AiConversationOrchestrator {
 
-    private static final Pattern ORDER_NO_PATTERN = Pattern.compile("\\bT\\d{10,}\\d*\\b", Pattern.CASE_INSENSITIVE);
-
     private final ChatClient aiChatClient;
     private final AiSessionIdService aiSessionIdService;
     private final AiGuardrailService aiGuardrailService;
     private final AiConversationMemoryService aiConversationMemoryService;
     private final AiScenarioRouter aiScenarioRouter;
+    private final OrderAiIntentResolver orderAiIntentResolver;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
@@ -207,30 +207,6 @@ public class AiConversationOrchestrator {
     }
 
     private List<String> prefetchBusinessFacts(AiScenarioType scenario, String userMessage) {
-        if (scenario != AiScenarioType.ORDER_ADVISOR) {
-            return List.of();
-        }
-        if (!StringUtils.hasText(userMessage)) {
-            return List.of();
-        }
-
-        String normalized = userMessage.trim();
-        if (containsAny(normalized, "订单状态说明", "状态说明")) {
-            return List.of(stringifyFact(orderAiTools.getOrderSupportGuide("status")));
-        }
-        if (containsAny(normalized, "退款流程", "怎么退款", "退款怎么走", "售后流程")) {
-            return List.of(stringifyFact(orderAiTools.getOrderSupportGuide("refund")));
-        }
-        if (containsAny(normalized, "订单页", "看什么", "怎么看订单")) {
-            return List.of(stringifyFact(orderAiTools.getOrderSupportGuide("page")));
-        }
-        String orderNo = extractOrderNo(normalized);
-        if (StringUtils.hasText(orderNo)) {
-            return List.of(stringifyFact(orderAiTools.getOrderDetailByOrderNo(orderNo)));
-        }
-        if (containsAny(normalized, "几个订单", "我的订单", "最近订单", "订单列表", "已支付订单", "待支付订单", "已完成订单")) {
-            return List.of(stringifyFact(orderAiTools.getMyOrders(resolveOrderStatus(normalized), 5)));
-        }
         return List.of();
     }
 
@@ -252,12 +228,11 @@ public class AiConversationOrchestrator {
         if (scenario != AiScenarioType.ORDER_ADVISOR || !StringUtils.hasText(userMessage)) {
             return null;
         }
-        String guideTopic = resolveOrderGuideTopic(userMessage.trim());
-        if (!StringUtils.hasText(guideTopic)) {
+        OrderAiIntentResult intentResult = orderAiIntentResolver.resolve(userMessage);
+        if (intentResult.intent() == OrderAiIntent.NONE) {
             return null;
         }
-        Map<String, Object> guide = orderAiTools.getOrderSupportGuide(guideTopic);
-        String reply = formatOrderGuideReply(guide);
+        String reply = buildOrderDirectReply(intentResult);
         return aiResponseAssembler.assemble(
                 sessionId,
                 messageId,
@@ -268,17 +243,15 @@ public class AiConversationOrchestrator {
         );
     }
 
-    private String resolveOrderGuideTopic(String userMessage) {
-        if (containsAny(userMessage, "订单状态说明", "状态说明")) {
-            return "status";
-        }
-        if (containsAny(userMessage, "退款流程", "怎么退款", "退款怎么走", "售后流程")) {
-            return "refund";
-        }
-        if (containsAny(userMessage, "订单页", "看什么", "怎么看订单")) {
-            return "page";
-        }
-        return null;
+    private String buildOrderDirectReply(OrderAiIntentResult intentResult) {
+        return switch (intentResult.intent()) {
+            case GUIDE_STATUS -> formatOrderGuideReply(orderAiTools.getOrderSupportGuide("status"));
+            case GUIDE_REFUND -> formatOrderGuideReply(orderAiTools.getOrderSupportGuide("refund"));
+            case GUIDE_PAGE -> formatOrderGuideReply(orderAiTools.getOrderSupportGuide("page"));
+            case LIST_ORDERS -> formatOrderListReply(orderAiTools.getMyOrders(intentResult.status(), intentResult.limit()));
+            case DETAIL_BY_ORDER_NO -> formatOrderDetailReply(orderAiTools.getOrderDetailByOrderNo(intentResult.orderNo()));
+            default -> "暂时无法确认这个订单问题，请换个问法或稍后重试。";
+        };
     }
 
     private String formatOrderGuideReply(Map<String, Object> guide) {
@@ -297,38 +270,64 @@ public class AiConversationOrchestrator {
         return title + "：\n" + body;
     }
 
-    private String resolveOrderStatus(String userMessage) {
-        if (containsAny(userMessage, "已支付", "待出行")) {
-            return "paid";
+    private String formatOrderListReply(Map<String, Object> orders) {
+        long total = parseLong(orders.get("total"));
+        Object listValue = orders.get("list");
+        if (!(listValue instanceof List<?> list) || list.isEmpty()) {
+            return "没有查询到符合条件的订单。你可以到“我的订单”页面确认是否使用了其他账号登录。";
         }
-        if (containsAny(userMessage, "待支付", "未支付")) {
-            return "pending";
-        }
-        if (containsAny(userMessage, "已完成")) {
-            return "completed";
-        }
-        if (containsAny(userMessage, "已取消")) {
-            return "cancelled";
-        }
-        return null;
-    }
-
-    private String extractOrderNo(String userMessage) {
-        Matcher matcher = ORDER_NO_PATTERN.matcher(userMessage);
-        return matcher.find() ? matcher.group() : "";
-    }
-
-    private boolean containsAny(String source, String... keywords) {
-        for (String keyword : keywords) {
-            if (source.contains(keyword)) {
-                return true;
+        StringBuilder reply = new StringBuilder("已查询到你的订单，共 ").append(total).append(" 条。");
+        reply.append("\n最近订单：");
+        for (Object item : list) {
+            if (item instanceof Map<?, ?> row) {
+                reply.append("\n- ")
+                        .append(Objects.toString(row.get("spotName"), "未命名景点"))
+                        .append("，状态：")
+                        .append(Objects.toString(row.get("statusText"), "未知"))
+                        .append("，订单号：")
+                        .append(Objects.toString(row.get("orderNo"), "无"))
+                        .append("，出行日期：")
+                        .append(Objects.toString(row.get("visitDate"), "未设置"))
+                        .append("，金额：")
+                        .append(Objects.toString(row.get("totalPrice"), "未确认"));
             }
         }
-        return false;
+        if (total > list.size()) {
+            reply.append("\n当前先展示最近 ").append(list.size()).append(" 条，更多订单请在“我的订单”页面继续查看。");
+        }
+        return reply.toString();
     }
 
-    private String stringifyFact(Map<String, Object> fact) {
-        return fact == null ? "" : fact.toString();
+    private String formatOrderDetailReply(Map<String, Object> detail) {
+        if (Boolean.FALSE.equals(detail.get("found"))) {
+            return Objects.toString(detail.get("message"), "未找到匹配的订单，请确认订单号是否正确。");
+        }
+        StringBuilder reply = new StringBuilder("已查询到这笔订单：");
+        reply.append("\n- 景点：").append(Objects.toString(detail.get("spotName"), "未命名景点"));
+        reply.append("\n- 状态：").append(Objects.toString(detail.get("statusText"), "未知"));
+        reply.append("\n- 订单号：").append(Objects.toString(detail.get("orderNo"), "无"));
+        reply.append("\n- 出行日期：").append(Objects.toString(detail.get("visitDate"), "未设置"));
+        reply.append("\n- 数量：").append(Objects.toString(detail.get("quantity"), "未确认"));
+        reply.append("\n- 总金额：").append(Objects.toString(detail.get("totalPrice"), "未确认"));
+        if (Boolean.TRUE.equals(detail.get("canPay"))) {
+            reply.append("\n下一步：这笔订单当前可以继续支付，具体以订单页按钮为准。");
+        } else if (Boolean.TRUE.equals(detail.get("canCancel"))) {
+            reply.append("\n下一步：如行程有变，可以到订单页查看取消或售后入口。");
+        } else {
+            reply.append("\n下一步：建议到订单详情页查看当前可执行操作。");
+        }
+        return reply.toString();
+    }
+
+    private long parseLong(Object value) {
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        try {
+            return Long.parseLong(Objects.toString(value, "0"));
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
     }
 
     private String previewFacts(List<String> facts) {

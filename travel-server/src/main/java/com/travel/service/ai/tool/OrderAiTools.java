@@ -94,7 +94,7 @@ public class OrderAiTools {
      */
     @Tool(description = "获取当前登录用户的订单列表，可按状态筛选")
     public Map<String, Object> getMyOrders(
-            @ToolParam(description = "订单状态，可选值：pending、paid、completed、cancelled", required = false) String status,
+            @ToolParam(description = "订单状态，可选值：pending、paid、completed、cancelled、refunded", required = false) String status,
             @ToolParam(description = "返回条数，建议 3 到 10 之间", required = false) Integer limit) {
         OrderListRequest request = new OrderListRequest();
         request.setStatus(status);
