@@ -249,6 +249,7 @@ public class AiConversationOrchestrator {
             case GUIDE_REFUND -> formatOrderGuideReply(orderAiTools.getOrderSupportGuide("refund"));
             case GUIDE_PAGE -> formatOrderGuideReply(orderAiTools.getOrderSupportGuide("page"));
             case LIST_ORDERS -> formatOrderListReply(orderAiTools.getMyOrders(intentResult.status(), intentResult.limit()));
+            case REFUND_ELIGIBILITY_BY_ORDER_NO -> formatRefundEligibilityReply(orderAiTools.getOrderDetailByOrderNo(intentResult.orderNo()));
             case DETAIL_BY_ORDER_NO -> formatOrderDetailReply(orderAiTools.getOrderDetailByOrderNo(intentResult.orderNo()));
             default -> "暂时无法确认这个订单问题，请换个问法或稍后重试。";
         };
@@ -294,6 +295,27 @@ public class AiConversationOrchestrator {
         }
         if (total > list.size()) {
             reply.append("\n当前先展示最近 ").append(list.size()).append(" 条，更多订单请在“我的订单”页面继续查看。");
+        }
+        return reply.toString();
+    }
+
+    private String formatRefundEligibilityReply(Map<String, Object> detail) {
+        if (Boolean.FALSE.equals(detail.get("found"))) {
+            return Objects.toString(detail.get("message"), "未找到匹配的订单，请确认订单号是否正确。");
+        }
+        String status = Objects.toString(detail.get("status"), "");
+        String statusText = Objects.toString(detail.get("statusText"), "未知");
+        boolean refundable = "paid".equalsIgnoreCase(status);
+        StringBuilder reply = new StringBuilder();
+        reply.append("这笔订单当前").append(refundable ? "可以进入退款/售后处理" : "不满足退款处理条件").append("。");
+        reply.append("\n- 订单号：").append(Objects.toString(detail.get("orderNo"), "无"));
+        reply.append("\n- 景点：").append(Objects.toString(detail.get("spotName"), "未命名景点"));
+        reply.append("\n- 当前状态：").append(statusText);
+        reply.append("\n- 判断依据：平台规则中只有已支付订单允许退款处理。");
+        if (refundable) {
+            reply.append("\n下一步：请到订单详情页查看取消或售后入口；退款金额、到账时间和最终结果以页面规则及后台处理为准。");
+        } else {
+            reply.append("\n下一步：建议先在订单详情页确认当前可执行按钮，如状态已变化请以页面展示为准。");
         }
         return reply.toString();
     }

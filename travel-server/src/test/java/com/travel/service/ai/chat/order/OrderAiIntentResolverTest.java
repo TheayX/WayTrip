@@ -56,4 +56,12 @@ class OrderAiIntentResolverTest {
         assertEquals(OrderAiIntent.DETAIL_BY_ORDER_NO, result.intent());
         assertEquals("T202604121416166706", result.orderNo());
     }
+
+    @Test
+    void resolveRefundEligibilityWithOrderNo() {
+        OrderAiIntentResult result = resolver.resolve("T202604121416166706这个订单能退款吗");
+
+        assertEquals(OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO, result.intent());
+        assertEquals("T202604121416166706", result.orderNo());
+    }
 }

@@ -25,12 +25,15 @@ public class OrderAiIntentResolver {
             return OrderAiIntentResult.none();
         }
 
+        String normalized = normalize(userMessage);
         String orderNo = extractOrderNo(userMessage);
         if (StringUtils.hasText(orderNo)) {
+            if (isRefundEligibilityIntent(normalized)) {
+                return new OrderAiIntentResult(OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO, orderNo, null, 0);
+            }
             return new OrderAiIntentResult(OrderAiIntent.DETAIL_BY_ORDER_NO, orderNo, null, 0);
         }
 
-        String normalized = normalize(userMessage);
         OrderAiIntent guideIntent = resolveGuideIntent(normalized);
         if (guideIntent != OrderAiIntent.NONE) {
             return new OrderAiIntentResult(guideIntent, "", null, 0);
@@ -57,6 +60,12 @@ public class OrderAiIntentResolver {
             return OrderAiIntent.GUIDE_STATUS;
         }
         return OrderAiIntent.NONE;
+    }
+
+    private boolean isRefundEligibilityIntent(String normalized) {
+        return containsAny(normalized, "能退款", "能退吗", "可以退款", "可退款", "能不能退", "能否退款", "能售后", "可以售后")
+                || (containsAny(normalized, "退款", "退票", "售后")
+                && containsAny(normalized, "能", "可以", "可不可以", "能不能", "能否", "是否"));
     }
 
     private boolean isOrderListIntent(String normalized) {
