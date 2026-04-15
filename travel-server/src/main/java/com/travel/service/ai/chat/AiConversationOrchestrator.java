@@ -5,9 +5,10 @@ import com.travel.common.result.ResultCode;
 import com.travel.dto.ai.request.AiChatMessageRequest;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
+import com.travel.service.ai.chat.intent.AiIntentClassificationResult;
+import com.travel.service.ai.chat.intent.AiIntentSlots;
 import com.travel.service.ai.chat.order.OrderAiIntent;
 import com.travel.service.ai.chat.order.OrderAiIntentClassifier;
-import com.travel.service.ai.chat.order.OrderAiIntentResult;
 import com.travel.service.ai.guardrail.AiGuardrailService;
 import com.travel.service.ai.memory.AiConversationMemoryService;
 import com.travel.service.ai.memory.AiConversationTurn;
@@ -228,11 +229,12 @@ public class AiConversationOrchestrator {
         if (scenario != AiScenarioType.ORDER_ADVISOR || !StringUtils.hasText(userMessage)) {
             return null;
         }
-        OrderAiIntentResult intentResult = orderAiIntentClassifier.classify(userMessage);
-        if (intentResult.intent() == OrderAiIntent.NONE) {
+        AiIntentClassificationResult intentResult = orderAiIntentClassifier.classify(userMessage);
+        OrderAiIntent orderIntent = parseOrderIntent(intentResult.intent());
+        if (orderIntent == OrderAiIntent.NONE) {
             return null;
         }
-        String reply = buildOrderDirectReply(intentResult);
+        String reply = buildOrderDirectReply(orderIntent, intentResult);
         return aiResponseAssembler.assemble(
                 sessionId,
                 messageId,
@@ -243,16 +245,38 @@ public class AiConversationOrchestrator {
         );
     }
 
-    private String buildOrderDirectReply(OrderAiIntentResult intentResult) {
-        return switch (intentResult.intent()) {
+    private String buildOrderDirectReply(OrderAiIntent orderIntent, AiIntentClassificationResult intentResult) {
+        return switch (orderIntent) {
             case GUIDE_STATUS -> formatOrderGuideReply(orderAiTools.getOrderSupportGuide("status"));
             case GUIDE_REFUND -> formatOrderGuideReply(orderAiTools.getOrderSupportGuide("refund"));
             case GUIDE_PAGE -> formatOrderGuideReply(orderAiTools.getOrderSupportGuide("page"));
-            case LIST_ORDERS -> formatOrderListReply(orderAiTools.getMyOrders(intentResult.status(), intentResult.limit()));
-            case REFUND_ELIGIBILITY_BY_ORDER_NO -> formatRefundEligibilityReply(orderAiTools.getOrderDetailByOrderNo(intentResult.orderNo()));
-            case DETAIL_BY_ORDER_NO -> formatOrderDetailReply(orderAiTools.getOrderDetailByOrderNo(intentResult.orderNo()));
+            case LIST_ORDERS -> formatOrderListReply(orderAiTools.getMyOrders(
+                    normalizeEmptyToNull(intentResult.slotAsString(AiIntentSlots.STATUS)),
+                    intentResult.slotAsInt(AiIntentSlots.LIMIT, 10)
+            ));
+            case REFUND_ELIGIBILITY_BY_ORDER_NO -> formatRefundEligibilityReply(
+                    orderAiTools.getOrderDetailByOrderNo(intentResult.slotAsString(AiIntentSlots.ORDER_NO))
+            );
+            case DETAIL_BY_ORDER_NO -> formatOrderDetailReply(
+                    orderAiTools.getOrderDetailByOrderNo(intentResult.slotAsString(AiIntentSlots.ORDER_NO))
+            );
             default -> "暂时无法确认这个订单问题，请换个问法或稍后重试。";
         };
+    }
+
+    private OrderAiIntent parseOrderIntent(String value) {
+        if (!StringUtils.hasText(value)) {
+            return OrderAiIntent.NONE;
+        }
+        try {
+            return OrderAiIntent.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return OrderAiIntent.NONE;
+        }
+    }
+
+    private String normalizeEmptyToNull(String value) {
+        return StringUtils.hasText(value) ? value : null;
     }
 
     private String formatOrderGuideReply(Map<String, Object> guide) {

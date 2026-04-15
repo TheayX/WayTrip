@@ -1,10 +1,16 @@
 package com.travel.service.ai.chat.order;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.travel.enums.ai.AiScenarioType;
+import com.travel.service.ai.chat.intent.AiIntentClassificationResult;
+import com.travel.service.ai.chat.intent.AiIntentSlots;
 import com.travel.service.ai.chat.intent.AiJsonIntentClassificationSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * 订单 AI 意图分类器，优先由模型理解自然语言，再由后端校验关键槽位。
@@ -39,8 +45,8 @@ public class OrderAiIntentClassifier {
      * @param userMessage 用户问题
      * @return 分类结果
      */
-    public OrderAiIntentResult classify(String userMessage) {
-        OrderAiIntentResult fallback = fallbackResolver.resolve(userMessage);
+    public AiIntentClassificationResult classify(String userMessage) {
+        AiIntentClassificationResult fallback = toIntentPackage(fallbackResolver.resolve(userMessage));
         return intentClassificationSupport.classify(
                 "订单 AI",
                 SYSTEM_PROMPT,
@@ -50,30 +56,36 @@ public class OrderAiIntentClassifier {
         );
     }
 
-    OrderAiIntentResult parseModelReply(String reply) throws Exception {
+    AiIntentClassificationResult parseModelReply(String reply) throws Exception {
         return parseModelJson(intentClassificationSupport.parseJsonReply(reply));
     }
 
-    private OrderAiIntentResult parseModelJson(JsonNode root) {
+    private AiIntentClassificationResult parseModelJson(JsonNode root) {
         OrderAiIntent intent = parseIntent(root.path("intent").asText(""));
         String orderNo = root.path("orderNo").asText("");
         String status = normalizeStatus(root.path("status").asText(""));
         int limit = normalizeLimit(root.path("limit").asInt(10));
-        return new OrderAiIntentResult(intent, orderNo, status, limit);
+        return toIntentPackage(new OrderAiIntentResult(intent, orderNo, status, limit));
     }
 
-    private OrderAiIntentResult normalizeClassifiedResult(OrderAiIntentResult classified, OrderAiIntentResult fallback) {
-        if (classified.intent() == OrderAiIntent.NONE) {
-            return fallback.intent() == OrderAiIntent.NONE ? classified : fallback;
+    private AiIntentClassificationResult normalizeClassifiedResult(AiIntentClassificationResult classified,
+                                                                  AiIntentClassificationResult fallback) {
+        OrderAiIntent classifiedIntent = parseIntent(classified.intent());
+        if (classifiedIntent == OrderAiIntent.NONE) {
+            return OrderAiIntent.NONE.name().equals(fallback.intent()) ? classified : fallback;
         }
-        String orderNo = StringUtils.hasText(classified.orderNo()) ? classified.orderNo().trim() : fallback.orderNo();
-        String status = StringUtils.hasText(classified.status()) ? classified.status() : fallback.status();
-        int limit = classified.limit() > 0 ? classified.limit() : fallback.limit();
-        OrderAiIntent intent = classified.intent();
+        String orderNo = StringUtils.hasText(classified.slotAsString(AiIntentSlots.ORDER_NO))
+                ? classified.slotAsString(AiIntentSlots.ORDER_NO)
+                : fallback.slotAsString(AiIntentSlots.ORDER_NO);
+        String status = StringUtils.hasText(classified.slotAsString(AiIntentSlots.STATUS))
+                ? classified.slotAsString(AiIntentSlots.STATUS)
+                : fallback.slotAsString(AiIntentSlots.STATUS);
+        int limit = classified.slotAsInt(AiIntentSlots.LIMIT, fallback.slotAsInt(AiIntentSlots.LIMIT, 10));
+        OrderAiIntent intent = classifiedIntent;
         if (requiresOrderNo(intent) && !StringUtils.hasText(orderNo)) {
             return fallback;
         }
-        return new OrderAiIntentResult(intent, orderNo, status, normalizeLimit(limit));
+        return toIntentPackage(new OrderAiIntentResult(intent, orderNo, status, normalizeLimit(limit)));
     }
 
     private boolean requiresOrderNo(OrderAiIntent intent) {
@@ -107,6 +119,37 @@ public class OrderAiIntentClassifier {
             return 10;
         }
         return Math.min(value, 10);
+    }
+
+    private AiIntentClassificationResult toIntentPackage(OrderAiIntentResult result) {
+        Map<String, Object> slots = new LinkedHashMap<>();
+        if (StringUtils.hasText(result.orderNo())) {
+            slots.put(AiIntentSlots.ORDER_NO, result.orderNo());
+        }
+        if (StringUtils.hasText(result.status())) {
+            slots.put(AiIntentSlots.STATUS, result.status());
+        }
+        if (result.limit() > 0) {
+            slots.put(AiIntentSlots.LIMIT, normalizeLimit(result.limit()));
+        }
+        return new AiIntentClassificationResult(
+                AiScenarioType.ORDER_ADVISOR,
+                result.intent().name(),
+                slots,
+                result.intent() == OrderAiIntent.NONE ? 0D : 0.8D,
+                requiresLogin(result.intent()),
+                requiresTool(result.intent())
+        );
+    }
+
+    private boolean requiresLogin(OrderAiIntent intent) {
+        return intent == OrderAiIntent.LIST_ORDERS
+                || intent == OrderAiIntent.DETAIL_BY_ORDER_NO
+                || intent == OrderAiIntent.REFUND_ELIGIBILITY_BY_ORDER_NO;
+    }
+
+    private boolean requiresTool(OrderAiIntent intent) {
+        return intent != OrderAiIntent.NONE;
     }
 
 }
