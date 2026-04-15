@@ -1,6 +1,7 @@
 package com.travel.service.ai.chat.order;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.travel.service.ai.chat.intent.AiJsonIntentClassificationSupport;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,8 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class OrderAiIntentClassifierTest {
 
     private final OrderAiIntentClassifier classifier = new OrderAiIntentClassifier(
-            null,
-            new ObjectMapper(),
+            new AiJsonIntentClassificationSupport(null, new ObjectMapper()),
             new OrderAiIntentResolver()
     );
 

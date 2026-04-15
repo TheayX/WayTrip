@@ -1,17 +1,14 @@
 package com.travel.service.ai.chat.order;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.travel.service.ai.chat.intent.AiJsonIntentClassificationSupport;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 /**
  * 订单 AI 意图分类器，优先由模型理解自然语言，再由后端校验关键槽位。
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderAiIntentClassifier {
@@ -33,8 +30,7 @@ public class OrderAiIntentClassifier {
             如果用户提供订单号，必须原样填入 orderNo。
             """;
 
-    private final ChatClient aiChatClient;
-    private final ObjectMapper objectMapper;
+    private final AiJsonIntentClassificationSupport intentClassificationSupport;
     private final OrderAiIntentResolver fallbackResolver;
 
     /**
@@ -45,35 +41,20 @@ public class OrderAiIntentClassifier {
      */
     public OrderAiIntentResult classify(String userMessage) {
         OrderAiIntentResult fallback = fallbackResolver.resolve(userMessage);
-        if (!StringUtils.hasText(userMessage)) {
-            return fallback;
-        }
-        try {
-            String reply = aiChatClient.prompt()
-                    .system(SYSTEM_PROMPT)
-                    .user("用户问题：" + userMessage.trim())
-                    .call()
-                    .content();
-            OrderAiIntentResult classified = parseModelReply(reply);
-            OrderAiIntentResult normalized = normalizeClassifiedResult(classified, fallback);
-            log.info(
-                    "订单 AI 意图分类完成：模型原始输出={}, 分类意图={}, 订单号={}, 状态={}, 兜底意图={}",
-                    preview(reply),
-                    normalized.intent(),
-                    normalized.orderNo(),
-                    normalized.status(),
-                    fallback.intent()
-            );
-            return normalized;
-        } catch (Exception e) {
-            log.warn("订单 AI 意图分类失败，降级使用规则兜底：用户问题预览={}, 兜底意图={}", preview(userMessage), fallback.intent(), e);
-            return fallback;
-        }
+        return intentClassificationSupport.classify(
+                "订单 AI",
+                SYSTEM_PROMPT,
+                userMessage,
+                () -> fallback,
+                root -> normalizeClassifiedResult(parseModelJson(root), fallback)
+        );
     }
 
     OrderAiIntentResult parseModelReply(String reply) throws Exception {
-        String json = extractJson(reply);
-        JsonNode root = objectMapper.readTree(json);
+        return parseModelJson(intentClassificationSupport.parseJsonReply(reply));
+    }
+
+    private OrderAiIntentResult parseModelJson(JsonNode root) {
         OrderAiIntent intent = parseIntent(root.path("intent").asText(""));
         String orderNo = root.path("orderNo").asText("");
         String status = normalizeStatus(root.path("status").asText(""));
@@ -128,24 +109,4 @@ public class OrderAiIntentClassifier {
         return Math.min(value, 10);
     }
 
-    private String extractJson(String value) {
-        if (!StringUtils.hasText(value)) {
-            return "{}";
-        }
-        String trimmed = value.trim();
-        int start = trimmed.indexOf('{');
-        int end = trimmed.lastIndexOf('}');
-        if (start >= 0 && end > start) {
-            return trimmed.substring(start, end + 1);
-        }
-        return trimmed;
-    }
-
-    private String preview(String value) {
-        if (!StringUtils.hasText(value)) {
-            return "无";
-        }
-        String normalized = value.trim().replaceAll("\\s+", " ");
-        return normalized.length() <= 120 ? normalized : normalized.substring(0, 120) + "...";
-    }
 }
