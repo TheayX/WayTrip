@@ -1,11 +1,8 @@
 package com.travel.service.ai.tool;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.order.request.OrderListRequest;
 import com.travel.dto.order.response.OrderDetailResponse;
 import com.travel.dto.order.response.OrderListResponse;
-import com.travel.entity.Order;
-import com.travel.mapper.OrderMapper;
 import com.travel.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
@@ -24,7 +21,6 @@ import java.util.Map;
 public class OrderAiTools {
 
     private final OrderService orderService;
-    private final OrderMapper orderMapper;
     private final AiToolContextHolder aiToolContextHolder;
 
     /**
@@ -142,12 +138,8 @@ public class OrderAiTools {
     public Map<String, Object> getOrderDetailByOrderNo(
             @ToolParam(description = "订单号", required = true) String orderNo) {
         Long userId = aiToolContextHolder.requireCurrentUserId();
-        Order order = orderMapper.selectOne(new LambdaQueryWrapper<Order>()
-                .eq(Order::getUserId, userId)
-                .eq(Order::getOrderNo, orderNo == null ? "" : orderNo.trim())
-                .eq(Order::getIsDeleted, 0)
-                .last("LIMIT 1"));
-        if (order == null) {
+        OrderDetailResponse response = orderService.getOrderDetailByOrderNo(userId, orderNo);
+        if (response == null) {
             aiToolContextHolder.addToolTrace(
                     "getOrderDetailByOrderNo",
                     "order",
@@ -160,7 +152,6 @@ public class OrderAiTools {
                     "message", "未找到匹配的订单，请确认订单号是否正确，或先查看最近订单。"
             );
         }
-        OrderDetailResponse response = orderService.getOrderDetail(userId, order.getId());
         aiToolContextHolder.addToolTrace(
                 "getOrderDetailByOrderNo",
                 "order",

@@ -42,6 +42,15 @@ public interface OrderService {
     OrderDetailResponse getOrderDetail(Long userId, Long orderId);
 
     /**
+     * 根据订单号获取当前用户的订单详情。
+     *
+     * @param userId 当前登录用户 ID
+     * @param orderNo 订单号
+     * @return 订单详情；未找到时返回 null
+     */
+    OrderDetailResponse getOrderDetailByOrderNo(Long userId, String orderNo);
+
+    /**
      * 执行订单支付。
      *
      * @param userId 当前登录用户 ID

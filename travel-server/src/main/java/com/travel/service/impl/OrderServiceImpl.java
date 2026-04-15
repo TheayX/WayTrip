@@ -130,6 +130,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public OrderDetailResponse getOrderDetailByOrderNo(Long userId, String orderNo) {
+        Order order = getUserOrderByOrderNo(userId, orderNo);
+        if (order == null) {
+            return null;
+        }
+        fillSpotInfoSingle(order);
+        return buildOrderDetail(order, false);
+    }
+
+    @Override
     @Transactional
     public OrderDetailResponse payOrder(Long userId, Long orderId, String idempotentKey) {
         Order order = getUserOrder(userId, orderId);
@@ -347,6 +357,21 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("订单不存在");
         }
         refreshPendingTimeoutOrder(order);
+        return order;
+    }
+
+    private Order getUserOrderByOrderNo(Long userId, String orderNo) {
+        getActiveUser(userId);
+        Order order = orderMapper.selectOne(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, userId)
+                .eq(Order::getOrderNo, orderNo == null ? "" : orderNo.trim())
+                .eq(Order::getIsDeleted, 0)
+                .last("LIMIT 1")
+        );
+        if (order != null) {
+            refreshPendingTimeoutOrder(order);
+        }
         return order;
     }
 
