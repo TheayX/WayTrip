@@ -87,7 +87,8 @@ public class AiPromptService {
      * @param currentMessage 当前消息
      * @return 合并后的用户输入
      */
-    public String buildUserPrompt(List<AiConversationTurn> history, String currentMessage, List<AiKnowledgeSnippet> knowledgeSnippets) {
+    public String buildUserPrompt(List<AiConversationTurn> history, String currentMessage,
+                                  List<AiKnowledgeSnippet> knowledgeSnippets, List<String> prefetchedFacts) {
         StringBuilder prompt = new StringBuilder();
         if (history != null && !history.isEmpty()) {
             prompt.append("最近对话上下文：\n");
@@ -104,6 +105,13 @@ public class AiPromptService {
                         .append("] ")
                         .append(snippet.getSnippet())
                         .append('\n');
+            }
+            prompt.append('\n');
+        }
+        if (prefetchedFacts != null && !prefetchedFacts.isEmpty()) {
+            prompt.append("系统已获取的业务事实：\n");
+            for (String fact : prefetchedFacts) {
+                prompt.append("- ").append(fact).append('\n');
             }
             prompt.append('\n');
         }

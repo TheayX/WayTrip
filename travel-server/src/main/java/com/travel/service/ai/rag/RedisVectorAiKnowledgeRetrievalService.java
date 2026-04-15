@@ -43,17 +43,18 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
         try {
             List<AiKnowledgeSnippet> snippets = mapToSnippets(vectorStore.similaritySearch(request), domain);
             log.info(
-                    "AI RAG 检索完成: scenario={}, domain={}, queryLength={}, hitCount={}, latencyMs={}",
+                    "AI RAG 检索完成：场景={}, 知识域={}, 用户问题长度={}, 命中数量={}, 命中标题={}, 总耗时Ms={}",
                     scenario,
                     domain,
                     userMessage.trim().length(),
                     snippets.size(),
+                    snippets.stream().map(AiKnowledgeSnippet::getTitle).toList(),
                     System.currentTimeMillis() - startedAt
             );
             return snippets;
         } catch (Exception exception) {
             log.error(
-                    "AI 向量检索失败: scenario={}, domain={}, queryLength={}, latencyMs={}",
+                    "AI 向量检索失败：场景={}, 知识域={}, 用户问题长度={}, 总耗时Ms={}",
                     scenario,
                     domain,
                     userMessage.trim().length(),

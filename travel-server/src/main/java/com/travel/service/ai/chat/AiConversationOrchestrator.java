@@ -23,6 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +35,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AiConversationOrchestrator {
+
+    private static final Pattern ORDER_NO_PATTERN = Pattern.compile("\\bT\\d{10,}\\d*\\b", Pattern.CASE_INSENSITIVE);
 
     private final ChatClient aiChatClient;
     private final AiSessionIdService aiSessionIdService;
@@ -66,21 +71,23 @@ public class AiConversationOrchestrator {
         AiScenarioType scenario = aiScenarioRouter.route(userMessage, request.getScenarioHint(), request.getSourcePage());
         List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
         String systemPrompt = aiPromptService.buildSystemPrompt(scenario);
-        String userPrompt = aiPromptService.buildUserPrompt(history, userMessage, knowledgeSnippets);
         String messageId = aiSessionIdService.createSessionId();
         log.info(
-                "AI 对话开始: sessionId={}, messageId={}, userId={}, scenario={}, sourcePage={}, historyRounds={}, ragHits={}",
+                "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 来源页面={}, 历史轮次={}, RAG命中数={}, 用户问题预览={}",
                 sessionId,
                 messageId,
                 userId,
                 scenario,
                 request.getSourcePage(),
                 history.size(),
-                knowledgeSnippets.size()
+                knowledgeSnippets.size(),
+                previewText(userMessage, 80)
         );
 
         try {
             aiToolContextHolder.setCurrentUserId(userId);
+            List<String> prefetchedFacts = prefetchBusinessFacts(scenario, userMessage);
+            String userPrompt = aiPromptService.buildUserPrompt(history, userMessage, knowledgeSnippets, prefetchedFacts);
             ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
                     .system(systemPrompt)
                     .user(userPrompt);
@@ -96,13 +103,17 @@ public class AiConversationOrchestrator {
                     .map(item -> item.getToolName() + ":" + item.getSuccess())
                     .collect(Collectors.toList());
             log.info(
-                    "AI 对话完成: sessionId={}, messageId={}, scenario={}, toolCalls={}, ragTitles={}, replyLength={}, latencyMs={}",
+                    "AI 对话完成：会话ID={}, 消息ID={}, 场景={}, 是否命中RAG={}, RAG标题={}, 工具调用数量={}, 工具调用详情={}, 预取事实预览={}, 回复长度={}, 回复预览={}, 总耗时Ms={}",
                     sessionId,
                     messageId,
                     scenario,
-                    toolNames,
+                    !knowledgeSnippets.isEmpty(),
                     knowledgeSnippets.stream().map(AiKnowledgeSnippet::getTitle).toList(),
+                    aiToolContextHolder.getToolTraces().size(),
+                    toolNames,
+                    previewFacts(prefetchedFacts),
                     reply.trim().length(),
+                    previewText(reply.trim(), 120),
                     System.currentTimeMillis() - startedAt
             );
             return aiResponseAssembler.assemble(
@@ -115,20 +126,22 @@ public class AiConversationOrchestrator {
             );
         } catch (BusinessException e) {
             log.warn(
-                    "AI 对话业务拦截: sessionId={}, messageId={}, scenario={}, latencyMs={}, reason={}",
+                    "AI 对话业务拦截：会话ID={}, 消息ID={}, 场景={}, 用户问题预览={}, 总耗时Ms={}, 原因={}",
                     sessionId,
                     messageId,
                     scenario,
+                    previewText(userMessage, 80),
                     System.currentTimeMillis() - startedAt,
                     e.getMessage()
             );
             throw e;
         } catch (NonTransientAiException e) {
             log.error(
-                    "AI 模型调用失败: sessionId={}, messageId={}, scenario={}, latencyMs={}, error={}",
+                    "AI 模型调用失败：会话ID={}, 消息ID={}, 场景={}, 用户问题预览={}, 总耗时Ms={}, 错误={}",
                     sessionId,
                     messageId,
                     scenario,
+                    previewText(userMessage, 80),
                     System.currentTimeMillis() - startedAt,
                     e.getMessage(),
                     e
@@ -139,10 +152,11 @@ public class AiConversationOrchestrator {
             throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 服务响应异常，请稍后重试");
         } catch (Exception e) {
             log.error(
-                    "AI 对话执行失败: sessionId={}, messageId={}, scenario={}, latencyMs={}",
+                    "AI 对话执行失败：会话ID={}, 消息ID={}, 场景={}, 用户问题预览={}, 总耗时Ms={}",
                     sessionId,
                     messageId,
                     scenario,
+                    previewText(userMessage, 80),
                     System.currentTimeMillis() - startedAt,
                     e
             );
@@ -164,5 +178,87 @@ public class AiConversationOrchestrator {
             case OPERATION_ANALYZER -> new Object[]{recommendationAiTools};
             default -> new Object[0];
         };
+    }
+
+    private List<String> prefetchBusinessFacts(AiScenarioType scenario, String userMessage) {
+        if (scenario != AiScenarioType.ORDER_ADVISOR) {
+            return List.of();
+        }
+        if (!StringUtils.hasText(userMessage)) {
+            return List.of();
+        }
+
+        String normalized = userMessage.trim();
+        if (containsAny(normalized, "订单状态说明", "状态说明")) {
+            return List.of(stringifyFact(orderAiTools.getOrderSupportGuide("status")));
+        }
+        if (containsAny(normalized, "退款流程", "怎么退款", "退款怎么走", "售后流程")) {
+            return List.of(stringifyFact(orderAiTools.getOrderSupportGuide("refund")));
+        }
+        if (containsAny(normalized, "订单页", "看什么", "怎么看订单")) {
+            return List.of(stringifyFact(orderAiTools.getOrderSupportGuide("page")));
+        }
+        String orderNo = extractOrderNo(normalized);
+        if (StringUtils.hasText(orderNo)) {
+            return List.of(stringifyFact(orderAiTools.getOrderDetailByOrderNo(orderNo)));
+        }
+        if (containsAny(normalized, "几个订单", "我的订单", "最近订单", "订单列表", "已支付订单", "待支付订单", "已完成订单")) {
+            return List.of(stringifyFact(orderAiTools.getMyOrders(resolveOrderStatus(normalized), 5)));
+        }
+        return List.of();
+    }
+
+    private String resolveOrderStatus(String userMessage) {
+        if (containsAny(userMessage, "已支付", "待出行")) {
+            return "paid";
+        }
+        if (containsAny(userMessage, "待支付", "未支付")) {
+            return "pending";
+        }
+        if (containsAny(userMessage, "已完成")) {
+            return "completed";
+        }
+        if (containsAny(userMessage, "已取消")) {
+            return "cancelled";
+        }
+        return null;
+    }
+
+    private String extractOrderNo(String userMessage) {
+        Matcher matcher = ORDER_NO_PATTERN.matcher(userMessage);
+        return matcher.find() ? matcher.group() : "";
+    }
+
+    private boolean containsAny(String source, String... keywords) {
+        for (String keyword : keywords) {
+            if (source.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String stringifyFact(Map<String, Object> fact) {
+        return fact == null ? "" : fact.toString();
+    }
+
+    private String previewFacts(List<String> facts) {
+        if (facts == null || facts.isEmpty()) {
+            return "无";
+        }
+        return facts.stream()
+                .map(item -> previewText(item, 120))
+                .collect(Collectors.joining(" | "));
+    }
+
+    private String previewText(String text, int maxLength) {
+        if (!StringUtils.hasText(text)) {
+            return "无";
+        }
+        String normalized = text.trim().replaceAll("\\s+", " ");
+        if (normalized.length() <= maxLength) {
+            return normalized;
+        }
+        return normalized.substring(0, maxLength) + "...";
     }
 }
