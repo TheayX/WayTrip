@@ -1,18 +1,28 @@
 <template>
   <div class="ai-chat-widget">
     <button v-if="!isOpen" class="chat-launcher" @click="openChat">
+      <el-icon class="launcher-icon"><Service /></el-icon>
       AI 助手
     </button>
 
     <div v-else class="chat-panel">
       <div class="chat-header">
-        <div>
-          <div class="chat-title">WayTrip AI 助手</div>
-          <div class="chat-subtitle">推荐、规划、订单与规则问答</div>
+        <div class="chat-header-left">
+          <div class="chat-avatar">
+            <el-icon><Monitor /></el-icon>
+          </div>
+          <div>
+            <div class="chat-title">WayTrip AI 助手</div>
+            <div class="chat-subtitle">推荐、规划、订单与规则问答</div>
+          </div>
         </div>
         <div class="chat-actions">
-          <button class="text-btn" :disabled="loading" @click="clearMessages">清空</button>
-          <button class="text-btn" @click="closeChat">关闭</button>
+          <button class="icon-btn" :disabled="loading" @click="clearMessages" title="清空对话">
+            <el-icon><Delete /></el-icon>
+          </button>
+          <button class="icon-btn" @click="closeChat" title="关闭">
+            <el-icon><Close /></el-icon>
+          </button>
         </div>
       </div>
 
@@ -30,7 +40,10 @@
             </div>
 
             <div v-if="item.role === 'assistant' && item.citations?.length" class="assistant-meta">
-              <div class="meta-title">知识参考</div>
+              <div class="meta-title">
+                <el-icon><Document /></el-icon>
+                知识参考
+              </div>
               <div class="citation-list">
                 <div
                   v-for="citation in item.citations"
@@ -47,7 +60,10 @@
             </div>
 
             <div v-if="item.role === 'assistant' && item.suggestions?.length" class="assistant-meta">
-              <div class="meta-title">你也可以继续问</div>
+              <div class="meta-title">
+                <el-icon><ChatLineSquare /></el-icon>
+                你也可以继续问
+              </div>
               <div class="suggestion-list">
                 <button
                   v-for="suggestion in item.suggestions"
@@ -87,7 +103,14 @@
           </div>
         </div>
 
-        <div v-if="loading" class="typing-hint">正在生成回复，请稍候...</div>
+        <div v-if="loading" class="typing-hint">
+          <div class="typing-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          正在生成回复，请稍候...
+        </div>
       </div>
 
       <div class="chat-input">
@@ -100,7 +123,12 @@
           :disabled="loading"
           @keydown.enter.exact.prevent="sendMessage"
         />
-        <el-button type="primary" :loading="loading" @click="sendMessage">发送</el-button>
+        <el-button class="send-btn" type="primary" :loading="loading" @click="sendMessage">
+          <template #icon v-if="!loading">
+            <el-icon><Position /></el-icon>
+          </template>
+          发送
+        </el-button>
       </div>
     </div>
   </div>
@@ -110,7 +138,11 @@
 import { nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Bottom, Top } from '@element-plus/icons-vue'
+import { 
+  Bottom, Top, Service, Monitor, 
+  Delete, Close, Position, Document,
+  ChatLineSquare
+} from '@element-plus/icons-vue'
 import { storeToRefs } from 'pinia'
 import { resolveAiErrorMessage } from '@/shared/lib/ai-chat.js'
 import { useAiChatStore } from '@/shared/store/ai-chat.js'
@@ -211,48 +243,89 @@ function resolveScenarioHint() {
 }
 
 .chat-launcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   border: none;
   border-radius: 999px;
-  padding: 13px 20px;
+  padding: 14px 24px;
   background: linear-gradient(135deg, #0f766e, #0ea5e9);
   color: #fff;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 16px 34px rgba(14, 165, 233, 0.28);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.3);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.chat-launcher:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(14, 165, 233, 0.4);
+}
+
+.launcher-icon {
+  font-size: 20px;
 }
 
 .chat-panel {
-  width: 400px;
-  height: 600px;
+  width: 480px;
+  height: 720px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
   background: #ffffff;
-  border: 1px solid rgba(203, 213, 225, 0.88);
+  border: 1px solid rgba(203, 213, 225, 0.6);
   border-radius: 24px;
-  box-shadow: 0 28px 50px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.16), 0 12px 24px rgba(15, 23, 42, 0.08);
   overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: bottom right;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .chat-header {
-  min-height: 72px;
+  min-height: 80px;
   background: linear-gradient(135deg, #0f766e, #0369a1);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 16px 20px;
+}
+
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .chat-title {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
+  letter-spacing: 0.5px;
 }
 
 .chat-subtitle {
   margin-top: 4px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .chat-actions {
@@ -260,31 +333,60 @@ function resolveScenarioHint() {
   gap: 8px;
 }
 
-.text-btn {
+.icon-btn {
   border: none;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   color: #fff;
-  font-size: 12px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.text-btn:disabled {
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.icon-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.62;
+  opacity: 0.5;
+  transform: none;
 }
 
 .message-list {
   flex: 1;
-  padding: 16px;
-  background:
-    radial-gradient(circle at top, rgba(125, 211, 252, 0.16), transparent 34%),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 24px 20px;
+  background: #f8fafc;
   overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.message-list::-webkit-scrollbar {
+  width: 6px;
+}
+.message-list::-webkit-scrollbar-thumb {
+  background: rgba(203, 213, 225, 0.8);
+  border-radius: 3px;
+}
+.message-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .message-item {
   display: flex;
-  margin-bottom: 14px;
+  margin-bottom: 24px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .message-item.user {
@@ -296,89 +398,95 @@ function resolveScenarioHint() {
 }
 
 .message-card {
-  max-width: 88%;
+  max-width: 85%;
 }
 
 .message-bubble {
-  padding: 12px 14px;
-  border-radius: 16px;
+  padding: 14px 18px;
+  border-radius: 18px;
   white-space: pre-wrap;
   word-break: break-word;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .message-item.user .message-bubble {
   background: linear-gradient(135deg, #0ea5e9, #2563eb);
   color: #fff;
-  border-bottom-right-radius: 6px;
+  border-bottom-right-radius: 4px;
 }
 
 .message-item.assistant .message-bubble {
   background: #fff;
   color: #1e293b;
-  border: 1px solid rgba(226, 232, 240, 0.96);
-  border-bottom-left-radius: 6px;
-  box-shadow: 0 16px 28px rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-bottom-left-radius: 4px;
 }
 
 .assistant-meta {
-  margin-top: 8px;
+  margin-top: 12px;
+  padding-left: 4px;
 }
 
 .meta-title {
-  margin-bottom: 6px;
-  font-size: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
   font-weight: 600;
-  color: #475569;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.meta-list,
 .suggestion-list {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.meta-chip,
 .suggestion-chip {
-  min-height: 30px;
-  padding: 0 10px;
+  padding: 8px 16px;
   border-radius: 999px;
-  border: 1px solid rgba(186, 230, 253, 0.96);
-  background: rgba(240, 249, 255, 0.96);
-  color: #0f172a;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  background: rgba(240, 249, 255, 0.8);
+  color: #0369a1;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-}
-
-.meta-chip.danger {
-  border-color: rgba(254, 205, 211, 0.96);
-  background: rgba(255, 241, 242, 0.96);
-}
-
-.suggestion-chip {
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestion-chip:hover {
+  background: rgba(14, 165, 233, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
 }
 
 .suggestion-chip:disabled {
   cursor: not-allowed;
-  opacity: 0.68;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
 }
 
 .citation-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .citation-card {
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(226, 232, 240, 0.96);
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  transition: box-shadow 0.2s;
+}
+
+.citation-card:hover {
+  box-shadow: 0 4px 12px rgba(148, 163, 184, 0.1);
 }
 
 .citation-head {
@@ -389,46 +497,62 @@ function resolveScenarioHint() {
 }
 
 .citation-title {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: #0f172a;
+  color: #334155;
 }
 
 .citation-type {
   font-size: 11px;
-  color: #0369a1;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-weight: 500;
 }
 
 .citation-snippet {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 12px;
   line-height: 1.6;
-  color: #475569;
+  color: #64748b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .feedback-row {
-  margin-top: 8px;
+  margin-top: 12px;
+  padding-left: 4px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .feedback-btn {
-  min-height: 32px;
-  padding: 0 12px;
-  border: 1px solid rgba(203, 213, 225, 0.92);
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid rgba(203, 213, 225, 0.8);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.96);
-  color: #475569;
+  background: #fff;
+  color: #64748b;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  font-size: 12px;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.feedback-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  color: #475569;
 }
 
 .feedback-btn.active {
-  border-color: rgba(14, 165, 233, 0.96);
-  background: rgba(224, 242, 254, 0.96);
-  color: #0369a1;
+  border-color: rgba(14, 165, 233, 0.5);
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
 .feedback-btn:disabled {
@@ -436,33 +560,82 @@ function resolveScenarioHint() {
 }
 
 .typing-hint {
-  padding-top: 4px;
-  font-size: 12px;
+  padding: 8px 12px;
+  font-size: 13px;
   color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.typing-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #94a3b8;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
 }
 
 .chat-input {
-  padding: 12px;
-  border-top: 1px solid rgba(226, 232, 240, 0.92);
+  padding: 16px 20px;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: flex-end;
   background: #fff;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
 }
 
-.chat-input :deep(.el-input) {
-  flex: 1;
-}
-
+.chat-input :deep(.el-input),
 .chat-input :deep(.el-textarea) {
   flex: 1;
 }
 
 .chat-input :deep(.el-textarea__inner) {
-  min-height: 44px;
-  border-radius: 16px;
-  padding-top: 11px;
-  padding-bottom: 11px;
+  min-height: 48px !important;
+  border-radius: 20px;
+  padding: 12px 16px;
+  font-size: 14px;
+  background: #f1f5f9;
+  border-color: transparent;
+  box-shadow: none;
+  transition: all 0.2s ease;
+  line-height: 1.5;
+}
+
+.chat-input :deep(.el-textarea__inner):focus {
+  background: #fff;
+  box-shadow: 0 0 0 1px #0ea5e9 inset;
+}
+
+.send-btn {
+  height: 48px;
+  border-radius: 24px;
+  padding: 0 24px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  border: none;
+  transition: opacity 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+
+.send-btn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {
@@ -473,16 +646,20 @@ function resolveScenarioHint() {
 
   .chat-panel {
     width: calc(100vw - 24px);
-    height: 72vh;
+    height: 75vh;
+    border-radius: 20px;
   }
 
   .chat-header {
-    align-items: flex-start;
+    padding: 14px 16px;
   }
 
   .message-card {
-    max-width: 100%;
+    max-width: 90%;
+  }
+
+  .chat-input {
+    padding: 12px 16px;
   }
 }
 </style>
-
