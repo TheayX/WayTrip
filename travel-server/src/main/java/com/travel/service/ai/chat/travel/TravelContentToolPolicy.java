@@ -40,7 +40,7 @@ public class TravelContentToolPolicy {
     }
 
     private Map<String, Object> fetchSpotFact(String keyword, Integer limit) {
-        Map<String, Object> searchPayload = spotAiTools.searchSpots(keyword, null, null, limit);
+        Map<String, Object> searchPayload = searchWithFallback(keyword, limit);
         Object listValue = searchPayload.get("list");
         if (!(listValue instanceof List<?> list) || list.isEmpty()) {
             return searchPayload;
@@ -52,6 +52,21 @@ public class TravelContentToolPolicy {
         Map<String, Object> payload = new LinkedHashMap<>(searchPayload);
         payload.put("detail", spotAiTools.getSpotDetails(id.longValue()));
         return payload;
+    }
+
+    private Map<String, Object> searchWithFallback(String keyword, Integer limit) {
+        for (String candidate : TravelContentKeywordNormalizer.buildFallbackKeywords(keyword)) {
+            Map<String, Object> payload = spotAiTools.searchSpots(candidate, null, null, limit);
+            Object total = payload.get("total");
+            if (total instanceof Number number && number.longValue() > 0) {
+                return payload;
+            }
+            Object listValue = payload.get("list");
+            if (listValue instanceof List<?> list && !list.isEmpty()) {
+                return payload;
+            }
+        }
+        return spotAiTools.searchSpots(TravelContentKeywordNormalizer.normalizeSearchKeyword(keyword), null, null, limit);
     }
 
     private String resolveKeyword(AiIntentClassificationResult intentResult) {

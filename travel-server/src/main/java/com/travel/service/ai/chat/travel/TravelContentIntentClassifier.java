@@ -59,8 +59,10 @@ public class TravelContentIntentClassifier {
 
     private AiIntentClassificationResult parseModelJson(JsonNode root, AiScenarioType scenario) {
         TravelContentIntent intent = parseIntent(root.path("intent").asText(""));
-        String keyword = firstText(root.path("keyword").asText(""), root.path("spotName").asText(""));
-        String spotName = root.path("spotName").asText("");
+        String keyword = TravelContentKeywordNormalizer.normalizeSearchKeyword(
+                firstText(root.path("keyword").asText(""), root.path("spotName").asText(""))
+        );
+        String spotName = TravelContentKeywordNormalizer.normalizeSearchKeyword(root.path("spotName").asText(""));
         String city = root.path("city").asText("");
         int limit = normalizeLimit(root.path("limit").asInt(5));
         AiScenarioType resolvedScenario = intent == TravelContentIntent.GUIDE_SEARCH ? AiScenarioType.GUIDE_QA : scenario;
@@ -74,10 +76,10 @@ public class TravelContentIntentClassifier {
             return TravelContentIntent.NONE.name().equals(fallback.intent()) ? classified : fallback;
         }
         String keyword = StringUtils.hasText(classified.slotAsString(AiIntentSlots.KEYWORD))
-                ? classified.slotAsString(AiIntentSlots.KEYWORD)
+                ? TravelContentKeywordNormalizer.normalizeSearchKeyword(classified.slotAsString(AiIntentSlots.KEYWORD))
                 : fallback.slotAsString(AiIntentSlots.KEYWORD);
         String spotName = StringUtils.hasText(classified.slotAsString(AiIntentSlots.SPOT_NAME))
-                ? classified.slotAsString(AiIntentSlots.SPOT_NAME)
+                ? TravelContentKeywordNormalizer.normalizeSearchKeyword(classified.slotAsString(AiIntentSlots.SPOT_NAME))
                 : fallback.slotAsString(AiIntentSlots.SPOT_NAME);
         String city = StringUtils.hasText(classified.slotAsString(AiIntentSlots.CITY))
                 ? classified.slotAsString(AiIntentSlots.CITY)

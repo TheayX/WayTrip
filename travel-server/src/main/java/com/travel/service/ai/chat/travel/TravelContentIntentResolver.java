@@ -62,23 +62,8 @@ public class TravelContentIntentResolver {
     }
 
     private String normalizeKeyword(String userMessage) {
-        String normalized = userMessage.trim()
-                .replace("帮我", "")
-                .replace("看看", "")
-                .replace("查询", "")
-                .replace("搜索", "")
-                .replace("景点", "")
+        String normalized = TravelContentKeywordNormalizer.normalizeSearchKeyword(userMessage)
                 .replace("攻略", "")
-                .replace("门票多少钱", "")
-                .replace("多少钱", "")
-                .replace("开放时间", "")
-                .replace("地址", "")
-                .replace("评分", "")
-                .replace("怎么玩", "")
-                .replace("有什么", "")
-                .replace("吗", "")
-                .replace("？", "")
-                .replace("?", "")
                 .trim();
         return StringUtils.hasText(normalized) ? normalized : userMessage.trim();
     }
