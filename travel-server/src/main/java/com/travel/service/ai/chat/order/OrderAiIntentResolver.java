@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 @Component
 public class OrderAiIntentResolver {
 
-    private static final Pattern ORDER_NO_PATTERN = Pattern.compile("\\bT\\d{10,}\\d*\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ORDER_NO_PATTERN = Pattern.compile("(?i)(?<![A-Z0-9])T\\d{10,}(?!\\d)");
 
     /**
      * 解析订单相关意图与必要槽位。

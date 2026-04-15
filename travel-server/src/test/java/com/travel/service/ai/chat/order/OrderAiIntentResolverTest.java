@@ -48,4 +48,12 @@ class OrderAiIntentResolverTest {
         assertEquals(OrderAiIntent.DETAIL_BY_ORDER_NO, result.intent());
         assertEquals("T202604150001", result.orderNo());
     }
+
+    @Test
+    void resolveOrderNoDetailWithoutSpace() {
+        OrderAiIntentResult result = resolver.resolve("帮我看看订单T202604121416166706");
+
+        assertEquals(OrderAiIntent.DETAIL_BY_ORDER_NO, result.intent());
+        assertEquals("T202604121416166706", result.orderNo());
+    }
 }
