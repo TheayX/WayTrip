@@ -24,6 +24,8 @@ public class AiScenarioRouter {
             不要回答用户问题，不要解释，不要输出 Markdown。
             可选 scenario：
             - ORDER_ADVISOR：订单查询、订单状态、退款、售后、支付取消、订单号相关问题
+            - SPOT_QA：景点搜索、景点价格、开放时间、地址、评分、景点介绍
+            - GUIDE_QA：攻略搜索、怎么玩、避坑建议、玩法摘要、目的地攻略
             - TRAVEL_PLANNER：行程规划、路线安排、预算玩法、去哪玩、怎么玩
             - RECOMMENDATION_EXPLAINER：推荐理由、相似景点、为什么推荐
             - USER_PROFILE_ANALYZER：用户偏好、画像、适合什么类型景点

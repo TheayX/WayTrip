@@ -6,6 +6,7 @@ import com.travel.dto.ai.request.AiChatMessageRequest;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.chat.order.OrderAiDirectResponseService;
+import com.travel.service.ai.chat.travel.TravelContentDirectResponseService;
 import com.travel.service.ai.guardrail.AiGuardrailService;
 import com.travel.service.ai.memory.AiConversationMemoryService;
 import com.travel.service.ai.memory.AiConversationTurn;
@@ -40,6 +41,7 @@ public class AiConversationOrchestrator {
     private final AiConversationMemoryService aiConversationMemoryService;
     private final AiScenarioRouter aiScenarioRouter;
     private final OrderAiDirectResponseService orderAiDirectResponseService;
+    private final TravelContentDirectResponseService travelContentDirectResponseService;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
@@ -192,6 +194,7 @@ public class AiConversationOrchestrator {
     private Object[] resolveTools(AiScenarioType scenario) {
         return switch (scenario) {
             case ORDER_ADVISOR -> new Object[]{orderAiTools, spotAiTools};
+            case SPOT_QA, GUIDE_QA -> new Object[]{spotAiTools};
             case RECOMMENDATION_EXPLAINER, TRAVEL_PLANNER -> new Object[]{recommendationAiTools, spotAiTools, orderAiTools};
             case USER_PROFILE_ANALYZER -> new Object[]{recommendationAiTools, orderAiTools};
             case OPERATION_ANALYZER -> new Object[]{recommendationAiTools};
@@ -214,10 +217,14 @@ public class AiConversationOrchestrator {
                                                          AiScenarioType scenario,
                                                          String userMessage,
                                                          List<AiKnowledgeSnippet> knowledgeSnippets) {
-        if (scenario != AiScenarioType.ORDER_ADVISOR || !StringUtils.hasText(userMessage)) {
+        if (!StringUtils.hasText(userMessage)) {
             return null;
         }
-        String reply = orderAiDirectResponseService.tryReply(userMessage);
+        String reply = switch (scenario) {
+            case ORDER_ADVISOR -> orderAiDirectResponseService.tryReply(userMessage);
+            case SPOT_QA, GUIDE_QA -> travelContentDirectResponseService.tryReply(userMessage, scenario);
+            default -> "";
+        };
         if (!StringUtils.hasText(reply)) {
             return null;
         }

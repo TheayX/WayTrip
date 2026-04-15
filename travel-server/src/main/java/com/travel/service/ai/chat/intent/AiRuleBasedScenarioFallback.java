@@ -23,6 +23,12 @@ public class AiRuleBasedScenarioFallback {
         if (containsAny(merged, "退款", "退票", "改签", "订单", "售后", "赔付")) {
             return AiScenarioType.ORDER_ADVISOR;
         }
+        if (containsAny(merged, "攻略", "避坑", "玩法", "怎么玩")) {
+            return AiScenarioType.GUIDE_QA;
+        }
+        if (containsAny(merged, "景点", "门票", "开放时间", "地址", "评分", "适合亲子", "适合情侣")) {
+            return AiScenarioType.SPOT_QA;
+        }
         if (containsAny(merged, "为什么推荐", "推荐理由", "解释推荐")) {
             return AiScenarioType.RECOMMENDATION_EXPLAINER;
         }
