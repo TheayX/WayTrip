@@ -54,7 +54,7 @@ public class OperationAiTools {
                 true,
                 "已获取管理端运营概览"
         );
-        return result;
+        return AiToolResponse.success("已获取管理端运营概览", result);
     }
 
     /**
@@ -76,9 +76,10 @@ public class OperationAiTools {
                 true,
                 "已获取订单趋势统计"
         );
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("list", trend.getList());
-        return result;
+        return AiToolResponse.success(
+                "已获取订单趋势统计",
+                Map.of("list", trend.getList())
+        );
     }
 
     /**
@@ -98,9 +99,10 @@ public class OperationAiTools {
                 true,
                 "已获取热门景点统计"
         );
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("list", hotSpots.getList());
-        return result;
+        return AiToolResponse.success(
+                "已获取热门景点统计",
+                Map.of("list", hotSpots.getList())
+        );
     }
 
     private Integer normalizeDays(Integer days) {

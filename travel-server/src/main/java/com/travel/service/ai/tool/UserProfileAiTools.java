@@ -45,6 +45,6 @@ public class UserProfileAiTools {
                 true,
                 "已获取当前用户行为画像摘要"
         );
-        return result;
+        return AiToolResponse.success("已获取当前用户行为画像摘要", result);
     }
 }

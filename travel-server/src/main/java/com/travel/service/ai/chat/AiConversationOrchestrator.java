@@ -12,11 +12,7 @@ import com.travel.service.ai.rag.AiKnowledgeContextAdvisor;
 import com.travel.service.ai.rag.AiKnowledgeRetrievalService;
 import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import com.travel.service.ai.tool.AiToolContextHolder;
-import com.travel.service.ai.tool.OperationAiTools;
-import com.travel.service.ai.tool.OrderAiTools;
-import com.travel.service.ai.tool.RecommendationAiTools;
-import com.travel.service.ai.tool.SpotAiTools;
-import com.travel.service.ai.tool.UserProfileAiTools;
+import com.travel.service.ai.tool.AiToolRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -47,11 +43,7 @@ public class AiConversationOrchestrator {
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
     private final AiKnowledgeContextAdvisor aiKnowledgeContextAdvisor;
     private final AiToolContextHolder aiToolContextHolder;
-    private final RecommendationAiTools recommendationAiTools;
-    private final OrderAiTools orderAiTools;
-    private final SpotAiTools spotAiTools;
-    private final UserProfileAiTools userProfileAiTools;
-    private final OperationAiTools operationAiTools;
+    private final AiToolRegistry aiToolRegistry;
 
     /**
      * 处理单轮聊天请求。
@@ -99,8 +91,9 @@ public class AiConversationOrchestrator {
                     .system(systemPrompt)
                     .user(userMessage);
 
-            if (shouldEnableTools(scenario)) {
-                requestSpec = requestSpec.tools(resolveTools(scenario));
+            Object[] tools = aiToolRegistry.resolveTools(scenario);
+            if (tools.length > 0) {
+                requestSpec = requestSpec.tools(tools);
             }
             String reply = requestSpec.call().content();
             if (!StringUtils.hasText(reply)) {
@@ -171,21 +164,6 @@ public class AiConversationOrchestrator {
         } finally {
             aiToolContextHolder.clear();
         }
-    }
-
-    private boolean shouldEnableTools(AiScenarioType scenario) {
-        return scenario != AiScenarioType.CUSTOMER_SERVICE;
-    }
-
-    private Object[] resolveTools(AiScenarioType scenario) {
-        return switch (scenario) {
-            case ORDER_ADVISOR -> new Object[]{orderAiTools, spotAiTools};
-            case SPOT_QA, GUIDE_QA -> new Object[]{spotAiTools};
-            case RECOMMENDATION_EXPLAINER, TRAVEL_PLANNER -> new Object[]{recommendationAiTools, spotAiTools, orderAiTools};
-            case USER_PROFILE_ANALYZER -> new Object[]{userProfileAiTools};
-            case OPERATION_ANALYZER -> new Object[]{operationAiTools};
-            default -> new Object[]{spotAiTools};
-        };
     }
 
     private String previewText(String text, int maxLength) {

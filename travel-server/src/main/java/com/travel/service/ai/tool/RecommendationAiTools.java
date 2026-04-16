@@ -42,10 +42,13 @@ public class RecommendationAiTools {
                 true,
                 "已查询当前登录用户的个性化推荐结果，共 " + (response.getList() == null ? 0 : response.getList().size()) + " 条"
         );
-        return Map.of(
-                "type", response.getType(),
-                "needPreference", Boolean.TRUE.equals(response.getNeedPreference()),
-                "spots", simplifyRecommendationItems(response.getList())
+        return AiToolResponse.success(
+                "已获取个性化推荐结果",
+                Map.of(
+                        "type", response.getType(),
+                        "needPreference", Boolean.TRUE.equals(response.getNeedPreference()),
+                        "spots", simplifyRecommendationItems(response.getList())
+                )
         );
     }
 
@@ -65,7 +68,10 @@ public class RecommendationAiTools {
                 true,
                 "已查询热门景点，共 " + (response.getList() == null ? 0 : response.getList().size()) + " 条"
         );
-        return Map.of("spots", response.getList());
+        return AiToolResponse.success(
+                "已获取热门景点推荐",
+                Map.of("spots", response.getList())
+        );
     }
 
     /**
@@ -92,10 +98,13 @@ public class RecommendationAiTools {
                 true,
                 "已按经纬度查询附近景点，共 " + response.getTotal() + " 条"
         );
-        return Map.of(
-                "total", response.getTotal(),
-                "nearestDistanceKm", response.getNearestDistanceKm(),
-                "spots", response.getList()
+        return AiToolResponse.success(
+                "已获取附近景点",
+                Map.of(
+                        "total", response.getTotal(),
+                        "nearestDistanceKm", response.getNearestDistanceKm(),
+                        "spots", response.getList()
+                )
         );
     }
 
@@ -117,10 +126,13 @@ public class RecommendationAiTools {
                 true,
                 "已查询景点 " + spotId + " 的相似景点，共 " + (response.getNeighbors() == null ? 0 : response.getNeighbors().size()) + " 条"
         );
-        return Map.of(
-                "spotId", response.getSpotId(),
-                "spotName", response.getSpotName(),
-                "neighbors", response.getNeighbors()
+        return AiToolResponse.success(
+                "已获取相似景点",
+                Map.of(
+                        "spotId", response.getSpotId(),
+                        "spotName", response.getSpotName(),
+                        "neighbors", response.getNeighbors()
+                )
         );
     }
 

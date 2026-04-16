@@ -39,7 +39,7 @@ public class OrderAiTools {
                 true,
                 "已提供订单通用说明，主题为 " + normalizedTopic
         );
-        return switch (normalizedTopic) {
+        Map<String, Object> data = switch (normalizedTopic) {
             case "status" -> Map.of(
                     "topic", "status",
                     "title", "订单状态说明",
@@ -79,6 +79,7 @@ public class OrderAiTools {
                     )
             );
         };
+        return AiToolResponse.success("已获取订单通用说明", data);
     }
 
     /**
@@ -103,9 +104,12 @@ public class OrderAiTools {
                 true,
                 "已查询当前登录用户的订单列表，共 " + response.getTotal() + " 条"
         );
-        return Map.of(
-                "total", response.getTotal(),
-                "list", simplifyOrderItems(response.getList())
+        return AiToolResponse.success(
+                "已获取当前登录用户的订单列表",
+                Map.of(
+                        "total", response.getTotal(),
+                        "list", simplifyOrderItems(response.getList())
+                )
         );
     }
 
@@ -125,7 +129,7 @@ public class OrderAiTools {
                 true,
                 "已查询订单详情，订单号为 " + response.getOrderNo()
         );
-        return simplifyOrderDetail(response);
+        return AiToolResponse.success("已获取订单详情", simplifyOrderDetail(response));
     }
 
     /**
@@ -146,11 +150,7 @@ public class OrderAiTools {
                     false,
                     "未找到订单号为 " + orderNo + " 的当前用户订单"
             );
-            return Map.of(
-                    "found", false,
-                    "orderNo", orderNo == null ? "" : orderNo.trim(),
-                    "message", "未找到匹配的订单，请确认订单号是否正确，或先查看最近订单。"
-            );
+            return AiToolResponse.failure("未找到匹配的订单，请确认订单号是否正确，或先查看最近订单。");
         }
         aiToolContextHolder.addToolTrace(
                 "getOrderDetailByOrderNo",
@@ -158,9 +158,7 @@ public class OrderAiTools {
                 true,
                 "已按订单号查询订单详情，订单号为 " + response.getOrderNo()
         );
-        Map<String, Object> result = simplifyOrderDetail(response);
-        result.put("found", true);
-        return result;
+        return AiToolResponse.success("已按订单号获取订单详情", simplifyOrderDetail(response));
     }
 
     /**
@@ -179,14 +177,17 @@ public class OrderAiTools {
                 true,
                 "已根据订单状态生成售后建议，当前状态为 " + detail.getStatusText()
         );
-        return Map.of(
-                "orderId", detail.getId(),
-                "orderNo", detail.getOrderNo(),
-                "status", detail.getStatus(),
-                "statusText", detail.getStatusText(),
-                "canPay", Boolean.TRUE.equals(detail.getCanPay()),
-                "canCancel", Boolean.TRUE.equals(detail.getCanCancel()),
-                "ruleNote", "退款金额、到账时间、售后细则必须以订单页和平台规则为准。"
+        return AiToolResponse.success(
+                "已生成订单售后建议",
+                Map.of(
+                        "orderId", detail.getId(),
+                        "orderNo", detail.getOrderNo(),
+                        "status", detail.getStatus(),
+                        "statusText", detail.getStatusText(),
+                        "canPay", Boolean.TRUE.equals(detail.getCanPay()),
+                        "canCancel", Boolean.TRUE.equals(detail.getCanCancel()),
+                        "ruleNote", "退款金额、到账时间、售后细则必须以订单页和平台规则为准。"
+                )
         );
     }
 

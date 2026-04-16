@@ -8,7 +8,6 @@ import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.dto.spot.response.SpotListResponse;
 import com.travel.service.GuideService;
 import com.travel.service.SpotService;
-    // TravelContentKeywordNormalizer removed
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -46,7 +45,7 @@ public class SpotAiTools {
                 true,
                 "已查询景点详情，景点名称为 " + detail.getName()
         );
-        return simplifySpotDetail(detail);
+        return AiToolResponse.success("已获取景点详情", simplifySpotDetail(detail));
     }
 
     /**
@@ -73,7 +72,10 @@ public class SpotAiTools {
                     true,
                     "已按关键词搜索景点，关键词为 " + normalizedKeyword + "，共 " + response.getTotal() + " 条"
             );
-            return Map.of("total", response.getTotal(), "list", simplifySpotList(response.getList()));
+            return AiToolResponse.success(
+                    "已获取景点搜索结果",
+                    Map.of("total", response.getTotal(), "list", simplifySpotList(response.getList()))
+            );
         }
         SpotListRequest request = new SpotListRequest();
         request.setPage(1);
@@ -87,7 +89,10 @@ public class SpotAiTools {
                 true,
                 "已按分类或地区筛选景点，共 " + response.getTotal() + " 条"
         );
-        return Map.of("total", response.getTotal(), "list", simplifySpotList(response.getList()));
+        return AiToolResponse.success(
+                "已获取景点筛选结果",
+                Map.of("total", response.getTotal(), "list", simplifySpotList(response.getList()))
+        );
     }
 
     private PageResult<SpotListResponse> searchSpotByAiKeyword(String keyword, Integer limit) {
@@ -123,7 +128,10 @@ public class SpotAiTools {
                 true,
                 "已查询相关攻略摘要，共 " + response.getTotal() + " 条"
         );
-        return Map.of("total", response.getTotal(), "list", simplifyGuideList(response.getList()));
+        return AiToolResponse.success(
+                "已获取攻略摘要",
+                Map.of("total", response.getTotal(), "list", simplifyGuideList(response.getList()))
+        );
     }
 
     private int normalizeLimit(Integer limit, int fallback) {
