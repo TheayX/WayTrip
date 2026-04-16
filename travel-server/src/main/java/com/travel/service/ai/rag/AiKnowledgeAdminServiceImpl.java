@@ -1,6 +1,9 @@
 package com.travel.service.ai.rag;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.travel.common.exception.BusinessException;
+import com.travel.common.result.ResultCode;
+import com.travel.dto.ai.knowledge.AiKnowledgeDocumentDetailResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentItem;
 import com.travel.dto.ai.knowledge.AiKnowledgePreviewResponse;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
@@ -13,6 +16,8 @@ import com.travel.service.ai.AiKnowledgeAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -39,6 +44,22 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         Long documentId = aiKnowledgeIngestionService.upsertManualDocument(request);
         log.info("管理端创建 AI 知识文档：adminId={}, documentId={}, title={}", adminId, documentId, request.getTitle());
         return documentId;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateManualDocument(Long documentId, ManualAiKnowledgeUpsertRequest request, Long adminId) {
+        AiKnowledgeDocument document = getActiveDocument(documentId);
+        document.setTitle(request.getTitle().trim());
+        document.setKnowledgeDomain(request.getKnowledgeDomain().name());
+        document.setContent(request.getContent().trim());
+        document.setSourceType(normalize(request.getSourceType(), "manual"));
+        document.setSourceRef(normalize(request.getSourceRef(), ""));
+        document.setTags(normalize(request.getTags(), ""));
+        document.setVersion(document.getVersion() == null ? 1 : document.getVersion() + 1);
+        aiKnowledgeDocumentMapper.updateById(document);
+        aiKnowledgeIngestionService.rebuildChunks(documentId);
+        log.info("管理端更新 AI 知识文档：adminId={}, documentId={}, title={}", adminId, documentId, request.getTitle());
     }
 
     @Override
@@ -69,6 +90,48 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
             item.setUpdatedAt(document.getUpdatedAt() == null ? null : document.getUpdatedAt().format(DATETIME_FORMATTER));
             return item;
         }).toList();
+    }
+
+    @Override
+    public AiKnowledgeDocumentDetailResponse getDocumentDetail(Long documentId) {
+        AiKnowledgeDocument document = getActiveDocument(documentId);
+        List<AiKnowledgeChunk> chunks = aiKnowledgeChunkMapper.selectList(
+                new LambdaQueryWrapper<AiKnowledgeChunk>()
+                        .eq(AiKnowledgeChunk::getDocumentId, documentId)
+                        .orderByAsc(AiKnowledgeChunk::getChunkIndex)
+        );
+
+        AiKnowledgeDocumentDetailResponse response = new AiKnowledgeDocumentDetailResponse();
+        response.setId(document.getId());
+        response.setTitle(document.getTitle());
+        response.setKnowledgeDomain(document.getKnowledgeDomain());
+        response.setSourceType(document.getSourceType());
+        response.setSourceRef(document.getSourceRef());
+        response.setContent(document.getContent());
+        response.setTags(document.getTags());
+        response.setVersion(document.getVersion());
+        response.setIsEnabled(document.getIsEnabled());
+        response.setChunkCount(chunks.size());
+        response.setUpdatedAt(document.getUpdatedAt() == null ? null : document.getUpdatedAt().format(DATETIME_FORMATTER));
+        response.setChunks(chunks.stream().map(chunk -> new AiKnowledgeSnippet(
+                document.getId(),
+                chunk.getId(),
+                document.getTitle(),
+                document.getSourceType(),
+                document.getSourceRef(),
+                chunk.getChunkText(),
+                document.getKnowledgeDomain()
+        )).toList());
+        return response;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateEnabledStatus(Long documentId, Integer isEnabled, Long adminId) {
+        AiKnowledgeDocument document = getActiveDocument(documentId);
+        document.setIsEnabled(isEnabled);
+        aiKnowledgeDocumentMapper.updateById(document);
+        log.info("管理端更新 AI 知识启用状态：adminId={}, documentId={}, isEnabled={}", adminId, documentId, isEnabled);
     }
 
     @Override
@@ -103,11 +166,23 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         return result;
     }
 
+    private AiKnowledgeDocument getActiveDocument(Long documentId) {
+        AiKnowledgeDocument document = aiKnowledgeDocumentMapper.selectById(documentId);
+        if (document == null || Integer.valueOf(1).equals(document.getIsDeleted())) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "知识文档不存在");
+        }
+        return document;
+    }
+
     private int countChunks(Long documentId) {
         Long count = aiKnowledgeChunkMapper.selectCount(
                 new LambdaQueryWrapper<AiKnowledgeChunk>()
                         .eq(AiKnowledgeChunk::getDocumentId, documentId)
         );
         return count == null ? 0 : count.intValue();
+    }
+
+    private String normalize(String value, String fallback) {
+        return StringUtils.hasText(value) ? value.trim() : fallback;
     }
 }

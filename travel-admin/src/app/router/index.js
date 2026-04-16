@@ -104,6 +104,42 @@ const routes = [
         name: 'Recommendation',
         component: () => import('@/modules/recommendation/pages/config.vue'),
         meta: { title: '推荐配置', icon: 'MagicStick', group: 'recommendation' }
+      },
+      {
+        path: 'ai-service',
+        name: 'AiServiceOverview',
+        component: () => import('@/modules/ai-service/pages/overview.vue'),
+        meta: { title: 'AI 概览', icon: 'DataAnalysis', group: 'ai-service' }
+      },
+      {
+        path: 'ai-service/knowledge',
+        name: 'AiServiceKnowledge',
+        component: () => import('@/modules/ai-service/pages/knowledge.vue'),
+        meta: { title: '知识库管理', icon: 'Files', group: 'ai-service' }
+      },
+      {
+        path: 'ai-service/config',
+        name: 'AiServiceConfig',
+        component: () => import('@/modules/ai-service/pages/config.vue'),
+        meta: { title: 'AI 配置管理', icon: 'Setting', group: 'ai-service' }
+      },
+      {
+        path: 'ai-service/query-test',
+        name: 'AiServiceQueryTest',
+        component: () => import('@/modules/ai-service/pages/query-test.vue'),
+        meta: { title: '查询测试', icon: 'Search', group: 'ai-service' }
+      },
+      {
+        path: 'ai-service/workbench',
+        name: 'AiServiceWorkbench',
+        component: () => import('@/modules/ai-service/pages/workbench-placeholder.vue'),
+        meta: { title: '会话工作台', icon: 'ChatLineSquare', group: 'ai-service' }
+      },
+      {
+        path: 'ai-service/feedback',
+        name: 'AiServiceFeedback',
+        component: () => import('@/modules/ai-service/pages/feedback-placeholder.vue'),
+        meta: { title: '反馈分析', icon: 'DataLine', group: 'ai-service' }
       }
     ]
   }

@@ -5,6 +5,7 @@ export const NAVIGATION_GROUPS = [
   { key: 'transaction', title: '交易管理', icon: 'Tickets' },
   { key: 'user-ops', title: '用户运营', icon: 'UserFilled' },
   { key: 'recommendation', title: '推荐系统', icon: 'MagicStick' },
+  { key: 'ai-service', title: 'AI 客服中心', icon: 'ChatDotSquare' },
   { key: 'system', title: '系统管理', icon: 'Setting' }
 ]
 
