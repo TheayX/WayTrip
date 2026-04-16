@@ -4,6 +4,7 @@ import com.travel.dto.order.request.OrderListRequest;
 import com.travel.dto.order.response.OrderDetailResponse;
 import com.travel.dto.order.response.OrderListResponse;
 import com.travel.service.OrderService;
+import com.travel.service.ai.rule.OrderBusinessRuleProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class OrderAiTools {
 
     private final OrderService orderService;
+    private final OrderBusinessRuleProvider orderBusinessRuleProvider;
     private final AiToolContextHolder aiToolContextHolder;
 
     /**
@@ -29,10 +31,11 @@ public class OrderAiTools {
      * @param topic 问题主题
      * @return 通用说明
      */
-    @Tool(description = "获取订单状态说明、退款流程和订单页查看要点等通用帮助")
+    @Tool(description = "获取基于系统真实规则整理的订单状态说明、退款流程和订单页查看要点等通用帮助")
     public Map<String, Object> getOrderSupportGuide(
             @ToolParam(description = "帮助主题，可选值：status、refund、page、general", required = false) String topic) {
         String normalizedTopic = normalizeTopic(topic);
+        Map<String, Object> rules = orderBusinessRuleProvider.describeRules();
         aiToolContextHolder.addToolTrace(
                 "getOrderSupportGuide",
                 "order",
@@ -43,40 +46,27 @@ public class OrderAiTools {
             case "status" -> Map.of(
                     "topic", "status",
                     "title", "订单状态说明",
-                    "content", List.of(
-                            "待支付：订单已创建但尚未完成支付，超时后可能自动取消。",
-                            "已支付：订单已支付成功，通常可等待出行或按规则申请售后。",
-                            "已取消：订单已取消，无法继续支付或使用。",
-                            "已退款：订单已完成退款处理，到账时间以支付渠道为准。",
-                            "已完成：订单已核销或行程结束。"
-                    )
+                    "statuses", rules.get("statuses"),
+                    "paymentTimeoutMinutes", rules.get("paymentTimeoutMinutes"),
+                    "disclaimer", rules.get("disclaimer")
             );
             case "refund" -> Map.of(
                     "topic", "refund",
                     "title", "退款流程说明",
-                    "content", List.of(
-                            "先确认订单当前状态是否允许退款或取消。",
-                            "进入订单页查看该订单的可执行操作按钮和状态说明。",
-                            "如页面允许退款或取消，按页面提示提交申请。",
-                            "退款金额、到账时间和售后细则以订单页和平台规则为准。"
-                    )
+                    "content", rules.get("refundPolicy"),
+                    "disclaimer", rules.get("disclaimer")
             );
             case "page" -> Map.of(
                     "topic", "page",
                     "title", "订单页查看要点",
-                    "content", List.of(
-                            "优先查看订单状态、订单号、出行日期和总金额。",
-                            "再查看是否有支付、取消、退款等可执行按钮。",
-                            "如需售后，关注页面上的退款说明和规则提示。"
-                    )
+                    "content", rules.get("pageChecklist")
             );
             default -> Map.of(
                     "topic", "general",
                     "title", "订单帮助概览",
-                    "content", List.of(
-                            "订单问题通常分为状态说明、支付取消、退款售后和具体订单查询。",
-                            "通用规则问题不一定需要订单号，具体订单问题建议提供订单号或先查看最近订单。"
-                    )
+                    "content", rules.get("generalOverview"),
+                    "paymentTimeoutMinutes", rules.get("paymentTimeoutMinutes"),
+                    "disclaimer", rules.get("disclaimer")
             );
         };
         return AiToolResponse.success("已获取订单通用说明", data);
@@ -171,6 +161,7 @@ public class OrderAiTools {
     public Map<String, Object> getOrderAfterSalePolicy(
             @ToolParam(description = "订单 ID", required = true) Long orderId) {
         OrderDetailResponse detail = orderService.getOrderDetail(aiToolContextHolder.requireCurrentUserId(), orderId);
+        Map<String, Object> rules = orderBusinessRuleProvider.describeRules();
         aiToolContextHolder.addToolTrace(
                 "getOrderAfterSalePolicy",
                 "order",
@@ -186,7 +177,7 @@ public class OrderAiTools {
                         "statusText", detail.getStatusText(),
                         "canPay", Boolean.TRUE.equals(detail.getCanPay()),
                         "canCancel", Boolean.TRUE.equals(detail.getCanCancel()),
-                        "ruleNote", "退款金额、到账时间、售后细则必须以订单页和平台规则为准。"
+                        "ruleNote", rules.get("disclaimer")
                 )
         );
     }

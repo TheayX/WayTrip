@@ -1,6 +1,6 @@
 # travel-server
 
-WayTrip 后端服务，统一承接用户端与管理端接口、推荐计算、文件上传和后台管理能力。
+WayTrip 后端服务，统一承接用户端与管理端接口、推荐计算、文件上传、后台管理与 AI 聊天能力。
 
 ## 技术栈
 
@@ -11,6 +11,7 @@ WayTrip 后端服务，统一承接用户端与管理端接口、推荐计算、
 - Redis
 - JWT
 - SpringDoc / OpenAPI 3
+- Spring AI 1.0.x
 
 ## 快速开始
 
@@ -37,6 +38,7 @@ cp .env.example .env
 - 微信小程序配置
 - 推荐缓存与任务调度参数
 - 上传目录
+- AI 模型与知识库参数
 
 补充说明：
 
@@ -77,7 +79,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 ```text
 travel-server/
-├─ .env.example                     环境变量模板，定义数据库、Redis、JWT、微信和上传配置
+├─ .env.example                     环境变量模板，定义数据库、Redis、JWT、微信、上传与 AI 配置
 ├─ .env                             当前环境实际配置文件，由开发者或部署环境自行创建
 ├─ .gitignore                       忽略 target、日志、IDE 文件、私有配置和上传目录
 ├─ pom.xml                          Maven 构建入口，管理后端依赖、插件和打包行为
@@ -86,6 +88,7 @@ travel-server/
       ├─ java/com/travel/
       │  ├─ common/                 通用结果与异常
       │  ├─ config/                 配置层
+      │  │  ├─ ai/                  AI 模型、向量库与运行时配置
       │  │  ├─ cache/               缓存配置
       │  │  ├─ persistence/         持久层配置
       │  │  ├─ security/            安全配置
@@ -97,6 +100,7 @@ travel-server/
       │  ├─ entity/                 实体
       │  ├─ mapper/                 MyBatis Mapper
       │  ├─ service/                业务服务
+      │  │  ├─ ai/                  AI 聊天、知识检索、工具、规则提供器
       │  │  ├─ impl/                服务实现
       │  │  └─ support/             业务支撑逻辑
       │  ├─ task/                   定时任务
@@ -118,6 +122,12 @@ travel-server/
 ```text
 service/
 ├─ XxxService.java
+├─ ai/
+│  ├─ chat/                         AI 对话编排与提示词
+│  ├─ memory/                       对话记忆
+│  ├─ rag/                          知识检索与上下文增强
+│  ├─ rule/                         AI 可消费的业务规则真相源摘要
+│  └─ tool/                         AI 工具与工具注册
 ├─ impl/
 │  └─ XxxServiceImpl.java
 └─ support/                         按领域沉淀复用支撑逻辑
@@ -131,6 +141,33 @@ service/
 - 用户浏览行为记录、热度同步、推荐计算与缓存
 - 仪表板、用户洞察、管理员管理、推荐调试
 - 文件上传与静态资源访问
+- Spring AI 驱动的聊天、RAG 检索、工具调用与规则摘要
+
+## AI 模块说明
+
+当前 AI 模块已经按主流 Spring AI 单 Agent 结构收口：
+
+- `service/ai/chat/`
+  - `AiConversationOrchestrator`：主聊天入口协调器
+  - `AiPromptService`：系统提示词策略
+  - `AiResponseAssembler`：统一响应封装
+- `service/ai/memory/`
+  - `RedisChatMemory`：基于 Redis 的对话记忆
+- `service/ai/rag/`
+  - `AiKnowledgeRetrievalService`：知识检索接口
+  - `AiKnowledgeContextAdvisor`：知识上下文增强
+- `service/ai/tool/`
+  - `*AiTools`：业务工具集合
+  - `AiToolRegistry`：工具暴露注册中心
+  - `AiToolResponse`：统一工具响应结构
+- `service/ai/rule/`
+  - `OrderBusinessRuleProvider`：订单域规则真相源摘要
+  - `OrderRuleConstants`：订单共享规则常量
+
+规则边界约定：
+- 订单状态、退款能力、超时阈值等真实业务规则来自 Java 真相源；
+- `data.sql`、知识库文案与攻略数据主要用于内容知识、样本数据与 RAG；
+- AI 不能从样本数据“猜测”真实规则。
 
 ## 接口约定
 
@@ -144,7 +181,7 @@ service/
 编译校验：
 
 ```bash
-mvn -q -DskipTests test-compile
+mvn -q -DskipTests compile
 ```
 
 运行测试：
