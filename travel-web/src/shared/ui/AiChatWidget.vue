@@ -2,7 +2,7 @@
   <div class="ai-chat-widget">
     <button v-if="!isOpen" class="chat-launcher" @click="openChat">
       <el-icon class="launcher-icon"><Service /></el-icon>
-      AI 助手
+      {{ AI_CHAT_COPY.launcher }}
     </button>
 
     <div v-else class="chat-panel">
@@ -12,15 +12,15 @@
             <el-icon><Monitor /></el-icon>
           </div>
           <div>
-            <div class="chat-title">WayTrip AI 助手</div>
-            <div class="chat-subtitle">推荐、规划、订单与规则问答</div>
+            <div class="chat-title">{{ AI_CHAT_COPY.title }}</div>
+            <div class="chat-subtitle">{{ AI_CHAT_COPY.subtitle }}</div>
           </div>
         </div>
         <div class="chat-actions">
-          <button class="icon-btn" :disabled="loading" @click="clearMessages" title="清空对话">
+          <button class="icon-btn" :disabled="loading" :title="AI_CHAT_COPY.clearTitle" @click="clearMessages">
             <el-icon><Delete /></el-icon>
           </button>
-          <button class="icon-btn" @click="closeChat" title="关闭">
+          <button class="icon-btn" :title="AI_CHAT_COPY.closeTitle" @click="closeChat">
             <el-icon><Close /></el-icon>
           </button>
         </div>
@@ -35,14 +35,14 @@
         >
           <div class="message-card">
             <div class="message-bubble">
-              <template v-if="item.pending">正在分析并查询数据...</template>
+              <template v-if="item.pending">{{ AI_CHAT_COPY.pendingMessage }}</template>
               <template v-else>{{ item.content }}</template>
             </div>
 
-            <div v-if="item.role === 'assistant' && item.citations?.length" class="assistant-meta">
+            <div v-if="item.role === 'assistant' && item.citations?.length" class="assistant-meta assistant-reference">
               <div class="meta-title">
                 <el-icon><Document /></el-icon>
-                知识参考
+                {{ AI_CHAT_COPY.citationsTitle }}
               </div>
               <div class="citation-list">
                 <div
@@ -51,18 +51,21 @@
                   class="citation-card"
                 >
                   <div class="citation-head">
-                    <span class="citation-title">{{ citation.title || '参考资料' }}</span>
-                    <span class="citation-type">{{ citation.sourceType || '知识库' }}</span>
+                    <span class="citation-title">{{ citation.title || AI_CHAT_COPY.citationFallbackTitle }}</span>
+                    <span class="citation-type">{{ citation.sourceType || AI_CHAT_COPY.citationFallbackType }}</span>
                   </div>
                   <div v-if="citation.snippet" class="citation-snippet">{{ citation.snippet }}</div>
                 </div>
               </div>
             </div>
 
-            <div v-if="item.role === 'assistant' && item.suggestions?.length" class="assistant-meta">
-              <div class="meta-title">
+            <div
+              v-if="isLatestAssistantMessage(item) && item.suggestions?.length"
+              class="assistant-meta assistant-followup"
+            >
+              <div class="meta-title meta-title--followup">
                 <el-icon><ChatLineSquare /></el-icon>
-                你也可以继续问
+                {{ AI_CHAT_COPY.followupTitle }}
               </div>
               <div class="suggestion-list">
                 <button
@@ -87,7 +90,7 @@
                 @click="submitFeedback(item.id, 'UPVOTE')"
               >
                 <el-icon><Top /></el-icon>
-                <span>有帮助</span>
+                <span>{{ AI_CHAT_COPY.feedbackUpvote }}</span>
               </button>
               <button
                 type="button"
@@ -97,7 +100,7 @@
                 @click="submitFeedback(item.id, 'DOWNVOTE')"
               >
                 <el-icon><Bottom /></el-icon>
-                <span>不准确</span>
+                <span>{{ AI_CHAT_COPY.feedbackDownvote }}</span>
               </button>
             </div>
           </div>
@@ -109,7 +112,7 @@
             <span class="dot"></span>
             <span class="dot"></span>
           </div>
-          正在生成回复，请稍候...
+          {{ AI_CHAT_COPY.typing }}
         </div>
       </div>
 
@@ -119,7 +122,7 @@
           :autosize="{ minRows: 1, maxRows: 4 }"
           type="textarea"
           resize="none"
-          placeholder="输入问题，支持景点推荐、行程规划、订单咨询"
+          :placeholder="AI_CHAT_COPY.inputPlaceholder"
           :disabled="loading"
           @keydown.enter.exact.prevent="sendMessage"
         />
@@ -127,7 +130,7 @@
           <template #icon v-if="!loading">
             <el-icon><Position /></el-icon>
           </template>
-          发送
+          {{ AI_CHAT_COPY.send }}
         </el-button>
       </div>
     </div>
@@ -138,13 +141,14 @@
 import { nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { 
-  Bottom, Top, Service, Monitor, 
+import {
+  Bottom, Top, Service, Monitor,
   Delete, Close, Position, Document,
   ChatLineSquare
 } from '@element-plus/icons-vue'
 import { storeToRefs } from 'pinia'
 import { resolveAiErrorMessage } from '@/shared/lib/ai-chat.js'
+import { AI_CHAT_COPY } from '@/shared/constants/ai-chat.js'
 import { useAiChatStore } from '@/shared/store/ai-chat.js'
 
 const route = useRoute()
@@ -210,10 +214,25 @@ const sendSuggestion = async (suggestion) => {
   await sendMessage()
 }
 
+function isLatestAssistantMessage(target) {
+  if (!target || target.role !== 'assistant' || target.pending || !target.id) {
+    return false
+  }
+
+  for (let index = messages.value.length - 1; index >= 0; index -= 1) {
+    const item = messages.value[index]
+    if (item?.role === 'assistant' && !item.pending && item.id) {
+      return item.id === target.id
+    }
+  }
+
+  return false
+}
+
 const submitFeedback = async (messageId, feedbackType) => {
   try {
     await aiChatStore.markFeedback({ messageId, feedbackType })
-    ElMessage.success(feedbackType === 'UPVOTE' ? '感谢你的反馈' : '已记录这条问题')
+    ElMessage.success(feedbackType === 'UPVOTE' ? AI_CHAT_COPY.feedbackThanks : AI_CHAT_COPY.feedbackRecorded)
   } catch (error) {
     ElMessage.warning(resolveAiErrorMessage(error))
   }
@@ -288,13 +307,13 @@ function resolveScenarioHint() {
 }
 
 .chat-header {
-  min-height: 80px;
+  min-height: 84px;
   background: linear-gradient(135deg, #0f766e, #0369a1);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 16px 18px;
 }
 
 .chat-header-left {
@@ -317,15 +336,15 @@ function resolveScenarioHint() {
 }
 
 .chat-title {
-  font-weight: 600;
   font-size: 16px;
-  letter-spacing: 0.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
 }
 
 .chat-subtitle {
   margin-top: 4px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .chat-actions {
@@ -361,8 +380,8 @@ function resolveScenarioHint() {
 
 .message-list {
   flex: 1;
-  padding: 24px 20px;
-  background: #f8fafc;
+  padding: 20px 18px 24px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   overflow-y: auto;
   scroll-behavior: smooth;
 }
@@ -370,17 +389,19 @@ function resolveScenarioHint() {
 .message-list::-webkit-scrollbar {
   width: 6px;
 }
+
 .message-list::-webkit-scrollbar-thumb {
   background: rgba(203, 213, 225, 0.8);
   border-radius: 3px;
 }
+
 .message-list::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .message-item {
   display: flex;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -399,6 +420,9 @@ function resolveScenarioHint() {
 
 .message-card {
   max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .message-bubble {
@@ -407,26 +431,38 @@ function resolveScenarioHint() {
   white-space: pre-wrap;
   word-break: break-word;
   font-size: 14px;
-  line-height: 1.6;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  line-height: 1.75;
 }
 
 .message-item.user .message-bubble {
   background: linear-gradient(135deg, #0ea5e9, #2563eb);
   color: #fff;
   border-bottom-right-radius: 4px;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.14);
 }
 
 .message-item.assistant .message-bubble {
-  background: #fff;
+  background: #ffffff;
   color: #1e293b;
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   border-bottom-left-radius: 4px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
 }
 
 .assistant-meta {
-  margin-top: 12px;
   padding-left: 4px;
+}
+
+.assistant-reference {
+  margin-top: 2px;
+}
+
+.assistant-followup {
+  margin-top: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(186, 230, 253, 0.7);
 }
 
 .meta-title {
@@ -439,6 +475,11 @@ function resolveScenarioHint() {
   gap: 6px;
 }
 
+.meta-title--followup {
+  color: #0369a1;
+  margin-bottom: 10px;
+}
+
 .suggestion-list {
   display: flex;
   flex-wrap: wrap;
@@ -446,11 +487,11 @@ function resolveScenarioHint() {
 }
 
 .suggestion-chip {
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(14, 165, 233, 0.3);
-  background: rgba(240, 249, 255, 0.8);
-  color: #0369a1;
+  border: 1px solid rgba(125, 211, 252, 0.7);
+  background: #eff6ff;
+  color: #075985;
   font-size: 13px;
   display: inline-flex;
   align-items: center;
@@ -459,9 +500,9 @@ function resolveScenarioHint() {
 }
 
 .suggestion-chip:hover {
-  background: rgba(14, 165, 233, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+  background: #dbeafe;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(14, 165, 233, 0.1);
 }
 
 .suggestion-chip:disabled {
@@ -505,7 +546,7 @@ function resolveScenarioHint() {
 .citation-type {
   font-size: 11px;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 999px;
   background: #e0f2fe;
   color: #0284c7;
   font-weight: 500;
@@ -523,7 +564,7 @@ function resolveScenarioHint() {
 }
 
 .feedback-row {
-  margin-top: 12px;
+  margin-top: 2px;
   padding-left: 4px;
   display: flex;
   gap: 10px;
@@ -560,7 +601,7 @@ function resolveScenarioHint() {
 }
 
 .typing-hint {
-  padding: 8px 12px;
+  padding: 10px 12px;
   font-size: 13px;
   color: #64748b;
   display: flex;
@@ -590,12 +631,12 @@ function resolveScenarioHint() {
 }
 
 .chat-input {
-  padding: 16px 20px;
+  padding: 14px 16px 16px;
   border-top: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   gap: 12px;
   align-items: flex-end;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.96);
   border-bottom-left-radius: 24px;
   border-bottom-right-radius: 24px;
 }
@@ -610,8 +651,8 @@ function resolveScenarioHint() {
   border-radius: 20px;
   padding: 12px 16px;
   font-size: 14px;
-  background: #f1f5f9;
-  border-color: transparent;
+  background: #f8fafc;
+  border: 1px solid rgba(226, 232, 240, 0.9);
   box-shadow: none;
   transition: all 0.2s ease;
   line-height: 1.5;

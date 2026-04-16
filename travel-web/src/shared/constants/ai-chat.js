@@ -19,3 +19,22 @@ export const AI_CHAT_VISIBLE_ROUTE_NAMES = [
   ROUTE_NAMES.favorites
 ]
 
+export const AI_CHAT_COPY = {
+  launcher: 'AI 助手',
+  title: 'WayTrip AI 助手',
+  subtitle: '聊景点、问订单、找灵感',
+  inputPlaceholder: '输入你的问题，比如景点推荐、行程规划或订单咨询',
+  pendingMessage: '正在整理这条问题的答案…',
+  typing: '正在整理回答，请稍候…',
+  followupTitle: '继续问',
+  citationsTitle: '知识参考',
+  citationFallbackTitle: '参考资料',
+  citationFallbackType: '知识库',
+  feedbackUpvote: '有帮助',
+  feedbackDownvote: '还不够准确',
+  clearTitle: '清空对话',
+  closeTitle: '关闭聊天',
+  send: '发送',
+  feedbackThanks: '感谢你的反馈',
+  feedbackRecorded: '已记录这条问题'
+}
