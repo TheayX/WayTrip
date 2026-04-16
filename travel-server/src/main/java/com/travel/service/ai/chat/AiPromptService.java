@@ -2,7 +2,6 @@ package com.travel.service.ai.chat;
 
 import com.travel.config.ai.AiProperties;
 import com.travel.enums.ai.AiScenarioType;
-import com.travel.service.ai.memory.AiConversationTurn;
 import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * AI 提示词服务，集中管理系统提示词和历史拼装。
+ * AI 提示词服务，集中管理系统提示词和知识上下文拼装。
  */
 @Service
 @RequiredArgsConstructor
@@ -98,28 +97,25 @@ public class AiPromptService {
     }
 
     /**
-     * 将最近轮次历史压缩成一段文本，避免第一阶段引入过重的话题检索。
+     * 将检索命中的知识片段附加到系统提示词中，避免把知识上下文写入用户消息历史。
      *
-     * @param history 最近会话历史 (废弃: 由 ChatMemory 托管)
-     * @param currentMessage 当前消息
-     * @return 合并后的用户输入
+     * @param systemPrompt 基础系统提示词
+     * @param knowledgeSnippets 检索命中的知识片段
+     * @return 附加知识上下文后的系统提示词
      */
-    public String buildUserPrompt(List<AiConversationTurn> history, String currentMessage,
-                                  List<AiKnowledgeSnippet> knowledgeSnippets) {
-        StringBuilder prompt = new StringBuilder();
-        
-        if (knowledgeSnippets != null && !knowledgeSnippets.isEmpty()) {
-            prompt.append("知识参考：\n");
-            for (AiKnowledgeSnippet snippet : knowledgeSnippets) {
-                prompt.append("- [")
-                        .append(snippet.getTitle())
-                        .append("] ")
-                        .append(snippet.getSnippet())
-                        .append('\n');
-            }
-            prompt.append('\n');
+    public String appendKnowledgeContext(String systemPrompt, List<AiKnowledgeSnippet> knowledgeSnippets) {
+        if (knowledgeSnippets == null || knowledgeSnippets.isEmpty()) {
+            return systemPrompt;
         }
-        prompt.append("当前用户问题：\n").append(currentMessage);
+        StringBuilder prompt = new StringBuilder(systemPrompt)
+                .append("\n\n知识参考（仅在与用户问题相关时使用，无法确认时必须明确说明信息不足）：\n");
+        for (AiKnowledgeSnippet snippet : knowledgeSnippets) {
+            prompt.append("- [")
+                    .append(snippet.getTitle())
+                    .append("] ")
+                    .append(snippet.getSnippet())
+                    .append('\n');
+        }
         return prompt.toString();
     }
 }

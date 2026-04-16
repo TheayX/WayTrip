@@ -9,17 +9,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.MessageType;
-import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.SystemMessage;
-import org.springframework.ai.chat.messages.ToolResponseMessage;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -35,28 +29,18 @@ public class RedisChatMemory implements ChatMemory {
     public void add(String conversationId, List<Message> messages) {
         List<Message> history = get(conversationId);
         history.addAll(messages);
-        
-        // Retain only the last N messages
-        int maxRounds = aiProperties.getMemory().getHistoryRounds();
-        int maxMessages = Math.max(1, maxRounds) * 2;
-        if (history.size() > maxMessages) {
-            history = history.subList(history.size() - maxMessages, history.size());
-        }
+        history = trimHistory(history);
 
         try {
-            // ObjectMapper can serialize Spring AI Message objects if SpringAiModule is registered, 
-            // but we can also rely on generic JSON maps to be safe. We'll use objectMapper which should have correct config.
             String json = objectMapper.writeValueAsString(history);
             String key = RedisKeyManager.aiConversationSession(conversationId);
             long ttlMinutes = aiProperties.getMemory().getTtlMinutes();
-            
+
             stringRedisTemplate.opsForValue().set(key, json, Duration.ofMinutes(ttlMinutes));
-            
-            // Increment/update count
             stringRedisTemplate.opsForValue().set(
-                RedisKeyManager.aiConversationSummary(conversationId),
-                String.valueOf(history.size()),
-                Duration.ofMinutes(ttlMinutes)
+                    RedisKeyManager.aiConversationSummary(conversationId),
+                    String.valueOf(history.size()),
+                    Duration.ofMinutes(ttlMinutes)
             );
         } catch (Exception e) {
             log.error("Failed to save AI memory for session {}", conversationId, e);
@@ -84,5 +68,14 @@ public class RedisChatMemory implements ChatMemory {
     public void clear(String conversationId) {
         stringRedisTemplate.delete(RedisKeyManager.aiConversationSession(conversationId));
         stringRedisTemplate.delete(RedisKeyManager.aiConversationSummary(conversationId));
+    }
+
+    private List<Message> trimHistory(List<Message> history) {
+        int maxRounds = Math.max(1, aiProperties.getMemory().getHistoryRounds());
+        int maxMessages = Math.max(8, maxRounds * 6);
+        if (history.size() <= maxMessages) {
+            return history;
+        }
+        return new ArrayList<>(history.subList(history.size() - maxMessages, history.size()));
     }
 }

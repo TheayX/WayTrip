@@ -7,7 +7,6 @@ import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.guardrail.AiGuardrailService;
 import com.travel.service.ai.memory.AiSessionIdService;
-import com.travel.service.ai.memory.RedisChatMemory;
 import com.travel.service.ai.rag.AiKnowledgeRetrievalService;
 import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import com.travel.service.ai.tool.AiToolContextHolder;
@@ -19,19 +18,16 @@ import com.travel.service.ai.tool.UserProfileAiTools;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * AI 对话编排器，集中管理第一阶段聊天主链路。
+ * AI 对话编排器，集中管理主聊天链路。
  */
 @Slf4j
 @Service
@@ -41,7 +37,6 @@ public class AiConversationOrchestrator {
     private final ChatClient aiChatClient;
     private final AiSessionIdService aiSessionIdService;
     private final AiGuardrailService aiGuardrailService;
-    private final RedisChatMemory redisChatMemory;
     private final AiScenarioRouter aiScenarioRouter;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
@@ -71,7 +66,10 @@ public class AiConversationOrchestrator {
 
         AiScenarioType scenario = aiScenarioRouter.route(userMessage, request.getScenarioHint(), request.getSourcePage());
         List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
-        String systemPrompt = aiPromptService.buildSystemPrompt(scenario);
+        String systemPrompt = aiPromptService.appendKnowledgeContext(
+                aiPromptService.buildSystemPrompt(scenario),
+                knowledgeSnippets
+        );
         String messageId = aiSessionIdService.createSessionId();
         log.info(
                 "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 来源页面={}, RAG命中数={}, 用户问题预览={}",
@@ -87,15 +85,12 @@ public class AiConversationOrchestrator {
         try {
             aiToolContextHolder.setCurrentUserId(userId);
             aiToolContextHolder.setCurrentAdminId(adminId);
-            
-            String userPrompt = aiPromptService.buildUserPrompt(new ArrayList<>(), userMessage, knowledgeSnippets);
-            List<Message> history = redisChatMemory.get(sessionId);
-            
+
             ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
+                    .advisors(MessageChatMemoryAdvisor.builder().conversationId(sessionId).build())
                     .system(systemPrompt)
-                    .messages(history)
-                    .user(userPrompt);
-            
+                    .user(userMessage);
+
             if (shouldEnableTools(scenario)) {
                 requestSpec = requestSpec.tools(resolveTools(scenario));
             }
@@ -103,12 +98,7 @@ public class AiConversationOrchestrator {
             if (!StringUtils.hasText(reply)) {
                 throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 返回内容为空");
             }
-            
-            redisChatMemory.add(sessionId, List.of(
-                    new UserMessage(userMessage),
-                    new AssistantMessage(reply.trim())
-            ));
-            
+
             List<String> toolNames = aiToolContextHolder.getToolTraces().stream()
                     .map(item -> item.getToolName() + ":" + item.getSuccess())
                     .collect(Collectors.toList());

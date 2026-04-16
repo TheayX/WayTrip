@@ -2,6 +2,8 @@ package com.travel.config.ai;
 
 import io.micrometer.observation.ObservationRegistry;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.embedding.BatchingStrategy;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.TokenCountBatchingStrategy;
@@ -30,14 +32,17 @@ import java.util.List;
 public class AiModelConfig {
 
     /**
-     * 注册统一 ChatClient，后续 Tool Calling 和 RAG 也围绕该客户端扩展。
+     * 注册统一 ChatClient，默认挂载会话记忆 advisor，后续 Tool Calling 和 RAG 也围绕该客户端扩展。
      *
      * @param builder Spring AI 自动配置的 ChatClient 构建器
+     * @param chatMemory 对话记忆实现
      * @return ChatClient 实例
      */
     @Bean
-    public ChatClient aiChatClient(ChatClient.Builder builder) {
-        return builder.build();
+    public ChatClient aiChatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
+        return builder
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .build();
     }
 
     /**
