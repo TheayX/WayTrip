@@ -442,12 +442,11 @@ function resolveScenarioHint() {
   margin-top: 2px;
 }
 
-.assistant-followup {
+ .assistant-followup {
   margin-top: 2px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(186, 230, 253, 0.7);
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
 .meta-title {
@@ -462,7 +461,8 @@ function resolveScenarioHint() {
 
 .meta-title--followup {
   color: #0369a1;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  font-size: 12px;
 }
 
 .suggestion-list {
@@ -472,12 +472,13 @@ function resolveScenarioHint() {
 }
 
 .suggestion-chip {
-  padding: 8px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid rgba(125, 211, 252, 0.7);
   background: #eff6ff;
   color: #075985;
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.2;
   display: inline-flex;
   align-items: center;
   cursor: pointer;
