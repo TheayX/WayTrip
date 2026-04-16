@@ -18,8 +18,20 @@ spring:
     default-property-inclusion: non_null
   ai:
     model:
-      chat: ollama
-      embedding: ollama
+      chat: ${APP_AI_PROVIDER_TYPE:ollama}
+      embedding: ${APP_AI_EMBEDDING_PROVIDER_TYPE:ollama}
+    openai:
+      base-url: ${OPENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        completions-path: /chat/completions
+        options:
+          model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen3.5-plus}
+          temperature: ${APP_AI_CHAT_TEMPERATURE:0.2}
+      embedding:
+        embeddings-path: /embeddings
+        options:
+          model: ${APP_AI_PROVIDER_EMBEDDING_MODEL:text-embedding-v4}
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
       chat:
