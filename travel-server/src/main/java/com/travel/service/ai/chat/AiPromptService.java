@@ -2,14 +2,11 @@ package com.travel.service.ai.chat;
 
 import com.travel.config.ai.AiProperties;
 import com.travel.enums.ai.AiScenarioType;
-import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 /**
- * AI 提示词服务，集中管理系统提示词和知识上下文拼装。
+ * AI 提示词服务，集中管理系统提示词。
  */
 @Service
 @RequiredArgsConstructor
@@ -92,29 +89,6 @@ public class AiPromptService {
                     \n- 优先解决用户当前问题。
                     \n- 超出可确认范围时，明确说明并给出下一步建议。
                     """);
-        }
-        return prompt.toString();
-    }
-
-    /**
-     * 将检索命中的知识片段附加到系统提示词中，避免把知识上下文写入用户消息历史。
-     *
-     * @param systemPrompt 基础系统提示词
-     * @param knowledgeSnippets 检索命中的知识片段
-     * @return 附加知识上下文后的系统提示词
-     */
-    public String appendKnowledgeContext(String systemPrompt, List<AiKnowledgeSnippet> knowledgeSnippets) {
-        if (knowledgeSnippets == null || knowledgeSnippets.isEmpty()) {
-            return systemPrompt;
-        }
-        StringBuilder prompt = new StringBuilder(systemPrompt)
-                .append("\n\n知识参考（仅在与用户问题相关时使用，无法确认时必须明确说明信息不足）：\n");
-        for (AiKnowledgeSnippet snippet : knowledgeSnippets) {
-            prompt.append("- [")
-                    .append(snippet.getTitle())
-                    .append("] ")
-                    .append(snippet.getSnippet())
-                    .append('\n');
         }
         return prompt.toString();
     }

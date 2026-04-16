@@ -7,6 +7,8 @@ import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.guardrail.AiGuardrailService;
 import com.travel.service.ai.memory.AiSessionIdService;
+import com.travel.service.ai.memory.RedisChatMemory;
+import com.travel.service.ai.rag.AiKnowledgeContextAdvisor;
 import com.travel.service.ai.rag.AiKnowledgeRetrievalService;
 import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import com.travel.service.ai.tool.AiToolContextHolder;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -35,12 +38,14 @@ import java.util.stream.Collectors;
 public class AiConversationOrchestrator {
 
     private final ChatClient aiChatClient;
+    private final RedisChatMemory redisChatMemory;
     private final AiSessionIdService aiSessionIdService;
     private final AiGuardrailService aiGuardrailService;
     private final AiScenarioRouter aiScenarioRouter;
     private final AiPromptService aiPromptService;
     private final AiResponseAssembler aiResponseAssembler;
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
+    private final AiKnowledgeContextAdvisor aiKnowledgeContextAdvisor;
     private final AiToolContextHolder aiToolContextHolder;
     private final RecommendationAiTools recommendationAiTools;
     private final OrderAiTools orderAiTools;
@@ -66,10 +71,7 @@ public class AiConversationOrchestrator {
 
         AiScenarioType scenario = aiScenarioRouter.route(userMessage, request.getScenarioHint(), request.getSourcePage());
         List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
-        String systemPrompt = aiPromptService.appendKnowledgeContext(
-                aiPromptService.buildSystemPrompt(scenario),
-                knowledgeSnippets
-        );
+        String systemPrompt = aiPromptService.buildSystemPrompt(scenario);
         String messageId = aiSessionIdService.createSessionId();
         log.info(
                 "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 来源页面={}, RAG命中数={}, 用户问题预览={}",
@@ -87,7 +89,13 @@ public class AiConversationOrchestrator {
             aiToolContextHolder.setCurrentAdminId(adminId);
 
             ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
-                    .advisors(MessageChatMemoryAdvisor.builder().conversationId(sessionId).build())
+                    .advisors(spec -> spec
+                            .advisors(
+                                    MessageChatMemoryAdvisor.builder(redisChatMemory).conversationId(sessionId).build(),
+                                    aiKnowledgeContextAdvisor
+                            )
+                            .params(Map.of(AiKnowledgeContextAdvisor.CONTEXT_KEY, knowledgeSnippets))
+                    )
                     .system(systemPrompt)
                     .user(userMessage);
 

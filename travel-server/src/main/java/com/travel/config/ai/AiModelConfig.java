@@ -32,7 +32,7 @@ import java.util.List;
 public class AiModelConfig {
 
     /**
-     * 注册统一 ChatClient，默认挂载会话记忆 advisor，后续 Tool Calling 和 RAG 也围绕该客户端扩展。
+     * 注册统一 ChatClient，默认挂载消息记忆 advisor，后续 Tool Calling 和 RAG 也围绕该客户端扩展。
      *
      * @param builder Spring AI 自动配置的 ChatClient 构建器
      * @param chatMemory 对话记忆实现
