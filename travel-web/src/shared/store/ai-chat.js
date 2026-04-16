@@ -21,6 +21,15 @@ export const useAiChatStore = defineStore('ai-chat', () => {
   const messages = ref([buildWelcomeMessage()])
 
   const hasActiveMessages = computed(() => messages.value.length > 1)
+  const latestAssistantMessageId = computed(() => {
+    for (let index = messages.value.length - 1; index >= 0; index -= 1) {
+      const item = messages.value[index]
+      if (item?.role === 'assistant' && !item.pending && item.id) {
+        return item.id
+      }
+    }
+    return ''
+  })
 
   async function ensureSession() {
     if (sessionId.value) {
@@ -142,6 +151,7 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     sessionId,
     messages,
     hasActiveMessages,
+    latestAssistantMessageId,
     openChat,
     closeChat,
     clearConversation,

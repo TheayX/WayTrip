@@ -60,7 +60,7 @@
             </div>
 
             <div
-              v-if="isLatestAssistantMessage(item) && item.suggestions?.length"
+              v-if="item.suggestions?.length && item.id === latestAssistantMessageId"
               class="assistant-meta assistant-followup"
             >
               <div class="meta-title meta-title--followup">
@@ -153,7 +153,7 @@ import { useAiChatStore } from '@/shared/store/ai-chat.js'
 
 const route = useRoute()
 const aiChatStore = useAiChatStore()
-const { isOpen, loading, messages } = storeToRefs(aiChatStore)
+const { isOpen, loading, messages, latestAssistantMessageId } = storeToRefs(aiChatStore)
 
 const inputText = ref('')
 const messageListRef = ref(null)
@@ -212,21 +212,6 @@ const sendMessage = async () => {
 const sendSuggestion = async (suggestion) => {
   inputText.value = suggestion
   await sendMessage()
-}
-
-function isLatestAssistantMessage(target) {
-  if (!target || target.role !== 'assistant' || target.pending || !target.id) {
-    return false
-  }
-
-  for (let index = messages.value.length - 1; index >= 0; index -= 1) {
-    const item = messages.value[index]
-    if (item?.role === 'assistant' && !item.pending && item.id) {
-      return item.id === target.id
-    }
-  }
-
-  return false
 }
 
 const submitFeedback = async (messageId, feedbackType) => {

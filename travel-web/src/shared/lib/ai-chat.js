@@ -1,3 +1,5 @@
+import { AI_CHAT_COPY } from '@/shared/constants/ai-chat.js'
+
 // AI 客服通用常量与纯函数，避免视图层承担过多业务细节。
 export const AI_CHAT_SESSION_STORAGE_KEY = 'waytrip_ai_session_id'
 
@@ -5,10 +7,10 @@ export function buildWelcomeMessage() {
   return {
     id: 'welcome',
     role: 'assistant',
-    content: '你好，我是 WayTrip AI 助手。你可以问我景点推荐、行程规划、订单咨询和平台规则问题。',
+    content: AI_CHAT_COPY.welcome,
     citations: [],
     toolCalls: [],
-    suggestions: ['帮我规划周末一日游', '看看我适合哪些景点', '查询我的订单问题'],
+    suggestions: AI_CHAT_COPY.welcomeSuggestions,
     feedbackEnabled: false,
     feedbackStatus: ''
   }
