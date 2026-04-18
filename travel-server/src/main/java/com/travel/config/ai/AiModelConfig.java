@@ -56,9 +56,21 @@ public class AiModelConfig {
     }
 
     /**
+     * 注册 AI 向量检索专用 Redis 连接。
+     *
+     * @param aiProperties AI 配置
+     * @return Jedis 连接
+     */
+    @Bean(destroyMethod = "close")
+    public JedisPooled aiVectorJedisPooled(AiProperties aiProperties) {
+        return createJedisPooled(aiProperties.getVector().getRedis());
+    }
+
+    /**
      * 注册 AI 专用向量存储，统一承载知识库分片索引。
      *
      * @param embeddingModel 嵌入模型
+     * @param aiVectorJedisPooled AI 向量 Redis 连接
      * @param aiProperties AI 配置
      * @param observationRegistry 观测注册表
      * @param customObservationConvention 自定义观测约定
@@ -68,12 +80,13 @@ public class AiModelConfig {
     @Bean
     @Primary
     public VectorStore aiVectorStore(EmbeddingModel embeddingModel,
+                                     JedisPooled aiVectorJedisPooled,
                                      AiProperties aiProperties,
                                      ObjectProvider<ObservationRegistry> observationRegistry,
                                      ObjectProvider<VectorStoreObservationConvention> customObservationConvention,
                                      BatchingStrategy batchingStrategy) {
         AiProperties.RedisProperties redisProperties = aiProperties.getVector().getRedis();
-        return RedisVectorStore.builder(createJedisPooled(redisProperties), embeddingModel)
+        return RedisVectorStore.builder(aiVectorJedisPooled, embeddingModel)
                 .initializeSchema(Boolean.TRUE.equals(redisProperties.getInitializeSchema()))
                 .observationRegistry(observationRegistry.getIfUnique(() -> ObservationRegistry.NOOP))
                 .customObservationConvention(customObservationConvention.getIfAvailable(() -> null))
