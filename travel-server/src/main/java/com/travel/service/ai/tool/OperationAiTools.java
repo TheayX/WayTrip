@@ -19,7 +19,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OperationAiTools {
 
+    /**
+     * 运营看板服务。
+     */
     private final DashboardService dashboardService;
+
+    /**
+     * AI 工具上下文。
+     */
     private final AiToolContextHolder aiToolContextHolder;
 
     /**
@@ -105,6 +112,12 @@ public class OperationAiTools {
         );
     }
 
+    /**
+     * 规范化趋势统计天数，避免查询跨度过大。
+     *
+     * @param days 原始天数
+     * @return 安全天数
+     */
     private Integer normalizeDays(Integer days) {
         if (days == null || days <= 0) {
             return 7;
@@ -112,6 +125,12 @@ public class OperationAiTools {
         return Math.min(days, 30);
     }
 
+    /**
+     * 规范化返回条数。
+     *
+     * @param limit 原始条数
+     * @return 安全条数
+     */
     private Integer normalizeLimit(Integer limit) {
         if (limit == null || limit <= 0) {
             return 5;
@@ -119,6 +138,12 @@ public class OperationAiTools {
         return Math.min(limit, 10);
     }
 
+    /**
+     * 规范化趋势统计口径。
+     *
+     * @param mode 原始口径
+     * @return 统计口径
+     */
     private String normalizeMode(String mode) {
         return "range".equalsIgnoreCase(mode) ? "range" : "weekday";
     }

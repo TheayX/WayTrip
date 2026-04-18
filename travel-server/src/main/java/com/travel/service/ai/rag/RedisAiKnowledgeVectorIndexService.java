@@ -25,11 +25,27 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorIndexService {
 
+    /**
+     * 向量文档 ID 前缀。
+     */
     private static final String VECTOR_ID_PREFIX = "ai_chunk_";
 
+    /**
+     * 向量存储入口。
+     */
     private final VectorStore vectorStore;
+
+    /**
+     * 知识分片持久层。
+     */
     private final AiKnowledgeChunkMapper aiKnowledgeChunkMapper;
 
+    /**
+     * 重建指定文档的全部向量索引，并同步更新分片状态。
+     *
+     * @param document 文档实体
+     * @param chunks 文档分片
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void rebuildDocumentIndex(AiKnowledgeDocument document, List<AiKnowledgeChunk> chunks) {
@@ -84,6 +100,11 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
         }
     }
 
+    /**
+     * 清空当前 AI 知识向量数据，并将数据库中的向量状态重置为待处理。
+     *
+     * @return 清理的向量数量
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int clearAllVectorData() {
@@ -113,6 +134,12 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
         return vectorIds.size();
     }
 
+    /**
+     * 读取指定文档当前已存在的向量 ID，便于重建前先删除旧索引。
+     *
+     * @param documentId 文档 ID
+     * @return 已存在的向量 ID 列表
+     */
     private List<String> loadExistingVectorIds(Long documentId) {
         List<AiKnowledgeChunk> chunks = aiKnowledgeChunkMapper.selectList(new LambdaQueryWrapper<AiKnowledgeChunk>()
                 .eq(AiKnowledgeChunk::getDocumentId, documentId)
@@ -126,6 +153,14 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
         return vectorIds;
     }
 
+    /**
+     * 将知识分片组装成可写入向量库的文档对象。
+     *
+     * @param document 文档实体
+     * @param chunk 分片实体
+     * @param vectorId 向量 ID
+     * @return 向量文档
+     */
     private Document buildVectorDocument(AiKnowledgeDocument document, AiKnowledgeChunk chunk, String vectorId) {
         return Document.builder()
                 .id(vectorId)
@@ -141,10 +176,22 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
                 .build();
     }
 
+    /**
+     * 生成分片对应的向量主键。
+     *
+     * @param chunkId 分片 ID
+     * @return 向量主键
+     */
     private String buildVectorId(Long chunkId) {
         return VECTOR_ID_PREFIX + chunkId;
     }
 
+    /**
+     * 规范化元数据文本字段，避免向量库写入空白值。
+     *
+     * @param value 原始文本
+     * @return 规范化结果
+     */
     private String normalize(String value) {
         return StringUtils.hasText(value) ? value.trim() : "";
     }

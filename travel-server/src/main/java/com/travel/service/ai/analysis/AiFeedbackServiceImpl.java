@@ -16,8 +16,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AiFeedbackServiceImpl implements AiFeedbackService {
 
+    /**
+     * AI 反馈持久层。
+     */
     private final AiFeedbackMapper aiFeedbackMapper;
 
+    /**
+     * 将用户对 AI 回复的评价落库，供后续分析与优化使用。
+     *
+     * @param request 反馈请求
+     * @param userId 当前用户 ID，可为空
+     */
     @Override
     public void submitFeedback(SubmitAiFeedbackRequest request, Long userId) {
         AiFeedback feedback = new AiFeedback();

@@ -93,6 +93,7 @@ public class AiModelConfig {
                 .batchingStrategy(batchingStrategy)
                 .indexName(redisProperties.getIndexName())
                 .prefix(redisProperties.getPrefix())
+                // 元数据字段需要和知识分片写入时的 metadata key 保持一致，否则过滤和回溯会失效。
                 .metadataFields(List.of(
                         RedisVectorStore.MetadataField.numeric("documentId"),
                         RedisVectorStore.MetadataField.numeric("chunkId"),
@@ -104,6 +105,15 @@ public class AiModelConfig {
                 .build();
     }
 
+    /**
+     * 构建 AI 向量 Redis 专用连接。
+     * <p>
+     * 这里单独使用 JedisPooled，而不是复用 Spring Data Redis 连接，
+     * 是因为 RedisVectorStore 直接依赖 Jedis 客户端执行 RedisSearch 命令。
+     *
+     * @param redisProperties Redis 向量配置
+     * @return Jedis 连接池
+     */
     private JedisPooled createJedisPooled(AiProperties.RedisProperties redisProperties) {
         int timeoutSeconds = redisProperties.getTimeoutSeconds() != null ? redisProperties.getTimeoutSeconds() : 3;
         Duration timeout = Duration.ofSeconds(Math.max(1, timeoutSeconds));

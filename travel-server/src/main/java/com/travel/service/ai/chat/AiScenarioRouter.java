@@ -11,7 +11,14 @@ import org.springframework.util.StringUtils;
 public class AiScenarioRouter {
 
     /**
-     * 根据来源和用户消息推断 AI 场景。
+     * 根据显式提示、来源页面和消息关键词推断当前对话场景。
+     * <p>
+     * 判定顺序遵循“前端显式 hint > 页面来源 > 用户文本”，避免模型链路在已知场景下再次猜测。
+     *
+     * @param userMessage 用户消息
+     * @param scenarioHint 前端显式场景提示
+     * @param sourcePage 来源页面标识
+     * @return 推断后的场景类型
      */
     public AiScenarioType route(String userMessage, String scenarioHint, String sourcePage) {
         if (StringUtils.hasText(scenarioHint)) {

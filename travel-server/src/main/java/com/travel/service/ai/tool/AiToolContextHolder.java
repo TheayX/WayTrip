@@ -9,13 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * AI 工具上下文持有器，统一保存当前请求的用户身份。
+ * AI 工具上下文持有器，统一保存当前请求的身份信息和工具调用轨迹。
  */
 @Component
 public class AiToolContextHolder {
 
+    /**
+     * 当前请求绑定的普通用户 ID。
+     */
     private static final ThreadLocal<Long> CURRENT_USER_ID = new ThreadLocal<>();
+
+    /**
+     * 当前请求绑定的管理员 ID。
+     */
     private static final ThreadLocal<Long> CURRENT_ADMIN_ID = new ThreadLocal<>();
+
+    /**
+     * 当前请求期间累计的工具调用摘要。
+     */
     private static final ThreadLocal<List<AiToolCallItem>> TOOL_TRACES = ThreadLocal.withInitial(ArrayList::new);
 
     /**

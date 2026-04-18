@@ -21,8 +21,19 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OrderAiTools {
 
+    /**
+     * 订单服务。
+     */
     private final OrderService orderService;
+
+    /**
+     * 订单规则提供器。
+     */
     private final OrderBusinessRuleProvider orderBusinessRuleProvider;
+
+    /**
+     * AI 工具上下文。
+     */
     private final AiToolContextHolder aiToolContextHolder;
 
     /**
@@ -182,6 +193,13 @@ public class OrderAiTools {
         );
     }
 
+    /**
+     * 规范化返回条数。
+     *
+     * @param limit 原始条数
+     * @param fallback 默认条数
+     * @return 安全条数
+     */
     private int normalizeLimit(Integer limit, int fallback) {
         if (limit == null || limit <= 0) {
             return fallback;
@@ -189,6 +207,12 @@ public class OrderAiTools {
         return Math.min(limit, 10);
     }
 
+    /**
+     * 将自然语言主题归一到固定的订单帮助主题。
+     *
+     * @param topic 原始主题
+     * @return 归一化主题
+     */
     private String normalizeTopic(String topic) {
         if (topic == null || topic.isBlank()) {
             return "general";
@@ -206,6 +230,12 @@ public class OrderAiTools {
         return "general";
     }
 
+    /**
+     * 将订单列表裁剪为适合模型消费的轻量摘要。
+     *
+     * @param list 原始订单列表
+     * @return 轻量订单列表
+     */
     private List<Map<String, Object>> simplifyOrderItems(List<OrderListResponse.OrderItem> list) {
         if (list == null) {
             return List.of();
@@ -225,6 +255,12 @@ public class OrderAiTools {
         }).toList();
     }
 
+    /**
+     * 将订单详情裁剪为轻量摘要。
+     *
+     * @param detail 订单详情
+     * @return 轻量订单详情
+     */
     private Map<String, Object> simplifyOrderDetail(OrderDetailResponse detail) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("id", detail.getId());

@@ -13,12 +13,39 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AiKnowledgeSnippet {
 
+    /**
+     * 来源文档 ID。
+     */
     private Long documentId;
+
+    /**
+     * 命中的知识分片 ID。
+     */
     private Long chunkId;
+
+    /**
+     * 文档标题。
+     */
     private String title;
+
+    /**
+     * 来源类型，例如 manual。
+     */
     private String sourceType;
+
+    /**
+     * 来源引用标识，例如外部链接或来源说明。
+     */
     private String sourceRef;
+
+    /**
+     * 命中的片段正文。
+     */
     private String snippet;
+
+    /**
+     * 归属知识域。
+     */
     private String knowledgeDomain;
 
     /**

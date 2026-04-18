@@ -18,7 +18,14 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AiGuardrailService {
 
+    /**
+     * Redis 访问入口，用于限流计数。
+     */
     private final RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * AI 配置，用于读取输入限制与限流阈值。
+     */
     private final AiProperties aiProperties;
 
     /**
@@ -90,6 +97,12 @@ public class AiGuardrailService {
         }
     }
 
+    /**
+     * 对指定限流键执行自增，并在首次出现时写入 1 分钟过期时间。
+     *
+     * @param key 限流键
+     * @return 当前分钟桶内计数
+     */
     private long incrementWithOneMinuteTtl(String key) {
         Long count = redisTemplate.opsForValue().increment(key);
         if (count != null && count == 1L) {
@@ -98,6 +111,13 @@ public class AiGuardrailService {
         return count == null ? 0L : count;
     }
 
+    /**
+     * 判断文本是否包含任一命中关键词。
+     *
+     * @param source 原始文本
+     * @param keywords 关键词列表
+     * @return 是否命中
+     */
     private boolean containsAny(String source, String... keywords) {
         for (String keyword : keywords) {
             if (source.contains(keyword)) {

@@ -1,5 +1,7 @@
 package com.travel.service.ai.tool;
 
+import com.travel.common.exception.BusinessException;
+import com.travel.common.result.ResultCode;
 import com.travel.dto.home.response.HotSpotResponse;
 import com.travel.dto.home.response.NearbySpotResponse;
 import com.travel.dto.recommendation.response.RecommendationResponse;
@@ -22,7 +24,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RecommendationAiTools {
 
+    /**
+     * 推荐服务。
+     */
     private final RecommendationService recommendationService;
+
+    /**
+     * AI 工具上下文。
+     */
     private final AiToolContextHolder aiToolContextHolder;
 
     /**
@@ -87,6 +96,7 @@ public class RecommendationAiTools {
             @ToolParam(description = "纬度", required = true) Double latitude,
             @ToolParam(description = "经度", required = true) Double longitude,
             @ToolParam(description = "返回条数，建议 3 到 8 之间", required = false) Integer limit) {
+        validateCoordinates(latitude, longitude);
         NearbySpotResponse response = recommendationService.getNearbySpots(
                 BigDecimal.valueOf(latitude),
                 BigDecimal.valueOf(longitude),
@@ -136,6 +146,13 @@ public class RecommendationAiTools {
         );
     }
 
+    /**
+     * 规范化推荐条数，避免工具被要求返回过多结果。
+     *
+     * @param limit 原始条数
+     * @param fallback 默认条数
+     * @return 安全条数
+     */
     private int normalizeLimit(Integer limit, int fallback) {
         if (limit == null || limit <= 0) {
             return fallback;
@@ -143,6 +160,12 @@ public class RecommendationAiTools {
         return Math.min(limit, 10);
     }
 
+    /**
+     * 将推荐结果裁剪成适合模型消费的轻量结构，减少无关字段干扰。
+     *
+     * @param list 原始推荐列表
+     * @return 轻量推荐列表
+     */
     private List<Map<String, Object>> simplifyRecommendationItems(List<RecommendationResponse.SpotItem> list) {
         if (list == null) {
             return List.of();
@@ -158,5 +181,17 @@ public class RecommendationAiTools {
             row.put("score", item.getScore());
             return row;
         }).toList();
+    }
+
+    /**
+     * 校验附近景点工具所需坐标，避免缺参时直接触发空指针。
+     *
+     * @param latitude 纬度
+     * @param longitude 经度
+     */
+    private void validateCoordinates(Double latitude, Double longitude) {
+        if (latitude == null || longitude == null) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "查询附近景点需要同时提供经纬度");
+        }
     }
 }

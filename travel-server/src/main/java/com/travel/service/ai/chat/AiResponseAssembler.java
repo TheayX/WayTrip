@@ -42,6 +42,12 @@ public class AiResponseAssembler {
         return response;
     }
 
+    /**
+     * 为不同场景提供默认追问建议，降低用户二次提问成本。
+     *
+     * @param scenario 场景类型
+     * @return 默认建议列表
+     */
     private List<String> defaultSuggestions(AiScenarioType scenario) {
         return switch (scenario) {
             case ORDER_ADVISOR -> List.of("帮我看看订单状态说明", "退款流程怎么走", "订单页里应该看什么");

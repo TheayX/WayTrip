@@ -16,15 +16,37 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 基于 Redis 的 Spring AI 对话记忆实现。
+ * <p>
+ * 该实现直接适配 {@link ChatMemory} 接口，供 MessageChatMemoryAdvisor 在模型调用链中自动读写上下文。
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RedisChatMemory implements ChatMemory {
 
+    /**
+     * 字符串型 Redis 模板，用于直接读写 JSON。
+     */
     private final StringRedisTemplate stringRedisTemplate;
+
+    /**
+     * JSON 序列化工具。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * AI 配置，用于读取记忆时长和保留轮次。
+     */
     private final AiProperties aiProperties;
 
+    /**
+     * 追加本轮消息到历史，并统一执行裁剪和过期刷新。
+     *
+     * @param conversationId 会话 ID
+     * @param messages 本轮新增消息
+     */
     @Override
     public void add(String conversationId, List<Message> messages) {
         List<Message> history = get(conversationId);
@@ -47,6 +69,12 @@ public class RedisChatMemory implements ChatMemory {
         }
     }
 
+    /**
+     * 读取指定会话的消息历史。
+     *
+     * @param conversationId 会话 ID
+     * @return 历史消息列表
+     */
     @Override
     public List<Message> get(String conversationId) {
         String key = RedisKeyManager.aiConversationSession(conversationId);
@@ -64,12 +92,23 @@ public class RedisChatMemory implements ChatMemory {
         }
     }
 
+    /**
+     * 清空指定会话的记忆数据。
+     *
+     * @param conversationId 会话 ID
+     */
     @Override
     public void clear(String conversationId) {
         stringRedisTemplate.delete(RedisKeyManager.aiConversationSession(conversationId));
         stringRedisTemplate.delete(RedisKeyManager.aiConversationSummary(conversationId));
     }
 
+    /**
+     * 裁剪历史消息，避免 ChatMemory 在长会话中无限增长。
+     *
+     * @param history 原始历史
+     * @return 裁剪后的历史
+     */
     private List<Message> trimHistory(List<Message> history) {
         int maxRounds = Math.max(1, aiProperties.getMemory().getHistoryRounds());
         int maxMessages = Math.max(8, maxRounds * 6);

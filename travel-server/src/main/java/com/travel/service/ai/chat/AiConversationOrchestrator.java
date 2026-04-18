@@ -35,16 +35,59 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AiConversationOrchestrator {
 
+    /**
+     * 统一 AI 聊天客户端。
+     */
     private final ChatClient aiChatClient;
+
+    /**
+     * Redis 对话记忆实现。
+     */
     private final RedisChatMemory redisChatMemory;
+
+    /**
+     * 会话 ID 服务。
+     */
     private final AiSessionIdService aiSessionIdService;
+
+    /**
+     * AI 风控服务。
+     */
     private final AiGuardrailService aiGuardrailService;
+
+    /**
+     * AI 场景路由器。
+     */
     private final AiScenarioRouter aiScenarioRouter;
+
+    /**
+     * 系统提示词服务。
+     */
     private final AiPromptService aiPromptService;
+
+    /**
+     * 响应组装器。
+     */
     private final AiResponseAssembler aiResponseAssembler;
+
+    /**
+     * RAG 检索服务。
+     */
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
+
+    /**
+     * 知识上下文增强 Advisor。
+     */
     private final AiKnowledgeContextAdvisor aiKnowledgeContextAdvisor;
+
+    /**
+     * 工具上下文持有器。
+     */
     private final AiToolContextHolder aiToolContextHolder;
+
+    /**
+     * AI 工具注册中心。
+     */
     private final AiToolRegistry aiToolRegistry;
 
     /**
@@ -189,6 +232,10 @@ public class AiConversationOrchestrator {
 
     /**
      * 截取文本预览，用于日志打印，避免超长内容刷屏。
+     *
+     * @param text 原始文本
+     * @param maxLength 最大预览长度
+     * @return 预览文本
      */
     private String previewText(String text, int maxLength) {
         if (!StringUtils.hasText(text)) {

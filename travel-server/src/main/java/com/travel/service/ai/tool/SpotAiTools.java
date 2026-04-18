@@ -25,8 +25,19 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SpotAiTools {
 
+    /**
+     * 景点服务。
+     */
     private final SpotService spotService;
+
+    /**
+     * 攻略服务。
+     */
     private final GuideService guideService;
+
+    /**
+     * AI 工具上下文。
+     */
     private final AiToolContextHolder aiToolContextHolder;
 
     /**
@@ -95,6 +106,13 @@ public class SpotAiTools {
         );
     }
 
+    /**
+     * 对 AI 关键词做轻量归一化，优先剥离“门票、攻略、游玩”等高频噪声词。
+     *
+     * @param keyword 原始关键词
+     * @param limit 返回条数
+     * @return 搜索结果
+     */
     private PageResult<SpotListResponse> searchSpotByAiKeyword(String keyword, Integer limit) {
         String baseKeyword = keyword.replace("门票", "").replace("攻略", "").replace("游玩", "");
         if (!baseKeyword.isEmpty() && !baseKeyword.equals(keyword)) {
@@ -134,6 +152,13 @@ public class SpotAiTools {
         );
     }
 
+    /**
+     * 规范化返回条数。
+     *
+     * @param limit 原始条数
+     * @param fallback 默认条数
+     * @return 安全条数
+     */
     private int normalizeLimit(Integer limit, int fallback) {
         if (limit == null || limit <= 0) {
             return fallback;
@@ -141,6 +166,12 @@ public class SpotAiTools {
         return Math.min(limit, 10);
     }
 
+    /**
+     * 将景点详情裁剪为适合模型消费的摘要结构。
+     *
+     * @param detail 景点详情
+     * @return 轻量详情
+     */
     private Map<String, Object> simplifySpotDetail(SpotDetailResponse detail) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("id", detail.getId());
@@ -156,6 +187,12 @@ public class SpotAiTools {
         return row;
     }
 
+    /**
+     * 将景点列表裁剪为轻量摘要。
+     *
+     * @param list 原始景点列表
+     * @return 轻量列表
+     */
     private List<Map<String, Object>> simplifySpotList(List<SpotListResponse> list) {
         if (list == null) {
             return List.of();
@@ -172,6 +209,12 @@ public class SpotAiTools {
         }).toList();
     }
 
+    /**
+     * 将攻略列表裁剪为轻量摘要。
+     *
+     * @param list 原始攻略列表
+     * @return 轻量列表
+     */
     private List<Map<String, Object>> simplifyGuideList(List<GuideListResponse> list) {
         if (list == null) {
             return List.of();

@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AiPromptService {
 
+    /**
+     * AI 配置，提供系统提示词基础模板。
+     */
     private final AiProperties aiProperties;
 
     /**
@@ -28,6 +31,7 @@ public class AiPromptService {
                 .append("\n3. 工具的非必填参数（如状态、偏好等）如果用户没说，【直接不传或传空调用即可】，绝对不要向用户提问索要可选参数！")
                 .append("\n4. 涉及订单、推荐、景点详情等事实信息时，以工具返回结果为准，无法确认时，明确说明信息不足，不要编造。")
                 .append("\n5. 回答保持简洁，优先给结论和下一步建议。");
+        // 场景规则只补充“当前任务额外约束”，通用原则统一放在前面，避免提示词重复堆叠。
         switch (scenario) {
             case ORDER_ADVISOR -> prompt.append("""
 

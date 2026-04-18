@@ -21,7 +21,6 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.exceptions.JedisDataException;
 
@@ -36,16 +35,55 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
 
+    /**
+     * 管理端统一时间格式。
+     */
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    /**
+     * 知识文档持久层。
+     */
     private final AiKnowledgeDocumentMapper aiKnowledgeDocumentMapper;
+
+    /**
+     * 知识分片持久层。
+     */
     private final AiKnowledgeChunkMapper aiKnowledgeChunkMapper;
+
+    /**
+     * 知识导入与分片重建服务。
+     */
     private final AiKnowledgeIngestionService aiKnowledgeIngestionService;
+
+    /**
+     * 知识检索服务。
+     */
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
+
+    /**
+     * 向量索引维护服务。
+     */
     private final AiKnowledgeVectorIndexService aiKnowledgeVectorIndexService;
+
+    /**
+     * 环境配置访问入口。
+     */
     private final Environment environment;
+
+    /**
+     * 当前 embedding 模型。
+     */
     private final EmbeddingModel embeddingModel;
+
+    /**
+     * AI 向量 Redis 连接。
+     */
     private final JedisPooled aiVectorJedisPooled;
+
+    /**
+     * 向量索引信息解析工具。
+     */
+    private final AiVectorIndexInfoSupport aiVectorIndexInfoSupport;
 
     @Override
     public Long createManualDocument(ManualAiKnowledgeUpsertRequest request, Long adminId) {
@@ -204,6 +242,12 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         return rebuildAllKnowledgeInternal(true);
     }
 
+    /**
+     * 按需清理向量数据后，重建全部启用知识文档。
+     *
+     * @param clearVectorDataFirst 是否先清空向量索引
+     * @return 维护结果摘要
+     */
     private AiKnowledgeMaintenanceResponse rebuildAllKnowledgeInternal(boolean clearVectorDataFirst) {
         int clearedVectorCount = 0;
         if (clearVectorDataFirst) {
@@ -229,6 +273,12 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         return response;
     }
 
+    /**
+     * 获取当前仍然有效的知识文档。
+     *
+     * @param documentId 文档 ID
+     * @return 文档实体
+     */
     private AiKnowledgeDocument getActiveDocument(Long documentId) {
         AiKnowledgeDocument document = aiKnowledgeDocumentMapper.selectById(documentId);
         if (document == null || Integer.valueOf(1).equals(document.getIsDeleted())) {
@@ -237,6 +287,12 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         return document;
     }
 
+    /**
+     * 统计指定文档的分片数量。
+     *
+     * @param documentId 文档 ID
+     * @return 分片数量
+     */
     private int countChunks(Long documentId) {
         Long count = aiKnowledgeChunkMapper.selectCount(
                 new LambdaQueryWrapper<AiKnowledgeChunk>()
@@ -245,6 +301,12 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         return count == null ? 0 : count.intValue();
     }
 
+    /**
+     * 统计文档数量，可按启用状态筛选。
+     *
+     * @param isEnabled 启用状态；为空表示统计全部
+     * @return 文档数量
+     */
     private int countDocuments(Integer isEnabled) {
         LambdaQueryWrapper<AiKnowledgeDocument> wrapper = new LambdaQueryWrapper<AiKnowledgeDocument>()
                 .eq(AiKnowledgeDocument::getIsDeleted, 0);
@@ -255,6 +317,12 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         return count == null ? 0 : count.intValue();
     }
 
+    /**
+     * 按向量化状态统计分片数量。
+     *
+     * @param embeddingStatus 向量化状态；为空表示统计全部
+     * @return 分片数量
+     */
     private int countChunksByStatus(Integer embeddingStatus) {
         LambdaQueryWrapper<AiKnowledgeChunk> wrapper = new LambdaQueryWrapper<>();
         if (embeddingStatus != null) {
@@ -264,6 +332,11 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         return count == null ? 0 : count.intValue();
     }
 
+    /**
+     * 统计所有启用知识文档的分片总量。
+     *
+     * @return 分片总数
+     */
     private int countEnabledDocumentChunks() {
         List<AiKnowledgeDocument> enabledDocuments = aiKnowledgeDocumentMapper.selectList(
                 new LambdaQueryWrapper<AiKnowledgeDocument>()
@@ -280,6 +353,11 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         return total;
     }
 
+    /**
+     * 解析当前 embedding 模型维度。
+     *
+     * @return 模型维度；获取失败时返回 {@code null}
+     */
     private Integer resolveModelDimension() {
         try {
             return embeddingModel.dimensions();
@@ -289,9 +367,15 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         }
     }
 
+    /**
+     * 读取 Redis 向量索引维度。
+     *
+     * @param indexName 索引名称
+     * @return 索引维度；索引不存在或读取失败时返回 {@code null}
+     */
     private Integer resolveIndexDimension(String indexName) {
         try {
-            return extractDimension(aiVectorJedisPooled.ftInfo(indexName));
+            return aiVectorIndexInfoSupport.extractDimension(aiVectorJedisPooled.ftInfo(indexName));
         } catch (JedisDataException exception) {
             if (exception.getMessage() != null && exception.getMessage().contains("Unknown Index name")) {
                 return null;
@@ -305,57 +389,13 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
     }
 
     /**
-     * FT.INFO 返回结构在不同 Jedis 版本下可能嵌套为 Map 或 List，这里统一递归提取 DIM。
+     * 对可选文本字段做裁剪和兜底，避免落库空白值。
+     *
+     * @param value 原始文本
+     * @param fallback 兜底值
+     * @return 规范化结果
      */
-    private Integer extractDimension(Object source) {
-        if (source instanceof java.util.Map<?, ?> map) {
-            for (java.util.Map.Entry<?, ?> entry : map.entrySet()) {
-                if ("DIM".equalsIgnoreCase(String.valueOf(entry.getKey()))) {
-                    Integer dimension = parseInteger(entry.getValue());
-                    if (dimension != null) {
-                        return dimension;
-                    }
-                }
-                Integer nested = extractDimension(entry.getValue());
-                if (nested != null) {
-                    return nested;
-                }
-            }
-            return null;
-        }
-        if (source instanceof java.util.List<?> list) {
-            for (int i = 0; i < list.size(); i++) {
-                Object current = list.get(i);
-                if ("DIM".equalsIgnoreCase(String.valueOf(current)) && i + 1 < list.size()) {
-                    Integer dimension = parseInteger(list.get(i + 1));
-                    if (dimension != null) {
-                        return dimension;
-                    }
-                }
-                Integer nested = extractDimension(current);
-                if (nested != null) {
-                    return nested;
-                }
-            }
-        }
-        return null;
-    }
-
-    private Integer parseInteger(Object value) {
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-        if (value instanceof String stringValue && StringUtils.hasText(stringValue)) {
-            try {
-                return Integer.parseInt(stringValue.trim());
-            } catch (NumberFormatException ignored) {
-                return null;
-            }
-        }
-        return null;
-    }
-
     private String normalize(String value, String fallback) {
-        return StringUtils.hasText(value) ? value.trim() : fallback;
+        return org.springframework.util.StringUtils.hasText(value) ? value.trim() : fallback;
     }
 }

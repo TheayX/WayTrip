@@ -3,6 +3,7 @@ package com.travel.config.ai;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.entity.AiKnowledgeChunk;
 import com.travel.mapper.AiKnowledgeChunkMapper;
+import com.travel.service.ai.rag.AiVectorIndexInfoSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Component;
 import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.exceptions.JedisDataException;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,11 +23,39 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AiVectorIndexStartupValidator implements ApplicationRunner {
 
+    /**
+     * AI 模块配置，用于读取 RAG 开关和索引名称。
+     */
     private final AiProperties aiProperties;
+
+    /**
+     * 当前生效的 embedding 模型，用于获取向量维度。
+     */
     private final EmbeddingModel embeddingModel;
+
+    /**
+     * AI 向量 Redis 连接，用于读取 FT.INFO 索引信息。
+     */
     private final JedisPooled aiVectorJedisPooled;
+
+    /**
+     * 知识分片持久层，用于统计已向量化数据量并输出错误上下文。
+     */
     private final AiKnowledgeChunkMapper aiKnowledgeChunkMapper;
 
+    /**
+     * 向量索引信息解析工具。
+     */
+    private final AiVectorIndexInfoSupport aiVectorIndexInfoSupport;
+
+    /**
+     * 在应用启动阶段校验 embedding 模型维度与 Redis 向量索引维度是否一致。
+     * <p>
+     * 这样可以把“模型切换后未重建索引”这类问题提前暴露在启动期，
+     * 避免首个线上请求才触发维度不匹配异常。
+     *
+     * @param args 启动参数
+     */
     @Override
     public void run(ApplicationArguments args) {
         if (!Boolean.TRUE.equals(aiProperties.getRag().getEnabled())) {
@@ -65,6 +93,12 @@ public class AiVectorIndexStartupValidator implements ApplicationRunner {
         throw new IllegalStateException(message);
     }
 
+    /**
+     * 从 RedisSearch 索引信息中解析向量维度。
+     *
+     * @param indexName RedisSearch 索引名称
+     * @return 索引维度；索引不存在时返回 {@code null}
+     */
     private Integer resolveIndexDimension(String indexName) {
         Map<String, Object> indexInfo;
         try {
@@ -79,7 +113,7 @@ public class AiVectorIndexStartupValidator implements ApplicationRunner {
             throw new IllegalStateException("AI 启动校验失败：无法连接 AI 向量 Redis 或读取索引信息。", exception);
         }
 
-        Integer dimension = extractDimension(indexInfo);
+        Integer dimension = aiVectorIndexInfoSupport.extractDimension(indexInfo);
         if (dimension == null || dimension <= 0) {
             throw new IllegalStateException("AI 启动校验失败：无法从 Redis 向量索引信息中解析维度，请检查索引结构是否正常。");
         }
@@ -87,57 +121,10 @@ public class AiVectorIndexStartupValidator implements ApplicationRunner {
     }
 
     /**
-     * Redis FT.INFO 返回结构在不同客户端版本下可能包含 Map 或 List，这里统一做递归解析。
+     * 统计已经完成向量化的知识分片数量，便于在启动失败时评估重建影响范围。
+     *
+     * @return 已完成向量化的分片数
      */
-    private Integer extractDimension(Object source) {
-        if (source instanceof Map<?, ?> map) {
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                if ("DIM".equalsIgnoreCase(String.valueOf(entry.getKey()))) {
-                    Integer dimension = toInteger(entry.getValue());
-                    if (dimension != null) {
-                        return dimension;
-                    }
-                }
-                Integer nested = extractDimension(entry.getValue());
-                if (nested != null) {
-                    return nested;
-                }
-            }
-            return null;
-        }
-
-        if (source instanceof List<?> list) {
-            for (int i = 0; i < list.size(); i++) {
-                Object current = list.get(i);
-                if ("DIM".equalsIgnoreCase(String.valueOf(current)) && i + 1 < list.size()) {
-                    Integer dimension = toInteger(list.get(i + 1));
-                    if (dimension != null) {
-                        return dimension;
-                    }
-                }
-                Integer nested = extractDimension(current);
-                if (nested != null) {
-                    return nested;
-                }
-            }
-        }
-        return null;
-    }
-
-    private Integer toInteger(Object value) {
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-        if (value instanceof String stringValue) {
-            try {
-                return Integer.parseInt(stringValue.trim());
-            } catch (NumberFormatException ignored) {
-                return null;
-            }
-        }
-        return null;
-    }
-
     private int countCompletedChunks() {
         Long count = aiKnowledgeChunkMapper.selectCount(
                 new LambdaQueryWrapper<AiKnowledgeChunk>()

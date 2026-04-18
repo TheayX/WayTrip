@@ -25,7 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AiChatController {
 
+    /**
+     * AI 对话服务入口。
+     */
     private final AiChatService aiChatService;
+
+    /**
+     * JWT 解析工具，用于识别当前请求身份。
+     */
     private final JwtUtils jwtUtils;
 
     /**
@@ -48,6 +55,12 @@ public class AiChatController {
         return ApiResponse.success(response);
     }
 
+    /**
+     * 从 Authorization 请求头中提取 Bearer Token。
+     *
+     * @param authorization 请求头原始值
+     * @return Token；不存在或格式非法时返回 {@code null}
+     */
     private String resolveToken(String authorization) {
         if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) {
             return null;
@@ -59,6 +72,12 @@ public class AiChatController {
         return token;
     }
 
+    /**
+     * 解析普通用户身份。
+     *
+     * @param token JWT Token
+     * @return 用户 ID；解析失败时返回 {@code null}
+     */
     private Long resolveUserId(String token) {
         if (!StringUtils.hasText(token)) {
             return null;
@@ -66,6 +85,12 @@ public class AiChatController {
         return jwtUtils.getUserIdFromToken(token);
     }
 
+    /**
+     * 解析管理端身份。
+     *
+     * @param token JWT Token
+     * @return 管理员 ID；解析失败时返回 {@code null}
+     */
     private Long resolveAdminId(String token) {
         if (!StringUtils.hasText(token)) {
             return null;
@@ -73,6 +98,12 @@ public class AiChatController {
         return jwtUtils.getAdminIdFromToken(token);
     }
 
+    /**
+     * 按常见反向代理请求头顺序解析客户端真实 IP。
+     *
+     * @param request HTTP 请求
+     * @return 客户端 IP
+     */
     private String resolveClientIp(HttpServletRequest request) {
         String[] headers = new String[]{"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP"};
         for (String header : headers) {

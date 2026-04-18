@@ -24,7 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AiFeedbackController {
 
+    /**
+     * AI 反馈服务入口。
+     */
     private final AiFeedbackService aiFeedbackService;
+
+    /**
+     * JWT 解析工具，用于识别反馈提交人。
+     */
     private final JwtUtils jwtUtils;
 
     /**
@@ -42,6 +49,12 @@ public class AiFeedbackController {
         return ApiResponse.success(null);
     }
 
+    /**
+     * 从请求头解析当前登录用户 ID。
+     *
+     * @param authorization Authorization 请求头
+     * @return 用户 ID；未登录时返回 {@code null}
+     */
     private Long resolveUserId(String authorization) {
         if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) {
             return null;

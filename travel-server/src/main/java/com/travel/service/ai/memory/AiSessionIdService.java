@@ -34,6 +34,7 @@ public class AiSessionIdService {
             throw new BusinessException(ResultCode.PARAM_ERROR, "会话ID不能为空");
         }
         if (safe.length() > 64) {
+            // 先做长度裁剪，再清洗字符，避免异常输入放大存储键长度。
             safe = safe.substring(0, 64);
         }
         safe = safe.replaceAll("[^A-Za-z0-9_-]", "");

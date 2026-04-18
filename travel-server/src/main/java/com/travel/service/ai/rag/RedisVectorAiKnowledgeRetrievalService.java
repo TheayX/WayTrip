@@ -23,9 +23,23 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrievalService {
 
+    /**
+     * AI 配置，控制 RAG 开关、召回数量和阈值。
+     */
     private final AiProperties aiProperties;
+
+    /**
+     * 向量检索入口。
+     */
     private final VectorStore vectorStore;
 
+    /**
+     * 按场景执行向量检索，并在命中后过滤到对应知识域。
+     *
+     * @param scenario 场景类型
+     * @param userMessage 用户消息
+     * @return 命中的知识片段
+     */
     @Override
     public List<AiKnowledgeSnippet> retrieve(AiScenarioType scenario, String userMessage) {
         if (!Boolean.TRUE.equals(aiProperties.getRag().getEnabled()) || !StringUtils.hasText(userMessage)) {
@@ -65,6 +79,12 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
         }
     }
 
+    /**
+     * 为不同业务场景指定默认知识域，避免跨域召回污染结果。
+     *
+     * @param scenario 场景类型
+     * @return 默认知识域
+     */
     @Override
     public AiKnowledgeDomain resolveDomain(AiScenarioType scenario) {
         return switch (scenario) {
@@ -75,6 +95,13 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
         };
     }
 
+    /**
+     * 将向量库命中文档转换为业务侧可用的知识片段，并按知识域过滤。
+     *
+     * @param documents 原始命中文档
+     * @param domain 当前目标知识域
+     * @return 过滤后的知识片段
+     */
     private List<AiKnowledgeSnippet> mapToSnippets(List<Document> documents, AiKnowledgeDomain domain) {
         if (documents == null || documents.isEmpty()) {
             return List.of();
@@ -104,11 +131,21 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
         return snippets;
     }
 
+    /**
+     * 为向量召回预留一定候选空间，再由业务侧按知识域和 topK 二次收敛。
+     *
+     * @return 候选召回数量
+     */
     private int resolveCandidateCount() {
         int topK = Math.max(1, aiProperties.getRag().getTopK());
         return Math.max(topK * 3, topK);
     }
 
+    /**
+     * 解析相似度阈值，并强制收敛到 0 到 1 之间。
+     *
+     * @return 相似度阈值
+     */
     private double resolveSimilarityThreshold() {
         Double minScore = aiProperties.getRag().getMinScore();
         if (minScore == null) {
@@ -117,10 +154,22 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
         return Math.max(0D, Math.min(1D, minScore));
     }
 
+    /**
+     * 将元数据安全转换为字符串。
+     *
+     * @param value 元数据值
+     * @return 字符串结果
+     */
     private String stringValue(Object value) {
         return value == null ? "" : String.valueOf(value).trim();
     }
 
+    /**
+     * 将元数据安全转换为 Long。
+     *
+     * @param value 元数据值
+     * @return Long 结果；无法解析时返回 0
+     */
     private Long longValue(Object value) {
         if (value instanceof Number number) {
             return number.longValue();
@@ -135,6 +184,12 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
         return 0L;
     }
 
+    /**
+     * 裁剪片段文本，避免过长知识块挤占系统提示词空间。
+     *
+     * @param content 原始文本
+     * @return 裁剪后的片段
+     */
     private String truncateSnippet(String content) {
         if (!StringUtils.hasText(content)) {
             return "";

@@ -16,7 +16,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserProfileAiTools {
 
+    /**
+     * 用户画像查询服务。
+     */
     private final UserProfileService userProfileService;
+
+    /**
+     * AI 工具上下文。
+     */
     private final AiToolContextHolder aiToolContextHolder;
 
     /**

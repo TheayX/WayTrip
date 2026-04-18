@@ -17,10 +17,29 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AiToolRegistry {
 
+    /**
+     * 推荐相关工具集合。
+     */
     private final RecommendationAiTools recommendationAiTools;
+
+    /**
+     * 订单相关工具集合。
+     */
     private final OrderAiTools orderAiTools;
+
+    /**
+     * 景点与攻略相关工具集合。
+     */
     private final SpotAiTools spotAiTools;
+
+    /**
+     * 用户画像相关工具集合。
+     */
     private final UserProfileAiTools userProfileAiTools;
+
+    /**
+     * 管理端运营分析工具集合。
+     */
     private final OperationAiTools operationAiTools;
 
     /**
@@ -42,6 +61,11 @@ public class AiToolRegistry {
         return tools.toArray();
     }
 
+    /**
+     * 定义工具与场景的静态绑定关系。
+     *
+     * @return 绑定列表
+     */
     private List<ToolBinding> bindings() {
         List<ToolBinding> bindings = new ArrayList<>();
         bindings.add(new ToolBinding(orderAiTools, Set.of(AiScenarioType.ORDER_ADVISOR)));
@@ -65,7 +89,15 @@ public class AiToolRegistry {
     @Getter
     @RequiredArgsConstructor
     private static class ToolBinding {
+
+        /**
+         * Spring AI 可注册的工具实例。
+         */
         private final Object tool;
+
+        /**
+         * 当前工具允许暴露的场景集合。
+         */
         private final Set<AiScenarioType> scenarios;
     }
 }

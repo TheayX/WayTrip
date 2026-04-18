@@ -22,8 +22,19 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AiConversationMemoryService {
 
+    /**
+     * Redis 访问入口，用于保存会话摘要和历史。
+     */
     private final RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * JSON 序列化工具，用于读写历史消息。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * AI 配置，用于读取保留轮数和过期时间。
+     */
     private final AiProperties aiProperties;
 
     /**
@@ -58,6 +69,7 @@ public class AiConversationMemoryService {
         List<AiConversationTurn> updated = new ArrayList<>(history);
         updated.add(new AiConversationTurn("user", userMessage));
         updated.add(new AiConversationTurn("assistant", assistantReply));
+        // 这里按“轮次 x 2 条消息”裁剪，保证保留的是最近完整问答对。
         int maxMessages = Math.max(1, aiProperties.getMemory().getHistoryRounds()) * 2;
         if (updated.size() > maxMessages) {
             updated = new ArrayList<>(updated.subList(updated.size() - maxMessages, updated.size()));
