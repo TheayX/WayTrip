@@ -128,12 +128,12 @@
         </div>
 
         <div v-if="showTypingHint" class="typing-hint">
+          {{ AI_CHAT_COPY.typing }}
           <div class="typing-dots">
             <span class="dot"></span>
             <span class="dot"></span>
             <span class="dot"></span>
           </div>
-          {{ AI_CHAT_COPY.typing }}
         </div>
       </div>
 

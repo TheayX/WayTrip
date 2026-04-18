@@ -10,6 +10,14 @@ const AI_CHAT_PATH = '/ai/chat'
 // AI 反馈接口路径。
 const AI_FEEDBACK_PATH = '/ai/feedback'
 
+// SSE 事件名到回调字段的映射表。
+const AI_CHAT_STREAM_HANDLER_MAP = {
+  start: 'onStart',
+  delta: 'onDelta',
+  done: 'onDone',
+  error: 'onError'
+}
+
 /**
  * 创建新的 AI 会话。
  *
@@ -126,19 +134,8 @@ function dispatchSseBlock(block, handlers) {
 
   const rawData = dataLines.join('\n')
   const payload = rawData ? JSON.parse(rawData) : null
-  // 这里记录浏览器实际收到 SSE 事件的时间点，便于区分“后端已发出”和“前端何时收到”。
-  console.debug('[WayTrip AI SSE] event received', {
-    eventName,
-    receivedAt: Date.now(),
-    payload
-  })
-  const handlerMap = {
-    start: handlers.onStart,
-    delta: handlers.onDelta,
-    done: handlers.onDone,
-    error: handlers.onError
-  }
-  const handler = handlerMap[eventName]
+  const handlerName = AI_CHAT_STREAM_HANDLER_MAP[eventName]
+  const handler = handlerName ? handlers[handlerName] : null
   if (typeof handler === 'function') {
     handler(payload)
   }

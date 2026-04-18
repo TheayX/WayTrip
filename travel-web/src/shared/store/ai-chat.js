@@ -23,9 +23,6 @@ export const useAiChatStore = defineStore('ai-chat', () => {
   const sessionId = ref('')
   const messages = ref([buildWelcomeMessage()])
 
-  // 欢迎语之外出现过真实对话时，视为已有活跃消息。
-  const hasActiveMessages = computed(() => messages.value.length > 1)
-
   // 仅返回最近一条已完成的助手消息 ID，供反馈按钮和引用定位使用。
   const latestAssistantMessageId = computed(() => {
     for (let index = messages.value.length - 1; index >= 0; index -= 1) {
@@ -112,8 +109,7 @@ export const useAiChatStore = defineStore('ai-chat', () => {
 
     const currentSessionId = await ensureSession()
     const userMessage = buildUserMessage(trimmedContent)
-    const streamingMessage = buildAssistantStreamingMessage()
-    messages.value.push(userMessage, streamingMessage)
+    messages.value.push(userMessage, buildAssistantStreamingMessage())
     // 流式阶段必须写回消息列表中的响应式对象，避免只改原始引用导致界面直到收尾才统一刷新。
     const reactiveStreamingMessage = messages.value[messages.value.length - 1]
     loading.value = true
@@ -128,10 +124,6 @@ export const useAiChatStore = defineStore('ai-chat', () => {
       }, {
         onStart: (payload) => {
           applyAssistantStartEvent(reactiveStreamingMessage, payload)
-          console.debug('[WayTrip AI SSE] start applied', {
-            messageId: reactiveStreamingMessage.id,
-            receivedAt: Date.now()
-          })
           if (payload?.sessionId) {
             sessionId.value = payload.sessionId
             cacheAiSessionId(payload.sessionId)
@@ -139,19 +131,9 @@ export const useAiChatStore = defineStore('ai-chat', () => {
         },
         onDelta: (payload) => {
           appendAssistantDelta(reactiveStreamingMessage, payload)
-          console.debug('[WayTrip AI SSE] delta applied', {
-            messageId: reactiveStreamingMessage.id,
-            contentLength: reactiveStreamingMessage.content.length,
-            receivedAt: Date.now()
-          })
         },
         onDone: (payload) => {
           finalizeAssistantMessage(reactiveStreamingMessage, payload)
-          console.debug('[WayTrip AI SSE] done applied', {
-            messageId: reactiveStreamingMessage.id,
-            contentLength: reactiveStreamingMessage.content.length,
-            receivedAt: Date.now()
-          })
         },
         onError: (payload) => {
           throw new Error(payload?.message || 'AI 服务暂时不可用，请稍后重试。')
@@ -159,7 +141,8 @@ export const useAiChatStore = defineStore('ai-chat', () => {
       })
       return reactiveStreamingMessage
     } catch (error) {
-      removeMessageById(streamingMessage.id)
+      // start 事件可能已经把占位消息 ID 替换成服务端消息 ID，异常回滚时优先按当前响应式对象上的最新 ID 删除。
+      removeMessageById(reactiveStreamingMessage.id)
       throw error
     } finally {
       loading.value = false
@@ -200,16 +183,6 @@ export const useAiChatStore = defineStore('ai-chat', () => {
   }
 
   /**
-   * 直接把推荐追问转成一次普通发送。
-   *
-   * @param {string} content 建议问题文本
-   * @returns {Promise<object|null>}
-   */
-  function useSuggestion(content) {
-    return sendMessage({ content })
-  }
-
-  /**
    * 从消息列表中移除指定消息。
    *
    * @param {string} messageId 消息 ID
@@ -226,14 +199,12 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     loading,
     sessionId,
     messages,
-    hasActiveMessages,
     latestAssistantMessageId,
     openChat,
     closeChat,
     clearConversation,
     sendMessage,
     markFeedback,
-    appendLocalAssistantMessage,
-    useSuggestion
+    appendLocalAssistantMessage
   }
 })
