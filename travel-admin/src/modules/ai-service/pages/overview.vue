@@ -54,6 +54,46 @@
 
       <el-row v-loading="loading" :gutter="24" class="content-row">
         <el-col :xl="16" :lg="15" :md="24">
+          <el-card shadow="hover" class="summary-card">
+            <template #header>
+              <div class="card-header">
+                <span>向量索引健康摘要</span>
+                <div class="card-header__extra">
+                  <el-button text type="primary" @click="goTo('/ai-service/knowledge')">前往维护</el-button>
+                </div>
+              </div>
+            </template>
+
+            <div class="vector-health-grid">
+              <div class="vector-health-card" :class="{ 'vector-health-card--ok': vectorStatus.dimensionMatched, 'vector-health-card--danger': vectorStatus.dimensionMatched === false }">
+                <div class="vector-health-card__label">维度一致性</div>
+                <div class="vector-health-card__value">
+                  {{ vectorStatus.dimensionMatched === null ? '未检测' : vectorStatus.dimensionMatched ? '一致' : '不一致' }}
+                </div>
+                <div class="vector-health-card__desc">
+                  模型 {{ displayMetric(vectorStatus.modelDimension) }} 维 · 索引 {{ displayMetric(vectorStatus.indexDimension) }} 维
+                </div>
+              </div>
+              <div class="vector-health-card">
+                <div class="vector-health-card__label">向量模型</div>
+                <div class="vector-health-card__value vector-health-card__value--sm">{{ vectorStatus.embeddingModel || '--' }}</div>
+                <div class="vector-health-card__desc">{{ vectorStatus.embeddingProvider || '--' }}</div>
+              </div>
+              <div class="vector-health-card">
+                <div class="vector-health-card__label">Redis 索引</div>
+                <div class="vector-health-card__value vector-health-card__value--sm">{{ vectorStatus.indexName || '--' }}</div>
+                <div class="vector-health-card__desc">{{ vectorStatus.redisHost || '--' }}:{{ vectorStatus.redisPort || '--' }}</div>
+              </div>
+              <div class="vector-health-card">
+                <div class="vector-health-card__label">完成分片</div>
+                <div class="vector-health-card__value">{{ displayMetric(vectorStatus.completedChunkCount) }}</div>
+                <div class="vector-health-card__desc">
+                  待处理 {{ displayMetric(vectorStatus.pendingChunkCount) }} · 失败 {{ displayMetric(vectorStatus.failedChunkCount) }}
+                </div>
+              </div>
+            </div>
+          </el-card>
+
           <el-card shadow="hover">
             <template #header>
               <div class="card-header">
@@ -180,13 +220,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getAiKnowledgeDocuments } from '@/modules/ai-service/api.js'
+import { getAiKnowledgeDocuments, getAiVectorIndexStatus } from '@/modules/ai-service/api.js'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_CONFIGS } from '@/modules/ai-service/constants.js'
 
 const router = useRouter()
 const loading = ref(false)
 const errorMessage = ref('')
 const documents = ref([])
+const vectorStatus = ref(createEmptyVectorStatus())
 
 const placeholderEntries = [
   {
@@ -292,15 +333,41 @@ const scenarioSummaryList = computed(() => {
   }))
 })
 
+function createEmptyVectorStatus() {
+  return {
+    embeddingProvider: '',
+    embeddingModel: '',
+    redisHost: '',
+    redisPort: '',
+    indexName: '',
+    modelDimension: null,
+    indexDimension: null,
+    dimensionMatched: null,
+    completedChunkCount: 0,
+    pendingChunkCount: 0,
+    failedChunkCount: 0
+  }
+}
+
+const displayMetric = (value) => (value ?? value === 0 ? value : '--')
+
 const loadPageData = async () => {
   loading.value = true
   errorMessage.value = ''
 
   try {
-    const res = await getAiKnowledgeDocuments()
-    documents.value = Array.isArray(res?.data) ? res.data : []
+    const [documentsRes, vectorStatusRes] = await Promise.all([
+      getAiKnowledgeDocuments(),
+      getAiVectorIndexStatus()
+    ])
+    documents.value = Array.isArray(documentsRes?.data) ? documentsRes.data : []
+    vectorStatus.value = {
+      ...createEmptyVectorStatus(),
+      ...(vectorStatusRes?.data || {})
+    }
   } catch (error) {
     errorMessage.value = error?.response?.data?.message || error?.message || '请稍后重试或检查接口返回。'
+    vectorStatus.value = createEmptyVectorStatus()
   } finally {
     loading.value = false
   }
@@ -401,7 +468,8 @@ onMounted(() => {
   }
 
   .entry-grid,
-  .summary-grid {
+  .summary-grid,
+  .vector-health-grid {
     display: grid;
     gap: 16px;
   }
@@ -412,6 +480,50 @@ onMounted(() => {
 
   .summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .vector-health-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .vector-health-card {
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px solid var(--wt-border-default);
+    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
+
+  .vector-health-card--ok {
+    border-color: color-mix(in srgb, #22c55e 38%, var(--wt-border-default));
+  }
+
+  .vector-health-card--danger {
+    border-color: color-mix(in srgb, #f43f5e 42%, var(--wt-border-default));
+  }
+
+  .vector-health-card__label {
+    font-size: 12px;
+    color: var(--wt-text-secondary);
+  }
+
+  .vector-health-card__value {
+    margin-top: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--wt-text-primary);
+    line-height: 1.3;
+  }
+
+  .vector-health-card__value--sm {
+    font-size: 16px;
+    word-break: break-word;
+  }
+
+  .vector-health-card__desc {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--wt-text-regular);
   }
 
   .entry-card {
@@ -526,7 +638,8 @@ onMounted(() => {
   @media (max-width: 1200px) {
     .hero-grid,
     .entry-grid,
-    .summary-grid {
+    .summary-grid,
+    .vector-health-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
@@ -534,7 +647,8 @@ onMounted(() => {
   @media (max-width: 768px) {
     .hero-grid,
     .entry-grid,
-    .summary-grid {
+    .summary-grid,
+    .vector-health-grid {
       grid-template-columns: 1fr;
     }
   }

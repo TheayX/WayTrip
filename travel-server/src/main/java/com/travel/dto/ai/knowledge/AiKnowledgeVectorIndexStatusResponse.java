@@ -18,6 +18,9 @@ public class AiKnowledgeVectorIndexStatusResponse {
     private Integer redisPort;
     private String indexName;
     private String prefix;
+    private Integer modelDimension;
+    private Integer indexDimension;
+    private Boolean dimensionMatched;
     private Integer documentCount;
     private Integer enabledDocumentCount;
     private Integer totalChunkCount;

@@ -17,10 +17,13 @@ import com.travel.mapper.AiKnowledgeDocumentMapper;
 import com.travel.service.ai.AiKnowledgeAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import redis.clients.jedis.JedisPooled;
+import redis.clients.jedis.exceptions.JedisDataException;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -41,6 +44,8 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
     private final AiKnowledgeVectorIndexService aiKnowledgeVectorIndexService;
     private final Environment environment;
+    private final EmbeddingModel embeddingModel;
+    private final JedisPooled aiVectorJedisPooled;
 
     @Override
     public Long createManualDocument(ManualAiKnowledgeUpsertRequest request, Long adminId) {
@@ -162,6 +167,13 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         response.setRedisPort(environment.getProperty("app.ai.vector.redis.port", Integer.class, 6379));
         response.setIndexName(environment.getProperty("app.ai.vector.redis.index-name", "waytrip-ai-knowledge-index"));
         response.setPrefix(environment.getProperty("app.ai.vector.redis.prefix", "waytrip:ai:chunk:"));
+        response.setModelDimension(resolveModelDimension());
+        response.setIndexDimension(resolveIndexDimension(response.getIndexName()));
+        response.setDimensionMatched(
+                response.getModelDimension() != null
+                        && response.getIndexDimension() != null
+                        && response.getModelDimension().intValue() == response.getIndexDimension().intValue()
+        );
         response.setDocumentCount(countDocuments(null));
         response.setEnabledDocumentCount(countDocuments(1));
         response.setTotalChunkCount(countChunksByStatus(null));
@@ -266,6 +278,81 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
             total += countChunks(document.getId());
         }
         return total;
+    }
+
+    private Integer resolveModelDimension() {
+        try {
+            return embeddingModel.dimensions();
+        } catch (Exception exception) {
+            log.warn("获取当前 embedding 模型维度失败", exception);
+            return null;
+        }
+    }
+
+    private Integer resolveIndexDimension(String indexName) {
+        try {
+            return extractDimension(aiVectorJedisPooled.ftInfo(indexName));
+        } catch (JedisDataException exception) {
+            if (exception.getMessage() != null && exception.getMessage().contains("Unknown Index name")) {
+                return null;
+            }
+            log.warn("读取 Redis 向量索引维度失败:indexName={}", indexName, exception);
+            return null;
+        } catch (Exception exception) {
+            log.warn("读取 Redis 向量索引维度失败:indexName={}", indexName, exception);
+            return null;
+        }
+    }
+
+    /**
+     * FT.INFO 返回结构在不同 Jedis 版本下可能嵌套为 Map 或 List，这里统一递归提取 DIM。
+     */
+    private Integer extractDimension(Object source) {
+        if (source instanceof java.util.Map<?, ?> map) {
+            for (java.util.Map.Entry<?, ?> entry : map.entrySet()) {
+                if ("DIM".equalsIgnoreCase(String.valueOf(entry.getKey()))) {
+                    Integer dimension = parseInteger(entry.getValue());
+                    if (dimension != null) {
+                        return dimension;
+                    }
+                }
+                Integer nested = extractDimension(entry.getValue());
+                if (nested != null) {
+                    return nested;
+                }
+            }
+            return null;
+        }
+        if (source instanceof java.util.List<?> list) {
+            for (int i = 0; i < list.size(); i++) {
+                Object current = list.get(i);
+                if ("DIM".equalsIgnoreCase(String.valueOf(current)) && i + 1 < list.size()) {
+                    Integer dimension = parseInteger(list.get(i + 1));
+                    if (dimension != null) {
+                        return dimension;
+                    }
+                }
+                Integer nested = extractDimension(current);
+                if (nested != null) {
+                    return nested;
+                }
+            }
+        }
+        return null;
+    }
+
+    private Integer parseInteger(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        if (value instanceof String stringValue && StringUtils.hasText(stringValue)) {
+            try {
+                return Integer.parseInt(stringValue.trim());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 
     private String normalize(String value, String fallback) {
