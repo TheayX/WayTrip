@@ -1,3 +1,4 @@
+// AI 知识域展示文案映射。
 export const AI_KNOWLEDGE_DOMAIN_LABELS = {
   PLATFORM_POLICY: '平台规则',
   SPOT_KNOWLEDGE: '景点知识',
@@ -5,6 +6,7 @@ export const AI_KNOWLEDGE_DOMAIN_LABELS = {
   ACCOUNT_HELP: '账号帮助'
 }
 
+// 管理端固定展示的 AI 场景配置。
 export const AI_SCENARIO_CONFIGS = [
   {
     key: 'customer-service',
@@ -44,6 +46,7 @@ export const AI_SCENARIO_CONFIGS = [
   }
 ]
 
+// 表单下拉框使用的轻量场景选项，避免页面层重复做映射转换。
 export const AI_SCENARIO_OPTIONS = AI_SCENARIO_CONFIGS.map(({ title, scenario, knowledgeDomain }) => ({
   label: title,
   value: scenario,

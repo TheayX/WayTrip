@@ -20,7 +20,10 @@ export const useAiChatStore = defineStore('ai-chat', () => {
   const sessionId = ref('')
   const messages = ref([buildWelcomeMessage()])
 
+  // 欢迎语之外出现过真实对话时，视为已有活跃消息。
   const hasActiveMessages = computed(() => messages.value.length > 1)
+
+  // 仅返回最近一条已完成的助手消息 ID，供反馈按钮和引用定位使用。
   const latestAssistantMessageId = computed(() => {
     for (let index = messages.value.length - 1; index >= 0; index -= 1) {
       const item = messages.value[index]
@@ -31,6 +34,13 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     return ''
   })
 
+  /**
+   * 确保当前存在可用会话。
+   * <p>
+   * 优先复用内存态和本地缓存中的会话 ID，只有都不存在时才向后端新建。
+   *
+   * @returns {Promise<string>}
+   */
   async function ensureSession() {
     if (sessionId.value) {
       return sessionId.value
@@ -53,15 +63,28 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     return createdSessionId
   }
 
+  /**
+   * 打开聊天面板，并确保底层会话已准备好。
+   *
+   * @returns {Promise<void>}
+   */
   async function openChat() {
     isOpen.value = true
     await ensureSession()
   }
 
+  /**
+   * 关闭聊天面板，不主动销毁会话。
+   */
   function closeChat() {
     isOpen.value = false
   }
 
+  /**
+   * 清空当前会话，并立即准备一个新的空白会话。
+   *
+   * @returns {Promise<void>}
+   */
   async function clearConversation() {
     const currentSessionId = sessionId.value || readCachedAiSessionId()
     if (currentSessionId) {
@@ -74,6 +97,12 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     await ensureSession()
   }
 
+  /**
+   * 发送一条用户消息，并用占位消息承接等待态。
+   *
+   * @param {{ content: string, scenarioHint?: string, sourcePage?: string }} options 发送参数
+   * @returns {Promise<object|null>}
+   */
   async function sendMessage({ content, scenarioHint = '', sourcePage = '' }) {
     const trimmedContent = typeof content === 'string' ? content.trim() : ''
     if (!trimmedContent || loading.value) return null
@@ -103,6 +132,12 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     }
   }
 
+  /**
+   * 提交某条助手消息的反馈。
+   *
+   * @param {{ messageId: string, feedbackType: string, comment?: string }} options 反馈参数
+   * @returns {Promise<void>}
+   */
   async function markFeedback({ messageId, feedbackType, comment = '' }) {
     const targetMessage = messages.value.find((item) => item.id === messageId && item.role === 'assistant')
     if (!targetMessage || !targetMessage.feedbackEnabled || !sessionId.value) {
@@ -118,6 +153,11 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     targetMessage.feedbackStatus = feedbackType
   }
 
+  /**
+   * 在本地追加一条非服务端返回的助手消息。
+   *
+   * @param {string} content 文本内容
+   */
   function appendLocalAssistantMessage(content) {
     messages.value.push({
       ...buildAssistantMessage({ reply: content }),
@@ -125,10 +165,22 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     })
   }
 
+  /**
+   * 直接把推荐追问转成一次普通发送。
+   *
+   * @param {string} content 建议问题文本
+   * @returns {Promise<object|null>}
+   */
   function useSuggestion(content) {
     return sendMessage({ content })
   }
 
+  /**
+   * 用正式回复替换等待中的占位消息。
+   *
+   * @param {string} messageId 占位消息 ID
+   * @param {object} nextMessage 新消息
+   */
   function replacePendingMessage(messageId, nextMessage) {
     const index = messages.value.findIndex((item) => item.id === messageId)
     if (index === -1) {
@@ -138,6 +190,11 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     messages.value.splice(index, 1, nextMessage)
   }
 
+  /**
+   * 从消息列表中移除指定消息。
+   *
+   * @param {string} messageId 消息 ID
+   */
   function removeMessageById(messageId) {
     const index = messages.value.findIndex((item) => item.id === messageId)
     if (index !== -1) {

@@ -19,6 +19,7 @@ export const AI_CHAT_VISIBLE_ROUTE_NAMES = [
   ROUTE_NAMES.favorites
 ]
 
+// AI 聊天组件的静态文案统一收口在这里，避免散落在多个视图文件中。
 export const AI_CHAT_COPY = {
   launcher: 'AI 助手',
   title: 'WayTrip AI 助手',

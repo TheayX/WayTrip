@@ -3,6 +3,11 @@ import { AI_CHAT_COPY } from '@/shared/constants/ai-chat.js'
 // AI 客服通用常量与纯函数，避免视图层承担过多业务细节。
 export const AI_CHAT_SESSION_STORAGE_KEY = 'waytrip_ai_session_id'
 
+/**
+ * 构建首次进入聊天面板时的欢迎消息。
+ *
+ * @returns {object}
+ */
 export function buildWelcomeMessage() {
   return {
     id: 'welcome',
@@ -16,6 +21,12 @@ export function buildWelcomeMessage() {
   }
 }
 
+/**
+ * 构建用户消息。
+ *
+ * @param {string} content 消息内容
+ * @returns {object}
+ */
 export function buildUserMessage(content) {
   return {
     id: `user_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -29,6 +40,11 @@ export function buildUserMessage(content) {
   }
 }
 
+/**
+ * 构建等待 AI 返回时的占位消息。
+ *
+ * @returns {object}
+ */
 export function buildAssistantPendingMessage() {
   return {
     id: `pending_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -43,6 +59,12 @@ export function buildAssistantPendingMessage() {
   }
 }
 
+/**
+ * 将后端返回的 AI 响应归一成前端消息结构。
+ *
+ * @param {object} payload 后端响应数据
+ * @returns {object}
+ */
 export function buildAssistantMessage(payload) {
   return {
     id: payload?.messageId || `assistant_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -58,6 +80,12 @@ export function buildAssistantMessage(payload) {
   }
 }
 
+/**
+ * 统一把请求异常转成用户可见文案。
+ *
+ * @param {any} error 异常对象
+ * @returns {string}
+ */
 export function resolveAiErrorMessage(error) {
   if (typeof error?.message === 'string' && error.message.trim()) {
     return error.message.trim()
@@ -76,20 +104,39 @@ export function resolveAiErrorMessage(error) {
   return 'AI 服务暂时繁忙，请稍后再试。'
 }
 
+/**
+ * 从本地缓存读取 AI 会话 ID。
+ *
+ * @returns {string}
+ */
 export function readCachedAiSessionId() {
   const value = localStorage.getItem(AI_CHAT_SESSION_STORAGE_KEY)
   return typeof value === 'string' && value.trim() ? value.trim() : ''
 }
 
+/**
+ * 缓存当前 AI 会话 ID。
+ *
+ * @param {string} sessionId 会话 ID
+ */
 export function cacheAiSessionId(sessionId) {
   if (!sessionId) return
   localStorage.setItem(AI_CHAT_SESSION_STORAGE_KEY, sessionId)
 }
 
+/**
+ * 清理本地缓存中的 AI 会话 ID。
+ */
 export function clearCachedAiSessionId() {
   localStorage.removeItem(AI_CHAT_SESSION_STORAGE_KEY)
 }
 
+/**
+ * 归一化建议问题列表，只保留短且有效的字符串项。
+ *
+ * @param {any} value 原始值
+ * @returns {string[]}
+ */
 function normalizeSuggestions(value) {
   if (!Array.isArray(value)) return []
   return value
@@ -98,7 +145,13 @@ function normalizeSuggestions(value) {
     .slice(0, 3)
 }
 
+/**
+ * 归一化文本字段，为空时返回兜底文案。
+ *
+ * @param {any} value 原始值
+ * @param {string} fallback 兜底文本
+ * @returns {string}
+ */
 function normalizeText(value, fallback = '') {
   return typeof value === 'string' && value.trim() ? value.trim() : fallback
 }
-
