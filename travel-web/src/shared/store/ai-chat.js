@@ -1,13 +1,16 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { clearAiSession, createAiSession, chatWithAi, submitAiFeedback } from '@/shared/api/ai.js'
+import { clearAiSession, createAiSession, streamAiChat, submitAiFeedback } from '@/shared/api/ai.js'
 import {
+  appendAssistantDelta,
+  applyAssistantStartEvent,
   buildAssistantMessage,
-  buildAssistantPendingMessage,
+  buildAssistantStreamingMessage,
   buildUserMessage,
   buildWelcomeMessage,
   cacheAiSessionId,
   clearCachedAiSessionId,
+  finalizeAssistantMessage,
   readCachedAiSessionId
 } from '@/shared/lib/ai-chat.js'
 
@@ -98,7 +101,7 @@ export const useAiChatStore = defineStore('ai-chat', () => {
   }
 
   /**
-   * 发送一条用户消息，并用占位消息承接等待态。
+   * 发送一条用户消息，并消费 AI 流式返回结果。
    *
    * @param {{ content: string, scenarioHint?: string, sourcePage?: string }} options 发送参数
    * @returns {Promise<object|null>}
@@ -109,23 +112,38 @@ export const useAiChatStore = defineStore('ai-chat', () => {
 
     const currentSessionId = await ensureSession()
     const userMessage = buildUserMessage(trimmedContent)
-    const pendingMessage = buildAssistantPendingMessage()
-    messages.value.push(userMessage, pendingMessage)
+    const streamingMessage = buildAssistantStreamingMessage()
+    messages.value.push(userMessage, streamingMessage)
     loading.value = true
 
     try {
-      const response = await chatWithAi({
+      await streamAiChat({
         sessionId: currentSessionId,
         message: trimmedContent,
         scenarioHint,
         sourcePage,
         clientTime: Date.now()
+      }, {
+        onStart: (payload) => {
+          applyAssistantStartEvent(streamingMessage, payload)
+          if (payload?.sessionId) {
+            sessionId.value = payload.sessionId
+            cacheAiSessionId(payload.sessionId)
+          }
+        },
+        onDelta: (payload) => {
+          appendAssistantDelta(streamingMessage, payload)
+        },
+        onDone: (payload) => {
+          finalizeAssistantMessage(streamingMessage, payload)
+        },
+        onError: (payload) => {
+          throw new Error(payload?.message || 'AI 服务暂时不可用，请稍后重试。')
+        }
       })
-      const assistantMessage = buildAssistantMessage(response?.data)
-      replacePendingMessage(pendingMessage.id, assistantMessage)
-      return assistantMessage
+      return streamingMessage
     } catch (error) {
-      removeMessageById(pendingMessage.id)
+      removeMessageById(streamingMessage.id)
       throw error
     } finally {
       loading.value = false
@@ -173,21 +191,6 @@ export const useAiChatStore = defineStore('ai-chat', () => {
    */
   function useSuggestion(content) {
     return sendMessage({ content })
-  }
-
-  /**
-   * 用正式回复替换等待中的占位消息。
-   *
-   * @param {string} messageId 占位消息 ID
-   * @param {object} nextMessage 新消息
-   */
-  function replacePendingMessage(messageId, nextMessage) {
-    const index = messages.value.findIndex((item) => item.id === messageId)
-    if (index === -1) {
-      messages.value.push(nextMessage)
-      return
-    }
-    messages.value.splice(index, 1, nextMessage)
   }
 
   /**

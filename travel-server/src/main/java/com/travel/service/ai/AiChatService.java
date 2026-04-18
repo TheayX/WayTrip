@@ -1,7 +1,7 @@
 package com.travel.service.ai;
 
 import com.travel.dto.ai.request.AiChatMessageRequest;
-import com.travel.dto.ai.response.AiChatMessageResponse;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * AI 对话服务接口。
@@ -15,7 +15,7 @@ public interface AiChatService {
      * @param userId 当前登录用户 ID，可为空
      * @param adminId 当前登录管理员 ID，可为空
      * @param clientIp 客户端 IP，可为空
-     * @return 聊天响应
+     * @return SSE 响应发射器
      */
-    AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp);
+    SseEmitter chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp);
 }

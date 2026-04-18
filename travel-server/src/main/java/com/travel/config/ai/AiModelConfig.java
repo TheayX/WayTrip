@@ -15,6 +15,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.StringUtils;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
@@ -30,6 +32,24 @@ import java.util.List;
 @Configuration
 @EnableConfigurationProperties(AiProperties.class)
 public class AiModelConfig {
+
+    /**
+     * AI 流式响应执行器。
+     * <p>
+     * 流式输出会长时间占用连接，因此单独分配线程池，避免与普通 Web 请求争抢线程。
+     *
+     * @return 线程池执行器
+     */
+    @Bean("aiChatStreamExecutor")
+    public TaskExecutor aiChatStreamExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setThreadNamePrefix("ai-chat-stream-");
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(8);
+        executor.setQueueCapacity(32);
+        executor.initialize();
+        return executor;
+    }
 
     /**
      * 注册统一 ChatClient，默认挂载消息记忆 advisor，后续 Tool Calling 和 RAG 也围绕该客户端扩展。

@@ -1,10 +1,10 @@
 package com.travel.service.ai.chat;
 
 import com.travel.dto.ai.request.AiChatMessageRequest;
-import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.service.ai.AiChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * AI 对话服务实现，对外收口聊天能力。
@@ -25,10 +25,10 @@ public class AiChatServiceImpl implements AiChatService {
      * @param userId 当前用户 ID
      * @param adminId 当前管理员 ID
      * @param clientIp 客户端 IP
-     * @return 聊天响应
+     * @return SSE 发射器
      */
     @Override
-    public AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp) {
+    public SseEmitter chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp) {
         return aiConversationOrchestrator.chat(request, userId, adminId, clientIp);
     }
 }

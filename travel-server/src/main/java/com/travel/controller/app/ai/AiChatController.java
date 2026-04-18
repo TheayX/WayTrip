@@ -1,8 +1,6 @@
 package com.travel.controller.app.ai;
 
-import com.travel.common.result.ApiResponse;
 import com.travel.dto.ai.request.AiChatMessageRequest;
-import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.service.ai.AiChatService;
 import com.travel.util.security.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,11 +8,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * 用户端 AI 聊天控制器。
@@ -40,19 +40,18 @@ public class AiChatController {
      *
      * @param request 聊天请求
      * @param httpRequest HTTP 请求
-     * @return 聊天响应
+     * @return SSE 发射器
      */
     @Operation(summary = "AI 对话")
-    @PostMapping("/chat")
-    public ApiResponse<AiChatMessageResponse> chat(@Valid @RequestBody AiChatMessageRequest request,
-                                                   HttpServletRequest httpRequest) {
-        AiChatMessageResponse response = aiChatService.chat(
+    @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter chat(@Valid @RequestBody AiChatMessageRequest request,
+                           HttpServletRequest httpRequest) {
+        return aiChatService.chat(
                 request,
                 resolveUserId(resolveToken(httpRequest.getHeader("Authorization"))),
                 resolveAdminId(resolveToken(httpRequest.getHeader("Authorization"))),
                 resolveClientIp(httpRequest)
         );
-        return ApiResponse.success(response);
     }
 
     /**

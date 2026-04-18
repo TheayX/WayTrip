@@ -41,11 +41,11 @@ export function buildUserMessage(content) {
 }
 
 /**
- * 构建等待 AI 返回时的占位消息。
+ * 构建等待 AI 流式返回时的助手消息骨架。
  *
  * @returns {object}
  */
-export function buildAssistantPendingMessage() {
+export function buildAssistantStreamingMessage() {
   return {
     id: `pending_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     role: 'assistant',
@@ -55,7 +55,9 @@ export function buildAssistantPendingMessage() {
     suggestions: [],
     feedbackEnabled: false,
     feedbackStatus: '',
-    pending: true
+    pending: true,
+    createdAt: Date.now(),
+    scenario: ''
   }
 }
 
@@ -78,6 +80,58 @@ export function buildAssistantMessage(payload) {
     createdAt: payload?.createdAt || Date.now(),
     scenario: payload?.scenario || ''
   }
+}
+
+/**
+ * 将流式开始事件写入助手消息骨架。
+ *
+ * @param {object} message 当前助手消息
+ * @param {object} payload 开始事件
+ */
+export function applyAssistantStartEvent(message, payload) {
+  if (!message) return
+  if (payload?.messageId) {
+    message.id = payload.messageId
+  }
+  if (payload?.createdAt) {
+    message.createdAt = payload.createdAt
+  }
+  if (payload?.scenario) {
+    message.scenario = payload.scenario
+  }
+}
+
+/**
+ * 将流式增量文本追加到当前助手消息。
+ *
+ * @param {object} message 当前助手消息
+ * @param {object} payload 增量事件
+ */
+export function appendAssistantDelta(message, payload) {
+  if (!message) return
+  const delta = typeof payload?.delta === 'string' ? payload.delta : ''
+  if (!delta) return
+  message.content += delta
+}
+
+/**
+ * 使用流式结束事件补齐助手消息元信息。
+ *
+ * @param {object} message 当前助手消息
+ * @param {object} payload 结束事件
+ */
+export function finalizeAssistantMessage(message, payload) {
+  if (!message) return
+  message.id = payload?.messageId || message.id
+  message.content = normalizeText(payload?.reply, message.content || '抱歉，本次回复为空，请换个问法或稍后再试。')
+  message.citations = Array.isArray(payload?.citations) ? payload.citations : []
+  message.toolCalls = Array.isArray(payload?.toolCalls) ? payload.toolCalls : []
+  message.suggestions = normalizeSuggestions(payload?.suggestions)
+  message.feedbackEnabled = Boolean(payload?.feedbackEnabled)
+  message.feedbackStatus = ''
+  message.createdAt = payload?.createdAt || message.createdAt || Date.now()
+  message.scenario = payload?.scenario || message.scenario || ''
+  message.pending = false
 }
 
 /**

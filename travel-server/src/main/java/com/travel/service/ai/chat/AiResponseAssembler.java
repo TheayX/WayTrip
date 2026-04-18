@@ -1,6 +1,7 @@
 package com.travel.service.ai.chat;
 
 import com.travel.dto.ai.response.AiChatMessageResponse;
+import com.travel.dto.ai.response.AiChatStartEvent;
 import com.travel.dto.ai.response.AiCitationItem;
 import com.travel.dto.ai.response.AiToolCallItem;
 import com.travel.enums.ai.AiScenarioType;
@@ -14,6 +15,23 @@ import java.util.List;
  */
 @Service
 public class AiResponseAssembler {
+
+    /**
+     * 组装流式开始事件，尽早把消息元信息下发给前端。
+     *
+     * @param sessionId 会话 ID
+     * @param messageId 消息 ID
+     * @param scenario 场景类型
+     * @return 开始事件
+     */
+    public AiChatStartEvent assembleStartEvent(String sessionId, String messageId, AiScenarioType scenario) {
+        AiChatStartEvent event = new AiChatStartEvent();
+        event.setSessionId(sessionId);
+        event.setMessageId(messageId);
+        event.setScenario(scenario);
+        event.setCreatedAt(System.currentTimeMillis());
+        return event;
+    }
 
     /**
      * 组装聊天响应。

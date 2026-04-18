@@ -3,6 +3,8 @@ package com.travel.service.ai.chat;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.ai.request.AiChatMessageRequest;
+import com.travel.dto.ai.response.AiChatDeltaEvent;
+import com.travel.dto.ai.response.AiChatErrorEvent;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.guardrail.AiGuardrailService;
@@ -12,17 +14,22 @@ import com.travel.service.ai.rag.AiKnowledgeContextAdvisor;
 import com.travel.service.ai.rag.AiKnowledgeRetrievalService;
 import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import com.travel.service.ai.tool.AiToolContextHolder;
+import com.travel.service.ai.tool.AiToolContextHolder.AiToolRequestContext;
 import com.travel.service.ai.tool.AiToolRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.retry.NonTransientAiException;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -91,15 +98,36 @@ public class AiConversationOrchestrator {
     private final AiToolRegistry aiToolRegistry;
 
     /**
+     * AI 流式响应线程池。
+     */
+    @Qualifier("aiChatStreamExecutor")
+    private final TaskExecutor aiChatStreamExecutor;
+
+    /**
      * 处理单轮聊天请求。
      *
      * @param request  聊天请求
      * @param userId   当前用户 ID
      * @param adminId  当前管理员 ID（如有）
      * @param clientIp 客户端 IP
-     * @return 聊天响应
+     * @return SSE 发射器
      */
-    public AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp) {
+    public SseEmitter chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp) {
+        SseEmitter emitter = new SseEmitter(0L);
+        aiChatStreamExecutor.execute(() -> streamChat(emitter, request, userId, adminId, clientIp));
+        return emitter;
+    }
+
+    /**
+     * 在异步线程中执行实际的流式对话逻辑。
+     *
+     * @param emitter SSE 发射器
+     * @param request 聊天请求
+     * @param userId 当前用户 ID
+     * @param adminId 当前管理员 ID
+     * @param clientIp 客户端 IP
+     */
+    private void streamChat(SseEmitter emitter, AiChatMessageRequest request, Long userId, Long adminId, String clientIp) {
         long startedAt = System.currentTimeMillis();
         // 1. 会话 ID 规范化与输入清洗
         String sessionId = aiSessionIdService.normalizeSessionId(request.getSessionId());
@@ -117,8 +145,9 @@ public class AiConversationOrchestrator {
         List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
 
         // 5. 组装系统提示词并生成消息 ID
-        String systemPrompt = aiPromptService.buildSystemPrompt(scenario);
         String messageId = aiSessionIdService.createSessionId();
+        String systemPrompt = aiPromptService.buildSystemPrompt(scenario);
+        AiToolRequestContext toolContext = aiToolContextHolder.createContext(userId, adminId);
 
         log.info(
                 "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 来源页面={}, RAG命中数={}, 用户问题预览={}",
@@ -132,61 +161,74 @@ public class AiConversationOrchestrator {
         );
 
         try {
-            // 6. 设置上下文，供 Tool 内部获取当前操作人信息
-            aiToolContextHolder.setCurrentUserId(userId);
-            aiToolContextHolder.setCurrentAdminId(adminId);
+            aiToolContextHolder.withContext(toolContext, () -> {
+                sendEvent(emitter, "start", aiResponseAssembler.assembleStartEvent(sessionId, messageId, scenario));
 
-            // 7. 构建 Spring AI 请求链：挂载记忆 Advisor 和 RAG Advisor
-            ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
-                    .advisors(spec -> spec
-                            .advisors(
-                                    MessageChatMemoryAdvisor.builder(redisChatMemory).conversationId(sessionId).build(),
-                                    aiKnowledgeContextAdvisor
-                            )
-                            .params(Map.of(AiKnowledgeContextAdvisor.CONTEXT_KEY, knowledgeSnippets))
-                    )
-                    .system(systemPrompt)
-                    .user(userMessage);
+                // 6. 构建 Spring AI 请求链：挂载记忆 Advisor 和 RAG Advisor
+                ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
+                        .advisors(spec -> spec
+                                .advisors(
+                                        MessageChatMemoryAdvisor.builder(redisChatMemory).conversationId(sessionId).build(),
+                                        aiKnowledgeContextAdvisor
+                                )
+                                .params(Map.of(AiKnowledgeContextAdvisor.CONTEXT_KEY, knowledgeSnippets))
+                        )
+                        .system(systemPrompt)
+                        .user(userMessage);
 
-            // 8. 动态注册工具：不同场景启用不同的业务能力
-            Object[] tools = aiToolRegistry.resolveTools(scenario);
-            if (tools.length > 0) {
-                requestSpec = requestSpec.tools(tools);
-            }
+                // 7. 动态注册工具：不同场景启用不同的业务能力
+                Object[] tools = aiToolRegistry.resolveTools(scenario);
+                if (tools.length > 0) {
+                    requestSpec = requestSpec.tools(tools);
+                }
 
-            // 9. 执行模型调用并获取回复
-            String reply = requestSpec.call().content();
-            if (!StringUtils.hasText(reply)) {
-                throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 返回内容为空");
-            }
+                // 8. 执行模型流式调用并向前端推送增量内容。
+                StringBuilder replyBuilder = new StringBuilder();
+                AtomicBoolean emittedDelta = new AtomicBoolean(false);
+                requestSpec.stream().content().toStream().forEach(delta -> {
+                    if (!StringUtils.hasText(delta)) {
+                        return;
+                    }
+                    emittedDelta.set(true);
+                    replyBuilder.append(delta);
+                    sendEvent(emitter, "delta", new AiChatDeltaEvent(delta));
+                });
 
-            // 10. 记录工具调用追踪日志
-            List<String> toolNames = aiToolContextHolder.getToolTraces().stream()
-                    .map(item -> item.getToolName() + ":" + item.getSuccess())
-                    .collect(Collectors.toList());
-            log.info(
-                    "AI 对话完成：会话ID={}, 消息ID={}, 场景={}, 是否命中RAG={}, RAG标题={}, 工具调用数量={}, 工具调用详情={}, 回复长度={}, 回复预览={}, 总耗时Ms={}",
-                    sessionId,
-                    messageId,
-                    scenario,
-                    !knowledgeSnippets.isEmpty(),
-                    knowledgeSnippets.stream().map(AiKnowledgeSnippet::getTitle).toList(),
-                    aiToolContextHolder.getToolTraces().size(),
-                    toolNames,
-                    reply.trim().length(),
-                    previewText(reply.trim(), 120),
-                    System.currentTimeMillis() - startedAt
-            );
+                if (!emittedDelta.get()) {
+                    String fallbackReply = "我暂时无法确认这个问题，请稍后重试。";
+                    replyBuilder.append(fallbackReply);
+                    sendEvent(emitter, "delta", new AiChatDeltaEvent(fallbackReply));
+                }
 
-            // 11. 组装最终响应对象（含引用来源与工具摘要）
-            return aiResponseAssembler.assemble(
-                    sessionId,
-                    messageId,
-                    scenario,
-                    reply,
-                    aiToolContextHolder.getToolTraces(),
-                    knowledgeSnippets.stream().map(AiKnowledgeSnippet::toCitationItem).toList()
-            );
+                String reply = replyBuilder.toString();
+                List<String> toolNames = aiToolContextHolder.getToolTraces().stream()
+                        .map(item -> item.getToolName() + ":" + item.getSuccess())
+                        .collect(Collectors.toList());
+                log.info(
+                        "AI 对话完成：会话ID={}, 消息ID={}, 场景={}, 是否命中RAG={}, RAG标题={}, 工具调用数量={}, 工具调用详情={}, 回复长度={}, 回复预览={}, 总耗时Ms={}",
+                        sessionId,
+                        messageId,
+                        scenario,
+                        !knowledgeSnippets.isEmpty(),
+                        knowledgeSnippets.stream().map(AiKnowledgeSnippet::getTitle).toList(),
+                        aiToolContextHolder.getToolTraces().size(),
+                        toolNames,
+                        reply.trim().length(),
+                        previewText(reply.trim(), 120),
+                        System.currentTimeMillis() - startedAt
+                );
+
+                AiChatMessageResponse donePayload = aiResponseAssembler.assemble(
+                        sessionId,
+                        messageId,
+                        scenario,
+                        reply,
+                        aiToolContextHolder.getToolTraces(),
+                        knowledgeSnippets.stream().map(AiKnowledgeSnippet::toCitationItem).toList()
+                );
+                sendEvent(emitter, "done", donePayload);
+                emitter.complete();
+            });
         } catch (BusinessException e) {
             log.warn(
                     "AI 对话业务拦截：会话ID={}, 消息ID={}, 场景={}, 用户问题预览={}, 总耗时Ms={}, 原因={}",
@@ -197,7 +239,7 @@ public class AiConversationOrchestrator {
                     System.currentTimeMillis() - startedAt,
                     e.getMessage()
             );
-            throw e;
+            completeWithError(emitter, e.getMessage());
         } catch (NonTransientAiException e) {
             log.error(
                     "AI 模型调用失败：会话ID={}, 消息ID={}, 场景={}, 用户问题预览={}, 总耗时Ms={}, 错误={}",
@@ -210,9 +252,10 @@ public class AiConversationOrchestrator {
                     e
             );
             if (e.getMessage() != null && e.getMessage().contains("model") && e.getMessage().contains("not found")) {
-                throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 模型未就绪，请先确认 Ollama 已拉取配置中的模型");
+                completeWithError(emitter, "AI 模型未就绪，请先确认 Ollama 已拉取配置中的模型");
+                return;
             }
-            throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 服务响应异常，请稍后重试");
+            completeWithError(emitter, "AI 服务响应异常，请稍后重试");
         } catch (Exception e) {
             log.error(
                     "AI 对话执行失败：会话ID={}, 消息ID={}, 场景={}, 用户问题预览={}, 总耗时Ms={}",
@@ -223,10 +266,38 @@ public class AiConversationOrchestrator {
                     System.currentTimeMillis() - startedAt,
                     e
             );
-            throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 服务暂时不可用，请稍后重试");
+            completeWithError(emitter, "AI 服务暂时不可用，请稍后重试");
+        }
+    }
+
+    /**
+     * 向 SSE 连接发送事件；如果发送失败则抛出业务异常统一交给上层处理。
+     *
+     * @param emitter SSE 发射器
+     * @param eventName 事件名
+     * @param payload 事件负载
+     */
+    private void sendEvent(SseEmitter emitter, String eventName, Object payload) {
+        try {
+            emitter.send(SseEmitter.event().name(eventName).data(payload));
+        } catch (Exception exception) {
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 流式响应发送失败");
+        }
+    }
+
+    /**
+     * 向前端发送错误事件并结束当前 SSE 会话。
+     *
+     * @param emitter SSE 发射器
+     * @param message 错误提示
+     */
+    private void completeWithError(SseEmitter emitter, String message) {
+        try {
+            emitter.send(SseEmitter.event().name("error").data(new AiChatErrorEvent(message)));
+        } catch (Exception ignored) {
+            log.warn("AI 错误事件发送失败：{}", message);
         } finally {
-            // 12. 清理 ThreadLocal，防止内存泄漏
-            aiToolContextHolder.clear();
+            emitter.complete();
         }
     }
 

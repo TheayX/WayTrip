@@ -36,7 +36,7 @@
         >
           <div class="message-card">
             <div class="message-bubble">
-              <template v-if="item.pending">{{ AI_CHAT_COPY.pendingMessage }}</template>
+              <template v-if="item.pending && !item.content">{{ AI_CHAT_COPY.pendingMessage }}</template>
               <template v-else>{{ item.content }}</template>
             </div>
 
@@ -139,7 +139,7 @@
 </template>
 
 <script setup>
-import { nextTick, ref } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -246,6 +246,11 @@ function resolveScenarioHint() {
   }
   return ''
 }
+
+// 流式输出会持续追加消息内容，因此在消息变化时自动跟随到底部。
+watch(messages, () => {
+  scrollToBottom()
+}, { deep: true })
 </script>
 
 <style lang="scss" scoped>
