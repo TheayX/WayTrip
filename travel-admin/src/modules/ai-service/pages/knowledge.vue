@@ -36,6 +36,158 @@
       </el-card>
     </section>
 
+    <section class="ops-grid">
+      <el-card shadow="hover" class="admin-management-card ops-card ops-card--status">
+        <template #header>
+          <div class="card-header">
+            <span>向量索引状态</span>
+            <div class="card-header__actions">
+              <el-button :loading="statusLoading" @click="loadVectorIndexStatus">刷新状态</el-button>
+            </div>
+          </div>
+        </template>
+
+        <div v-if="vectorStatusError" class="inline-error-state">
+          <el-alert :closable="false" type="error" show-icon :title="vectorStatusError" />
+        </div>
+
+        <div v-else class="status-shell" v-loading="statusLoading">
+          <div class="status-overview">
+            <div class="status-chip" :class="{ 'status-chip--active': vectorStatus.ragEnabled }">
+              <span class="status-chip__label">RAG</span>
+              <strong>{{ vectorStatus.ragEnabled ? '已启用' : '未启用' }}</strong>
+            </div>
+            <div class="status-chip" :class="{ 'status-chip--warn': vectorStatus.mixedProviderMode }">
+              <span class="status-chip__label">模型模式</span>
+              <strong>{{ vectorStatus.mixedProviderMode ? '双模型混用' : '单模型统一' }}</strong>
+            </div>
+            <div class="status-chip">
+              <span class="status-chip__label">Redis 索引</span>
+              <strong>{{ vectorStatus.indexName || '--' }}</strong>
+            </div>
+          </div>
+
+          <div class="status-detail-grid">
+            <div class="status-panel">
+              <div class="status-panel__title">模型链路</div>
+              <div class="status-kv-list">
+                <div class="status-kv-item">
+                  <span>聊天 Provider</span>
+                  <strong>{{ vectorStatus.chatProvider || '--' }}</strong>
+                </div>
+                <div class="status-kv-item">
+                  <span>聊天模型</span>
+                  <strong>{{ vectorStatus.chatModel || '--' }}</strong>
+                </div>
+                <div class="status-kv-item">
+                  <span>向量 Provider</span>
+                  <strong>{{ vectorStatus.embeddingProvider || '--' }}</strong>
+                </div>
+                <div class="status-kv-item">
+                  <span>向量模型</span>
+                  <strong>{{ vectorStatus.embeddingModel || '--' }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="status-panel">
+              <div class="status-panel__title">Redis 与索引</div>
+              <div class="status-kv-list">
+                <div class="status-kv-item">
+                  <span>主机</span>
+                  <strong>{{ vectorStatus.redisHost || '--' }}</strong>
+                </div>
+                <div class="status-kv-item">
+                  <span>端口</span>
+                  <strong>{{ vectorStatus.redisPort || '--' }}</strong>
+                </div>
+                <div class="status-kv-item">
+                  <span>前缀</span>
+                  <strong class="status-kv-item__code">{{ vectorStatus.prefix || '--' }}</strong>
+                </div>
+                <div class="status-kv-item">
+                  <span>启用文档</span>
+                  <strong>{{ vectorStatus.enabledDocumentCount || 0 }}/{{ vectorStatus.documentCount || 0 }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="status-metrics-grid">
+            <div class="status-metric status-metric--slate">
+              <span class="status-metric__label">总分片</span>
+              <strong class="status-metric__value">{{ vectorStatus.totalChunkCount || 0 }}</strong>
+            </div>
+            <div class="status-metric status-metric--amber">
+              <span class="status-metric__label">待向量化</span>
+              <strong class="status-metric__value">{{ vectorStatus.pendingChunkCount || 0 }}</strong>
+            </div>
+            <div class="status-metric status-metric--emerald">
+              <span class="status-metric__label">已完成</span>
+              <strong class="status-metric__value">{{ vectorStatus.completedChunkCount || 0 }}</strong>
+            </div>
+            <div class="status-metric status-metric--rose">
+              <span class="status-metric__label">失败分片</span>
+              <strong class="status-metric__value">{{ vectorStatus.failedChunkCount || 0 }}</strong>
+            </div>
+          </div>
+        </div>
+      </el-card>
+
+      <el-card shadow="hover" class="admin-management-card ops-card ops-card--danger">
+        <template #header>
+          <div class="card-header">
+            <span>向量维护操作</span>
+          </div>
+        </template>
+
+        <div class="danger-panel">
+          <div class="danger-panel__intro">
+            <div class="danger-panel__title">切换 embedding 模型后，从这里统一维护向量索引</div>
+            <div class="danger-panel__desc">
+              清空只会重置当前知识向量数据；清空并重建会按当前启用文档与当前向量模型重新入库，避免 Redis 维度残留。
+            </div>
+          </div>
+
+          <div class="danger-panel__actions">
+            <el-button
+              type="warning"
+              plain
+              :loading="clearingVector"
+              @click="handleClearVectorIndex"
+            >
+              清空向量
+            </el-button>
+            <el-button
+              type="primary"
+              plain
+              :loading="rebuildingAll"
+              @click="handleRebuildAll"
+            >
+              重建全部
+            </el-button>
+            <el-button
+              type="danger"
+              :loading="clearingAndRebuilding"
+              @click="handleClearAndRebuild"
+            >
+              清空后重建
+            </el-button>
+          </div>
+
+          <div class="maintenance-feedback" v-if="maintenanceSummary.message">
+            <div class="maintenance-feedback__title">最近一次维护结果</div>
+            <div class="maintenance-feedback__message">{{ maintenanceSummary.message }}</div>
+            <div class="maintenance-feedback__meta">
+              <span>清理向量 {{ maintenanceSummary.clearedVectorCount ?? 0 }}</span>
+              <span>重建文档 {{ maintenanceSummary.rebuiltDocumentCount ?? 0 }}</span>
+              <span>重建分片 {{ maintenanceSummary.rebuiltChunkCount ?? 0 }}</span>
+            </div>
+          </div>
+        </div>
+      </el-card>
+    </section>
+
     <el-card shadow="hover" class="admin-management-card management-card">
       <template #header>
         <div class="card-header">
@@ -179,9 +331,12 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
+  clearAiVectorIndex,
+  clearAndRebuildAiVectorIndex,
   createAiKnowledgeDocument,
   getAiKnowledgeDocumentDetail,
   getAiKnowledgeDocuments,
+  getAiVectorIndexStatus,
   rebuildAiKnowledgeDocument,
   rebuildAllAiKnowledge,
   updateAiKnowledgeDocument,
@@ -212,8 +367,14 @@ const formVisible = ref(false)
 const formMode = ref('create')
 const currentEditId = ref(null)
 const currentDetail = ref(null)
+const statusLoading = ref(false)
+const clearingVector = ref(false)
+const clearingAndRebuilding = ref(false)
+const vectorStatusError = ref('')
 const toggleLoadingMap = reactive({})
 const rebuildLoadingMap = reactive({})
+const vectorStatus = reactive(createEmptyVectorStatus())
+const maintenanceSummary = reactive(createEmptyMaintenanceSummary())
 
 const filters = reactive({
   keyword: '',
@@ -249,6 +410,36 @@ function createEmptyForm() {
     sourceRef: '',
     tags: '',
     content: ''
+  }
+}
+
+function createEmptyVectorStatus() {
+  return {
+    ragEnabled: false,
+    chatProvider: '',
+    embeddingProvider: '',
+    mixedProviderMode: false,
+    chatModel: '',
+    embeddingModel: '',
+    redisHost: '',
+    redisPort: '',
+    indexName: '',
+    prefix: '',
+    documentCount: 0,
+    enabledDocumentCount: 0,
+    totalChunkCount: 0,
+    pendingChunkCount: 0,
+    completedChunkCount: 0,
+    failedChunkCount: 0
+  }
+}
+
+function createEmptyMaintenanceSummary() {
+  return {
+    clearedVectorCount: 0,
+    rebuiltDocumentCount: 0,
+    rebuiltChunkCount: 0,
+    message: ''
   }
 }
 
@@ -378,6 +569,21 @@ const loadDocuments = async () => {
     errorMessage.value = extractErrorMessage(error, '请稍后重试或检查接口返回。')
   } finally {
     loading.value = false
+  }
+}
+
+const loadVectorIndexStatus = async () => {
+  statusLoading.value = true
+  vectorStatusError.value = ''
+
+  try {
+    const res = await getAiVectorIndexStatus()
+    Object.assign(vectorStatus, createEmptyVectorStatus(), res?.data || {})
+  } catch (error) {
+    Object.assign(vectorStatus, createEmptyVectorStatus())
+    vectorStatusError.value = extractErrorMessage(error, '向量索引状态加载失败，请稍后重试。')
+  } finally {
+    statusLoading.value = false
   }
 }
 
@@ -529,9 +735,11 @@ const handleRebuildAll = async () => {
   rebuildingAll.value = true
   try {
     const res = await rebuildAllAiKnowledge()
-    const rebuiltCount = Number(res?.data?.documentCount || 0)
+    syncMaintenanceSummary(res?.data)
+    const rebuiltCount = Number(res?.data?.rebuiltDocumentCount || 0)
     ElMessage.success(rebuiltCount > 0 ? `已触发 ${rebuiltCount} 篇文档重建` : '已触发全部知识重建')
     await loadDocuments()
+    await loadVectorIndexStatus()
     if (detailVisible.value && currentDetail.value?.id) {
       await loadDetail(currentDetail.value.id)
     }
@@ -539,6 +747,72 @@ const handleRebuildAll = async () => {
     ElMessage.error(extractErrorMessage(error, '全部重建失败'))
   } finally {
     rebuildingAll.value = false
+  }
+}
+
+const syncMaintenanceSummary = (payload) => {
+  Object.assign(maintenanceSummary, createEmptyMaintenanceSummary(), payload || {})
+}
+
+const handleClearVectorIndex = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确认清空当前知识向量吗？该操作会保留 MySQL 文档与分片记录，但会移除 Redis 中的向量数据。',
+      '清空 AI 向量',
+      {
+        type: 'warning',
+        confirmButtonText: '确认清空',
+        cancelButtonText: '取消'
+      }
+    )
+  } catch (_error) {
+    return
+  }
+
+  clearingVector.value = true
+  try {
+    const res = await clearAiVectorIndex()
+    syncMaintenanceSummary(res?.data)
+    ElMessage.success(`已清空 ${Number(res?.data?.clearedVectorCount || 0)} 条向量数据`)
+    await loadVectorIndexStatus()
+    await loadDocuments()
+  } catch (error) {
+    ElMessage.error(extractErrorMessage(error, '向量清空失败'))
+  } finally {
+    clearingVector.value = false
+  }
+}
+
+const handleClearAndRebuild = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确认执行“清空后重建”吗？该操作会先删除现有向量，再按当前启用文档与当前 embedding 模型重建索引。',
+      '清空后重建 AI 向量',
+      {
+        type: 'warning',
+        confirmButtonText: '确认执行',
+        cancelButtonText: '取消',
+        distinguishCancelAndClose: true
+      }
+    )
+  } catch (_error) {
+    return
+  }
+
+  clearingAndRebuilding.value = true
+  try {
+    const res = await clearAndRebuildAiVectorIndex()
+    syncMaintenanceSummary(res?.data)
+    ElMessage.success(res?.data?.message || '已完成清空并重建')
+    await loadDocuments()
+    await loadVectorIndexStatus()
+    if (detailVisible.value && currentDetail.value?.id) {
+      await loadDetail(currentDetail.value.id)
+    }
+  } catch (error) {
+    ElMessage.error(extractErrorMessage(error, '清空后重建失败'))
+  } finally {
+    clearingAndRebuilding.value = false
   }
 }
 
@@ -552,11 +826,18 @@ const resetFilters = () => {
 onMounted(() => {
   fillFormData(createEmptyForm())
   loadDocuments()
+  loadVectorIndexStatus()
 })
 </script>
 
 <style lang="scss" scoped>
 .knowledge-page {
+  .ops-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr);
+    gap: 16px;
+  }
+
   .summary-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -626,6 +907,10 @@ onMounted(() => {
     margin-top: 0;
   }
 
+  .ops-card {
+    min-height: 100%;
+  }
+
   .card-header,
   .card-header__actions,
   .table-actions {
@@ -636,6 +921,201 @@ onMounted(() => {
 
   .card-header {
     justify-content: space-between;
+  }
+
+  .inline-error-state {
+    padding-top: 4px;
+  }
+
+  .status-shell,
+  .danger-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .status-overview,
+  .status-detail-grid,
+  .status-metrics-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .status-overview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .status-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .status-metrics-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .status-chip,
+  .status-panel,
+  .status-metric,
+  .maintenance-feedback {
+    border: 1px solid var(--wt-border-default);
+    background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
+
+  .status-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: 16px;
+
+    strong {
+      color: var(--wt-text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+  }
+
+  .status-chip__label,
+  .status-panel__title,
+  .maintenance-feedback__title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--wt-text-secondary);
+  }
+
+  .status-chip--active {
+    border-color: color-mix(in srgb, #22c55e 35%, var(--wt-border-default));
+  }
+
+  .status-chip--warn {
+    border-color: color-mix(in srgb, #f59e0b 35%, var(--wt-border-default));
+  }
+
+  .status-panel {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .status-kv-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .status-kv-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--wt-text-regular);
+
+    strong {
+      color: var(--wt-text-primary);
+      text-align: right;
+      word-break: break-word;
+    }
+  }
+
+  .status-kv-item__code {
+    font-family: 'Fira Code', Consolas, monospace;
+    font-size: 12px;
+  }
+
+  .status-metric {
+    padding: 14px 16px;
+    border-radius: 16px;
+  }
+
+  .status-metric__label {
+    font-size: 12px;
+    color: var(--wt-text-secondary);
+  }
+
+  .status-metric__value {
+    display: block;
+    margin-top: 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--wt-text-primary);
+  }
+
+  .status-metric--slate {
+    background: linear-gradient(135deg, color-mix(in srgb, #0f172a 90%, white) 0%, color-mix(in srgb, #334155 88%, white) 100%);
+
+    .status-metric__label,
+    .status-metric__value {
+      color: #f8fafc;
+    }
+  }
+
+  .status-metric--amber {
+    background: linear-gradient(135deg, #92400e 0%, #f59e0b 100%);
+
+    .status-metric__label,
+    .status-metric__value {
+      color: #fff;
+    }
+  }
+
+  .status-metric--emerald {
+    background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+
+    .status-metric__label,
+    .status-metric__value {
+      color: #fff;
+    }
+  }
+
+  .status-metric--rose {
+    background: linear-gradient(135deg, #9f1239 0%, #f43f5e 100%);
+
+    .status-metric__label,
+    .status-metric__value {
+      color: #fff;
+    }
+  }
+
+  .danger-panel {
+    justify-content: space-between;
+    min-height: 100%;
+  }
+
+  .danger-panel__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--wt-text-primary);
+  }
+
+  .danger-panel__desc,
+  .maintenance-feedback__message,
+  .maintenance-feedback__meta {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--wt-text-regular);
+  }
+
+  .danger-panel__actions {
+    display: grid;
+    gap: 12px;
+
+    .el-button {
+      margin-left: 0;
+    }
+  }
+
+  .maintenance-feedback {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .maintenance-feedback__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
   }
 
   .domain-overview {
@@ -694,13 +1174,31 @@ onMounted(() => {
   }
 
   @media (max-width: 1200px) {
+    .ops-grid,
     .summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ops-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .status-overview,
+    .status-detail-grid,
+    .status-metrics-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 768px) {
+    .ops-grid,
     .summary-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .status-overview,
+    .status-detail-grid,
+    .status-metrics-grid {
       grid-template-columns: 1fr;
     }
   }

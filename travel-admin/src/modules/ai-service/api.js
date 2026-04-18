@@ -31,6 +31,18 @@ export function rebuildAllAiKnowledge() {
   return request.post(`${AI_KNOWLEDGE_BASE_PATH}/rebuild`)
 }
 
+export function getAiVectorIndexStatus() {
+  return request.get(`${AI_KNOWLEDGE_BASE_PATH}/vector/status`)
+}
+
+export function clearAiVectorIndex() {
+  return request.delete(`${AI_KNOWLEDGE_BASE_PATH}/vector`)
+}
+
+export function clearAndRebuildAiVectorIndex() {
+  return request.post(`${AI_KNOWLEDGE_BASE_PATH}/vector/rebuild`)
+}
+
 export function previewAiKnowledge(params) {
   return request.get(AI_RAG_PREVIEW_PATH, {
     params: {
