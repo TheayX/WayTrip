@@ -126,6 +126,12 @@ function dispatchSseBlock(block, handlers) {
 
   const rawData = dataLines.join('\n')
   const payload = rawData ? JSON.parse(rawData) : null
+  // 这里记录浏览器实际收到 SSE 事件的时间点，便于区分“后端已发出”和“前端何时收到”。
+  console.debug('[WayTrip AI SSE] event received', {
+    eventName,
+    receivedAt: Date.now(),
+    payload
+  })
   const handlerMap = {
     start: handlers.onStart,
     delta: handlers.onDelta,

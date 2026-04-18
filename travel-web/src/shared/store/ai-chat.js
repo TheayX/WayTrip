@@ -126,6 +126,10 @@ export const useAiChatStore = defineStore('ai-chat', () => {
       }, {
         onStart: (payload) => {
           applyAssistantStartEvent(streamingMessage, payload)
+          console.debug('[WayTrip AI SSE] start applied', {
+            messageId: streamingMessage.id,
+            receivedAt: Date.now()
+          })
           if (payload?.sessionId) {
             sessionId.value = payload.sessionId
             cacheAiSessionId(payload.sessionId)
@@ -133,9 +137,19 @@ export const useAiChatStore = defineStore('ai-chat', () => {
         },
         onDelta: (payload) => {
           appendAssistantDelta(streamingMessage, payload)
+          console.debug('[WayTrip AI SSE] delta applied', {
+            messageId: streamingMessage.id,
+            contentLength: streamingMessage.content.length,
+            receivedAt: Date.now()
+          })
         },
         onDone: (payload) => {
           finalizeAssistantMessage(streamingMessage, payload)
+          console.debug('[WayTrip AI SSE] done applied', {
+            messageId: streamingMessage.id,
+            contentLength: streamingMessage.content.length,
+            receivedAt: Date.now()
+          })
         },
         onError: (payload) => {
           throw new Error(payload?.message || 'AI 服务暂时不可用，请稍后重试。')

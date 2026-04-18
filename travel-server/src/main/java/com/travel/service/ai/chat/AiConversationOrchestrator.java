@@ -30,6 +30,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -185,10 +186,31 @@ public class AiConversationOrchestrator {
                 // 8. 执行模型流式调用并向前端推送增量内容。
                 StringBuilder replyBuilder = new StringBuilder();
                 AtomicBoolean emittedDelta = new AtomicBoolean(false);
+                long modelCallStartedAt = System.currentTimeMillis();
+                AtomicLong firstDeltaAt = new AtomicLong(0L);
+                AtomicLong lastDeltaAt = new AtomicLong(0L);
+                log.info(
+                        "AI 模型开始生成：会话ID={}, 消息ID={}, 距离请求开始Ms={}, 场景={}",
+                        sessionId,
+                        messageId,
+                        modelCallStartedAt - startedAt,
+                        scenario
+                );
                 requestSpec.stream().content().toStream().forEach(delta -> {
                     if (!StringUtils.hasText(delta)) {
                         return;
                     }
+                    long now = System.currentTimeMillis();
+                    firstDeltaAt.compareAndSet(0L, now);
+                    lastDeltaAt.set(now);
+                    // 这里记录模型真实吐出的增量粒度，便于判断当前是否属于“真流式”输出。
+                    log.info(
+                            "AI 增量分片：会话ID={}, 消息ID={}, 分片长度={}, 分片预览={}",
+                            sessionId,
+                            messageId,
+                            delta.length(),
+                            previewText(delta, 40)
+                    );
                     emittedDelta.set(true);
                     replyBuilder.append(delta);
                     sendEvent(emitter, "delta", new AiChatDeltaEvent(delta));
@@ -199,6 +221,20 @@ public class AiConversationOrchestrator {
                     replyBuilder.append(fallbackReply);
                     sendEvent(emitter, "delta", new AiChatDeltaEvent(fallbackReply));
                 }
+
+                long firstDeltaCostMs = firstDeltaAt.get() == 0L ? -1L : firstDeltaAt.get() - modelCallStartedAt;
+                long generationWindowMs = firstDeltaAt.get() == 0L || lastDeltaAt.get() == 0L
+                        ? -1L
+                        : lastDeltaAt.get() - firstDeltaAt.get();
+                log.info(
+                        "AI 流式阶段耗时：会话ID={}, 消息ID={}, 模型准备耗时Ms={}, 首字延迟Ms={}, 流式输出窗口Ms={}, 总耗时Ms={}",
+                        sessionId,
+                        messageId,
+                        modelCallStartedAt - startedAt,
+                        firstDeltaCostMs,
+                        generationWindowMs,
+                        System.currentTimeMillis() - startedAt
+                );
 
                 String reply = replyBuilder.toString();
                 List<String> toolNames = aiToolContextHolder.getToolTraces().stream()
