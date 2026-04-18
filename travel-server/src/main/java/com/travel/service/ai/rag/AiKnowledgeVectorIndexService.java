@@ -17,4 +17,11 @@ public interface AiKnowledgeVectorIndexService {
      * @param chunks 文档分片
      */
     void rebuildDocumentIndex(AiKnowledgeDocument document, List<AiKnowledgeChunk> chunks);
+
+    /**
+     * 清空当前 AI 知识向量数据。
+     *
+     * @return 清理掉的向量数量
+     */
+    int clearAllVectorData();
 }

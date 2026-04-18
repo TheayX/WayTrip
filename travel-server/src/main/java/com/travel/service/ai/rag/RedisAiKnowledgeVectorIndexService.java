@@ -1,6 +1,7 @@
 package com.travel.service.ai.rag;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.travel.entity.AiKnowledgeChunk;
 import com.travel.entity.AiKnowledgeDocument;
 import com.travel.mapper.AiKnowledgeChunkMapper;
@@ -81,6 +82,35 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
             }
             throw exception;
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int clearAllVectorData() {
+        List<AiKnowledgeChunk> chunks = aiKnowledgeChunkMapper.selectList(new LambdaQueryWrapper<AiKnowledgeChunk>()
+                .isNotNull(AiKnowledgeChunk::getId));
+        if (chunks == null || chunks.isEmpty()) {
+            return 0;
+        }
+
+        List<String> vectorIds = new ArrayList<>();
+        for (AiKnowledgeChunk chunk : chunks) {
+            vectorIds.add(buildVectorId(chunk.getId()));
+        }
+        try {
+            vectorStore.delete(vectorIds);
+        } catch (Exception exception) {
+            // 兼容 Redis 已被手动清空或索引缺失的场景，仍继续重置数据库状态。
+            log.warn("AI 知识向量数据清理时未能删除 Redis 中的旧向量，继续重置数据库状态", exception);
+        }
+        aiKnowledgeChunkMapper.update(
+                null,
+                new LambdaUpdateWrapper<AiKnowledgeChunk>()
+                        .set(AiKnowledgeChunk::getEmbeddingStatus, 0)
+                        .set(AiKnowledgeChunk::getVectorId, "")
+        );
+        log.info("AI 知识向量数据清理完成: clearedVectorCount={}", vectorIds.size());
+        return vectorIds.size();
     }
 
     private List<String> loadExistingVectorIds(Long documentId) {

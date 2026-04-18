@@ -2,12 +2,13 @@ package com.travel.service.ai;
 
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentDetailResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentItem;
+import com.travel.dto.ai.knowledge.AiKnowledgeMaintenanceResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgePreviewResponse;
+import com.travel.dto.ai.knowledge.AiKnowledgeVectorIndexStatusResponse;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
 import com.travel.enums.ai.AiScenarioType;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * AI 知识管理服务接口。
@@ -73,9 +74,30 @@ public interface AiKnowledgeAdminService {
     AiKnowledgePreviewResponse preview(AiScenarioType scenario, String query);
 
     /**
+     * 获取当前向量索引运行状态。
+     *
+     * @return 向量索引状态
+     */
+    AiKnowledgeVectorIndexStatusResponse getVectorIndexStatus();
+
+    /**
+     * 清空当前 AI 知识向量数据。
+     *
+     * @return 清理结果
+     */
+    AiKnowledgeMaintenanceResponse clearVectorIndex();
+
+    /**
      * 手动触发知识重建任务。
      *
      * @return 结果摘要
      */
-    Map<String, Object> rebuildAllKnowledge();
+    AiKnowledgeMaintenanceResponse rebuildAllKnowledge();
+
+    /**
+     * 清空当前向量数据后重建全部启用知识。
+     *
+     * @return 结果摘要
+     */
+    AiKnowledgeMaintenanceResponse clearAndRebuildAllKnowledge();
 }

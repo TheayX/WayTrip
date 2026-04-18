@@ -5,7 +5,9 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentDetailResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentItem;
+import com.travel.dto.ai.knowledge.AiKnowledgeMaintenanceResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgePreviewResponse;
+import com.travel.dto.ai.knowledge.AiKnowledgeVectorIndexStatusResponse;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
 import com.travel.entity.AiKnowledgeChunk;
 import com.travel.entity.AiKnowledgeDocument;
@@ -15,14 +17,13 @@ import com.travel.mapper.AiKnowledgeDocumentMapper;
 import com.travel.service.ai.AiKnowledgeAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * AI 知识管理服务实现。
@@ -38,6 +39,8 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
     private final AiKnowledgeChunkMapper aiKnowledgeChunkMapper;
     private final AiKnowledgeIngestionService aiKnowledgeIngestionService;
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
+    private final AiKnowledgeVectorIndexService aiKnowledgeVectorIndexService;
+    private final Environment environment;
 
     @Override
     public Long createManualDocument(ManualAiKnowledgeUpsertRequest request, Long adminId) {
@@ -147,7 +150,53 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
     }
 
     @Override
-    public Map<String, Object> rebuildAllKnowledge() {
+    public AiKnowledgeVectorIndexStatusResponse getVectorIndexStatus() {
+        AiKnowledgeVectorIndexStatusResponse response = new AiKnowledgeVectorIndexStatusResponse();
+        response.setRagEnabled(Boolean.TRUE.equals(environment.getProperty("app.ai.rag.enabled", Boolean.class, Boolean.FALSE)));
+        response.setChatProvider(environment.getProperty("spring.ai.model.chat", "ollama"));
+        response.setEmbeddingProvider(environment.getProperty("spring.ai.model.embedding", "ollama"));
+        response.setMixedProviderMode(!response.getChatProvider().equalsIgnoreCase(response.getEmbeddingProvider()));
+        response.setChatModel(environment.getProperty("app.ai.provider.chat-model", ""));
+        response.setEmbeddingModel(environment.getProperty("app.ai.provider.embedding-model", ""));
+        response.setRedisHost(environment.getProperty("app.ai.vector.redis.host", "127.0.0.1"));
+        response.setRedisPort(environment.getProperty("app.ai.vector.redis.port", Integer.class, 6379));
+        response.setIndexName(environment.getProperty("app.ai.vector.redis.index-name", "waytrip-ai-knowledge-index"));
+        response.setPrefix(environment.getProperty("app.ai.vector.redis.prefix", "waytrip:ai:chunk:"));
+        response.setDocumentCount(countDocuments(null));
+        response.setEnabledDocumentCount(countDocuments(1));
+        response.setTotalChunkCount(countChunksByStatus(null));
+        response.setPendingChunkCount(countChunksByStatus(0));
+        response.setCompletedChunkCount(countChunksByStatus(1));
+        response.setFailedChunkCount(countChunksByStatus(2));
+        return response;
+    }
+
+    @Override
+    public AiKnowledgeMaintenanceResponse clearVectorIndex() {
+        int clearedVectorCount = aiKnowledgeVectorIndexService.clearAllVectorData();
+        AiKnowledgeMaintenanceResponse response = new AiKnowledgeMaintenanceResponse();
+        response.setClearedVectorCount(clearedVectorCount);
+        response.setRebuiltDocumentCount(0);
+        response.setRebuiltChunkCount(0);
+        response.setMessage("AI 知识向量数据清理完成");
+        return response;
+    }
+
+    @Override
+    public AiKnowledgeMaintenanceResponse rebuildAllKnowledge() {
+        return rebuildAllKnowledgeInternal(false);
+    }
+
+    @Override
+    public AiKnowledgeMaintenanceResponse clearAndRebuildAllKnowledge() {
+        return rebuildAllKnowledgeInternal(true);
+    }
+
+    private AiKnowledgeMaintenanceResponse rebuildAllKnowledgeInternal(boolean clearVectorDataFirst) {
+        int clearedVectorCount = 0;
+        if (clearVectorDataFirst) {
+            clearedVectorCount = aiKnowledgeVectorIndexService.clearAllVectorData();
+        }
         List<AiKnowledgeDocument> documents = aiKnowledgeDocumentMapper.selectList(
                 new LambdaQueryWrapper<AiKnowledgeDocument>()
                         .eq(AiKnowledgeDocument::getIsDeleted, 0)
@@ -160,10 +209,12 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
                 rebuilt++;
             }
         }
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("documentCount", rebuilt);
-        result.put("message", "AI 知识分片重建完成");
-        return result;
+        AiKnowledgeMaintenanceResponse response = new AiKnowledgeMaintenanceResponse();
+        response.setClearedVectorCount(clearedVectorCount);
+        response.setRebuiltDocumentCount(rebuilt);
+        response.setRebuiltChunkCount(countEnabledDocumentChunks());
+        response.setMessage(clearVectorDataFirst ? "AI 知识向量已清理并重建完成" : "AI 知识分片重建完成");
+        return response;
     }
 
     private AiKnowledgeDocument getActiveDocument(Long documentId) {
@@ -180,6 +231,41 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
                         .eq(AiKnowledgeChunk::getDocumentId, documentId)
         );
         return count == null ? 0 : count.intValue();
+    }
+
+    private int countDocuments(Integer isEnabled) {
+        LambdaQueryWrapper<AiKnowledgeDocument> wrapper = new LambdaQueryWrapper<AiKnowledgeDocument>()
+                .eq(AiKnowledgeDocument::getIsDeleted, 0);
+        if (isEnabled != null) {
+            wrapper.eq(AiKnowledgeDocument::getIsEnabled, isEnabled);
+        }
+        Long count = aiKnowledgeDocumentMapper.selectCount(wrapper);
+        return count == null ? 0 : count.intValue();
+    }
+
+    private int countChunksByStatus(Integer embeddingStatus) {
+        LambdaQueryWrapper<AiKnowledgeChunk> wrapper = new LambdaQueryWrapper<>();
+        if (embeddingStatus != null) {
+            wrapper.eq(AiKnowledgeChunk::getEmbeddingStatus, embeddingStatus);
+        }
+        Long count = aiKnowledgeChunkMapper.selectCount(wrapper);
+        return count == null ? 0 : count.intValue();
+    }
+
+    private int countEnabledDocumentChunks() {
+        List<AiKnowledgeDocument> enabledDocuments = aiKnowledgeDocumentMapper.selectList(
+                new LambdaQueryWrapper<AiKnowledgeDocument>()
+                        .eq(AiKnowledgeDocument::getIsDeleted, 0)
+                        .eq(AiKnowledgeDocument::getIsEnabled, 1)
+        );
+        if (enabledDocuments == null || enabledDocuments.isEmpty()) {
+            return 0;
+        }
+        int total = 0;
+        for (AiKnowledgeDocument document : enabledDocuments) {
+            total += countChunks(document.getId());
+        }
+        return total;
     }
 
     private String normalize(String value, String fallback) {

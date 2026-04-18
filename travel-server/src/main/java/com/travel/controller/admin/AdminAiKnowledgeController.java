@@ -3,7 +3,9 @@ package com.travel.controller.admin;
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentDetailResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentItem;
+import com.travel.dto.ai.knowledge.AiKnowledgeMaintenanceResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgePreviewResponse;
+import com.travel.dto.ai.knowledge.AiKnowledgeVectorIndexStatusResponse;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
 import com.travel.dto.ai.knowledge.UpdateAiKnowledgeEnabledRequest;
 import com.travel.enums.ai.AiScenarioType;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -127,9 +130,44 @@ public class AdminAiKnowledgeController {
      */
     @Operation(summary = "重建全部 AI 知识分片")
     @PostMapping("/knowledge/rebuild")
-    public ApiResponse<Map<String, Object>> rebuildAllKnowledge() {
+    public ApiResponse<AiKnowledgeMaintenanceResponse> rebuildAllKnowledge() {
         log.info("管理端触发 AI 知识分片重建：adminId={}", UserContextHolder.getAdminId());
         return ApiResponse.success(aiKnowledgeAdminService.rebuildAllKnowledge());
+    }
+
+    /**
+     * 获取当前向量索引状态。
+     *
+     * @return 向量索引状态
+     */
+    @Operation(summary = "获取 AI 向量索引状态")
+    @GetMapping("/knowledge/vector/status")
+    public ApiResponse<AiKnowledgeVectorIndexStatusResponse> getVectorIndexStatus() {
+        return ApiResponse.success(aiKnowledgeAdminService.getVectorIndexStatus());
+    }
+
+    /**
+     * 清空当前 AI 知识向量数据。
+     *
+     * @return 清理结果
+     */
+    @Operation(summary = "清空 AI 知识向量数据")
+    @DeleteMapping("/knowledge/vector")
+    public ApiResponse<AiKnowledgeMaintenanceResponse> clearVectorIndex() {
+        log.info("管理端触发 AI 向量数据清理：adminId={}", UserContextHolder.getAdminId());
+        return ApiResponse.success(aiKnowledgeAdminService.clearVectorIndex());
+    }
+
+    /**
+     * 清空当前向量数据后重建全部启用知识。
+     *
+     * @return 重建结果摘要
+     */
+    @Operation(summary = "清空后重建 AI 知识向量")
+    @PostMapping("/knowledge/vector/rebuild")
+    public ApiResponse<AiKnowledgeMaintenanceResponse> clearAndRebuildAllKnowledge() {
+        log.info("管理端触发 AI 向量清理并重建：adminId={}", UserContextHolder.getAdminId());
+        return ApiResponse.success(aiKnowledgeAdminService.clearAndRebuildAllKnowledge());
     }
 
     /**
