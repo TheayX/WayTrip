@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 
 /**
  * AI 对话编排器，集中管理主聊天链路。
+ * <p>
+ * 负责串联风控、场景路由、RAG 检索、工具调用与记忆管理，是 Spring AI 能力的核心调度中心。
  */
 @Slf4j
 @Service
@@ -48,23 +50,33 @@ public class AiConversationOrchestrator {
     /**
      * 处理单轮聊天请求。
      *
-     * @param request 聊天请求
-     * @param userId 当前用户 ID
+     * @param request  聊天请求
+     * @param userId   当前用户 ID
+     * @param adminId  当前管理员 ID（如有）
      * @param clientIp 客户端 IP
      * @return 聊天响应
      */
     public AiChatMessageResponse chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp) {
         long startedAt = System.currentTimeMillis();
+        // 1. 会话 ID 规范化与输入清洗
         String sessionId = aiSessionIdService.normalizeSessionId(request.getSessionId());
         String userMessage = aiGuardrailService.sanitizeUserMessage(request.getMessage());
+
+        // 2. 风控前置校验：限流、登录态、防注入
         aiGuardrailService.enforceRateLimit(sessionId, clientIp);
         aiGuardrailService.ensureLoginIfNeeded(userMessage, userId);
         aiGuardrailService.ensureNoPromptInjection(userMessage);
 
+        // 3. 场景路由：判断当前是对客服、订单顾问还是推荐解释
         AiScenarioType scenario = aiScenarioRouter.route(userMessage, request.getScenarioHint(), request.getSourcePage());
+
+        // 4. RAG 知识检索：根据场景召回相关文档片段
         List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
+
+        // 5. 组装系统提示词并生成消息 ID
         String systemPrompt = aiPromptService.buildSystemPrompt(scenario);
         String messageId = aiSessionIdService.createSessionId();
+
         log.info(
                 "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 来源页面={}, RAG命中数={}, 用户问题预览={}",
                 sessionId,
@@ -77,9 +89,11 @@ public class AiConversationOrchestrator {
         );
 
         try {
+            // 6. 设置上下文，供 Tool 内部获取当前操作人信息
             aiToolContextHolder.setCurrentUserId(userId);
             aiToolContextHolder.setCurrentAdminId(adminId);
 
+            // 7. 构建 Spring AI 请求链：挂载记忆 Advisor 和 RAG Advisor
             ChatClient.ChatClientRequestSpec requestSpec = aiChatClient.prompt()
                     .advisors(spec -> spec
                             .advisors(
@@ -91,15 +105,19 @@ public class AiConversationOrchestrator {
                     .system(systemPrompt)
                     .user(userMessage);
 
+            // 8. 动态注册工具：不同场景启用不同的业务能力
             Object[] tools = aiToolRegistry.resolveTools(scenario);
             if (tools.length > 0) {
                 requestSpec = requestSpec.tools(tools);
             }
+
+            // 9. 执行模型调用并获取回复
             String reply = requestSpec.call().content();
             if (!StringUtils.hasText(reply)) {
                 throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 返回内容为空");
             }
 
+            // 10. 记录工具调用追踪日志
             List<String> toolNames = aiToolContextHolder.getToolTraces().stream()
                     .map(item -> item.getToolName() + ":" + item.getSuccess())
                     .collect(Collectors.toList());
@@ -116,6 +134,8 @@ public class AiConversationOrchestrator {
                     previewText(reply.trim(), 120),
                     System.currentTimeMillis() - startedAt
             );
+
+            // 11. 组装最终响应对象（含引用来源与工具摘要）
             return aiResponseAssembler.assemble(
                     sessionId,
                     messageId,
@@ -162,10 +182,14 @@ public class AiConversationOrchestrator {
             );
             throw new BusinessException(ResultCode.SYSTEM_ERROR, "AI 服务暂时不可用，请稍后重试");
         } finally {
+            // 12. 清理 ThreadLocal，防止内存泄漏
             aiToolContextHolder.clear();
         }
     }
 
+    /**
+     * 截取文本预览，用于日志打印，避免超长内容刷屏。
+     */
     private String previewText(String text, int maxLength) {
         if (!StringUtils.hasText(text)) {
             return "无";

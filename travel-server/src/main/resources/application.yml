@@ -19,7 +19,8 @@ spring:
   ai:
     model:
       chat: ${APP_AI_PROVIDER_TYPE:ollama}
-      embedding: ${APP_AI_EMBEDDING_PROVIDER_TYPE:ollama}
+      # 未显式指定 embedding 供应商时，默认跟随聊天供应商，支持一键切换整个 AI 链路。
+      embedding: ${APP_AI_EMBEDDING_PROVIDER_TYPE:${APP_AI_PROVIDER_TYPE:ollama}}
     openai:
       base-url: ${OPENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
       api-key: ${OPENAI_API_KEY:}
