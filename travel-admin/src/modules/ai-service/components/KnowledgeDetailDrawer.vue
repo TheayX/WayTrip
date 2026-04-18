@@ -89,6 +89,7 @@
 </template>
 
 <script setup>
+// 详情抽屉保持纯展示，由父层负责拉取详情、处理 loading 和控制显隐。
 defineProps({
   visible: { type: Boolean, required: true },
   loading: { type: Boolean, default: false },
@@ -97,6 +98,7 @@ defineProps({
   getSourceTypeLabel: { type: Function, required: true }
 })
 
+// 抽屉只向外同步开关状态，不在内部维护副本。
 const emit = defineEmits(['update:visible'])
 </script>
 

@@ -169,6 +169,8 @@ const featureMenuItems = [
 const isHomeActive = computed(() => route.name === ROUTE_NAMES.home)
 const isFeatureMenuActive = computed(() => featureRouteNames.includes(route.name))
 const hiddenBackRoutes = [ROUTE_NAMES.home, ROUTE_NAMES.login, ROUTE_NAMES.register]
+
+// 返回栏默认在大多数内容页显示，仅首页和认证页默认隐藏。
 const showBackBar = computed(() => {
   if (typeof route.meta?.hideBackBar === 'boolean') {
     return !route.meta.hideBackBar
@@ -187,6 +189,7 @@ const shouldShowAiChat = computed(() => {
 const currentPageText = computed(() => route.meta?.title || '继续浏览当前内容')
 
 // 交互处理方法
+// 优先回退历史栈；如果用户是直达进入，则退回首页，避免出现空白回退。
 const handleBack = () => {
   // 优先回退浏览历史；若用户是直达当前页，则回到首页兜底。
   if (window.history.length > 1) {
@@ -202,6 +205,7 @@ const handleFeatureCommand = (path) => {
   router.push(path)
 }
 
+// 用户菜单统一在这里收口，避免模板层散落多个跳转和退出逻辑。
 const handleCommand = (command) => {
   switch (command) {
     case 'profile':

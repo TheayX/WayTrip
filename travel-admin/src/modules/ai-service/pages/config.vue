@@ -136,6 +136,7 @@ import { ElMessage } from 'element-plus'
 import ConfigScenarioCard from '@/modules/ai-service/components/ConfigScenarioCard.vue'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_CONFIGS } from '@/modules/ai-service/constants.js'
 
+// 配置页当前只维护前端本地草稿，不涉及后端持久化。
 const formRef = ref()
 const dialogVisible = ref(false)
 const editingScenarioKey = ref('')
@@ -143,6 +144,7 @@ const scenarioConfigs = ref(cloneScenarioConfigs())
 
 const editForm = reactive(createEmptyEditForm())
 
+// 本地编辑规则只覆盖当前页面真正可改的几个字段。
 const rules = {
   knowledgeDomain: [
     { required: true, message: '请选择知识域', trigger: 'change' }
@@ -173,10 +175,12 @@ const rules = {
   ]
 }
 
+// 每次恢复默认配置都重新克隆常量，避免直接污染源配置对象。
 function cloneScenarioConfigs() {
   return AI_SCENARIO_CONFIGS.map(item => ({ ...item }))
 }
 
+// 编辑弹窗总是从空表单初始化，避免上一次编辑残留值串进下一次。
 function createEmptyEditForm() {
   return {
     enabled: true,
@@ -190,6 +194,7 @@ const knowledgeDomainOptions = computed(() => {
   return Object.entries(AI_KNOWLEDGE_DOMAIN_LABELS).map(([value, label]) => ({ value, label }))
 })
 
+// 顶部指标卡只看当前页面草稿状态，不区分是否已同步到后端。
 const summaryMetrics = computed(() => {
   const total = scenarioConfigs.value.length
   const enabled = scenarioConfigs.value.filter(item => item.enabled).length
@@ -201,12 +206,14 @@ const summaryMetrics = computed(() => {
   }
 })
 
+// 当前正在编辑的场景通过 key 映射，避免把整条对象副本散落到多个地方。
 const editingScenario = computed(() => {
   return scenarioConfigs.value.find(item => item.key === editingScenarioKey.value) || null
 })
 
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
 
+// 打开弹窗时直接把当前卡片数据同步进草稿表单，保持所见即所得。
 const openEditDialog = (scenario) => {
   editingScenarioKey.value = scenario.key
   editForm.enabled = Boolean(scenario.enabled)
@@ -216,6 +223,7 @@ const openEditDialog = (scenario) => {
   dialogVisible.value = true
 }
 
+// 保存时只回写当前页面内存态配置，不做接口提交。
 const handleSubmitEdit = async () => {
   try {
     await formRef.value?.validate()
@@ -238,6 +246,7 @@ const handleSubmitEdit = async () => {
   }
 }
 
+// 重置会完全回到 constants 中的默认定义，清掉本页所有本地草稿改动。
 const handleResetLocalConfig = () => {
   scenarioConfigs.value = cloneScenarioConfigs()
   dialogVisible.value = false

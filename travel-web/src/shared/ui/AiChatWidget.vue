@@ -1,3 +1,4 @@
+<!-- AI 聊天悬浮组件 -->
 <template>
   <div class="ai-chat-widget">
     <button v-if="!isOpen" class="chat-launcher" @click="openChat">
@@ -158,6 +159,7 @@ const { isOpen, loading, messages, latestAssistantMessageId } = storeToRefs(aiCh
 const inputText = ref('')
 const messageListRef = ref(null)
 
+// 每次打开、发送或清空后都把视口滚到最底部，避免用户看不到最新回复。
 const scrollToBottom = () => {
   nextTick(() => {
     if (!messageListRef.value) return
@@ -165,6 +167,7 @@ const scrollToBottom = () => {
   })
 }
 
+// 打开面板时先确保会话可用，再把视口定位到最后一条消息。
 const openChat = async () => {
   try {
     await aiChatStore.openChat()
@@ -174,10 +177,12 @@ const openChat = async () => {
   }
 }
 
+// 关闭聊天面板。
 const closeChat = () => {
   aiChatStore.closeChat()
 }
 
+// 清空会话后立即滚到底部，保证欢迎语和新会话状态可见。
 const clearMessages = async () => {
   try {
     await aiChatStore.clearConversation()
@@ -188,6 +193,7 @@ const clearMessages = async () => {
   }
 }
 
+// 发送时同时附带页面来源和轻量场景提示，减少后端纯靠文本猜场景的不稳定性。
 const sendMessage = async () => {
   const content = inputText.value.trim()
   if (!content || loading.value) return
@@ -209,11 +215,13 @@ const sendMessage = async () => {
   }
 }
 
+// 点击推荐追问时，直接复用普通发送逻辑。
 const sendSuggestion = async (suggestion) => {
   inputText.value = suggestion
   await sendMessage()
 }
 
+// 提交某条助手消息的反馈。
 const submitFeedback = async (messageId, feedbackType) => {
   try {
     await aiChatStore.markFeedback({ messageId, feedbackType })
@@ -223,10 +231,12 @@ const submitFeedback = async (messageId, feedbackType) => {
   }
 }
 
+// 优先用路由名做来源标识，只有没有 name 时才退回 path。
 function normalizeSourcePage() {
   return typeof route.name === 'string' ? route.name : route.path
 }
 
+// 前端只做轻量 hint，不在这里硬编码复杂业务分类，最终仍交给后端统一路由。
 function resolveScenarioHint() {
   if (route.path.includes('/orders')) {
     return 'order'

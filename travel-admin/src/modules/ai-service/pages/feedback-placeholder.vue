@@ -55,6 +55,7 @@
 </template>
 
 <script setup>
+// 反馈闭环页当前仍是规划占位，先用静态卡片明确后续会承接的能力边界。
 const plannedCapabilities = [
   {
     title: '反馈样本沉淀',

@@ -224,12 +224,14 @@ import { getAiKnowledgeDocuments, getAiVectorIndexStatus } from '@/modules/ai-se
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_CONFIGS } from '@/modules/ai-service/constants.js'
 import { createEmptyAiVectorStatus, displayAiMetric } from '@/modules/ai-service/utils.js'
 
+// 概览页只聚合轻量统计，不承接重操作，便于作为 AI 模块默认入口。
 const router = useRouter()
 const loading = ref(false)
 const errorMessage = ref('')
 const documents = ref([])
 const vectorStatus = ref(createEmptyAiVectorStatus())
 
+// 工作台和反馈闭环先作为占位入口保留，后续能力补齐后可直接接管当前导航。
 const placeholderEntries = [
   {
     title: 'AI 工作台',
@@ -249,6 +251,7 @@ const placeholderEntries = [
   }
 ]
 
+// 一期关注点直接写成本地静态文案，避免为了说明性内容引入额外接口。
 const phaseOneTips = [
   {
     title: '先保证知识可用',
@@ -264,6 +267,7 @@ const phaseOneTips = [
   }
 ]
 
+// 列表数据先统一做一层归一化，后面所有统计都基于同一份结构计算。
 const normalizedDocuments = computed(() => {
   return (documents.value || []).map((item, index) => ({
     id: item.id ?? `${item.title || 'document'}-${index}`,
@@ -277,6 +281,7 @@ const normalizedDocuments = computed(() => {
   }))
 })
 
+// 最近更新时间统一按时间倒序，时间相同时再按 ID 稳定排序。
 const sortedDocumentsByUpdatedAt = computed(() => {
   return [...normalizedDocuments.value].sort((prev, next) => {
     if (next.updatedTimestamp !== prev.updatedTimestamp) {
@@ -287,6 +292,7 @@ const sortedDocumentsByUpdatedAt = computed(() => {
   })
 })
 
+// 顶部指标卡只展示最能反映知识底座状态的几个核心指标。
 const metrics = computed(() => {
   const enabledDocuments = normalizedDocuments.value.filter(item => item.isEnabled)
 
@@ -300,6 +306,7 @@ const metrics = computed(() => {
 
 const recentDocuments = computed(() => sortedDocumentsByUpdatedAt.value.filter(item => item.updatedTimestamp > 0).slice(0, 5))
 
+// 知识域覆盖摘要用于快速判断“场景有无知识可用”，所以同时看文档数和分片数。
 const domainSummaryList = computed(() => {
   const summaryMap = new Map()
 
@@ -327,6 +334,7 @@ const domainSummaryList = computed(() => {
   return Array.from(summaryMap.values()).sort((prev, next) => next.totalCount - prev.totalCount || next.totalChunkCount - prev.totalChunkCount)
 })
 
+// 场景摘要直接复用 constants，避免概览页和配置页出现两份场景定义。
 const scenarioSummaryList = computed(() => {
   return AI_SCENARIO_CONFIGS.map(item => ({
     ...item,
@@ -334,6 +342,7 @@ const scenarioSummaryList = computed(() => {
   }))
 })
 
+// 页面数据按“文档列表 + 向量状态”并行拉取，减少概览首屏等待时间。
 const loadPageData = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -356,6 +365,7 @@ const loadPageData = async () => {
   }
 }
 
+// 占位入口未接路由时给出提示，避免点击后无反馈。
 const goTo = async (path) => {
   try {
     await router.push(path)

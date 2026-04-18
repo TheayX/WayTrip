@@ -37,11 +37,13 @@
 </template>
 
 <script setup>
+// 场景卡片只负责展示当前配置和抛出编辑事件，不持有本地编辑状态。
 defineProps({
   scenario: { type: Object, required: true },
   domainLabel: { type: String, default: '未分类' }
 })
 
+// 编辑动作统一交给父层打开弹窗，避免卡片内部出现第二份表单状态。
 const emit = defineEmits(['edit'])
 </script>
 

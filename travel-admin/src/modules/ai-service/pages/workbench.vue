@@ -253,9 +253,11 @@ import {
   extractAiErrorMessage
 } from '@/modules/ai-service/utils.js'
 
+// 工作台默认沿用场景列表第一项，避免查询预览与配置页场景顺序脱节。
 const router = useRouter()
 const DEFAULT_SCENARIO = AI_SCENARIO_OPTIONS[0]?.value || 'CUSTOMER_SERVICE'
 
+// 状态区、预览区和运维区各自维护 loading，避免一个动作拖慢整个工作台。
 const loading = ref(false)
 const previewing = ref(false)
 const rebuildingAll = ref(false)
@@ -268,6 +270,7 @@ const previewResult = ref(null)
 const vectorStatus = ref(createEmptyAiVectorStatus())
 const maintenanceSummary = reactive(createEmptyAiMaintenanceSummary())
 
+// 预览表单只保留当前场景和问题文本，减少工作台调试心智负担。
 const previewForm = reactive({
   scenario: DEFAULT_SCENARIO,
   query: ''
@@ -275,6 +278,7 @@ const previewForm = reactive({
 
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
 
+// 场景切换后，知识域提示要实时跟着更新，方便判断当前查询会落到哪个域。
 const selectedScenarioOption = computed(() => {
   return AI_SCENARIO_OPTIONS.find(item => item.value === previewForm.scenario) || null
 })
@@ -287,10 +291,12 @@ const previewHits = computed(() => {
   return Array.isArray(previewResult.value?.hits) ? previewResult.value.hits : []
 })
 
+// 维护结果统一回写到同一块结果区，方便对比最近一次运维动作的效果。
 const syncMaintenanceSummary = (payload) => {
   Object.assign(maintenanceSummary, createEmptyAiMaintenanceSummary(), payload || {})
 }
 
+// 工作台主数据先只拉向量状态，避免把文档列表等非必要数据一起带进来。
 const loadWorkbenchData = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -309,6 +315,7 @@ const loadWorkbenchData = async () => {
   }
 }
 
+// RAG 预览和独立查询测试页保持同一套兜底结构，避免两个页面展示口径不同。
 const handlePreview = async () => {
   const query = previewForm.query.trim()
 
@@ -341,6 +348,7 @@ const handlePreview = async () => {
   }
 }
 
+// 清空向量适合在确认索引污染或准备彻底重建前使用。
 const handleClearVectorIndex = async () => {
   try {
     await ElMessageBox.confirm(
@@ -369,6 +377,7 @@ const handleClearVectorIndex = async () => {
   }
 }
 
+// 重建全部只按当前启用知识执行，避免把停用文档重新写回向量库。
 const handleRebuildAll = async () => {
   try {
     await ElMessageBox.confirm(
@@ -397,6 +406,7 @@ const handleRebuildAll = async () => {
   }
 }
 
+// 清空后重建用于 embedding 切换后的彻底刷新，是工作台里风险最高的维护动作。
 const handleClearAndRebuild = async () => {
   try {
     await ElMessageBox.confirm(
@@ -425,6 +435,7 @@ const handleClearAndRebuild = async () => {
   }
 }
 
+// 知识库管理页承接更细的文档级维护，所以从工作台直接跳过去。
 const goToKnowledge = () => router.push('/ai-service/knowledge')
 
 onMounted(() => {

@@ -351,8 +351,10 @@ import {
   extractAiErrorMessage
 } from '@/modules/ai-service/utils.js'
 
+// 当前页默认把“手工录入”作为知识维护的主来源类型。
 const MANUAL_SOURCE_TYPE = 'manual'
 
+// 来源类型展示文案集中维护，保证表格、抽屉和详情页口径一致。
 const sourceTypeLabelMap = {
   manual: '手工录入',
   faq: 'FAQ',
@@ -361,6 +363,7 @@ const sourceTypeLabelMap = {
   spot: '景点资料'
 }
 
+// 页面级状态统一放在这里，避免操作按钮和抽屉各自维护一份局部副本。
 const loading = ref(false)
 const detailLoading = ref(false)
 const rebuildingAll = ref(false)
@@ -388,12 +391,14 @@ const filters = reactive({
   enabled: ''
 })
 
+// 表单数据独立维护，新增和编辑都基于同一份 reactive 状态切换。
 const formData = reactive(createEmptyForm())
 
 const knowledgeDomainOptions = computed(() => {
   return Object.entries(AI_KNOWLEDGE_DOMAIN_LABELS).map(([value, label]) => ({ value, label }))
 })
 
+// 来源类型暂时固定为前端常量，不引入后端配置接口。
 const sourceTypeOptions = [
   { value: 'manual', label: '手工录入' },
   { value: 'faq', label: 'FAQ' },
@@ -407,6 +412,7 @@ const enabledOptions = [
   { value: 'disabled', label: '仅看停用' }
 ]
 
+// 新增和编辑都先从空表单开始，避免上一次抽屉残留数据串到下一次操作。
 function createEmptyForm() {
   return {
     title: '',
@@ -418,6 +424,7 @@ function createEmptyForm() {
   }
 }
 
+// 先把接口返回统一归一，后续表格、筛选和摘要统计全部复用这份结构。
 const normalizedDocuments = computed(() => {
   return (documents.value || []).map((item, index) => {
     const title = item.title || '未命名文档'
@@ -441,6 +448,7 @@ const normalizedDocuments = computed(() => {
   })
 })
 
+// 筛选统一收口在计算属性里，避免接口重拉和本地过滤逻辑混在一起。
 const filteredDocuments = computed(() => {
   const keyword = filters.keyword.trim().toLowerCase()
 
@@ -471,6 +479,7 @@ const filteredDocuments = computed(() => {
   })
 })
 
+// 顶部四张统计卡只依赖当前文档列表，不额外读取向量状态。
 const summaryMetrics = computed(() => {
   return {
     total: normalizedDocuments.value.length,
@@ -479,6 +488,7 @@ const summaryMetrics = computed(() => {
   }
 })
 
+// 知识域摘要用于判断当前库的覆盖情况，所以保留总数、启用数和分片数三个维度。
 const domainSummaryList = computed(() => {
   const summaryMap = new Map()
 
@@ -506,6 +516,8 @@ const domainSummaryList = computed(() => {
 
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
 const getSourceTypeLabel = (value) => sourceTypeLabelMap[value] || value || '未知来源'
+
+// 把接口详情或列表行统一填回表单，避免编辑入口不同导致字段兜底不一致。
 const fillFormData = (payload) => {
   const nextForm = {
     ...createEmptyForm(),
@@ -521,6 +533,7 @@ const fillFormData = (payload) => {
   Object.assign(formData, nextForm)
 }
 
+// 提交时统一做 trim，避免把纯空白内容直接带给后端。
 const buildPayload = () => ({
   title: formData.title.trim(),
   knowledgeDomain: formData.knowledgeDomain,
@@ -530,6 +543,7 @@ const buildPayload = () => ({
   content: formData.content.trim()
 })
 
+// 文档列表和向量状态分开拉取，避免单个接口失败把整个页面都拖住。
 const loadDocuments = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -545,6 +559,7 @@ const loadDocuments = async () => {
   }
 }
 
+// 向量状态单独维护错误态，避免知识文档表格因为状态查询失败而一起不可用。
 const loadVectorIndexStatus = async () => {
   statusLoading.value = true
   vectorStatusError.value = ''
@@ -560,6 +575,7 @@ const loadVectorIndexStatus = async () => {
   }
 }
 
+// 查看和编辑都复用详情接口，保证看到的是同一份后端真实数据。
 const loadDetail = async (documentId) => {
   detailLoading.value = true
 
@@ -593,6 +609,7 @@ const handleView = async (row) => {
   }
 }
 
+// 新增时必须重置编辑上下文，避免误带上之前编辑中的文档 ID。
 const openCreateDrawer = () => {
   formMode.value = 'create'
   currentEditId.value = null
@@ -600,6 +617,7 @@ const openCreateDrawer = () => {
   formVisible.value = true
 }
 
+// 编辑前先拉一次详情，避免列表字段不全导致抽屉内数据缺失。
 const handleEdit = async (row) => {
   formMode.value = 'edit'
   currentEditId.value = row.id
@@ -615,6 +633,7 @@ const handleEdit = async (row) => {
   }
 }
 
+// 创建和编辑统一收口在一个提交入口，避免两套成功后刷新逻辑分叉。
 const handleSubmitForm = async () => {
   formSubmitting.value = true
 
@@ -641,6 +660,7 @@ const handleSubmitForm = async () => {
   }
 }
 
+// 启停文档前先二次确认，避免误操作直接影响线上可检索知识范围。
 const handleToggleEnabled = async (row) => {
   const nextEnabled = row.isEnabled ? 0 : 1
   const actionText = row.isEnabled ? '停用' : '启用'
@@ -674,6 +694,7 @@ const handleToggleEnabled = async (row) => {
   }
 }
 
+// 单文档重建只刷新相关区域，不重置整页筛选条件。
 const handleRebuild = async (row) => {
   rebuildLoadingMap[row.id] = true
   try {
@@ -690,6 +711,7 @@ const handleRebuild = async (row) => {
   }
 }
 
+// 全量重建是高成本操作，成功后同步刷新文档和向量状态，避免页面停留在旧数据。
 const handleRebuildAll = async () => {
   try {
     await ElMessageBox.confirm(
@@ -723,10 +745,12 @@ const handleRebuildAll = async () => {
   }
 }
 
+// 最近一次维护结果集中同步到同一份摘要，便于不同操作入口共用展示区。
 const syncMaintenanceSummary = (payload) => {
   Object.assign(maintenanceSummary, createEmptyAiMaintenanceSummary(), payload || {})
 }
 
+// 清空向量只重置 Redis 中的索引数据，不影响文档和分片记录。
 const handleClearVectorIndex = async () => {
   try {
     await ElMessageBox.confirm(
@@ -756,6 +780,7 @@ const handleClearVectorIndex = async () => {
   }
 }
 
+// 清空后重建用于模型切换后的彻底重建，避免旧维度向量残留。
 const handleClearAndRebuild = async () => {
   try {
     await ElMessageBox.confirm(
@@ -789,6 +814,7 @@ const handleClearAndRebuild = async () => {
   }
 }
 
+// 重置筛选时只清理本地表单，不重新拉取接口，保证操作轻量。
 const resetFilters = () => {
   filters.keyword = ''
   filters.knowledgeDomain = ''

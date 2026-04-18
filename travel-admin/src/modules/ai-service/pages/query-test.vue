@@ -147,6 +147,7 @@ import { previewAiKnowledge } from '@/modules/ai-service/api.js'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
 import { extractAiErrorMessage } from '@/modules/ai-service/utils.js'
 
+// 默认场景优先取当前配置列表第一项，避免常量调整后这里仍然写死旧值。
 const DEFAULT_SCENARIO = AI_SCENARIO_OPTIONS[0]?.value || 'CUSTOMER_SERVICE'
 
 const previewing = ref(false)
@@ -154,11 +155,13 @@ const errorMessage = ref('')
 const result = ref(null)
 const hasSubmitted = ref(false)
 
+// 查询表单保持最小字段集合，只承载场景和测试问题。
 const form = reactive({
   scenario: DEFAULT_SCENARIO,
   query: ''
 })
 
+// 当前选中的场景选项会同时驱动知识域提示和兜底结果。
 const selectedScenarioOption = computed(() => {
   return AI_SCENARIO_OPTIONS.find(item => item.value === form.scenario) || null
 })
@@ -176,6 +179,8 @@ const resultHits = computed(() => {
 })
 
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
+
+// 每次预览都先清空旧结果，避免用户误把上一次命中当成当前查询结果。
 const handlePreview = async () => {
   const query = form.query.trim()
 

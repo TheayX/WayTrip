@@ -82,8 +82,10 @@
 <script setup>
 import { ref } from 'vue'
 
+// 表单实例仅用于触发 Element Plus 校验和重置。
 const formRef = ref()
 
+// 表单数据和选项全部由父层提供，保证新增和编辑共用同一份状态源。
 defineProps({
   visible: { type: Boolean, required: true },
   mode: { type: String, default: 'create' },
@@ -93,8 +95,10 @@ defineProps({
   sourceTypeOptions: { type: Array, required: true }
 })
 
+// 提交动作交由父层处理接口调用，抽屉内部只负责校验。
 const emit = defineEmits(['update:visible', 'submit'])
 
+// 表单规则集中定义在组件内部，避免父层页面混入过多字段级校验细节。
 const rules = {
   title: [
     { required: true, message: '请输入文档标题', trigger: 'blur' },
@@ -129,6 +133,7 @@ const rules = {
   ]
 }
 
+// 只有校验通过才允许提交，失败时直接留在当前抽屉内修正。
 const handleSubmit = async () => {
   try {
     await formRef.value?.validate()
@@ -138,6 +143,7 @@ const handleSubmit = async () => {
   }
 }
 
+// 暴露给父层的能力仅保留校验和重置，避免直接操作内部实现细节。
 defineExpose({
   validate: () => formRef.value?.validate(),
   resetFields: () => formRef.value?.resetFields()
