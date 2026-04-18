@@ -114,6 +114,8 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     const userMessage = buildUserMessage(trimmedContent)
     const streamingMessage = buildAssistantStreamingMessage()
     messages.value.push(userMessage, streamingMessage)
+    // 流式阶段必须写回消息列表中的响应式对象，避免只改原始引用导致界面直到收尾才统一刷新。
+    const reactiveStreamingMessage = messages.value[messages.value.length - 1]
     loading.value = true
 
     try {
@@ -125,9 +127,9 @@ export const useAiChatStore = defineStore('ai-chat', () => {
         clientTime: Date.now()
       }, {
         onStart: (payload) => {
-          applyAssistantStartEvent(streamingMessage, payload)
+          applyAssistantStartEvent(reactiveStreamingMessage, payload)
           console.debug('[WayTrip AI SSE] start applied', {
-            messageId: streamingMessage.id,
+            messageId: reactiveStreamingMessage.id,
             receivedAt: Date.now()
           })
           if (payload?.sessionId) {
@@ -136,18 +138,18 @@ export const useAiChatStore = defineStore('ai-chat', () => {
           }
         },
         onDelta: (payload) => {
-          appendAssistantDelta(streamingMessage, payload)
+          appendAssistantDelta(reactiveStreamingMessage, payload)
           console.debug('[WayTrip AI SSE] delta applied', {
-            messageId: streamingMessage.id,
-            contentLength: streamingMessage.content.length,
+            messageId: reactiveStreamingMessage.id,
+            contentLength: reactiveStreamingMessage.content.length,
             receivedAt: Date.now()
           })
         },
         onDone: (payload) => {
-          finalizeAssistantMessage(streamingMessage, payload)
+          finalizeAssistantMessage(reactiveStreamingMessage, payload)
           console.debug('[WayTrip AI SSE] done applied', {
-            messageId: streamingMessage.id,
-            contentLength: streamingMessage.content.length,
+            messageId: reactiveStreamingMessage.id,
+            contentLength: reactiveStreamingMessage.content.length,
             receivedAt: Date.now()
           })
         },
@@ -155,7 +157,7 @@ export const useAiChatStore = defineStore('ai-chat', () => {
           throw new Error(payload?.message || 'AI 服务暂时不可用，请稍后重试。')
         }
       })
-      return streamingMessage
+      return reactiveStreamingMessage
     } catch (error) {
       removeMessageById(streamingMessage.id)
       throw error
