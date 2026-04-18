@@ -145,6 +145,7 @@
 import { computed, reactive, ref } from 'vue'
 import { previewAiKnowledge } from '@/modules/ai-service/api.js'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
+import { extractAiErrorMessage } from '@/modules/ai-service/utils.js'
 
 const DEFAULT_SCENARIO = AI_SCENARIO_OPTIONS[0]?.value || 'CUSTOMER_SERVICE'
 
@@ -175,8 +176,6 @@ const resultHits = computed(() => {
 })
 
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
-const extractErrorMessage = (error, fallback) => error?.response?.data?.message || error?.message || fallback
-
 const handlePreview = async () => {
   const query = form.query.trim()
 
@@ -203,7 +202,7 @@ const handlePreview = async () => {
       hits: []
     }
   } catch (error) {
-    errorMessage.value = extractErrorMessage(error, '命中预览失败，请稍后重试。')
+    errorMessage.value = extractAiErrorMessage(error, '命中预览失败，请稍后重试。')
   } finally {
     previewing.value = false
   }

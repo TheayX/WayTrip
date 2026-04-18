@@ -61,8 +61,8 @@
               {{ vectorStatus.dimensionMatched === null ? '未检测到索引维度' : vectorStatus.dimensionMatched ? '当前维度一致' : '检测到维度冲突' }}
             </div>
             <div class="health-state__meta">
-              <span>模型 {{ displayMetric(vectorStatus.modelDimension) }} 维</span>
-              <span>索引 {{ displayMetric(vectorStatus.indexDimension) }} 维</span>
+              <span>模型 {{ displayAiMetric(vectorStatus.modelDimension) }} 维</span>
+              <span>索引 {{ displayAiMetric(vectorStatus.indexDimension) }} 维</span>
             </div>
             <div class="health-state__desc">
               {{ vectorStatus.dimensionMatched === false
@@ -82,19 +82,19 @@
           <div class="mini-metrics">
             <div class="mini-metric">
               <span>总分片</span>
-              <strong>{{ displayMetric(vectorStatus.totalChunkCount) }}</strong>
+              <strong>{{ displayAiMetric(vectorStatus.totalChunkCount) }}</strong>
             </div>
             <div class="mini-metric">
               <span>待处理</span>
-              <strong>{{ displayMetric(vectorStatus.pendingChunkCount) }}</strong>
+              <strong>{{ displayAiMetric(vectorStatus.pendingChunkCount) }}</strong>
             </div>
             <div class="mini-metric">
               <span>已完成</span>
-              <strong>{{ displayMetric(vectorStatus.completedChunkCount) }}</strong>
+              <strong>{{ displayAiMetric(vectorStatus.completedChunkCount) }}</strong>
             </div>
             <div class="mini-metric">
               <span>失败</span>
-              <strong>{{ displayMetric(vectorStatus.failedChunkCount) }}</strong>
+              <strong>{{ displayAiMetric(vectorStatus.failedChunkCount) }}</strong>
             </div>
           </div>
         </el-card>
@@ -246,6 +246,12 @@ import {
   rebuildAllAiKnowledge
 } from '@/modules/ai-service/api.js'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
+import {
+  createEmptyAiMaintenanceSummary,
+  createEmptyAiVectorStatus,
+  displayAiMetric,
+  extractAiErrorMessage
+} from '@/modules/ai-service/utils.js'
 
 const router = useRouter()
 const DEFAULT_SCENARIO = AI_SCENARIO_OPTIONS[0]?.value || 'CUSTOMER_SERVICE'
@@ -259,45 +265,15 @@ const errorMessage = ref('')
 const previewErrorMessage = ref('')
 const hasSubmitted = ref(false)
 const previewResult = ref(null)
-const vectorStatus = ref(createEmptyVectorStatus())
-const maintenanceSummary = reactive(createEmptyMaintenanceSummary())
+const vectorStatus = ref(createEmptyAiVectorStatus())
+const maintenanceSummary = reactive(createEmptyAiMaintenanceSummary())
 
 const previewForm = reactive({
   scenario: DEFAULT_SCENARIO,
   query: ''
 })
 
-function createEmptyVectorStatus() {
-  return {
-    chatProvider: '',
-    embeddingProvider: '',
-    chatModel: '',
-    embeddingModel: '',
-    redisHost: '',
-    redisPort: '',
-    indexName: '',
-    modelDimension: null,
-    indexDimension: null,
-    dimensionMatched: null,
-    totalChunkCount: 0,
-    pendingChunkCount: 0,
-    completedChunkCount: 0,
-    failedChunkCount: 0
-  }
-}
-
-function createEmptyMaintenanceSummary() {
-  return {
-    clearedVectorCount: 0,
-    rebuiltDocumentCount: 0,
-    rebuiltChunkCount: 0,
-    message: ''
-  }
-}
-
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
-const displayMetric = (value) => (value ?? value === 0 ? value : '--')
-const extractErrorMessage = (error, fallback) => error?.response?.data?.message || error?.message || fallback
 
 const selectedScenarioOption = computed(() => {
   return AI_SCENARIO_OPTIONS.find(item => item.value === previewForm.scenario) || null
@@ -312,7 +288,7 @@ const previewHits = computed(() => {
 })
 
 const syncMaintenanceSummary = (payload) => {
-  Object.assign(maintenanceSummary, createEmptyMaintenanceSummary(), payload || {})
+  Object.assign(maintenanceSummary, createEmptyAiMaintenanceSummary(), payload || {})
 }
 
 const loadWorkbenchData = async () => {
@@ -322,12 +298,12 @@ const loadWorkbenchData = async () => {
   try {
     const res = await getAiVectorIndexStatus()
     vectorStatus.value = {
-      ...createEmptyVectorStatus(),
+      ...createEmptyAiVectorStatus(),
       ...(res?.data || {})
     }
   } catch (error) {
-    vectorStatus.value = createEmptyVectorStatus()
-    errorMessage.value = extractErrorMessage(error, 'AI 工作台状态加载失败，请稍后重试。')
+    vectorStatus.value = createEmptyAiVectorStatus()
+    errorMessage.value = extractAiErrorMessage(error, 'AI 工作台状态加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -359,7 +335,7 @@ const handlePreview = async () => {
       hits: []
     }
   } catch (error) {
-    previewErrorMessage.value = extractErrorMessage(error, '命中预览失败，请稍后重试。')
+    previewErrorMessage.value = extractAiErrorMessage(error, '命中预览失败，请稍后重试。')
   } finally {
     previewing.value = false
   }
@@ -387,7 +363,7 @@ const handleClearVectorIndex = async () => {
     ElMessage.success(`已清空 ${Number(res?.data?.clearedVectorCount || 0)} 条向量数据`)
     await loadWorkbenchData()
   } catch (error) {
-    ElMessage.error(extractErrorMessage(error, '向量清空失败'))
+    ElMessage.error(extractAiErrorMessage(error, '向量清空失败'))
   } finally {
     clearingVector.value = false
   }
@@ -415,7 +391,7 @@ const handleRebuildAll = async () => {
     ElMessage.success(res?.data?.message || '已触发全部知识重建')
     await loadWorkbenchData()
   } catch (error) {
-    ElMessage.error(extractErrorMessage(error, '全部重建失败'))
+    ElMessage.error(extractAiErrorMessage(error, '全部重建失败'))
   } finally {
     rebuildingAll.value = false
   }
@@ -443,7 +419,7 @@ const handleClearAndRebuild = async () => {
     ElMessage.success(res?.data?.message || '已完成清空并重建')
     await loadWorkbenchData()
   } catch (error) {
-    ElMessage.error(extractErrorMessage(error, '清空后重建失败'))
+    ElMessage.error(extractAiErrorMessage(error, '清空后重建失败'))
   } finally {
     clearingAndRebuilding.value = false
   }

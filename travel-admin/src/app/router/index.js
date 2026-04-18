@@ -132,7 +132,7 @@ const routes = [
       {
         path: 'ai-service/workbench',
         name: 'AiServiceWorkbench',
-        component: () => import('@/modules/ai-service/pages/workbench-placeholder.vue'),
+        component: () => import('@/modules/ai-service/pages/workbench.vue'),
         meta: { title: '会话工作台', icon: 'ChatLineSquare', group: 'ai-service' }
       },
       {

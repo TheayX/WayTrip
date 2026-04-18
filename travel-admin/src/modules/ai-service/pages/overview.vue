@@ -71,7 +71,7 @@
                   {{ vectorStatus.dimensionMatched === null ? '未检测' : vectorStatus.dimensionMatched ? '一致' : '不一致' }}
                 </div>
                 <div class="vector-health-card__desc">
-                  模型 {{ displayMetric(vectorStatus.modelDimension) }} 维 · 索引 {{ displayMetric(vectorStatus.indexDimension) }} 维
+                  模型 {{ displayAiMetric(vectorStatus.modelDimension) }} 维 · 索引 {{ displayAiMetric(vectorStatus.indexDimension) }} 维
                 </div>
               </div>
               <div class="vector-health-card">
@@ -86,9 +86,9 @@
               </div>
               <div class="vector-health-card">
                 <div class="vector-health-card__label">完成分片</div>
-                <div class="vector-health-card__value">{{ displayMetric(vectorStatus.completedChunkCount) }}</div>
+                <div class="vector-health-card__value">{{ displayAiMetric(vectorStatus.completedChunkCount) }}</div>
                 <div class="vector-health-card__desc">
-                  待处理 {{ displayMetric(vectorStatus.pendingChunkCount) }} · 失败 {{ displayMetric(vectorStatus.failedChunkCount) }}
+                  待处理 {{ displayAiMetric(vectorStatus.pendingChunkCount) }} · 失败 {{ displayAiMetric(vectorStatus.failedChunkCount) }}
                 </div>
               </div>
             </div>
@@ -222,12 +222,13 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getAiKnowledgeDocuments, getAiVectorIndexStatus } from '@/modules/ai-service/api.js'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_CONFIGS } from '@/modules/ai-service/constants.js'
+import { createEmptyAiVectorStatus, displayAiMetric } from '@/modules/ai-service/utils.js'
 
 const router = useRouter()
 const loading = ref(false)
 const errorMessage = ref('')
 const documents = ref([])
-const vectorStatus = ref(createEmptyVectorStatus())
+const vectorStatus = ref(createEmptyAiVectorStatus())
 
 const placeholderEntries = [
   {
@@ -333,24 +334,6 @@ const scenarioSummaryList = computed(() => {
   }))
 })
 
-function createEmptyVectorStatus() {
-  return {
-    embeddingProvider: '',
-    embeddingModel: '',
-    redisHost: '',
-    redisPort: '',
-    indexName: '',
-    modelDimension: null,
-    indexDimension: null,
-    dimensionMatched: null,
-    completedChunkCount: 0,
-    pendingChunkCount: 0,
-    failedChunkCount: 0
-  }
-}
-
-const displayMetric = (value) => (value ?? value === 0 ? value : '--')
-
 const loadPageData = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -362,12 +345,12 @@ const loadPageData = async () => {
     ])
     documents.value = Array.isArray(documentsRes?.data) ? documentsRes.data : []
     vectorStatus.value = {
-      ...createEmptyVectorStatus(),
+      ...createEmptyAiVectorStatus(),
       ...(vectorStatusRes?.data || {})
     }
   } catch (error) {
     errorMessage.value = error?.response?.data?.message || error?.message || '请稍后重试或检查接口返回。'
-    vectorStatus.value = createEmptyVectorStatus()
+    vectorStatus.value = createEmptyAiVectorStatus()
   } finally {
     loading.value = false
   }

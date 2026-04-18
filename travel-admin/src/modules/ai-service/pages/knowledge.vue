@@ -345,6 +345,11 @@ import {
 import { AI_KNOWLEDGE_DOMAIN_LABELS } from '@/modules/ai-service/constants.js'
 import KnowledgeDetailDrawer from '@/modules/ai-service/components/KnowledgeDetailDrawer.vue'
 import KnowledgeFormDrawer from '@/modules/ai-service/components/KnowledgeFormDrawer.vue'
+import {
+  createEmptyAiMaintenanceSummary,
+  createEmptyAiVectorStatus,
+  extractAiErrorMessage
+} from '@/modules/ai-service/utils.js'
 
 const MANUAL_SOURCE_TYPE = 'manual'
 
@@ -373,8 +378,8 @@ const clearingAndRebuilding = ref(false)
 const vectorStatusError = ref('')
 const toggleLoadingMap = reactive({})
 const rebuildLoadingMap = reactive({})
-const vectorStatus = reactive(createEmptyVectorStatus())
-const maintenanceSummary = reactive(createEmptyMaintenanceSummary())
+const vectorStatus = reactive(createEmptyAiVectorStatus())
+const maintenanceSummary = reactive(createEmptyAiMaintenanceSummary())
 
 const filters = reactive({
   keyword: '',
@@ -410,36 +415,6 @@ function createEmptyForm() {
     sourceRef: '',
     tags: '',
     content: ''
-  }
-}
-
-function createEmptyVectorStatus() {
-  return {
-    ragEnabled: false,
-    chatProvider: '',
-    embeddingProvider: '',
-    mixedProviderMode: false,
-    chatModel: '',
-    embeddingModel: '',
-    redisHost: '',
-    redisPort: '',
-    indexName: '',
-    prefix: '',
-    documentCount: 0,
-    enabledDocumentCount: 0,
-    totalChunkCount: 0,
-    pendingChunkCount: 0,
-    completedChunkCount: 0,
-    failedChunkCount: 0
-  }
-}
-
-function createEmptyMaintenanceSummary() {
-  return {
-    clearedVectorCount: 0,
-    rebuiltDocumentCount: 0,
-    rebuiltChunkCount: 0,
-    message: ''
   }
 }
 
@@ -531,8 +506,6 @@ const domainSummaryList = computed(() => {
 
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
 const getSourceTypeLabel = (value) => sourceTypeLabelMap[value] || value || '未知来源'
-const extractErrorMessage = (error, fallback) => error?.response?.data?.message || error?.message || fallback
-
 const fillFormData = (payload) => {
   const nextForm = {
     ...createEmptyForm(),
@@ -566,7 +539,7 @@ const loadDocuments = async () => {
     documents.value = Array.isArray(res?.data) ? res.data : []
   } catch (error) {
     documents.value = []
-    errorMessage.value = extractErrorMessage(error, '请稍后重试或检查接口返回。')
+    errorMessage.value = extractAiErrorMessage(error, '请稍后重试或检查接口返回。')
   } finally {
     loading.value = false
   }
@@ -578,10 +551,10 @@ const loadVectorIndexStatus = async () => {
 
   try {
     const res = await getAiVectorIndexStatus()
-    Object.assign(vectorStatus, createEmptyVectorStatus(), res?.data || {})
+    Object.assign(vectorStatus, createEmptyAiVectorStatus(), res?.data || {})
   } catch (error) {
-    Object.assign(vectorStatus, createEmptyVectorStatus())
-    vectorStatusError.value = extractErrorMessage(error, '向量索引状态加载失败，请稍后重试。')
+    Object.assign(vectorStatus, createEmptyAiVectorStatus())
+    vectorStatusError.value = extractAiErrorMessage(error, '向量索引状态加载失败，请稍后重试。')
   } finally {
     statusLoading.value = false
   }
@@ -603,7 +576,7 @@ const loadDetail = async (documentId) => {
       : null
   } catch (error) {
     currentDetail.value = null
-    ElMessage.error(extractErrorMessage(error, '知识详情加载失败'))
+    ElMessage.error(extractAiErrorMessage(error, '知识详情加载失败'))
     throw error
   } finally {
     detailLoading.value = false
@@ -638,7 +611,7 @@ const handleEdit = async (row) => {
     fillFormData(res?.data || row)
   } catch (error) {
     formVisible.value = false
-    ElMessage.error(extractErrorMessage(error, '知识详情加载失败，无法编辑'))
+    ElMessage.error(extractAiErrorMessage(error, '知识详情加载失败，无法编辑'))
   }
 }
 
@@ -662,7 +635,7 @@ const handleSubmitForm = async () => {
       await loadDetail(currentEditId.value)
     }
   } catch (error) {
-    ElMessage.error(extractErrorMessage(error, formMode.value === 'create' ? '知识文档创建失败' : '知识文档更新失败'))
+    ElMessage.error(extractAiErrorMessage(error, formMode.value === 'create' ? '知识文档创建失败' : '知识文档更新失败'))
   } finally {
     formSubmitting.value = false
   }
@@ -695,7 +668,7 @@ const handleToggleEnabled = async (row) => {
       await loadDetail(row.id)
     }
   } catch (error) {
-    ElMessage.error(extractErrorMessage(error, `${actionText}失败`))
+    ElMessage.error(extractAiErrorMessage(error, `${actionText}失败`))
   } finally {
     toggleLoadingMap[row.id] = false
   }
@@ -711,7 +684,7 @@ const handleRebuild = async (row) => {
       await loadDetail(row.id)
     }
   } catch (error) {
-    ElMessage.error(extractErrorMessage(error, '文档重建失败'))
+    ElMessage.error(extractAiErrorMessage(error, '文档重建失败'))
   } finally {
     rebuildLoadingMap[row.id] = false
   }
@@ -744,14 +717,14 @@ const handleRebuildAll = async () => {
       await loadDetail(currentDetail.value.id)
     }
   } catch (error) {
-    ElMessage.error(extractErrorMessage(error, '全部重建失败'))
+    ElMessage.error(extractAiErrorMessage(error, '全部重建失败'))
   } finally {
     rebuildingAll.value = false
   }
 }
 
 const syncMaintenanceSummary = (payload) => {
-  Object.assign(maintenanceSummary, createEmptyMaintenanceSummary(), payload || {})
+  Object.assign(maintenanceSummary, createEmptyAiMaintenanceSummary(), payload || {})
 }
 
 const handleClearVectorIndex = async () => {
@@ -777,7 +750,7 @@ const handleClearVectorIndex = async () => {
     await loadVectorIndexStatus()
     await loadDocuments()
   } catch (error) {
-    ElMessage.error(extractErrorMessage(error, '向量清空失败'))
+    ElMessage.error(extractAiErrorMessage(error, '向量清空失败'))
   } finally {
     clearingVector.value = false
   }
@@ -810,7 +783,7 @@ const handleClearAndRebuild = async () => {
       await loadDetail(currentDetail.value.id)
     }
   } catch (error) {
-    ElMessage.error(extractErrorMessage(error, '清空后重建失败'))
+    ElMessage.error(extractAiErrorMessage(error, '清空后重建失败'))
   } finally {
     clearingAndRebuilding.value = false
   }
