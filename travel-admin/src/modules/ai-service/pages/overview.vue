@@ -288,7 +288,7 @@ const sortedDocumentsByUpdatedAt = computed(() => {
       return next.updatedTimestamp - prev.updatedTimestamp
     }
 
-    return next.id.localeCompare(prev.id)
+    return String(next.id).localeCompare(String(prev.id))
   })
 })
 
