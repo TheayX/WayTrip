@@ -29,39 +29,57 @@
 
       <div ref="messageListRef" class="message-list">
         <div
-          v-for="(item, index) in messages"
+          v-for="(item, index) in visibleMessages"
           :key="item.id || `${item.role}-${index}`"
           class="message-item"
           :class="item.role"
         >
           <div class="message-card">
             <div class="message-bubble">
-              <template v-if="item.pending && !item.content">{{ AI_CHAT_COPY.pendingMessage }}</template>
-              <template v-else>{{ item.content }}</template>
+              {{ item.content }}
             </div>
 
-            <div v-if="item.role === 'assistant' && item.citations?.length" class="assistant-meta assistant-reference">
-              <div class="meta-title">
-                <el-icon><Document /></el-icon>
-                {{ AI_CHAT_COPY.citationsTitle }}
-              </div>
-              <div class="citation-list">
-                <div
-                  v-for="citation in item.citations"
+            <div v-if="item.role === 'assistant' && item.citations?.length && !item.pending" class="assistant-meta assistant-reference">
+              <div class="citation-inline-list">
+                <span class="citation-inline-label">{{ AI_CHAT_COPY.citationsTitle }}</span>
+                <el-popover
+                  v-for="(citation, citationIndex) in item.citations"
                   :key="`${item.id}-${citation.title}-${citation.sourceRef}`"
-                  class="citation-card"
+                  placement="top-start"
+                  trigger="click"
+                  :width="280"
+                  popper-class="ai-chat-citation-popover"
                 >
-                  <div class="citation-head">
-                    <span class="citation-title">{{ citation.title || AI_CHAT_COPY.citationFallbackTitle }}</span>
-                    <span class="citation-type">{{ citation.sourceType || AI_CHAT_COPY.citationFallbackType }}</span>
+                  <template #reference>
+                    <button
+                      type="button"
+                      class="citation-inline-chip"
+                      :aria-label="buildCitationTitle(citation, citationIndex)"
+                    >
+                      [{{ citationIndex + 1 }}]
+                    </button>
+                  </template>
+
+                  <div class="citation-popover">
+                    <div class="citation-popover__title">
+                      {{ citation.title || `${AI_CHAT_COPY.citationFallbackTitle} ${citationIndex + 1}` }}
+                    </div>
+                    <div class="citation-popover__meta">
+                      {{ citation.sourceType || AI_CHAT_COPY.citationFallbackType }}
+                    </div>
+                    <div v-if="citation.snippet" class="citation-popover__snippet">
+                      {{ citation.snippet }}
+                    </div>
+                    <div v-if="citation.sourceRef" class="citation-popover__source">
+                      {{ citation.sourceRef }}
+                    </div>
                   </div>
-                  <div v-if="citation.snippet" class="citation-snippet">{{ citation.snippet }}</div>
-                </div>
+                </el-popover>
               </div>
             </div>
 
             <div
-              v-if="item.suggestions?.length && item.id === latestAssistantMessageId"
+              v-if="!loading && item.suggestions?.length && item.id === latestAssistantMessageId"
               class="assistant-meta assistant-followup"
             >
               <div class="meta-title meta-title--followup">
@@ -85,29 +103,31 @@
             <div v-if="item.role === 'assistant' && item.feedbackEnabled && !item.pending" class="feedback-row">
               <button
                 type="button"
-                class="feedback-btn"
+                class="feedback-btn feedback-btn--icon"
                 :class="{ active: item.feedbackStatus === 'UPVOTE' }"
                 :disabled="item.feedbackStatus === 'UPVOTE'"
+                :title="AI_CHAT_COPY.feedbackUpvote"
+                :aria-label="AI_CHAT_COPY.feedbackUpvote"
                 @click="submitFeedback(item.id, 'UPVOTE')"
               >
-                <el-icon><Top /></el-icon>
-                <span>{{ AI_CHAT_COPY.feedbackUpvote }}</span>
+                <el-icon aria-hidden="true"><Top /></el-icon>
               </button>
               <button
                 type="button"
-                class="feedback-btn"
+                class="feedback-btn feedback-btn--icon"
                 :class="{ active: item.feedbackStatus === 'DOWNVOTE' }"
                 :disabled="item.feedbackStatus === 'DOWNVOTE'"
+                :title="AI_CHAT_COPY.feedbackDownvote"
+                :aria-label="AI_CHAT_COPY.feedbackDownvote"
                 @click="submitFeedback(item.id, 'DOWNVOTE')"
               >
-                <el-icon><Bottom /></el-icon>
-                <span>{{ AI_CHAT_COPY.feedbackDownvote }}</span>
+                <el-icon aria-hidden="true"><Bottom /></el-icon>
               </button>
             </div>
           </div>
         </div>
 
-        <div v-if="loading" class="typing-hint">
+        <div v-if="showTypingHint" class="typing-hint">
           <div class="typing-dots">
             <span class="dot"></span>
             <span class="dot"></span>
@@ -139,12 +159,12 @@
 </template>
 
 <script setup>
-import { nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
-  Bottom, Top, Service, Monitor,
-  Delete, Close, Position, Document,
+  Service, Monitor,
+  Delete, Close, Position, Top, Bottom,
   ChatLineSquare
 } from '@element-plus/icons-vue'
 import { storeToRefs } from 'pinia'
@@ -158,6 +178,12 @@ const { isOpen, loading, messages, latestAssistantMessageId } = storeToRefs(aiCh
 
 const inputText = ref('')
 const messageListRef = ref(null)
+
+// 等待首个增量期间不渲染空助手气泡，只保留底部动效提示；一旦开始吐字就切回正文流式展示。
+const visibleMessages = computed(() => messages.value.filter((item) => !(item.pending && !item.content)))
+
+// 仅在“还没收到正文”的等待阶段显示底部动效，避免与真实流式正文同时出现。
+const showTypingHint = computed(() => loading.value && messages.value.some((item) => item.pending && !item.content))
 
 // 每次打开、发送或清空后都把视口滚到最底部，避免用户看不到最新回复。
 const scrollToBottom = () => {
@@ -245,6 +271,13 @@ function resolveScenarioHint() {
     return 'travel'
   }
   return ''
+}
+
+// 引用只保留极简编号展示，详细信息收进 title，避免聊天区被大块参考内容打断。
+function buildCitationTitle(citation, citationIndex) {
+  const title = citation?.title || `${AI_CHAT_COPY.citationFallbackTitle} ${citationIndex + 1}`
+  const sourceType = citation?.sourceType || AI_CHAT_COPY.citationFallbackType
+  return `${title} · ${sourceType}`
 }
 
 // 流式输出会持续追加消息内容，因此在消息变化时自动跟随到底部。
@@ -454,10 +487,10 @@ watch(messages, () => {
 }
 
 .assistant-reference {
-  margin-top: 2px;
+  margin-top: -2px;
 }
 
- .assistant-followup {
+.assistant-followup {
   margin-top: 2px;
   padding: 0;
   background: transparent;
@@ -513,55 +546,62 @@ watch(messages, () => {
   box-shadow: none;
 }
 
-.citation-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.citation-card {
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: #fff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  transition: box-shadow 0.2s;
-}
-
-.citation-card:hover {
-  box-shadow: 0 4px 12px rgba(148, 163, 184, 0.1);
-}
-
-.citation-head {
+.citation-inline-list {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.citation-title {
+.citation-inline-label {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.citation-inline-chip {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.citation-inline-chip:hover {
+  color: #0f766e;
+}
+
+.citation-inline-chip:focus-visible {
+  outline: none;
+  color: #0f766e;
+}
+
+.citation-popover {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.citation-popover__title {
   font-size: 13px;
   font-weight: 600;
-  color: #334155;
+  line-height: 1.4;
+  color: #0f172a;
 }
 
-.citation-type {
+.citation-popover__meta,
+.citation-popover__source {
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #e0f2fe;
-  color: #0284c7;
-  font-weight: 500;
+  line-height: 1.5;
+  color: #64748b;
 }
 
-.citation-snippet {
-  margin-top: 8px;
+.citation-popover__snippet {
   font-size: 12px;
-  line-height: 1.6;
-  color: #64748b;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  line-height: 1.7;
+  color: #334155;
 }
 
 .feedback-row {
@@ -584,6 +624,17 @@ watch(messages, () => {
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.feedback-btn--icon {
+  width: 32px;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+}
+
+.feedback-btn--icon :deep(.el-icon) {
+  font-size: 14px;
 }
 
 .feedback-btn:hover:not(:disabled) {

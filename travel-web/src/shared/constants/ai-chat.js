@@ -30,7 +30,7 @@ export const AI_CHAT_COPY = {
   pendingMessage: '正在整理这条问题的答案…',
   typing: '正在整理回答，请稍候…',
   followupTitle: '继续问',
-  citationsTitle: '知识参考',
+  citationsTitle: '参考',
   citationFallbackTitle: '参考资料',
   citationFallbackType: '知识库',
   feedbackUpvote: '有帮助',
