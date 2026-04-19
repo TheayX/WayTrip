@@ -33,6 +33,18 @@ public class AiKnowledgeDocument {
 
     private Integer version;
 
+    private String indexStatus;
+
+    private Integer retryCount;
+
+    private String lastError;
+
+    private LocalDateTime rebuildRequestedAt;
+
+    private LocalDateTime rebuildStartedAt;
+
+    private LocalDateTime rebuildFinishedAt;
+
     private Integer isEnabled;
 
     @TableField("is_deleted")

@@ -44,12 +44,19 @@ CREATE TABLE `ai_knowledge_document` (
   `content` mediumtext COMMENT '完整文档内容',
   `tags` varchar(256) NOT NULL DEFAULT '' COMMENT '标签集合',
   `version` int NOT NULL DEFAULT 1 COMMENT '版本号',
+  `index_status` varchar(16) NOT NULL DEFAULT 'PENDING' COMMENT '索引状态：PENDING/PROCESSING/SUCCESS/FAILED',
+  `retry_count` int NOT NULL DEFAULT 0 COMMENT '任务重试次数',
+  `last_error` varchar(512) NOT NULL DEFAULT '' COMMENT '最近一次错误信息',
+  `rebuild_requested_at` datetime DEFAULT NULL COMMENT '最近入队时间',
+  `rebuild_started_at` datetime DEFAULT NULL COMMENT '最近开始时间',
+  `rebuild_finished_at` datetime DEFAULT NULL COMMENT '最近完成时间',
   `is_enabled` tinyint NOT NULL DEFAULT 1 COMMENT '是否启用：0-禁用，1-启用',
   `is_deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_ai_doc_domain_enabled_deleted` (`knowledge_domain`, `is_enabled`, `is_deleted`),
+  KEY `idx_ai_doc_index_status` (`index_status`),
   KEY `idx_ai_doc_updated_at` (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI知识文档表';
 
@@ -59,7 +66,7 @@ CREATE TABLE `ai_knowledge_chunk` (
   `chunk_index` int NOT NULL DEFAULT 0 COMMENT '分片序号',
   `chunk_text` text COMMENT '分片正文',
   `chunk_summary` varchar(512) NOT NULL DEFAULT '' COMMENT '分片摘要',
-  `embedding_status` tinyint NOT NULL DEFAULT 0 COMMENT '向量化状态：0-未处理，1-已完成',
+  `embedding_status` tinyint NOT NULL DEFAULT 0 COMMENT '向量化状态：0-未处理，1-已完成，2-失败',
   `vector_id` varchar(128) NOT NULL DEFAULT '' COMMENT '向量存储ID',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

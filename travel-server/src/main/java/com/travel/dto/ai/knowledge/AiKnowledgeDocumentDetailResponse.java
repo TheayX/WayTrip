@@ -22,8 +22,13 @@ public class AiKnowledgeDocumentDetailResponse {
     private Integer isEnabled;
     private Integer chunkCount;
     private String indexStatus;
+    private Integer retryCount;
     private Integer pendingChunkCount;
     private Integer failedChunkCount;
+    private String lastError;
+    private String rebuildRequestedAt;
+    private String rebuildStartedAt;
+    private String rebuildFinishedAt;
     private List<AiKnowledgeSnippet> chunks;
     private String updatedAt;
 }

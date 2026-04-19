@@ -17,7 +17,11 @@ public class AiKnowledgeDocumentItem {
     private Integer isEnabled;
     private Integer chunkCount;
     private String indexStatus;
+    private Integer retryCount;
     private Integer pendingChunkCount;
     private Integer failedChunkCount;
+    private String lastError;
+    private String rebuildRequestedAt;
+    private String rebuildFinishedAt;
     private String updatedAt;
 }

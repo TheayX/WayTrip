@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
 import com.travel.entity.AiKnowledgeChunk;
 import com.travel.entity.AiKnowledgeDocument;
+import com.travel.enums.ai.AiKnowledgeIndexStatus;
 import com.travel.mapper.AiKnowledgeChunkMapper;
 import com.travel.mapper.AiKnowledgeDocumentMapper;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,9 @@ public class AiKnowledgeIngestionServiceImpl implements AiKnowledgeIngestionServ
         document.setContent(request.getContent().trim());
         document.setTags(normalize(request.getTags(), ""));
         document.setVersion(1);
+        document.setIndexStatus(AiKnowledgeIndexStatus.PENDING.name());
+        document.setRetryCount(0);
+        document.setLastError("");
         document.setIsEnabled(1);
         document.setIsDeleted(0);
         aiKnowledgeDocumentMapper.insert(document);

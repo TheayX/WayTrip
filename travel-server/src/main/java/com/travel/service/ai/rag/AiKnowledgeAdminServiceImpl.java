@@ -109,6 +109,8 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         document.setSourceRef(normalize(request.getSourceRef(), ""));
         document.setTags(normalize(request.getTags(), ""));
         document.setVersion(document.getVersion() == null ? 1 : document.getVersion() + 1);
+        document.setIndexStatus("PENDING");
+        document.setLastError("");
         aiKnowledgeDocumentMapper.updateById(document);
         aiKnowledgeImportJobService.enqueueDocumentRebuild(documentId);
         log.info("管理端更新 AI 知识文档：adminId={}, documentId={}, title={}", adminId, documentId, request.getTitle());
@@ -142,6 +144,10 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
             item.setPendingChunkCount(countChunksByStatus(document.getId(), 0));
             item.setFailedChunkCount(countChunksByStatus(document.getId(), 2));
             item.setIndexStatus(resolveIndexStatus(document.getId()));
+            item.setRetryCount(document.getRetryCount());
+            item.setLastError(document.getLastError());
+            item.setRebuildRequestedAt(formatDateTime(document.getRebuildRequestedAt()));
+            item.setRebuildFinishedAt(formatDateTime(document.getRebuildFinishedAt()));
             item.setUpdatedAt(document.getUpdatedAt() == null ? null : document.getUpdatedAt().format(DATETIME_FORMATTER));
             return item;
         }).toList();
@@ -170,6 +176,11 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         response.setPendingChunkCount(countChunksByStatus(documentId, 0));
         response.setFailedChunkCount(countChunksByStatus(documentId, 2));
         response.setIndexStatus(resolveIndexStatus(documentId));
+        response.setRetryCount(document.getRetryCount());
+        response.setLastError(document.getLastError());
+        response.setRebuildRequestedAt(formatDateTime(document.getRebuildRequestedAt()));
+        response.setRebuildStartedAt(formatDateTime(document.getRebuildStartedAt()));
+        response.setRebuildFinishedAt(formatDateTime(document.getRebuildFinishedAt()));
         response.setUpdatedAt(document.getUpdatedAt() == null ? null : document.getUpdatedAt().format(DATETIME_FORMATTER));
         response.setChunks(chunks.stream().map(chunk -> new AiKnowledgeSnippet(
                 document.getId(),
@@ -376,6 +387,10 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
      * @return 索引状态
      */
     private String resolveIndexStatus(Long documentId) {
+        AiKnowledgeDocument document = aiKnowledgeDocumentMapper.selectById(documentId);
+        if (document != null && document.getIndexStatus() != null && !document.getIndexStatus().isBlank()) {
+            return document.getIndexStatus();
+        }
         int total = countChunks(documentId);
         if (total == 0) {
             return "PENDING";
@@ -386,6 +401,16 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         }
         int pending = countChunksByStatus(documentId, 0);
         return pending > 0 ? "PROCESSING" : "SUCCESS";
+    }
+
+    /**
+     * 统一格式化管理端时间字段。
+     *
+     * @param value 原始时间
+     * @return 格式化结果
+     */
+    private String formatDateTime(java.time.LocalDateTime value) {
+        return value == null ? null : value.format(DATETIME_FORMATTER);
     }
 
     /**
