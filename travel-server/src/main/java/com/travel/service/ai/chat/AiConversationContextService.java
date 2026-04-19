@@ -32,6 +32,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AiConversationContextService {
 
+    private static final int MAX_SECTION_COUNT = 3;
+    private static final int MAX_PROMPT_LENGTH = 900;
+
     /**
      * 订单服务。
      */
@@ -77,7 +80,8 @@ public class AiConversationContextService {
         if (sections.isEmpty()) {
             return AiConversationContext.empty();
         }
-        return new AiConversationContext(sections, renderPromptText(sections));
+        Map<String, Object> prunedSections = pruneSections(sections);
+        return new AiConversationContext(prunedSections, renderPromptText(prunedSections));
     }
 
     /**
@@ -153,7 +157,37 @@ public class AiConversationContextService {
             builder.append("\n- ").append(entry.getKey()).append("：").append(entry.getValue());
         }
         builder.append("\n请优先结合这些已知事实回答；如果仍需更多信息，再基于当前结果继续调用工具或做必要澄清。");
-        return builder.toString();
+        return truncatePrompt(builder.toString());
+    }
+
+    /**
+     * 限制上下文分区数量，优先保留先加入的高价值上下文，避免提示词再次膨胀。
+     *
+     * @param sections 原始分区
+     * @return 收敛后的分区
+     */
+    private Map<String, Object> pruneSections(Map<String, Object> sections) {
+        Map<String, Object> pruned = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : sections.entrySet()) {
+            pruned.put(entry.getKey(), entry.getValue());
+            if (pruned.size() >= MAX_SECTION_COUNT) {
+                break;
+            }
+        }
+        return pruned;
+    }
+
+    /**
+     * 限制上下文提示词长度，避免业务上下文反过来挤压系统提示词和知识上下文。
+     *
+     * @param promptText 原始提示词
+     * @return 裁剪后的提示词
+     */
+    private String truncatePrompt(String promptText) {
+        if (!StringUtils.hasText(promptText) || promptText.length() <= MAX_PROMPT_LENGTH) {
+            return promptText;
+        }
+        return promptText.substring(0, MAX_PROMPT_LENGTH) + "...";
     }
 
     /**
