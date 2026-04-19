@@ -4,7 +4,6 @@ import com.travel.entity.AiKnowledgeDocument;
 import com.travel.enums.ai.AiKnowledgeIndexStatus;
 import com.travel.mapper.AiKnowledgeDocumentMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.task.TaskExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,13 +16,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * AI 知识后台任务测试。
+ * AI 知识任务处理器测试。
  */
-class AiKnowledgeImportJobServiceTest {
+class AiKnowledgeImportJobProcessorTest {
 
     @Test
-    void enqueueDocumentRebuildUpdatesDocumentStatus() {
-        TaskExecutor executor = Runnable::run;
+    void processDocumentUpdatesDocumentStatus() {
         AiKnowledgeIngestionServiceImpl ingestionService = mock(AiKnowledgeIngestionServiceImpl.class);
         AiKnowledgeDocumentMapper documentMapper = mock(AiKnowledgeDocumentMapper.class);
 
@@ -41,13 +39,11 @@ class AiKnowledgeImportJobServiceTest {
             return 1;
         }).when(documentMapper).updateById(org.mockito.ArgumentMatchers.any(AiKnowledgeDocument.class));
 
-        AiKnowledgeImportJobServiceImpl service =
-                new AiKnowledgeImportJobServiceImpl(executor, ingestionService, documentMapper);
+        AiKnowledgeImportJobProcessor processor = new AiKnowledgeImportJobProcessor(ingestionService, documentMapper);
 
-        service.enqueueDocumentRebuild(1L);
+        processor.processDocument(1L);
 
         verify(ingestionService).processDocumentChunks(1L);
-        assertTrue(statuses.contains(AiKnowledgeIndexStatus.PENDING.name()));
         assertTrue(statuses.contains(AiKnowledgeIndexStatus.PROCESSING.name()));
         assertTrue(statuses.contains(AiKnowledgeIndexStatus.SUCCESS.name()));
     }
