@@ -3,7 +3,7 @@ package com.travel.controller.admin;
 import com.travel.common.result.ApiResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentDetailResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentItem;
-import com.travel.dto.ai.knowledge.AiKnowledgeMaintenanceResponse;
+import com.travel.dto.ai.knowledge.AiKnowledgeJobResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgePreviewResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeVectorIndexStatusResponse;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
@@ -116,7 +116,7 @@ public class AdminAiKnowledgeController {
      * @param documentId 文档 ID
      * @return 空响应
      */
-    @Operation(summary = "重建指定知识文档分片")
+    @Operation(summary = "提交指定知识文档重建任务")
     @PutMapping("/knowledge/documents/{documentId}/rebuild")
     public ApiResponse<Void> rebuildDocumentChunks(@PathVariable Long documentId) {
         aiKnowledgeAdminService.rebuildDocumentChunks(documentId);
@@ -128,9 +128,9 @@ public class AdminAiKnowledgeController {
      *
      * @return 重建结果摘要
      */
-    @Operation(summary = "重建全部 AI 知识分片")
+    @Operation(summary = "提交全部 AI 知识重建任务")
     @PostMapping("/knowledge/rebuild")
-    public ApiResponse<AiKnowledgeMaintenanceResponse> rebuildAllKnowledge() {
+    public ApiResponse<AiKnowledgeJobResponse> rebuildAllKnowledge() {
         log.info("管理端触发 AI 知识分片重建：adminId={}", UserContextHolder.getAdminId());
         return ApiResponse.success(aiKnowledgeAdminService.rebuildAllKnowledge());
     }
@@ -153,7 +153,7 @@ public class AdminAiKnowledgeController {
      */
     @Operation(summary = "清空 AI 知识向量数据")
     @DeleteMapping("/knowledge/vector")
-    public ApiResponse<AiKnowledgeMaintenanceResponse> clearVectorIndex() {
+    public ApiResponse<AiKnowledgeJobResponse> clearVectorIndex() {
         log.info("管理端触发 AI 向量数据清理：adminId={}", UserContextHolder.getAdminId());
         return ApiResponse.success(aiKnowledgeAdminService.clearVectorIndex());
     }
@@ -163,9 +163,9 @@ public class AdminAiKnowledgeController {
      *
      * @return 重建结果摘要
      */
-    @Operation(summary = "清空后重建 AI 知识向量")
+    @Operation(summary = "清空后提交 AI 知识重建任务")
     @PostMapping("/knowledge/vector/rebuild")
-    public ApiResponse<AiKnowledgeMaintenanceResponse> clearAndRebuildAllKnowledge() {
+    public ApiResponse<AiKnowledgeJobResponse> clearAndRebuildAllKnowledge() {
         log.info("管理端触发 AI 向量清理并重建：adminId={}", UserContextHolder.getAdminId());
         return ApiResponse.success(aiKnowledgeAdminService.clearAndRebuildAllKnowledge());
     }

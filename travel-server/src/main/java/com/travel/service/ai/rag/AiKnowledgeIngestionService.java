@@ -8,7 +8,7 @@ import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
 public interface AiKnowledgeIngestionService {
 
     /**
-     * 手工导入知识文档并重建分片。
+     * 手工导入知识文档。
      *
      * @param request 导入请求
      * @return 文档 ID
@@ -16,7 +16,7 @@ public interface AiKnowledgeIngestionService {
     Long upsertManualDocument(ManualAiKnowledgeUpsertRequest request);
 
     /**
-     * 基于现有文档重新构建分片。
+     * 基于现有文档重新构建分片与向量索引。
      *
      * @param documentId 文档 ID
      */

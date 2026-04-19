@@ -2,7 +2,7 @@ package com.travel.service.ai;
 
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentDetailResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentItem;
-import com.travel.dto.ai.knowledge.AiKnowledgeMaintenanceResponse;
+import com.travel.dto.ai.knowledge.AiKnowledgeJobResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgePreviewResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeVectorIndexStatusResponse;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
@@ -25,7 +25,7 @@ public interface AiKnowledgeAdminService {
     Long createManualDocument(ManualAiKnowledgeUpsertRequest request, Long adminId);
 
     /**
-     * 更新手工知识文档并重建分片。
+     * 更新手工知识文档并提交后台重建任务。
      *
      * @param documentId 文档 ID
      * @param request 导入请求
@@ -34,7 +34,7 @@ public interface AiKnowledgeAdminService {
     void updateManualDocument(Long documentId, ManualAiKnowledgeUpsertRequest request, Long adminId);
 
     /**
-     * 重建指定知识文档的分片。
+     * 为指定知识文档提交重建任务。
      *
      * @param documentId 文档 ID
      */
@@ -85,19 +85,19 @@ public interface AiKnowledgeAdminService {
      *
      * @return 清理结果
      */
-    AiKnowledgeMaintenanceResponse clearVectorIndex();
+    AiKnowledgeJobResponse clearVectorIndex();
 
     /**
      * 手动触发知识重建任务。
      *
      * @return 结果摘要
      */
-    AiKnowledgeMaintenanceResponse rebuildAllKnowledge();
+    AiKnowledgeJobResponse rebuildAllKnowledge();
 
     /**
-     * 清空当前向量数据后重建全部启用知识。
+     * 清空当前向量数据后提交全部启用知识的重建任务。
      *
      * @return 结果摘要
      */
-    AiKnowledgeMaintenanceResponse clearAndRebuildAllKnowledge();
+    AiKnowledgeJobResponse clearAndRebuildAllKnowledge();
 }

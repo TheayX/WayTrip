@@ -8,7 +8,6 @@ import com.travel.mapper.AiKnowledgeChunkMapper;
 import com.travel.mapper.AiKnowledgeDocumentMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -17,7 +16,7 @@ import java.util.List;
 /**
  * AI 知识导入服务实现。
  * <p>
- * 第一阶段先完成手工导入和基于段落的分片，为后续向量化预留入口。
+ * 管理 AI 知识文档落库以及分片构建。
  */
 @Service
 @RequiredArgsConstructor
@@ -28,7 +27,6 @@ public class AiKnowledgeIngestionServiceImpl implements AiKnowledgeIngestionServ
     private final AiKnowledgeVectorIndexService aiKnowledgeVectorIndexService;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public Long upsertManualDocument(ManualAiKnowledgeUpsertRequest request) {
         AiKnowledgeDocument document = new AiKnowledgeDocument();
         document.setTitle(request.getTitle().trim());
@@ -41,13 +39,20 @@ public class AiKnowledgeIngestionServiceImpl implements AiKnowledgeIngestionServ
         document.setIsEnabled(1);
         document.setIsDeleted(0);
         aiKnowledgeDocumentMapper.insert(document);
-        rebuildChunks(document.getId());
         return document.getId();
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void rebuildChunks(Long documentId) {
+        processDocumentChunks(documentId);
+    }
+
+    /**
+     * 同步执行单个文档的分片与向量构建。
+     *
+     * @param documentId 文档 ID
+     */
+    public void processDocumentChunks(Long documentId) {
         AiKnowledgeDocument document = aiKnowledgeDocumentMapper.selectById(documentId);
         if (document == null || document.getIsDeleted() != null && document.getIsDeleted() == 1) {
             return;

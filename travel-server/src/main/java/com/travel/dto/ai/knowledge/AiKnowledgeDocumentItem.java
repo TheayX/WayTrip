@@ -16,5 +16,8 @@ public class AiKnowledgeDocumentItem {
     private Integer version;
     private Integer isEnabled;
     private Integer chunkCount;
+    private String indexStatus;
+    private Integer pendingChunkCount;
+    private Integer failedChunkCount;
     private String updatedAt;
 }
