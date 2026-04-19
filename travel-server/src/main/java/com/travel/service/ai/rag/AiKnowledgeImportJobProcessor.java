@@ -40,7 +40,7 @@ public class AiKnowledgeImportJobProcessor {
     private final Set<Long> rerunDocumentIds = ConcurrentHashMap.newKeySet();
 
     /**
-     * 执行指定文档的后台重建任务。
+     * 执行指定文档的后台索引任务。
      *
      * @param documentId 文档 ID
      */

@@ -16,29 +16,39 @@ import java.util.List;
 public interface AiKnowledgeAdminService {
 
     /**
-     * 创建知识文档并构建分片。
+     * 创建知识文档并提交后台索引任务。
      *
      * @param request 导入请求
      * @param adminId 当前管理员 ID
-     * @return 文档 ID
+     * @return 任务摘要
      */
-    Long createManualDocument(ManualAiKnowledgeUpsertRequest request, Long adminId);
+    AiKnowledgeJobResponse createManualDocument(ManualAiKnowledgeUpsertRequest request, Long adminId);
 
     /**
-     * 更新手工知识文档并提交后台重建任务。
+     * 更新手工知识文档并提交后台索引任务。
      *
      * @param documentId 文档 ID
      * @param request 导入请求
      * @param adminId 当前管理员 ID
+     * @return 任务摘要
      */
-    void updateManualDocument(Long documentId, ManualAiKnowledgeUpsertRequest request, Long adminId);
+    AiKnowledgeJobResponse updateManualDocument(Long documentId, ManualAiKnowledgeUpsertRequest request, Long adminId);
 
     /**
-     * 为指定知识文档提交重建任务。
+     * 为指定知识文档提交索引任务。
      *
      * @param documentId 文档 ID
+     * @return 任务摘要
      */
-    void rebuildDocumentChunks(Long documentId);
+    AiKnowledgeJobResponse submitDocumentRebuild(Long documentId);
+
+    /**
+     * 为失败文档重新提交索引任务。
+     *
+     * @param documentId 文档 ID
+     * @return 任务摘要
+     */
+    AiKnowledgeJobResponse retryFailedDocumentRebuild(Long documentId);
 
     /**
      * 获取知识文档列表。

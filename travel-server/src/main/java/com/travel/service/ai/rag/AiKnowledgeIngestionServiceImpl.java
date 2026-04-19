@@ -52,7 +52,7 @@ public class AiKnowledgeIngestionServiceImpl implements AiKnowledgeIngestionServ
     }
 
     /**
-     * 同步执行单个文档的分片与向量构建。
+     * 执行单个文档的分片与向量构建流程。
      *
      * @param documentId 文档 ID
      */

@@ -41,7 +41,7 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
     private final AiKnowledgeChunkMapper aiKnowledgeChunkMapper;
 
     /**
-     * 重建指定文档的全部向量索引，并同步更新分片状态。
+     * 重建指定文档的全部向量索引，并更新分片状态。
      *
      * @param document 文档实体
      * @param chunks 文档分片

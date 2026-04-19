@@ -8,6 +8,8 @@ import lombok.Data;
 @Data
 public class AiKnowledgeJobResponse {
 
+    private Long documentId;
+    private String indexStatus;
     private Integer clearedVectorCount;
     private Integer queuedDocumentCount;
     private Integer queuedChunkCount;

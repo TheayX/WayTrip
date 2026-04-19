@@ -27,8 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
-
 /**
  * 管理端 AI 知识控制器。
  */
@@ -68,14 +66,13 @@ public class AdminAiKnowledgeController {
      * 创建手工知识文档。
      *
      * @param request 导入请求
-     * @return 新建文档 ID
+     * @return 任务摘要
      */
     @Operation(summary = "创建手工 AI 知识文档")
     @PostMapping("/knowledge/documents")
-    public ApiResponse<Map<String, Long>> createManualDocument(@Valid @RequestBody ManualAiKnowledgeUpsertRequest request) {
+    public ApiResponse<AiKnowledgeJobResponse> createManualDocument(@Valid @RequestBody ManualAiKnowledgeUpsertRequest request) {
         Long adminId = UserContextHolder.getAdminId();
-        Long id = aiKnowledgeAdminService.createManualDocument(request, adminId);
-        return ApiResponse.success(Map.of("id", id));
+        return ApiResponse.success(aiKnowledgeAdminService.createManualDocument(request, adminId));
     }
 
     /**
@@ -83,15 +80,14 @@ public class AdminAiKnowledgeController {
      *
      * @param documentId 文档 ID
      * @param request 更新请求
-     * @return 空响应
+     * @return 任务摘要
      */
     @Operation(summary = "更新手工 AI 知识文档")
     @PutMapping("/knowledge/documents/{documentId}")
-    public ApiResponse<Void> updateManualDocument(
+    public ApiResponse<AiKnowledgeJobResponse> updateManualDocument(
             @PathVariable Long documentId,
             @Valid @RequestBody ManualAiKnowledgeUpsertRequest request) {
-        aiKnowledgeAdminService.updateManualDocument(documentId, request, UserContextHolder.getAdminId());
-        return ApiResponse.success();
+        return ApiResponse.success(aiKnowledgeAdminService.updateManualDocument(documentId, request, UserContextHolder.getAdminId()));
     }
 
     /**
@@ -111,16 +107,27 @@ public class AdminAiKnowledgeController {
     }
 
     /**
-     * 重建指定知识文档的分片。
+     * 为指定知识文档提交重建任务。
      *
      * @param documentId 文档 ID
-     * @return 空响应
+     * @return 任务摘要
      */
     @Operation(summary = "提交指定知识文档重建任务")
     @PutMapping("/knowledge/documents/{documentId}/rebuild")
-    public ApiResponse<Void> rebuildDocumentChunks(@PathVariable Long documentId) {
-        aiKnowledgeAdminService.rebuildDocumentChunks(documentId);
-        return ApiResponse.success();
+    public ApiResponse<AiKnowledgeJobResponse> submitDocumentRebuild(@PathVariable Long documentId) {
+        return ApiResponse.success(aiKnowledgeAdminService.submitDocumentRebuild(documentId));
+    }
+
+    /**
+     * 为失败的知识文档重新提交重建任务。
+     *
+     * @param documentId 文档 ID
+     * @return 任务摘要
+     */
+    @Operation(summary = "重试失败的 AI 知识重建任务")
+    @PostMapping("/knowledge/documents/{documentId}/retry")
+    public ApiResponse<AiKnowledgeJobResponse> retryFailedDocumentRebuild(@PathVariable Long documentId) {
+        return ApiResponse.success(aiKnowledgeAdminService.retryFailedDocumentRebuild(documentId));
     }
 
     /**

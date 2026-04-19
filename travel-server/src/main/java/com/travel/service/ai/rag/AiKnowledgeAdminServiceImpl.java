@@ -11,6 +11,7 @@ import com.travel.dto.ai.knowledge.AiKnowledgeVectorIndexStatusResponse;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
 import com.travel.entity.AiKnowledgeChunk;
 import com.travel.entity.AiKnowledgeDocument;
+import com.travel.enums.ai.AiKnowledgeIndexStatus;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.mapper.AiKnowledgeChunkMapper;
 import com.travel.mapper.AiKnowledgeDocumentMapper;
@@ -91,16 +92,16 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
     private final AiVectorIndexInfoSupport aiVectorIndexInfoSupport;
 
     @Override
-    public Long createManualDocument(ManualAiKnowledgeUpsertRequest request, Long adminId) {
+    public AiKnowledgeJobResponse createManualDocument(ManualAiKnowledgeUpsertRequest request, Long adminId) {
         Long documentId = aiKnowledgeIngestionService.upsertManualDocument(request);
         aiKnowledgeImportJobService.enqueueDocumentRebuild(documentId);
         log.info("管理端创建 AI 知识文档：adminId={}, documentId={}, title={}", adminId, documentId, request.getTitle());
-        return documentId;
+        return buildDocumentJobResponse(documentId, "AI 知识文档已创建，索引任务已入队");
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateManualDocument(Long documentId, ManualAiKnowledgeUpsertRequest request, Long adminId) {
+    public AiKnowledgeJobResponse updateManualDocument(Long documentId, ManualAiKnowledgeUpsertRequest request, Long adminId) {
         AiKnowledgeDocument document = getActiveDocument(documentId);
         document.setTitle(request.getTitle().trim());
         document.setKnowledgeDomain(request.getKnowledgeDomain().name());
@@ -109,16 +110,29 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         document.setSourceRef(normalize(request.getSourceRef(), ""));
         document.setTags(normalize(request.getTags(), ""));
         document.setVersion(document.getVersion() == null ? 1 : document.getVersion() + 1);
-        document.setIndexStatus("PENDING");
+        document.setIndexStatus(AiKnowledgeIndexStatus.PENDING.name());
         document.setLastError("");
         aiKnowledgeDocumentMapper.updateById(document);
         aiKnowledgeImportJobService.enqueueDocumentRebuild(documentId);
         log.info("管理端更新 AI 知识文档：adminId={}, documentId={}, title={}", adminId, documentId, request.getTitle());
+        return buildDocumentJobResponse(documentId, "AI 知识文档已更新，索引任务已入队");
     }
 
     @Override
-    public void rebuildDocumentChunks(Long documentId) {
+    public AiKnowledgeJobResponse submitDocumentRebuild(Long documentId) {
+        getActiveDocument(documentId);
         aiKnowledgeImportJobService.enqueueDocumentRebuild(documentId);
+        return buildDocumentJobResponse(documentId, "AI 知识重建任务已入队");
+    }
+
+    @Override
+    public AiKnowledgeJobResponse retryFailedDocumentRebuild(Long documentId) {
+        AiKnowledgeDocument document = getActiveDocument(documentId);
+        if (!AiKnowledgeIndexStatus.FAILED.name().equalsIgnoreCase(document.getIndexStatus())) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "当前文档不处于失败状态，无需重试");
+        }
+        aiKnowledgeImportJobService.enqueueDocumentRebuild(documentId);
+        return buildDocumentJobResponse(documentId, "AI 知识失败任务已重新入队");
     }
 
     @Override
@@ -143,7 +157,7 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
             item.setChunkCount(countChunks(document.getId()));
             item.setPendingChunkCount(countChunksByStatus(document.getId(), 0));
             item.setFailedChunkCount(countChunksByStatus(document.getId(), 2));
-            item.setIndexStatus(resolveIndexStatus(document.getId()));
+            item.setIndexStatus(resolveIndexStatus(document));
             item.setRetryCount(document.getRetryCount());
             item.setLastError(document.getLastError());
             item.setRebuildRequestedAt(formatDateTime(document.getRebuildRequestedAt()));
@@ -175,7 +189,7 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         response.setChunkCount(chunks.size());
         response.setPendingChunkCount(countChunksByStatus(documentId, 0));
         response.setFailedChunkCount(countChunksByStatus(documentId, 2));
-        response.setIndexStatus(resolveIndexStatus(documentId));
+        response.setIndexStatus(resolveIndexStatus(document));
         response.setRetryCount(document.getRetryCount());
         response.setLastError(document.getLastError());
         response.setRebuildRequestedAt(formatDateTime(document.getRebuildRequestedAt()));
@@ -250,6 +264,7 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         int clearedVectorCount = aiKnowledgeVectorIndexService.clearAllVectorData();
         AiKnowledgeJobResponse response = new AiKnowledgeJobResponse();
         response.setClearedVectorCount(clearedVectorCount);
+        response.setIndexStatus(AiKnowledgeIndexStatus.PENDING.name());
         response.setQueuedDocumentCount(0);
         response.setQueuedChunkCount(0);
         response.setMessage("AI 知识向量数据清理完成");
@@ -386,21 +401,39 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
      * @param documentId 文档 ID
      * @return 索引状态
      */
-    private String resolveIndexStatus(Long documentId) {
-        AiKnowledgeDocument document = aiKnowledgeDocumentMapper.selectById(documentId);
+    private String resolveIndexStatus(AiKnowledgeDocument document) {
         if (document != null && document.getIndexStatus() != null && !document.getIndexStatus().isBlank()) {
             return document.getIndexStatus();
         }
+        Long documentId = document == null ? null : document.getId();
         int total = countChunks(documentId);
         if (total == 0) {
-            return "PENDING";
+            return AiKnowledgeIndexStatus.PENDING.name();
         }
         int failed = countChunksByStatus(documentId, 2);
         if (failed > 0) {
-            return "FAILED";
+            return AiKnowledgeIndexStatus.FAILED.name();
         }
         int pending = countChunksByStatus(documentId, 0);
-        return pending > 0 ? "PROCESSING" : "SUCCESS";
+        return pending > 0 ? AiKnowledgeIndexStatus.PROCESSING.name() : AiKnowledgeIndexStatus.SUCCESS.name();
+    }
+
+    /**
+     * 组装单文档后台任务响应。
+     *
+     * @param documentId 文档 ID
+     * @param message 结果文案
+     * @return 任务摘要
+     */
+    private AiKnowledgeJobResponse buildDocumentJobResponse(Long documentId, String message) {
+        AiKnowledgeJobResponse response = new AiKnowledgeJobResponse();
+        response.setDocumentId(documentId);
+        response.setIndexStatus(AiKnowledgeIndexStatus.PENDING.name());
+        response.setClearedVectorCount(0);
+        response.setQueuedDocumentCount(1);
+        response.setQueuedChunkCount(0);
+        response.setMessage(message);
+        return response;
     }
 
     /**

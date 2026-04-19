@@ -16,7 +16,7 @@ public interface AiKnowledgeIngestionService {
     Long upsertManualDocument(ManualAiKnowledgeUpsertRequest request);
 
     /**
-     * 基于现有文档重新构建分片与向量索引。
+     * 重新执行指定文档的分片与向量构建流程。
      *
      * @param documentId 文档 ID
      */
