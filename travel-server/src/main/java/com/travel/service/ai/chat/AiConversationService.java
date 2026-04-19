@@ -86,6 +86,11 @@ public class AiConversationService {
     private final AiResponseAssembler aiResponseAssembler;
 
     /**
+     * 对话业务上下文组装服务。
+     */
+    private final AiConversationContextService aiConversationContextService;
+
+    /**
      * RAG 检索服务。
      */
     private final AiKnowledgeRetrievalService aiKnowledgeRetrievalService;
@@ -149,23 +154,27 @@ public class AiConversationService {
         // 3. 场景路由：判断当前是对客服、订单顾问还是推荐解释
         AiScenarioType scenario = aiScenarioRouter.route(userMessage, request.getScenarioHint(), request.getSourcePage());
         AiIntentResult intentResult = aiIntentService.recognize(userMessage, scenario);
+        AiConversationContext conversationContext = aiConversationContextService.assemble(userId, scenario, intentResult);
 
         // 4. RAG 知识检索：根据场景召回相关文档片段
         List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
 
         // 5. 组装系统提示词并生成消息 ID
         String messageId = aiSessionIdService.createSessionId();
-        String systemPrompt = aiPromptManager.buildSystemPrompt(scenario) + buildIntentPrompt(intentResult);
+        String systemPrompt = aiPromptManager.buildSystemPrompt(scenario)
+                + buildConversationContextPrompt(conversationContext)
+                + buildIntentPrompt(intentResult);
         AiToolRequestContext toolContext = aiToolContextHolder.createContext(userId, adminId);
 
         log.info(
-                "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 意图={}, 来源页面={}, RAG命中数={}, 用户问题预览={}",
+                "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 意图={}, 来源页面={}, 上下文分区数={}, RAG命中数={}, 用户问题预览={}",
                 sessionId,
                 messageId,
                 userId,
                 scenario,
                 intentResult == null ? "" : intentResult.intent(),
                 request.getSourcePage(),
+                conversationContext.sections().size(),
                 knowledgeSnippets.size(),
                 previewText(userMessage, 80)
         );
@@ -363,6 +372,19 @@ public class AiConversationService {
         }
         builder.append("\n请优先围绕该意图调用最匹配的工具，再组织回复。");
         return builder.toString();
+    }
+
+    /**
+     * 将已组装的业务上下文追加到系统提示词，帮助模型先利用系统已知事实理解问题。
+     *
+     * @param conversationContext 对话上下文
+     * @return 附加提示词
+     */
+    private String buildConversationContextPrompt(AiConversationContext conversationContext) {
+        if (conversationContext == null || conversationContext.isEmpty()) {
+            return "";
+        }
+        return conversationContext.promptText();
     }
 
     /**
