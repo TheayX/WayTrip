@@ -162,6 +162,7 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
      * @return 向量文档
      */
     private Document buildVectorDocument(AiKnowledgeDocument document, AiKnowledgeChunk chunk, String vectorId) {
+        String tags = normalize(document.getTags());
         return Document.builder()
                 .id(vectorId)
                 .text(chunk.getChunkText())
@@ -169,9 +170,11 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
                         "documentId", document.getId(),
                         "chunkId", chunk.getId(),
                         "knowledgeDomain", document.getKnowledgeDomain(),
+                        "knowledgeLayer", AiKnowledgeLayerSupport.inferLayer(document.getTitle(), document.getSourceRef(), tags),
                         "title", normalize(document.getTitle()),
                         "sourceType", normalize(document.getSourceType()),
-                        "sourceRef", normalize(document.getSourceRef())
+                        "sourceRef", normalize(document.getSourceRef()),
+                        "tags", tags
                 ))
                 .build();
     }

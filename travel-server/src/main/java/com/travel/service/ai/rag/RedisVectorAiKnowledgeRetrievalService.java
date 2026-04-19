@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -107,7 +108,7 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
             return List.of();
         }
 
-        List<AiKnowledgeSnippet> snippets = new ArrayList<>();
+        List<AiKnowledgeSnippet> candidates = new ArrayList<>();
         for (Document document : documents) {
             Map<String, Object> metadata = document.getMetadata();
             String knowledgeDomain = stringValue(metadata.get("knowledgeDomain"));
@@ -115,20 +116,20 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
                 continue;
             }
 
-            snippets.add(new AiKnowledgeSnippet(
+            candidates.add(new AiKnowledgeSnippet(
                     longValue(metadata.get("documentId")),
                     longValue(metadata.get("chunkId")),
                     stringValue(metadata.get("title")),
                     stringValue(metadata.get("sourceType")),
                     stringValue(metadata.get("sourceRef")),
                     truncateSnippet(document.getText()),
-                    knowledgeDomain
+                    knowledgeDomain,
+                    stringValue(metadata.get("knowledgeLayer"))
             ));
-            if (snippets.size() >= Math.max(1, aiProperties.getRag().getTopK())) {
-                break;
-            }
         }
-        return snippets;
+        candidates.sort(Comparator.comparingInt(item -> AiKnowledgeLayerSupport.priority(item.getKnowledgeLayer())));
+        int topK = Math.max(1, aiProperties.getRag().getTopK());
+        return candidates.size() <= topK ? candidates : new ArrayList<>(candidates.subList(0, topK));
     }
 
     /**

@@ -49,6 +49,11 @@ public class AiKnowledgeSnippet {
     private String knowledgeDomain;
 
     /**
+     * 归属知识层级，例如 fact、boundary、strategy。
+     */
+    private String knowledgeLayer;
+
+    /**
      * 转换为响应引用项。
      *
      * @return 引用项

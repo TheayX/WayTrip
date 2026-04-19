@@ -166,7 +166,8 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
                 document.getSourceType(),
                 document.getSourceRef(),
                 chunk.getChunkText(),
-                document.getKnowledgeDomain()
+                document.getKnowledgeDomain(),
+                AiKnowledgeLayerSupport.inferLayer(document.getTitle(), document.getSourceRef(), document.getTags())
         )).toList());
         return response;
     }

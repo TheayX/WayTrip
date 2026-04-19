@@ -118,9 +118,11 @@ public class AiModelConfig {
                         RedisVectorStore.MetadataField.numeric("documentId"),
                         RedisVectorStore.MetadataField.numeric("chunkId"),
                         RedisVectorStore.MetadataField.tag("knowledgeDomain"),
+                        RedisVectorStore.MetadataField.tag("knowledgeLayer"),
                         RedisVectorStore.MetadataField.text("title"),
                         RedisVectorStore.MetadataField.tag("sourceType"),
-                        RedisVectorStore.MetadataField.text("sourceRef")
+                        RedisVectorStore.MetadataField.text("sourceRef"),
+                        RedisVectorStore.MetadataField.text("tags")
                 ))
                 .build();
     }
