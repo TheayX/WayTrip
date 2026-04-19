@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.travel.entity.AiKnowledgeChunk;
 import com.travel.entity.AiKnowledgeDocument;
+import com.travel.enums.ai.AiKnowledgeEmbeddingStatus;
 import com.travel.mapper.AiKnowledgeChunkMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +65,7 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
         for (AiKnowledgeChunk chunk : chunks) {
             String vectorId = buildVectorId(chunk.getId());
             chunk.setVectorId(vectorId);
-            chunk.setEmbeddingStatus(0);
+            chunk.setEmbeddingStatus(AiKnowledgeEmbeddingStatus.PENDING.code());
             aiKnowledgeChunkMapper.updateById(chunk);
             vectorDocuments.add(buildVectorDocument(document, chunk, vectorId));
         }
@@ -72,7 +73,7 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
         try {
             vectorStore.add(vectorDocuments);
             for (AiKnowledgeChunk chunk : chunks) {
-                chunk.setEmbeddingStatus(1);
+                chunk.setEmbeddingStatus(AiKnowledgeEmbeddingStatus.SUCCESS.code());
                 aiKnowledgeChunkMapper.updateById(chunk);
             }
             log.info(
@@ -93,7 +94,7 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
                     exception
             );
             for (AiKnowledgeChunk chunk : chunks) {
-                chunk.setEmbeddingStatus(2);
+                chunk.setEmbeddingStatus(AiKnowledgeEmbeddingStatus.FAILED.code());
                 aiKnowledgeChunkMapper.updateById(chunk);
             }
             throw exception;
@@ -127,7 +128,7 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
         aiKnowledgeChunkMapper.update(
                 null,
                 new LambdaUpdateWrapper<AiKnowledgeChunk>()
-                        .set(AiKnowledgeChunk::getEmbeddingStatus, 0)
+                        .set(AiKnowledgeChunk::getEmbeddingStatus, AiKnowledgeEmbeddingStatus.PENDING.code())
                         .set(AiKnowledgeChunk::getVectorId, "")
         );
         log.info("AI 知识向量数据清理完成: clearedVectorCount={}", vectorIds.size());

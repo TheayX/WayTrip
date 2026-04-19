@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
 import com.travel.entity.AiKnowledgeChunk;
 import com.travel.entity.AiKnowledgeDocument;
+import com.travel.enums.ai.AiKnowledgeEmbeddingStatus;
 import com.travel.enums.ai.AiKnowledgeIndexStatus;
 import com.travel.mapper.AiKnowledgeChunkMapper;
 import com.travel.mapper.AiKnowledgeDocumentMapper;
@@ -71,7 +72,7 @@ public class AiKnowledgeIngestionServiceImpl implements AiKnowledgeIngestionServ
             chunk.setChunkIndex(i + 1);
             chunk.setChunkText(segments.get(i));
             chunk.setChunkSummary(buildSummary(segments.get(i)));
-            chunk.setEmbeddingStatus(0);
+            chunk.setEmbeddingStatus(AiKnowledgeEmbeddingStatus.PENDING.code());
             chunk.setVectorId("");
             aiKnowledgeChunkMapper.insert(chunk);
             chunks.add(chunk);

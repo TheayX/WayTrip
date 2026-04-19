@@ -11,6 +11,7 @@ import com.travel.dto.ai.knowledge.AiKnowledgeVectorIndexStatusResponse;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
 import com.travel.entity.AiKnowledgeChunk;
 import com.travel.entity.AiKnowledgeDocument;
+import com.travel.enums.ai.AiKnowledgeEmbeddingStatus;
 import com.travel.enums.ai.AiKnowledgeIndexStatus;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.mapper.AiKnowledgeChunkMapper;
@@ -155,8 +156,8 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
             item.setVersion(document.getVersion());
             item.setIsEnabled(document.getIsEnabled());
             item.setChunkCount(countChunks(document.getId()));
-            item.setPendingChunkCount(countChunksByStatus(document.getId(), 0));
-            item.setFailedChunkCount(countChunksByStatus(document.getId(), 2));
+            item.setPendingChunkCount(countChunksByStatus(document.getId(), AiKnowledgeEmbeddingStatus.PENDING));
+            item.setFailedChunkCount(countChunksByStatus(document.getId(), AiKnowledgeEmbeddingStatus.FAILED));
             item.setIndexStatus(resolveIndexStatus(document));
             item.setRetryCount(document.getRetryCount());
             item.setLastError(document.getLastError());
@@ -187,8 +188,8 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         response.setVersion(document.getVersion());
         response.setIsEnabled(document.getIsEnabled());
         response.setChunkCount(chunks.size());
-        response.setPendingChunkCount(countChunksByStatus(documentId, 0));
-        response.setFailedChunkCount(countChunksByStatus(documentId, 2));
+        response.setPendingChunkCount(countChunksByStatus(documentId, AiKnowledgeEmbeddingStatus.PENDING));
+        response.setFailedChunkCount(countChunksByStatus(documentId, AiKnowledgeEmbeddingStatus.FAILED));
         response.setIndexStatus(resolveIndexStatus(document));
         response.setRetryCount(document.getRetryCount());
         response.setLastError(document.getLastError());
@@ -253,9 +254,9 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         response.setDocumentCount(countDocuments(null));
         response.setEnabledDocumentCount(countDocuments(1));
         response.setTotalChunkCount(countChunksByStatus(null, null));
-        response.setPendingChunkCount(countChunksByStatus(null, 0));
-        response.setCompletedChunkCount(countChunksByStatus(null, 1));
-        response.setFailedChunkCount(countChunksByStatus(null, 2));
+        response.setPendingChunkCount(countChunksByStatus(null, AiKnowledgeEmbeddingStatus.PENDING));
+        response.setCompletedChunkCount(countChunksByStatus(null, AiKnowledgeEmbeddingStatus.SUCCESS));
+        response.setFailedChunkCount(countChunksByStatus(null, AiKnowledgeEmbeddingStatus.FAILED));
         return response;
     }
 
@@ -362,13 +363,13 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
      * @param embeddingStatus 向量化状态；为空表示统计全部
      * @return 分片数量
      */
-    private int countChunksByStatus(Long documentId, Integer embeddingStatus) {
+    private int countChunksByStatus(Long documentId, AiKnowledgeEmbeddingStatus embeddingStatus) {
         LambdaQueryWrapper<AiKnowledgeChunk> wrapper = new LambdaQueryWrapper<>();
         if (documentId != null) {
             wrapper.eq(AiKnowledgeChunk::getDocumentId, documentId);
         }
         if (embeddingStatus != null) {
-            wrapper.eq(AiKnowledgeChunk::getEmbeddingStatus, embeddingStatus);
+            wrapper.eq(AiKnowledgeChunk::getEmbeddingStatus, embeddingStatus.code());
         }
         Long count = aiKnowledgeChunkMapper.selectCount(wrapper);
         return count == null ? 0 : count.intValue();
@@ -410,11 +411,11 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         if (total == 0) {
             return AiKnowledgeIndexStatus.PENDING.name();
         }
-        int failed = countChunksByStatus(documentId, 2);
+        int failed = countChunksByStatus(documentId, AiKnowledgeEmbeddingStatus.FAILED);
         if (failed > 0) {
             return AiKnowledgeIndexStatus.FAILED.name();
         }
-        int pending = countChunksByStatus(documentId, 0);
+        int pending = countChunksByStatus(documentId, AiKnowledgeEmbeddingStatus.PENDING);
         return pending > 0 ? AiKnowledgeIndexStatus.PROCESSING.name() : AiKnowledgeIndexStatus.SUCCESS.name();
     }
 
