@@ -194,9 +194,34 @@ export function clearCachedAiSessionId() {
 function normalizeSuggestions(value) {
   if (!Array.isArray(value)) return []
   return value
-    .map((item) => typeof item === 'string' ? item.trim() : '')
-    .filter(Boolean)
+    .map((item) => normalizeSuggestionItem(item))
+    .filter((item) => item && item.text)
     .slice(0, 3)
+}
+
+/**
+ * 归一化单个建议项，兼容历史字符串格式与新的结构化对象格式。
+ *
+ * @param {any} value 原始建议项
+ * @returns {{ text: string, scenarioHint: string, sourcePage: string } | null}
+ */
+function normalizeSuggestionItem(value) {
+  if (typeof value === 'string') {
+    const text = value.trim()
+    return text ? { text, scenarioHint: '', sourcePage: '' } : null
+  }
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+  const text = typeof value.text === 'string' ? value.text.trim() : ''
+  if (!text) {
+    return null
+  }
+  return {
+    text,
+    scenarioHint: typeof value.scenarioHint === 'string' ? value.scenarioHint.trim() : '',
+    sourcePage: typeof value.sourcePage === 'string' ? value.sourcePage.trim() : ''
+  }
 }
 
 /**

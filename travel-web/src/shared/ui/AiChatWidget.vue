@@ -89,13 +89,13 @@
               <div class="suggestion-list">
                 <button
                   v-for="suggestion in item.suggestions"
-                  :key="`${item.id}-${suggestion}`"
+                  :key="`${item.id}-${suggestion.text}`"
                   type="button"
                   class="suggestion-chip"
                   :disabled="loading"
                   @click="sendSuggestion(suggestion)"
                 >
-                  {{ suggestion }}
+                  {{ suggestion.text }}
                 </button>
               </div>
             </div>
@@ -170,6 +170,7 @@ import {
 import { storeToRefs } from 'pinia'
 import { resolveAiErrorMessage } from '@/shared/lib/ai-chat.js'
 import { AI_CHAT_COPY } from '@/shared/constants/ai-chat.js'
+import { ROUTE_NAMES } from '@/shared/constants/route-names.js'
 import { useAiChatStore } from '@/shared/store/ai-chat.js'
 
 const route = useRoute()
@@ -241,10 +242,26 @@ const sendMessage = async () => {
   }
 }
 
-// 点击推荐追问时，直接复用普通发送逻辑。
+// 点击推荐追问时，优先复用建议项自带的场景提示，避免重新退回纯文本猜场景。
 const sendSuggestion = async (suggestion) => {
-  inputText.value = suggestion
-  await sendMessage()
+  const suggestionText = typeof suggestion?.text === 'string' ? suggestion.text.trim() : ''
+  if (!suggestionText || loading.value) return
+  inputText.value = ''
+  scrollToBottom()
+
+  try {
+    await aiChatStore.sendMessage({
+      content: suggestionText,
+      sourcePage: suggestion?.sourcePage || normalizeSourcePage(),
+      scenarioHint: suggestion?.scenarioHint || resolveScenarioHint()
+    })
+  } catch (error) {
+    const message = resolveAiErrorMessage(error)
+    aiChatStore.appendLocalAssistantMessage(message)
+    ElMessage.warning(message)
+  } finally {
+    scrollToBottom()
+  }
 }
 
 // 提交某条助手消息的反馈。
@@ -264,11 +281,30 @@ function normalizeSourcePage() {
 
 // 前端只做轻量 hint，不在这里硬编码复杂业务分类，最终仍交给后端统一路由。
 function resolveScenarioHint() {
-  if (route.path.includes('/orders')) {
-    return 'order'
+  if (route.name === ROUTE_NAMES.orderList || route.name === ROUTE_NAMES.orderDetail || route.name === ROUTE_NAMES.orderCreate) {
+    return 'ORDER_ADVISOR'
   }
-  if (route.path.includes('/spots') || route.path.includes('/guides')) {
-    return 'travel'
+  if (route.name === ROUTE_NAMES.spotList || route.name === ROUTE_NAMES.spotDetail || route.name === ROUTE_NAMES.search) {
+    return 'SPOT_QA'
+  }
+  if (route.name === ROUTE_NAMES.guideList || route.name === ROUTE_NAMES.guideDetail) {
+    return 'GUIDE_QA'
+  }
+  if (route.name === ROUTE_NAMES.recommendations || route.name === ROUTE_NAMES.nearby) {
+    return 'RECOMMENDATION_EXPLAINER'
+  }
+  if (route.name === ROUTE_NAMES.profile || route.name === ROUTE_NAMES.favorites) {
+    return 'USER_PROFILE_ANALYZER'
+  }
+  if (
+    route.name === ROUTE_NAMES.discover ||
+    route.name === ROUTE_NAMES.randomPick ||
+    route.name === ROUTE_NAMES.budgetTravel ||
+    route.name === ROUTE_NAMES.travelerReviews ||
+    route.name === ROUTE_NAMES.trendingViews ||
+    route.name === ROUTE_NAMES.more
+  ) {
+    return 'TRAVEL_PLANNER'
   }
   return ''
 }

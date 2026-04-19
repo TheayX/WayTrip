@@ -18,7 +18,7 @@ public class AiChatMessageResponse {
     private String reply;
     private List<AiCitationItem> citations = new ArrayList<>();
     private List<AiToolCallItem> toolCalls = new ArrayList<>();
-    private List<String> suggestions = new ArrayList<>();
+    private List<AiSuggestionItem> suggestions = new ArrayList<>();
     private Boolean feedbackEnabled = Boolean.TRUE;
     private Long createdAt;
 }

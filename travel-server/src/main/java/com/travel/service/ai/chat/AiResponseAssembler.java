@@ -3,6 +3,7 @@ package com.travel.service.ai.chat;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.dto.ai.response.AiChatStartEvent;
 import com.travel.dto.ai.response.AiCitationItem;
+import com.travel.dto.ai.response.AiSuggestionItem;
 import com.travel.dto.ai.response.AiToolCallItem;
 import com.travel.enums.ai.AiScenarioType;
 import org.springframework.stereotype.Service;
@@ -66,16 +67,57 @@ public class AiResponseAssembler {
      * @param scenario 场景类型
      * @return 默认建议列表
      */
-    private List<String> defaultSuggestions(AiScenarioType scenario) {
+    private List<AiSuggestionItem> defaultSuggestions(AiScenarioType scenario) {
         return switch (scenario) {
-            case ORDER_ADVISOR -> List.of("帮我看看订单状态说明", "退款流程怎么走", "订单页里应该看什么");
-            case SPOT_QA -> List.of("这个景点门票多少钱", "开放时间是什么", "附近还有哪些景点");
-            case GUIDE_QA -> List.of("这个地方怎么玩", "有什么避坑建议", "推荐几篇相关攻略");
-            case TRAVEL_PLANNER -> List.of("帮我做 1 日游路线", "预算 500 的玩法有哪些", "适合周末出行的景点");
-            case RECOMMENDATION_EXPLAINER -> List.of("为什么推荐这个景点", "还有相似景点吗");
-            case USER_PROFILE_ANALYZER -> List.of("总结一下我的旅游偏好", "我最近更适合什么景点", "我的浏览收藏说明什么");
-            case OPERATION_ANALYZER -> List.of("看一下运营概览", "最近 7 天订单趋势", "当前热门景点有哪些");
-            default -> List.of("推荐几个适合周末去的景点", "订单问题可以怎么处理");
+            case ORDER_ADVISOR -> List.of(
+                    suggestion("帮我看看订单状态说明", AiScenarioType.ORDER_ADVISOR),
+                    suggestion("退款流程怎么走", AiScenarioType.ORDER_ADVISOR),
+                    suggestion("订单页里应该看什么", AiScenarioType.ORDER_ADVISOR)
+            );
+            case SPOT_QA -> List.of(
+                    suggestion("这个景点门票多少钱", AiScenarioType.SPOT_QA),
+                    suggestion("开放时间是什么", AiScenarioType.SPOT_QA),
+                    suggestion("附近还有哪些景点", AiScenarioType.TRAVEL_PLANNER)
+            );
+            case GUIDE_QA -> List.of(
+                    suggestion("这个地方怎么玩", AiScenarioType.GUIDE_QA),
+                    suggestion("有什么避坑建议", AiScenarioType.GUIDE_QA),
+                    suggestion("推荐几篇相关攻略", AiScenarioType.GUIDE_QA)
+            );
+            case TRAVEL_PLANNER -> List.of(
+                    suggestion("帮我做 1 日游路线", AiScenarioType.TRAVEL_PLANNER),
+                    suggestion("预算 500 的玩法有哪些", AiScenarioType.TRAVEL_PLANNER),
+                    suggestion("适合周末出行的景点", AiScenarioType.TRAVEL_PLANNER)
+            );
+            case RECOMMENDATION_EXPLAINER -> List.of(
+                    suggestion("为什么推荐这个景点", AiScenarioType.RECOMMENDATION_EXPLAINER),
+                    suggestion("还有相似景点吗", AiScenarioType.RECOMMENDATION_EXPLAINER)
+            );
+            case USER_PROFILE_ANALYZER -> List.of(
+                    suggestion("总结一下我的旅游偏好", AiScenarioType.USER_PROFILE_ANALYZER),
+                    suggestion("我最近更适合什么景点", AiScenarioType.TRAVEL_PLANNER),
+                    suggestion("我的浏览收藏说明什么", AiScenarioType.USER_PROFILE_ANALYZER)
+            );
+            case OPERATION_ANALYZER -> List.of(
+                    suggestion("看一下运营概览", AiScenarioType.OPERATION_ANALYZER),
+                    suggestion("最近 7 天订单趋势", AiScenarioType.OPERATION_ANALYZER),
+                    suggestion("当前热门景点有哪些", AiScenarioType.OPERATION_ANALYZER)
+            );
+            default -> List.of(
+                    suggestion("推荐几个适合周末去的景点", AiScenarioType.TRAVEL_PLANNER),
+                    suggestion("订单问题可以怎么处理", AiScenarioType.ORDER_ADVISOR)
+            );
         };
+    }
+
+    /**
+     * 构建默认建议项，统一附带稳定的场景提示。
+     *
+     * @param text 建议文案
+     * @param scenario 场景类型
+     * @return 建议项
+     */
+    private AiSuggestionItem suggestion(String text, AiScenarioType scenario) {
+        return new AiSuggestionItem(text, scenario.name(), "");
     }
 }
