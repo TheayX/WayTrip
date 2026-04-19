@@ -16,32 +16,6 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
     default-property-inclusion: non_null
-  ai:
-    model:
-      chat: ${APP_AI_PROVIDER_TYPE:ollama}
-      # 未显式指定 embedding 供应商时，默认跟随聊天供应商，支持一键切换整个 AI 链路。
-      embedding: ${APP_AI_EMBEDDING_PROVIDER_TYPE:${APP_AI_PROVIDER_TYPE:ollama}}
-    openai:
-      base-url: ${OPENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
-      api-key: ${OPENAI_API_KEY:}
-      chat:
-        completions-path: /chat/completions
-        options:
-          model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen3.5-plus}
-          temperature: ${APP_AI_CHAT_TEMPERATURE:0.2}
-      embedding:
-        embeddings-path: /embeddings
-        options:
-          model: ${APP_AI_PROVIDER_EMBEDDING_MODEL:text-embedding-v4}
-    ollama:
-      base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
-      chat:
-        options:
-          model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen2.5:1.5b}
-          temperature: ${APP_AI_CHAT_TEMPERATURE:0.2}
-      embedding:
-        options:
-          model: ${APP_AI_PROVIDER_EMBEDDING_MODEL:nomic-embed-text}
 
 # MyBatis-Plus 配置
 mybatis-plus:
@@ -66,10 +40,24 @@ logging:
 
 app:
   ai:
-    provider:
-      type: ${APP_AI_PROVIDER_TYPE:ollama}
-      chat-model: ${APP_AI_PROVIDER_CHAT_MODEL:qwen2.5:1.5b}
-      embedding-model: ${APP_AI_PROVIDER_EMBEDDING_MODEL:nomic-embed-text}
+    generation:
+      provider: ${APP_AI_GENERATION_PROVIDER:openai}
+      model: ${APP_AI_GENERATION_MODEL:qwen3.5-plus}
+      base-url: ${APP_AI_GENERATION_BASE_URL:${OPENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}}
+      api-key: ${APP_AI_GENERATION_API_KEY:${OPENAI_API_KEY:}}
+      completions-path: ${APP_AI_GENERATION_COMPLETIONS_PATH:/chat/completions}
+      temperature: ${APP_AI_GENERATION_TEMPERATURE:0.2}
+    intent:
+      provider: ${APP_AI_INTENT_PROVIDER:ollama}
+      model: ${APP_AI_INTENT_MODEL:qwen2.5:1.5b}
+      base-url: ${APP_AI_INTENT_BASE_URL:${OLLAMA_BASE_URL:http://127.0.0.1:11434}}
+      temperature: ${APP_AI_INTENT_TEMPERATURE:0.0}
+    embedding:
+      provider: ${APP_AI_EMBEDDING_PROVIDER:ollama}
+      model: ${APP_AI_EMBEDDING_MODEL:nomic-embed-text}
+      base-url: ${APP_AI_EMBEDDING_BASE_URL:${OLLAMA_BASE_URL:http://127.0.0.1:11434}}
+      embeddings-path: ${APP_AI_EMBEDDING_PATH:/v1/embeddings}
+      api-key: ${APP_AI_EMBEDDING_API_KEY:${OPENAI_API_KEY:}}
     chat:
       timeout-seconds: ${APP_AI_CHAT_TIMEOUT_SECONDS:60}
       max-input-length: ${APP_AI_CHAT_MAX_INPUT_LENGTH:800}
@@ -93,6 +81,7 @@ app:
         index-name: ${APP_AI_VECTOR_REDIS_INDEX_NAME:waytrip-ai-knowledge-index}
         prefix: ${APP_AI_VECTOR_REDIS_PREFIX:waytrip:ai:chunk:}
         initialize-schema: ${APP_AI_VECTOR_REDIS_INITIALIZE_SCHEMA:true}
+        algorithm: ${APP_AI_VECTOR_REDIS_ALGORITHM:HNSW}
     memory:
       ttl-minutes: ${APP_AI_MEMORY_TTL_MINUTES:60}
       history-rounds: ${APP_AI_MEMORY_HISTORY_ROUNDS:8}

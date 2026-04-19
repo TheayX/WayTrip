@@ -11,9 +11,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AiProperties {
 
     /**
-     * 模型提供方配置，控制聊天模型与向量模型的来源。
+     * 最终答案生成模型配置。
      */
-    private ProviderProperties provider = new ProviderProperties();
+    private GenerationProperties generation = new GenerationProperties();
+
+    /**
+     * 意图识别模型配置。
+     */
+    private IntentProperties intent = new IntentProperties();
+
+    /**
+     * 嵌入模型配置。
+     */
+    private EmbeddingProperties embedding = new EmbeddingProperties();
 
     /**
      * 聊天交互配置，控制输入长度、超时和系统提示词。
@@ -54,22 +64,96 @@ public class AiProperties {
      * 模型提供方配置。
      */
     @Data
-    public static class ProviderProperties {
+    public static class GenerationProperties {
 
         /**
-         * 默认模型提供方类型。
+         * 生成模型提供方类型。
          */
-        private String type = "ollama";
+        private String provider = "openai";
 
         /**
-         * 默认聊天模型名称。
+         * 生成模型名称。
          */
-        private String chatModel = "qwen2.5:1.5b";
+        private String model = "qwen3.5-plus";
 
         /**
-         * 默认向量嵌入模型名称。
+         * 生成模型基础地址。
          */
-        private String embeddingModel = "nomic-embed-text";
+        private String baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+
+        /**
+         * 生成模型 API Key。
+         */
+        private String apiKey = "";
+
+        /**
+         * 生成模型聊天完成路径。
+         */
+        private String completionsPath = "/chat/completions";
+
+        /**
+         * 生成模型温度。
+         */
+        private Double temperature = 0.2D;
+    }
+
+    /**
+     * 意图识别模型配置。
+     */
+    @Data
+    public static class IntentProperties {
+
+        /**
+         * 意图模型提供方类型。
+         */
+        private String provider = "ollama";
+
+        /**
+         * 意图模型名称。
+         */
+        private String model = "qwen2.5:1.5b";
+
+        /**
+         * 意图模型基础地址。
+         */
+        private String baseUrl = "http://127.0.0.1:11434";
+
+        /**
+         * 意图模型温度。
+         */
+        private Double temperature = 0D;
+    }
+
+    /**
+     * 嵌入模型配置。
+     */
+    @Data
+    public static class EmbeddingProperties {
+
+        /**
+         * 嵌入模型提供方类型。
+         */
+        private String provider = "ollama";
+
+        /**
+         * 嵌入模型名称。
+         */
+        private String model = "nomic-embed-text";
+
+        /**
+         * 嵌入模型基础地址。
+         */
+        private String baseUrl = "http://127.0.0.1:11434";
+
+        /**
+         * 嵌入模型接口路径。
+         */
+        private String embeddingsPath = "/v1/embeddings";
+
+        /**
+         * 嵌入模型 API Key。
+         */
+        private String apiKey = "";
     }
 
     /**
@@ -201,6 +285,11 @@ public class AiProperties {
          * 初始化向量存储时是否自动建索引。
          */
         private Boolean initializeSchema = Boolean.TRUE;
+
+        /**
+         * Redis 向量索引算法，可选值：HNSW、FLAT。
+         */
+        private String algorithm = "HNSW";
     }
 
     /**

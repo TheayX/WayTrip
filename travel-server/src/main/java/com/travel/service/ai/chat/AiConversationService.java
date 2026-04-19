@@ -17,6 +17,8 @@ import com.travel.service.ai.rag.AiKnowledgeRetrievalService;
 import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import com.travel.service.ai.tool.AiToolContextHolder;
 import com.travel.service.ai.tool.AiToolContextHolder.AiToolRequestContext;
+import com.travel.service.ai.tool.AiToolExecutionService;
+import com.travel.service.ai.tool.AiToolExecutionService.AiToolExecutionResult;
 import com.travel.service.ai.tool.AiToolRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -111,6 +114,11 @@ public class AiConversationService {
     private final AiToolRegistry aiToolRegistry;
 
     /**
+     * AI 工具预执行服务。
+     */
+    private final AiToolExecutionService aiToolExecutionService;
+
+    /**
      * AI 流式响应线程池。
      */
     @Qualifier("aiChatStreamExecutor")
@@ -153,21 +161,39 @@ public class AiConversationService {
 
         // 3. 场景路由：判断当前是对客服、订单顾问还是推荐解释
         AiScenarioType scenario = aiScenarioRouter.route(userMessage, request.getScenarioHint(), request.getSourcePage());
-        AiIntentResult intentResult = aiIntentService.recognize(userMessage, scenario);
-        AiConversationContext conversationContext = aiConversationContextService.assemble(userId, scenario, intentResult);
+        AiToolRequestContext toolContext = aiToolContextHolder.createContext(userId, adminId);
 
-        // 4. RAG 知识检索：根据场景召回相关文档片段
-        List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
+        // 4. 双轨并行准备：左轨做 RAG 检索，右轨做意图识别、上下文组装和工具预执行。
+        CompletableFuture<List<AiKnowledgeSnippet>> retrievalFuture = CompletableFuture.supplyAsync(
+                () -> aiKnowledgeRetrievalService.retrieve(scenario, userMessage),
+                aiChatStreamExecutor
+        ).exceptionally(exception -> {
+            log.warn("AI 左轨检索失败，已降级为空结果：sessionId={}, scenario={}", sessionId, scenario, exception);
+            return List.of();
+        });
+        CompletableFuture<PreparedConversationData> toolingFuture = CompletableFuture.supplyAsync(
+                () -> prepareConversationData(userId, scenario, userMessage, toolContext),
+                aiChatStreamExecutor
+        ).exceptionally(exception -> {
+            log.warn("AI 右轨工具预执行失败，已降级为仅保留空上下文：sessionId={}, scenario={}", sessionId, scenario, exception);
+            return PreparedConversationData.empty();
+        });
+
+        PreparedConversationData preparedData = toolingFuture.join();
+        AiIntentResult intentResult = preparedData.intentResult();
+        AiConversationContext conversationContext = preparedData.conversationContext();
+        AiToolExecutionResult toolExecutionResult = preparedData.toolExecutionResult();
+        List<AiKnowledgeSnippet> knowledgeSnippets = retrievalFuture.join();
 
         // 5. 组装系统提示词并生成消息 ID
         String messageId = aiSessionIdService.createSessionId();
         String systemPrompt = aiPromptManager.buildSystemPrompt(scenario)
                 + buildConversationContextPrompt(conversationContext)
-                + buildIntentPrompt(intentResult);
-        AiToolRequestContext toolContext = aiToolContextHolder.createContext(userId, adminId);
+                + buildIntentPrompt(intentResult)
+                + buildToolExecutionPrompt(toolExecutionResult);
 
         log.info(
-                "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 意图={}, 来源页面={}, 上下文分区数={}, RAG命中数={}, 用户问题预览={}",
+                "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 意图={}, 来源页面={}, 上下文分区数={}, RAG命中数={}, 右轨是否预执行工具={}, 预执行工具名={}, 用户问题预览={}",
                 sessionId,
                 messageId,
                 userId,
@@ -176,6 +202,8 @@ public class AiConversationService {
                 request.getSourcePage(),
                 conversationContext.sections().size(),
                 knowledgeSnippets.size(),
+                toolExecutionResult.executed(),
+                toolExecutionResult.toolName(),
                 previewText(userMessage, 80)
         );
 
@@ -195,7 +223,7 @@ public class AiConversationService {
                         .system(systemPrompt)
                         .user(userMessage);
 
-                // 7. 动态注册工具：不同场景启用不同的业务能力
+                // 7. 动态注册工具：预执行结果作为主事实输入，运行时工具保留给最终模型做补充兜底。
                 Object[] tools = aiToolRegistry.resolveTools(scenario);
                 if (tools.length > 0) {
                     requestSpec = requestSpec.tools(tools);
@@ -388,6 +416,43 @@ public class AiConversationService {
     }
 
     /**
+     * 将右轨预执行工具得到的结构化结果追加到系统提示词。
+     *
+     * @param toolExecutionResult 工具预执行结果
+     * @return 附加提示词
+     */
+    private String buildToolExecutionPrompt(AiToolExecutionResult toolExecutionResult) {
+        if (toolExecutionResult == null || !toolExecutionResult.executed() || toolExecutionResult.payload() == null) {
+            return "";
+        }
+        return "\n\n系统已预执行右轨工具：" + toolExecutionResult.toolName()
+                + "\n已获得的结构化数据如下，请优先使用这些真实数据组织回答；只有当这些数据不足时，再决定是否补充调用其它工具："
+                + "\n" + toolExecutionResult.payload();
+    }
+
+    /**
+     * 组装右轨预处理结果。
+     *
+     * @param userId 当前用户 ID
+     * @param scenario 当前场景
+     * @param userMessage 用户消息
+     * @param toolContext 工具上下文
+     * @return 预处理结果
+     */
+    private PreparedConversationData prepareConversationData(Long userId,
+                                                             AiScenarioType scenario,
+                                                             String userMessage,
+                                                             AiToolRequestContext toolContext) {
+        AiIntentResult intentResult = aiIntentService.recognize(userMessage, scenario);
+        AiConversationContext conversationContext = aiConversationContextService.assemble(userId, scenario, intentResult);
+        AiToolExecutionResult toolExecutionResult = aiToolContextHolder.withContext(
+                toolContext,
+                () -> aiToolExecutionService.execute(scenario, intentResult)
+        );
+        return new PreparedConversationData(intentResult, conversationContext, toolExecutionResult);
+    }
+
+    /**
      * 截取文本预览，用于日志打印，避免超长内容刷屏。
      *
      * @param text 原始文本
@@ -403,5 +468,24 @@ public class AiConversationService {
             return normalized;
         }
         return normalized.substring(0, maxLength) + "...";
+    }
+
+    /**
+     * 右轨预处理结果。
+     */
+    private record PreparedConversationData(
+            AiIntentResult intentResult,
+            AiConversationContext conversationContext,
+            AiToolExecutionResult toolExecutionResult
+    ) {
+
+        /**
+         * 创建空结果。
+         *
+         * @return 空结果
+         */
+        private static PreparedConversationData empty() {
+            return new PreparedConversationData(null, AiConversationContext.empty(), AiToolExecutionResult.empty());
+        }
     }
 }

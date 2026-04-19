@@ -26,9 +26,9 @@ public class AiIntentService {
 
     private final AiJsonIntentClassificationSupport jsonSupport;
 
-    public AiIntentService(@Qualifier("aiChatClient") ChatClient aiChatClient,
+    public AiIntentService(@Qualifier("intentChatClient") ChatClient intentChatClient,
                            com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
-        this.jsonSupport = new AiJsonIntentClassificationSupport(aiChatClient, objectMapper);
+        this.jsonSupport = new AiJsonIntentClassificationSupport(intentChatClient, objectMapper);
     }
 
     /**

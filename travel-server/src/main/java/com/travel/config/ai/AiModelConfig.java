@@ -4,13 +4,25 @@ import io.micrometer.observation.ObservationRegistry;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.BatchingStrategy;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.TokenCountBatchingStrategy;
+import org.springframework.ai.model.SimpleApiKey;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.openai.OpenAiEmbeddingOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.OllamaEmbeddingModel;
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.observation.VectorStoreObservationConvention;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +30,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisClientConfig;
@@ -27,7 +42,7 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * AI 模型基础配置，统一暴露聊天客户端。
+ * AI 模型基础配置，显式拆分生成、意图和嵌入三段模型。
  */
 @Configuration
 @EnableConfigurationProperties(AiProperties.class)
@@ -68,16 +83,95 @@ public class AiModelConfig {
     }
 
     /**
-     * 注册统一 ChatClient，默认挂载消息记忆 advisor，后续 Tool Calling 和 RAG 也围绕该客户端扩展。
+     * 注册最终答案生成模型。
      *
-     * @param builder Spring AI 自动配置的 ChatClient 构建器
+     * @param aiProperties AI 配置
+     * @param observationRegistry 观测注册表
+     * @param restClientBuilder 同步 HTTP 客户端构建器
+     * @param webClientBuilder 响应式 HTTP 客户端构建器
+     * @param responseErrorHandler Spring AI 默认错误处理器
+     * @return 聊天模型
+     */
+    @Bean("generationChatModel")
+    public ChatModel generationChatModel(AiProperties aiProperties,
+                                         ObjectProvider<ObservationRegistry> observationRegistry,
+                                         RestClient.Builder restClientBuilder,
+                                         WebClient.Builder webClientBuilder,
+                                         ObjectProvider<ResponseErrorHandler> responseErrorHandler) {
+        return buildChatModel(
+                aiProperties.getGeneration().getProvider(),
+                aiProperties.getGeneration().getBaseUrl(),
+                aiProperties.getGeneration().getApiKey(),
+                aiProperties.getGeneration().getCompletionsPath(),
+                aiProperties.getEmbedding().getEmbeddingsPath(),
+                aiProperties.getGeneration().getModel(),
+                aiProperties.getGeneration().getTemperature(),
+                observationRegistry.getIfUnique(() -> ObservationRegistry.NOOP),
+                restClientBuilder,
+                webClientBuilder,
+                responseErrorHandler.getIfAvailable()
+        );
+    }
+
+    /**
+     * 注册意图识别模型。
+     *
+     * @param aiProperties AI 配置
+     * @param observationRegistry 观测注册表
+     * @param restClientBuilder 同步 HTTP 客户端构建器
+     * @param webClientBuilder 响应式 HTTP 客户端构建器
+     * @param responseErrorHandler Spring AI 默认错误处理器
+     * @return 聊天模型
+     */
+    @Bean("intentChatModel")
+    public ChatModel intentChatModel(AiProperties aiProperties,
+                                     ObjectProvider<ObservationRegistry> observationRegistry,
+                                     RestClient.Builder restClientBuilder,
+                                     WebClient.Builder webClientBuilder,
+                                     ObjectProvider<ResponseErrorHandler> responseErrorHandler) {
+        return buildChatModel(
+                aiProperties.getIntent().getProvider(),
+                aiProperties.getIntent().getBaseUrl(),
+                "",
+                "/v1/chat/completions",
+                aiProperties.getEmbedding().getEmbeddingsPath(),
+                aiProperties.getIntent().getModel(),
+                aiProperties.getIntent().getTemperature(),
+                observationRegistry.getIfUnique(() -> ObservationRegistry.NOOP),
+                restClientBuilder,
+                webClientBuilder,
+                responseErrorHandler.getIfAvailable()
+        );
+    }
+
+    /**
+     * 注册最终生成链路使用的 ChatClient。
+     *
+     * @param generationChatModel 最终生成模型
      * @param chatMemory 对话记忆实现
+     * @param observationRegistry 观测注册表
      * @return ChatClient 实例
      */
-    @Bean
-    public ChatClient aiChatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
-        return builder
+    @Bean("aiChatClient")
+    public ChatClient aiChatClient(@Qualifier("generationChatModel") ChatModel generationChatModel,
+                                   ChatMemory chatMemory,
+                                   ObjectProvider<ObservationRegistry> observationRegistry) {
+        return ChatClient.builder(generationChatModel, observationRegistry.getIfUnique(() -> ObservationRegistry.NOOP), null)
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .build();
+    }
+
+    /**
+     * 注册意图识别专用 ChatClient。
+     *
+     * @param intentChatModel 意图识别模型
+     * @param observationRegistry 观测注册表
+     * @return ChatClient 实例
+     */
+    @Bean("intentChatClient")
+    public ChatClient intentChatClient(@Qualifier("intentChatModel") ChatModel intentChatModel,
+                                       ObjectProvider<ObservationRegistry> observationRegistry) {
+        return ChatClient.builder(intentChatModel, observationRegistry.getIfUnique(() -> ObservationRegistry.NOOP), null)
                 .build();
     }
 
@@ -89,6 +183,36 @@ public class AiModelConfig {
     @Bean
     public BatchingStrategy aiEmbeddingBatchingStrategy() {
         return new TokenCountBatchingStrategy();
+    }
+
+    /**
+     * 注册嵌入模型，供向量入库和查询向量化共用。
+     *
+     * @param aiProperties AI 配置
+     * @param observationRegistry 观测注册表
+     * @param restClientBuilder 同步 HTTP 客户端构建器
+     * @param webClientBuilder 响应式 HTTP 客户端构建器
+     * @param responseErrorHandler Spring AI 默认错误处理器
+     * @return 嵌入模型
+     */
+    @Bean
+    @Primary
+    public EmbeddingModel embeddingModel(AiProperties aiProperties,
+                                         ObjectProvider<ObservationRegistry> observationRegistry,
+                                         RestClient.Builder restClientBuilder,
+                                         WebClient.Builder webClientBuilder,
+                                         ObjectProvider<ResponseErrorHandler> responseErrorHandler) {
+        return buildEmbeddingModel(
+                aiProperties.getEmbedding().getProvider(),
+                aiProperties.getEmbedding().getBaseUrl(),
+                aiProperties.getEmbedding().getApiKey(),
+                aiProperties.getEmbedding().getEmbeddingsPath(),
+                aiProperties.getEmbedding().getModel(),
+                observationRegistry.getIfUnique(() -> ObservationRegistry.NOOP),
+                restClientBuilder,
+                webClientBuilder,
+                responseErrorHandler.getIfAvailable()
+        );
     }
 
     /**
@@ -129,6 +253,7 @@ public class AiModelConfig {
                 .batchingStrategy(batchingStrategy)
                 .indexName(redisProperties.getIndexName())
                 .prefix(redisProperties.getPrefix())
+                .vectorAlgorithm(resolveVectorAlgorithm(redisProperties.getAlgorithm()))
                 // 元数据字段需要和知识分片写入时的 metadata key 保持一致，否则过滤和回溯会失效。
                 .metadataFields(List.of(
                         RedisVectorStore.MetadataField.numeric("documentId"),
@@ -141,6 +266,168 @@ public class AiModelConfig {
                         RedisVectorStore.MetadataField.text("tags")
                 ))
                 .build();
+    }
+
+    /**
+     * 根据配置构建聊天模型，避免意图识别和最终生成复用同一客户端。
+     *
+     * @param provider 提供方类型
+     * @param baseUrl 服务地址
+     * @param apiKey API Key
+     * @param completionsPath 聊天完成路径
+     * @param embeddingsPath 向量路径
+     * @param model 模型名称
+     * @param temperature 温度
+     * @param observationRegistry 观测注册表
+     * @param restClientBuilder 同步 HTTP 客户端构建器
+     * @param webClientBuilder 响应式 HTTP 客户端构建器
+     * @param responseErrorHandler 错误处理器
+     * @return 聊天模型
+     */
+    private ChatModel buildChatModel(String provider,
+                                     String baseUrl,
+                                     String apiKey,
+                                     String completionsPath,
+                                     String embeddingsPath,
+                                     String model,
+                                     Double temperature,
+                                     ObservationRegistry observationRegistry,
+                                     RestClient.Builder restClientBuilder,
+                                     WebClient.Builder webClientBuilder,
+                                     ResponseErrorHandler responseErrorHandler) {
+        if (!StringUtils.hasText(provider)) {
+            throw new IllegalArgumentException("AI 模型提供方不能为空");
+        }
+        if ("ollama".equalsIgnoreCase(provider)) {
+            return OllamaChatModel.builder()
+                    .ollamaApi(buildOllamaApi(baseUrl, restClientBuilder, webClientBuilder, responseErrorHandler))
+                    .defaultOptions(OllamaOptions.builder().model(model).temperature(temperature).build())
+                    .observationRegistry(observationRegistry)
+                    .build();
+        }
+        if ("openai".equalsIgnoreCase(provider)) {
+            return OpenAiChatModel.builder()
+                    .openAiApi(buildOpenAiApi(baseUrl, apiKey, completionsPath, embeddingsPath, restClientBuilder, webClientBuilder, responseErrorHandler))
+                    .defaultOptions(OpenAiChatOptions.builder().model(model).temperature(temperature).build())
+                    .observationRegistry(observationRegistry)
+                    .build();
+        }
+        throw new IllegalArgumentException("暂不支持的 AI 聊天模型提供方: " + provider);
+    }
+
+    /**
+     * 根据配置构建嵌入模型，方便后续独立替换 embedding 供应商。
+     *
+     * @param provider 提供方类型
+     * @param baseUrl 服务地址
+     * @param apiKey API Key
+     * @param embeddingsPath 向量路径
+     * @param model 模型名称
+     * @param observationRegistry 观测注册表
+     * @param restClientBuilder 同步 HTTP 客户端构建器
+     * @param webClientBuilder 响应式 HTTP 客户端构建器
+     * @param responseErrorHandler 错误处理器
+     * @return 嵌入模型
+     */
+    private EmbeddingModel buildEmbeddingModel(String provider,
+                                               String baseUrl,
+                                               String apiKey,
+                                               String embeddingsPath,
+                                               String model,
+                                               ObservationRegistry observationRegistry,
+                                               RestClient.Builder restClientBuilder,
+                                               WebClient.Builder webClientBuilder,
+                                               ResponseErrorHandler responseErrorHandler) {
+        if (!StringUtils.hasText(provider)) {
+            throw new IllegalArgumentException("AI 嵌入模型提供方不能为空");
+        }
+        if ("ollama".equalsIgnoreCase(provider)) {
+            return OllamaEmbeddingModel.builder()
+                    .ollamaApi(buildOllamaApi(baseUrl, restClientBuilder, webClientBuilder, responseErrorHandler))
+                    .defaultOptions(OllamaOptions.builder().model(model).build())
+                    .observationRegistry(observationRegistry)
+                    .build();
+        }
+        if ("openai".equalsIgnoreCase(provider)) {
+            return new OpenAiEmbeddingModel(
+                    buildOpenAiApi(baseUrl, apiKey, "/v1/chat/completions", embeddingsPath, restClientBuilder, webClientBuilder, responseErrorHandler),
+                    org.springframework.ai.document.MetadataMode.EMBED,
+                    OpenAiEmbeddingOptions.builder().model(model).build(),
+                    org.springframework.ai.retry.RetryUtils.DEFAULT_RETRY_TEMPLATE,
+                    observationRegistry
+            );
+        }
+        throw new IllegalArgumentException("暂不支持的 AI 嵌入模型提供方: " + provider);
+    }
+
+    /**
+     * 构建 OpenAI 风格 API 客户端。
+     *
+     * @param baseUrl 服务地址
+     * @param apiKey API Key
+     * @param completionsPath 聊天完成路径
+     * @param embeddingsPath 向量路径
+     * @param restClientBuilder 同步 HTTP 客户端构建器
+     * @param webClientBuilder 响应式 HTTP 客户端构建器
+     * @param responseErrorHandler 错误处理器
+     * @return OpenAI API 客户端
+     */
+    private OpenAiApi buildOpenAiApi(String baseUrl,
+                                     String apiKey,
+                                     String completionsPath,
+                                     String embeddingsPath,
+                                     RestClient.Builder restClientBuilder,
+                                     WebClient.Builder webClientBuilder,
+                                     ResponseErrorHandler responseErrorHandler) {
+        OpenAiApi.Builder builder = OpenAiApi.builder()
+                .baseUrl(baseUrl)
+                .apiKey(new SimpleApiKey(apiKey))
+                .completionsPath(completionsPath)
+                .embeddingsPath(embeddingsPath)
+                .restClientBuilder(restClientBuilder)
+                .webClientBuilder(webClientBuilder);
+        if (responseErrorHandler != null) {
+            builder.responseErrorHandler(responseErrorHandler);
+        }
+        return builder.build();
+    }
+
+    /**
+     * 构建 Ollama API 客户端。
+     *
+     * @param baseUrl 服务地址
+     * @param restClientBuilder 同步 HTTP 客户端构建器
+     * @param webClientBuilder 响应式 HTTP 客户端构建器
+     * @param responseErrorHandler 错误处理器
+     * @return Ollama API 客户端
+     */
+    private OllamaApi buildOllamaApi(String baseUrl,
+                                     RestClient.Builder restClientBuilder,
+                                     WebClient.Builder webClientBuilder,
+                                     ResponseErrorHandler responseErrorHandler) {
+        OllamaApi.Builder builder = OllamaApi.builder()
+                .baseUrl(baseUrl)
+                .restClientBuilder(restClientBuilder)
+                .webClientBuilder(webClientBuilder);
+        if (responseErrorHandler != null) {
+            builder.responseErrorHandler(responseErrorHandler);
+        }
+        return builder.build();
+    }
+
+    /**
+     * 解析 Redis 向量索引算法，默认使用主流的 HNSW。
+     *
+     * @param algorithm 配置值
+     * @return RedisVectorStore 算法枚举
+     */
+    private RedisVectorStore.Algorithm resolveVectorAlgorithm(String algorithm) {
+        if (!StringUtils.hasText(algorithm)) {
+            return RedisVectorStore.Algorithm.HSNW;
+        }
+        return "FLAT".equalsIgnoreCase(algorithm.trim())
+                ? RedisVectorStore.Algorithm.FLAT
+                : RedisVectorStore.Algorithm.HSNW;
     }
 
     /**

@@ -3,6 +3,7 @@ package com.travel.service.ai.rag;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
+import com.travel.config.ai.AiProperties;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentDetailResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentItem;
 import com.travel.dto.ai.knowledge.AiKnowledgeJobResponse;
@@ -76,6 +77,11 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
      * 环境配置访问入口。
      */
     private final Environment environment;
+
+    /**
+     * AI 模型配置。
+     */
+    private final AiProperties aiProperties;
 
     /**
      * 当前 embedding 模型。
@@ -235,11 +241,11 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
     public AiKnowledgeVectorIndexStatusResponse getVectorIndexStatus() {
         AiKnowledgeVectorIndexStatusResponse response = new AiKnowledgeVectorIndexStatusResponse();
         response.setRagEnabled(Boolean.TRUE.equals(environment.getProperty("app.ai.rag.enabled", Boolean.class, Boolean.FALSE)));
-        response.setChatProvider(environment.getProperty("spring.ai.model.chat", "ollama"));
-        response.setEmbeddingProvider(environment.getProperty("spring.ai.model.embedding", "ollama"));
+        response.setChatProvider(aiProperties.getGeneration().getProvider());
+        response.setEmbeddingProvider(aiProperties.getEmbedding().getProvider());
         response.setMixedProviderMode(!response.getChatProvider().equalsIgnoreCase(response.getEmbeddingProvider()));
-        response.setChatModel(environment.getProperty("app.ai.provider.chat-model", ""));
-        response.setEmbeddingModel(environment.getProperty("app.ai.provider.embedding-model", ""));
+        response.setChatModel(aiProperties.getGeneration().getModel());
+        response.setEmbeddingModel(aiProperties.getEmbedding().getModel());
         response.setRedisHost(environment.getProperty("app.ai.vector.redis.host", "127.0.0.1"));
         response.setRedisPort(environment.getProperty("app.ai.vector.redis.port", Integer.class, 6379));
         response.setIndexName(environment.getProperty("app.ai.vector.redis.index-name", "waytrip-ai-knowledge-index"));
