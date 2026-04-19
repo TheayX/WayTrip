@@ -8,6 +8,8 @@ import com.travel.dto.ai.response.AiChatErrorEvent;
 import com.travel.dto.ai.response.AiChatMessageResponse;
 import com.travel.enums.ai.AiScenarioType;
 import com.travel.service.ai.guardrail.AiGuardrailService;
+import com.travel.service.ai.intent.AiIntentResult;
+import com.travel.service.ai.intent.AiIntentService;
 import com.travel.service.ai.memory.AiSessionIdService;
 import com.travel.service.ai.memory.RedisChatMemory;
 import com.travel.service.ai.rag.AiKnowledgeContextAdvisor;
@@ -41,7 +43,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AiConversationOrchestrator {
+public class AiConversationService {
 
     /**
      * 统一 AI 聊天客户端。
@@ -71,7 +73,12 @@ public class AiConversationOrchestrator {
     /**
      * 系统提示词服务。
      */
-    private final AiPromptService aiPromptService;
+    private final AiPromptManager aiPromptManager;
+
+    /**
+     * 运行时意图识别服务。
+     */
+    private final AiIntentService aiIntentService;
 
     /**
      * 响应组装器。
@@ -141,21 +148,23 @@ public class AiConversationOrchestrator {
 
         // 3. 场景路由：判断当前是对客服、订单顾问还是推荐解释
         AiScenarioType scenario = aiScenarioRouter.route(userMessage, request.getScenarioHint(), request.getSourcePage());
+        AiIntentResult intentResult = aiIntentService.recognize(userMessage, scenario);
 
         // 4. RAG 知识检索：根据场景召回相关文档片段
         List<AiKnowledgeSnippet> knowledgeSnippets = aiKnowledgeRetrievalService.retrieve(scenario, userMessage);
 
         // 5. 组装系统提示词并生成消息 ID
         String messageId = aiSessionIdService.createSessionId();
-        String systemPrompt = aiPromptService.buildSystemPrompt(scenario);
+        String systemPrompt = aiPromptManager.buildSystemPrompt(scenario) + buildIntentPrompt(intentResult);
         AiToolRequestContext toolContext = aiToolContextHolder.createContext(userId, adminId);
 
         log.info(
-                "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 来源页面={}, RAG命中数={}, 用户问题预览={}",
+                "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 意图={}, 来源页面={}, RAG命中数={}, 用户问题预览={}",
                 sessionId,
                 messageId,
                 userId,
                 scenario,
+                intentResult == null ? "" : intentResult.intent(),
                 request.getSourcePage(),
                 knowledgeSnippets.size(),
                 previewText(userMessage, 80)
@@ -335,6 +344,25 @@ public class AiConversationOrchestrator {
         } finally {
             emitter.complete();
         }
+    }
+
+    /**
+     * 将已识别的意图和槽位追加到系统提示词，帮助模型优先围绕真实任务调用工具。
+     *
+     * @param intentResult 意图识别结果
+     * @return 附加提示词
+     */
+    private String buildIntentPrompt(AiIntentResult intentResult) {
+        if (intentResult == null || !StringUtils.hasText(intentResult.intent()) || intentResult.intent().endsWith("NONE")) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder("\n\n已识别的用户意图：")
+                .append(intentResult.intent());
+        if (intentResult.slots() != null && !intentResult.slots().isEmpty()) {
+            builder.append("\n已提取条件：").append(intentResult.slots());
+        }
+        builder.append("\n请优先围绕该意图调用最匹配的工具，再组织回复。");
+        return builder.toString();
     }
 
     /**

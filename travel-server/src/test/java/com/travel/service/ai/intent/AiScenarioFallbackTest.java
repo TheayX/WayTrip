@@ -1,4 +1,4 @@
-package com.travel.service.ai.chat.intent;
+package com.travel.service.ai.intent;
 
 import com.travel.enums.ai.AiScenarioType;
 import org.junit.jupiter.api.Test;
@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * 全局规则兜底路由测试，覆盖画像和运营分析场景。
  */
-class AiRuleBasedScenarioFallbackTest {
+class AiScenarioFallbackTest {
 
-    private final AiRuleBasedScenarioFallback fallback = new AiRuleBasedScenarioFallback();
+    private final AiScenarioFallback fallback = new AiScenarioFallback();
 
     @Test
     void routeProfileQuestionToProfileAnalyzer() {

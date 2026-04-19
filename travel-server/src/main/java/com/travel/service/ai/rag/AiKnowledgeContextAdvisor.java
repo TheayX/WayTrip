@@ -111,7 +111,7 @@ public class AiKnowledgeContextAdvisor implements CallAdvisor {
      */
     private String buildKnowledgeContext(List<AiKnowledgeSnippet> knowledgeSnippets) {
         StringBuilder builder = new StringBuilder();
-        builder.append("\n\n知识参考（仅在与用户问题相关时使用，无法确认时必须明确说明信息不足）：\n");
+        builder.append("\n\n知识参考（仅在与用户问题相关时使用；优先自然回答，无法确认具体事实时再说明边界）：\n");
         for (AiKnowledgeSnippet snippet : knowledgeSnippets) {
             builder.append("- [")
                     .append(snippet.getTitle())

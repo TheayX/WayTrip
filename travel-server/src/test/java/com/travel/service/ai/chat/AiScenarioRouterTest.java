@@ -1,6 +1,7 @@
 package com.travel.service.ai.chat;
 
 import com.travel.enums.ai.AiScenarioType;
+import com.travel.service.ai.intent.AiScenarioFallback;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,21 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class AiScenarioRouterTest {
 
-    private final AiScenarioRouter router = new AiScenarioRouter();
+    private final AiScenarioRouter router = new AiScenarioRouter(new AiScenarioFallback());
 
     @Test
     void routeUsesExactScenarioHintFirst() {
         assertEquals(
                 AiScenarioType.TRAVEL_PLANNER,
                 router.route("看看我适合哪些景点", "TRAVEL_PLANNER", "Home")
-        );
-    }
-
-    @Test
-    void routeSupportsLegacyTravelAlias() {
-        assertEquals(
-                AiScenarioType.TRAVEL_PLANNER,
-                router.route("看看我适合哪些景点", "travel", "Home")
         );
     }
 

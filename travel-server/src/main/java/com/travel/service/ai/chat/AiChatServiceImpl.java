@@ -14,9 +14,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class AiChatServiceImpl implements AiChatService {
 
     /**
-     * AI 对话主编排器。
+     * AI 对话服务。
      */
-    private final AiConversationOrchestrator aiConversationOrchestrator;
+    private final AiConversationService aiConversationService;
 
     /**
      * 将外部请求转发到统一编排链路。
@@ -29,6 +29,6 @@ public class AiChatServiceImpl implements AiChatService {
      */
     @Override
     public SseEmitter chat(AiChatMessageRequest request, Long userId, Long adminId, String clientIp) {
-        return aiConversationOrchestrator.chat(request, userId, adminId, clientIp);
+        return aiConversationService.chat(request, userId, adminId, clientIp);
     }
 }
