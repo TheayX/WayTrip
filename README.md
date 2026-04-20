@@ -169,9 +169,17 @@ npm run dev:mp-weixin
 
 ## AI 客服说明
 
-- Web 用户端已接入 AI 客服组件，后端提供独立的 AI 对话接口用于实验与联调。
-- 当前 AI 聊天链路默认依赖 Ollama，也可以通过 `APP_AI_PROVIDER_TYPE=openai` 切换到百炼 OpenAI 兼容接口；切换百炼时配置 `OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1`、`OPENAI_API_KEY` 和 `APP_AI_PROVIDER_CHAT_MODEL=qwen3.5-plus`。Ollama 配置仍保留，改回 `APP_AI_PROVIDER_TYPE=ollama` 即可切回本地模型。
-- AI 会话通过 `sessionId` 进行区分，前端只持久化会话标识；实际对话历史与短时缓存由 Redis 托管。
+- Web 用户端已接入 AI 客服组件，管理端已提供 AI 知识预览与命中结果查看入口，后端提供独立的 AI 对话与 RAG 检索链路。
+- 当前 AI 配置已经拆成三段模型：
+  - 最终生成使用 `APP_AI_GENERATION_*`
+  - 意图识别使用 `APP_AI_INTENT_*`
+  - 向量嵌入使用 `APP_AI_EMBEDDING_*`
+- 当前默认联调约定是：
+  - 最终生成走 OpenAI 兼容接口（如百炼）
+  - 意图识别与 embedding 走本地 Ollama
+  - RAG 默认开启
+  - 向量库 Redis 默认使用独立端口 `6380`
+- AI 会话通过 `sessionId` 区分，前端只持久化会话标识；实际对话历史、短时记忆和知识检索上下文由 Redis 托管。
 - 该能力当前以 `ai-chatbot` 分支为主进行独立迭代，后续是否并入 `main` 需结合联调与稳定性评估。
 
 ## 文档

@@ -38,7 +38,9 @@ cp .env.example .env
 - 微信小程序配置
 - 推荐缓存与任务调度参数
 - 上传目录
-- AI 模型与知识库参数
+- AI 三段模型配置（生成 / 意图 / embedding）
+- AI 对话、RAG、记忆与限流参数
+- AI 向量库 Redis 连接参数
 
 补充说明：
 
@@ -46,6 +48,8 @@ cp .env.example .env
 - 若继续使用 `prod`，在当前目录创建 `.env`
 - 若切到 `dev`，直接修改 `src/main/resources/application-dev.yml`
 - `UPLOAD_PATH` 建议优先使用绝对路径
+- 模板默认开启 `APP_AI_RAG_ENABLED=true`，方便直接联调 AI 客服
+- 向量库 Redis 默认使用 `6380` 端口，可与业务 Redis 分离部署
 
 ### 数据库初始化
 
@@ -151,24 +155,43 @@ service/
 
 ## AI 模块说明
 
-当前 AI 模块已经按主流 Spring AI 单 Agent 结构收口：
+当前 AI 模块已经按“主聊天链路 + 三段模型 + 双轨 RAG”结构收口：
 
+- `config/ai/`
+  - `AiModelConfig`：显式拆分生成、意图、嵌入三段模型，并注册流式线程池、双轨执行器和向量库
+  - `AiProperties`：统一收口 AI 环境变量
 - `service/ai/chat/`
-  - `AiConversationOrchestrator`：主聊天入口协调器
-  - `AiPromptService`：系统提示词策略
-  - `AiResponseAssembler`：统一响应封装
-- `service/ai/memory/`
-  - `RedisChatMemory`：基于 Redis 的对话记忆
+  - `AiConversationService`：主聊天编排入口，负责风控、场景路由、双轨并行、流式输出和指标记录
+  - `AiPromptManager`：系统提示词与场景提示组装
+  - `AiScenarioRouter`：显式场景提示与兜底路由
+  - `AiContextFusionService`：融合 RAG、工具和业务上下文
+  - `AiConversationContextService`：组装对话期业务上下文
+  - `AiResponseAssembler`：统一响应事件封装
+- `service/ai/intent/`
+  - `AiIntentService`：运行时意图识别与槽位提取
 - `service/ai/rag/`
   - `AiKnowledgeRetrievalService`：知识检索接口
+  - `RedisVectorAiKnowledgeRetrievalService`：基于 Redis 向量库的检索实现
   - `AiKnowledgeContextAdvisor`：知识上下文增强
+  - `AiKnowledgeAdminServiceImpl`：管理端知识预览与检索联调入口
+- `service/ai/memory/`
+  - `RedisChatMemory`：基于 Redis 的对话记忆
+  - `AiSessionIdService`：统一会话标识管理
+- `service/ai/guardrail/`
+  - `AiGuardrailService`：限流、登录边界和前置规则拦截
 - `service/ai/tool/`
-  - `*AiTools`：业务工具集合
+  - `AiToolExecutionService`：统一工具执行入口
   - `AiToolRegistry`：工具暴露注册中心
-  - `AiToolResponse`：统一工具响应结构
+  - `*AiTools`：订单、推荐、景点等业务工具集合
 - `service/ai/rule/`
-  - `OrderBusinessRuleProvider`：订单域规则真相源摘要
-  - `OrderRuleConstants`：订单共享规则常量
+  - `*RuleProvider`：AI 可消费的业务规则真相源摘要
+
+当前主链路约定：
+
+- 左轨负责 RAG 检索
+- 右轨负责业务上下文与工具预处理
+- 两轨并行后再进入最终生成模型
+- 管理端 preview 支持查看多知识域命中结果，而不是只看单一默认知识域
 
 规则边界约定：
 - 订单状态、退款能力、超时阈值等真实业务规则来自 Java 真相源；
