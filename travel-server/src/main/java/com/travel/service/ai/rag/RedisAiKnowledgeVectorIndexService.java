@@ -2,6 +2,7 @@ package com.travel.service.ai.rag;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.travel.config.ai.AiProperties;
 import com.travel.entity.AiKnowledgeChunk;
 import com.travel.entity.AiKnowledgeDocument;
 import com.travel.enums.ai.AiKnowledgeEmbeddingStatus;
@@ -10,9 +11,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import redis.clients.jedis.JedisPooled;
+import redis.clients.jedis.exceptions.JedisDataException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +44,16 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
      * 知识分片持久层。
      */
     private final AiKnowledgeChunkMapper aiKnowledgeChunkMapper;
+
+    /**
+     * AI 向量 Redis 连接。
+     */
+    private final JedisPooled aiVectorJedisPooled;
+
+    /**
+     * AI 配置。
+     */
+    private final AiProperties aiProperties;
 
     /**
      * 重建指定文档的全部向量索引，并更新分片状态。
@@ -111,28 +125,45 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
     public int clearAllVectorData() {
         List<AiKnowledgeChunk> chunks = aiKnowledgeChunkMapper.selectList(new LambdaQueryWrapper<AiKnowledgeChunk>()
                 .isNotNull(AiKnowledgeChunk::getId));
-        if (chunks == null || chunks.isEmpty()) {
-            return 0;
-        }
-
         List<String> vectorIds = new ArrayList<>();
-        for (AiKnowledgeChunk chunk : chunks) {
-            vectorIds.add(buildVectorId(chunk.getId()));
+        if (chunks != null) {
+            for (AiKnowledgeChunk chunk : chunks) {
+                vectorIds.add(buildVectorId(chunk.getId()));
+            }
         }
         try {
-            vectorStore.delete(vectorIds);
+            if (!vectorIds.isEmpty()) {
+                vectorStore.delete(vectorIds);
+            }
         } catch (Exception exception) {
             // 兼容 Redis 已被手动清空或索引缺失的场景，仍继续重置数据库状态。
             log.warn("AI 知识向量数据清理时未能删除 Redis 中的旧向量，继续重置数据库状态", exception);
         }
+        dropIndexSchemaIfExists();
         aiKnowledgeChunkMapper.update(
                 null,
                 new LambdaUpdateWrapper<AiKnowledgeChunk>()
                         .set(AiKnowledgeChunk::getEmbeddingStatus, AiKnowledgeEmbeddingStatus.PENDING.code())
                         .set(AiKnowledgeChunk::getVectorId, "")
         );
-        log.info("AI 知识向量数据清理完成: clearedVectorCount={}", vectorIds.size());
+        recreateIndexSchema();
+        log.info("AI 知识向量数据清理完成: clearedVectorCount={}, indexName={}", vectorIds.size(), currentIndexName());
         return vectorIds.size();
+    }
+
+    /**
+     * 按当前 embedding 模型重新创建向量索引结构。
+     */
+    @Override
+    public void recreateIndexSchema() {
+        if (vectorStore instanceof InitializingBean initializingBean) {
+            try {
+                initializingBean.afterPropertiesSet();
+                log.info("AI 向量索引结构已按当前 embedding 模型重新创建: indexName={}", currentIndexName());
+            } catch (Exception exception) {
+                throw new IllegalStateException("AI 向量索引结构重建失败，请检查 Redis Stack 与 embedding 模型状态。", exception);
+            }
+        }
     }
 
     /**
@@ -198,5 +229,29 @@ public class RedisAiKnowledgeVectorIndexService implements AiKnowledgeVectorInde
      */
     private String normalize(String value) {
         return StringUtils.hasText(value) ? value.trim() : "";
+    }
+
+    /**
+     * 删除旧的 RedisSearch 索引结构，确保后续能按当前 embedding 维度重新建索引。
+     */
+    private void dropIndexSchemaIfExists() {
+        String indexName = currentIndexName();
+        try {
+            aiVectorJedisPooled.ftDropIndex(indexName);
+            log.info("AI 向量索引结构已删除: indexName={}", indexName);
+        } catch (JedisDataException exception) {
+            if (exception.getMessage() != null && exception.getMessage().contains("Unknown Index name")) {
+                log.info("AI 向量索引结构删除跳过: indexName={}, reason=index_not_found", indexName);
+                return;
+            }
+            throw exception;
+        }
+    }
+
+    /**
+     * 获取当前 RedisSearch 索引名称。
+     */
+    private String currentIndexName() {
+        return aiProperties.getVector().getRedis().getIndexName();
     }
 }

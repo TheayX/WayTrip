@@ -20,7 +20,11 @@ public class AiKnowledgeVectorIndexStatusResponse {
     private String prefix;
     private Integer modelDimension;
     private Integer indexDimension;
+    private Boolean indexExists;
     private Boolean dimensionMatched;
+    private Boolean retrievalReady;
+    private Boolean needsRebuild;
+    private String warningMessage;
     private Integer documentCount;
     private Integer enabledDocumentCount;
     private Integer totalChunkCount;

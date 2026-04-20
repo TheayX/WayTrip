@@ -60,6 +60,12 @@ cp .env.example .env
 mvn spring-boot:run
 ```
 
+日志路径补充（避免出现 `travel-server/travel-server/logs`）：
+
+- 日志根目录由 `LOG_HOME` 控制，未配置时使用 `logback-spring.xml` 的默认值。
+- 相对路径会基于启动工作目录（`cwd`）解析，因此不同启动方式可能落到不同位置。
+- VS Code 调试在 `../.vscode/launch.json` 的“启动后端 (Spring Boot)”里固定 `env.LOG_HOME=./logs`，配合 `cwd=${workspaceFolder}/travel-server`，日志固定落到 `travel-server/logs`。
+
 默认地址：
 
 - API：`http://localhost:8080`

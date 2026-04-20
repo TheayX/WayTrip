@@ -16,6 +16,36 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
     default-property-inclusion: non_null
+  ai:
+    model:
+      chat: ${APP_AI_GENERATION_PROVIDER:openai}
+      embedding: ${APP_AI_EMBEDDING_PROVIDER:ollama}
+      image: none
+      moderation: none
+      audio:
+        transcription: none
+        speech: none
+    openai:
+      base-url: ${APP_AI_GENERATION_BASE_URL:${OPENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}}
+      api-key: ${APP_AI_GENERATION_API_KEY:${OPENAI_API_KEY:}}
+      chat:
+        completions-path: ${APP_AI_GENERATION_COMPLETIONS_PATH:/chat/completions}
+        options:
+          model: ${APP_AI_GENERATION_MODEL:qwen3.5-plus}
+          temperature: ${APP_AI_GENERATION_TEMPERATURE:0.2}
+      embedding:
+        embeddings-path: ${APP_AI_EMBEDDING_PATH:/v1/embeddings}
+        options:
+          model: ${APP_AI_EMBEDDING_MODEL:text-embedding-v4}
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:${APP_AI_INTENT_BASE_URL:http://127.0.0.1:11434}}
+      chat:
+        options:
+          model: ${APP_AI_INTENT_MODEL:qwen2.5:1.5b}
+          temperature: ${APP_AI_INTENT_TEMPERATURE:0.0}
+      embedding:
+        options:
+          model: ${APP_AI_EMBEDDING_MODEL:nomic-embed-text}
 
 # MyBatis-Plus 配置
 mybatis-plus:
@@ -34,6 +64,7 @@ mybatis-plus:
 # 日志配置
 logging:
   config: classpath:logback-spring.xml
+  log-home: ${LOG_HOME:./logs}
   level:
     root: INFO
     com.travel: DEBUG

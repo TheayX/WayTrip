@@ -24,4 +24,9 @@ public interface AiKnowledgeVectorIndexService {
      * @return 清理掉的向量数量
      */
     int clearAllVectorData();
+
+    /**
+     * 按当前 embedding 模型重新创建向量索引结构。
+     */
+    void recreateIndexSchema();
 }

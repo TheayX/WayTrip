@@ -52,10 +52,22 @@
         </div>
 
         <div v-else class="status-shell" v-loading="statusLoading">
+          <el-alert
+            v-if="vectorStatus.needsRebuild && vectorStatus.warningMessage"
+            :closable="false"
+            type="warning"
+            show-icon
+            :title="vectorStatus.warningMessage"
+          />
+
           <div class="status-overview">
             <div class="status-chip" :class="{ 'status-chip--active': vectorStatus.ragEnabled }">
               <span class="status-chip__label">RAG</span>
               <strong>{{ vectorStatus.ragEnabled ? '已启用' : '未启用' }}</strong>
+            </div>
+            <div class="status-chip" :class="{ 'status-chip--warn': vectorStatus.needsRebuild }">
+              <span class="status-chip__label">检索状态</span>
+              <strong>{{ vectorStatus.retrievalReady ? '可检索' : vectorStatus.needsRebuild ? '需重建' : '未就绪' }}</strong>
             </div>
             <div class="status-chip" :class="{ 'status-chip--warn': vectorStatus.mixedProviderMode }">
               <span class="status-chip__label">模型模式</span>

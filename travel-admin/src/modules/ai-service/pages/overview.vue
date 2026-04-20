@@ -21,6 +21,15 @@
     </div>
 
     <template v-else>
+      <el-alert
+        v-if="vectorStatus.needsRebuild && vectorStatus.warningMessage"
+        class="page-status-alert ai-warning-alert"
+        type="warning"
+        show-icon
+        :closable="false"
+        :title="vectorStatus.warningMessage"
+      />
+
       <div v-loading="loading" class="hero-grid">
         <el-card shadow="hover" class="hero-card hero-card-docs">
           <div class="hero-card-content">
@@ -65,10 +74,16 @@
             </template>
 
             <div class="vector-health-grid">
-              <div class="vector-health-card" :class="{ 'vector-health-card--ok': vectorStatus.dimensionMatched, 'vector-health-card--danger': vectorStatus.dimensionMatched === false }">
+              <div
+                class="vector-health-card"
+                :class="{
+                  'vector-health-card--ok': vectorStatus.retrievalReady,
+                  'vector-health-card--danger': vectorStatus.needsRebuild
+                }"
+              >
                 <div class="vector-health-card__label">维度一致性</div>
                 <div class="vector-health-card__value">
-                  {{ vectorStatus.dimensionMatched === null ? '未检测' : vectorStatus.dimensionMatched ? '一致' : '不一致' }}
+                  {{ vectorStatus.retrievalReady ? '可检索' : vectorStatus.needsRebuild ? '需重建' : '未检测' }}
                 </div>
                 <div class="vector-health-card__desc">
                   模型 {{ displayAiMetric(vectorStatus.modelDimension) }} 维 · 索引 {{ displayAiMetric(vectorStatus.indexDimension) }} 维
@@ -385,6 +400,10 @@ onMounted(() => {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
+  }
+
+  .ai-warning-alert {
+    margin-bottom: 16px;
   }
 
   .hero-card {

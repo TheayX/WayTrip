@@ -1,6 +1,8 @@
 package com.travel.service.ai.rag;
 
 import com.travel.config.ai.AiProperties;
+import com.travel.config.ai.AiVectorIndexHealth;
+import com.travel.config.ai.AiVectorIndexHealthService;
 import com.travel.enums.ai.AiKnowledgeDomain;
 import com.travel.enums.ai.AiScenarioType;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,11 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
     private final VectorStore vectorStore;
 
     /**
+     * 向量索引健康检查服务。
+     */
+    private final AiVectorIndexHealthService aiVectorIndexHealthService;
+
+    /**
      * 按场景执行向量检索，并在命中后过滤到对应知识域。
      *
      * @param scenario 场景类型
@@ -49,6 +56,16 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
 
         long startedAt = System.currentTimeMillis();
         AiKnowledgeDomain domain = resolveDomain(scenario);
+        AiVectorIndexHealth health = aiVectorIndexHealthService.inspect();
+        if (!health.isRetrievalReady()) {
+            log.warn(
+                    "AI 向量检索已降级为空结果：场景={}, 知识域={}, reason={}",
+                    scenario,
+                    domain,
+                    health.getWarningMessage()
+            );
+            return List.of();
+        }
         SearchRequest request = SearchRequest.builder()
                 .query(userMessage.trim())
                 .topK(resolveCandidateCount())

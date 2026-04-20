@@ -3,6 +3,8 @@ package com.travel.service.ai.rag;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
+import com.travel.config.ai.AiVectorIndexHealth;
+import com.travel.config.ai.AiVectorIndexHealthService;
 import com.travel.config.ai.AiProperties;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentDetailResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentItem;
@@ -20,12 +22,9 @@ import com.travel.mapper.AiKnowledgeDocumentMapper;
 import com.travel.service.ai.AiKnowledgeAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import redis.clients.jedis.JedisPooled;
-import redis.clients.jedis.exceptions.JedisDataException;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -83,20 +82,7 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
      */
     private final AiProperties aiProperties;
 
-    /**
-     * 当前 embedding 模型。
-     */
-    private final EmbeddingModel embeddingModel;
-
-    /**
-     * AI 向量 Redis 连接。
-     */
-    private final JedisPooled aiVectorJedisPooled;
-
-    /**
-     * 向量索引信息解析工具。
-     */
-    private final AiVectorIndexInfoSupport aiVectorIndexInfoSupport;
+    private final AiVectorIndexHealthService aiVectorIndexHealthService;
 
     @Override
     public AiKnowledgeJobResponse createManualDocument(ManualAiKnowledgeUpsertRequest request, Long adminId) {
@@ -239,6 +225,7 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
 
     @Override
     public AiKnowledgeVectorIndexStatusResponse getVectorIndexStatus() {
+        AiVectorIndexHealth health = aiVectorIndexHealthService.inspect();
         AiKnowledgeVectorIndexStatusResponse response = new AiKnowledgeVectorIndexStatusResponse();
         response.setRagEnabled(Boolean.TRUE.equals(environment.getProperty("app.ai.rag.enabled", Boolean.class, Boolean.FALSE)));
         response.setChatProvider(aiProperties.getGeneration().getProvider());
@@ -250,13 +237,13 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         response.setRedisPort(environment.getProperty("app.ai.vector.redis.port", Integer.class, 6379));
         response.setIndexName(environment.getProperty("app.ai.vector.redis.index-name", "waytrip-ai-knowledge-index"));
         response.setPrefix(environment.getProperty("app.ai.vector.redis.prefix", "waytrip:ai:chunk:"));
-        response.setModelDimension(resolveModelDimension());
-        response.setIndexDimension(resolveIndexDimension(response.getIndexName()));
-        response.setDimensionMatched(
-                response.getModelDimension() != null
-                        && response.getIndexDimension() != null
-                        && response.getModelDimension().intValue() == response.getIndexDimension().intValue()
-        );
+        response.setModelDimension(health.getModelDimension());
+        response.setIndexDimension(health.getIndexDimension());
+        response.setIndexExists(health.isIndexExists());
+        response.setDimensionMatched(health.isDimensionMatched());
+        response.setRetrievalReady(health.isRetrievalReady());
+        response.setNeedsRebuild(health.isNeedsRebuild());
+        response.setWarningMessage(health.getWarningMessage());
         response.setDocumentCount(countDocuments(null));
         response.setEnabledDocumentCount(countDocuments(1));
         response.setTotalChunkCount(countChunksByStatus(null, null));
@@ -274,7 +261,7 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         response.setIndexStatus(AiKnowledgeIndexStatus.PENDING.name());
         response.setQueuedDocumentCount(0);
         response.setQueuedChunkCount(0);
-        response.setMessage("AI 知识向量数据清理完成");
+        response.setMessage("AI 知识向量数据已清理，索引结构已按当前 embedding 模型重置");
         return response;
     }
 
@@ -315,7 +302,7 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
         response.setClearedVectorCount(clearedVectorCount);
         response.setQueuedDocumentCount(rebuilt);
         response.setQueuedChunkCount(countEnabledDocumentChunks());
-        response.setMessage(clearVectorDataFirst ? "AI 知识向量已清理，重建任务已入队" : "AI 知识重建任务已入队");
+        response.setMessage(clearVectorDataFirst ? "AI 知识向量与索引结构已重置，重建任务已入队" : "AI 知识重建任务已入队");
         return response;
     }
 
@@ -451,41 +438,6 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
      */
     private String formatDateTime(java.time.LocalDateTime value) {
         return value == null ? null : value.format(DATETIME_FORMATTER);
-    }
-
-    /**
-     * 解析当前 embedding 模型维度。
-     *
-     * @return 模型维度；获取失败时返回 {@code null}
-     */
-    private Integer resolveModelDimension() {
-        try {
-            return embeddingModel.dimensions();
-        } catch (Exception exception) {
-            log.warn("获取当前 embedding 模型维度失败", exception);
-            return null;
-        }
-    }
-
-    /**
-     * 读取 Redis 向量索引维度。
-     *
-     * @param indexName 索引名称
-     * @return 索引维度；索引不存在或读取失败时返回 {@code null}
-     */
-    private Integer resolveIndexDimension(String indexName) {
-        try {
-            return aiVectorIndexInfoSupport.extractDimension(aiVectorJedisPooled.ftInfo(indexName));
-        } catch (JedisDataException exception) {
-            if (exception.getMessage() != null && exception.getMessage().contains("Unknown Index name")) {
-                return null;
-            }
-            log.warn("读取 Redis 向量索引维度失败:indexName={}", indexName, exception);
-            return null;
-        } catch (Exception exception) {
-            log.warn("读取 Redis 向量索引维度失败:indexName={}", indexName, exception);
-            return null;
-        }
     }
 
     /**
