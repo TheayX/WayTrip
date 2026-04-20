@@ -12,14 +12,15 @@ WayTrip 是一个面向旅游场景的个性化推荐系统仓库，当前包含
 
 ## 技术栈
 
-| 模块      | 技术                                                |
-|---------|---------------------------------------------------|
-| 后端      | Java 17 + Spring Boot 3.5.11 + MyBatis-Plus 3.5.5 |
-| 数据      | MySQL 8.0 + Redis                                 |
-| 小程序端    | Uni-app + Vue 3 + Pinia                           |
-| Web 用户端 | Vue 3 + Vite 5 + Element Plus + Pinia             |
-| 管理端     | Vue 3 + Vite 5 + Element Plus + Pinia + ECharts   |
-| API 文档  | SpringDoc / OpenAPI 3                             |
+| 模块      | 技术                                                                                         |
+|---------|--------------------------------------------------------------------------------------------|
+| 后端      | Java 17 + Spring Boot 3.5.11 + MyBatis-Plus 3.5.5                                          |
+| 数据      | MySQL 8.0 + Redis                                                                          |
+| 小程序端    | Uni-app + Vue 3 + Pinia                                                                    |
+| Web 用户端 | Vue 3 + Vite 5 + Element Plus + Pinia                                                      |
+| 管理端     | Vue 3 + Vite 5 + Element Plus + Pinia + ECharts                                            |
+| API 文档  | SpringDoc / OpenAPI 3                                                                      |
+| AI 客服   | Spring AI 1.0.x + Ollama + OpenAI Compatible API + Redis Vector Store + Redis Stream + SSE |
 
 ## 仓库结构
 
@@ -181,6 +182,10 @@ npm run dev:mp-weixin
   - 向量库 Redis 默认使用独立端口 `6380`
 - AI 会话通过 `sessionId` 区分，前端只持久化会话标识；实际对话历史、短时记忆和知识检索上下文由 Redis 托管。
 - 该能力当前以 `ai-chatbot` 分支为主进行独立迭代，后续是否并入 `main` 需结合联调与稳定性评估。
+
+更完整的说明见：
+
+- [AI 客服架构与实现说明](./docs/ai-chat-service.md)
 
 ## 文档
 

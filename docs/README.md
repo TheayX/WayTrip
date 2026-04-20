@@ -8,6 +8,7 @@
 
 - [开发期 HTTPS 与反代说明](./dev-https-proxy.md)
 - [资源可见性与展示语义约定](./resource-visibility-display.md)
+- [AI 客服架构与实现说明](./ai-chat-service.md)
 
 ### 规格说明
 

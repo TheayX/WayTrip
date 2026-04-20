@@ -157,6 +157,10 @@ service/
 
 当前 AI 模块已经按“主聊天链路 + 三段模型 + 双轨 RAG”结构收口：
 
+- 核心技术：`Spring AI`、`RAG`、`SSE`、`Function Calling`、`Redis Vector Store`、`Redis Stream`
+- 模型接入：最终生成默认走 OpenAI 兼容接口，意图识别和 Embedding 默认走本地 Ollama
+- 文档分层：本 README 只说明后端实现概览，完整说明见 [docs/ai-chat-service.md](../docs/ai-chat-service.md)
+
 - `config/ai/`
   - `AiModelConfig`：显式拆分生成、意图、嵌入三段模型，并注册流式线程池、双轨执行器和向量库
   - `AiProperties`：统一收口 AI 环境变量
@@ -192,6 +196,7 @@ service/
 - 右轨负责业务上下文与工具预处理
 - 两轨并行后再进入最终生成模型
 - 管理端 preview 支持查看多知识域命中结果，而不是只看单一默认知识域
+- 对外回复通过 `SSE` 流式输出，工具事实通过受控调用链补充，避免模型直接编造业务数据
 
 规则边界约定：
 - 订单状态、退款能力、超时阈值等真实业务规则来自 Java 真相源；
