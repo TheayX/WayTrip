@@ -3,10 +3,15 @@ package com.travel.controller.admin;
 import com.travel.common.exception.GlobalExceptionHandler;
 import com.travel.dto.ai.knowledge.AiKnowledgeDocumentDetailResponse;
 import com.travel.dto.ai.knowledge.AiKnowledgeJobResponse;
+import com.travel.dto.ai.knowledge.AiKnowledgePreviewResponse;
 import com.travel.dto.ai.knowledge.ManualAiKnowledgeUpsertRequest;
+import com.travel.enums.ai.AiScenarioType;
+import com.travel.interceptor.AuthInterceptor;
+import com.travel.service.ai.rag.AiKnowledgeSnippet;
 import com.travel.service.ai.AiKnowledgeAdminService;
 import com.travel.util.web.UserContextHolder;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -25,6 +30,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 /**
  * 管理端 AI 知识控制器测试。
  */
@@ -39,6 +46,15 @@ class AdminAiKnowledgeControllerTest {
 
     @MockBean
     private AiKnowledgeAdminService aiKnowledgeAdminService;
+
+    @MockBean
+    private AuthInterceptor authInterceptor;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        // WebMvcTest 会加载全局拦截器配置，这里统一放行，避免控制器测试被鉴权逻辑干扰。
+        when(authInterceptor.preHandle(any(), any(), any())).thenReturn(true);
+    }
 
     @AfterEach
     void tearDown() {
@@ -155,6 +171,32 @@ class AdminAiKnowledgeControllerTest {
                 .andExpect(jsonPath("$.code").value(0));
 
         verify(aiKnowledgeAdminService).updateEnabledStatus(1L, 0, ADMIN_ID);
+    }
+
+    @Test
+    void shouldReturnRagPreviewWithDomains() throws Exception {
+        AiKnowledgePreviewResponse response = new AiKnowledgePreviewResponse();
+        response.setQuery("未登录能查看订单吗");
+        response.setScenario("CUSTOMER_SERVICE");
+        response.setDomain("ACCOUNT_HELP");
+        response.setDomains(List.of("ACCOUNT_HELP", "PLATFORM_POLICY"));
+        response.setHitCount(2);
+        response.setHits(List.of(
+                new AiKnowledgeSnippet(2L, 18L, "登录与个人数据边界", "manual", "account:login-boundary", "涉及个人数据时必须先登录。", "ACCOUNT_HELP", "boundary"),
+                new AiKnowledgeSnippet(1L, 8L, "订单售后边界", "manual", "policy:order-boundary", "订单售后问题应优先查询真实订单。", "PLATFORM_POLICY", "boundary")
+        ));
+        when(aiKnowledgeAdminService.preview(eq(AiScenarioType.CUSTOMER_SERVICE), eq("未登录能查看订单吗"))).thenReturn(response);
+
+        mockMvc.perform(get("/api/admin/v1/ai/rag/preview")
+                        .param("scenario", "CUSTOMER_SERVICE")
+                        .param("query", "未登录能查看订单吗"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.domain").value("ACCOUNT_HELP"))
+                .andExpect(jsonPath("$.data.domains[0]").value("ACCOUNT_HELP"))
+                .andExpect(jsonPath("$.data.domains[1]").value("PLATFORM_POLICY"))
+                .andExpect(jsonPath("$.data.hitCount").value(2))
+                .andExpect(jsonPath("$.data.hits[0].title").value("登录与个人数据边界"));
     }
 
     @Test

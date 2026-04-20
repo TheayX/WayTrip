@@ -66,7 +66,6 @@ export const AI_CHAT_COPY = {
     { text: '查询我的订单问题', scenarioHint: 'ORDER_ADVISOR', sourcePage: '' }
   ],
   inputPlaceholder: '输入你的问题，比如景点推荐、行程规划或订单咨询',
-  pendingMessage: '正在整理这条问题的答案…',
   typing: '正在整理回答，请稍候',
   followupTitle: '猜你想问',
   citationsTitle: '参考',
