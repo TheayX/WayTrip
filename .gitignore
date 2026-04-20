@@ -33,3 +33,5 @@ _temp/
 # AI Assistant
 .aiassistant/
 .codex/
+.claude/
+.superpowers/

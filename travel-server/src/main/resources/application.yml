@@ -34,6 +34,7 @@ mybatis-plus:
 # 日志配置
 logging:
   config: classpath:logback-spring.xml
+  log-home: ${LOG_HOME:./logs}
   level:
     root: INFO
     com.travel: DEBUG

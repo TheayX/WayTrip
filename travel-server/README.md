@@ -58,6 +58,12 @@ cp .env.example .env
 mvn spring-boot:run
 ```
 
+日志路径补充（避免出现 `travel-server/travel-server/logs`）：
+
+- 日志根目录由 `LOG_HOME` 控制，未配置时使用 `logback-spring.xml` 的默认值。
+- 相对路径会基于启动工作目录（`cwd`）解析，因此不同启动方式可能落到不同位置。
+- 当前默认逻辑已兼容 VS Code/IDEA 常见启动目录，未显式设置时也会统一落到 `travel-server/logs`；如需自定义，再在运行配置里设置 `LOG_HOME`。
+
 默认地址：
 
 - API：`http://localhost:8080`
@@ -144,7 +150,7 @@ service/
 编译校验：
 
 ```bash
-mvn -q -DskipTests test-compile
+mvn -q -DskipTests compile
 ```
 
 运行测试：

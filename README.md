@@ -91,6 +91,7 @@ CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 - 如果继续使用 `prod`，则在 `travel-server` 下创建 `.env`，参考 `travel-server/.env.example`
 - 若切换到 `dev`，直接修改 `travel-server/src/main/resources/application-dev.yml`
 - `UPLOAD_PATH` 建议优先使用绝对路径；如果继续使用相对路径，请固定启动方式
+- 日志路径与启动工作目录有关；当前默认已兼容 VS Code/IDEA 常见启动方式，需自定义时再在运行配置设置 `LOG_HOME`（见 `travel-server/README.md`）
 
 ```bash
 cd travel-server
