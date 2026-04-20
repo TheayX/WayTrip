@@ -101,6 +101,24 @@ public class AiModelConfig {
     }
 
     /**
+     * AI 知识 Stream 监听执行器。
+     * <p>
+     * Redis Stream 轮询应与实际任务处理线程分离，避免关闭阶段和任务堆积相互影响。
+     *
+     * @return 线程池执行器
+     */
+    @Bean("aiKnowledgeStreamExecutor")
+    public TaskExecutor aiKnowledgeStreamExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setThreadNamePrefix("ai-knowledge-stream-");
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(1);
+        executor.setQueueCapacity(8);
+        executor.initialize();
+        return executor;
+    }
+
+    /**
      * 注册最终答案生成模型。
      *
      * @param aiProperties AI 配置
