@@ -242,17 +242,15 @@ import {
   clearAiVectorIndex,
   clearAndRebuildAiVectorIndex,
   getAiVectorIndexStatus,
-  previewAiKnowledge,
   rebuildAllAiKnowledge
 } from '@/modules/ai-service/api.js'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_PREVIEW_DEFAULT_SCENARIO, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
+import { useAiKnowledgePreview } from '@/modules/ai-service/composables/useAiKnowledgePreview.js'
 import {
-  buildEmptyAiPreviewResult,
   createEmptyAiMaintenanceSummary,
   createEmptyAiVectorStatus,
   displayAiMetric,
-  extractAiErrorMessage,
-  formatAiPreviewDomains
+  extractAiErrorMessage
 } from '@/modules/ai-service/utils.js'
 
 // 工作台默认落到订单顾问，方便直接联调订单边界与售后知识。
@@ -261,40 +259,31 @@ const DEFAULT_SCENARIO = AI_PREVIEW_DEFAULT_SCENARIO
 
 // 状态区、预览区和运维区各自维护 loading，避免一个动作拖慢整个工作台。
 const loading = ref(false)
-const previewing = ref(false)
 const rebuildingAll = ref(false)
 const clearingVector = ref(false)
 const clearingAndRebuilding = ref(false)
 const errorMessage = ref('')
-const previewErrorMessage = ref('')
-const hasSubmitted = ref(false)
-const previewResult = ref(null)
 const vectorStatus = ref(createEmptyAiVectorStatus())
 const maintenanceSummary = reactive(createEmptyAiMaintenanceSummary())
 
-// 预览表单只保留当前场景和问题文本，减少工作台调试心智负担。
-const previewForm = reactive({
-  scenario: DEFAULT_SCENARIO,
-  query: ''
-})
-
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
 
-// 场景切换后，知识域提示要实时跟着更新，方便判断当前查询会落到哪个域。
-const selectedScenarioOption = computed(() => {
-  return AI_SCENARIO_OPTIONS.find(item => item.value === previewForm.scenario) || null
-})
+const resolveScenarioOption = (scenario) => AI_SCENARIO_OPTIONS.find(item => item.value === scenario) || null
 
-const selectedScenarioDomainLabel = computed(() => {
-  return getDomainLabel(selectedScenarioOption.value?.domain)
-})
-
-const previewHits = computed(() => {
-  return Array.isArray(previewResult.value?.hits) ? previewResult.value.hits : []
-})
-
-const previewDomainLabel = computed(() => {
-  return formatAiPreviewDomains(previewResult.value?.domains, previewResult.value?.domain, AI_KNOWLEDGE_DOMAIN_LABELS)
+const {
+  previewing,
+  errorMessage: previewErrorMessage,
+  result: previewResult,
+  hasSubmitted,
+  form: previewForm,
+  selectedScenarioDomainLabel,
+  activeDomainLabel: previewDomainLabel,
+  resultHits: previewHits,
+  handlePreview: runPreview
+} = useAiKnowledgePreview({
+  defaultScenario: DEFAULT_SCENARIO,
+  resolveScenarioOption,
+  domainLabels: AI_KNOWLEDGE_DOMAIN_LABELS
 })
 
 // 维护结果统一回写到同一块结果区，方便对比最近一次运维动作的效果。
@@ -321,35 +310,12 @@ const loadWorkbenchData = async () => {
   }
 }
 
-// RAG 预览和独立查询测试页保持同一套兜底结构，避免两个页面展示口径不同。
+// 工作台只保留自己的按钮和文案，底层 preview 状态统一交给共享 composable。
 const handlePreview = async () => {
-  const query = previewForm.query.trim()
-
-  hasSubmitted.value = true
-  previewErrorMessage.value = ''
-  previewResult.value = null
-
-  if (!query) {
-    previewErrorMessage.value = '请输入测试问题'
-    return
-  }
-
-  previewing.value = true
-  try {
-    const res = await previewAiKnowledge({
-      scenario: previewForm.scenario,
-      query
-    })
-    previewResult.value = res?.data || buildEmptyAiPreviewResult({
-      query,
-      scenario: previewForm.scenario,
-      domain: selectedScenarioOption.value?.domain || ''
-    })
-  } catch (error) {
-    previewErrorMessage.value = extractAiErrorMessage(error, '命中预览失败，请稍后重试。')
-  } finally {
-    previewing.value = false
-  }
+  await runPreview({
+    emptyQueryMessage: '请输入测试问题',
+    fallbackErrorMessage: '命中预览失败，请稍后重试。'
+  })
 }
 
 // 清空向量适合在确认索引污染或准备彻底重建前使用。

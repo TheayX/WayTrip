@@ -142,73 +142,39 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
-import { previewAiKnowledge } from '@/modules/ai-service/api.js'
+import { computed } from 'vue'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_PREVIEW_DEFAULT_SCENARIO, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
-import { buildEmptyAiPreviewResult, extractAiErrorMessage, formatAiPreviewDomains } from '@/modules/ai-service/utils.js'
+import { useAiKnowledgePreview } from '@/modules/ai-service/composables/useAiKnowledgePreview.js'
 
 // 查询测试优先默认到订单顾问，便于验证订单边界、售后规则与工具优先链路。
 const DEFAULT_SCENARIO = AI_PREVIEW_DEFAULT_SCENARIO
 
-const previewing = ref(false)
-const errorMessage = ref('')
-const result = ref(null)
-const hasSubmitted = ref(false)
+const resolveScenarioOption = (scenario) => AI_SCENARIO_OPTIONS.find(item => item.value === scenario) || null
 
-// 查询表单保持最小字段集合，只承载场景和测试问题。
-const form = reactive({
-  scenario: DEFAULT_SCENARIO,
-  query: ''
-})
-
-// 当前选中的场景选项会同时驱动知识域提示和兜底结果。
-const selectedScenarioOption = computed(() => {
-  return AI_SCENARIO_OPTIONS.find(item => item.value === form.scenario) || null
-})
-
-const selectedScenarioDomainLabel = computed(() => {
-  return getDomainLabel(selectedScenarioOption.value?.domain)
-})
-
-const activeDomainLabel = computed(() => {
-  return formatAiPreviewDomains(result.value?.domains, result.value?.domain, AI_KNOWLEDGE_DOMAIN_LABELS)
-})
-
-const resultHits = computed(() => {
-  return Array.isArray(result.value?.hits) ? result.value.hits : []
+const {
+  previewing,
+  errorMessage,
+  result,
+  hasSubmitted,
+  form,
+  selectedScenarioDomainLabel,
+  activeDomainLabel,
+  resultHits,
+  handlePreview: runPreview
+} = useAiKnowledgePreview({
+  defaultScenario: DEFAULT_SCENARIO,
+  resolveScenarioOption,
+  domainLabels: AI_KNOWLEDGE_DOMAIN_LABELS
 })
 
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
 
-// 每次预览都先清空旧结果，避免用户误把上一次命中当成当前查询结果。
+// 查询测试页只保留自己的文案入口，底层 preview 状态交给共享 composable。
 const handlePreview = async () => {
-  const query = form.query.trim()
-
-  hasSubmitted.value = true
-  errorMessage.value = ''
-  result.value = null
-
-  if (!query) {
-    errorMessage.value = '请输入测试问题'
-    return
-  }
-
-  previewing.value = true
-  try {
-    const res = await previewAiKnowledge({
-      scenario: form.scenario,
-      query
-    })
-    result.value = res?.data || buildEmptyAiPreviewResult({
-      query,
-      scenario: form.scenario,
-      domain: selectedScenarioOption.value?.domain || ''
-    })
-  } catch (error) {
-    errorMessage.value = extractAiErrorMessage(error, '命中预览失败，请稍后重试。')
-  } finally {
-    previewing.value = false
-  }
+  await runPreview({
+    emptyQueryMessage: '请输入测试问题',
+    fallbackErrorMessage: '命中预览失败，请稍后重试。'
+  })
 }
 </script>
 

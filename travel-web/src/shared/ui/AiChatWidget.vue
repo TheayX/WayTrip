@@ -169,8 +169,7 @@ import {
 } from '@element-plus/icons-vue'
 import { storeToRefs } from 'pinia'
 import { resolveAiErrorMessage } from '@/shared/lib/ai-chat.js'
-import { AI_CHAT_COPY } from '@/shared/constants/ai-chat.js'
-import { ROUTE_NAMES } from '@/shared/constants/route-names.js'
+import { AI_CHAT_COPY, resolveAiScenarioHintByRouteName } from '@/shared/constants/ai-chat.js'
 import { useAiChatStore } from '@/shared/store/ai-chat.js'
 
 const route = useRoute()
@@ -279,34 +278,9 @@ function normalizeSourcePage() {
   return typeof route.name === 'string' ? route.name : route.path
 }
 
-// 前端只做轻量 hint，不在这里硬编码复杂业务分类，最终仍交给后端统一路由。
+// 前端只做轻量 hint，具体路由到场景的映射统一放到常量层维护。
 function resolveScenarioHint() {
-  if (route.name === ROUTE_NAMES.orderList || route.name === ROUTE_NAMES.orderDetail || route.name === ROUTE_NAMES.orderCreate) {
-    return 'ORDER_ADVISOR'
-  }
-  if (route.name === ROUTE_NAMES.spotList || route.name === ROUTE_NAMES.spotDetail || route.name === ROUTE_NAMES.search) {
-    return 'SPOT_QA'
-  }
-  if (route.name === ROUTE_NAMES.guideList || route.name === ROUTE_NAMES.guideDetail) {
-    return 'GUIDE_QA'
-  }
-  if (route.name === ROUTE_NAMES.recommendations || route.name === ROUTE_NAMES.nearby) {
-    return 'RECOMMENDATION_EXPLAINER'
-  }
-  if (route.name === ROUTE_NAMES.profile || route.name === ROUTE_NAMES.favorites) {
-    return 'USER_PROFILE_ANALYZER'
-  }
-  if (
-    route.name === ROUTE_NAMES.discover ||
-    route.name === ROUTE_NAMES.randomPick ||
-    route.name === ROUTE_NAMES.budgetTravel ||
-    route.name === ROUTE_NAMES.travelerReviews ||
-    route.name === ROUTE_NAMES.trendingViews ||
-    route.name === ROUTE_NAMES.more
-  ) {
-    return 'TRAVEL_PLANNER'
-  }
-  return ''
+  return resolveAiScenarioHintByRouteName(route.name)
 }
 
 // 引用只保留极简编号展示，详细信息收进 title，避免聊天区被大块参考内容打断。

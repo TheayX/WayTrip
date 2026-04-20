@@ -19,6 +19,41 @@ export const AI_CHAT_VISIBLE_ROUTE_NAMES = [
   ROUTE_NAMES.favorites
 ]
 
+// AI 场景提示按路由集中维护，避免聊天组件自己保留一整份分发规则。
+export const AI_CHAT_SCENARIO_ROUTE_GROUPS = [
+  {
+    scenarioHint: 'ORDER_ADVISOR',
+    routeNames: [ROUTE_NAMES.orderList, ROUTE_NAMES.orderDetail, ROUTE_NAMES.orderCreate]
+  },
+  {
+    scenarioHint: 'SPOT_QA',
+    routeNames: [ROUTE_NAMES.spotList, ROUTE_NAMES.spotDetail, ROUTE_NAMES.search]
+  },
+  {
+    scenarioHint: 'GUIDE_QA',
+    routeNames: [ROUTE_NAMES.guideList, ROUTE_NAMES.guideDetail]
+  },
+  {
+    scenarioHint: 'RECOMMENDATION_EXPLAINER',
+    routeNames: [ROUTE_NAMES.recommendations, ROUTE_NAMES.nearby]
+  },
+  {
+    scenarioHint: 'USER_PROFILE_ANALYZER',
+    routeNames: [ROUTE_NAMES.profile, ROUTE_NAMES.favorites]
+  },
+  {
+    scenarioHint: 'TRAVEL_PLANNER',
+    routeNames: [
+      ROUTE_NAMES.discover,
+      ROUTE_NAMES.randomPick,
+      ROUTE_NAMES.budgetTravel,
+      ROUTE_NAMES.travelerReviews,
+      ROUTE_NAMES.trendingViews,
+      ROUTE_NAMES.more
+    ]
+  }
+]
+
 // AI 聊天组件的静态文案统一收口在这里，避免散落在多个视图文件中。
 export const AI_CHAT_COPY = {
   launcher: 'AI 助手',
@@ -44,4 +79,15 @@ export const AI_CHAT_COPY = {
   send: '发送',
   feedbackThanks: '感谢你的反馈',
   feedbackRecorded: '已记录这条问题'
+}
+
+/**
+ * 根据当前路由名称解析 AI 场景提示。
+ *
+ * @param {string|symbol|null|undefined} routeName 当前路由名
+ * @returns {string} 轻量场景提示
+ */
+export function resolveAiScenarioHintByRouteName(routeName) {
+  const matchedGroup = AI_CHAT_SCENARIO_ROUTE_GROUPS.find(group => group.routeNames.includes(routeName))
+  return matchedGroup?.scenarioHint || ''
 }
