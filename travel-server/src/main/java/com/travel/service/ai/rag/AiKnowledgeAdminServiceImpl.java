@@ -214,10 +214,16 @@ public class AiKnowledgeAdminServiceImpl implements AiKnowledgeAdminService {
     @Override
     public AiKnowledgePreviewResponse preview(AiScenarioType scenario, String query) {
         List<AiKnowledgeSnippet> hits = aiKnowledgeRetrievalService.retrieve(scenario, query);
+        List<String> domains = hits.stream()
+                .map(AiKnowledgeSnippet::getKnowledgeDomain)
+                .filter(org.springframework.util.StringUtils::hasText)
+                .distinct()
+                .toList();
         AiKnowledgePreviewResponse response = new AiKnowledgePreviewResponse();
         response.setQuery(query);
         response.setScenario(scenario.name());
-        response.setDomain(aiKnowledgeRetrievalService.resolveDomain(scenario).name());
+        response.setDomain(domains.isEmpty() ? aiKnowledgeRetrievalService.resolveDomain(scenario).name() : domains.get(0));
+        response.setDomains(domains.isEmpty() ? List.of(aiKnowledgeRetrievalService.resolveDomain(scenario).name()) : domains);
         response.setHitCount(hits.size());
         response.setHits(hits);
         return response;

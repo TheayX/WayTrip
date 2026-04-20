@@ -144,11 +144,11 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { previewAiKnowledge } from '@/modules/ai-service/api.js'
-import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
+import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_PREVIEW_DEFAULT_SCENARIO, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
 import { extractAiErrorMessage } from '@/modules/ai-service/utils.js'
 
-// 默认场景优先取当前配置列表第一项，避免常量调整后这里仍然写死旧值。
-const DEFAULT_SCENARIO = AI_SCENARIO_OPTIONS[0]?.value || 'CUSTOMER_SERVICE'
+// 查询测试优先默认到订单顾问，便于验证订单边界、售后规则与工具优先链路。
+const DEFAULT_SCENARIO = AI_PREVIEW_DEFAULT_SCENARIO
 
 const previewing = ref(false)
 const errorMessage = ref('')
@@ -171,6 +171,10 @@ const selectedScenarioDomainLabel = computed(() => {
 })
 
 const activeDomainLabel = computed(() => {
+  const domains = Array.isArray(result.value?.domains) ? result.value.domains : []
+  if (domains.length > 0) {
+    return domains.map(getDomainLabel).join(' / ')
+  }
   return getDomainLabel(result.value?.domain)
 })
 
@@ -203,6 +207,7 @@ const handlePreview = async () => {
       query,
       scenario: form.scenario,
       domain: selectedScenarioOption.value?.domain || '',
+      domains: selectedScenarioOption.value?.domain ? [selectedScenarioOption.value.domain] : [],
       hitCount: 0,
       hits: []
     }

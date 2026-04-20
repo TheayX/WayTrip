@@ -52,3 +52,6 @@ export const AI_SCENARIO_OPTIONS = AI_SCENARIO_CONFIGS.map(({ title, scenario, k
   value: scenario,
   domain: knowledgeDomain
 }))
+
+// 管理端做订单边界与售后规则联调时，默认落到订单顾问更符合真实链路。
+export const AI_PREVIEW_DEFAULT_SCENARIO = 'ORDER_ADVISOR'

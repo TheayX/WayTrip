@@ -178,12 +178,22 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
      * @return 是否需要优先补召回账号边界
      */
     private boolean shouldBoostAccountBoundary(AiScenarioType scenario, String userMessage) {
-        if (scenario != AiScenarioType.ORDER_ADVISOR || !StringUtils.hasText(userMessage)) {
+        if (!supportsAccountBoundaryBoost(scenario) || !StringUtils.hasText(userMessage)) {
             return false;
         }
         String normalized = userMessage.trim();
         return containsAny(normalized, "没登录", "未登录", "不登录", "先登录", "登录后")
                 && containsAny(normalized, "订单", "看订单", "查订单", "订单详情", "订单记录");
+    }
+
+    /**
+     * 判断当前场景是否允许启用“登录与个人数据边界”补召回。
+     *
+     * @param scenario 场景
+     * @return 是否允许补召回
+     */
+    private boolean supportsAccountBoundaryBoost(AiScenarioType scenario) {
+        return scenario == AiScenarioType.ORDER_ADVISOR || scenario == AiScenarioType.CUSTOMER_SERVICE;
     }
 
     /**

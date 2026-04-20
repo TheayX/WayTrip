@@ -202,7 +202,7 @@
               <div class="preview-summary">
                 <div class="preview-summary__item">
                   <span>命中知识域</span>
-                  <strong>{{ getDomainLabel(previewResult.domain) }}</strong>
+                  <strong>{{ previewDomainLabel }}</strong>
                 </div>
                 <div class="preview-summary__item">
                   <span>命中数量</span>
@@ -245,7 +245,7 @@ import {
   previewAiKnowledge,
   rebuildAllAiKnowledge
 } from '@/modules/ai-service/api.js'
-import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
+import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_PREVIEW_DEFAULT_SCENARIO, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
 import {
   createEmptyAiMaintenanceSummary,
   createEmptyAiVectorStatus,
@@ -253,9 +253,9 @@ import {
   extractAiErrorMessage
 } from '@/modules/ai-service/utils.js'
 
-// 工作台默认沿用场景列表第一项，避免查询预览与配置页场景顺序脱节。
+// 工作台默认落到订单顾问，方便直接联调订单边界与售后知识。
 const router = useRouter()
-const DEFAULT_SCENARIO = AI_SCENARIO_OPTIONS[0]?.value || 'CUSTOMER_SERVICE'
+const DEFAULT_SCENARIO = AI_PREVIEW_DEFAULT_SCENARIO
 
 // 状态区、预览区和运维区各自维护 loading，避免一个动作拖慢整个工作台。
 const loading = ref(false)
@@ -289,6 +289,14 @@ const selectedScenarioDomainLabel = computed(() => {
 
 const previewHits = computed(() => {
   return Array.isArray(previewResult.value?.hits) ? previewResult.value.hits : []
+})
+
+const previewDomainLabel = computed(() => {
+  const domains = Array.isArray(previewResult.value?.domains) ? previewResult.value.domains : []
+  if (domains.length > 0) {
+    return domains.map(getDomainLabel).join(' / ')
+  }
+  return getDomainLabel(previewResult.value?.domain)
 })
 
 // 维护结果统一回写到同一块结果区，方便对比最近一次运维动作的效果。
@@ -338,6 +346,7 @@ const handlePreview = async () => {
       query,
       scenario: previewForm.scenario,
       domain: selectedScenarioOption.value?.domain || '',
+      domains: selectedScenarioOption.value?.domain ? [selectedScenarioOption.value.domain] : [],
       hitCount: 0,
       hits: []
     }

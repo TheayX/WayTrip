@@ -14,6 +14,7 @@ public class AiKnowledgePreviewResponse {
     private String query;
     private String scenario;
     private String domain;
+    private List<String> domains;
     private Integer hitCount;
     private List<AiKnowledgeSnippet> hits;
 }

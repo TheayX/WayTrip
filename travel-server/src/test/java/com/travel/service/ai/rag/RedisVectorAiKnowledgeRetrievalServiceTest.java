@@ -47,6 +47,27 @@ class RedisVectorAiKnowledgeRetrievalServiceTest {
     }
 
     @Test
+    void retrieveShouldBoostAccountBoundaryForCustomerServicePreviewQuestion() {
+        VectorStore vectorStore = mock(VectorStore.class);
+        AiVectorIndexHealthService healthService = mock(AiVectorIndexHealthService.class);
+        AiProperties aiProperties = buildEnabledAiProperties();
+        when(healthService.inspect()).thenReturn(retrievalReadyHealth());
+        when(vectorStore.similaritySearch(any(SearchRequest.class)))
+                .thenReturn(List.of(buildPolicyDocument(), buildToolPriorityDocument()))
+                .thenReturn(List.of(buildAccountBoundaryDocument()));
+
+        RedisVectorAiKnowledgeRetrievalService service =
+                new RedisVectorAiKnowledgeRetrievalService(aiProperties, vectorStore, healthService);
+
+        List<AiKnowledgeSnippet> snippets = service.retrieve(AiScenarioType.CUSTOMER_SERVICE, "未登录能查看订单吗");
+
+        assertEquals(3, snippets.size());
+        assertEquals("登录与个人数据边界", snippets.get(0).getTitle());
+        assertEquals("ACCOUNT_HELP", snippets.get(0).getKnowledgeDomain());
+        verify(vectorStore, times(2)).similaritySearch(any(SearchRequest.class));
+    }
+
+    @Test
     void retrieveShouldKeepDefaultSingleSearchForNormalOrderQuestion() {
         VectorStore vectorStore = mock(VectorStore.class);
         AiVectorIndexHealthService healthService = mock(AiVectorIndexHealthService.class);
