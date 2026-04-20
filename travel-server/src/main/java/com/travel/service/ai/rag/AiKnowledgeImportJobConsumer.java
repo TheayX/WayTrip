@@ -10,14 +10,13 @@ import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.stream.Subscription;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.util.ErrorHandler;
 
 import java.time.Duration;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -37,6 +36,7 @@ public class AiKnowledgeImportJobConsumer {
     private final TaskExecutor aiKnowledgeStreamExecutor;
 
     private StreamMessageListenerContainer<String, MapRecord<String, String, String>> container;
+    private Subscription subscription;
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
     @PostConstruct
@@ -49,7 +49,7 @@ public class AiKnowledgeImportJobConsumer {
                         .errorHandler(buildErrorHandler())
                         .build();
         container = StreamMessageListenerContainer.create(redisConnectionFactory, options);
-        container.receiveAutoAck(
+        subscription = container.receiveAutoAck(
                 Consumer.from(AiKnowledgeJobStreamSupport.GROUP, AiKnowledgeJobStreamSupport.CONSUMER),
                 StreamOffset.create(AiKnowledgeJobStreamSupport.STREAM_KEY, ReadOffset.lastConsumed()),
                 this::handleRecord
@@ -59,18 +59,20 @@ public class AiKnowledgeImportJobConsumer {
 
     @PreDestroy
     public void stop() {
+        shuttingDown.set(true);
         if (container != null) {
-            shuttingDown.set(true);
-            CountDownLatch latch = new CountDownLatch(1);
             try {
-                container.stop(latch::countDown);
-                if (!latch.await(3, TimeUnit.SECONDS)) {
-                    log.warn("AI 知识任务 Stream 监听容器停止超时，继续执行关闭流程");
+                // 先显式移除订阅，确保阻塞轮询连接尽快归还，再停止监听容器。
+                if (subscription != null) {
+                    container.remove(subscription);
+                    subscription = null;
                 }
-            } catch (InterruptedException exception) {
-                Thread.currentThread().interrupt();
-                log.warn("AI 知识任务 Stream 监听容器停止被中断");
+                container.stop();
             } catch (Exception exception) {
+                if (isExpectedShutdownException(exception)) {
+                    log.info("AI 知识任务 Stream 监听已在关闭阶段停止：{}", exception.getMessage());
+                    return;
+                }
                 log.warn("AI 知识任务 Stream 监听容器关闭异常：{}", exception.getMessage());
             }
         }
@@ -115,12 +117,33 @@ public class AiKnowledgeImportJobConsumer {
      */
     private ErrorHandler buildErrorHandler() {
         return throwable -> {
-            String message = throwable == null ? "" : throwable.getMessage();
-            if (shuttingDown.get() || (message != null && message.contains("Connection closed"))) {
+            if (isExpectedShutdownException(throwable)) {
+                String message = throwable == null ? "" : throwable.getMessage();
                 log.info("AI 知识任务 Stream 监听已在关闭阶段停止：{}", message);
                 return;
             }
             log.error("AI 知识任务 Stream 监听异常", throwable);
         };
+    }
+
+    /**
+     * 判断当前异常是否属于关闭阶段的预期信号。
+     *
+     * @param throwable 异常对象
+     * @return true-预期关闭异常，false-真实异常
+     */
+    private boolean isExpectedShutdownException(Throwable throwable) {
+        if (shuttingDown.get()) {
+            return true;
+        }
+        Throwable current = throwable;
+        while (current != null) {
+            String message = current.getMessage();
+            if (StringUtils.hasText(message) && message.contains("Connection closed")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }
