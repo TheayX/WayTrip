@@ -41,4 +41,21 @@ class AiIntentServiceTest {
         assertEquals("T202604121416166706", result.slotAsString(AiIntentSlots.ORDER_NO));
         assertTrue(result.requiresLogin());
     }
+
+    @Test
+    void recognizeOrderQuestionWithoutOrderNoFallsBackToRecentOrders() {
+        AiIntentResult result = service.recognize("我昨天那笔订单能退吗", AiScenarioType.ORDER_ADVISOR);
+
+        assertEquals("LIST_ORDERS", result.intent());
+        assertTrue(result.requiresLogin());
+        assertTrue(result.requiresTool());
+    }
+
+    @Test
+    void recognizeRecommendationExplanationQuestion() {
+        AiIntentResult result = service.recognize("为什么推荐这个景点给我", AiScenarioType.RECOMMENDATION_EXPLAINER);
+
+        assertEquals("EXPLAIN_RECOMMENDATIONS", result.intent());
+        assertTrue(result.requiresTool());
+    }
 }

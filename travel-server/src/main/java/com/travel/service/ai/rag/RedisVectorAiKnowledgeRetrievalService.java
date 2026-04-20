@@ -14,9 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 基于 Redis Vector Store 的 AI 知识检索服务。
@@ -55,30 +57,31 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
         }
 
         long startedAt = System.currentTimeMillis();
-        AiKnowledgeDomain domain = resolveDomain(scenario);
+        String normalizedMessage = userMessage.trim();
+        List<AiKnowledgeDomain> candidateDomains = resolveCandidateDomains(scenario, normalizedMessage);
         AiVectorIndexHealth health = aiVectorIndexHealthService.inspect();
         if (!health.isRetrievalReady()) {
             log.warn(
                     "AI 向量检索已降级为空结果：场景={}, 知识域={}, reason={}",
                     scenario,
-                    domain,
+                    candidateDomains,
                     health.getWarningMessage()
             );
             return List.of();
         }
-        SearchRequest request = SearchRequest.builder()
-                .query(userMessage.trim())
-                .topK(resolveCandidateCount())
-                .similarityThreshold(resolveSimilarityThreshold())
-                .build();
 
         try {
-            List<AiKnowledgeSnippet> snippets = mapToSnippets(vectorStore.similaritySearch(request), domain);
+            List<Document> documents = new ArrayList<>(searchDocuments(normalizedMessage));
+            if (shouldBoostAccountBoundary(scenario, normalizedMessage)) {
+                // 未登录订单边界问题优先补召回“登录与个人数据边界”，避免只命中售后规则。
+                documents.addAll(searchDocuments(buildLoginBoundaryBoostQuery(normalizedMessage)));
+            }
+            List<AiKnowledgeSnippet> snippets = mapToSnippets(documents, candidateDomains);
             log.info(
                     "AI RAG 检索完成：场景={}, 知识域={}, 用户问题长度={}, 命中数量={}, 命中标题={}, 总耗时Ms={}",
                     scenario,
-                    domain,
-                    userMessage.trim().length(),
+                    candidateDomains,
+                    normalizedMessage.length(),
                     snippets.size(),
                     snippets.stream().map(AiKnowledgeSnippet::getTitle).toList(),
                     System.currentTimeMillis() - startedAt
@@ -88,8 +91,8 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
             log.error(
                     "AI 向量检索失败：场景={}, 知识域={}, 用户问题长度={}, 总耗时Ms={}",
                     scenario,
-                    domain,
-                    userMessage.trim().length(),
+                    candidateDomains,
+                    normalizedMessage.length(),
                     System.currentTimeMillis() - startedAt,
                     exception
             );
@@ -117,23 +120,24 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
      * 将向量库命中文档转换为业务侧可用的知识片段，并按知识域过滤。
      *
      * @param documents 原始命中文档
-     * @param domain 当前目标知识域
+     * @param candidateDomains 当前允许命中的知识域
      * @return 过滤后的知识片段
      */
-    private List<AiKnowledgeSnippet> mapToSnippets(List<Document> documents, AiKnowledgeDomain domain) {
+    private List<AiKnowledgeSnippet> mapToSnippets(List<Document> documents, List<AiKnowledgeDomain> candidateDomains) {
         if (documents == null || documents.isEmpty()) {
             return List.of();
         }
 
-        List<AiKnowledgeSnippet> candidates = new ArrayList<>();
+        Map<Long, AiKnowledgeSnippet> uniqueCandidates = new LinkedHashMap<>();
+        Set<String> allowedDomains = candidateDomains.stream().map(Enum::name).collect(java.util.stream.Collectors.toSet());
         for (Document document : documents) {
             Map<String, Object> metadata = document.getMetadata();
             String knowledgeDomain = stringValue(metadata.get("knowledgeDomain"));
-            if (!domain.name().equals(knowledgeDomain)) {
+            if (!allowedDomains.contains(knowledgeDomain)) {
                 continue;
             }
 
-            candidates.add(new AiKnowledgeSnippet(
+            AiKnowledgeSnippet snippet = new AiKnowledgeSnippet(
                     longValue(metadata.get("documentId")),
                     longValue(metadata.get("chunkId")),
                     stringValue(metadata.get("title")),
@@ -142,11 +146,87 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
                     truncateSnippet(document.getText()),
                     knowledgeDomain,
                     stringValue(metadata.get("knowledgeLayer"))
-            ));
+            );
+            uniqueCandidates.putIfAbsent(snippet.getChunkId(), snippet);
         }
-        candidates.sort(Comparator.comparingInt(item -> AiKnowledgeLayerSupport.priority(item.getKnowledgeLayer())));
+        List<AiKnowledgeSnippet> candidates = new ArrayList<>(uniqueCandidates.values());
+        candidates.sort(buildSnippetComparator(candidateDomains));
         int topK = Math.max(1, aiProperties.getRag().getTopK());
         return candidates.size() <= topK ? candidates : new ArrayList<>(candidates.subList(0, topK));
+    }
+
+    /**
+     * 解析当前检索应该允许命中的知识域。
+     *
+     * @param scenario 场景
+     * @param userMessage 用户问题
+     * @return 候选知识域
+     */
+    private List<AiKnowledgeDomain> resolveCandidateDomains(AiScenarioType scenario, String userMessage) {
+        AiKnowledgeDomain defaultDomain = resolveDomain(scenario);
+        if (shouldBoostAccountBoundary(scenario, userMessage)) {
+            return List.of(AiKnowledgeDomain.ACCOUNT_HELP, defaultDomain);
+        }
+        return List.of(defaultDomain);
+    }
+
+    /**
+     * 判断当前是否属于“未登录订单边界”问题。
+     *
+     * @param scenario 场景
+     * @param userMessage 用户问题
+     * @return 是否需要优先补召回账号边界
+     */
+    private boolean shouldBoostAccountBoundary(AiScenarioType scenario, String userMessage) {
+        if (scenario != AiScenarioType.ORDER_ADVISOR || !StringUtils.hasText(userMessage)) {
+            return false;
+        }
+        String normalized = userMessage.trim();
+        return containsAny(normalized, "没登录", "未登录", "不登录", "先登录", "登录后")
+                && containsAny(normalized, "订单", "看订单", "查订单", "订单详情", "订单记录");
+    }
+
+    /**
+     * 构造登录边界补召回查询，主动把“登录、个人订单、隐私”这些边界语义补进向量搜索。
+     *
+     * @param userMessage 原始问题
+     * @return 扩展后的查询
+     */
+    private String buildLoginBoundaryBoostQuery(String userMessage) {
+        return userMessage + " 未登录 登录 个人订单 个人数据 隐私 账号 边界";
+    }
+
+    /**
+     * 执行一次向量检索请求。
+     *
+     * @param query 检索问题
+     * @return 原始命中文档
+     */
+    private List<Document> searchDocuments(String query) {
+        SearchRequest request = SearchRequest.builder()
+                .query(query)
+                .topK(resolveCandidateCount())
+                .similarityThreshold(resolveSimilarityThreshold())
+                .build();
+        List<Document> documents = vectorStore.similaritySearch(request);
+        return documents == null ? List.of() : documents;
+    }
+
+    /**
+     * 构造知识片段排序器；当存在账号边界补召回时，优先把账号边界类知识排到前面。
+     *
+     * @param candidateDomains 候选知识域
+     * @return 片段排序器
+     */
+    private Comparator<AiKnowledgeSnippet> buildSnippetComparator(List<AiKnowledgeDomain> candidateDomains) {
+        Map<String, Integer> domainPriority = new LinkedHashMap<>();
+        for (int i = 0; i < candidateDomains.size(); i++) {
+            domainPriority.put(candidateDomains.get(i).name(), i);
+        }
+        return Comparator
+                .comparingInt((AiKnowledgeSnippet item) -> domainPriority.getOrDefault(item.getKnowledgeDomain(), Integer.MAX_VALUE))
+                .thenComparingInt(item -> AiKnowledgeLayerSupport.priority(item.getKnowledgeLayer()))
+                .thenComparing(AiKnowledgeSnippet::getTitle, String.CASE_INSENSITIVE_ORDER);
     }
 
     /**
@@ -214,5 +294,24 @@ public class RedisVectorAiKnowledgeRetrievalService implements AiKnowledgeRetrie
         }
         String trimmed = content.trim();
         return trimmed.length() <= 160 ? trimmed : trimmed.substring(0, 160);
+    }
+
+    /**
+     * 判断文本是否包含任一关键词。
+     *
+     * @param source 原始文本
+     * @param keywords 关键词列表
+     * @return 是否命中
+     */
+    private boolean containsAny(String source, String... keywords) {
+        if (!StringUtils.hasText(source)) {
+            return false;
+        }
+        for (String keyword : keywords) {
+            if (source.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

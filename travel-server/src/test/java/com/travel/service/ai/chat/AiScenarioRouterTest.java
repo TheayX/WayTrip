@@ -36,4 +36,20 @@ class AiScenarioRouterTest {
                 router.route("这些结果为什么推荐给我", "", "Recommendations")
         );
     }
+
+    @Test
+    void routeUsesPlannerHintForTravelAdviceQuestion() {
+        assertEquals(
+                AiScenarioType.TRAVEL_PLANNER,
+                router.route("最近想带爸妈轻松玩两天，有什么建议", "TRAVEL_PLANNER", "Home")
+        );
+    }
+
+    @Test
+    void routeUsesRecommendationPageForRecommendationExplanation() {
+        assertEquals(
+                AiScenarioType.RECOMMENDATION_EXPLAINER,
+                router.route("为什么推荐这个景点给我", "", "Recommendations")
+        );
+    }
 }
