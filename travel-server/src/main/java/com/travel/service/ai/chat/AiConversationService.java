@@ -2,6 +2,7 @@ package com.travel.service.ai.chat;
 
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
+import com.travel.config.ai.AiProperties;
 import com.travel.dto.ai.request.AiChatMessageRequest;
 import com.travel.dto.ai.response.AiChatDeltaEvent;
 import com.travel.dto.ai.response.AiChatErrorEvent;
@@ -34,6 +35,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -52,6 +54,11 @@ public class AiConversationService {
      * 统一 AI 聊天客户端。
      */
     private final ChatClient aiChatClient;
+
+    /**
+     * AI 模块配置。
+     */
+    private final AiProperties aiProperties;
 
     /**
      * Redis 对话记忆实现。
@@ -89,6 +96,11 @@ public class AiConversationService {
     private final AiResponseAssembler aiResponseAssembler;
 
     /**
+     * 对话上下文融合服务。
+     */
+    private final AiContextFusionService aiContextFusionService;
+
+    /**
      * 对话业务上下文组装服务。
      */
     private final AiConversationContextService aiConversationContextService;
@@ -123,6 +135,12 @@ public class AiConversationService {
      */
     @Qualifier("aiChatStreamExecutor")
     private final TaskExecutor aiChatStreamExecutor;
+
+    /**
+     * AI 双轨并行执行器。
+     */
+    @Qualifier("aiChatPipelineExecutor")
+    private final TaskExecutor aiChatPipelineExecutor;
 
     /**
      * 处理单轮聊天请求。
@@ -164,20 +182,9 @@ public class AiConversationService {
         AiToolRequestContext toolContext = aiToolContextHolder.createContext(userId, adminId);
 
         // 4. 双轨并行准备：左轨做 RAG 检索，右轨做意图识别、上下文组装和工具预执行。
-        CompletableFuture<List<AiKnowledgeSnippet>> retrievalFuture = CompletableFuture.supplyAsync(
-                () -> aiKnowledgeRetrievalService.retrieve(scenario, userMessage),
-                aiChatStreamExecutor
-        ).exceptionally(exception -> {
-            log.warn("AI 左轨检索失败，已降级为空结果：sessionId={}, scenario={}", sessionId, scenario, exception);
-            return List.of();
-        });
-        CompletableFuture<PreparedConversationData> toolingFuture = CompletableFuture.supplyAsync(
-                () -> prepareConversationData(userId, scenario, userMessage, toolContext),
-                aiChatStreamExecutor
-        ).exceptionally(exception -> {
-            log.warn("AI 右轨工具预执行失败，已降级为仅保留空上下文：sessionId={}, scenario={}", sessionId, scenario, exception);
-            return PreparedConversationData.empty();
-        });
+        CompletableFuture<List<AiKnowledgeSnippet>> retrievalFuture = buildRetrievalFuture(sessionId, scenario, userMessage);
+        CompletableFuture<PreparedConversationData> toolingFuture = buildToolingFuture(sessionId, userId, scenario, userMessage, toolContext);
+        CompletableFuture.allOf(retrievalFuture, toolingFuture).join();
 
         PreparedConversationData preparedData = toolingFuture.join();
         AiIntentResult intentResult = preparedData.intentResult();
@@ -187,10 +194,12 @@ public class AiConversationService {
 
         // 5. 组装系统提示词并生成消息 ID
         String messageId = aiSessionIdService.createSessionId();
-        String systemPrompt = aiPromptManager.buildSystemPrompt(scenario)
-                + buildConversationContextPrompt(conversationContext)
-                + buildIntentPrompt(intentResult)
-                + buildToolExecutionPrompt(toolExecutionResult);
+        String systemPrompt = aiContextFusionService.fuse(
+                aiPromptManager.buildSystemPrompt(scenario),
+                conversationContext,
+                intentResult,
+                toolExecutionResult
+        );
 
         log.info(
                 "AI 对话开始：会话ID={}, 消息ID={}, 用户ID={}, 场景={}, 意图={}, 来源页面={}, 上下文分区数={}, RAG命中数={}, 右轨是否预执行工具={}, 预执行工具名={}, 用户问题预览={}",
@@ -384,53 +393,6 @@ public class AiConversationService {
     }
 
     /**
-     * 将已识别的意图和槽位追加到系统提示词，帮助模型优先围绕真实任务调用工具。
-     *
-     * @param intentResult 意图识别结果
-     * @return 附加提示词
-     */
-    private String buildIntentPrompt(AiIntentResult intentResult) {
-        if (intentResult == null || !StringUtils.hasText(intentResult.intent()) || intentResult.intent().endsWith("NONE")) {
-            return "";
-        }
-        StringBuilder builder = new StringBuilder("\n\n已识别的用户意图：")
-                .append(intentResult.intent());
-        if (intentResult.slots() != null && !intentResult.slots().isEmpty()) {
-            builder.append("\n已提取条件：").append(intentResult.slots());
-        }
-        builder.append("\n请优先围绕该意图调用最匹配的工具，再组织回复。");
-        return builder.toString();
-    }
-
-    /**
-     * 将已组装的业务上下文追加到系统提示词，帮助模型先利用系统已知事实理解问题。
-     *
-     * @param conversationContext 对话上下文
-     * @return 附加提示词
-     */
-    private String buildConversationContextPrompt(AiConversationContext conversationContext) {
-        if (conversationContext == null || conversationContext.isEmpty()) {
-            return "";
-        }
-        return conversationContext.promptText();
-    }
-
-    /**
-     * 将右轨预执行工具得到的结构化结果追加到系统提示词。
-     *
-     * @param toolExecutionResult 工具预执行结果
-     * @return 附加提示词
-     */
-    private String buildToolExecutionPrompt(AiToolExecutionResult toolExecutionResult) {
-        if (toolExecutionResult == null || !toolExecutionResult.executed() || toolExecutionResult.payload() == null) {
-            return "";
-        }
-        return "\n\n系统已预执行右轨工具：" + toolExecutionResult.toolName()
-                + "\n已获得的结构化数据如下，请优先使用这些真实数据组织回答；只有当这些数据不足时，再决定是否补充调用其它工具："
-                + "\n" + toolExecutionResult.payload();
-    }
-
-    /**
      * 组装右轨预处理结果。
      *
      * @param userId 当前用户 ID
@@ -450,6 +412,64 @@ public class AiConversationService {
                 () -> aiToolExecutionService.execute(scenario, intentResult)
         );
         return new PreparedConversationData(intentResult, conversationContext, toolExecutionResult);
+    }
+
+    /**
+     * 构建左轨检索任务，并为超时和异常统一降级。
+     *
+     * @param sessionId 会话 ID
+     * @param scenario 当前场景
+     * @param userMessage 用户问题
+     * @return 检索任务
+     */
+    private CompletableFuture<List<AiKnowledgeSnippet>> buildRetrievalFuture(String sessionId,
+                                                                             AiScenarioType scenario,
+                                                                             String userMessage) {
+        return CompletableFuture.supplyAsync(
+                        () -> aiKnowledgeRetrievalService.retrieve(scenario, userMessage),
+                        aiChatPipelineExecutor
+                )
+                .completeOnTimeout(List.of(), resolveParallelTimeoutMillis(), TimeUnit.MILLISECONDS)
+                .exceptionally(exception -> {
+                    log.warn("AI 左轨检索失败，已降级为空结果：sessionId={}, scenario={}", sessionId, scenario, exception);
+                    return List.of();
+                });
+    }
+
+    /**
+     * 构建右轨工具预处理任务，并为超时和异常统一降级。
+     *
+     * @param sessionId 会话 ID
+     * @param userId 当前用户 ID
+     * @param scenario 当前场景
+     * @param userMessage 用户问题
+     * @param toolContext 工具上下文
+     * @return 预处理任务
+     */
+    private CompletableFuture<PreparedConversationData> buildToolingFuture(String sessionId,
+                                                                           Long userId,
+                                                                           AiScenarioType scenario,
+                                                                           String userMessage,
+                                                                           AiToolRequestContext toolContext) {
+        return CompletableFuture.supplyAsync(
+                        () -> prepareConversationData(userId, scenario, userMessage, toolContext),
+                        aiChatPipelineExecutor
+                )
+                .completeOnTimeout(PreparedConversationData.empty(), resolveParallelTimeoutMillis(), TimeUnit.MILLISECONDS)
+                .exceptionally(exception -> {
+                    log.warn("AI 右轨工具预执行失败，已降级为仅保留空上下文：sessionId={}, scenario={}", sessionId, scenario, exception);
+                    return PreparedConversationData.empty();
+                });
+    }
+
+    /**
+     * 解析双轨并行阶段的统一超时时间。
+     *
+     * @return 超时毫秒数
+     */
+    private int resolveParallelTimeoutMillis() {
+        Integer value = aiProperties.getChat().getParallelTimeoutMillis();
+        return Math.max(500, value == null ? 2500 : value);
     }
 
     /**

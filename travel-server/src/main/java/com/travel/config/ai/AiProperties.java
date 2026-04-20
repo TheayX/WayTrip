@@ -182,6 +182,11 @@ public class AiProperties {
          */
         private String systemPrompt = "你是 WayTrip 旅游助手。请始终使用简体中文，回答简洁、友好、可执行。"
                 + "涉及价格、库存、退款、时效时，必须明确说明以页面规则和系统真实数据为准。";
+
+        /**
+         * 左右双轨并行阶段的最长等待时间，单位：毫秒。
+         */
+        private Integer parallelTimeoutMillis = 2500;
     }
 
     /**

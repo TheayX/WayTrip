@@ -67,6 +67,24 @@ public class AiModelConfig {
     }
 
     /**
+     * AI 双轨并行执行器。
+     * <p>
+     * 左轨检索和右轨上下文预处理都属于请求内短任务，不应与流式输出线程长期混用。
+     *
+     * @return 线程池执行器
+     */
+    @Bean("aiChatPipelineExecutor")
+    public TaskExecutor aiChatPipelineExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setThreadNamePrefix("ai-chat-pipeline-");
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(8);
+        executor.setQueueCapacity(64);
+        executor.initialize();
+        return executor;
+    }
+
+    /**
      * AI 知识任务执行器。
      *
      * @return 线程池执行器
