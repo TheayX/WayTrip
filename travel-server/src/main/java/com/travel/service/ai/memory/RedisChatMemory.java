@@ -8,13 +8,20 @@ import com.travel.config.cache.RedisKeyManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.ToolResponseMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 基于 Redis 的 Spring AI 对话记忆实现。
@@ -54,7 +61,7 @@ public class RedisChatMemory implements ChatMemory {
         history = trimHistory(history);
 
         try {
-            String json = objectMapper.writeValueAsString(history);
+            String json = objectMapper.writeValueAsString(history.stream().map(this::toStoredMessage).toList());
             String key = RedisKeyManager.aiConversationSession(conversationId);
             long ttlMinutes = aiProperties.getMemory().getTtlMinutes();
 
@@ -84,12 +91,143 @@ public class RedisChatMemory implements ChatMemory {
         }
 
         try {
-            List<Message> history = objectMapper.readValue(json, new TypeReference<List<Message>>() {});
-            return new ArrayList<>(history);
-        } catch (JsonProcessingException e) {
+            List<StoredMessage> history = objectMapper.readValue(json, new TypeReference<List<StoredMessage>>() {});
+            if (history == null || history.isEmpty()) {
+                return new ArrayList<>();
+            }
+            List<Message> restored = history.stream().map(this::toRuntimeMessage).toList();
+            if (restored.isEmpty()) {
+                return new ArrayList<>();
+            }
+            return new ArrayList<>(restored);
+        } catch (IllegalArgumentException | JsonProcessingException e) {
+            log.warn("Failed to deserialize AI memory for session {}, clearing broken cache. Error: {}", conversationId, e.getMessage());
+            clear(conversationId);
+            return new ArrayList<>();
+        } catch (Exception e) {
             log.warn("Failed to deserialize AI memory for session {}, attempting to return empty list. Error: {}", conversationId, e.getMessage());
+            clear(conversationId);
             return new ArrayList<>();
         }
+    }
+
+    /**
+     * 将运行时消息转换为稳定可控的缓存结构。
+     *
+     * @param message 运行时消息
+     * @return 缓存消息
+     */
+    private StoredMessage toStoredMessage(Message message) {
+        StoredMessage storedMessage = new StoredMessage();
+        storedMessage.setType(message.getMessageType() == null ? "" : message.getMessageType().name());
+        storedMessage.setText(message.getText());
+        storedMessage.setMetadata(message.getMetadata() == null ? Map.of() : new LinkedHashMap<>(message.getMetadata()));
+
+        if (message instanceof AssistantMessage assistantMessage && assistantMessage.getToolCalls() != null) {
+            storedMessage.setToolCalls(assistantMessage.getToolCalls().stream()
+                    .map(item -> new StoredToolCall(item.id(), item.type(), item.name(), item.arguments()))
+                    .toList());
+        }
+        if (message instanceof ToolResponseMessage toolResponseMessage && toolResponseMessage.getResponses() != null) {
+            storedMessage.setToolResponses(toolResponseMessage.getResponses().stream()
+                    .map(item -> new StoredToolResponse(item.id(), item.name(), item.responseData()))
+                    .toList());
+        }
+        return storedMessage;
+    }
+
+    /**
+     * 将缓存消息重建为 Spring AI 运行时消息。
+     *
+     * @param storedMessage 缓存消息
+     * @return 运行时消息
+     */
+    private Message toRuntimeMessage(StoredMessage storedMessage) {
+        if (storedMessage == null || !org.springframework.util.StringUtils.hasText(storedMessage.getType())) {
+            throw new IllegalArgumentException("AI memory message type is blank");
+        }
+
+        MessageType messageType = MessageType.valueOf(storedMessage.getType().trim().toUpperCase());
+        Map<String, Object> metadata = storedMessage.getMetadata() == null
+                ? Map.of()
+                : new LinkedHashMap<>(storedMessage.getMetadata());
+
+        return switch (messageType) {
+            case USER -> UserMessage.builder()
+                    .text(storedMessage.getText() == null ? "" : storedMessage.getText())
+                    .metadata(metadata)
+                    .build();
+            case SYSTEM -> SystemMessage.builder()
+                    .text(storedMessage.getText() == null ? "" : storedMessage.getText())
+                    .metadata(metadata)
+                    .build();
+            case ASSISTANT -> new AssistantMessage(
+                    storedMessage.getText(),
+                    metadata,
+                    storedMessage.getToolCalls() == null ? List.of() : storedMessage.getToolCalls().stream()
+                            .map(item -> new AssistantMessage.ToolCall(item.id(), item.type(), item.name(), item.arguments()))
+                            .toList()
+            );
+            case TOOL -> new ToolResponseMessage(
+                    storedMessage.getToolResponses() == null ? List.of() : storedMessage.getToolResponses().stream()
+                            .map(item -> new ToolResponseMessage.ToolResponse(item.id(), item.name(), item.responseData()))
+                            .toList(),
+                    metadata
+            );
+        };
+    }
+
+    /**
+     * 缓存中的消息结构。
+     */
+    @lombok.Data
+    private static class StoredMessage {
+
+        /**
+         * 消息类型。
+         */
+        private String type;
+
+        /**
+         * 文本内容。
+         */
+        private String text;
+
+        /**
+         * 元数据。
+         */
+        private Map<String, Object> metadata = new LinkedHashMap<>();
+
+        /**
+         * 助手工具调用记录。
+         */
+        private List<StoredToolCall> toolCalls = List.of();
+
+        /**
+         * 工具响应记录。
+         */
+        private List<StoredToolResponse> toolResponses = List.of();
+    }
+
+    /**
+     * 缓存中的工具调用结构。
+     */
+    private record StoredToolCall(
+            String id,
+            String type,
+            String name,
+            String arguments
+    ) {
+    }
+
+    /**
+     * 缓存中的工具响应结构。
+     */
+    private record StoredToolResponse(
+            String id,
+            String name,
+            String responseData
+    ) {
     }
 
     /**

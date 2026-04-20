@@ -43,6 +43,9 @@ public class AiIntentService {
             return null;
         }
         AiIntentResult fallback = recognizeByRule(userMessage, scenario);
+        if (shouldShortCircuitWithRule(fallback)) {
+            return fallback;
+        }
         try {
             String raw = jsonSupport.classify(buildSystemPrompt(scenario), userMessage);
             if (!StringUtils.hasText(raw)) {
@@ -52,6 +55,22 @@ public class AiIntentService {
         } catch (Exception ignored) {
             return fallback;
         }
+    }
+
+    /**
+     * 对高置信、规则即可稳定命中的场景直接短路，避免每次都等待本地小模型分类。
+     *
+     * @param fallback 规则识别结果
+     * @return 是否直接返回规则结果
+     */
+    private boolean shouldShortCircuitWithRule(AiIntentResult fallback) {
+        if (fallback == null || !StringUtils.hasText(fallback.intent())) {
+            return false;
+        }
+        if (fallback.intent().endsWith("NONE")) {
+            return false;
+        }
+        return fallback.confidence() != null && fallback.confidence() >= 0.8D;
     }
 
     private AiIntentResult parseModelResult(String raw, AiScenarioType scenario) throws Exception {
