@@ -247,10 +247,12 @@ import {
 } from '@/modules/ai-service/api.js'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_PREVIEW_DEFAULT_SCENARIO, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
 import {
+  buildEmptyAiPreviewResult,
   createEmptyAiMaintenanceSummary,
   createEmptyAiVectorStatus,
   displayAiMetric,
-  extractAiErrorMessage
+  extractAiErrorMessage,
+  formatAiPreviewDomains
 } from '@/modules/ai-service/utils.js'
 
 // 工作台默认落到订单顾问，方便直接联调订单边界与售后知识。
@@ -292,11 +294,7 @@ const previewHits = computed(() => {
 })
 
 const previewDomainLabel = computed(() => {
-  const domains = Array.isArray(previewResult.value?.domains) ? previewResult.value.domains : []
-  if (domains.length > 0) {
-    return domains.map(getDomainLabel).join(' / ')
-  }
-  return getDomainLabel(previewResult.value?.domain)
+  return formatAiPreviewDomains(previewResult.value?.domains, previewResult.value?.domain, AI_KNOWLEDGE_DOMAIN_LABELS)
 })
 
 // 维护结果统一回写到同一块结果区，方便对比最近一次运维动作的效果。
@@ -342,14 +340,11 @@ const handlePreview = async () => {
       scenario: previewForm.scenario,
       query
     })
-    previewResult.value = res?.data || {
+    previewResult.value = res?.data || buildEmptyAiPreviewResult({
       query,
       scenario: previewForm.scenario,
-      domain: selectedScenarioOption.value?.domain || '',
-      domains: selectedScenarioOption.value?.domain ? [selectedScenarioOption.value.domain] : [],
-      hitCount: 0,
-      hits: []
-    }
+      domain: selectedScenarioOption.value?.domain || ''
+    })
   } catch (error) {
     previewErrorMessage.value = extractAiErrorMessage(error, '命中预览失败，请稍后重试。')
   } finally {

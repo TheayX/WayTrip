@@ -57,6 +57,46 @@ export function extractAiErrorMessage(error, fallback) {
 }
 
 /**
+ * 将 AI 预览返回的知识域列表格式化为统一展示文案。
+ *
+ * @param {string[]|undefined|null} domains 命中知识域列表
+ * @param {string|undefined|null} fallbackDomain 兜底知识域
+ * @param {Record<string, string>} domainLabels 知识域文案映射
+ * @return {string} 页面展示文案
+ */
+export function formatAiPreviewDomains(domains, fallbackDomain, domainLabels) {
+  const labels = Array.isArray(domains)
+    ? domains
+      .filter(item => typeof item === 'string' && item.trim())
+      .map(item => resolveAiDomainLabel(item, domainLabels))
+    : []
+  if (labels.length > 0) {
+    return labels.join(' / ')
+  }
+  return resolveAiDomainLabel(fallbackDomain, domainLabels)
+}
+
+/**
+ * 生成 AI 预览的空结果兜底结构，避免多个页面各自拼装字段。
+ *
+ * @param {object} options 兜底参数
+ * @param {string} options.query 查询内容
+ * @param {string} options.scenario 场景
+ * @param {string} options.domain 默认知识域
+ * @return {object} 统一兜底结果
+ */
+export function buildEmptyAiPreviewResult({ query, scenario, domain }) {
+  return {
+    query,
+    scenario,
+    domain: domain || '',
+    domains: domain ? [domain] : [],
+    hitCount: 0,
+    hits: []
+  }
+}
+
+/**
  * 将可选数值格式化为适合页面展示的占位形式。
  *
  * @param {number|string|null|undefined} value 原始值
@@ -64,4 +104,15 @@ export function extractAiErrorMessage(error, fallback) {
  */
 export function displayAiMetric(value) {
   return value ?? value === 0 ? value : '--'
+}
+
+/**
+ * 将单个知识域编码转换为页面展示文案。
+ *
+ * @param {string|null|undefined} value 原始知识域
+ * @param {Record<string, string>} domainLabels 知识域文案映射
+ * @return {string} 展示文案
+ */
+function resolveAiDomainLabel(value, domainLabels) {
+  return domainLabels?.[value] || value || '未分类'
 }

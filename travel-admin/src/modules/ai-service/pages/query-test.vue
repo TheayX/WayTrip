@@ -145,7 +145,7 @@
 import { computed, reactive, ref } from 'vue'
 import { previewAiKnowledge } from '@/modules/ai-service/api.js'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_PREVIEW_DEFAULT_SCENARIO, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
-import { extractAiErrorMessage } from '@/modules/ai-service/utils.js'
+import { buildEmptyAiPreviewResult, extractAiErrorMessage, formatAiPreviewDomains } from '@/modules/ai-service/utils.js'
 
 // 查询测试优先默认到订单顾问，便于验证订单边界、售后规则与工具优先链路。
 const DEFAULT_SCENARIO = AI_PREVIEW_DEFAULT_SCENARIO
@@ -171,11 +171,7 @@ const selectedScenarioDomainLabel = computed(() => {
 })
 
 const activeDomainLabel = computed(() => {
-  const domains = Array.isArray(result.value?.domains) ? result.value.domains : []
-  if (domains.length > 0) {
-    return domains.map(getDomainLabel).join(' / ')
-  }
-  return getDomainLabel(result.value?.domain)
+  return formatAiPreviewDomains(result.value?.domains, result.value?.domain, AI_KNOWLEDGE_DOMAIN_LABELS)
 })
 
 const resultHits = computed(() => {
@@ -203,14 +199,11 @@ const handlePreview = async () => {
       scenario: form.scenario,
       query
     })
-    result.value = res?.data || {
+    result.value = res?.data || buildEmptyAiPreviewResult({
       query,
       scenario: form.scenario,
-      domain: selectedScenarioOption.value?.domain || '',
-      domains: selectedScenarioOption.value?.domain ? [selectedScenarioOption.value.domain] : [],
-      hitCount: 0,
-      hits: []
-    }
+      domain: selectedScenarioOption.value?.domain || ''
+    })
   } catch (error) {
     errorMessage.value = extractAiErrorMessage(error, '命中预览失败，请稍后重试。')
   } finally {

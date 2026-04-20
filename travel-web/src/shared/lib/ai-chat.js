@@ -189,7 +189,7 @@ export function clearCachedAiSessionId() {
  * 归一化建议问题列表，只保留短且有效的字符串项。
  *
  * @param {any} value 原始值
- * @returns {string[]}
+ * @returns {{ text: string, scenarioHint: string, sourcePage: string }[]}
  */
 function normalizeSuggestions(value) {
   if (!Array.isArray(value)) return []

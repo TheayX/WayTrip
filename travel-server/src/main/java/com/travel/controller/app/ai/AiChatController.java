@@ -2,14 +2,12 @@ package com.travel.controller.app.ai;
 
 import com.travel.dto.ai.request.AiChatMessageRequest;
 import com.travel.service.ai.AiChatService;
-import com.travel.util.security.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,10 +28,7 @@ public class AiChatController {
      */
     private final AiChatService aiChatService;
 
-    /**
-     * JWT 解析工具，用于识别当前请求身份。
-     */
-    private final JwtUtils jwtUtils;
+    private final AiRequestIdentityResolver aiRequestIdentityResolver;
 
     /**
      * 统一 AI 对话入口。
@@ -48,69 +43,9 @@ public class AiChatController {
                            HttpServletRequest httpRequest) {
         return aiChatService.chat(
                 request,
-                resolveUserId(resolveToken(httpRequest.getHeader("Authorization"))),
-                resolveAdminId(resolveToken(httpRequest.getHeader("Authorization"))),
-                resolveClientIp(httpRequest)
+                aiRequestIdentityResolver.resolveUserId(httpRequest),
+                aiRequestIdentityResolver.resolveAdminId(httpRequest),
+                aiRequestIdentityResolver.resolveClientIp(httpRequest)
         );
-    }
-
-    /**
-     * 从 Authorization 请求头中提取 Bearer Token。
-     *
-     * @param authorization 请求头原始值
-     * @return Token；不存在或格式非法时返回 {@code null}
-     */
-    private String resolveToken(String authorization) {
-        if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) {
-            return null;
-        }
-        String token = authorization.substring(7).trim();
-        if (!StringUtils.hasText(token)) {
-            return null;
-        }
-        return token;
-    }
-
-    /**
-     * 解析普通用户身份。
-     *
-     * @param token JWT Token
-     * @return 用户 ID；解析失败时返回 {@code null}
-     */
-    private Long resolveUserId(String token) {
-        if (!StringUtils.hasText(token)) {
-            return null;
-        }
-        return jwtUtils.getUserIdFromToken(token);
-    }
-
-    /**
-     * 解析管理端身份。
-     *
-     * @param token JWT Token
-     * @return 管理员 ID；解析失败时返回 {@code null}
-     */
-    private Long resolveAdminId(String token) {
-        if (!StringUtils.hasText(token)) {
-            return null;
-        }
-        return jwtUtils.getAdminIdFromToken(token);
-    }
-
-    /**
-     * 按常见反向代理请求头顺序解析客户端真实 IP。
-     *
-     * @param request HTTP 请求
-     * @return 客户端 IP
-     */
-    private String resolveClientIp(HttpServletRequest request) {
-        String[] headers = new String[]{"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP"};
-        for (String header : headers) {
-            String ip = request.getHeader(header);
-            if (StringUtils.hasText(ip) && !"unknown".equalsIgnoreCase(ip)) {
-                return ip.contains(",") ? ip.split(",")[0].trim() : ip.trim();
-            }
-        }
-        return request.getRemoteAddr();
     }
 }
