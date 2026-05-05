@@ -88,7 +88,7 @@ const {
   preferenceVisible,
   recommendType,
   fetchRecommendationList,
-  refreshRecommendationList,
+  rotateRecommendationList,
   openPreferenceDialog,
   savePreferences: persistPreferences
 } = useRecommendationFeed(20)
@@ -101,7 +101,7 @@ const refreshList = async () => {
 
   uni.showLoading({ title: '加载中...' })
   try {
-    await refreshRecommendationList()
+    await rotateRecommendationList()
     uni.showToast({ title: '已刷新', icon: 'none' })
   } catch (error) {
     console.error('刷新推荐失败', error)

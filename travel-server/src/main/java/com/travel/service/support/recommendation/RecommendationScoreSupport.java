@@ -295,11 +295,12 @@ public class RecommendationScoreSupport {
         return null;
     }
 
-    public RecommendationResponse.DebugInfo initDebugInfo(Long userId, Integer limit, boolean refresh) {
+    public RecommendationResponse.DebugInfo initDebugInfo(Long userId, Integer limit, String mode) {
         RecommendationResponse.DebugInfo debugInfo = new RecommendationResponse.DebugInfo();
         debugInfo.setUserId(userId);
         debugInfo.setRequestLimit(limit);
-        debugInfo.setRefresh(refresh);
+        debugInfo.setMode(mode);
+        debugInfo.setRefresh(!"cache".equals(mode));
         debugInfo.setDebugEnabled(true);
         return debugInfo;
     }
@@ -555,9 +556,9 @@ public class RecommendationScoreSupport {
             .collect(Collectors.toList());
     }
 
-    public void logRecommendationPreview(Long userId, RecommendationResponse response, boolean refresh) {
+    public void logRecommendationPreview(Long userId, RecommendationResponse response, String mode) {
         if (response == null) {
-            log.info("推荐调试预览：用户ID={}，是否刷新={}，结果为空", userId, refresh);
+            log.info("推荐调试预览：用户ID={}，预览模式={}，结果为空", userId, mode);
             return;
         }
 
@@ -573,9 +574,9 @@ public class RecommendationScoreSupport {
             .collect(Collectors.joining(", "));
 
         log.info(
-            "推荐调试预览结果：用户ID={}，是否刷新={}，推荐类型={}，是否需要偏好引导={}，结果明细=[{}]",
+            "推荐调试预览结果：用户ID={}，预览模式={}，推荐类型={}，是否需要偏好引导={}，结果明细=[{}]",
             userId,
-            refresh,
+            mode,
             response.getType(),
             response.getNeedPreference(),
             items

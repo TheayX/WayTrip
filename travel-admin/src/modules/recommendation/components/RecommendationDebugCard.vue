@@ -22,16 +22,16 @@
             <el-input-number v-model="debugForm.limit" :min="1" :max="20" :step="1" controls-position="right" />
           </div>
           <div class="debug-field">
-            <span class="debug-label">结果来源</span>
-            <el-switch v-model="debugForm.refresh" inline-prompt active-text="刷新" inactive-text="缓存" />
+            <span class="debug-label">预览模式</span>
+            <el-radio-group v-model="debugForm.mode" size="small">
+              <el-radio-button label="cache">缓存结果</el-radio-button>
+              <el-radio-button label="recompute">重算稳定</el-radio-button>
+              <el-radio-button label="recompute_rotate">重算后轮换</el-radio-button>
+            </el-radio-group>
           </div>
           <div class="debug-field">
             <span class="debug-label">后端日志</span>
             <el-switch v-model="debugForm.debug" inline-prompt active-text="控制台日志" inactive-text="静默" />
-          </div>
-          <div class="debug-field">
-            <span class="debug-label">稳定模式</span>
-            <el-switch v-model="debugForm.stable" inline-prompt active-text="稳定" inactive-text="轮换" />
           </div>
           <el-button type="primary" :loading="previewing" @click="emit('preview-recommendations')">
             调试预览
@@ -47,7 +47,9 @@
             {{ debugResult.needPreference ? '需要补充偏好设置' : '无需偏好引导' }}
           </el-tag>
           <el-tag size="small" type="primary">返回 {{ debugItems.length }} 条</el-tag>
-          <el-tag size="small" type="info">{{ debugForm.refresh ? '本次强制刷新' : '本次优先读取缓存' }}</el-tag>
+          <el-tag size="small" type="info">
+            {{ debugForm.mode === 'cache' ? '本次优先读取缓存' : (debugForm.mode === 'recompute' ? '本次强制重算（稳定顺序）' : '本次强制重算（轮换顺序）') }}
+          </el-tag>
         </div>
 
         <div v-if="debugResult" class="debug-summary">

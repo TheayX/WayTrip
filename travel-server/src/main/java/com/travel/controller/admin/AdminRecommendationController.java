@@ -56,25 +56,23 @@ public class AdminRecommendationController {
     }
 
     /**
-     * 仅供管理端调试使用，可按需刷新缓存并输出详细推荐明细。
+     * 仅供管理端调试使用，可按模式读取缓存、重算稳定结果或重算后轮换结果。
      */
     @Operation(summary = "调试预览指定用户的推荐结果")
     @GetMapping("/preview")
     public ApiResponse<RecommendationResponse> previewRecommendations(
             @RequestParam Long userId,
             @RequestParam(defaultValue = "10") Integer limit,
-            @RequestParam(defaultValue = "false") Boolean refresh,
-            @RequestParam(defaultValue = "false") Boolean debug,
-            @RequestParam(defaultValue = "false") Boolean stable) {
+            @RequestParam(defaultValue = "cache") String mode,
+            @RequestParam(defaultValue = "false") Boolean debug) {
         log.info(
-            "管理端请求推荐调试预览：用户ID={}，返回条数={}，是否刷新={}，是否输出详细调试日志={}",
+            "管理端请求推荐调试预览：用户ID={}，返回条数={}，预览模式={}，是否输出详细调试日志={}",
             userId,
             limit,
-            refresh,
-            debug,
-            stable
+            mode,
+            debug
         );
-        return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, refresh, debug, stable));
+        return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, mode, debug));
     }
 
     /**

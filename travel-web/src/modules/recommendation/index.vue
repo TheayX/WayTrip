@@ -76,7 +76,7 @@ const {
   preferenceVisible,
   recommendType,
   fetchRecommendationList,
-  refreshRecommendationList,
+  rotateRecommendationList,
   openPreferenceDialog,
   savePreferences
 } = useRecommendationFeed(20)
@@ -85,7 +85,7 @@ const {
 const handleRefresh = async () => {
   refreshing.value = true
   try {
-    await refreshRecommendationList()
+    await rotateRecommendationList()
     ElMessage.success('推荐已刷新')
   } finally {
     refreshing.value = false

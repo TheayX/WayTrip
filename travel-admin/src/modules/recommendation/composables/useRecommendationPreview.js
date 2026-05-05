@@ -21,9 +21,8 @@ export function useRecommendationPreview({ status, fetchStatus }) {
   const debugForm = reactive({
     userId: 1,
     limit: 6,
-    refresh: true,
-    debug: true,
-    stable: true
+    mode: 'recompute',
+    debug: true
   })
   const similarityForm = reactive({
     spotId: 1,
@@ -38,9 +37,8 @@ export function useRecommendationPreview({ status, fetchStatus }) {
       `request.userId = ${debugForm.userId}`,
       `request.userNickname = ${debugResult.value?.debugInfo?.userNickname || '未返回'}`,
       `request.limit = ${debugForm.limit}`,
-      `request.refresh = ${debugForm.refresh}`,
+      `request.mode = ${debugForm.mode}`,
       `request.debug = ${debugForm.debug}`,
-      `request.stable = ${debugForm.stable}`,
       `response.type = ${debugResult.value.type}`,
       `response.needPreference = ${debugResult.value.needPreference}`,
       `response.count = ${debugResult.value.list?.length || 0}`
@@ -148,11 +146,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
         value: recommendationTypeMeta.value.label,
         desc: debugInfo.value?.triggerReason || (debugResult.value?.needPreference ? '当前链路仍建议补充偏好' : '当前链路无需额外偏好引导')
       },
-      {
-        label: '返回结果数',
-        value: String(debugItems.value.length),
-        desc: `请求数量 ${debugForm.limit}，实际返回 ${debugItems.value.length}`
-      },
+      { label: '返回结果数', value: String(debugItems.value.length), desc: `请求数量 ${debugForm.limit}，实际返回 ${debugItems.value.length}` },
       {
         label: '最高推荐分',
         value: topItem?.score != null ? Number(topItem.score).toFixed(4) : '无',
@@ -192,6 +186,9 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     }
     if (debugForm.debug) {
       insights.push('本次已启用后端详细调试日志，可同步结合服务端控制台查看交互权重、候选分数、过滤与重排信息。')
+    }
+    if (debugForm.mode === 'cache') {
+      insights.push('缓存模式不会主动重算推荐链路，更适合确认当前用户端正在消费哪一份结果。')
     }
     return insights
   })

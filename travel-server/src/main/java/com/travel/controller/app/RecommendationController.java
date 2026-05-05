@@ -11,9 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 用户端推荐控制器，负责推荐结果获取与刷新接口。
+ * 用户端推荐控制器，负责推荐结果获取、轮换与重算接口。
  * <p>
- * 推荐结果读取与强制刷新分开暴露，便于前端根据场景选择走缓存还是实时重算。
+ * 推荐结果读取、换一批和重算分开暴露，便于前端按用户场景调用明确动作。
  */
 @Tag(name = "用户端-推荐", description = "个性化推荐相关接口")
 @RestController
@@ -32,12 +32,20 @@ public class RecommendationController {
         return ApiResponse.success(recommendationService.getRecommendations(userId, limit));
     }
 
-    @Operation(summary = "刷新推荐")
-    @PostMapping("/refresh")
-    public ApiResponse<RecommendationResponse> refreshRecommendations(
+    @Operation(summary = "换一批推荐")
+    @PostMapping("/rotate")
+    public ApiResponse<RecommendationResponse> rotateRecommendations(
             @RequestParam(defaultValue = "10") Integer limit) {
         Long userId = UserContextHolder.getUserId();
-        return ApiResponse.success(recommendationService.refreshRecommendations(userId, limit));
+        return ApiResponse.success(recommendationService.rotateRecommendations(userId, limit));
+    }
+
+    @Operation(summary = "重算推荐")
+    @PostMapping("/recompute")
+    public ApiResponse<RecommendationResponse> recomputeRecommendations(
+            @RequestParam(defaultValue = "10") Integer limit) {
+        Long userId = UserContextHolder.getUserId();
+        return ApiResponse.success(recommendationService.recomputeRecommendations(userId, limit));
     }
 
     @Operation(summary = "获取相似景点推荐")

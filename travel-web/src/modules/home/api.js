@@ -41,8 +41,15 @@ export const getNearbySpots = (latitude, longitude, limit = 10) =>
   client.get('/home/nearby', { params: { latitude, longitude, limit } })
 
 /**
- * 刷新推荐景点
+ * 轮换推荐景点
  * @param limit
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const refreshRecommendations = (limit = 10) => client.post('/recommendations/refresh', null, { params: { limit } })
+export const rotateRecommendations = (limit = 10) => client.post('/recommendations/rotate', null, { params: { limit } })
+
+/**
+ * 重算推荐景点
+ * @param limit
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const recomputeRecommendations = (limit = 10) => client.post('/recommendations/recompute', null, { params: { limit } })
