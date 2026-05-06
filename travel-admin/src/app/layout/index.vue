@@ -769,7 +769,8 @@ onMounted(async () => {
     padding: 16px;
     border-radius: 16px;
     background: var(--wt-surface-elevated);
-    box-shadow: var(--wt-shadow-soft);
+    border: 1px solid var(--wt-border-default);
+    box-shadow: var(--wt-shadow-float);
   }
 
   .notification-panel__header {
@@ -816,7 +817,7 @@ onMounted(async () => {
     padding: 12px;
     border: 1px solid var(--wt-border-default);
     border-radius: 12px;
-    background: var(--wt-surface-panel);
+    background: linear-gradient(180deg, var(--wt-surface-panel) 0%, var(--wt-surface-muted) 100%);
   }
 
   .notification-section__header {
@@ -840,7 +841,7 @@ onMounted(async () => {
      padding: 10px 12px;
      border: 1px solid transparent;
      border-radius: 10px;
-     background: var(--wt-surface-elevated);
+     background: color-mix(in srgb, var(--wt-surface-elevated) 82%, var(--wt-surface-panel));
      text-align: left;
      cursor: pointer;
      display: flex;
@@ -869,7 +870,7 @@ onMounted(async () => {
      width: 8px;
      height: 8px;
      border-radius: 50%;
-     background: var(--el-color-danger);
+     background: var(--wt-accent-rose-text);
      flex-shrink: 0;
    }
 
@@ -972,7 +973,7 @@ onMounted(async () => {
     position: relative;
     display: flex;
     align-items: center;
-    background: var(--wt-fill-striped);
+    background: var(--wt-surface-muted);
     padding: 0 14px;
     height: 38px;
     border-radius: 8px;
@@ -984,7 +985,7 @@ onMounted(async () => {
 
     &:focus-within {
       border-color: var(--el-color-primary);
-      box-shadow: 0 0 0 1px var(--el-color-primary);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 72%, transparent);
       background: var(--wt-surface-elevated);
     }
 
@@ -1028,7 +1029,7 @@ onMounted(async () => {
       border-radius: 18px;
       border: 1px solid var(--wt-border-default);
       background: var(--wt-surface-elevated);
-      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
+      box-shadow: var(--wt-shadow-float);
       z-index: 30;
     }
 
@@ -1047,12 +1048,14 @@ onMounted(async () => {
       padding: 12px 14px;
       border-radius: 14px;
       background: transparent;
+      color: var(--wt-text-regular);
       cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.2s ease;
+      transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
       &:hover,
       &.is-active {
         background: var(--el-color-primary-light-9);
+        color: var(--wt-text-primary);
         transform: translateY(-1px);
       }
     }

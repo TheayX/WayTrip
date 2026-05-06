@@ -459,7 +459,8 @@ onMounted(() => {
   width: 160px;
   height: 80px;
   border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--wt-border-default);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 .banner-status {
@@ -509,7 +510,8 @@ onMounted(() => {
       cursor: pointer;
       overflow: hidden;
       transition: all 0.3s;
-      &:hover { border-color: var(--el-color-primary); background: var(--wt-fill-hover); }
+      background: var(--wt-surface-muted);
+      &:hover { border-color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
     }
   }
   .uploaded-image {
@@ -524,6 +526,7 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     color: var(--wt-text-secondary);
+    background: var(--wt-surface-muted);
     .el-icon { font-size: 28px; margin-bottom: 8px; }
     span { font-size: 12px; }
   }

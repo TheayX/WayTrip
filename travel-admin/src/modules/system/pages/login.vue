@@ -166,7 +166,7 @@ const handleLogin = async () => {
     &::after {
       width: 480px;
       height: 480px;
-      background: rgba(37, 99, 235, 0.12);
+      background: var(--wt-accent-blue-bg);
       bottom: -160px;
       right: -120px;
     }
@@ -282,7 +282,7 @@ const handleLogin = async () => {
         height: auto;
         display: block;
         flex-shrink: 0;
-        filter: drop-shadow(0 18px 24px rgba(59, 130, 246, 0.2));
+        filter: drop-shadow(0 18px 24px color-mix(in srgb, var(--el-color-primary) 20%, transparent));
       }
     }
 
@@ -384,7 +384,7 @@ const handleLogin = async () => {
           transition: all 0.3s ease;
 
           &.is-focus, &:hover {
-            box-shadow: 0 0 0 1px #ca8a04 inset;
+            box-shadow: 0 0 0 1px var(--el-color-primary) inset;
             background-color: var(--login-input-hover-bg);
           }
         }
@@ -411,14 +411,14 @@ const handleLogin = async () => {
           font-size: 16px;
           font-weight: 600;
           margin-top: 8px;
-          background: linear-gradient(135deg, #1c1917, #44403c);
+          background: var(--wt-accent-gradient-blue);
           border: none;
           letter-spacing: 0.08em;
           transition: all 0.3s;
 
           &:hover {
             transform: translateY(-2px);
-            box-shadow: 0 14px 30px rgba(28, 25, 23, 0.22);
+            box-shadow: 0 14px 30px color-mix(in srgb, var(--el-color-primary) 24%, transparent);
           }
           &:active {
             transform: translateY(0);
@@ -438,105 +438,104 @@ const handleLogin = async () => {
 
 :global(html.dark) .login-container {
   --login-shell-bg:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.14) 0%, rgba(14, 165, 233, 0) 32%),
-    radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0) 34%),
-    linear-gradient(135deg, #020617 0%, #0f172a 52%, #111827 100%);
-  --login-panel-bg: rgba(2, 6, 23, 0.56);
-  --login-panel-border: rgba(51, 65, 85, 0.88);
-  --login-panel-shadow: 0 30px 90px rgba(2, 6, 23, 0.42);
-  --login-left-text: #f8fafc;
-  --login-right-bg: rgba(15, 23, 42, 0.78);
-  --login-kicker: #94a3b8;
-  --login-title: #f8fafc;
-  --login-subtitle: #cbd5e1;
-  --login-input-bg: rgba(15, 23, 42, 0.82);
-  --login-input-border: rgba(71, 85, 105, 0.92);
-  --login-input-hover-bg: rgba(30, 41, 59, 0.96);
-  --login-input-text: #f8fafc;
-  --login-input-placeholder: #94a3b8;
-  --login-input-icon: #cbd5e1;
-  --login-footer: #64748b;
+    radial-gradient(circle at top left, var(--wt-accent-blue-bg) 0%, transparent 32%),
+    radial-gradient(circle at bottom right, var(--wt-accent-cyan-bg) 0%, transparent 34%),
+    linear-gradient(135deg, var(--wt-surface-page) 0%, var(--wt-surface-panel) 52%, var(--wt-surface-muted) 100%);
+  --login-panel-bg: color-mix(in srgb, var(--wt-surface-page) 72%, transparent);
+  --login-panel-border: var(--wt-border-default);
+  --login-panel-shadow: var(--wt-shadow-float);
+  --login-left-text: var(--wt-text-primary);
+  --login-right-bg: color-mix(in srgb, var(--wt-surface-panel) 86%, transparent);
+  --login-kicker: var(--wt-text-secondary);
+  --login-title: var(--wt-text-primary);
+  --login-subtitle: var(--wt-text-regular);
+  --login-input-bg: color-mix(in srgb, var(--wt-surface-muted) 88%, transparent);
+  --login-input-border: var(--wt-border-default);
+  --login-input-hover-bg: var(--wt-surface-elevated);
+  --login-input-text: var(--wt-text-primary);
+  --login-input-placeholder: var(--wt-text-secondary);
+  --login-input-icon: var(--wt-text-regular);
+  --login-footer: var(--wt-text-secondary);
 }
 
 .login-container--dark {
   --login-shell-bg:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0) 28%),
-    radial-gradient(circle at 80% 18%, rgba(99, 102, 241, 0.14) 0%, rgba(99, 102, 241, 0) 24%),
-    radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0) 32%),
-    linear-gradient(135deg, #020617 0%, #0b1120 48%, #111827 100%);
-  --login-panel-bg: rgba(2, 6, 23, 0.72);
-  --login-panel-border: rgba(71, 85, 105, 0.96);
-  --login-panel-shadow: 0 36px 100px rgba(2, 6, 23, 0.56);
-  --login-left-text: #f8fafc;
-  --login-right-bg: rgba(15, 23, 42, 0.92);
-  --login-kicker: #93c5fd;
-  --login-title: #f8fafc;
-  --login-subtitle: #dbeafe;
-  --login-input-bg: rgba(15, 23, 42, 0.98);
-  --login-input-border: rgba(96, 165, 250, 0.28);
-  --login-input-hover-bg: rgba(30, 41, 59, 0.98);
-  --login-input-text: #f8fafc;
-  --login-input-placeholder: #94a3b8;
-  --login-input-icon: #bfdbfe;
-  --login-footer: #94a3b8;
+    radial-gradient(circle at top left, var(--wt-accent-blue-bg) 0%, transparent 28%),
+    radial-gradient(circle at 80% 18%, var(--wt-accent-cyan-bg) 0%, transparent 24%),
+    linear-gradient(135deg, var(--wt-surface-page) 0%, var(--wt-surface-panel) 48%, var(--wt-surface-muted) 100%);
+  --login-panel-bg: color-mix(in srgb, var(--wt-surface-page) 78%, transparent);
+  --login-panel-border: var(--wt-border-default);
+  --login-panel-shadow: var(--wt-shadow-float);
+  --login-left-text: var(--wt-text-primary);
+  --login-right-bg: color-mix(in srgb, var(--wt-surface-panel) 92%, transparent);
+  --login-kicker: var(--el-color-primary);
+  --login-title: var(--wt-text-primary);
+  --login-subtitle: var(--wt-text-regular);
+  --login-input-bg: color-mix(in srgb, var(--wt-surface-muted) 92%, transparent);
+  --login-input-border: var(--wt-border-default);
+  --login-input-hover-bg: var(--wt-surface-elevated);
+  --login-input-text: var(--wt-text-primary);
+  --login-input-placeholder: var(--wt-text-secondary);
+  --login-input-icon: var(--el-color-primary);
+  --login-footer: var(--wt-text-secondary);
 
   .login-bg {
     &::before {
-      background: rgba(8, 145, 178, 0.2);
+      background: var(--wt-accent-cyan-bg);
     }
 
     &::after {
-      background: rgba(99, 102, 241, 0.22);
+      background: var(--wt-accent-blue-bg);
     }
   }
 
   .theme-switcher {
-    background: rgba(2, 6, 23, 0.76);
-    border-color: rgba(71, 85, 105, 0.9);
+    background: color-mix(in srgb, var(--wt-surface-page) 76%, transparent);
+    border-color: var(--wt-border-default);
   }
 
   .theme-switcher__group {
-    background: rgba(15, 23, 42, 0.9);
+    background: var(--wt-surface-panel);
   }
 
   .theme-switcher__button--active {
-    background: rgba(30, 41, 59, 0.98);
-    color: #f8fafc;
+    background: var(--wt-surface-elevated);
+    color: var(--wt-text-primary);
   }
 
   .login-box {
-    border-color: rgba(71, 85, 105, 0.96);
+    border-color: var(--wt-border-default);
   }
 
   .login-left {
     background:
-      linear-gradient(180deg, rgba(3, 7, 18, 0.98) 0%, rgba(15, 23, 42, 0.96) 100%),
-      linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(56, 189, 248, 0) 42%);
+      linear-gradient(180deg, var(--wt-surface-page) 0%, var(--wt-surface-panel) 100%),
+      linear-gradient(135deg, var(--wt-accent-blue-bg) 0%, transparent 42%);
   }
 
   .login-right {
-    box-shadow: inset 1px 0 0 rgba(71, 85, 105, 0.42);
+    box-shadow: inset 1px 0 0 var(--wt-divider-soft);
   }
 
   .login-form {
     :deep(.el-input__wrapper) {
       box-shadow:
-        0 0 0 1px rgba(96, 165, 250, 0.22) inset,
-        0 12px 24px rgba(2, 6, 23, 0.18);
+        0 0 0 1px color-mix(in srgb, var(--el-color-primary) 22%, var(--wt-border-default)) inset,
+        var(--wt-shadow-soft);
     }
 
     :deep(.el-input__wrapper.is-focus),
     :deep(.el-input__wrapper:hover) {
       box-shadow:
-        0 0 0 1px rgba(96, 165, 250, 0.88) inset,
-        0 16px 30px rgba(2, 6, 23, 0.24);
+        0 0 0 1px var(--el-color-primary) inset,
+        var(--wt-shadow-float);
     }
 
     .login-btn {
       background: var(--wt-accent-gradient-blue);
 
       &:hover {
-        box-shadow: 0 18px 36px rgba(37, 99, 235, 0.32);
+        box-shadow: 0 18px 36px color-mix(in srgb, var(--el-color-primary) 32%, transparent);
       }
     }
   }

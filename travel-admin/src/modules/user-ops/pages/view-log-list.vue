@@ -389,7 +389,8 @@ watch(
   height: 48px;
   border-radius: 10px;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--wt-border-default);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 .ops-table {

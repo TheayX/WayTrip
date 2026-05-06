@@ -90,6 +90,17 @@
   }
 }
 
+.el-table__empty-block {
+  min-height: 180px;
+  background:
+    radial-gradient(circle at center top, var(--wt-accent-blue-bg) 0%, transparent 46%),
+    var(--wt-surface-panel);
+}
+
+.el-table__empty-text {
+  color: var(--wt-text-regular);
+}
+
 .el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
   background: transparent; /* 抛弃旧的斑马条纹 */
 }
@@ -128,7 +139,7 @@
 
 .el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
   background-color: var(--el-color-primary);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--el-color-primary) 30%, transparent);
 }
 
 .el-pagination.is-background .el-pager li {
@@ -151,7 +162,7 @@
   &:focus {
     background: var(--el-color-primary-dark-2);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--el-color-primary) 20%, transparent);
   }
 }
 

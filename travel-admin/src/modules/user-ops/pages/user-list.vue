@@ -513,7 +513,10 @@ watch(
   .summary-card {
     min-height: 180px;
     border-radius: 16px !important;
-    border: 1px solid var(--wt-divider-soft) !important;
+    border: 1px solid var(--wt-border-default) !important;
+    background:
+      radial-gradient(circle at top right, var(--wt-accent-blue-bg) 0%, transparent 42%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%) !important;
   }
 
   .summary-metric {
@@ -548,6 +551,9 @@ watch(
   .summary-empty {
     margin-top: 12px;
     color: var(--wt-text-secondary);
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--wt-accent-muted-bg);
   }
 
   .summary-divider {

@@ -422,7 +422,8 @@ onMounted(() => {
         transition: all 0.2s ease;
         border: 1px solid transparent;
         &:hover {
-          background-color: var(--wt-fill-hover);
+          background-color: var(--wt-surface-hover);
+          border-color: var(--wt-border-default);
           .item-actions { opacity: 1; }
         }
         &.active {
@@ -502,7 +503,8 @@ onMounted(() => {
       width: 80px;
       height: 80px;
       transition: all 0.3s;
-      &:hover { border-color: var(--el-color-primary); background: var(--wt-fill-hover); }
+      background: var(--wt-surface-muted);
+      &:hover { border-color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
       .avatar-uploader-icon {
         font-size: 24px;
         color: var(--wt-text-secondary);
@@ -514,6 +516,7 @@ onMounted(() => {
         width: 80px; height: 80px;
         display: block;
         object-fit: contain;
+        background: var(--wt-surface-elevated);
       }
     }
   }
@@ -534,7 +537,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   width: 100%; height: 100%;
-  background: var(--wt-fill-hover);
+  background: var(--wt-surface-muted);
   color: var(--wt-text-secondary);
   font-size: 20px;
   border-radius: 8px;

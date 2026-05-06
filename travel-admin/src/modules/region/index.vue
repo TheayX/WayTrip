@@ -345,7 +345,8 @@ onMounted(() => {
         border: 1px solid transparent;
 
         &:hover {
-          background-color: var(--wt-fill-hover);
+          background-color: var(--wt-surface-hover);
+          border-color: var(--wt-border-default);
           .item-actions { opacity: 1; }
         }
 

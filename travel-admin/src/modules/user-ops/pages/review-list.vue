@@ -286,7 +286,8 @@ onMounted(() => {
   height: 48px;
   border-radius: 10px;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  border: 1px solid var(--wt-border-default);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 .nickname-link {
