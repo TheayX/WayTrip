@@ -253,15 +253,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             filteredScores = orderScoresByIds(filteredIds, filteredScores);
         }
 
-        log.info(
-            "推荐结果计算完成：用户ID={}，推荐类型=personalized，候选数={}，最终返回数={}，缓存时长={}分钟",
-            userId,
-            recommendedScores.size(),
-            Math.min(filteredIds.size(), limit),
-            defaultInt(cacheConfig.getUserRecTTLMinutes(), 60)
-        );
-
-        // 第 9 步：补齐调试信息并组装响应。
+        // 第 8 步：补齐调试信息。
         // 调试模式下会附带触发原因、贡献来源和阶段性说明，便于后台做链路分析。
         if (debugInfo != null) {
             debugInfo.setTriggerReason("命中协同过滤主链路");
@@ -271,8 +263,19 @@ public class RecommendationServiceImpl implements RecommendationService {
                 "可重点关注交互权重、候选分数、结果贡献来源和热度重排变化。"
             ));
         }
+
+        // 第 9 步：组装结果并写入缓存。
+        // 当前缓存保存的是结构化推荐快照，既保留结果顺序，也保留推荐类型和分数，便于后续直接读取与轮换。
         RecommendationResponse response = buildRecommendationResponse(filteredIds, filteredScores, limit, "personalized", false, debugInfo);
         saveRecommendationCache(userId, response, cacheConfig);
+
+        log.info(
+            "推荐结果计算完成：用户ID={}，推荐类型=personalized，候选数={}，最终返回数={}，缓存时长={}分钟",
+            userId,
+            recommendedScores.size(),
+            Math.min(filteredIds.size(), limit),
+            defaultInt(cacheConfig.getUserRecTTLMinutes(), 60)
+        );
         return response;
     }
 
