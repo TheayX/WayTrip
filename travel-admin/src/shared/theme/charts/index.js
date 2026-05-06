@@ -32,6 +32,10 @@ export const getChartThemeTokens = (theme) => {
     violet: getCssVar('--wt-accent-cyan-text', '#0891b2'),
     emerald: getCssVar('--wt-accent-emerald-text', '#10b981'),
     amber: getCssVar('--wt-accent-amber-text', '#f97316'),
+    blueArea: getCssVar('--wt-accent-blue-bg', 'rgba(59, 130, 246, 0.16)'),
+    violetArea: getCssVar('--wt-accent-cyan-bg', 'rgba(8, 145, 178, 0.14)'),
+    emeraldArea: getCssVar('--wt-accent-emerald-bg', 'rgba(16, 185, 129, 0.14)'),
+    amberArea: getCssVar('--wt-accent-amber-bg', 'rgba(245, 158, 11, 0.14)'),
     heatmap: isDark
       ? ['#0b1626', '#12324a', '#145c63', '#22d3ee', '#bfdbfe']
       : ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39']

@@ -1114,7 +1114,7 @@ onMounted(async () => {
     
     &:hover {
       border-color: var(--el-color-primary-light-5);
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--el-color-primary) 12%, transparent);
     }
 
     .user-avatar {

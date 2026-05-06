@@ -226,10 +226,10 @@ const handleCommand = (command, row) => {
 }
 
 .danger-text {
-  color: #e11d48 !important;
+  color: var(--wt-tag-danger-text) !important;
 }
 
 .success-text {
-  color: #10b981 !important;
+  color: var(--wt-tag-success-text) !important;
 }
 </style>

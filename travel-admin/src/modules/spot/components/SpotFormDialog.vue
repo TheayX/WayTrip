@@ -342,6 +342,10 @@ defineExpose({
     padding: 0;
     overflow: hidden;
   }
+
+  :deep(.el-drawer__header) {
+    flex: none;
+  }
 }
 
 .flex { display: flex; }
@@ -382,7 +386,7 @@ defineExpose({
   }
 
   :deep(.el-input__wrapper), :deep(.el-textarea__inner) {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 0 0 1px var(--el-input-border-color) inset !important;
   }
 }
 
@@ -414,8 +418,8 @@ defineExpose({
     .hover-mask {
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.5);
-      color: white;
+      background: color-mix(in srgb, var(--wt-overlay-bg) 72%, transparent);
+      color: var(--wt-text-primary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -486,10 +490,20 @@ defineExpose({
 .opacity-100 { opacity: 1; }
 .group:hover .group-hover\:opacity-100 { opacity: 1; }
 .transition-opacity { transition-property: opacity; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
-.bg-black\/50 { background-color: rgba(0, 0, 0, 0.5); }
+.bg-black\/50 { background-color: color-mix(in srgb, var(--wt-overlay-bg) 72%, transparent); }
 .rounded-lg { border-radius: 8px; }
 .rounded-xl { border-radius: 12px; }
-.shadow-\[0_-4px_6px_-1px_rgba\(0\,0\,0\,0\.05\)\] { box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05); }
+.shadow-\[0_-4px_6px_-1px_rgba\(0\,0\,0\,0\.05\)\] { box-shadow: 0 -8px 24px color-mix(in srgb, var(--wt-surface-page) 18%, transparent); }
+
+.drawer-footer {
+  position: relative;
+  z-index: 2;
+}
+
+.gallery-container {
+  border-color: var(--wt-border-default);
+  background: var(--wt-surface-muted);
+}
 
 /* 步骤切换淡入动画 */
 .animate-fade-in {

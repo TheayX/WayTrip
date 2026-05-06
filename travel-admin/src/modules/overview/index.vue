@@ -374,10 +374,10 @@ const dashboardTips = [
 const initSparklines = () => {
   const palette = getChartPalette()
   const configs = [
-    { ref: sparklineRevenue, color: palette.blue, areaColor: 'rgba(59, 130, 246, 0.16)' },
-    { ref: sparklineUsers, color: palette.violet, areaColor: 'rgba(139, 92, 246, 0.16)' },
-    { ref: sparklineSpots, color: palette.emerald, areaColor: 'rgba(16, 185, 129, 0.16)' },
-    { ref: sparklineOrders, color: palette.amber, areaColor: 'rgba(249, 115, 22, 0.16)' }
+    { ref: sparklineRevenue, color: palette.blue, areaColor: palette.blueArea },
+    { ref: sparklineUsers, color: palette.violet, areaColor: palette.violetArea },
+    { ref: sparklineSpots, color: palette.emerald, areaColor: palette.emeraldArea },
+    { ref: sparklineOrders, color: palette.amber, areaColor: palette.amberArea }
   ]
 
   configs.forEach(cfg => {
@@ -412,25 +412,25 @@ const updateSparklines = () => {
       ref: sparklineRevenue.value,
       data: (overview.value.recentRevenueSeries || []).map(item => Number(item || 0)),
       color: palette.blue,
-      areaColor: 'rgba(59, 130, 246, 0.16)'
+      areaColor: palette.blueArea
     },
     {
       ref: sparklineUsers.value,
       data: (overview.value.recentUserSeries || []).map(item => Number(item || 0)),
       color: palette.violet,
-      areaColor: 'rgba(139, 92, 246, 0.16)'
+      areaColor: palette.violetArea
     },
     {
       ref: sparklineSpots.value,
       data: (overview.value.recentSpotSeries || []).map(item => Number(item || 0)),
       color: palette.emerald,
-      areaColor: 'rgba(16, 185, 129, 0.16)'
+      areaColor: palette.emeraldArea
     },
     {
       ref: sparklineOrders.value,
       data: (overview.value.recentOrderSeries || []).map(item => Number(item || 0)),
       color: palette.amber,
-      areaColor: 'rgba(249, 115, 22, 0.16)'
+      areaColor: palette.amberArea
     }
   ]
 
@@ -620,8 +620,8 @@ const updateMainLineChart = (list) => {
         itemStyle: { color: palette.blue },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
-            { offset: 1, color: 'rgba(59, 130, 246, 0)' }
+            { offset: 0, color: palette.blueArea },
+            { offset: 1, color: 'transparent' }
           ])
         }
       },
