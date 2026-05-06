@@ -48,7 +48,7 @@
           <el-icon><Check /></el-icon>
           保存配置
         </el-button>
-        <el-button color="#722ed1" @click="emit('update-matrix')" :loading="updatingMatrix" round>
+        <el-button class="matrix-button" @click="emit('update-matrix')" :loading="updatingMatrix" round>
           <el-icon><Refresh /></el-icon>
           重建相似度矩阵
         </el-button>
@@ -241,6 +241,17 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .execution-actions .el-button {
   justify-content: center;
   margin-left: 0;
+}
+
+.execution-actions .matrix-button {
+  border-color: color-mix(in srgb, var(--wt-accent-cyan-text) 28%, var(--wt-border-default));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-accent-cyan-bg) 72%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-accent-cyan-bg) 42%, var(--wt-surface-muted)) 100%
+  );
+  color: var(--wt-accent-cyan-text);
+  font-weight: 600;
 }
 
 .execution-grid {

@@ -119,10 +119,10 @@ defineProps({
     border-radius: 50%;
   }
 
-  &.engine-bg { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); }
-  &.time-bg { background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%); }
-  &.users-bg { background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%); }
-  &.spots-bg { background: linear-gradient(135deg, #9f1239 0%, #e11d48 100%); }
+  &.engine-bg { background: var(--wt-accent-gradient-cyan); }
+  &.time-bg { background: var(--wt-accent-gradient-blue); }
+  &.users-bg { background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-hover) 100%); color: var(--wt-text-primary); border: 1px solid var(--wt-border-default); }
+  &.spots-bg { background: var(--wt-accent-gradient-amber); }
 }
 
 .status-info {

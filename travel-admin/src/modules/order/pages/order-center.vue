@@ -491,7 +491,7 @@ onMounted(() => {
   gap: 20px;
 
   .price {
-    color: #dc2626;
+    color: var(--wt-accent-rose-text);
     font-weight: 700;
     font-size: 14px;
   }
@@ -571,7 +571,7 @@ onMounted(() => {
 }
 
 .order-link {
-  color: #2563eb;
+  color: var(--wt-accent-blue-text);
 }
 
 .spot-link {
@@ -609,7 +609,7 @@ onMounted(() => {
 }
 
 :deep(.workspace-tabs .el-tabs__active-bar) {
-  background: #2563eb;
+  background: var(--el-color-primary);
 }
 
 @media (max-width: 960px) {

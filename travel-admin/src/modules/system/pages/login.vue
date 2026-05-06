@@ -533,7 +533,7 @@ const handleLogin = async () => {
     }
 
     .login-btn {
-      background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+      background: var(--wt-accent-gradient-blue);
 
       &:hover {
         box-shadow: 0 18px 36px rgba(37, 99, 235, 0.32);

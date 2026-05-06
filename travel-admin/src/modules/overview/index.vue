@@ -825,17 +825,17 @@ onUnmounted(() => {
 .text-gray-800 { color: var(--wt-text-primary); }
 .text-gray-500 { color: var(--wt-text-regular); }
 .text-gray-400 { color: var(--wt-text-secondary); }
-.text-blue-600 { color: #2563eb; }
-.text-purple-600 { color: #7c3aed; }
-.text-emerald-600 { color: #059669; }
-.text-orange-600 { color: #ea580c; }
-.text-green-500 { color: #22c55e; }
-.text-red-500 { color: #ef4444; }
-.bg-blue-100 { background-color: #dbeafe; }
-.bg-purple-100 { background-color: #ede9fe; }
-.bg-emerald-100 { background-color: #d1fae5; }
-.bg-orange-100 { background-color: #ffedd5; }
-.bg-gray-50 { background-color: #f9fafb; }
+.text-blue-600 { color: var(--wt-accent-blue-text); }
+.text-purple-600 { color: var(--wt-accent-cyan-text); }
+.text-emerald-600 { color: var(--wt-accent-emerald-text); }
+.text-orange-600 { color: var(--wt-accent-amber-text); }
+.text-green-500 { color: var(--wt-accent-emerald-text); }
+.text-red-500 { color: var(--wt-accent-rose-text); }
+.bg-blue-100 { background-color: var(--wt-accent-blue-bg); }
+.bg-purple-100 { background-color: var(--wt-accent-cyan-bg); }
+.bg-emerald-100 { background-color: var(--wt-accent-emerald-bg); }
+.bg-orange-100 { background-color: var(--wt-accent-amber-bg); }
+.bg-gray-50 { background-color: var(--wt-surface-muted); }
 .border-none { border: none; }
 .border-0 { border: 0; }
 .rounded-lg { border-radius: 8px; }
@@ -871,19 +871,19 @@ onUnmounted(() => {
 }
 
 .tone-blue {
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.12) 0%, var(--wt-surface-elevated) 100%);
+  background: linear-gradient(180deg, var(--wt-accent-blue-bg) 0%, var(--wt-surface-elevated) 100%);
 }
 
 .tone-violet {
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.12) 0%, var(--wt-surface-elevated) 100%);
+  background: linear-gradient(180deg, var(--wt-accent-cyan-bg) 0%, var(--wt-surface-elevated) 100%);
 }
 
 .tone-emerald {
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, var(--wt-surface-elevated) 100%);
+  background: linear-gradient(180deg, var(--wt-accent-emerald-bg) 0%, var(--wt-surface-elevated) 100%);
 }
 
 .tone-amber {
-  background: linear-gradient(180deg, rgba(249, 115, 22, 0.12) 0%, var(--wt-surface-elevated) 100%);
+  background: linear-gradient(180deg, var(--wt-accent-amber-bg) 0%, var(--wt-surface-elevated) 100%);
 }
 
 .metric-label {
@@ -902,23 +902,23 @@ onUnmounted(() => {
 }
 
 .metric-icon.tone-blue {
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
+  background: var(--wt-accent-blue-bg);
+  color: var(--wt-accent-blue-text);
 }
 
 .metric-icon.tone-violet {
-  background: rgba(124, 58, 237, 0.1);
-  color: #7c3aed;
+  background: var(--wt-accent-cyan-bg);
+  color: var(--wt-accent-cyan-text);
 }
 
 .metric-icon.tone-emerald {
-  background: rgba(5, 150, 105, 0.1);
-  color: #059669;
+  background: var(--wt-accent-emerald-bg);
+  color: var(--wt-accent-emerald-text);
 }
 
 .metric-icon.tone-amber {
-  background: rgba(217, 119, 6, 0.1);
-  color: #d97706;
+  background: var(--wt-accent-amber-bg);
+  color: var(--wt-accent-amber-text);
 }
 
 .overview-panel {
@@ -1010,8 +1010,8 @@ onUnmounted(() => {
   grid-column: 1 / -1;
   padding: 12px 14px;
   border-radius: 14px;
-  background: rgba(37, 99, 235, 0.08);
-  color: #1d4ed8;
+  background: var(--wt-accent-blue-bg);
+  color: var(--wt-accent-blue-text);
   font-size: 12px;
   font-weight: 600;
 }
@@ -1058,18 +1058,18 @@ onUnmounted(() => {
 }
 
 .rank-1 {
-  color: #92400e;
-  background: #fef3c7;
+  color: var(--wt-accent-amber-text);
+  background: var(--wt-accent-amber-bg);
 }
 
 .rank-2 {
-  color: #374151;
-  background: #e5e7eb;
+  color: var(--wt-accent-muted-text);
+  background: var(--wt-accent-muted-bg);
 }
 
 .rank-3 {
-  color: #9a3412;
-  background: #fed7aa;
+  color: var(--wt-accent-cyan-text);
+  background: var(--wt-accent-cyan-bg);
 }
 
 .hot-spot-body {
@@ -1099,7 +1099,7 @@ onUnmounted(() => {
   flex: none;
   font-size: 13px;
   font-weight: 700;
-  color: #059669;
+  color: var(--wt-accent-emerald-text);
 }
 
 .hot-spot-meta {
@@ -1155,7 +1155,7 @@ onUnmounted(() => {
   margin-top: 14px;
   font-size: 12px;
   font-weight: 700;
-  color: #1d4ed8;
+  color: var(--wt-accent-blue-text);
 }
 
 .tips-list {

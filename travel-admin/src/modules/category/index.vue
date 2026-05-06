@@ -444,7 +444,7 @@ onMounted(() => {
             border-radius: 6px;
             transition: all 0.2s;
             &:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
-            &.danger:hover { color: #ef4444; background: #fef2f2; }
+            &.danger:hover { color: var(--wt-tag-danger-text); background: var(--wt-tag-danger-bg); }
           }
         }
       }

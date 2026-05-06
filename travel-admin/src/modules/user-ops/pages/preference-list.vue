@@ -303,7 +303,7 @@ watch(
 }
 
 .empty-text {
-  color: #909399;
+  color: var(--wt-text-secondary);
 }
 
 .ops-table {

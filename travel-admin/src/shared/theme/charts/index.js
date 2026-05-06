@@ -26,14 +26,14 @@ export const getChartThemeTokens = (theme) => {
     textSecondary: getCssVar('--wt-text-secondary', '#94a3b8'),
     borderColor: getCssVar('--wt-border-default', '#dbe4f0'),
     splitLine: getCssVar('--wt-divider-soft', '#f1f5f9'),
-    tooltipBackground: isDark ? 'rgba(15, 23, 42, 0.96)' : 'rgba(255, 255, 255, 0.95)',
+    tooltipBackground: isDark ? getCssVar('--wt-surface-elevated', '#16243a') : 'rgba(255, 255, 255, 0.95)',
     panelBackground: getCssVar('--wt-surface-elevated', '#ffffff'),
-    blue: '#3b82f6',
-    violet: '#8b5cf6',
-    emerald: '#10b981',
-    amber: '#f97316',
+    blue: getCssVar('--wt-accent-blue-text', '#3b82f6'),
+    violet: getCssVar('--wt-accent-cyan-text', '#0891b2'),
+    emerald: getCssVar('--wt-accent-emerald-text', '#10b981'),
+    amber: getCssVar('--wt-accent-amber-text', '#f97316'),
     heatmap: isDark
-      ? ['#0f172a', '#14532d', '#16a34a', '#4ade80', '#bbf7d0']
+      ? ['#0b1626', '#12324a', '#145c63', '#22d3ee', '#bfdbfe']
       : ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39']
   }
 }

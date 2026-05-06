@@ -434,19 +434,21 @@ onMounted(async () => {
   }
 
   .hero-card-engine .hero-card-content {
-    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+    background: var(--wt-accent-gradient-cyan);
   }
 
   .hero-card-time .hero-card-content {
-    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+    background: var(--wt-accent-gradient-blue);
   }
 
   .hero-card-users .hero-card-content {
-    background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-hover) 100%);
+    color: var(--wt-text-primary);
+    border: 1px solid var(--wt-border-default);
   }
 
   .hero-card-spots .hero-card-content {
-    background: linear-gradient(135deg, #9f1239 0%, #e11d48 100%);
+    background: var(--wt-accent-gradient-amber);
   }
 
   .hero-label {
@@ -536,7 +538,7 @@ onMounted(async () => {
     margin-top: 14px;
     font-size: 12px;
     font-weight: 700;
-    color: #245bdb;
+    color: var(--wt-accent-blue-text);
   }
 
   .journey-card {
@@ -597,7 +599,7 @@ onMounted(async () => {
     align-items: center;
     justify-content: center;
     border-radius: 12px;
-    background: linear-gradient(135deg, #1677ff 0%, #69b1ff 100%);
+    background: var(--wt-accent-gradient-blue);
     color: #fff;
     font-size: 14px;
     font-weight: 700;

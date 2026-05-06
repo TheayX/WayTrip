@@ -51,8 +51,8 @@ const emit = defineEmits(['change-tab'])
   }
 
   &.active {
-    border-color: #2563eb;
-    box-shadow: 0 14px 32px rgba(37, 99, 235, 0.12);
+    border-color: var(--el-color-primary);
+    box-shadow: 0 14px 32px color-mix(in srgb, var(--el-color-primary) 18%, transparent);
   }
 }
 

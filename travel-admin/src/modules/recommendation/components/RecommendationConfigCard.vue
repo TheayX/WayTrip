@@ -482,10 +482,10 @@ defineProps({
 .impact-overview-card.tone-status {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, #722ed1 14%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, #722ed1 8%, var(--wt-surface-muted)) 100%
+    color-mix(in srgb, var(--wt-accent-cyan-bg) 72%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-accent-cyan-bg) 42%, var(--wt-surface-muted)) 100%
   );
-  border-color: color-mix(in srgb, #722ed1 18%, var(--wt-border-default));
+  border-color: color-mix(in srgb, var(--wt-accent-cyan-text) 18%, var(--wt-border-default));
 }
 
 .change-hint-panel {

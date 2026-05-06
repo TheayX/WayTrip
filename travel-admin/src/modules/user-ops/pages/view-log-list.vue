@@ -374,7 +374,7 @@ watch(
 
 .source-bucket-text {
   font-size: 12px;
-  color: #909399;
+  color: var(--wt-text-secondary);
   line-height: 1.4;
 }
 

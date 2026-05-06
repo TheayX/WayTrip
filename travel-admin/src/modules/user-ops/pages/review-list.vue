@@ -294,7 +294,7 @@ onMounted(() => {
 }
 
 .score-text {
-  color: #f59e0b;
+  color: var(--wt-accent-amber-text);
   font-weight: 700;
   font-size: 14px;
 }

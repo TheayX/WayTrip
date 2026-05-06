@@ -29,7 +29,7 @@
           <div class="stat-item px-4 py-2 rounded-lg flex-1">
             <div class="text-xs text-gray-500 mb-1">用户评分</div>
             <div class="text-lg font-bold text-gray-800 flex items-center gap-1">
-              <el-icon color="#f59e0b"><StarFilled /></el-icon> {{ detail.avgRating || '暂无' }}
+              <el-icon class="rating-star"><StarFilled /></el-icon> {{ detail.avgRating || '暂无' }}
             </div>
           </div>
           <div class="stat-item px-4 py-2 rounded-lg flex-1">
@@ -157,8 +157,12 @@ const emitVisible = (val) => {
 .text-gray-800 { color: var(--wt-text-primary); }
 .text-gray-600 { color: var(--wt-text-regular); }
 .text-gray-500 { color: var(--wt-text-regular); }
-.text-red-500 { color: #ef4444; }
-.text-green-600 { color: #16a34a; }
+.text-red-500 { color: var(--wt-accent-rose-text); }
+.text-green-600 { color: var(--wt-accent-emerald-text); }
+
+.rating-star {
+  color: var(--wt-accent-amber-text);
+}
 
 .leading-relaxed { line-height: 1.625; }
 .whitespace-pre-line { white-space: pre-line; }

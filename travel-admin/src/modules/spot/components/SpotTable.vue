@@ -32,7 +32,7 @@
     </el-table-column>
     <el-table-column prop="avgRating" label="评分" width="90" align="center">
       <template #default="{ row }">
-        <span class="rating-text"><el-icon color="#f59e0b"><StarFilled /></el-icon> {{ row.avgRating || '暂无' }}</span>
+        <span class="rating-text"><el-icon class="rating-star"><StarFilled /></el-icon> {{ row.avgRating || '暂无' }}</span>
       </template>
     </el-table-column>
     <el-table-column label="热度档位" width="100" align="center">
@@ -152,9 +152,13 @@ const handleCommand = (command, row) => {
   display: inline-block;
   min-width: 56px;
   font-weight: 600;
-  color: #9f1239;
+  color: var(--wt-accent-rose-text);
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+.rating-star {
+  color: var(--wt-accent-amber-text);
 }
 
 .rating-text {

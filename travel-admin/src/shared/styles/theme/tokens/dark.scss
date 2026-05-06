@@ -1,67 +1,84 @@
-/* 暗色主题 (Zinc System) */
-/* 暗色主题重点控制对比度和层级深浅，避免后台图表与表格信息发灰。 */
+/* 暗色主题 (Midnight Slate) */
+/* 暗色主题用深海蓝黑承接品牌蓝，避免纯灰黑底下状态色过于跳脱。 */
 
 html.dark,
 html[data-theme='dark'] {
   /* 品牌色 */
-  --el-color-primary: #3b82f6; /* Blue 500 */
-  --el-color-primary-light-3: #60a5fa;
-  --el-color-primary-light-5: #93c5fd;
-  --el-color-primary-light-7: #bfdbfe;
-  --el-color-primary-light-8: #dbeafe;
-  --el-color-primary-light-9: rgba(59, 130, 246, 0.1); /* 微量蓝色背景点缀 */
+  --el-color-primary: #60a5fa;
+  --el-color-primary-light-3: #7db7fb;
+  --el-color-primary-light-5: rgba(96, 165, 250, 0.44);
+  --el-color-primary-light-7: rgba(96, 165, 250, 0.28);
+  --el-color-primary-light-8: rgba(96, 165, 250, 0.18);
+  --el-color-primary-light-9: rgba(96, 165, 250, 0.12);
   --el-color-primary-dark-2: #2563eb;
 
   /* 功能色 */
-  --el-color-success: #10b981;
-  --el-color-warning: #f59e0b;
-  --el-color-danger: #ef4444;
-  --el-color-info: #71717a; /* Zinc 500 */
+  --el-color-success: #34d399;
+  --el-color-warning: #fbbf24;
+  --el-color-danger: #fb7185;
+  --el-color-info: #94a3b8;
 
-  /* 背景色及表面色 - 移除过度的梯度与发光，使用极简 Solid 色 */
-  --wt-surface-page: #09090b; /* Zinc 950 */
-  --wt-surface-panel: #18181b; /* Zinc 900 */
-  --wt-surface-elevated: #27272a; /* Zinc 800 */
-  --wt-surface-muted: #18181b; 
-  --wt-surface-hover: #27272a; 
+  /* 背景色及表面色 */
+  --wt-surface-page: #07111f;
+  --wt-surface-panel: #0f1b2d;
+  --wt-surface-elevated: #16243a;
+  --wt-surface-muted: #101a2b;
+  --wt-surface-hover: #1d2d47;
 
   /* 字体色 - 加大核心文本对比度 */
-  --wt-text-primary: #fafafa; /* Zinc 50 */
-  --wt-text-regular: #a1a1aa; /* Zinc 400 */
-  --wt-text-secondary: #71717a; /* Zinc 500 */
-  --wt-text-placeholder: #52525b; /* Zinc 600 */
+  --wt-text-primary: #f8fafc;
+  --wt-text-regular: #cbd5e1;
+  --wt-text-secondary: #94a3b8;
+  --wt-text-placeholder: #64748b;
 
   /* 边框色 - 实色细边框 */
-  --wt-border-default: #27272a; /* Zinc 800 */
-  --wt-border-soft: #27272a;
-  --wt-divider-soft: #27272a;
-  --wt-divider-faint: #18181b; /* Zinc 900 */
+  --wt-border-default: #24344d;
+  --wt-border-soft: #1b2a42;
+  --wt-divider-soft: #1b2a42;
+  --wt-divider-faint: rgba(148, 163, 184, 0.12);
 
   /* 滚动条 */
-  --wt-scrollbar-thumb: #3f3f46; /* Zinc 700 */
-  --wt-scrollbar-thumb-hover: #52525b; /* Zinc 600 */
+  --wt-scrollbar-thumb: #334765;
+  --wt-scrollbar-thumb-hover: #46617f;
 
   /* 填充与高亮 */
-  --wt-fill-hover: #27272a; /* Zinc 800 */
-  --wt-fill-striped: #18181b; /* Zinc 900 */
+  --wt-fill-hover: #1b2a42;
+  --wt-fill-striped: #101a2b;
 
   /* 标签 (Tags) 极简状态色 */
-  --wt-tag-success-bg: rgba(16, 185, 129, 0.1);
-  --wt-tag-success-text: #34d399;
-  --wt-tag-warning-bg: rgba(245, 158, 11, 0.1);
+  --wt-tag-success-bg: rgba(52, 211, 153, 0.12);
+  --wt-tag-success-text: #6ee7b7;
+  --wt-tag-warning-bg: rgba(251, 191, 36, 0.14);
   --wt-tag-warning-text: #fbbf24;
-  --wt-tag-danger-bg: rgba(239, 68, 68, 0.1);
-  --wt-tag-danger-text: #f87171;
-  --wt-tag-info-bg: rgba(113, 113, 122, 0.1);
-  --wt-tag-info-text: #a1a1aa;
-  --wt-tag-primary-bg: rgba(59, 130, 246, 0.1);
-  --wt-tag-primary-text: #60a5fa;
+  --wt-tag-danger-bg: rgba(251, 113, 133, 0.14);
+  --wt-tag-danger-text: #fda4af;
+  --wt-tag-info-bg: rgba(148, 163, 184, 0.12);
+  --wt-tag-info-text: #cbd5e1;
+  --wt-tag-primary-bg: rgba(96, 165, 250, 0.14);
+  --wt-tag-primary-text: #93c5fd;
+
+  --wt-accent-blue-bg: rgba(96, 165, 250, 0.14);
+  --wt-accent-blue-text: #93c5fd;
+  --wt-accent-cyan-bg: rgba(34, 211, 238, 0.12);
+  --wt-accent-cyan-text: #67e8f9;
+  --wt-accent-emerald-bg: rgba(52, 211, 153, 0.12);
+  --wt-accent-emerald-text: #6ee7b7;
+  --wt-accent-amber-bg: rgba(251, 191, 36, 0.14);
+  --wt-accent-amber-text: #fcd34d;
+  --wt-accent-rose-bg: rgba(251, 113, 133, 0.14);
+  --wt-accent-rose-text: #fda4af;
+  --wt-accent-muted-bg: rgba(148, 163, 184, 0.12);
+  --wt-accent-muted-text: #cbd5e1;
+  --wt-accent-gradient-blue: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
+  --wt-accent-gradient-cyan: linear-gradient(135deg, #0f766e 0%, #22d3ee 100%);
+  --wt-accent-gradient-amber: linear-gradient(135deg, #b45309 0%, #fbbf24 100%);
+  --wt-accent-gradient-rose: linear-gradient(135deg, #be123c 0%, #fb7185 100%);
 
   /* 弹窗与浮层 */
-  --wt-overlay-bg: rgba(9, 9, 11, 0.8); /* 半透明黑底 */
-  --wt-dialog-header-bg: #18181b;
-  --wt-dialog-body-bg: #18181b;
-  --wt-dialog-footer-bg: #18181b;
+  --wt-overlay-bg: rgba(7, 17, 31, 0.78);
+  --wt-dialog-header-bg: #0f1b2d;
+  --wt-dialog-body-bg: #0f1b2d;
+  --wt-dialog-footer-bg: #0f1b2d;
   --wt-row-gradient-hover: rgba(255, 255, 255, 0.02); /* 表格极为克制的一点高亮 */
 
   /* 阴影 */
@@ -71,7 +88,7 @@ html[data-theme='dark'] {
 
   /* Element Plus 覆盖 */
   --bg-page: var(--wt-surface-page);
-  --el-bg-color: var(--wt-surface-page);
+  --el-bg-color: var(--wt-surface-panel);
   --el-bg-color-overlay: var(--wt-surface-elevated); /* 下拉菜单背景色 */
   --el-bg-color-page: var(--wt-surface-page);
 
@@ -85,12 +102,12 @@ html[data-theme='dark'] {
   --el-border-color: var(--wt-border-default);
 
   /* 输入框 */
-  --el-input-bg-color: var(--wt-surface-page); /* 用深底色 */
+  --el-input-bg-color: #0b1626;
   --el-input-border-color: var(--wt-border-default);
   --el-input-focus-border-color: var(--el-color-primary);
 
   /* 表格 */
-  --el-table-header-bg-color: var(--wt-surface-page);
+  --el-table-header-bg-color: #0b1626;
   --el-table-header-text-color: var(--wt-text-primary);
   --el-table-border-color: var(--wt-border-default);
   --el-table-border: 1px solid var(--wt-border-default);
