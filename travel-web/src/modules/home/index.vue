@@ -292,7 +292,9 @@ const handleRefresh = async () => {
   refreshing.value = true
   try {
     await rotateRecommendationList()
-    ElMessage.success('推荐已刷新')
+    ElMessage.success('已换一批推荐')
+  } catch {
+    ElMessage.error('换一批失败，请稍后重试')
   } finally {
     refreshing.value = false
   }

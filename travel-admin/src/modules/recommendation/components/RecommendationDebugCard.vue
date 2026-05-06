@@ -26,7 +26,7 @@
             <el-radio-group v-model="debugForm.mode" size="small">
               <el-radio-button label="cache">缓存结果</el-radio-button>
               <el-radio-button label="recompute">重算稳定</el-radio-button>
-              <el-radio-button label="recompute_rotate">重算后轮换</el-radio-button>
+              <el-radio-button label="recompute_rotate">重算后模拟换一批</el-radio-button>
             </el-radio-group>
           </div>
           <div class="debug-field">
@@ -48,7 +48,7 @@
           </el-tag>
           <el-tag size="small" type="primary">返回 {{ debugItems.length }} 条</el-tag>
           <el-tag size="small" type="info">
-            {{ debugForm.mode === 'cache' ? '本次优先读取缓存' : (debugForm.mode === 'recompute' ? '本次强制重算（稳定顺序）' : '本次强制重算（轮换顺序）') }}
+            {{ debugForm.mode === 'cache' ? '本次优先读取缓存' : (debugForm.mode === 'recompute' ? '本次强制重算（稳定顺序）' : '本次强制重算（模拟换一批）') }}
           </el-tag>
         </div>
 

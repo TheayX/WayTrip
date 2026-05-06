@@ -388,17 +388,17 @@ const tryLoadNearbyAutomatically = async () => {
 
 // 交互处理方法
 const handleRefresh = async () => {
-  if (!promptLogin('登录后可刷新推荐，是否现在去登录？')) {
+  if (!promptLogin('登录后可换一批推荐，是否现在去登录？')) {
     return
   }
 
   uni.showLoading({ title: '加载中...' })
   try {
     await rotateRecommendationList()
-    uni.showToast({ title: '已刷新', icon: 'none' })
+    uni.showToast({ title: '换了一批', icon: 'none' })
   } catch (error) {
-    console.error('刷新推荐失败', error)
-    uni.showToast({ title: '刷新失败', icon: 'none' })
+    console.error('换一批推荐失败', error)
+    uni.showToast({ title: '换一批失败', icon: 'none' })
   } finally {
     uni.hideLoading()
   }

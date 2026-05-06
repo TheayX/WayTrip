@@ -9,7 +9,7 @@
       </div>
       <div class="hero-actions">
         <el-button text @click="$router.push({ path: APP_ROUTE_PATHS.discover, query: { scene: 'recommend' } })">返回发现页</el-button>
-        <el-button v-if="userStore.isLoggedIn" :loading="refreshing" type="primary" @click="handleRefresh">刷新推荐</el-button>
+        <el-button v-if="userStore.isLoggedIn" :loading="refreshing" type="primary" @click="handleRefresh">换一批</el-button>
         <el-button v-if="userStore.isLoggedIn" @click="showPreferencePopup">偏好设置</el-button>
       </div>
     </section>
@@ -86,7 +86,9 @@ const handleRefresh = async () => {
   refreshing.value = true
   try {
     await rotateRecommendationList()
-    ElMessage.success('推荐已刷新')
+    ElMessage.success('已换一批推荐')
+  } catch {
+    ElMessage.error('换一批失败，请稍后重试')
   } finally {
     refreshing.value = false
   }

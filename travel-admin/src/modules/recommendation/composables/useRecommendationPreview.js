@@ -189,6 +189,8 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     }
     if (debugForm.mode === 'cache') {
       insights.push('缓存模式不会主动重算推荐链路，更适合确认当前用户端正在消费哪一份结果。')
+    } else if (debugForm.mode === 'recompute_rotate') {
+      insights.push('当前模式会在重算完成后模拟用户端“换一批”，便于观察轮换后的展示结果。')
     }
     return insights
   })
