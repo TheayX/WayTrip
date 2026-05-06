@@ -51,11 +51,14 @@ public interface RecommendationService {
      *
      * @param userId 用户 ID
      * @param limit 返回条数上限
-     * @param mode 预览模式：cache/recompute/recompute_rotate
+     * @param mode 预览模式：cache/latest
+     * @param writeCache 是否将本次结果写入当前用户缓存
+     * @param rotate 是否基于当前结果模拟一次“换一批”
      * @param debug 是否返回调试信息
      * @return 推荐结果
      */
-    RecommendationResponse previewRecommendations(Long userId, Integer limit, String mode, Boolean debug);
+    RecommendationResponse previewRecommendations(Long userId, Integer limit, String mode,
+                                                  Boolean writeCache, Boolean rotate, Boolean debug);
 
     /**
      * 管理端预览某个景点的相似邻居。

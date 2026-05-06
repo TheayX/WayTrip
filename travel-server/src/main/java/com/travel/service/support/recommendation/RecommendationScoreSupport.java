@@ -300,7 +300,6 @@ public class RecommendationScoreSupport {
         debugInfo.setUserId(userId);
         debugInfo.setRequestLimit(limit);
         debugInfo.setMode(mode);
-        debugInfo.setRefresh(!"cache".equals(mode));
         debugInfo.setDebugEnabled(true);
         return debugInfo;
     }

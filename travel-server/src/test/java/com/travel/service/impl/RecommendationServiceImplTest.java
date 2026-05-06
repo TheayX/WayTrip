@@ -239,7 +239,8 @@ class RecommendationServiceImplTest {
             4,
             false,
             false,
-            null
+            null,
+            false
         );
 
         assertEquals("preference", response.getType());
@@ -275,7 +276,8 @@ class RecommendationServiceImplTest {
             4,
             false,
             false,
-            null
+            null,
+            false
         );
 
         assertEquals("preference", response.getType());
@@ -422,17 +424,18 @@ class RecommendationServiceImplTest {
         when(spotMapper.selectBatchIds(any())).thenReturn(List.of(publishedSpot));
         mockCategoryAndRegionMaps();
 
-        RecommendationResponse response = recommendationService.previewRecommendations(6L, 6, "cache", true);
+        RecommendationResponse response = recommendationService.previewRecommendations(6L, 6, "cache", false, false, true);
 
         assertEquals("personalized", response.getType());
         assertNotNull(response.getDebugInfo());
         assertEquals("cache", response.getDebugInfo().getMode());
         assertEquals("命中当前推荐缓存", response.getDebugInfo().getTriggerReason());
+        assertEquals("cache", response.getDebugInfo().getExtra().get("resultSource"));
         verify(userSpotViewMapper, never()).selectList(any());
     }
 
     @Test
-    void previewRecommendations_recomputeMode_returnsDebugInfoWithRecomputeMode() {
+    void previewRecommendations_latestMode_returnsDebugInfoWithoutWritingCache() {
         Spot computedSpot = buildSpot(1001L, "重算景点", 10L);
 
         when(recommendationCacheService.loadConfig()).thenReturn(defaultCacheConfig());
@@ -445,15 +448,21 @@ class RecommendationServiceImplTest {
         when(recommendationCacheService.getHomeHotSpots(2)).thenReturn(null);
         when(spotMapper.selectList(any())).thenReturn(List.of(computedSpot));
 
-        RecommendationResponse response = recommendationService.previewRecommendations(7L, 2, "recompute", true);
+        RecommendationResponse response = recommendationService.previewRecommendations(7L, 2, "latest", false, false, true);
 
         assertEquals("hot", response.getType());
         assertNotNull(response.getDebugInfo());
-        assertEquals("recompute", response.getDebugInfo().getMode());
+        assertEquals("latest", response.getDebugInfo().getMode());
+        assertEquals("latest", response.getDebugInfo().getExtra().get("resultSource"));
+        verify(recommendationCacheService, never()).saveUserRecommendation(
+            org.mockito.ArgumentMatchers.eq(7L),
+            any(),
+            org.mockito.ArgumentMatchers.eq(60L)
+        );
     }
 
     @Test
-    void previewRecommendations_recomputeRotateMode_returnsDebugInfoWithRotateMode() {
+    void previewRecommendations_latestMode_canWriteCacheAndRotate() {
         Spot hotSpot1 = buildSpot(1101L, "热门景点1", 10L);
         Spot hotSpot2 = buildSpot(1102L, "热门景点2", 10L);
         Spot hotSpot3 = buildSpot(1103L, "热门景点3", 10L);
@@ -465,14 +474,45 @@ class RecommendationServiceImplTest {
         when(reviewMapper.selectList(any())).thenReturn(List.of());
         when(orderMapper.selectList(any())).thenReturn(List.of());
         when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
-        when(recommendationCacheService.getHomeHotSpots(6)).thenReturn(null);
+        when(recommendationCacheService.getHomeHotSpots(2)).thenReturn(null);
         when(spotMapper.selectList(any())).thenReturn(List.of(hotSpot1, hotSpot2, hotSpot3));
 
-        RecommendationResponse response = recommendationService.previewRecommendations(8L, 2, "recompute_rotate", true);
+        RecommendationResponse response = recommendationService.previewRecommendations(8L, 2, "latest", true, true, true);
 
         assertEquals("hot", response.getType());
         assertNotNull(response.getDebugInfo());
-        assertEquals("recompute_rotate", response.getDebugInfo().getMode());
+        assertEquals("latest", response.getDebugInfo().getMode());
+        assertEquals(Boolean.TRUE, response.getDebugInfo().getExtra().get("cacheWritten"));
+        assertEquals(Boolean.TRUE, response.getDebugInfo().getExtra().get("rotationApplied"));
+        verify(recommendationCacheService).saveUserRecommendation(
+            org.mockito.ArgumentMatchers.eq(8L),
+            argThat(cache -> cache != null && "hot".equals(cache.getType()) && cache.getItems().size() == 2),
+            org.mockito.ArgumentMatchers.eq(60L)
+        );
+    }
+
+    @Test
+    void previewRecommendations_cacheMode_fallsBackToLatestWhenCacheMissing() {
+        Spot computedSpot = buildSpot(1201L, "最新景点", 10L);
+
+        when(recommendationCacheService.getUserRecommendation(9L)).thenReturn(null);
+        when(recommendationCacheService.loadConfig()).thenReturn(defaultCacheConfig());
+        when(userMapper.selectById(9L)).thenReturn(buildUser(9L, "缺缓存用户"));
+        when(userSpotViewMapper.selectList(any())).thenReturn(List.of());
+        when(userSpotFavoriteMapper.selectList(any())).thenReturn(List.of());
+        when(reviewMapper.selectList(any())).thenReturn(List.of());
+        when(orderMapper.selectList(any())).thenReturn(List.of());
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+        when(recommendationCacheService.getHomeHotSpots(2)).thenReturn(null);
+        when(spotMapper.selectList(any())).thenReturn(List.of(computedSpot));
+
+        RecommendationResponse response = recommendationService.previewRecommendations(9L, 2, "cache", false, true, true);
+
+        assertEquals("hot", response.getType());
+        assertNotNull(response.getDebugInfo());
+        assertEquals("当前无缓存，改为预览最新结果", response.getDebugInfo().getTriggerReason());
+        assertEquals("latest", response.getDebugInfo().getExtra().get("resultSource"));
+        assertEquals(Boolean.FALSE, response.getDebugInfo().getExtra().get("rotationApplied"));
     }
 
     @Test

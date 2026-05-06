@@ -61,7 +61,6 @@ public class RecommendationResponse {
         private String userNickname;
         private Integer requestLimit;
         private String mode;
-        private Boolean refresh;
         private Boolean debugEnabled;
         private String triggerReason;
         private Integer interactionCount;

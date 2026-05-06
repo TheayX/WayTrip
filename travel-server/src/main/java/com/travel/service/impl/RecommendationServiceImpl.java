@@ -45,8 +45,7 @@ import java.util.stream.Collectors;
 public class RecommendationServiceImpl implements RecommendationService {
 
     private static final String PREVIEW_MODE_CACHE = "cache";
-    private static final String PREVIEW_MODE_RECOMPUTE = "recompute";
-    private static final String PREVIEW_MODE_RECOMPUTE_ROTATE = "recompute_rotate";
+    private static final String PREVIEW_MODE_LATEST = "latest";
 
     // 持久层、缓存与推荐支持组件
 
@@ -82,7 +81,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             }
         }
 
-        return computeRecommendations(userId, limit, false, false);
+        return computeRecommendations(userId, limit, false, false, false, true);
     }
 
     @Override
@@ -103,19 +102,20 @@ public class RecommendationServiceImpl implements RecommendationService {
     @Override
     public RecommendationResponse recomputeRecommendations(Long userId, Integer limit) {
         if (limit == null || limit <= 0) limit = 10;
-        return computeRecommendations(userId, limit, true, false);
+        return computeRecommendations(userId, limit, true, false, false, true);
     }
 
     @Override
-    public RecommendationResponse previewRecommendations(Long userId, Integer limit, String mode, Boolean debug) {
+    public RecommendationResponse previewRecommendations(Long userId, Integer limit, String mode,
+                                                         Boolean writeCache, Boolean rotate, Boolean debug) {
         if (limit == null || limit <= 0) limit = 10;
         String previewMode = normalizePreviewMode(mode);
+        boolean writeCacheFlag = Boolean.TRUE.equals(writeCache);
+        boolean rotateFlag = Boolean.TRUE.equals(rotate);
         boolean debugMode = Boolean.TRUE.equals(debug);
-        RecommendationResponse response = switch (previewMode) {
-            case PREVIEW_MODE_RECOMPUTE -> computeRecommendations(userId, limit, true, debugMode, false);
-            case PREVIEW_MODE_RECOMPUTE_ROTATE -> computeRecommendations(userId, limit, true, debugMode, true);
-            default -> previewCachedRecommendations(userId, limit, debugMode);
-        };
+        RecommendationResponse response = PREVIEW_MODE_LATEST.equals(previewMode)
+            ? previewLatestRecommendations(userId, limit, debugMode, writeCacheFlag, rotateFlag)
+            : previewCachedRecommendations(userId, limit, debugMode, writeCacheFlag, rotateFlag);
         if (debugMode) {
             logRecommendationPreview(userId, response, previewMode);
         }
@@ -144,21 +144,21 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 默认计算入口，适用于普通“获取推荐”场景。
      */
     private RecommendationResponse computeRecommendations(Long userId, Integer limit) {
-        return computeRecommendations(userId, limit, false, false, false);
+        return computeRecommendations(userId, limit, false, false, false, true);
     }
 
     /**
      * 仅暴露重算开关，供强制重算场景复用统一主流程。
      */
     private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean recompute) {
-        return computeRecommendations(userId, limit, recompute, false, false);
+        return computeRecommendations(userId, limit, recompute, false, false, true);
     }
 
     /**
      * 兼容调试开关的中间重载，最终都收敛到完整参数版本。
      */
     private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean recompute, boolean debug) {
-        return computeRecommendations(userId, limit, recompute, debug, false);
+        return computeRecommendations(userId, limit, recompute, debug, false, true);
     }
 
     /**
@@ -166,7 +166,8 @@ public class RecommendationServiceImpl implements RecommendationService {
      * <p>
      * 统一处理配置读取、协同过滤、冷启动降级、热度重排、缓存写入和调试信息组装。
      */
-    private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean recompute, boolean debug, boolean rotateAfterCompute) {
+    private RecommendationResponse computeRecommendations(Long userId, Integer limit, boolean recompute, boolean debug,
+                                                          boolean rotateAfterCompute, boolean persistCache) {
         // 第 1 步：读取配置快照。
         // 所有后续计算都基于同一份配置，避免一次请求内前后参数不一致。
         RecommendationConfigBundleDTO config = recommendationCacheService.loadConfig();
@@ -174,7 +175,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         RecommendationHeatConfigDTO heatConfig = safeHeatConfig(config);
         RecommendationCacheConfigDTO cacheConfig = safeCacheConfig(config);
         // 调试信息仅在显式开启时初始化，避免普通请求携带额外组装开销。
-        RecommendationResponse.DebugInfo debugInfo = debug ? initDebugInfo(userId, limit, normalizeDebugMode(recompute, rotateAfterCompute)) : null;
+        RecommendationResponse.DebugInfo debugInfo = debug ? initDebugInfo(userId, limit, resolveDebugMode(recompute)) : null;
 
         log.info(
             "开始计算推荐结果：用户ID={}，请求数量={}，是否强制重算={}，是否调试={}，协同过滤最少交互数={}，候选扩容倍数={}",
@@ -211,7 +212,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     "请检查用户历史行为是否足够，或适当调低 minInteractionsForCF。"
                 ));
             }
-            return handleColdStart(userId, limit, rotateAfterCompute, debug, debugInfo);
+            return handleColdStart(userId, limit, rotateAfterCompute, debug, debugInfo, persistCache);
         }
 
         // 第 4 步：进入 ItemCF 主链路。
@@ -244,7 +245,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             if (debugInfo != null) {
                 debugInfo.setTriggerReason("协同过滤候选集在过滤后为空，降级为冷启动");
             }
-            return handleColdStart(userId, limit, rotateAfterCompute, debug, debugInfo);
+            return handleColdStart(userId, limit, rotateAfterCompute, debug, debugInfo, persistCache);
         }
 
         // 第 7 步：在明确需要模拟“换一批”时做轻量轮换。
@@ -267,7 +268,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         // 第 9 步：组装结果并写入缓存。
         // 当前缓存保存的是结构化推荐快照，既保留结果顺序，也保留推荐类型和分数，便于后续直接读取与轮换。
         RecommendationResponse response = buildRecommendationResponse(filteredIds, filteredScores, limit, "personalized", false, debugInfo);
-        saveRecommendationCache(userId, response, cacheConfig);
+        if (persistCache) {
+            saveRecommendationCache(userId, response, cacheConfig);
+        }
 
         log.info(
             "推荐结果计算完成：用户ID={}，推荐类型=personalized，候选数={}，最终返回数={}，缓存时长={}分钟",
@@ -299,7 +302,8 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 支持按用户偏好推荐；如果偏好也不可用，则继续降级到热门景点。
      */
     private RecommendationResponse handleColdStart(Long userId, Integer limit, boolean rotateAfterCompute, boolean debug,
-                                                   RecommendationResponse.DebugInfo debugInfo) {
+                                                   RecommendationResponse.DebugInfo debugInfo,
+                                                   boolean persistCache) {
         RecommendationAlgorithmConfigDTO algorithmConfig = safeAlgorithmConfig(recommendationCacheService.loadConfig());
         // 第 1 步：准备冷启动候选池。
         // 无论最终走偏好推荐还是热门兜底，热门池都会作为基础候选或补齐来源。
@@ -341,7 +345,9 @@ public class RecommendationServiceImpl implements RecommendationService {
             },
             context -> logColdStartResult(context.userId(), context.type(), context.categoryIds(), context.spotIds(), context.debug())
         );
-        saveRecommendationCache(userId, response);
+        if (persistCache) {
+            saveRecommendationCache(userId, response);
+        }
         return response;
     }
 
@@ -498,39 +504,207 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     /**
-     * 预览缓存模式下的推荐结果；命中缓存时不重算，仅补齐最小调试信息。
+     * 预览缓存结果；命中缓存时直接回显当前基线，缺缓存时回退为最新结果预览。
      */
-    private RecommendationResponse previewCachedRecommendations(Long userId, Integer limit, boolean debug) {
-        if (!debug) {
-            return getRecommendations(userId, limit);
-        }
-
+    private RecommendationResponse previewCachedRecommendations(Long userId, Integer limit, boolean debug,
+                                                               boolean writeCache, boolean rotate) {
         UserRecommendationCacheDTO cached = recommendationCacheService.getUserRecommendation(userId);
         if (cached == null) {
-            return computeRecommendations(userId, limit, false, true, false);
+            RecommendationResponse response = computeRecommendations(userId, limit, true, debug, false, false);
+            if (writeCache) {
+                saveRecommendationCache(userId, response);
+            }
+            appendPreviewMeta(
+                response,
+                userId,
+                limit,
+                PREVIEW_MODE_CACHE,
+                PREVIEW_MODE_LATEST,
+                false,
+                writeCache,
+                false,
+                cached
+            );
+            appendPreviewNotes(
+                response,
+                "当前用户还没有可直接查看的推荐缓存，本次改为预览最新结果。",
+                rotate ? "轮换调试依赖当前缓存基线，请先写入缓存后再模拟“换一批”。" : null
+            );
+            if (response.getDebugInfo() != null) {
+                response.getDebugInfo().setTriggerReason("当前无缓存，改为预览最新结果");
+            }
+            return response;
         }
 
         RecommendationResponse response = buildRecommendationResponseFromCache(cached, limit);
         if (response == null) {
-            return computeRecommendations(userId, limit, false, true, false);
+            RecommendationResponse latestResponse = computeRecommendations(userId, limit, true, debug, false, false);
+            if (writeCache) {
+                saveRecommendationCache(userId, latestResponse);
+            }
+            appendPreviewMeta(
+                latestResponse,
+                userId,
+                limit,
+                PREVIEW_MODE_CACHE,
+                PREVIEW_MODE_LATEST,
+                false,
+                writeCache,
+                false,
+                cached
+            );
+            appendPreviewNotes(
+                latestResponse,
+                "当前缓存结构不可用，本次改为预览最新结果。",
+                rotate ? "轮换调试依赖当前缓存基线，请先写入缓存后再模拟“换一批”。" : null
+            );
+            if (latestResponse.getDebugInfo() != null) {
+                latestResponse.getDebugInfo().setTriggerReason("当前缓存不可用，改为预览最新结果");
+            }
+            return latestResponse;
         }
 
-        RecommendationResponse.DebugInfo debugInfo = initDebugInfo(userId, limit, PREVIEW_MODE_CACHE);
-        debugInfo.setTriggerReason("命中当前推荐缓存");
-        debugInfo.setFinalCount(response.getList() == null ? 0 : response.getList().size());
-        debugInfo.setNotes(List.of(
-            "当前结果直接来自用户推荐缓存，未触发重算。",
-            "如需查看完整评分链路，请切换到重算稳定或重算后轮换模式。"
-        ));
-        response.setDebugInfo(debugInfo);
+        boolean rotated = false;
+        if (rotate && response.getList() != null && response.getList().size() > 1) {
+            response.setList(rotateRecommendationItems(response.getList(), limit));
+            rotated = true;
+        }
+        if (writeCache) {
+            saveRecommendationCache(userId, response);
+        }
+        appendPreviewMeta(
+            response,
+            userId,
+            limit,
+            PREVIEW_MODE_CACHE,
+            PREVIEW_MODE_CACHE,
+            true,
+            writeCache,
+            rotated,
+            cached
+        );
+        appendPreviewNotes(
+            response,
+            rotated ? "当前结果直接来自用户推荐缓存，并已在这份缓存基线上模拟“换一批”。"
+                : "当前结果直接来自用户推荐缓存，适合核对用户端当前看到的推荐顺序。",
+            !rotated && rotate ? "当前缓存结果不足两条，本次未执行轮换。" : null,
+            writeCache ? (rotated ? "轮换后的结果已回写到当前用户缓存。" : "本次结果已重新写回当前用户缓存。") : "本次仅做查看，不会改写当前用户缓存。",
+            "如需查看每个结果的计算链路，请切换到“预览最新结果”。"
+        );
+        if (response.getDebugInfo() != null) {
+            response.getDebugInfo().setTriggerReason(rotated ? "命中缓存并模拟换一批" : "命中当前推荐缓存");
+            response.getDebugInfo().setFinalCount(response.getList() == null ? 0 : response.getList().size());
+        }
         return response;
+    }
+
+    /**
+     * 预览最新结果，默认只做临时计算；显式开启写缓存后才会影响当前用户的推荐基线。
+     */
+    private RecommendationResponse previewLatestRecommendations(Long userId, Integer limit, boolean debug,
+                                                               boolean writeCache, boolean rotate) {
+        RecommendationResponse response = computeRecommendations(userId, limit, true, debug, false, false);
+        boolean rotated = false;
+        if (rotate && writeCache && response != null && response.getList() != null && response.getList().size() > 1) {
+            response.setList(rotateRecommendationItems(response.getList(), limit));
+            rotated = true;
+        }
+        if (writeCache) {
+            saveRecommendationCache(userId, response);
+        }
+        appendPreviewMeta(
+            response,
+            userId,
+            limit,
+            PREVIEW_MODE_LATEST,
+            PREVIEW_MODE_LATEST,
+            false,
+            writeCache,
+            rotated,
+            null
+        );
+        appendPreviewNotes(
+            response,
+            "当前结果基于最新用户行为即时计算，更适合核对推荐是否符合当前标准链路。",
+            rotated
+                ? "本次先生成最新结果，再在写入缓存的基线上模拟了一次“换一批”。"
+                : (rotate ? "轮换调试依赖当前缓存基线；未开启写入缓存时，本次保持最新结果的稳定顺序。" : null),
+            writeCache ? "本次结果已写入当前用户缓存，后续用户端将直接读取这份结果。" : "本次仅用于预览，不会影响当前用户线上缓存。",
+            "这一模式会返回完整调试链路，可继续查看行为来源统计、交互权重、候选分数与结果贡献来源。"
+        );
+        if (response.getDebugInfo() != null) {
+            response.getDebugInfo().setTriggerReason(rotated ? "预览最新结果并写入缓存后模拟换一批" : "预览最新标准结果");
+        }
+        return response;
+    }
+
+    /**
+     * 为管理端预览补齐统一元信息，便于前端区分“当前缓存结果”和“最新结果预览”。
+     */
+    private void appendPreviewMeta(RecommendationResponse response, Long userId, Integer limit,
+                                   String requestedMode, String actualSource, boolean cacheHit,
+                                   boolean cacheWritten, boolean rotated, UserRecommendationCacheDTO cached) {
+        RecommendationResponse.DebugInfo debugInfo = ensurePreviewDebugInfo(response, userId, limit, requestedMode);
+        if (debugInfo == null) {
+            return;
+        }
+        debugInfo.setFinalCount(response == null || response.getList() == null ? 0 : response.getList().size());
+
+        Map<String, Object> extra = debugInfo.getExtra() == null ? new LinkedHashMap<>() : new LinkedHashMap<>(debugInfo.getExtra());
+        extra.put("requestedMode", requestedMode);
+        extra.put("resultSource", actualSource);
+        extra.put("cacheHit", cacheHit);
+        extra.put("cacheWritten", cacheWritten);
+        extra.put("rotationApplied", rotated);
+        extra.put("debugPipelineAvailable", PREVIEW_MODE_LATEST.equals(actualSource));
+        if (cached != null && cached.getGeneratedAt() != null) {
+            extra.put("cacheGeneratedAt", cached.getGeneratedAt());
+        }
+        debugInfo.setExtra(extra);
+    }
+
+    /**
+     * 为管理端预览补齐说明文案，避免前端误把缓存结果当成一条完整的实时计算链路。
+     */
+    private void appendPreviewNotes(RecommendationResponse response, String... notes) {
+        if (response == null) {
+            return;
+        }
+        RecommendationResponse.DebugInfo debugInfo = response.getDebugInfo();
+        if (debugInfo == null) {
+            return;
+        }
+        List<String> mergedNotes = new ArrayList<>();
+        if (debugInfo.getNotes() != null) {
+            mergedNotes.addAll(debugInfo.getNotes());
+        }
+        for (String note : notes) {
+            if (note != null && !note.isBlank()) {
+                mergedNotes.add(note);
+            }
+        }
+        debugInfo.setNotes(mergedNotes);
+    }
+
+    /**
+     * 确保管理端预览始终有一个可承载元信息的调试对象。
+     */
+    private RecommendationResponse.DebugInfo ensurePreviewDebugInfo(RecommendationResponse response, Long userId,
+                                                                    Integer limit, String requestedMode) {
+        if (response == null) {
+            return null;
+        }
+        if (response.getDebugInfo() == null) {
+            response.setDebugInfo(initDebugInfo(userId, limit, requestedMode));
+        }
+        return response.getDebugInfo();
     }
 
     /**
      * 规范化管理端预览模式，非法值统一回退为缓存模式。
      */
     private String normalizePreviewMode(String mode) {
-        if (PREVIEW_MODE_RECOMPUTE.equals(mode) || PREVIEW_MODE_RECOMPUTE_ROTATE.equals(mode)) {
+        if (PREVIEW_MODE_LATEST.equals(mode)) {
             return mode;
         }
         return PREVIEW_MODE_CACHE;
@@ -539,11 +713,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     /**
      * 生成调试模式标识，便于后台直接理解本次预览策略。
      */
-    private String normalizeDebugMode(boolean recompute, boolean rotateAfterCompute) {
-        if (!recompute) {
-            return PREVIEW_MODE_CACHE;
-        }
-        return rotateAfterCompute ? PREVIEW_MODE_RECOMPUTE_ROTATE : PREVIEW_MODE_RECOMPUTE;
+    private String resolveDebugMode(boolean recompute) {
+        return recompute ? PREVIEW_MODE_LATEST : PREVIEW_MODE_CACHE;
     }
 
     /**

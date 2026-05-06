@@ -25,13 +25,22 @@
             <span class="debug-label">预览模式</span>
             <el-radio-group v-model="debugForm.mode" size="small">
               <el-radio-button label="cache">缓存结果</el-radio-button>
-              <el-radio-button label="recompute">重算稳定</el-radio-button>
-              <el-radio-button label="recompute_rotate">重算后模拟换一批</el-radio-button>
+              <el-radio-button label="latest">预览最新结果</el-radio-button>
             </el-radio-group>
           </div>
           <div class="debug-field">
-            <span class="debug-label">后端日志</span>
-            <el-switch v-model="debugForm.debug" inline-prompt active-text="控制台日志" inactive-text="静默" />
+            <span class="debug-label">写入缓存</span>
+            <el-switch v-model="debugForm.writeCache" inline-prompt active-text="写缓存" inactive-text="只预览" />
+          </div>
+          <div class="debug-field">
+            <span class="debug-label">轮换调试</span>
+            <el-switch
+              v-model="debugForm.rotate"
+              :disabled="rotateSwitchDisabled"
+              inline-prompt
+              active-text="换一批"
+              inactive-text="稳定"
+            />
           </div>
           <el-button type="primary" :loading="previewing" @click="emit('preview-recommendations')">
             调试预览
@@ -48,7 +57,7 @@
           </el-tag>
           <el-tag size="small" type="primary">返回 {{ debugItems.length }} 条</el-tag>
           <el-tag size="small" type="info">
-            {{ debugForm.mode === 'cache' ? '本次优先读取缓存' : (debugForm.mode === 'recompute' ? '本次强制重算（稳定顺序）' : '本次强制重算（模拟换一批）') }}
+            {{ previewModeTagText }}
           </el-tag>
         </div>
 
@@ -73,7 +82,7 @@
           {{ recommendationTypeMeta.description }}
         </el-alert>
 
-        <div v-if="debugInfo" class="debug-pipeline">
+        <div v-if="showDebugPipeline" class="debug-pipeline">
           <div class="debug-block-title">后端调试链路</div>
           <div class="pipeline-grid">
             <div class="pipeline-card">
@@ -94,6 +103,17 @@
             </div>
           </div>
         </div>
+
+        <el-alert
+          v-else-if="debugInfo"
+          class="debug-conclusion"
+          type="info"
+          :closable="false"
+          show-icon
+          title="当前为缓存结果"
+        >
+          缓存结果更适合核对当前顺序与轮换后的缓存状态，不包含实时重算产生的行为统计、候选分数和结果贡献链路。
+        </el-alert>
 
         <div v-if="behaviorStats.length" class="debug-sections">
           <div class="debug-block-title">行为来源统计</div>
@@ -353,6 +373,8 @@ defineProps({
   debugItems: { type: Array, required: true },
   debugSummaryCards: { type: Array, required: true },
   debugInfo: { type: Object, default: null },
+  rotateSwitchDisabled: { type: Boolean, required: true },
+  showDebugPipeline: { type: Boolean, required: true },
   behaviorStats: { type: Array, required: true },
   behaviorDetails: { type: Array, required: true },
   debugInsights: { type: Array, required: true },
@@ -362,7 +384,8 @@ defineProps({
   resultContributions: { type: Array, required: true },
   topDebugItems: { type: Array, required: true },
   debugOutput: { type: String, required: true },
-  debugTableRows: { type: Array, required: true }
+  debugTableRows: { type: Array, required: true },
+  previewModeTagText: { type: String, required: true }
 })
 
 const emit = defineEmits([

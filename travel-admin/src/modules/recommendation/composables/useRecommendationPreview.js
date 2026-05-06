@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { resolveCategoryDisplayName, resolveRegionDisplayName } from '@/shared/lib/resource-display.js'
 import {
@@ -21,13 +21,29 @@ export function useRecommendationPreview({ status, fetchStatus }) {
   const debugForm = reactive({
     userId: 1,
     limit: 6,
-    mode: 'recompute',
+    mode: 'latest',
+    writeCache: false,
+    rotate: false,
     debug: true
   })
   const similarityForm = reactive({
     spotId: 1,
     limit: 8
   })
+
+  // 统一生成可读调试文本，方便页面展示和后续对比不同请求结果。
+  const debugItems = computed(() => debugResult.value?.list || [])
+  const debugInfo = computed(() => debugResult.value?.debugInfo || null)
+  const previewMeta = computed(() => debugInfo.value?.extra || {})
+  const resultSource = computed(() => previewMeta.value.resultSource || (debugForm.mode === 'latest' ? 'latest' : 'cache'))
+  const isLatestSource = computed(() => resultSource.value === 'latest')
+  const isCacheSource = computed(() => resultSource.value === 'cache')
+  const rotateSwitchDisabled = computed(() => debugForm.mode === 'latest' && !debugForm.writeCache)
+  const showDebugPipeline = computed(() => isLatestSource.value && !!debugInfo.value)
+  const debugNotes = computed(() => debugInfo.value?.notes || [])
+  const behaviorStats = computed(() => debugInfo.value?.behaviorStats || [])
+  const behaviorDetails = computed(() => debugInfo.value?.behaviorDetails || [])
+  const resultContributions = computed(() => debugInfo.value?.resultContributions || [])
 
   // 统一生成可读调试文本，方便页面展示和后续对比不同请求结果。
   const debugOutput = computed(() => {
@@ -38,10 +54,16 @@ export function useRecommendationPreview({ status, fetchStatus }) {
       `request.userNickname = ${debugResult.value?.debugInfo?.userNickname || '未返回'}`,
       `request.limit = ${debugForm.limit}`,
       `request.mode = ${debugForm.mode}`,
+      `request.writeCache = ${debugForm.writeCache}`,
+      `request.rotate = ${debugForm.rotate}`,
       `request.debug = ${debugForm.debug}`,
       `response.type = ${debugResult.value.type}`,
       `response.needPreference = ${debugResult.value.needPreference}`,
-      `response.count = ${debugResult.value.list?.length || 0}`
+      `response.count = ${debugItems.value.length}`,
+      `response.source = ${previewMeta.value.resultSource || 'unknown'}`,
+      `response.cacheHit = ${previewMeta.value.cacheHit ?? 'unknown'}`,
+      `response.cacheWritten = ${previewMeta.value.cacheWritten ?? false}`,
+      `response.rotationApplied = ${previewMeta.value.rotationApplied ?? false}`
     ]
 
     if (!debugResult.value.list?.length) {
@@ -60,13 +82,6 @@ export function useRecommendationPreview({ status, fetchStatus }) {
 
     return lines.join('\n')
   })
-
-  const debugItems = computed(() => debugResult.value?.list || [])
-  const debugInfo = computed(() => debugResult.value?.debugInfo || null)
-  const debugNotes = computed(() => debugInfo.value?.notes || [])
-  const behaviorStats = computed(() => debugInfo.value?.behaviorStats || [])
-  const behaviorDetails = computed(() => debugInfo.value?.behaviorDetails || [])
-  const resultContributions = computed(() => debugInfo.value?.resultContributions || [])
 
   const debugSections = computed(() => {
     if (!debugInfo.value) return []
@@ -146,7 +161,13 @@ export function useRecommendationPreview({ status, fetchStatus }) {
         value: recommendationTypeMeta.value.label,
         desc: debugInfo.value?.triggerReason || (debugResult.value?.needPreference ? '当前链路仍建议补充偏好' : '当前链路无需额外偏好引导')
       },
-      { label: '返回结果数', value: String(debugItems.value.length), desc: `请求数量 ${debugForm.limit}，实际返回 ${debugItems.value.length}` },
+      {
+        label: '结果来源',
+        value: isCacheSource.value ? '缓存结果' : '最新结果',
+        desc: isCacheSource.value
+          ? '通常用于查看当前缓存顺序，或核对“换一批”之后用户端会读到的结果'
+          : '通常用于查看最新标准结果，并核对每个推荐项的计算链路'
+      },
       {
         label: '最高推荐分',
         value: topItem?.score != null ? Number(topItem.score).toFixed(4) : '无',
@@ -163,6 +184,11 @@ export function useRecommendationPreview({ status, fetchStatus }) {
   const debugInsights = computed(() => {
     if (!debugResult.value) return []
     const insights = []
+    if (isCacheSource.value) {
+      insights.push('当前展示的是缓存结果，更适合核对用户端当前会读到哪一份推荐，尤其适用于检查“换一批”后的缓存顺序。')
+    } else {
+      insights.push('当前展示的是最新结果预览，更适合核对最新标准推荐结果，以及每个结果是如何算出来的。')
+    }
     if (debugResult.value.type === 'personalized') {
       insights.push('当前用户已满足协同过滤触发条件，本次结果优先反映历史交互与相似景点关系。')
     }
@@ -187,15 +213,41 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     if (debugForm.debug) {
       insights.push('本次已启用后端详细调试日志，可同步结合服务端控制台查看交互权重、候选分数、过滤与重排信息。')
     }
-    if (debugForm.mode === 'cache') {
-      insights.push('缓存模式不会主动重算推荐链路，更适合确认当前用户端正在消费哪一份结果。')
-    } else if (debugForm.mode === 'recompute_rotate') {
-      insights.push('当前模式会在重算完成后模拟用户端“换一批”，便于观察轮换后的展示结果。')
+    if (previewMeta.value.cacheWritten) {
+      insights.push('本次结果已写入当前用户缓存，后续用户端刷新页面或重新进入时，会优先读到这份结果。')
+    }
+    if (previewMeta.value.rotationApplied) {
+      insights.push('本次已模拟一次“换一批”，当前列表顺序已经不同于原始基线。')
+    }
+    if (debugForm.rotate && rotateSwitchDisabled.value) {
+      insights.push('轮换调试依赖缓存基线；预览最新结果时，请先开启“写入缓存”，再模拟“换一批”。')
     }
     return insights
   })
 
   const compactDebugInsights = computed(() => debugInsights.value.slice(0, 3))
+  const previewModeTagText = computed(() => {
+    if (!debugResult.value) return ''
+    if (isCacheSource.value) {
+      return previewMeta.value.rotationApplied ? '本次读取缓存结果（已模拟换一批）' : '本次读取当前缓存结果'
+    }
+    if (previewMeta.value.cacheWritten && previewMeta.value.rotationApplied) {
+      return '本次预览最新结果，并写入缓存后模拟换一批'
+    }
+    if (previewMeta.value.cacheWritten) {
+      return '本次预览最新结果，并写入当前缓存'
+    }
+    return '本次预览最新标准结果'
+  })
+
+  watch(
+    () => [debugForm.mode, debugForm.writeCache],
+    () => {
+      if (rotateSwitchDisabled.value) {
+        debugForm.rotate = false
+      }
+    }
+  )
 
   const topDebugItems = computed(() =>
     debugItems.value.slice(0, 3).map((item, index) => ({
@@ -304,6 +356,10 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     debugOutput,
     debugItems,
     debugInfo,
+    previewMeta,
+    resultSource,
+    rotateSwitchDisabled,
+    showDebugPipeline,
     behaviorStats,
     behaviorDetails,
     debugInsights,
@@ -315,6 +371,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     debugTableRows,
     debugSummaryCards,
     recommendationTypeMeta,
+    previewModeTagText,
     handlePreviewRecommendations,
     handlePreviewSimilarity,
     handlePreviewSimilarityWithMatrixUpdate

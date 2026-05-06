@@ -56,7 +56,7 @@ public class AdminRecommendationController {
     }
 
     /**
-     * 仅供管理端调试使用，可按模式读取缓存、重算稳定结果或重算后轮换结果。
+     * 仅供管理端调试使用，可优先查看缓存结果或预览最新结果，并按需决定是否写入缓存。
      */
     @Operation(summary = "调试预览指定用户的推荐结果")
     @GetMapping("/preview")
@@ -64,15 +64,19 @@ public class AdminRecommendationController {
             @RequestParam Long userId,
             @RequestParam(defaultValue = "10") Integer limit,
             @RequestParam(defaultValue = "cache") String mode,
+            @RequestParam(defaultValue = "false") Boolean writeCache,
+            @RequestParam(defaultValue = "false") Boolean rotate,
             @RequestParam(defaultValue = "false") Boolean debug) {
         log.info(
-            "管理端请求推荐调试预览：用户ID={}，返回条数={}，预览模式={}，是否输出详细调试日志={}",
+            "管理端请求推荐调试预览：用户ID={}，返回条数={}，预览模式={}，是否写入缓存={}，是否轮换调试={}，是否输出详细调试日志={}",
             userId,
             limit,
             mode,
+            writeCache,
+            rotate,
             debug
         );
-        return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, mode, debug));
+        return ApiResponse.success(recommendationService.previewRecommendations(userId, limit, mode, writeCache, rotate, debug));
     }
 
     /**

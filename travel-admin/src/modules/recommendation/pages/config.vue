@@ -104,6 +104,8 @@
         :debug-items="debugItems"
         :debug-summary-cards="debugSummaryCards"
         :debug-info="debugInfo"
+        :rotate-switch-disabled="rotateSwitchDisabled"
+        :show-debug-pipeline="showDebugPipeline"
         :behavior-stats="behaviorStats"
         :behavior-details="behaviorDetails"
         :debug-insights="debugInsights"
@@ -114,6 +116,7 @@
         :top-debug-items="topDebugItems"
         :debug-output="debugOutput"
         :debug-table-rows="debugTableRows"
+        :preview-mode-tag-text="previewModeTagText"
         @update:active-preview-tab="activePreviewTab = $event"
         @preview-recommendations="handlePreviewRecommendations"
         @preview-similarity="handlePreviewSimilarity"
@@ -184,6 +187,8 @@ const {
   debugItems,
   debugSummaryCards,
   debugInfo,
+  rotateSwitchDisabled,
+  showDebugPipeline,
   behaviorStats,
   behaviorDetails,
   debugInsights,
@@ -194,6 +199,7 @@ const {
   topDebugItems,
   debugTableRows,
   recommendationTypeMeta,
+  previewModeTagText,
   handlePreviewRecommendations,
   handlePreviewSimilarity,
   handlePreviewSimilarityWithMatrixUpdate
