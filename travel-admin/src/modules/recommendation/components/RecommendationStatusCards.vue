@@ -8,7 +8,7 @@
           <div class="status-info">
             <div class="status-label">引擎状态</div>
             <div class="status-value">
-              <el-tag :type="status.computing ? 'warning' : 'success'" effect="dark" round>
+              <el-tag :type="status.computing ? 'warning' : 'success'" effect="light" round>
                 {{ status.computing ? '计算中...' : '就绪' }}
               </el-tag>
             </div>
@@ -102,11 +102,15 @@ defineProps({
   align-items: center;
   padding: 24px;
   border-radius: 20px;
-  color: #fff;
+  color: var(--wt-text-primary);
   position: relative;
   overflow: hidden;
   min-height: 136px;
   box-sizing: border-box;
+  border: 1px solid var(--wt-border-default);
+  background:
+    radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 
   &::after {
     content: '';
@@ -119,10 +123,29 @@ defineProps({
     border-radius: 50%;
   }
 
-  &.engine-bg { background: var(--wt-accent-gradient-cyan); }
-  &.time-bg { background: var(--wt-accent-gradient-blue); }
-  &.users-bg { background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-hover) 100%); color: var(--wt-text-primary); border: 1px solid var(--wt-border-default); }
-  &.spots-bg { background: var(--wt-accent-gradient-amber); }
+  &.engine-bg {
+    background:
+      radial-gradient(circle at top right, rgba(34, 211, 238, 0.16) 0%, transparent 42%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
+
+  &.time-bg {
+    background:
+      radial-gradient(circle at top right, rgba(96, 165, 250, 0.18) 0%, transparent 42%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
+
+  &.users-bg {
+    background:
+      radial-gradient(circle at top right, rgba(148, 163, 184, 0.14) 0%, transparent 42%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
+
+  &.spots-bg {
+    background:
+      radial-gradient(circle at top right, rgba(251, 191, 36, 0.16) 0%, transparent 42%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
 }
 
 .status-info {
@@ -150,9 +173,10 @@ defineProps({
 
 .status-icon {
   font-size: 56px;
-  opacity: 0.8;
+  opacity: 0.72;
   z-index: 1;
   transition: transform 0.3s;
+  color: var(--wt-text-secondary);
 }
 
 .status-card:hover .status-icon {

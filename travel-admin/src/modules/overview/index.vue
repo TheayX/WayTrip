@@ -164,23 +164,23 @@
             </div>
           </template>
           <div class="today-overview">
-            <div class="today-overview-item">
+            <div class="today-overview-item feature-panel">
               <span class="overview-label">累计营收</span>
               <span class="overview-value">¥{{ formatCurrency(overview.totalRevenue) }}</span>
             </div>
-            <div class="today-overview-item">
+            <div class="today-overview-item feature-panel">
               <span class="overview-label">累计订单</span>
               <span class="overview-value">{{ formatInteger(overview.totalOrders) }}</span>
             </div>
-            <div class="today-overview-item">
+            <div class="today-overview-item feature-panel">
               <span class="overview-label">累计用户</span>
               <span class="overview-value">{{ formatInteger(overview.totalUsers) }}</span>
             </div>
-            <div class="today-overview-item">
+            <div class="today-overview-item feature-panel">
               <span class="overview-label">已发布景点</span>
               <span class="overview-value">{{ formatInteger(overview.totalSpots) }}</span>
             </div>
-            <div class="today-overview-tip">
+            <div class="today-overview-tip feature-panel feature-panel--soft">
               昨日收入 ¥{{ formatCurrency(overview.yesterdayRevenue) }}，昨日订单 {{ formatInteger(overview.yesterdayOrders) }}
             </div>
           </div>
@@ -198,7 +198,7 @@
               v-for="(spot, index) in hotSpots"
               :key="spot.id"
               type="button"
-              class="hot-spot-item"
+              class="hot-spot-item feature-panel feature-panel--interactive"
               @click="goToSpot(spot)"
             >
               <div class="hot-spot-rank" :class="`rank-${Math.min(index + 1, 4)}`">{{ index + 1 }}</div>
@@ -233,7 +233,7 @@
                 v-for="item in workbenchEntries"
                 :key="item.title"
                 type="button"
-                class="workbench-entry"
+                class="workbench-entry feature-panel feature-panel--interactive"
                 @click="goTo(item.path)"
               >
                 <div class="workbench-entry-head">
@@ -256,7 +256,7 @@
             </div>
           </template>
           <div class="tips-list">
-            <div v-for="item in dashboardTips" :key="item.title" class="tips-item">
+            <div v-for="item in dashboardTips" :key="item.title" class="tips-item feature-panel feature-panel--soft">
               <div class="tips-title">{{ item.title }}</div>
               <div class="tips-desc">{{ item.desc }}</div>
             </div>
@@ -860,10 +860,19 @@ onUnmounted(() => {
 }
 
 .trend-card {
+  position: relative;
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid var(--wt-border-default);
   background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+}
+
+.trend-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%);
 }
 
 .trend-card :deep(.el-card__body) {
@@ -871,19 +880,27 @@ onUnmounted(() => {
 }
 
 .tone-blue {
-  background: linear-gradient(180deg, var(--wt-accent-blue-bg) 0%, var(--wt-surface-elevated) 100%);
+  background:
+    radial-gradient(circle at top left, var(--wt-accent-blue-bg) 0%, transparent 48%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .tone-violet {
-  background: linear-gradient(180deg, var(--wt-accent-cyan-bg) 0%, var(--wt-surface-elevated) 100%);
+  background:
+    radial-gradient(circle at top left, var(--wt-accent-cyan-bg) 0%, transparent 48%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .tone-emerald {
-  background: linear-gradient(180deg, var(--wt-accent-emerald-bg) 0%, var(--wt-surface-elevated) 100%);
+  background:
+    radial-gradient(circle at top left, var(--wt-accent-emerald-bg) 0%, transparent 48%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .tone-amber {
-  background: linear-gradient(180deg, var(--wt-accent-amber-bg) 0%, var(--wt-surface-elevated) 100%);
+  background:
+    radial-gradient(circle at top left, var(--wt-accent-amber-bg) 0%, transparent 48%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .metric-label {
@@ -988,9 +1005,7 @@ onUnmounted(() => {
 
 .today-overview-item {
   padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  border: 1px solid var(--wt-border-default);
+  min-height: 84px;
 }
 
 .overview-label {
@@ -1010,7 +1025,6 @@ onUnmounted(() => {
   grid-column: 1 / -1;
   padding: 12px 14px;
   border-radius: 14px;
-  background: var(--wt-accent-blue-bg);
   color: var(--wt-accent-blue-text);
   font-size: 12px;
   font-weight: 600;
@@ -1029,18 +1043,8 @@ onUnmounted(() => {
   gap: 14px;
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid var(--wt-border-default);
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s ease;
-}
-
-.hot-spot-item:hover {
-  border-color: var(--el-color-primary-light-5);
-  transform: translateY(-1px);
-  box-shadow: var(--wt-shadow-soft);
 }
 
 .hot-spot-rank {
@@ -1117,18 +1121,8 @@ onUnmounted(() => {
 
 .workbench-entry {
   padding: 18px;
-  border-radius: 18px;
-  border: 1px solid var(--wt-border-default);
-  background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   text-align: left;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.workbench-entry:hover {
-  transform: translateY(-2px);
-  border-color: var(--el-color-primary-light-5);
-  box-shadow: var(--wt-shadow-soft);
 }
 
 .workbench-entry-head {
@@ -1165,9 +1159,6 @@ onUnmounted(() => {
 
 .tips-item {
   padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
-  border: 1px solid var(--wt-border-default);
 }
 
 .tips-title {
