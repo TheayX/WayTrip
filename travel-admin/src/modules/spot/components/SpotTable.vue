@@ -11,7 +11,7 @@
     <el-table-column prop="id" label="ID" width="70" align="center" />
     <el-table-column label="封面" width="90" align="center">
       <template #default="{ row }">
-        <el-image :src="getImageUrl(row.coverImage)" class="cover-img" fit="cover" />
+        <el-image :src="getImageUrl(row.coverImage)" class="table-cover-img" fit="cover" />
       </template>
     </el-table-column>
     <el-table-column prop="name" label="名称" min-width="180" show-overflow-tooltip align="left">
@@ -27,12 +27,12 @@
     </el-table-column>
     <el-table-column prop="price" label="价格" width="100" align="center">
       <template #default="{ row }">
-        <span class="price-text">¥{{ row.price }}</span>
+        <span class="metric-inline metric-inline--price">¥{{ row.price }}</span>
       </template>
     </el-table-column>
     <el-table-column prop="avgRating" label="评分" width="90" align="center">
       <template #default="{ row }">
-        <span class="rating-text"><el-icon class="rating-star"><StarFilled /></el-icon> {{ row.avgRating || '暂无' }}</span>
+        <span class="metric-inline metric-inline--accent"><el-icon class="rating-star"><StarFilled /></el-icon> {{ row.avgRating || '暂无' }}</span>
       </template>
     </el-table-column>
     <el-table-column label="热度档位" width="100" align="center">
@@ -120,13 +120,6 @@ const handleCommand = (command, row) => {
 </script>
 
 <style lang="scss" scoped>
-.cover-img {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-}
-
 .spot-name-link {
   padding: 0;
   min-width: 0;
@@ -148,28 +141,8 @@ const handleCommand = (command, row) => {
   text-align: left;
 }
 
-.price-text {
-  display: inline-block;
-  min-width: 56px;
-  font-weight: 600;
-  color: var(--wt-accent-rose-text);
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
 .rating-star {
   color: var(--wt-accent-amber-text);
-}
-
-.rating-text {
-  font-weight: 600;
-  color: var(--wt-text-primary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 56px;
-  font-variant-numeric: tabular-nums;
 }
 
 </style>

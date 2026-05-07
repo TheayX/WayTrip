@@ -63,9 +63,9 @@
 
         <div v-if="debugResult" class="debug-summary">
           <div class="debug-summary-grid">
-            <div v-for="card in debugSummaryCards" :key="card.label" class="summary-card">
+            <div v-for="card in debugSummaryCards" :key="card.label" class="summary-card summary-card--compact">
               <div class="summary-label">{{ card.label }}</div>
-              <div class="summary-value">{{ card.value }}</div>
+              <div class="summary-value summary-value--accent">{{ card.value }}</div>
               <div class="summary-desc">{{ card.desc }}</div>
             </div>
           </div>
@@ -319,19 +319,19 @@
 
         <div v-if="similarityResult" class="debug-summary">
           <div class="debug-summary-grid debug-summary-grid--triple">
-            <div class="summary-card">
+            <div class="summary-card summary-card--compact">
               <div class="summary-label">目标景点</div>
-              <div class="summary-value summary-value--sm">{{ similarityResult.spotName || '-' }}</div>
+              <div class="summary-value summary-value--sm summary-value--accent">{{ similarityResult.spotName || '-' }}</div>
               <div class="summary-desc">景点 ID：{{ similarityResult.spotId }}</div>
             </div>
-            <div class="summary-card">
+            <div class="summary-card summary-card--compact">
               <div class="summary-label">可用邻居数</div>
-              <div class="summary-value">{{ similarityResult.totalNeighbors ?? 0 }}</div>
+              <div class="summary-value summary-value--accent">{{ similarityResult.totalNeighbors ?? 0 }}</div>
               <div class="summary-desc">当前从 Redis 相似度矩阵读取</div>
             </div>
-            <div class="summary-card">
+            <div class="summary-card summary-card--compact">
               <div class="summary-label">矩阵更新时间</div>
-              <div class="summary-value summary-value--sm">{{ similarityResult.lastUpdateTime || '暂无记录' }}</div>
+              <div class="summary-value summary-value--sm summary-value--accent">{{ similarityResult.lastUpdateTime || '暂无记录' }}</div>
               <div class="summary-desc">用于确认预览的矩阵版本</div>
             </div>
           </div>
@@ -433,11 +433,10 @@ defineExpose({
 .debug-summary { margin-bottom: 16px; }
 .debug-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .debug-summary-grid--triple { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.summary-card { padding: 18px; border-radius: 18px; background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%); border: 1px solid var(--wt-border-default); }
-.summary-label { margin-bottom: 8px; font-size: 12px; color: var(--wt-text-secondary); }
-.summary-value { font-size: 24px; font-weight: 700; color: var(--wt-accent-blue-text); line-height: 1.2; }
+.summary-label { margin-bottom: 8px; }
+.summary-value { line-height: 1.2; }
 .summary-value--sm { font-size: 18px; line-height: 1.4; }
-.summary-desc { margin-top: 8px; font-size: 12px; line-height: 1.6; color: var(--wt-text-regular); }
+.summary-desc { margin-top: 8px; line-height: 1.6; }
 .debug-conclusion, .debug-insights, .debug-top-results, .debug-pipeline, .debug-sections { margin-bottom: 16px; }
 .behavior-alert { margin-bottom: 12px; }
 .pipeline-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }

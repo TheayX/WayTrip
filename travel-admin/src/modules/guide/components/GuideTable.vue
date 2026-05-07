@@ -11,7 +11,7 @@
     <el-table-column prop="id" label="ID" width="70" align="center" />
     <el-table-column label="封面" width="90" align="center">
       <template #default="{ row }">
-        <el-image :src="getImageUrl(row.coverImage)" class="cover-img" fit="cover" />
+        <el-image :src="getImageUrl(row.coverImage)" class="table-cover-img" fit="cover" />
       </template>
     </el-table-column>
     <el-table-column prop="title" label="标题" min-width="220" show-overflow-tooltip align="left">
@@ -31,7 +31,7 @@
     </el-table-column>
     <el-table-column prop="viewCount" label="浏览量" width="100" align="center">
       <template #default="{ row }">
-        <span class="count-text">{{ row.viewCount ?? 0 }}</span>
+        <span class="metric-inline">{{ row.viewCount ?? 0 }}</span>
       </template>
     </el-table-column>
     <el-table-column label="状态" width="100" align="center">
@@ -117,13 +117,6 @@ const handleCommand = (command, row) => {
 </script>
 
 <style lang="scss" scoped>
-.cover-img {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-}
-
 .guide-title-link {
   padding: 0;
   min-width: 0;
@@ -144,12 +137,6 @@ const handleCommand = (command, row) => {
 :deep(.guide-title-link .el-button__text) {
   display: inline-block;
   text-align: left;
-}
-
-.count-text {
-  font-weight: 600;
-  color: var(--wt-text-primary);
-  font-variant-numeric: tabular-nums;
 }
 
 .admin-name-text {

@@ -208,6 +208,33 @@
   box-shadow: var(--wt-shadow-soft);
 }
 
+.table-cover-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.metric-inline {
+  display: inline-block;
+  min-width: 56px;
+  font-weight: 600;
+  color: var(--wt-text-primary);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-inline--price {
+  color: var(--wt-accent-rose-text);
+}
+
+.metric-inline--accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
 .category-page .left-card,
 .region-page .left-card {
   min-height: 520px;

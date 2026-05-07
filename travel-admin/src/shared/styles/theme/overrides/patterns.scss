@@ -247,6 +247,11 @@
   }
 }
 
+.summary-card--compact {
+  padding: 18px;
+  border-radius: 18px;
+}
+
 .summary-card--interactive {
   width: 100%;
   min-height: 112px;
@@ -290,6 +295,10 @@
 .summary-value--sm {
   font-size: 20px;
   line-height: 1.3;
+}
+
+.summary-value--accent {
+  color: var(--wt-accent-blue-text);
 }
 
 .metric-cards--order {
