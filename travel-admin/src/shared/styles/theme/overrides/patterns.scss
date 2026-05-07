@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════
    WayTrip Admin — 可复用视觉模式库
-   说明：集中管理所有可在多个页面/组件中复用的样式模式。
-   分类：表格、徽章、卡片系统、筛选栏、浮动栏、页面布局
+   说明：集中管理跨页面复用的结构化样式，避免业务页面散落重复定义。
+   分类：表格、徽章、表单工具、管理卡片、筛选栏、摘要卡、浮动操作栏
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────────────────────
-   表格类 - Table Patterns
+   表格模式 - Table Patterns
    ───────────────────────────────────────────────────────────── */
 
 .borderless-table {
@@ -39,7 +39,7 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   徽章类 - Badge Patterns
+   徽章模式 - Badge Patterns
    ───────────────────────────────────────────────────────────── */
 
 .capsule-badge {
@@ -65,35 +65,45 @@
     background-color: var(--wt-tag-success-bg);
     color: var(--wt-tag-success-text);
 
-    .dot { background-color: var(--el-color-success); }
+    .dot {
+      background-color: var(--el-color-success);
+    }
   }
 
   &.status-primary {
     background-color: var(--wt-tag-primary-bg);
     color: var(--wt-tag-primary-text);
 
-    .dot { background-color: var(--el-color-primary); }
+    .dot {
+      background-color: var(--el-color-primary);
+    }
   }
 
   &.status-warning {
     background-color: var(--wt-tag-warning-bg);
     color: var(--wt-tag-warning-text);
 
-    .dot { background-color: #f97316; }
+    .dot {
+      background-color: var(--wt-tag-warning-text);
+    }
   }
 
   &.status-danger {
     background-color: var(--wt-tag-danger-bg);
     color: var(--wt-tag-danger-text);
 
-    .dot { background-color: #ef4444; }
+    .dot {
+      background-color: var(--wt-tag-danger-text);
+    }
   }
 
   &.status-neutral {
     background-color: var(--wt-tag-info-bg);
     color: var(--wt-text-regular);
 
-    .dot { background-color: var(--wt-text-secondary); }
+    .dot {
+      background-color: var(--wt-text-secondary);
+    }
   }
 }
 
@@ -106,35 +116,18 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   表单宽度工具类 - Form Width Utilities
+   表单工具 - Form Width Utilities
    ───────────────────────────────────────────────────────────── */
 
-.form-w-140 {
-  width: 140px;
-}
-
-.form-w-180 {
-  width: 180px;
-}
-
-.form-w-200 {
-  width: 200px;
-}
-
-.form-w-220 {
-  width: 220px;
-}
-
-.form-w-240 {
-  width: 240px;
-}
-
-.form-w-full {
-  width: 100%;
-}
+.form-w-140 { width: 140px; }
+.form-w-180 { width: 180px; }
+.form-w-200 { width: 200px; }
+.form-w-220 { width: 220px; }
+.form-w-240 { width: 240px; }
+.form-w-full { width: 100%; }
 
 /* ─────────────────────────────────────────────────────────────
-   卡片系统 - Card System (管理/摘要/对话框等)
+   管理卡片 - Management Card
    ───────────────────────────────────────────────────────────── */
 
 .admin-management-card {
@@ -161,7 +154,7 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   筛选栏 - Filter Bar Pattern
+   筛选栏模式 - Filter Bar Pattern
    ───────────────────────────────────────────────────────────── */
 
 .admin-filter-bar {
@@ -173,8 +166,8 @@
   }
 
   .filter-row {
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     gap: 16px;
   }
 
@@ -213,7 +206,7 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   摘要网格与卡片 - Summary Grid & Card
+   摘要卡模式 - Summary Card Patterns
    ───────────────────────────────────────────────────────────── */
 
 .summary-grid {
@@ -223,16 +216,16 @@
 }
 
 .summary-card {
-  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
   border: 1px solid var(--wt-border-default);
+  border-radius: 20px;
   background:
-    radial-gradient(circle at top right, rgba(96, 165, 250, 0.12) 0%, rgba(96, 165, 250, 0) 42%),
+    radial-gradient(circle at top right, var(--wt-accent-blue-bg) 0%, transparent 42%),
     linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   backdrop-filter: blur(14px);
   box-shadow: var(--wt-shadow-card);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  position: relative;
-  overflow: hidden;
 
   &:hover {
     border-color: var(--el-color-primary-light-7);
@@ -242,9 +235,9 @@
   &::before {
     content: '';
     position: absolute;
+    top: 0;
     left: 20px;
     right: 20px;
-    top: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent 0%, var(--wt-overlay-bg) 50%, transparent 100%);
   }
@@ -254,10 +247,28 @@
   }
 }
 
+.summary-card--interactive {
+  width: 100%;
+  min-height: 112px;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.active {
+    border-color: var(--el-color-primary);
+    box-shadow: 0 14px 32px color-mix(in srgb, var(--el-color-primary) 18%, transparent);
+  }
+}
+
 .summary-label {
   font-size: 12px;
-  color: var(--wt-text-secondary);
   font-weight: 600;
+  color: var(--wt-text-secondary);
 }
 
 .summary-value {
@@ -268,14 +279,19 @@
   color: var(--wt-text-primary);
 }
 
-.summary-desc {
+.summary-desc,
+.summary-hint {
   margin-top: 6px;
   font-size: 12px;
-  line-height: 1.55;
+  line-height: 1.45;
   color: var(--wt-text-regular);
 }
 
-/* 订单中心同款紧凑指标卡：按需挂在顶部指标区容器上 */
+.summary-value--sm {
+  font-size: 20px;
+  line-height: 1.3;
+}
+
 .metric-cards--order {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -284,7 +300,6 @@
 
 .metric-cards--order .summary-card {
   min-height: 112px;
-  border-radius: 20px;
 }
 
 .metric-cards--order .summary-card :deep(.el-card__body) {
@@ -307,11 +322,6 @@
   color: var(--wt-text-primary);
 }
 
-.metric-cards--order .summary-value--sm {
-  font-size: 20px;
-  line-height: 1.3;
-}
-
 .metric-cards--order .summary-desc,
 .metric-cards--order .insight-stat-desc,
 .metric-cards--order .summary-hint {
@@ -320,6 +330,10 @@
   line-height: 1.45;
   color: var(--wt-text-regular);
 }
+
+/* ─────────────────────────────────────────────────────────────
+   页面操作栏 - Hero Actions
+   ───────────────────────────────────────────────────────────── */
 
 .hero-actions-stack {
   display: flex;
@@ -333,14 +347,18 @@
   top: 32px;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   浮动批量操作栏 - Floating Action Bar
+   ───────────────────────────────────────────────────────────── */
+
 .floating-action-bar {
   position: fixed;
-  bottom: 24px;
   left: 50%;
-  transform: translateX(-50%);
+  bottom: 24px;
   z-index: 9999;
   display: flex;
   align-items: center;
+  transform: translateX(-50%);
   border-radius: 999px;
   overflow: hidden;
   box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
@@ -348,9 +366,9 @@
 }
 
 .floating-action-summary {
+  padding: 12px 16px;
   background: var(--wt-text-primary);
   color: var(--wt-surface-elevated);
-  padding: 12px 16px;
   font-weight: 600;
 }
 
@@ -383,20 +401,11 @@
     }
   }
 
-    /* ─────────────────────────────────────────────────────────────
-       页面按钮栏 - Page Actions Stack
-       ───────────────────────────────────────────────────────────── */
-
   .hero-actions-stack {
     width: 100%;
+  }
 
-    .el-button {
-      width: 100%;
-/* ─────────────────────────────────────────────────────────────
-   浮动批量操作栏 - Floating Action Bar
-   ───────────────────────────────────────────────────────────── */
-
-    }
+  .hero-actions-stack .el-button {
+    width: 100%;
   }
 }
-
