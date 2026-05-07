@@ -85,19 +85,19 @@
         <div v-if="showDebugPipeline" class="debug-pipeline">
           <div class="debug-block-title">后端调试链路</div>
           <div class="pipeline-grid">
-            <div class="pipeline-card">
+            <div class="pipeline-card feature-panel feature-panel--warning">
               <div class="pipeline-label">触发原因</div>
               <div class="pipeline-value">{{ debugInfo.triggerReason || '未返回' }}</div>
             </div>
-            <div class="pipeline-card">
+            <div class="pipeline-card feature-panel feature-panel--warning">
               <div class="pipeline-label">交互景点数</div>
               <div class="pipeline-value">{{ debugInfo.interactionCount ?? 0 }}</div>
             </div>
-            <div class="pipeline-card">
+            <div class="pipeline-card feature-panel feature-panel--warning">
               <div class="pipeline-label">原始候选数</div>
               <div class="pipeline-value">{{ debugInfo.candidateCount ?? 0 }}</div>
             </div>
-            <div class="pipeline-card">
+            <div class="pipeline-card feature-panel feature-panel--warning">
               <div class="pipeline-label">过滤后候选数</div>
               <div class="pipeline-value">{{ debugInfo.filteredCount ?? 0 }}</div>
             </div>
@@ -155,7 +155,7 @@
         <div v-if="debugInsights.length" class="debug-insights">
           <div class="debug-block-title">结果解读</div>
           <div class="insight-list">
-            <div v-for="(insight, index) in compactDebugInsights" :key="`${index}-${insight}`" class="insight-item">
+            <div v-for="(insight, index) in compactDebugInsights" :key="`${index}-${insight}`" class="insight-item feature-panel feature-panel--warning">
               {{ insight }}
             </div>
           </div>
@@ -164,7 +164,7 @@
         <div v-if="debugNotes.length" class="debug-insights">
           <div class="debug-block-title">后端备注</div>
           <div class="insight-list insight-list--plain">
-            <div v-for="(note, index) in debugNotes" :key="`${index}-${note}`" class="insight-item insight-item--blue">
+            <div v-for="(note, index) in debugNotes" :key="`${index}-${note}`" class="insight-item insight-item--blue feature-panel feature-panel--info">
               {{ note }}
             </div>
           </div>
@@ -203,7 +203,7 @@
         <div v-if="debugItems.length" class="debug-top-results">
           <div class="debug-block-title">Top 结果速览</div>
           <div class="top-result-list">
-            <div v-for="item in topDebugItems" :key="item.id" class="top-result-card">
+            <div v-for="item in topDebugItems" :key="item.id" class="top-result-card feature-panel">
               <div class="top-result-rank">#{{ item.rank }}</div>
               <div class="top-result-main">
                 <div class="top-result-name">{{ item.name }}</div>
@@ -443,12 +443,6 @@ defineExpose({
 .pipeline-card {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 74%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 48%, var(--wt-surface-muted)) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
 }
 .pipeline-label { font-size: 12px; color: color-mix(in srgb, var(--wt-tag-warning-text) 82%, var(--wt-text-secondary)); }
 .pipeline-value { margin-top: 8px; font-size: 18px; font-weight: 700; line-height: 1.5; color: color-mix(in srgb, var(--wt-tag-warning-text) 92%, var(--wt-text-primary)); }
@@ -458,27 +452,15 @@ defineExpose({
 .insight-item {
   padding: 14px 16px;
   border-radius: 14px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 72%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 46%, var(--wt-surface-muted)) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--wt-tag-warning-text) 20%, var(--wt-border-default));
   color: color-mix(in srgb, var(--wt-tag-warning-text) 88%, var(--wt-text-primary));
   line-height: 1.7;
   font-size: 13px;
 }
 .insight-item--blue {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-info-bg) 74%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-info-bg) 48%, var(--wt-surface-muted)) 100%
-  );
-  border-color: color-mix(in srgb, var(--wt-tag-info-text) 20%, var(--wt-border-default));
   color: color-mix(in srgb, var(--wt-tag-info-text) 86%, var(--wt-text-primary));
 }
 .top-result-list { display: grid; gap: 12px; }
-.top-result-card { display: grid; grid-template-columns: 72px minmax(0, 1fr) 150px; align-items: center; gap: 14px; padding: 18px; border-radius: 18px; background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%); border: 1px solid var(--wt-border-default); }
+.top-result-card { display: grid; grid-template-columns: 72px minmax(0, 1fr) 150px; align-items: center; gap: 14px; padding: 18px; border-radius: 18px; }
 .top-result-rank { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; background: var(--wt-accent-gradient-blue); color: #fff; font-size: 18px; font-weight: 700; }
 .top-result-name { font-size: 16px; font-weight: 700; color: var(--wt-text-primary); }
 .top-result-meta { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--wt-text-secondary); }

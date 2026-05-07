@@ -15,8 +15,12 @@
         <div
           v-for="card in impactOverviewCards"
           :key="card.title"
-          class="impact-overview-card"
-          :class="card.tone"
+          class="impact-overview-card feature-panel"
+          :class="[
+            card.tone,
+            card.tone === 'tone-live' ? 'feature-panel--success' : '',
+            card.tone === 'tone-matrix' ? 'feature-panel--warning' : ''
+          ]"
         >
           <div class="impact-overview-head">
             <div class="impact-overview-title">{{ card.title }}</div>
@@ -28,14 +32,14 @@
       </div>
 
       <div class="change-hint-panel">
-        <div class="change-hint-card">
+        <div class="change-hint-card feature-panel">
           <div class="change-hint-title">
             <span>即时生效项</span>
             <el-tag size="small" effect="plain" type="success" round>保存后生效</el-tag>
           </div>
           <div class="change-hint-desc">{{ immediateChangeSummary.desc }}</div>
         </div>
-        <div class="change-hint-card matrix">
+        <div class="change-hint-card matrix feature-panel feature-panel--warning">
           <div class="change-hint-title">
             <span>矩阵相关项</span>
             <el-tag size="small" effect="plain" type="warning" round>需重建矩阵</el-tag>
@@ -453,21 +457,9 @@ defineProps({
 }
 
 .impact-overview-card.tone-live {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-success-bg) 72%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-success-bg) 48%, var(--wt-surface-muted)) 100%
-  );
-  border-color: color-mix(in srgb, var(--wt-tag-success-text) 18%, var(--wt-border-default));
 }
 
 .impact-overview-card.tone-matrix {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 74%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 52%, var(--wt-surface-muted)) 100%
-  );
-  border-color: color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
 }
 
 .impact-overview-card.tone-save {
@@ -498,17 +490,9 @@ defineProps({
 .change-hint-card {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  border: 1px solid var(--wt-border-default);
 }
 
 .change-hint-card.matrix {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 72%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 50%, var(--wt-surface-muted)) 100%
-  );
-  border-color: color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
 }
 
 .change-hint-title {

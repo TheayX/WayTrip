@@ -365,6 +365,33 @@
   background: var(--wt-surface-muted);
 }
 
+.feature-panel--success {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-tag-success-bg) 72%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-tag-success-bg) 48%, var(--wt-surface-muted)) 100%
+  );
+  border-color: color-mix(in srgb, var(--wt-tag-success-text) 18%, var(--wt-border-default));
+}
+
+.feature-panel--warning {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 72%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-tag-warning-bg) 48%, var(--wt-surface-muted)) 100%
+  );
+  border-color: color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
+}
+
+.feature-panel--info {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-tag-info-bg) 74%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-tag-info-bg) 48%, var(--wt-surface-muted)) 100%
+  );
+  border-color: color-mix(in srgb, var(--wt-tag-info-text) 20%, var(--wt-border-default));
+}
+
 .feature-panel-head {
   display: flex;
   align-items: flex-start;
