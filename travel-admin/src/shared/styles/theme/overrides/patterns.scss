@@ -350,9 +350,37 @@
   background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
+.feature-panel--interactive {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--el-color-primary-light-7);
+    box-shadow: var(--wt-shadow-soft);
+  }
+}
+
+.feature-panel--soft {
+  background: var(--wt-surface-muted);
+}
+
+.feature-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .feature-panel-title {
   font-size: 13px;
   color: var(--wt-text-secondary);
+}
+
+.feature-panel-title--strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--wt-text-primary);
 }
 
 .feature-panel-main {
@@ -368,6 +396,26 @@
   font-size: 12px;
   line-height: 1.7;
   color: var(--wt-text-regular);
+}
+
+.feature-panel-action {
+  margin-top: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--wt-accent-blue-text);
+}
+
+.feature-badge {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--wt-accent-gradient-blue);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .metric-cards--order {

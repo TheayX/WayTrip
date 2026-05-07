@@ -76,16 +76,16 @@
             <div
               v-for="item in entryCards"
               :key="item.title"
-              class="entry-card"
+              class="entry-card feature-panel feature-panel--interactive"
               :class="item.tone"
               @click="goTo(item.path)"
             >
-              <div class="entry-head">
-                <div class="entry-title">{{ item.title }}</div>
+              <div class="entry-head feature-panel-head">
+                <div class="entry-title feature-panel-title--strong">{{ item.title }}</div>
                 <el-tag size="small" effect="plain" :type="item.tagType" round>{{ item.tag }}</el-tag>
               </div>
-              <div class="entry-desc">{{ item.desc }}</div>
-              <div class="entry-action">进入 {{ item.action }}</div>
+              <div class="entry-desc feature-panel-sub">{{ item.desc }}</div>
+              <div class="entry-action feature-panel-action">进入 {{ item.action }}</div>
             </div>
           </div>
         </el-card>
@@ -132,10 +132,10 @@
           </template>
 
           <div class="journey-grid">
-            <div v-for="item in journeySteps" :key="item.title" class="journey-step">
-              <div class="journey-index">{{ item.index }}</div>
-              <div class="journey-title">{{ item.title }}</div>
-              <div class="journey-desc">{{ item.desc }}</div>
+            <div v-for="item in journeySteps" :key="item.title" class="journey-step feature-panel">
+              <div class="journey-index feature-badge">{{ item.index }}</div>
+              <div class="journey-title feature-panel-title--strong">{{ item.title }}</div>
+              <div class="journey-desc feature-panel-sub">{{ item.desc }}</div>
             </div>
           </div>
         </el-card>
@@ -151,9 +151,9 @@
           </template>
 
           <div class="tips-list">
-            <div v-for="item in tips" :key="item.title" class="tips-item">
-              <div class="tips-title">{{ item.title }}</div>
-              <div class="tips-desc">{{ item.desc }}</div>
+            <div v-for="item in tips" :key="item.title" class="tips-item feature-panel feature-panel--soft">
+              <div class="tips-title feature-panel-title">{{ item.title }}</div>
+              <div class="tips-desc feature-panel-sub">{{ item.desc }}</div>
             </div>
           </div>
         </el-card>
@@ -487,15 +487,6 @@ onMounted(async () => {
 
   .entry-card {
     padding: 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--wt-shadow-soft);
-    }
   }
 
   .entry-card.tone-config {
@@ -512,33 +503,6 @@ onMounted(async () => {
 
   .entry-card.tone-view {
     background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, color-mix(in srgb, var(--wt-tag-info-bg) 55%, var(--wt-surface-muted)) 100%);
-  }
-
-  .entry-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .entry-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .entry-desc {
-    margin-top: 10px;
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
-  }
-
-  .entry-action {
-    margin-top: 14px;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--wt-accent-blue-text);
   }
 
   .journey-card {
@@ -560,36 +524,13 @@ onMounted(async () => {
 
   .journey-step {
     padding: 16px 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
-
-  .journey-index {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    background: var(--wt-accent-gradient-blue);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
   }
 
   .journey-title {
     margin-top: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
   }
 
   .journey-desc {
-    margin-top: 8px;
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
   }
 
   .panel-card + .panel-card {
@@ -602,22 +543,6 @@ onMounted(async () => {
 
   .tips-item {
     padding: 14px 16px;
-    border-radius: 12px;
-    background: var(--wt-surface-muted);
-    border: 1px solid var(--wt-border-default);
-  }
-
-  .tips-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .tips-desc {
-    margin-top: 8px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
   }
 
   .quick-actions {
