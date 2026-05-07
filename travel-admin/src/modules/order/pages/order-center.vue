@@ -498,23 +498,6 @@ onMounted(() => {
 
 }
 
-.workspace-head {
-  display: none;
-}
-
-.workspace-title {
-  margin: 0;
-  color: var(--wt-text-primary);
-}
-.workspace-subtitle {
-  margin: 8px 0 0;
-  color: var(--wt-text-regular);
-}
-
-.workspace-title {
-  font-size: 22px;
-}
-
 .workspace-tabs {
   margin-top: -6px;
 }
@@ -573,10 +556,6 @@ onMounted(() => {
 }
 
 @media (max-width: 960px) {
-  .workspace-head {
-    flex-direction: column;
-  }
-
   .workspace-tabs,
   .hero-actions {
     width: 100%;

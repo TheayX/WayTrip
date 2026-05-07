@@ -4,7 +4,7 @@
     <template #header>
       <div class="card-header">
         <div class="title-section">
-          <span class="title">执行区</span>
+          <span class="title panel-title-accent">执行区</span>
           <el-tag effect="plain" type="warning" round>先保存，再重建矩阵</el-tag>
         </div>
       </div>
@@ -140,25 +140,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
   gap: 12px;
 }
 
-.title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--wt-text-primary);
-  position: relative;
-  padding-left: 12px;
-
-    &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 16px;
-      background: var(--el-color-primary);
-      border-radius: 2px;
-    }
-}
+.title { font-size: 16px; }
 
 .execution-stack {
   display: grid;

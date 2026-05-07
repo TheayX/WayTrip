@@ -4,7 +4,7 @@
   <el-card shadow="hover" class="help-card">
     <template #header>
       <div class="card-header">
-        <span class="title">说明与调参指南</span>
+        <span class="title panel-title-accent">说明与调参指南</span>
       </div>
     </template>
 
@@ -242,22 +242,6 @@ const emit = defineEmits(['update:active-collapse'])
 .card-header {
   .title {
     font-size: 16px;
-    font-weight: 600;
-    color: var(--wt-text-primary);
-    position: relative;
-    padding-left: 12px;
-
-      &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 4px;
-      height: 16px;
-        background: var(--el-color-primary);
-        border-radius: 2px;
-      }
   }
 }
 

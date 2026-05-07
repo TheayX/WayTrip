@@ -4,7 +4,7 @@
     <template #header>
       <div class="card-header">
         <div class="title-section">
-          <span class="title">参数配置</span>
+          <span class="title panel-title-accent">参数配置</span>
           <el-tag effect="plain" type="info" round>ItemCF 协同过滤 + 热度重排</el-tag>
         </div>
       </div>
@@ -19,7 +19,9 @@
           :class="[
             card.tone,
             card.tone === 'tone-live' ? 'feature-panel--success' : '',
-            card.tone === 'tone-matrix' ? 'feature-panel--warning' : ''
+            card.tone === 'tone-matrix' ? 'feature-panel--warning' : '',
+            card.tone === 'tone-save' ? 'feature-panel--primary' : '',
+            card.tone === 'tone-status' ? 'feature-panel--cyan' : ''
           ]"
         >
           <div class="impact-overview-head">
@@ -393,25 +395,7 @@ defineProps({
       gap: 12px;
     }
 
-    .title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--wt-text-primary);
-      position: relative;
-      padding-left: 12px;
-
-      &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 4px;
-        height: 16px;
-        background: var(--el-color-primary);
-        border-radius: 2px;
-      }
-    }
+    .title { font-size: 16px; }
   }
 }
 
@@ -456,30 +440,6 @@ defineProps({
   color: var(--wt-text-primary);
 }
 
-.impact-overview-card.tone-live {
-}
-
-.impact-overview-card.tone-matrix {
-}
-
-.impact-overview-card.tone-save {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--el-color-primary-light-9) 58%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--el-color-primary-light-9) 34%, var(--wt-surface-muted)) 100%
-  );
-  border-color: color-mix(in srgb, var(--el-color-primary) 14%, var(--wt-border-default));
-}
-
-.impact-overview-card.tone-status {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-accent-cyan-bg) 72%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-accent-cyan-bg) 42%, var(--wt-surface-muted)) 100%
-  );
-  border-color: color-mix(in srgb, var(--wt-accent-cyan-text) 18%, var(--wt-border-default));
-}
-
 .change-hint-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -490,9 +450,6 @@ defineProps({
 .change-hint-card {
   padding: 16px 18px;
   border-radius: 18px;
-}
-
-.change-hint-card.matrix {
 }
 
 .change-hint-title {

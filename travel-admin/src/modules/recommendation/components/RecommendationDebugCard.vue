@@ -4,7 +4,7 @@
     <template #header>
       <div class="card-header">
         <div class="title-section">
-          <span class="title">预览与调试</span>
+          <span class="title panel-title-accent">预览与调试</span>
           <el-tag effect="plain" type="warning" round>预览区</el-tag>
         </div>
       </div>
@@ -250,7 +250,7 @@
           <div class="debug-block-title">原始摘要</div>
           <el-collapse>
             <el-collapse-item name="raw-debug" title="查看请求与响应摘要">
-              <div class="debug-output debug-output--compact">
+              <div class="debug-output debug-output--compact panel-code-block">
                 <pre>{{ debugOutput }}</pre>
               </div>
             </el-collapse-item>
@@ -416,10 +416,7 @@ defineExpose({
 }
 .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
 .title-section { display: flex; align-items: center; gap: 12px; }
-.title {
-  font-size: 16px; font-weight: 600; color: var(--wt-text-primary); position: relative; padding-left: 12px;
-  &::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 16px; background: var(--el-color-primary); border-radius: 2px; }
-}
+.title { font-size: 16px; }
 .preview-tabs :deep(.el-tabs__header) { margin-bottom: 18px; }
 .preview-tabs :deep(.el-tabs__nav-wrap::after) { background-color: var(--wt-border-soft); }
 .preview-tabs :deep(.el-tabs__item) { font-weight: 600; }
@@ -468,9 +465,7 @@ defineExpose({
 .score-label { font-size: 12px; color: var(--wt-text-secondary); }
 .score-value { margin-top: 6px; font-family: 'Consolas', 'Menlo', monospace; font-size: 22px; font-weight: 700; color: var(--wt-accent-blue-text); }
 .score-value--empty { color: var(--wt-text-secondary); }
-.debug-output { margin-bottom: 16px; padding: 16px 18px; background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%); border: 1px solid var(--wt-border-soft); border-radius: 16px; }
 .debug-output--compact { margin-bottom: 0; }
-.debug-output pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 13px; line-height: 1.7; color: var(--wt-text-regular); font-family: 'Consolas', 'Menlo', monospace; }
 .debug-table { margin-top: 8px; }
 .score-text { font-family: 'Consolas', 'Menlo', monospace; color: var(--wt-accent-blue-text); font-weight: 600; }
 .score-empty { color: var(--wt-text-secondary); }
