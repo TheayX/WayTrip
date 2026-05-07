@@ -90,7 +90,7 @@
                 {{ formatDate(row.createdAt) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" fixed="right">
+            <el-table-column label="操作" width="150" fixed="right" header-align="center">
               <template #default="{ row }">
                 <div style="white-space: nowrap;">
                   <el-button type="primary" link @click="handleEditLevel2(row)">编辑</el-button>

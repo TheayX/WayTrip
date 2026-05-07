@@ -94,7 +94,7 @@
           <el-table-column prop="createdAt" label="下单时间" width="180" align="center" />
           <el-table-column label="操作" width="220" fixed="right" align="left" header-align="center">
             <template #default="{ row }">
-              <div class="table-actions">
+              <div class="table-actions table-actions--start">
                 <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
                 <el-button v-if="row.status === 'paid'" type="success" link @click="handleComplete(row)">完成</el-button>
                 <el-button v-if="row.status === 'paid'" type="danger" link @click="handleRefund(row)">退款</el-button>
@@ -531,6 +531,10 @@ onMounted(() => {
   &:hover {
     color: var(--el-color-primary);
   }
+}
+
+.table-actions--start {
+  justify-content: flex-start;
 }
 
 :deep(.workspace-tabs .el-tabs__header) {
