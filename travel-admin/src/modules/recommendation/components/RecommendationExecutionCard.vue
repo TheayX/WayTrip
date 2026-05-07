@@ -196,9 +196,6 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
   border-radius: 18px;
 }
 
-.matrix-action-callout.pending {
-}
-
 .matrix-action-title {
   display: flex;
   justify-content: space-between;

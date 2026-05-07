@@ -522,12 +522,6 @@ onMounted(async () => {
     background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, color-mix(in srgb, var(--wt-tag-info-bg) 55%, var(--wt-surface-muted)) 100%);
   }
 
-  .journey-card {
-  }
-
-  .summary-card {
-  }
-
   .summary-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -545,12 +539,6 @@ onMounted(async () => {
 
   .journey-title {
     margin-top: 12px;
-  }
-
-  .journey-desc {
-  }
-
-  .panel-card + .panel-card {
   }
 
   .tips-list {

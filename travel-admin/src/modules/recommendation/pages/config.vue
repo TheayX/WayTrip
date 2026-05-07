@@ -322,10 +322,5 @@ onMounted(async () => {
       grid-template-columns: 1fr;
     }
   }
-
-  @media (max-width: 768px) {
-    .workspace-row {
-    }
-  }
 }
 </style>
