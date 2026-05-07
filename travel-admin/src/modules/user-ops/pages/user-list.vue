@@ -153,7 +153,7 @@
       </el-descriptions>
 
       <div class="summary-grid" v-if="currentUser">
-        <el-card shadow="never" class="summary-card">
+        <el-card shadow="never" class="summary-card summary-card--detail">
           <template #header>
             <span>偏好画像</span>
           </template>
@@ -165,7 +165,7 @@
           <div class="summary-meta">最近更新时间：{{ formatDateTime(currentUser.preferenceSummary?.updatedAt) }}</div>
         </el-card>
 
-        <el-card shadow="never" class="summary-card">
+        <el-card shadow="never" class="summary-card summary-card--detail">
           <template #header>
             <span>收藏行为</span>
           </template>
@@ -174,7 +174,7 @@
           <div class="summary-meta">最近收藏时间：{{ formatDateTime(currentUser.favoriteSummary?.latestCreatedAt) }}</div>
         </el-card>
 
-        <el-card shadow="never" class="summary-card">
+        <el-card shadow="never" class="summary-card summary-card--detail">
           <template #header>
             <span>浏览行为</span>
           </template>
@@ -488,52 +488,6 @@ watch(
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
-  }
-
-  .summary-card {
-    min-height: 180px;
-    border-radius: 16px !important;
-    border: 1px solid var(--wt-border-default) !important;
-    background:
-      radial-gradient(circle at top right, var(--wt-accent-blue-bg) 0%, transparent 42%),
-      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%) !important;
-  }
-
-  .summary-metric {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .summary-line {
-    margin-top: 12px;
-    color: var(--wt-text-regular);
-  }
-
-  .summary-line-muted {
-    color: var(--wt-text-secondary);
-  }
-
-  .summary-meta {
-    margin-top: 12px;
-    font-size: 12px;
-    color: var(--wt-text-secondary);
-    line-height: 1.6;
-  }
-
-  .summary-tags {
-    margin-top: 12px;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .summary-empty {
-    margin-top: 12px;
-    color: var(--wt-text-secondary);
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: var(--wt-accent-muted-bg);
   }
 
   .summary-divider {

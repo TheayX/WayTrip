@@ -99,24 +99,24 @@
           </template>
 
           <div class="summary-grid">
-            <div class="summary-panel">
-              <div class="summary-title">最新收藏</div>
-              <div class="summary-main">{{ latestFavorite.spotName || '暂无数据' }}</div>
-              <div class="summary-sub">
+            <div class="feature-panel">
+              <div class="feature-panel-title">最新收藏</div>
+              <div class="feature-panel-main">{{ latestFavorite.spotName || '暂无数据' }}</div>
+              <div class="feature-panel-sub">
                 {{ latestFavorite.displayNickname ? `${latestFavorite.displayNickname} 收藏于 ${latestFavorite.createdAt}` : '可从这里快速回看显式偏好行为' }}
               </div>
             </div>
-            <div class="summary-panel">
-              <div class="summary-title">最新浏览</div>
-              <div class="summary-main">{{ latestView.spotName || '暂无数据' }}</div>
-              <div class="summary-sub">
+            <div class="feature-panel">
+              <div class="feature-panel-title">最新浏览</div>
+              <div class="feature-panel-main">{{ latestView.spotName || '暂无数据' }}</div>
+              <div class="feature-panel-sub">
                 {{ latestView.displayNickname ? `${latestView.displayNickname} 来自 ${latestView.sourceLabel}，浏览于 ${latestView.createdAt}` : '可从这里快速观察最新流量入口' }}
               </div>
             </div>
-            <div class="summary-panel">
-              <div class="summary-title">高频偏好</div>
-              <div class="summary-main">{{ latestPreference.tag || '暂无数据' }}</div>
-              <div class="summary-sub">
+            <div class="feature-panel">
+              <div class="feature-panel-title">高频偏好</div>
+              <div class="feature-panel-main">{{ latestPreference.tag || '暂无数据' }}</div>
+              <div class="feature-panel-sub">
                 {{ latestPreference.displayNickname ? `${latestPreference.displayNickname} 的画像最近一次更新时间为 ${latestPreference.updatedAt || '暂无'}` : '可从这里快速观察当前画像标签' }}
               </div>
             </div>
@@ -551,33 +551,6 @@ onMounted(async () => {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
-  }
-
-  .summary-panel {
-    padding: 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
-
-  .summary-title {
-    font-size: 13px;
-    color: var(--wt-text-secondary);
-  }
-
-  .summary-main {
-    margin-top: 10px;
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 1.35;
-    color: var(--wt-text-primary);
-  }
-
-  .summary-sub {
-    margin-top: 10px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
   }
 
   .journey-grid {

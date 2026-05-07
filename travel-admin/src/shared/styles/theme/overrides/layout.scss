@@ -149,8 +149,34 @@
   color: var(--wt-text-secondary);
 }
 
+.text-subtle {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--wt-text-secondary);
+}
+
 .row-actions-nowrap {
   white-space: nowrap;
+}
+
+.page-action-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: -10px;
+  margin-bottom: 5px;
+}
+
+.page-action-row--flush {
+  margin-bottom: 0;
+}
+
+.workspace-card {
+  border: none;
+}
+
+.workspace-card :deep(.el-card__body) {
+  padding-top: 4px !important;
 }
 
 .admin-table,

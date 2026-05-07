@@ -73,7 +73,7 @@
           <el-table-column prop="userNickname" label="用户" width="120" align="left" />
           <el-table-column label="支付金额" width="150" align="left">
             <template #default="{ row }">
-              <span class="price">¥{{ formatCurrency(row.totalPrice) }}</span>
+              <span class="metric-inline metric-inline--price">¥{{ formatCurrency(row.totalPrice) }}</span>
               <span class="quantity">({{ row.quantity }}张)</span>
             </template>
           </el-table-column>
@@ -81,7 +81,7 @@
           <el-table-column label="联系人" width="160" align="left">
             <template #default="{ row }">
               <div>{{ row.contactName || '--' }}</div>
-              <div class="text-gray">{{ row.contactPhone || '--' }}</div>
+              <div class="text-subtle">{{ row.contactPhone || '--' }}</div>
             </template>
           </el-table-column>
           <el-table-column label="状态" width="110" align="center">
@@ -490,35 +490,12 @@ onMounted(() => {
   flex-direction: column;
   gap: 20px;
 
-  .price {
-    color: var(--wt-accent-rose-text);
-    font-weight: 700;
-    font-size: 14px;
-  }
-
   .quantity {
     color: var(--wt-text-secondary);
     font-size: 12px;
     margin-left: 6px;
   }
 
-  .text-gray {
-    color: var(--wt-text-secondary);
-    font-size: 12px;
-    margin-top: 2px;
-  }
-}
-
-.page-action-row {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: -10px;
-  margin-bottom: 5px;
-}
-
-.page-action-row--flush {
-  margin-bottom: 0;
 }
 
 .workspace-head {
@@ -533,15 +510,6 @@ onMounted(() => {
   margin: 8px 0 0;
   color: var(--wt-text-regular);
 }
-
-.workspace-card {
-  border: none;
-}
-
-.workspace-card :deep(.el-card__body) {
-  padding-top: 4px !important;
-}
-
 
 .workspace-title {
   font-size: 22px;
@@ -580,14 +548,6 @@ onMounted(() => {
   &:hover {
     color: var(--el-color-primary);
   }
-}
-
-.table-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: flex-start;
 }
 
 :deep(.workspace-tabs .el-tabs__header) {
