@@ -811,22 +811,6 @@ watch(
   gap: 20px;
 }
 
-.hero-left {
-  flex: 1;
-}
-
-.subtitle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
-}
-
-.hero-action-row {
-  display: flex;
-  gap: 12px;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -850,15 +834,4 @@ watch(
     background-color: var(--el-color-primary-light-9) !important;
   }
 }
-
-@media (max-width: 960px) {
-  .hero-actions-stack {
-    align-items: stretch;
-  }
-
-  .hero-action-row {
-    flex-direction: column;
-  }
-}
-
 </style>

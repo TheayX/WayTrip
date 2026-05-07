@@ -26,6 +26,10 @@
   gap: 20px;
 }
 
+.hero-left {
+  flex: 1;
+}
+
 .page-hero {
   display: flex;
   justify-content: space-between;
@@ -57,6 +61,25 @@
   font-size: 14px;
   line-height: 1.7;
   color: var(--wt-text-regular);
+}
+
+.subtitle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.hero-action-row {
+  display: flex;
+  gap: 12px;
 }
 
 .page-error-state,
@@ -115,6 +138,157 @@
   color: var(--wt-text-regular);
 }
 
+.form-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--wt-text-secondary);
+}
+
+.text-muted {
+  color: var(--wt-text-secondary);
+}
+
+.row-actions-nowrap {
+  white-space: nowrap;
+}
+
+.admin-table,
+.banner-table,
+.content-table,
+.ops-table,
+.review-table,
+.user-table {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.admin-table th.el-table__cell,
+.banner-table th.el-table__cell,
+.content-table th.el-table__cell,
+.ops-table th.el-table__cell,
+.review-table th.el-table__cell,
+.user-table th.el-table__cell {
+  background: var(--wt-fill-hover);
+  color: var(--wt-text-secondary);
+  font-weight: 600;
+}
+
+.admin-table .el-table__row:hover > td.el-table__cell,
+.banner-table .el-table__row:hover > td.el-table__cell,
+.content-table .el-table__row:hover > td.el-table__cell,
+.ops-table .el-table__row:hover > td.el-table__cell,
+.review-table .el-table__row:hover > td.el-table__cell,
+.user-table .el-table__row:hover > td.el-table__cell {
+  background: var(--wt-row-gradient-hover) !important;
+}
+
+.ops-table .el-button.is-link,
+.review-table .el-button.is-link,
+.user-table .el-button.is-link {
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  height: auto;
+}
+
+.spot-cell,
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.spot-cover {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid var(--wt-border-default);
+  box-shadow: var(--wt-shadow-soft);
+}
+
+.category-page .left-card,
+.region-page .left-card {
+  min-height: 520px;
+  border-radius: 22px;
+}
+
+.category-page .right-card,
+.region-page .right-card {
+  min-height: 520px;
+  border-radius: 22px;
+}
+
+.category-page .parent-list,
+.region-page .parent-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.category-page .parent-list .list-item,
+.region-page .parent-list .list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-page .parent-list .list-item:hover,
+.region-page .parent-list .list-item:hover {
+  background-color: var(--wt-surface-hover);
+  border-color: var(--wt-border-default);
+}
+
+.category-page .parent-list .list-item.active,
+.region-page .parent-list .list-item.active {
+  background-color: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary-light-7);
+  color: var(--el-color-primary);
+  font-weight: 600;
+}
+
+.category-page .parent-list .item-actions,
+.region-page .parent-list .item-actions {
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.category-page .parent-list .list-item:hover .item-actions,
+.region-page .parent-list .list-item:hover .item-actions {
+  opacity: 1;
+}
+
+.category-page .parent-list .action-icon,
+.region-page .parent-list .action-icon {
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--wt-text-secondary);
+  font-size: 30px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.category-page .parent-list .action-icon:hover,
+.region-page .parent-list .action-icon:hover {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+
+.category-page .parent-list .action-icon.danger:hover,
+.region-page .parent-list .action-icon.danger:hover {
+  color: var(--wt-tag-danger-text);
+  background: var(--wt-tag-danger-bg);
+}
+
 @media (max-width: 960px) {
   .page-hero {
     flex-direction: column;
@@ -122,9 +296,15 @@
 
   .hero-actions {
     width: 100%;
+    align-items: stretch;
   }
 
   .hero-actions .el-button {
+    width: 100%;
+  }
+
+  .hero-action-row {
+    flex-direction: column;
     width: 100%;
   }
 }

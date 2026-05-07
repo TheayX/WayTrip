@@ -415,17 +415,6 @@ onMounted(() => {
   gap: 20px;
 }
 
-.hero-left {
-  flex: 1;
-}
-
-.hero-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-end;
-}
-
 .hero-action-btn {
   margin-left: 0 !important;
 }
@@ -433,13 +422,6 @@ onMounted(() => {
 .hero-action-btn-add {
   position: relative;
   top: 32px;
-}
-
-.subtitle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
 }
 
 .summary-grid {
@@ -470,15 +452,6 @@ onMounted(() => {
   gap: 8px;
 }
 
-.text-muted {
-  color: var(--wt-text-secondary);
-}
-
-.banner-table {
-  border-radius: 18px;
-  overflow: hidden;
-}
-
 .management-card :deep(.banner-table) {
   margin-top: 0 !important;
 }
@@ -489,17 +462,6 @@ onMounted(() => {
 
 .full-width-select {
   width: 100%;
-}
-
-:deep(.banner-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-
-:deep(.banner-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
 }
 
 .upload-container {
@@ -536,12 +498,6 @@ onMounted(() => {
     margin-top: 8px;
   }
 }
-.form-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--wt-text-secondary);
-}
 
 .spot-name-cell {
   display: flex;
@@ -576,5 +532,4 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 }
-
 </style>

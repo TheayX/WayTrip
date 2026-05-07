@@ -474,26 +474,6 @@ watch(
   display: flex;
   flex-direction: column;
 
-
-  .filter-caption {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 14px;
-  }
-
-  .filter-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .filter-subtitle {
-    font-size: 12px;
-    line-height: 1.6;
-    color: var(--wt-text-regular);
-  }
-
   .recent-orders {
     margin-top: 24px;
     h4 {
@@ -579,31 +559,8 @@ watch(
   }
 }
 
-.user-table {
-  border-radius: 18px;
-  overflow: hidden;
-}
-
-:deep(.user-table .el-button.is-link) {
-  padding: 0;
-  margin: 0;
-  min-width: 0;
-  height: auto;
-}
-
 .nickname-link {
   font-weight: 600;
-}
-
-:deep(.user-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-
-:deep(.user-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
 }
 
 @media (max-width: 900px) {

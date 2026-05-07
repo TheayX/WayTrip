@@ -277,25 +277,6 @@ watch(
   @include userOps.page-shell;
 }
 
-.filter-caption {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 14px;
-}
-
-.filter-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--wt-text-primary);
-}
-
-.filter-subtitle {
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--wt-text-regular);
-}
-
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -304,29 +285,6 @@ watch(
 
 .empty-text {
   color: var(--wt-text-secondary);
-}
-
-.ops-table {
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-:deep(.ops-table .el-button.is-link) {
-  padding: 0;
-  margin: 0;
-  min-width: 0;
-  height: auto;
-}
-
-:deep(.ops-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-
-:deep(.ops-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
 }
 
 </style>

@@ -402,64 +402,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-
-
-  .left-card {
-    min-height: 520px;
-    border-radius: 22px;
-    .parent-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      .list-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        margin-bottom: 4px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 1px solid transparent;
-        &:hover {
-          background-color: var(--wt-surface-hover);
-          border-color: var(--wt-border-default);
-          .item-actions { opacity: 1; }
-        }
-        &.active {
-          background-color: var(--el-color-primary-light-9);
-          color: var(--el-color-primary);
-          border-color: var(--el-color-primary-light-7);
-          font-weight: 600;
-        }
-        .item-actions {
-          opacity: 0;
-          transition: opacity 0.2s;
-          display: flex;
-          gap: 12px;
-          .action-icon {
-            color: var(--wt-text-secondary);
-            font-size: 30px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            &:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
-            &.danger:hover { color: var(--wt-tag-danger-text); background: var(--wt-tag-danger-bg); }
-          }
-        }
-      }
-    }
-  }
-  .right-card {
-    min-height: 520px;
-    border-radius: 22px;
-  }
-}
-
-.content-table {
-  border-radius: 16px;
-  overflow: hidden;
 }
 
 .align-middle {
@@ -479,20 +421,6 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.row-actions-nowrap {
-  white-space: nowrap;
-}
-
-:deep(.content-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-
-:deep(.content-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
-}
 .upload-container {
   .avatar-uploader {
     :deep(.el-upload) {
@@ -526,12 +454,6 @@ onMounted(() => {
     margin-top: 8px;
   }
 }
-.form-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--wt-text-secondary);
-}
 .image-slot {
   display: flex;
   justify-content: center;
@@ -541,14 +463,6 @@ onMounted(() => {
   color: var(--wt-text-secondary);
   font-size: 20px;
   border-radius: 8px;
-}
-
-@media (max-width: 1200px) {
-  .category-page {
-    .summary-grid {
-      grid-template-columns: 1fr;
-    }
-  }
 }
 
 </style>
