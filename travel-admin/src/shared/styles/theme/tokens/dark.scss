@@ -113,6 +113,9 @@ html[data-theme='dark'] {
   --el-table-border: 1px solid var(--wt-border-default);
   --el-table-bg-color: var(--wt-surface-panel);
   --el-table-tr-bg-color: var(--wt-surface-panel);
+  --wt-table-fixed-bg: #111f33;
+  --wt-table-fixed-header-bg: #0b1626;
+  --wt-table-hover-bg: #1b2a42;
 
   /* 卡片 */
   --el-card-border-color: var(--wt-border-default);

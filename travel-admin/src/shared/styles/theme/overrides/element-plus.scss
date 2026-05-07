@@ -522,12 +522,55 @@ html[data-theme='dark'] {
     --el-fill-color-blank: transparent;
   }
 
-  .el-table tr,
-  .el-table th.el-table__cell,
+  .el-table .el-table__inner-wrapper::before {
+    background-color: var(--wt-border-default);
+  }
+
+  .el-table th.el-table__cell {
+    background-color: var(--el-table-header-bg-color) !important;
+  }
+
   .el-table td.el-table__cell,
-  .el-table__expanded-cell,
-  .el-table__inner-wrapper::before {
-    background-color: transparent;
+  .el-table tr {
+    background-color: var(--el-table-tr-bg-color);
+  }
+
+  .el-table .el-table__expanded-cell {
+    background-color: var(--wt-surface-muted);
+  }
+
+  .el-table .el-table-fixed-column--left,
+  .el-table .el-table-fixed-column--right {
+    background-color: var(--wt-table-fixed-bg) !important;
+  }
+
+  .el-table th.el-table-fixed-column--left,
+  .el-table th.el-table-fixed-column--right {
+    background-color: var(--wt-table-fixed-header-bg) !important;
+  }
+
+  .el-table .el-table__fixed,
+  .el-table .el-table__fixed-right,
+  .el-table .el-table__fixed-header-wrapper,
+  .el-table .el-table__fixed-body-wrapper {
+    background-color: var(--wt-table-fixed-bg) !important;
+  }
+
+  .el-table .el-table__fixed::before,
+  .el-table .el-table__fixed-right::before {
+    background-color: var(--wt-border-default);
+  }
+
+  .el-table .el-table__body tr:hover > td.el-table__cell,
+  .el-table .el-table__body tr.hover-row > td.el-table__cell {
+    background-color: var(--wt-table-hover-bg) !important;
+  }
+
+  .el-table .el-table__body tr:hover > td.el-table-fixed-column--left,
+  .el-table .el-table__body tr:hover > td.el-table-fixed-column--right,
+  .el-table .el-table__body tr.hover-row > td.el-table-fixed-column--left,
+  .el-table .el-table__body tr.hover-row > td.el-table-fixed-column--right {
+    background-color: var(--wt-table-hover-bg) !important;
   }
 
   .el-pagination button,
