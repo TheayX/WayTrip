@@ -8,7 +8,7 @@
       </div>
     </template>
 
-    <div class="help-intro">
+    <div class="help-intro feature-panel feature-panel--soft">
       这部分保留给排查和调参时查阅。日常使用可以先看上面的配置区、执行区和预览区；只有在需要确认公式、字段来源、矩阵机制或默认值时，再展开下面的内容。
     </div>
 
@@ -16,19 +16,19 @@
       <el-collapse-item title="先看什么" name="quick-start">
         <div class="help-content">
           <div class="strategy-grid">
-            <div class="strategy-item">
+            <div class="strategy-item feature-panel">
               <div class="strategy-title">只想改推荐倾向</div>
               <div class="strategy-desc">先看“离线矩阵构建”，这里决定用户历史行为如何进入相似度计算。</div>
             </div>
-            <div class="strategy-item">
+            <div class="strategy-item feature-panel">
               <div class="strategy-title">只想改候选范围</div>
               <div class="strategy-desc">看“在线推荐与候选控制”，这些参数保存后会直接影响新请求。</div>
             </div>
-            <div class="strategy-item">
+            <div class="strategy-item feature-panel">
               <div class="strategy-title">只想改热门排序</div>
               <div class="strategy-desc">看“热度与排序”，这部分不影响离线相似度矩阵。</div>
             </div>
-            <div class="strategy-item">
+            <div class="strategy-item feature-panel">
               <div class="strategy-title">只想改缓存表现</div>
               <div class="strategy-desc">看“用户推荐缓存”和右侧执行区，不需要改算法参数。</div>
             </div>
@@ -48,12 +48,12 @@
           </div>
 
           <div class="formula-grid">
-            <section class="formula-card">
+            <section class="formula-card feature-panel">
               <div class="formula-card-head">
                 <div class="formula-kicker">公式 1</div>
                 <div class="formula-title">IUF 加权余弦相似度</div>
               </div>
-              <div class="formula-surface">
+              <div class="formula-surface feature-panel feature-panel--soft">
                 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML">
                   <mrow>
                     <msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub>
@@ -102,12 +102,12 @@
               </div>
             </section>
 
-            <section class="formula-card">
+            <section class="formula-card feature-panel">
               <div class="formula-card-head">
                 <div class="formula-kicker">公式 2</div>
                 <div class="formula-title">预测评分</div>
               </div>
-              <div class="formula-surface">
+              <div class="formula-surface feature-panel feature-panel--soft">
                 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML">
                   <mrow>
                     <msub><mi>P</mi><mrow><mi>u</mi><mi>j</mi></mrow></msub>
@@ -265,8 +265,6 @@ const emit = defineEmits(['update:active-collapse'])
   margin-bottom: 16px;
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  border: 1px solid var(--wt-border-default);
   color: var(--wt-text-regular);
   line-height: 1.7;
   font-size: 13px;
@@ -309,8 +307,6 @@ const emit = defineEmits(['update:active-collapse'])
 .formula-card {
   padding: 18px;
   border-radius: 20px;
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  border: 1px solid var(--wt-border-default);
   box-shadow: inset 0 1px 0 var(--wt-overlay-bg);
 }
 
@@ -338,8 +334,6 @@ const emit = defineEmits(['update:active-collapse'])
   margin-top: 14px;
   padding: 16px 18px;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
-  border: 1px solid var(--wt-border-default);
 
   math {
     min-width: 520px;
@@ -370,10 +364,8 @@ const emit = defineEmits(['update:active-collapse'])
 }
 
 .strategy-item {
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   border-radius: 18px;
   padding: 18px;
-  border: 1px solid var(--wt-border-default);
 
   .strategy-title {
     font-weight: 600;
