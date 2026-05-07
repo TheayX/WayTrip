@@ -402,6 +402,7 @@ onMounted(async () => {
 
   .hero-card {
     border: none;
+    background: transparent;
 
     :deep(.el-card__body) {
       padding: 0 !important;
@@ -412,7 +413,7 @@ onMounted(async () => {
     position: relative;
     overflow: hidden;
     padding: 20px;
-    color: #fff;
+    color: var(--wt-text-primary);
     border-radius: 20px;
     height: 100%;
     min-height: 152px;
@@ -420,6 +421,10 @@ onMounted(async () => {
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
+    border: 1px solid var(--wt-border-default);
+    background:
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 
     &::after {
       content: '';
@@ -434,21 +439,31 @@ onMounted(async () => {
   }
 
   .hero-card-engine .hero-card-content {
-    background: var(--wt-accent-gradient-cyan);
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.16) 0%, transparent 42%),
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .hero-card-time .hero-card-content {
-    background: var(--wt-accent-gradient-blue);
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.18) 0%, transparent 42%),
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .hero-card-users .hero-card-content {
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-hover) 100%);
-    color: var(--wt-text-primary);
-    border: 1px solid var(--wt-border-default);
+    background:
+      radial-gradient(circle at top left, rgba(148, 163, 184, 0.14) 0%, transparent 42%),
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .hero-card-spots .hero-card-content {
-    background: var(--wt-accent-gradient-amber);
+    background:
+      radial-gradient(circle at top left, rgba(251, 191, 36, 0.16) 0%, transparent 42%),
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .hero-label {

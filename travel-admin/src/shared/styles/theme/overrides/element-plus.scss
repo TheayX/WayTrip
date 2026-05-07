@@ -424,11 +424,33 @@ html[data-theme='dark'] {
   .el-alert {
     border: 1px solid var(--wt-border-default);
     background: var(--wt-surface-elevated);
+    color: var(--wt-text-regular);
+
+    .el-alert__title,
+    .el-alert__description,
+    .el-alert__icon {
+      color: inherit;
+    }
+  }
+
+  .el-alert--success {
+    background: var(--wt-tag-success-bg);
+    color: var(--wt-tag-success-text);
   }
 
   .el-alert--warning {
     background: var(--wt-tag-warning-bg);
     color: var(--wt-tag-warning-text);
+  }
+
+  .el-alert--error {
+    background: var(--wt-tag-danger-bg);
+    color: var(--wt-tag-danger-text);
+  }
+
+  .el-alert--info {
+    background: var(--wt-tag-info-bg);
+    color: var(--wt-tag-info-text);
   }
 
   .el-tabs__nav-wrap::after {

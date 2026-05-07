@@ -112,6 +112,12 @@ const handleDateChange = (value) => {
 
 .scope-alert {
   margin-top: 14px;
+  border-radius: 14px;
+
+  :deep(.el-alert__title) {
+    font-weight: 600;
+    line-height: 1.6;
+  }
 }
 
 .date-picker {
