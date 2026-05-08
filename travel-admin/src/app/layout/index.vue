@@ -6,7 +6,7 @@
       <div class="logo">
         <img v-if="isCollapse" :src="brandMarkUrl" alt="" aria-hidden="true" class="logo-icon" />
         <template v-else>
-          <img :src="brandLogoUrl" alt="WayTrip" class="logo-full" />
+          <img :src="currentBrandLogoUrl" alt="WayTrip" class="logo-full" />
           <span class="logo-text">ADMIN</span>
         </template>
       </div>
@@ -236,6 +236,7 @@ import { ElMessage } from 'element-plus'
 import { Fold, Expand, Search, Bell, ArrowDown, Moon, Sunny } from '@element-plus/icons-vue'
 import brandMarkUrl from '@/shared/assets/brand/waytrip-standard-mark.svg'
 import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
+import brandLogoDarkUrl from '@/shared/assets/brand/waytrip-standard-dark.svg'
 
 // 顶层布局状态：控制导航折叠、主题切换以及头部快捷交互。
 const router = useRouter()
@@ -243,6 +244,7 @@ const route = useRoute()
 const userStore = useUserStore()
 const isCollapse = ref(false)
 const { currentTheme, toggleTheme } = useTheme()
+const currentBrandLogoUrl = computed(() => (currentTheme.value === 'dark' ? brandLogoDarkUrl : brandLogoUrl))
 const {
   loading: notificationLoading,
   errorMessage: notificationErrorMessage,
