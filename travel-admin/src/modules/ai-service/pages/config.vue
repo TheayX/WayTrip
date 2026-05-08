@@ -259,12 +259,12 @@ const handleResetLocalConfig = () => {
 <style lang="scss" scoped>
 .ai-config-page {
   .page-alert {
-    margin-bottom: 16px;
+    margin-bottom: 4px;
   }
 
   .summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-bottom: 16px;
+    margin-bottom: 4px;
   }
 
   .summary-card {

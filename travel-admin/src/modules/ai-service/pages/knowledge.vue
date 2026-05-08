@@ -248,7 +248,7 @@
                 </el-select>
               </el-form-item>
               <el-form-item label="启用状态" class="filter-item">
-                <el-select v-model="filters.enabled" clearable class="form-w-160" placeholder="全部状态">
+                <el-select v-model="filters.enabled" clearable class="form-w-180" placeholder="全部状态">
                   <el-option v-for="item in enabledOptions" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
               </el-form-item>
