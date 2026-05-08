@@ -7,9 +7,6 @@
         <h1 class="page-title">查询测试</h1>
         <p class="page-subtitle">按场景输入测试问题，快速预览当前知识库的检索命中结果与片段内容。</p>
       </div>
-      <div class="hero-actions">
-        <el-button type="primary" :loading="previewing" @click="handlePreview">开始预览</el-button>
-      </div>
     </section>
 
     <el-row :gutter="24" class="content-row">
@@ -234,12 +231,13 @@ const handlePreview = async () => {
   }
 
   .query-field {
-    margin-bottom: 0;
+    margin-bottom: 10px;
   }
 
   .form-actions {
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
+    margin-top: 4px;
   }
 
   .result-panel,

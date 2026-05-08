@@ -9,7 +9,6 @@
       </div>
       <div class="hero-actions">
         <el-button :loading="loading || rebuildingAll" @click="loadDocuments">刷新数据</el-button>
-        <el-button type="primary" @click="openCreateDrawer">新增文档</el-button>
       </div>
     </section>
 
@@ -205,39 +204,58 @@
         <div class="card-header">
           <span>知识文档管理</span>
           <div class="card-header__actions">
+            <el-button type="primary" @click="openCreateDrawer">新增文档</el-button>
             <el-button type="warning" plain :loading="rebuildingAll" @click="handleRebuildAll">重建全部</el-button>
           </div>
         </div>
       </template>
 
-      <el-form :model="filters" inline class="search-form admin-filter-bar" @submit.prevent>
-        <el-form-item label="关键词">
-          <el-input
-            v-model="filters.keyword"
-            clearable
-            class="form-w-220"
-            placeholder="搜索标题或来源标识"
-          />
-        </el-form-item>
-        <el-form-item label="知识域">
-          <el-select v-model="filters.knowledgeDomain" clearable class="form-w-180" placeholder="全部知识域">
-            <el-option v-for="item in knowledgeDomainOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="来源类型">
-          <el-select v-model="filters.sourceType" clearable class="form-w-160" placeholder="全部来源">
-            <el-option v-for="item in sourceTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="启用状态">
-          <el-select v-model="filters.enabled" clearable class="form-w-160" placeholder="全部状态">
-            <el-option v-for="item in enabledOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button @click="resetFilters">重置筛选</el-button>
-        </el-form-item>
-      </el-form>
+      <div class="search-form admin-filter-bar">
+        <el-form :inline="true" :model="filters" @submit.prevent>
+          <div class="filter-row">
+            <div class="filter-main">
+              <el-form-item class="filter-item">
+                <el-input
+                  v-model="filters.keyword"
+                  clearable
+                  class="filter-input"
+                  :prefix-icon="Search"
+                  placeholder="搜索标题或来源标识"
+                />
+              </el-form-item>
+              <el-form-item class="filter-item">
+                <el-select v-model="filters.knowledgeDomain" clearable class="status-select" placeholder="知识域">
+                  <el-option v-for="item in knowledgeDomainOptions" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+              </el-form-item>
+              <el-button type="primary" link class="toggle-btn" @click="showAdvanced = !showAdvanced">
+                <el-icon><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
+                {{ showAdvanced ? '收起条件' : '更多条件' }}
+              </el-button>
+            </div>
+
+            <div class="filter-actions">
+              <el-button type="primary">查询</el-button>
+              <el-button @click="resetFilters">重置</el-button>
+            </div>
+          </div>
+
+          <el-collapse-transition>
+            <div v-show="showAdvanced" class="advanced-panel knowledge-advanced-panel">
+              <el-form-item label="来源类型" class="filter-item">
+                <el-select v-model="filters.sourceType" clearable class="form-w-180" placeholder="全部来源">
+                  <el-option v-for="item in sourceTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="启用状态" class="filter-item">
+                <el-select v-model="filters.enabled" clearable class="form-w-160" placeholder="全部状态">
+                  <el-option v-for="item in enabledOptions" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+              </el-form-item>
+            </div>
+          </el-collapse-transition>
+        </el-form>
+      </div>
 
       <div class="domain-overview">
         <div v-for="item in domainSummaryList" :key="item.domain" class="domain-overview__item feature-panel feature-panel--soft">
@@ -341,6 +359,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { CaretTop, Filter, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   clearAiVectorIndex,
@@ -395,6 +414,7 @@ const toggleLoadingMap = reactive({})
 const rebuildLoadingMap = reactive({})
 const vectorStatus = reactive(createEmptyAiVectorStatus())
 const maintenanceSummary = reactive(createEmptyAiMaintenanceSummary())
+const showAdvanced = ref(false)
 
 const filters = reactive({
   keyword: '',
@@ -854,7 +874,11 @@ onMounted(() => {
   }
 
   .summary-card {
-    min-height: 150px;
+    min-height: 122px;
+  }
+
+  .summary-card :deep(.el-card__body) {
+    padding: 12px 14px !important;
   }
 
   .management-card {
@@ -896,7 +920,7 @@ onMounted(() => {
   }
 
   .status-overview {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .status-detail-grid {
@@ -1048,31 +1072,34 @@ onMounted(() => {
     justify-content: flex-start;
   }
 
-  .form-w-220 {
-    width: 220px;
+  .filter-input {
+    width: 260px;
   }
 
-  .form-w-180 {
-    width: 180px;
+  .status-select {
+    width: 164px;
   }
 
-  .form-w-160 {
-    width: 160px;
+  .knowledge-advanced-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
   }
 
   @media (max-width: 1200px) {
-    .ops-grid,
-    .summary-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .ops-grid {
       grid-template-columns: 1fr;
     }
 
-    .status-overview,
+    .summary-grid,
     .status-detail-grid,
     .status-metrics-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 1080px) {
+    .status-overview {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
@@ -1087,6 +1114,11 @@ onMounted(() => {
     .status-detail-grid,
     .status-metrics-grid {
       grid-template-columns: 1fr;
+    }
+
+    .filter-input,
+    .status-select {
+      width: 100%;
     }
   }
 }

@@ -259,12 +259,20 @@ const handleResetLocalConfig = () => {
 <style lang="scss" scoped>
 .ai-config-page {
   .page-alert {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+  }
+
+  .summary-card {
+    min-height: 118px;
+  }
+
+  .summary-card :deep(.el-card__body) {
+    padding: 12px 14px !important;
   }
 
   .management-card {
@@ -288,7 +296,7 @@ const handleResetLocalConfig = () => {
   .config-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 14px;
   }
 
   .dialog-intro {

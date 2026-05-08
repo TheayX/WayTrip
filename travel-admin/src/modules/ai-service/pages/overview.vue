@@ -388,16 +388,16 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .ai-overview-page {
-  .hero-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   .ai-warning-alert {
     margin-bottom: 16px;
   }
 
   .summary-card {
-    min-height: 148px;
+    min-height: 122px;
+  }
+
+  .hero-grid .summary-card :deep(.el-card__body) {
+    padding: 12px 14px !important;
   }
 
   .entry-grid,
@@ -413,6 +413,10 @@ onMounted(() => {
 
   .summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .hero-grid.summary-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .vector-health-grid {
@@ -498,15 +502,18 @@ onMounted(() => {
   .quick-actions {
     display: grid;
     gap: 10px;
+    justify-content: flex-start;
 
     .el-button {
       margin-left: 0;
       justify-content: flex-start;
+      min-width: 136px;
+      height: 40px;
+      padding: 0 16px;
     }
   }
 
   @media (max-width: 1200px) {
-    .hero-grid,
     .entry-grid,
     .summary-grid,
     .vector-health-grid {
@@ -514,8 +521,14 @@ onMounted(() => {
     }
   }
 
+  @media (max-width: 1080px) {
+    .hero-grid.summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   @media (max-width: 768px) {
-    .hero-grid,
+    .hero-grid.summary-grid,
     .entry-grid,
     .summary-grid,
     .vector-health-grid {
