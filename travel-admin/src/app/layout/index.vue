@@ -107,25 +107,15 @@
           </el-breadcrumb>
           <img :src="brandMarkUrl" alt="" aria-hidden="true" class="header-brand-icon" />
           <!-- 主题切换 -->
-          <el-dropdown trigger="click" @command="setThemeMode">
-            <button type="button" class="theme-switch">
-              <el-icon><Sunny v-if="currentTheme === 'light'" /><Moon v-else /></el-icon>
-              <span>{{ currentThemeLabel }}</span>
-              <span v-if="isSystemMode" class="theme-switch-mode">系统</span>
-              <el-icon><ArrowDown /></el-icon>
-            </button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item
-                  v-for="item in THEME_MODE_OPTIONS"
-                  :key="item.value"
-                  :command="item.value"
-                >
-                  {{ item.label }}
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <button
+            type="button"
+            class="theme-toggle"
+            :aria-label="currentTheme === 'dark' ? '切换到浅色主题' : '切换到暗色主题'"
+            :title="currentTheme === 'dark' ? '切换到浅色主题' : '切换到暗色主题'"
+            @click="toggleTheme"
+          >
+            <el-icon><Sunny v-if="currentTheme === 'dark'" /><Moon v-else /></el-icon>
+          </button>
           <!-- 消息通知 -->
           <el-popover
             v-model:visible="notificationPopoverVisible"
@@ -240,7 +230,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { NAVIGATION_GROUPS, NAVIGATION_GROUP_MAP } from '@/shared/constants/navigation.js'
-import { THEME_MODE_OPTIONS } from '@/shared/constants/theme.js'
 import { useTheme } from '@/shared/composables/useTheme.js'
 import { useAdminNotifications } from '@/shared/composables/useAdminNotifications.js'
 import { ElMessage } from 'element-plus'
@@ -253,7 +242,7 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const isCollapse = ref(false)
-const { currentTheme, isSystemMode, setThemeMode } = useTheme()
+const { currentTheme, toggleTheme } = useTheme()
 const {
   loading: notificationLoading,
   errorMessage: notificationErrorMessage,
@@ -505,10 +494,6 @@ const currentGroupTitle = computed(() => {
 
 const defaultOpenGroups = computed(() => {
   return currentGroupTitle.value ? [route.meta?.group] : []
-})
-
-const currentThemeLabel = computed(() => {
-  return currentTheme.value === 'dark' ? '暗色主题' : '浅色主题'
 })
 
 // 搜索结果同时匹配标题、说明、分组和别名，保证常见中文口语也能命中。
@@ -920,12 +905,12 @@ onMounted(async () => {
     white-space: nowrap;
   }
 
-  .theme-switch {
+  .theme-toggle {
+    width: 38px;
+    height: 38px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    height: 38px;
-    padding: 0 14px;
+    justify-content: center;
     border: 1px solid var(--wt-border-default);
     border-radius: 999px;
     background: var(--wt-surface-elevated);
@@ -938,20 +923,6 @@ onMounted(async () => {
       transform: translateY(-1px);
       border-color: var(--el-color-primary-light-5);
       box-shadow: var(--wt-shadow-float);
-    }
-
-    span {
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1;
-    }
-
-    .theme-switch-mode {
-      padding: 2px 8px;
-      font-size: 12px;
-      color: var(--wt-text-secondary);
-      background: var(--el-color-primary-light-9);
-      border-radius: 999px;
     }
   }
 

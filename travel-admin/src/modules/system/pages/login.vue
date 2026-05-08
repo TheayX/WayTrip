@@ -2,21 +2,15 @@
 <template>
   <div class="login-container" :class="{ 'login-container--dark': currentTheme === 'dark' }">
     <div class="login-bg"></div>
-    <div class="theme-switcher">
-      <span class="theme-switcher__label">主题</span>
-      <div class="theme-switcher__group">
-        <button
-          v-for="option in THEME_MODE_OPTIONS"
-          :key="option.value"
-          type="button"
-          class="theme-switcher__button"
-          :class="{ 'theme-switcher__button--active': themeMode === option.value }"
-          @click="setThemeMode(option.value)"
-        >
-          {{ option.label }}
-        </button>
-      </div>
-    </div>
+    <button
+      type="button"
+      class="theme-switcher"
+      :aria-label="currentTheme === 'dark' ? '切换到浅色主题' : '切换到暗色主题'"
+      :title="currentTheme === 'dark' ? '切换到浅色主题' : '切换到暗色主题'"
+      @click="toggleTheme"
+    >
+      <el-icon><Sunny v-if="currentTheme === 'dark'" /><Moon v-else /></el-icon>
+    </button>
     <div class="login-box">
       <div class="login-left">
           <div class="left-content">
@@ -73,13 +67,13 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { ElMessage } from 'element-plus'
 import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
+import { Moon, Sunny } from '@element-plus/icons-vue'
 import { useTheme } from '@/shared/composables/useTheme.js'
-import { THEME_MODE_OPTIONS } from '@/shared/constants/theme.js'
 
 // 登录页同时承接账号认证和主题切换入口，避免未登录状态下还要跳去别处改主题。
 const router = useRouter()
 const userStore = useUserStore()
-const { themeMode, currentTheme, setThemeMode } = useTheme()
+const { currentTheme, toggleTheme } = useTheme()
 const formRef = ref()
 const loading = ref(false)
 
@@ -178,54 +172,26 @@ const handleLogin = async () => {
   top: 24px;
   right: 24px;
   z-index: 20;
-  display: flex;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  justify-content: center;
   border-radius: 999px;
   background: color-mix(in srgb, var(--login-panel-bg) 88%, transparent);
   border: 1px solid var(--login-panel-border);
   box-shadow: var(--wt-shadow-soft);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-}
-
-.theme-switcher__label {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--wt-text-secondary);
-}
-
-.theme-switcher__group {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--login-right-bg) 72%, transparent);
-}
-
-.theme-switcher__button {
-  border: none;
-  background: transparent;
-  color: var(--wt-text-regular);
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  color: var(--wt-text-primary);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 
   &:hover {
-    color: var(--wt-text-primary);
+    transform: translateY(-1px);
+    border-color: var(--el-color-primary-light-5);
+    box-shadow: var(--wt-shadow-float);
   }
-}
-
-.theme-switcher__button--active {
-  background: var(--wt-surface-elevated);
-  color: var(--wt-text-primary);
-  box-shadow: var(--wt-shadow-soft);
 }
 
 .login-box {
@@ -494,15 +460,6 @@ const handleLogin = async () => {
     border-color: var(--wt-border-default);
   }
 
-  .theme-switcher__group {
-    background: var(--wt-surface-panel);
-  }
-
-  .theme-switcher__button--active {
-    background: var(--wt-surface-elevated);
-    color: var(--wt-text-primary);
-  }
-
   .login-box {
     border-color: var(--wt-border-default);
   }
@@ -608,19 +565,7 @@ const handleLogin = async () => {
 
   .theme-switcher {
     left: 16px;
-    right: 16px;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .theme-switcher__group {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .theme-switcher__button {
-    flex: 1;
-    padding: 8px 10px;
+    right: auto;
   }
 
   .login-box .login-left .slogan,
