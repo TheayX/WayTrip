@@ -115,7 +115,7 @@
                 {{ formatDate(row.createdAt) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" fixed="right">
+            <el-table-column label="操作" width="150" fixed="right" header-align="center">
               <template #default="{ row }">
                 <div class="row-actions-nowrap">
                   <el-button type="primary" link @click="handleEditLevel2(row)">编辑</el-button>
@@ -402,63 +402,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-
-
-  .left-card {
-    min-height: 520px;
-    border-radius: 22px;
-    .parent-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      .list-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        margin-bottom: 4px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 1px solid transparent;
-        &:hover {
-          background-color: var(--wt-fill-hover);
-          .item-actions { opacity: 1; }
-        }
-        &.active {
-          background-color: var(--el-color-primary-light-9);
-          color: var(--el-color-primary);
-          border-color: var(--el-color-primary-light-7);
-          font-weight: 600;
-        }
-        .item-actions {
-          opacity: 0;
-          transition: opacity 0.2s;
-          display: flex;
-          gap: 12px;
-          .action-icon {
-            color: var(--wt-text-secondary);
-            font-size: 30px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            &:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
-            &.danger:hover { color: #ef4444; background: #fef2f2; }
-          }
-        }
-      }
-    }
-  }
-  .right-card {
-    min-height: 520px;
-    border-radius: 22px;
-  }
-}
-
-.content-table {
-  border-radius: 16px;
-  overflow: hidden;
 }
 
 .align-middle {
@@ -478,20 +421,6 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.row-actions-nowrap {
-  white-space: nowrap;
-}
-
-:deep(.content-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-
-:deep(.content-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
-}
 .upload-container {
   .avatar-uploader {
     :deep(.el-upload) {
@@ -502,7 +431,8 @@ onMounted(() => {
       width: 80px;
       height: 80px;
       transition: all 0.3s;
-      &:hover { border-color: var(--el-color-primary); background: var(--wt-fill-hover); }
+      background: var(--wt-surface-muted);
+      &:hover { border-color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
       .avatar-uploader-icon {
         font-size: 24px;
         color: var(--wt-text-secondary);
@@ -514,6 +444,7 @@ onMounted(() => {
         width: 80px; height: 80px;
         display: block;
         object-fit: contain;
+        background: var(--wt-surface-elevated);
       }
     }
   }
@@ -523,29 +454,15 @@ onMounted(() => {
     margin-top: 8px;
   }
 }
-.form-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--wt-text-secondary);
-}
 .image-slot {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%; height: 100%;
-  background: var(--wt-fill-hover);
+  background: var(--wt-surface-muted);
   color: var(--wt-text-secondary);
   font-size: 20px;
   border-radius: 8px;
-}
-
-@media (max-width: 1200px) {
-  .category-page {
-    .summary-grid {
-      grid-template-columns: 1fr;
-    }
-  }
 }
 
 </style>

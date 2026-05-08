@@ -27,25 +27,38 @@ public interface RecommendationService {
     RecommendationResponse getRecommendations(Long userId, Integer limit);
 
     /**
-     * 刷新并重新计算推荐结果。
+     * 轮换当前推荐结果。
+     * <p>
+     * 优先基于现有缓存顺序轮换；缓存缺失时会先建立当前推荐基线，再执行一次轮换。
      *
      * @param userId 当前登录用户 ID
      * @param limit 返回条数上限
      * @return 推荐结果
      */
-    RecommendationResponse refreshRecommendations(Long userId, Integer limit);
+    RecommendationResponse rotateRecommendations(Long userId, Integer limit);
+
+    /**
+     * 强制重算推荐结果。
+     *
+     * @param userId 当前登录用户 ID
+     * @param limit 返回条数上限
+     * @return 推荐结果
+     */
+    RecommendationResponse recomputeRecommendations(Long userId, Integer limit);
 
     /**
      * 管理端调试预览推荐结果。
      *
      * @param userId 用户 ID
      * @param limit 返回条数上限
-     * @param refresh 是否强制刷新
+     * @param mode 预览模式：cache/latest
+     * @param writeCache 是否将本次结果写入当前用户缓存
+     * @param rotate 是否基于当前结果模拟一次“换一批”
      * @param debug 是否返回调试信息
-     * @param stable 是否使用稳定结果
      * @return 推荐结果
      */
-    RecommendationResponse previewRecommendations(Long userId, Integer limit, Boolean refresh, Boolean debug, Boolean stable);
+    RecommendationResponse previewRecommendations(Long userId, Integer limit, String mode,
+                                                  Boolean writeCache, Boolean rotate, Boolean debug);
 
     /**
      * 管理端预览某个景点的相似邻居。

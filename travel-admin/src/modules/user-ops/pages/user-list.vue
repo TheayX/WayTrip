@@ -153,7 +153,7 @@
       </el-descriptions>
 
       <div class="summary-grid" v-if="currentUser">
-        <el-card shadow="never" class="summary-card">
+        <el-card shadow="never" class="summary-card summary-card--detail">
           <template #header>
             <span>偏好画像</span>
           </template>
@@ -165,7 +165,7 @@
           <div class="summary-meta">最近更新时间：{{ formatDateTime(currentUser.preferenceSummary?.updatedAt) }}</div>
         </el-card>
 
-        <el-card shadow="never" class="summary-card">
+        <el-card shadow="never" class="summary-card summary-card--detail">
           <template #header>
             <span>收藏行为</span>
           </template>
@@ -174,7 +174,7 @@
           <div class="summary-meta">最近收藏时间：{{ formatDateTime(currentUser.favoriteSummary?.latestCreatedAt) }}</div>
         </el-card>
 
-        <el-card shadow="never" class="summary-card">
+        <el-card shadow="never" class="summary-card summary-card--detail">
           <template #header>
             <span>浏览行为</span>
           </template>
@@ -474,26 +474,6 @@ watch(
   display: flex;
   flex-direction: column;
 
-
-  .filter-caption {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 14px;
-  }
-
-  .filter-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .filter-subtitle {
-    font-size: 12px;
-    line-height: 1.6;
-    color: var(--wt-text-regular);
-  }
-
   .recent-orders {
     margin-top: 24px;
     h4 {
@@ -508,46 +488,6 @@ watch(
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
-  }
-
-  .summary-card {
-    min-height: 180px;
-    border-radius: 16px !important;
-    border: 1px solid var(--wt-divider-soft) !important;
-  }
-
-  .summary-metric {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .summary-line {
-    margin-top: 12px;
-    color: var(--wt-text-regular);
-  }
-
-  .summary-line-muted {
-    color: var(--wt-text-secondary);
-  }
-
-  .summary-meta {
-    margin-top: 12px;
-    font-size: 12px;
-    color: var(--wt-text-secondary);
-    line-height: 1.6;
-  }
-
-  .summary-tags {
-    margin-top: 12px;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .summary-empty {
-    margin-top: 12px;
-    color: var(--wt-text-secondary);
   }
 
   .summary-divider {
@@ -573,31 +513,8 @@ watch(
   }
 }
 
-.user-table {
-  border-radius: 18px;
-  overflow: hidden;
-}
-
-:deep(.user-table .el-button.is-link) {
-  padding: 0;
-  margin: 0;
-  min-width: 0;
-  height: auto;
-}
-
 .nickname-link {
   font-weight: 600;
-}
-
-:deep(.user-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-
-:deep(.user-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
 }
 
 @media (max-width: 900px) {

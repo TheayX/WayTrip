@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { getFilters } from '@/api/spot'
-import { getRecommendations, refreshRecommendations } from '@/api/home'
+import { getRecommendations, rotateRecommendations } from '@/api/home'
 import { setPreferences } from '@/api/user'
 import { markColdStartGuideCompleted } from '@/utils/cold-start-guide'
 import { useUserStore } from '@/stores/user'
@@ -77,8 +77,8 @@ export const useRecommendationFeed = (limit) => {
     }
   }
 
-  const refreshRecommendationList = async () => {
-    const res = await refreshRecommendations(limit)
+  const rotateRecommendationList = async () => {
+    const res = await rotateRecommendations(limit)
     applyRecommendationResponse(res.data)
     return res.data
   }
@@ -117,7 +117,7 @@ export const useRecommendationFeed = (limit) => {
     fetchCategories,
     ensureCategoriesLoaded,
     fetchRecommendationList,
-    refreshRecommendationList,
+    rotateRecommendationList,
     openPreferenceDialog,
     savePreferences,
     resetRecommendationState

@@ -164,23 +164,23 @@
             </div>
           </template>
           <div class="today-overview">
-            <div class="today-overview-item">
+            <div class="today-overview-item feature-panel">
               <span class="overview-label">累计营收</span>
               <span class="overview-value">¥{{ formatCurrency(overview.totalRevenue) }}</span>
             </div>
-            <div class="today-overview-item">
+            <div class="today-overview-item feature-panel">
               <span class="overview-label">累计订单</span>
               <span class="overview-value">{{ formatInteger(overview.totalOrders) }}</span>
             </div>
-            <div class="today-overview-item">
+            <div class="today-overview-item feature-panel">
               <span class="overview-label">累计用户</span>
               <span class="overview-value">{{ formatInteger(overview.totalUsers) }}</span>
             </div>
-            <div class="today-overview-item">
+            <div class="today-overview-item feature-panel">
               <span class="overview-label">已发布景点</span>
               <span class="overview-value">{{ formatInteger(overview.totalSpots) }}</span>
             </div>
-            <div class="today-overview-tip">
+            <div class="today-overview-tip feature-panel feature-panel--soft">
               昨日收入 ¥{{ formatCurrency(overview.yesterdayRevenue) }}，昨日订单 {{ formatInteger(overview.yesterdayOrders) }}
             </div>
           </div>
@@ -198,7 +198,7 @@
               v-for="(spot, index) in hotSpots"
               :key="spot.id"
               type="button"
-              class="hot-spot-item"
+              class="hot-spot-item feature-panel feature-panel--interactive"
               @click="goToSpot(spot)"
             >
               <div class="hot-spot-rank" :class="`rank-${Math.min(index + 1, 4)}`">{{ index + 1 }}</div>
@@ -233,7 +233,7 @@
                 v-for="item in workbenchEntries"
                 :key="item.title"
                 type="button"
-                class="workbench-entry"
+                class="workbench-entry feature-panel feature-panel--interactive"
                 @click="goTo(item.path)"
               >
                 <div class="workbench-entry-head">
@@ -256,7 +256,7 @@
             </div>
           </template>
           <div class="tips-list">
-            <div v-for="item in dashboardTips" :key="item.title" class="tips-item">
+            <div v-for="item in dashboardTips" :key="item.title" class="tips-item feature-panel feature-panel--soft">
               <div class="tips-title">{{ item.title }}</div>
               <div class="tips-desc">{{ item.desc }}</div>
             </div>
@@ -374,10 +374,10 @@ const dashboardTips = [
 const initSparklines = () => {
   const palette = getChartPalette()
   const configs = [
-    { ref: sparklineRevenue, color: palette.blue, areaColor: 'rgba(59, 130, 246, 0.16)' },
-    { ref: sparklineUsers, color: palette.violet, areaColor: 'rgba(139, 92, 246, 0.16)' },
-    { ref: sparklineSpots, color: palette.emerald, areaColor: 'rgba(16, 185, 129, 0.16)' },
-    { ref: sparklineOrders, color: palette.amber, areaColor: 'rgba(249, 115, 22, 0.16)' }
+    { ref: sparklineRevenue, color: palette.blue, areaColor: palette.blueArea },
+    { ref: sparklineUsers, color: palette.violet, areaColor: palette.violetArea },
+    { ref: sparklineSpots, color: palette.emerald, areaColor: palette.emeraldArea },
+    { ref: sparklineOrders, color: palette.amber, areaColor: palette.amberArea }
   ]
 
   configs.forEach(cfg => {
@@ -412,25 +412,25 @@ const updateSparklines = () => {
       ref: sparklineRevenue.value,
       data: (overview.value.recentRevenueSeries || []).map(item => Number(item || 0)),
       color: palette.blue,
-      areaColor: 'rgba(59, 130, 246, 0.16)'
+      areaColor: palette.blueArea
     },
     {
       ref: sparklineUsers.value,
       data: (overview.value.recentUserSeries || []).map(item => Number(item || 0)),
       color: palette.violet,
-      areaColor: 'rgba(139, 92, 246, 0.16)'
+      areaColor: palette.violetArea
     },
     {
       ref: sparklineSpots.value,
       data: (overview.value.recentSpotSeries || []).map(item => Number(item || 0)),
       color: palette.emerald,
-      areaColor: 'rgba(16, 185, 129, 0.16)'
+      areaColor: palette.emeraldArea
     },
     {
       ref: sparklineOrders.value,
       data: (overview.value.recentOrderSeries || []).map(item => Number(item || 0)),
       color: palette.amber,
-      areaColor: 'rgba(249, 115, 22, 0.16)'
+      areaColor: palette.amberArea
     }
   ]
 
@@ -620,8 +620,8 @@ const updateMainLineChart = (list) => {
         itemStyle: { color: palette.blue },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
-            { offset: 1, color: 'rgba(59, 130, 246, 0)' }
+            { offset: 0, color: palette.blueArea },
+            { offset: 1, color: 'transparent' }
           ])
         }
       },
@@ -825,17 +825,17 @@ onUnmounted(() => {
 .text-gray-800 { color: var(--wt-text-primary); }
 .text-gray-500 { color: var(--wt-text-regular); }
 .text-gray-400 { color: var(--wt-text-secondary); }
-.text-blue-600 { color: #2563eb; }
-.text-purple-600 { color: #7c3aed; }
-.text-emerald-600 { color: #059669; }
-.text-orange-600 { color: #ea580c; }
-.text-green-500 { color: #22c55e; }
-.text-red-500 { color: #ef4444; }
-.bg-blue-100 { background-color: #dbeafe; }
-.bg-purple-100 { background-color: #ede9fe; }
-.bg-emerald-100 { background-color: #d1fae5; }
-.bg-orange-100 { background-color: #ffedd5; }
-.bg-gray-50 { background-color: #f9fafb; }
+.text-blue-600 { color: var(--wt-accent-blue-text); }
+.text-purple-600 { color: var(--wt-accent-cyan-text); }
+.text-emerald-600 { color: var(--wt-accent-emerald-text); }
+.text-orange-600 { color: var(--wt-accent-amber-text); }
+.text-green-500 { color: var(--wt-accent-emerald-text); }
+.text-red-500 { color: var(--wt-accent-rose-text); }
+.bg-blue-100 { background-color: var(--wt-accent-blue-bg); }
+.bg-purple-100 { background-color: var(--wt-accent-cyan-bg); }
+.bg-emerald-100 { background-color: var(--wt-accent-emerald-bg); }
+.bg-orange-100 { background-color: var(--wt-accent-amber-bg); }
+.bg-gray-50 { background-color: var(--wt-surface-muted); }
 .border-none { border: none; }
 .border-0 { border: 0; }
 .rounded-lg { border-radius: 8px; }
@@ -860,10 +860,19 @@ onUnmounted(() => {
 }
 
 .trend-card {
+  position: relative;
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid var(--wt-border-default);
   background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+}
+
+.trend-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%);
 }
 
 .trend-card :deep(.el-card__body) {
@@ -871,19 +880,27 @@ onUnmounted(() => {
 }
 
 .tone-blue {
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.12) 0%, var(--wt-surface-elevated) 100%);
+  background:
+    radial-gradient(circle at top left, var(--wt-accent-blue-bg) 0%, transparent 48%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .tone-violet {
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.12) 0%, var(--wt-surface-elevated) 100%);
+  background:
+    radial-gradient(circle at top left, var(--wt-accent-cyan-bg) 0%, transparent 48%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .tone-emerald {
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, var(--wt-surface-elevated) 100%);
+  background:
+    radial-gradient(circle at top left, var(--wt-accent-emerald-bg) 0%, transparent 48%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .tone-amber {
-  background: linear-gradient(180deg, rgba(249, 115, 22, 0.12) 0%, var(--wt-surface-elevated) 100%);
+  background:
+    radial-gradient(circle at top left, var(--wt-accent-amber-bg) 0%, transparent 48%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .metric-label {
@@ -902,23 +919,23 @@ onUnmounted(() => {
 }
 
 .metric-icon.tone-blue {
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
+  background: var(--wt-accent-blue-bg);
+  color: var(--wt-accent-blue-text);
 }
 
 .metric-icon.tone-violet {
-  background: rgba(124, 58, 237, 0.1);
-  color: #7c3aed;
+  background: var(--wt-accent-cyan-bg);
+  color: var(--wt-accent-cyan-text);
 }
 
 .metric-icon.tone-emerald {
-  background: rgba(5, 150, 105, 0.1);
-  color: #059669;
+  background: var(--wt-accent-emerald-bg);
+  color: var(--wt-accent-emerald-text);
 }
 
 .metric-icon.tone-amber {
-  background: rgba(217, 119, 6, 0.1);
-  color: #d97706;
+  background: var(--wt-accent-amber-bg);
+  color: var(--wt-accent-amber-text);
 }
 
 .overview-panel {
@@ -988,9 +1005,7 @@ onUnmounted(() => {
 
 .today-overview-item {
   padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  border: 1px solid var(--wt-border-default);
+  min-height: 84px;
 }
 
 .overview-label {
@@ -1010,8 +1025,7 @@ onUnmounted(() => {
   grid-column: 1 / -1;
   padding: 12px 14px;
   border-radius: 14px;
-  background: rgba(37, 99, 235, 0.08);
-  color: #1d4ed8;
+  color: var(--wt-accent-blue-text);
   font-size: 12px;
   font-weight: 600;
 }
@@ -1029,18 +1043,8 @@ onUnmounted(() => {
   gap: 14px;
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid var(--wt-border-default);
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s ease;
-}
-
-.hot-spot-item:hover {
-  border-color: var(--el-color-primary-light-5);
-  transform: translateY(-1px);
-  box-shadow: var(--wt-shadow-soft);
 }
 
 .hot-spot-rank {
@@ -1058,18 +1062,18 @@ onUnmounted(() => {
 }
 
 .rank-1 {
-  color: #92400e;
-  background: #fef3c7;
+  color: var(--wt-accent-amber-text);
+  background: var(--wt-accent-amber-bg);
 }
 
 .rank-2 {
-  color: #374151;
-  background: #e5e7eb;
+  color: var(--wt-accent-muted-text);
+  background: var(--wt-accent-muted-bg);
 }
 
 .rank-3 {
-  color: #9a3412;
-  background: #fed7aa;
+  color: var(--wt-accent-cyan-text);
+  background: var(--wt-accent-cyan-bg);
 }
 
 .hot-spot-body {
@@ -1099,7 +1103,7 @@ onUnmounted(() => {
   flex: none;
   font-size: 13px;
   font-weight: 700;
-  color: #059669;
+  color: var(--wt-accent-emerald-text);
 }
 
 .hot-spot-meta {
@@ -1117,18 +1121,8 @@ onUnmounted(() => {
 
 .workbench-entry {
   padding: 18px;
-  border-radius: 18px;
-  border: 1px solid var(--wt-border-default);
-  background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   text-align: left;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.workbench-entry:hover {
-  transform: translateY(-2px);
-  border-color: var(--el-color-primary-light-5);
-  box-shadow: var(--wt-shadow-soft);
 }
 
 .workbench-entry-head {
@@ -1155,7 +1149,7 @@ onUnmounted(() => {
   margin-top: 14px;
   font-size: 12px;
   font-weight: 700;
-  color: #1d4ed8;
+  color: var(--wt-accent-blue-text);
 }
 
 .tips-list {
@@ -1165,9 +1159,6 @@ onUnmounted(() => {
 
 .tips-item {
   padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
-  border: 1px solid var(--wt-border-default);
 }
 
 .tips-title {

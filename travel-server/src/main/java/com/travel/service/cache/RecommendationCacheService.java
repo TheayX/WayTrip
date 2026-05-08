@@ -4,6 +4,7 @@ import com.travel.config.cache.AppCacheProperties;
 import com.travel.config.cache.RedisKeyManager;
 import com.travel.dto.banner.response.BannerResponse;
 import com.travel.dto.home.response.HotSpotResponse;
+import com.travel.dto.recommendation.cache.UserRecommendationCacheDTO;
 import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.config.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.config.RecommendationConfigBundleDTO;
@@ -67,23 +68,24 @@ public class RecommendationCacheService {
      * 获取指定用户的推荐结果缓存。
      *
      * @param userId 用户 ID
-     * @return 推荐结果缓存对象；通常为 {@code Map<Long, Double>}
+     * @return 推荐结果缓存对象；缓存不存在或结构不匹配时返回 null
      */
-    public Object getUserRecommendation(Long userId) {
-        return redisTemplate.opsForValue().get(RedisKeyManager.recommendationUser(userId));
+    public UserRecommendationCacheDTO getUserRecommendation(Long userId) {
+        Object cached = redisTemplate.opsForValue().get(RedisKeyManager.recommendationUser(userId));
+        return cached instanceof UserRecommendationCacheDTO recommendationCache ? recommendationCache : null;
     }
 
     /**
      * 保存用户推荐结果到 Redis。
      *
      * @param userId 用户 ID
-     * @param scores 推荐分数映射（景点 ID -> 分数）
+     * @param recommendationCache 推荐缓存对象
      * @param ttlMinutes 过期时间（分钟）
      */
-    public void saveUserRecommendation(Long userId, Map<Long, Double> scores, long ttlMinutes) {
+    public void saveUserRecommendation(Long userId, UserRecommendationCacheDTO recommendationCache, long ttlMinutes) {
         redisTemplate.opsForValue().set(
             RedisKeyManager.recommendationUser(userId),
-            scores,
+            recommendationCache,
             ttlMinutes,
             TimeUnit.MINUTES
         );

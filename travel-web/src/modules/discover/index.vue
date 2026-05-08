@@ -274,7 +274,7 @@ const {
   preferenceVisible,
   recommendType,
   fetchRecommendationList,
-  refreshRecommendationList,
+  rotateRecommendationList,
   openPreferenceDialog,
   savePreferences
 } = useRecommendationFeed(12)
@@ -486,8 +486,10 @@ const clearScene = () => {
 const handleRefresh = async () => {
   refreshing.value = true
   try {
-    await refreshRecommendationList()
-    ElMessage.success('推荐已刷新')
+    await rotateRecommendationList()
+    ElMessage.success('已换一批推荐')
+  } catch {
+    ElMessage.error('换一批失败，请稍后重试')
   } finally {
     refreshing.value = false
   }

@@ -14,17 +14,17 @@
 
     <div class="workspace-status-row">
       <div class="workspace-summary">
-        <el-card shadow="hover" class="workspace-summary-card">
+        <el-card shadow="hover" class="workspace-summary-card summary-card">
           <div class="summary-label">当前页面状态</div>
           <div class="summary-value">{{ pageStatusLabel }}</div>
           <div class="summary-desc">{{ pageStatusDesc }}</div>
         </el-card>
-        <el-card shadow="hover" class="workspace-summary-card">
+        <el-card shadow="hover" class="workspace-summary-card summary-card">
           <div class="summary-label">在线改动</div>
           <div class="summary-value">{{ immediateChangeSummary.count }}</div>
           <div class="summary-desc">保存后立即影响新推荐请求的参数项数量</div>
         </el-card>
-        <el-card shadow="hover" class="workspace-summary-card">
+        <el-card shadow="hover" class="workspace-summary-card summary-card">
           <div class="summary-label">离线矩阵改动</div>
           <div class="summary-value">{{ matrixChangeSummary.count }}</div>
           <div class="summary-desc">保存后仍需重建矩阵才能完全生效的参数项数量</div>
@@ -104,6 +104,8 @@
         :debug-items="debugItems"
         :debug-summary-cards="debugSummaryCards"
         :debug-info="debugInfo"
+        :rotate-switch-disabled="rotateSwitchDisabled"
+        :show-debug-pipeline="showDebugPipeline"
         :behavior-stats="behaviorStats"
         :behavior-details="behaviorDetails"
         :debug-insights="debugInsights"
@@ -114,6 +116,7 @@
         :top-debug-items="topDebugItems"
         :debug-output="debugOutput"
         :debug-table-rows="debugTableRows"
+        :preview-mode-tag-text="previewModeTagText"
         @update:active-preview-tab="activePreviewTab = $event"
         @preview-recommendations="handlePreviewRecommendations"
         @preview-similarity="handlePreviewSimilarity"
@@ -184,6 +187,8 @@ const {
   debugItems,
   debugSummaryCards,
   debugInfo,
+  rotateSwitchDisabled,
+  showDebugPipeline,
   behaviorStats,
   behaviorDetails,
   debugInsights,
@@ -194,6 +199,7 @@ const {
   topDebugItems,
   debugTableRows,
   recommendationTypeMeta,
+  previewModeTagText,
   handlePreviewRecommendations,
   handlePreviewSimilarity,
   handlePreviewSimilarityWithMatrixUpdate
@@ -274,8 +280,9 @@ onMounted(async () => {
   }
 
   .workspace-summary-card {
-    border-radius: 20px;
-    border: 1px solid var(--wt-border-default);
+    :deep(.el-card__body) {
+      padding: 16px 18px !important;
+    }
   }
 
   .summary-label {
@@ -313,11 +320,6 @@ onMounted(async () => {
   @media (max-width: 1200px) {
     .workspace-summary {
       grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .workspace-row {
     }
   }
 }

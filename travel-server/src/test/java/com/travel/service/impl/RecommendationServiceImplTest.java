@@ -2,7 +2,10 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.travel.dto.home.response.HotSpotResponse;
+import com.travel.dto.recommendation.cache.UserRecommendationCacheDTO;
+import com.travel.dto.recommendation.config.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
+import com.travel.dto.recommendation.config.RecommendationConfigBundleDTO;
 import com.travel.dto.recommendation.response.RecommendationResponse;
 import com.travel.entity.Order;
 import com.travel.entity.Review;
@@ -45,8 +48,12 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -232,8 +239,8 @@ class RecommendationServiceImplTest {
             4,
             false,
             false,
-            false,
-            null
+            null,
+            false
         );
 
         assertEquals("preference", response.getType());
@@ -269,8 +276,8 @@ class RecommendationServiceImplTest {
             4,
             false,
             false,
-            false,
-            null
+            null,
+            false
         );
 
         assertEquals("preference", response.getType());
@@ -285,7 +292,11 @@ class RecommendationServiceImplTest {
         Spot offlineSpot = buildSpot(302L, "下架景点", 10L);
         offlineSpot.setIsPublished(0);
 
-        when(recommendationCacheService.getUserRecommendation(1L)).thenReturn(Map.of(301L, 2.5D, 302L, 1.8D));
+        when(recommendationCacheService.getUserRecommendation(1L)).thenReturn(buildCachedRecommendation(
+            "personalized",
+            false,
+            List.of(cacheItem(301L, 2.5D), cacheItem(302L, 1.8D))
+        ));
         when(spotMapper.selectBatchIds(any())).thenReturn(List.of(publishedSpot, offlineSpot));
         mockCategoryAndRegionMaps();
 
@@ -303,7 +314,11 @@ class RecommendationServiceImplTest {
     void getRecommendations_usesCachedIdList_withoutScore() {
         Spot publishedSpot = buildSpot(401L, "缓存景点", 10L);
 
-        when(recommendationCacheService.getUserRecommendation(2L)).thenReturn(List.of(401L));
+        when(recommendationCacheService.getUserRecommendation(2L)).thenReturn(buildCachedRecommendation(
+            "personalized",
+            false,
+            List.of(cacheItem(401L, null))
+        ));
         when(spotMapper.selectBatchIds(any())).thenReturn(List.of(publishedSpot));
         mockCategoryAndRegionMaps();
 
@@ -313,6 +328,191 @@ class RecommendationServiceImplTest {
         assertEquals(1, response.getList().size());
         assertEquals(401L, response.getList().get(0).getId());
         assertNull(response.getList().get(0).getScore());
+    }
+
+    @Test
+    void rotateRecommendations_rotatesCachedResults_andWritesBackCache() {
+        Spot firstSpot = buildSpot(601L, "缓存景点1", 10L);
+        Spot secondSpot = buildSpot(602L, "缓存景点2", 10L);
+        Spot thirdSpot = buildSpot(603L, "缓存景点3", 10L);
+
+        when(recommendationCacheService.getUserRecommendation(3L)).thenReturn(buildCachedRecommendation(
+            "personalized",
+            false,
+            List.of(cacheItem(601L, 3.2D), cacheItem(602L, 2.4D), cacheItem(603L, 1.6D))
+        ));
+        when(recommendationCacheService.loadConfig()).thenReturn(defaultCacheConfig());
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(firstSpot, secondSpot, thirdSpot));
+        mockCategoryAndRegionMaps();
+
+        RecommendationResponse response = recommendationService.rotateRecommendations(3L, 3);
+
+        assertEquals(3, response.getList().size());
+        assertNotEquals(List.of(601L, 602L, 603L), response.getList().stream().map(RecommendationResponse.SpotItem::getId).toList());
+        verify(recommendationCacheService).saveUserRecommendation(
+            org.mockito.ArgumentMatchers.eq(3L),
+            argThat(cache -> cache != null
+                && "personalized".equals(cache.getType())
+                && cache.getItems() != null
+                && cache.getItems().size() == 3
+                && !cache.getItems().get(0).getSpotId().equals(601L)),
+            org.mockito.ArgumentMatchers.eq(60L)
+        );
+    }
+
+    @Test
+    void rotateRecommendations_initializesBaselineWhenCacheMissing() {
+        Spot hotSpot1 = buildSpot(801L, "热门景点1", 10L);
+        Spot hotSpot2 = buildSpot(802L, "热门景点2", 10L);
+        Spot hotSpot3 = buildSpot(803L, "热门景点3", 10L);
+
+        when(recommendationCacheService.getUserRecommendation(5L)).thenReturn(null);
+        when(recommendationCacheService.loadConfig()).thenReturn(defaultCacheConfig());
+        when(userSpotViewMapper.selectList(any())).thenReturn(List.of());
+        when(userSpotFavoriteMapper.selectList(any())).thenReturn(List.of());
+        when(reviewMapper.selectList(any())).thenReturn(List.of());
+        when(orderMapper.selectList(any())).thenReturn(List.of());
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+        when(recommendationCacheService.getHomeHotSpots(3)).thenReturn(null);
+        when(spotMapper.selectList(any())).thenReturn(List.of(hotSpot1, hotSpot2, hotSpot3));
+
+        RecommendationResponse response = recommendationService.rotateRecommendations(5L, 3);
+
+        assertEquals("hot", response.getType());
+        assertEquals(3, response.getList().size());
+        verify(recommendationCacheService, times(2)).saveUserRecommendation(
+            org.mockito.ArgumentMatchers.eq(5L),
+            argThat(cache -> cache != null && "hot".equals(cache.getType()) && cache.getItems().size() == 3),
+            org.mockito.ArgumentMatchers.eq(60L)
+        );
+    }
+
+    @Test
+    void recomputeRecommendations_bypassesExistingCache_andRebuildsResponse() {
+        Spot computedSpot = buildSpot(701L, "重算景点", 10L);
+
+        when(recommendationCacheService.loadConfig()).thenReturn(defaultCacheConfig());
+        when(userSpotViewMapper.selectList(any())).thenReturn(List.of());
+        when(userSpotFavoriteMapper.selectList(any())).thenReturn(List.of());
+        when(reviewMapper.selectList(any())).thenReturn(List.of());
+        when(orderMapper.selectList(any())).thenReturn(List.of());
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+        when(recommendationCacheService.getHomeHotSpots(2)).thenReturn(null);
+        when(spotMapper.selectList(any())).thenReturn(List.of(computedSpot));
+
+        RecommendationResponse response = recommendationService.recomputeRecommendations(4L, 2);
+
+        assertEquals("hot", response.getType());
+        assertEquals(1, response.getList().size());
+        verify(recommendationCacheService).saveUserRecommendation(
+            org.mockito.ArgumentMatchers.eq(4L),
+            argThat(cache -> cache != null && "hot".equals(cache.getType()) && cache.getItems().size() == 1),
+            org.mockito.ArgumentMatchers.eq(60L)
+        );
+    }
+
+    @Test
+    void previewRecommendations_cacheMode_returnsCachedResultWithMinimalDebugInfo() {
+        Spot publishedSpot = buildSpot(901L, "缓存景点", 10L);
+
+        when(recommendationCacheService.getUserRecommendation(6L)).thenReturn(buildCachedRecommendation(
+            "personalized",
+            false,
+            List.of(cacheItem(901L, 2.8D))
+        ));
+        when(userMapper.selectById(6L)).thenReturn(buildUser(6L, "测试用户"));
+        when(spotMapper.selectBatchIds(any())).thenReturn(List.of(publishedSpot));
+        mockCategoryAndRegionMaps();
+
+        RecommendationResponse response = recommendationService.previewRecommendations(6L, 6, "cache", false, false, true);
+
+        assertEquals("personalized", response.getType());
+        assertNotNull(response.getDebugInfo());
+        assertEquals("cache", response.getDebugInfo().getMode());
+        assertEquals("命中当前推荐缓存", response.getDebugInfo().getTriggerReason());
+        assertEquals("cache", response.getDebugInfo().getExtra().get("resultSource"));
+        verify(userSpotViewMapper, never()).selectList(any());
+    }
+
+    @Test
+    void previewRecommendations_latestMode_returnsDebugInfoWithoutWritingCache() {
+        Spot computedSpot = buildSpot(1001L, "重算景点", 10L);
+
+        when(recommendationCacheService.loadConfig()).thenReturn(defaultCacheConfig());
+        when(userMapper.selectById(7L)).thenReturn(buildUser(7L, "调试用户"));
+        when(userSpotViewMapper.selectList(any())).thenReturn(List.of());
+        when(userSpotFavoriteMapper.selectList(any())).thenReturn(List.of());
+        when(reviewMapper.selectList(any())).thenReturn(List.of());
+        when(orderMapper.selectList(any())).thenReturn(List.of());
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+        when(recommendationCacheService.getHomeHotSpots(2)).thenReturn(null);
+        when(spotMapper.selectList(any())).thenReturn(List.of(computedSpot));
+
+        RecommendationResponse response = recommendationService.previewRecommendations(7L, 2, "latest", false, false, true);
+
+        assertEquals("hot", response.getType());
+        assertNotNull(response.getDebugInfo());
+        assertEquals("latest", response.getDebugInfo().getMode());
+        assertEquals("latest", response.getDebugInfo().getExtra().get("resultSource"));
+        verify(recommendationCacheService, never()).saveUserRecommendation(
+            org.mockito.ArgumentMatchers.eq(7L),
+            any(),
+            org.mockito.ArgumentMatchers.eq(60L)
+        );
+    }
+
+    @Test
+    void previewRecommendations_latestMode_canWriteCacheAndRotate() {
+        Spot hotSpot1 = buildSpot(1101L, "热门景点1", 10L);
+        Spot hotSpot2 = buildSpot(1102L, "热门景点2", 10L);
+        Spot hotSpot3 = buildSpot(1103L, "热门景点3", 10L);
+
+        when(recommendationCacheService.loadConfig()).thenReturn(defaultCacheConfig());
+        when(userMapper.selectById(8L)).thenReturn(buildUser(8L, "轮换用户"));
+        when(userSpotViewMapper.selectList(any())).thenReturn(List.of());
+        when(userSpotFavoriteMapper.selectList(any())).thenReturn(List.of());
+        when(reviewMapper.selectList(any())).thenReturn(List.of());
+        when(orderMapper.selectList(any())).thenReturn(List.of());
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+        when(recommendationCacheService.getHomeHotSpots(2)).thenReturn(null);
+        when(spotMapper.selectList(any())).thenReturn(List.of(hotSpot1, hotSpot2, hotSpot3));
+
+        RecommendationResponse response = recommendationService.previewRecommendations(8L, 2, "latest", true, true, true);
+
+        assertEquals("hot", response.getType());
+        assertNotNull(response.getDebugInfo());
+        assertEquals("latest", response.getDebugInfo().getMode());
+        assertEquals(Boolean.TRUE, response.getDebugInfo().getExtra().get("cacheWritten"));
+        assertEquals(Boolean.TRUE, response.getDebugInfo().getExtra().get("rotationApplied"));
+        verify(recommendationCacheService).saveUserRecommendation(
+            org.mockito.ArgumentMatchers.eq(8L),
+            argThat(cache -> cache != null && "hot".equals(cache.getType()) && cache.getItems().size() == 2),
+            org.mockito.ArgumentMatchers.eq(60L)
+        );
+    }
+
+    @Test
+    void previewRecommendations_cacheMode_fallsBackToLatestWhenCacheMissing() {
+        Spot computedSpot = buildSpot(1201L, "最新景点", 10L);
+
+        when(recommendationCacheService.getUserRecommendation(9L)).thenReturn(null);
+        when(recommendationCacheService.loadConfig()).thenReturn(defaultCacheConfig());
+        when(userMapper.selectById(9L)).thenReturn(buildUser(9L, "缺缓存用户"));
+        when(userSpotViewMapper.selectList(any())).thenReturn(List.of());
+        when(userSpotFavoriteMapper.selectList(any())).thenReturn(List.of());
+        when(reviewMapper.selectList(any())).thenReturn(List.of());
+        when(orderMapper.selectList(any())).thenReturn(List.of());
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+        when(recommendationCacheService.getHomeHotSpots(2)).thenReturn(null);
+        when(spotMapper.selectList(any())).thenReturn(List.of(computedSpot));
+
+        RecommendationResponse response = recommendationService.previewRecommendations(9L, 2, "cache", false, true, true);
+
+        assertEquals("hot", response.getType());
+        assertNotNull(response.getDebugInfo());
+        assertEquals("当前无缓存，改为预览最新结果", response.getDebugInfo().getTriggerReason());
+        assertEquals("latest", response.getDebugInfo().getExtra().get("resultSource"));
+        assertEquals(Boolean.FALSE, response.getDebugInfo().getExtra().get("rotationApplied"));
     }
 
     @Test
@@ -371,5 +571,37 @@ class RecommendationServiceImplTest {
 
         when(categoryMapper.selectList(any())).thenReturn(List.of(category));
         when(spotRegionMapper.selectList(any())).thenReturn(List.of(region));
+    }
+
+    private UserRecommendationCacheDTO buildCachedRecommendation(String type, boolean needPreference, List<UserRecommendationCacheDTO.CacheItem> items) {
+        UserRecommendationCacheDTO cache = new UserRecommendationCacheDTO();
+        cache.setType(type);
+        cache.setNeedPreference(needPreference);
+        cache.setItems(items);
+        return cache;
+    }
+
+    private UserRecommendationCacheDTO.CacheItem cacheItem(Long spotId, Double score) {
+        UserRecommendationCacheDTO.CacheItem item = new UserRecommendationCacheDTO.CacheItem();
+        item.setSpotId(spotId);
+        item.setScore(score);
+        return item;
+    }
+
+    private RecommendationConfigBundleDTO defaultCacheConfig() {
+        RecommendationConfigBundleDTO config = RecommendationConfigBundleDTO.defaultConfig();
+        RecommendationCacheConfigDTO cacheConfig = new RecommendationCacheConfigDTO();
+        cacheConfig.setUserRecTTLMinutes(60);
+        cacheConfig.setSimilarityTTLHours(24);
+        config.setCache(cacheConfig);
+        return config;
+    }
+
+    private User buildUser(Long id, String nickname) {
+        User user = new User();
+        user.setId(id);
+        user.setNickname(nickname);
+        user.setIsDeleted(0);
+        return user;
     }
 }

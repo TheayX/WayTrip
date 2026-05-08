@@ -186,7 +186,7 @@ const emit = defineEmits(['update:visible', 'complete', 'refund', 'cancel', 'reo
 }
 
 .price-large {
-  color: #dc2626;
+  color: var(--wt-accent-rose-text);
   font-size: 24px;
   font-weight: 700;
 }

@@ -32,34 +32,34 @@
 
     <!-- 状态卡片 -->
     <div v-loading="loading" class="hero-grid">
-      <el-card shadow="hover" class="hero-card hero-card-engine">
+      <div class="hero-card hero-card-engine">
         <div class="hero-card-content">
           <div class="hero-label">引擎状态</div>
           <div class="hero-value">{{ status.computing ? '计算中' : '就绪' }}</div>
           <div class="hero-desc">当前推荐引擎的计算状态与可用性</div>
         </div>
-      </el-card>
-      <el-card shadow="hover" class="hero-card hero-card-time">
+      </div>
+      <div class="hero-card hero-card-time">
         <div class="hero-card-content">
           <div class="hero-label">上次更新</div>
           <div class="hero-value hero-value-sm">{{ status.lastUpdateTime || '暂无记录' }}</div>
           <div class="hero-desc">最近一次矩阵更新或配置生效时间</div>
         </div>
-      </el-card>
-      <el-card shadow="hover" class="hero-card hero-card-users">
+      </div>
+      <div class="hero-card hero-card-users">
         <div class="hero-card-content">
           <div class="hero-label">覆盖用户</div>
           <div class="hero-value">{{ status.totalUsers ?? '-' }}</div>
           <div class="hero-desc">进入推荐链路的用户规模</div>
         </div>
-      </el-card>
-      <el-card shadow="hover" class="hero-card hero-card-spots">
+      </div>
+      <div class="hero-card hero-card-spots">
         <div class="hero-card-content">
           <div class="hero-label">覆盖景点</div>
           <div class="hero-value">{{ status.totalSpots ?? '-' }}</div>
           <div class="hero-desc">当前参与推荐计算的景点数量</div>
         </div>
-      </el-card>
+      </div>
     </div>
 
     <el-row v-loading="loading" :gutter="24" class="content-row">
@@ -76,16 +76,16 @@
             <div
               v-for="item in entryCards"
               :key="item.title"
-              class="entry-card"
+              class="entry-card feature-panel feature-panel--interactive"
               :class="item.tone"
               @click="goTo(item.path)"
             >
-              <div class="entry-head">
-                <div class="entry-title">{{ item.title }}</div>
+              <div class="entry-head feature-panel-head">
+                <div class="entry-title feature-panel-title--strong">{{ item.title }}</div>
                 <el-tag size="small" effect="plain" :type="item.tagType" round>{{ item.tag }}</el-tag>
               </div>
-              <div class="entry-desc">{{ item.desc }}</div>
-              <div class="entry-action">进入 {{ item.action }}</div>
+              <div class="entry-desc feature-panel-sub">{{ item.desc }}</div>
+              <div class="entry-action feature-panel-action">进入 {{ item.action }}</div>
             </div>
           </div>
         </el-card>
@@ -99,24 +99,24 @@
           </template>
 
           <div class="summary-grid">
-            <div class="summary-panel">
-              <div class="summary-title">最新收藏</div>
-              <div class="summary-main">{{ latestFavorite.spotName || '暂无数据' }}</div>
-              <div class="summary-sub">
+            <div class="feature-panel">
+              <div class="feature-panel-title">最新收藏</div>
+              <div class="feature-panel-main">{{ latestFavorite.spotName || '暂无数据' }}</div>
+              <div class="feature-panel-sub">
                 {{ latestFavorite.displayNickname ? `${latestFavorite.displayNickname} 收藏于 ${latestFavorite.createdAt}` : '可从这里快速回看显式偏好行为' }}
               </div>
             </div>
-            <div class="summary-panel">
-              <div class="summary-title">最新浏览</div>
-              <div class="summary-main">{{ latestView.spotName || '暂无数据' }}</div>
-              <div class="summary-sub">
+            <div class="feature-panel">
+              <div class="feature-panel-title">最新浏览</div>
+              <div class="feature-panel-main">{{ latestView.spotName || '暂无数据' }}</div>
+              <div class="feature-panel-sub">
                 {{ latestView.displayNickname ? `${latestView.displayNickname} 来自 ${latestView.sourceLabel}，浏览于 ${latestView.createdAt}` : '可从这里快速观察最新流量入口' }}
               </div>
             </div>
-            <div class="summary-panel">
-              <div class="summary-title">高频偏好</div>
-              <div class="summary-main">{{ latestPreference.tag || '暂无数据' }}</div>
-              <div class="summary-sub">
+            <div class="feature-panel">
+              <div class="feature-panel-title">高频偏好</div>
+              <div class="feature-panel-main">{{ latestPreference.tag || '暂无数据' }}</div>
+              <div class="feature-panel-sub">
                 {{ latestPreference.displayNickname ? `${latestPreference.displayNickname} 的画像最近一次更新时间为 ${latestPreference.updatedAt || '暂无'}` : '可从这里快速观察当前画像标签' }}
               </div>
             </div>
@@ -132,10 +132,10 @@
           </template>
 
           <div class="journey-grid">
-            <div v-for="item in journeySteps" :key="item.title" class="journey-step">
-              <div class="journey-index">{{ item.index }}</div>
-              <div class="journey-title">{{ item.title }}</div>
-              <div class="journey-desc">{{ item.desc }}</div>
+            <div v-for="item in journeySteps" :key="item.title" class="journey-step feature-panel">
+              <div class="journey-index feature-badge">{{ item.index }}</div>
+              <div class="journey-title feature-panel-title--strong">{{ item.title }}</div>
+              <div class="journey-desc feature-panel-sub">{{ item.desc }}</div>
             </div>
           </div>
         </el-card>
@@ -151,9 +151,9 @@
           </template>
 
           <div class="tips-list">
-            <div v-for="item in tips" :key="item.title" class="tips-item">
-              <div class="tips-title">{{ item.title }}</div>
-              <div class="tips-desc">{{ item.desc }}</div>
+            <div v-for="item in tips" :key="item.title" class="tips-item feature-panel feature-panel--soft">
+              <div class="tips-title feature-panel-title">{{ item.title }}</div>
+              <div class="tips-desc feature-panel-sub">{{ item.desc }}</div>
             </div>
           </div>
         </el-card>
@@ -401,18 +401,14 @@ onMounted(async () => {
   }
 
   .hero-card {
-    border: none;
-
-    :deep(.el-card__body) {
-      padding: 0 !important;
-    }
+    height: 100%;
   }
 
   .hero-card-content {
     position: relative;
     overflow: hidden;
     padding: 20px;
-    color: #fff;
+    color: var(--wt-text-primary);
     border-radius: 20px;
     height: 100%;
     min-height: 152px;
@@ -420,6 +416,11 @@ onMounted(async () => {
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
+    border: 1px solid var(--wt-border-default);
+    background:
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 
     &::after {
       content: '';
@@ -433,20 +434,38 @@ onMounted(async () => {
     }
   }
 
+  .hero-card:hover .hero-card-content {
+    transform: translateY(-4px);
+    box-shadow: var(--wt-shadow-soft);
+    border-color: var(--el-color-primary-light-7);
+  }
+
   .hero-card-engine .hero-card-content {
-    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.16) 0%, transparent 42%),
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .hero-card-time .hero-card-content {
-    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.18) 0%, transparent 42%),
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .hero-card-users .hero-card-content {
-    background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+    background:
+      radial-gradient(circle at top left, rgba(148, 163, 184, 0.14) 0%, transparent 42%),
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .hero-card-spots .hero-card-content {
-    background: linear-gradient(135deg, #9f1239 0%, #e11d48 100%);
+    background:
+      radial-gradient(circle at top left, rgba(251, 191, 36, 0.16) 0%, transparent 42%),
+      radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .hero-label {
@@ -474,9 +493,6 @@ onMounted(async () => {
     opacity: 0.9;
   }
 
-  .content-row {
-  }
-
   .entry-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -485,15 +501,6 @@ onMounted(async () => {
 
   .entry-card {
     padding: 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--wt-shadow-soft);
-    }
   }
 
   .entry-card.tone-config {
@@ -512,70 +519,10 @@ onMounted(async () => {
     background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, color-mix(in srgb, var(--wt-tag-info-bg) 55%, var(--wt-surface-muted)) 100%);
   }
 
-  .entry-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .entry-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .entry-desc {
-    margin-top: 10px;
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
-  }
-
-  .entry-action {
-    margin-top: 14px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #245bdb;
-  }
-
-  .journey-card {
-  }
-
-  .summary-card {
-  }
-
   .summary-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
-  }
-
-  .summary-panel {
-    padding: 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
-
-  .summary-title {
-    font-size: 13px;
-    color: var(--wt-text-secondary);
-  }
-
-  .summary-main {
-    margin-top: 10px;
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 1.35;
-    color: var(--wt-text-primary);
-  }
-
-  .summary-sub {
-    margin-top: 10px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
   }
 
   .journey-grid {
@@ -585,39 +532,10 @@ onMounted(async () => {
 
   .journey-step {
     padding: 16px 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
-
-  .journey-index {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #1677ff 0%, #69b1ff 100%);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
   }
 
   .journey-title {
     margin-top: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .journey-desc {
-    margin-top: 8px;
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
-  }
-
-  .panel-card + .panel-card {
   }
 
   .tips-list {
@@ -627,22 +545,6 @@ onMounted(async () => {
 
   .tips-item {
     padding: 14px 16px;
-    border-radius: 12px;
-    background: var(--wt-surface-muted);
-    border: 1px solid var(--wt-border-default);
-  }
-
-  .tips-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .tips-desc {
-    margin-top: 8px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
   }
 
   .quick-actions {

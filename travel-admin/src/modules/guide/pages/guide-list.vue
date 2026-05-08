@@ -693,17 +693,6 @@ watch(
   gap: 20px;
 }
 
-.hero-left {
-  flex: 1;
-}
-
-.subtitle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
-}
-
 .view-count-dialog-body {
   display: flex;
   flex-direction: column;
@@ -765,12 +754,6 @@ watch(
 
   td {
     background-color: var(--el-color-primary-light-9) !important;
-  }
-}
-
-@media (max-width: 960px) {
-  .hero-actions-stack {
-    align-items: stretch;
   }
 }
 </style>

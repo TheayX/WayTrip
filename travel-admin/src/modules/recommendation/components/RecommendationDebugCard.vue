@@ -4,7 +4,7 @@
     <template #header>
       <div class="card-header">
         <div class="title-section">
-          <span class="title">预览与调试</span>
+          <span class="title panel-title-accent">预览与调试</span>
           <el-tag effect="plain" type="warning" round>预览区</el-tag>
         </div>
       </div>
@@ -22,16 +22,25 @@
             <el-input-number v-model="debugForm.limit" :min="1" :max="20" :step="1" controls-position="right" />
           </div>
           <div class="debug-field">
-            <span class="debug-label">结果来源</span>
-            <el-switch v-model="debugForm.refresh" inline-prompt active-text="刷新" inactive-text="缓存" />
+            <span class="debug-label">预览模式</span>
+            <el-radio-group v-model="debugForm.mode" size="small">
+              <el-radio-button label="cache">缓存结果</el-radio-button>
+              <el-radio-button label="latest">预览最新结果</el-radio-button>
+            </el-radio-group>
           </div>
           <div class="debug-field">
-            <span class="debug-label">后端日志</span>
-            <el-switch v-model="debugForm.debug" inline-prompt active-text="控制台日志" inactive-text="静默" />
+            <span class="debug-label">写入缓存</span>
+            <el-switch v-model="debugForm.writeCache" inline-prompt active-text="写缓存" inactive-text="只预览" />
           </div>
           <div class="debug-field">
-            <span class="debug-label">稳定模式</span>
-            <el-switch v-model="debugForm.stable" inline-prompt active-text="稳定" inactive-text="轮换" />
+            <span class="debug-label">轮换调试</span>
+            <el-switch
+              v-model="debugForm.rotate"
+              :disabled="rotateSwitchDisabled"
+              inline-prompt
+              active-text="换一批"
+              inactive-text="稳定"
+            />
           </div>
           <el-button type="primary" :loading="previewing" @click="emit('preview-recommendations')">
             调试预览
@@ -47,14 +56,16 @@
             {{ debugResult.needPreference ? '需要补充偏好设置' : '无需偏好引导' }}
           </el-tag>
           <el-tag size="small" type="primary">返回 {{ debugItems.length }} 条</el-tag>
-          <el-tag size="small" type="info">{{ debugForm.refresh ? '本次强制刷新' : '本次优先读取缓存' }}</el-tag>
+          <el-tag size="small" type="info">
+            {{ previewModeTagText }}
+          </el-tag>
         </div>
 
         <div v-if="debugResult" class="debug-summary">
           <div class="debug-summary-grid">
-            <div v-for="card in debugSummaryCards" :key="card.label" class="summary-card">
+            <div v-for="card in debugSummaryCards" :key="card.label" class="summary-card summary-card--compact">
               <div class="summary-label">{{ card.label }}</div>
-              <div class="summary-value">{{ card.value }}</div>
+              <div class="summary-value summary-value--accent">{{ card.value }}</div>
               <div class="summary-desc">{{ card.desc }}</div>
             </div>
           </div>
@@ -71,27 +82,38 @@
           {{ recommendationTypeMeta.description }}
         </el-alert>
 
-        <div v-if="debugInfo" class="debug-pipeline">
+        <div v-if="showDebugPipeline" class="debug-pipeline">
           <div class="debug-block-title">后端调试链路</div>
           <div class="pipeline-grid">
-            <div class="pipeline-card">
+            <div class="pipeline-card feature-panel feature-panel--warning">
               <div class="pipeline-label">触发原因</div>
               <div class="pipeline-value">{{ debugInfo.triggerReason || '未返回' }}</div>
             </div>
-            <div class="pipeline-card">
+            <div class="pipeline-card feature-panel feature-panel--warning">
               <div class="pipeline-label">交互景点数</div>
               <div class="pipeline-value">{{ debugInfo.interactionCount ?? 0 }}</div>
             </div>
-            <div class="pipeline-card">
+            <div class="pipeline-card feature-panel feature-panel--warning">
               <div class="pipeline-label">原始候选数</div>
               <div class="pipeline-value">{{ debugInfo.candidateCount ?? 0 }}</div>
             </div>
-            <div class="pipeline-card">
+            <div class="pipeline-card feature-panel feature-panel--warning">
               <div class="pipeline-label">过滤后候选数</div>
               <div class="pipeline-value">{{ debugInfo.filteredCount ?? 0 }}</div>
             </div>
           </div>
         </div>
+
+        <el-alert
+          v-else-if="debugInfo"
+          class="debug-conclusion"
+          type="info"
+          :closable="false"
+          show-icon
+          title="当前为缓存结果"
+        >
+          缓存结果更适合核对当前顺序与轮换后的缓存状态，不包含实时重算产生的行为统计、候选分数和结果贡献链路。
+        </el-alert>
 
         <div v-if="behaviorStats.length" class="debug-sections">
           <div class="debug-block-title">行为来源统计</div>
@@ -133,7 +155,7 @@
         <div v-if="debugInsights.length" class="debug-insights">
           <div class="debug-block-title">结果解读</div>
           <div class="insight-list">
-            <div v-for="(insight, index) in compactDebugInsights" :key="`${index}-${insight}`" class="insight-item">
+            <div v-for="(insight, index) in compactDebugInsights" :key="`${index}-${insight}`" class="insight-item feature-panel feature-panel--warning">
               {{ insight }}
             </div>
           </div>
@@ -142,7 +164,7 @@
         <div v-if="debugNotes.length" class="debug-insights">
           <div class="debug-block-title">后端备注</div>
           <div class="insight-list insight-list--plain">
-            <div v-for="(note, index) in debugNotes" :key="`${index}-${note}`" class="insight-item insight-item--blue">
+            <div v-for="(note, index) in debugNotes" :key="`${index}-${note}`" class="insight-item insight-item--blue feature-panel feature-panel--info">
               {{ note }}
             </div>
           </div>
@@ -181,7 +203,7 @@
         <div v-if="debugItems.length" class="debug-top-results">
           <div class="debug-block-title">Top 结果速览</div>
           <div class="top-result-list">
-            <div v-for="item in topDebugItems" :key="item.id" class="top-result-card">
+            <div v-for="item in topDebugItems" :key="item.id" class="top-result-card feature-panel">
               <div class="top-result-rank">#{{ item.rank }}</div>
               <div class="top-result-main">
                 <div class="top-result-name">{{ item.name }}</div>
@@ -228,7 +250,7 @@
           <div class="debug-block-title">原始摘要</div>
           <el-collapse>
             <el-collapse-item name="raw-debug" title="查看请求与响应摘要">
-              <div class="debug-output debug-output--compact">
+              <div class="debug-output debug-output--compact panel-code-block">
                 <pre>{{ debugOutput }}</pre>
               </div>
             </el-collapse-item>
@@ -297,19 +319,19 @@
 
         <div v-if="similarityResult" class="debug-summary">
           <div class="debug-summary-grid debug-summary-grid--triple">
-            <div class="summary-card">
+            <div class="summary-card summary-card--compact">
               <div class="summary-label">目标景点</div>
-              <div class="summary-value summary-value--sm">{{ similarityResult.spotName || '-' }}</div>
+              <div class="summary-value summary-value--sm summary-value--accent">{{ similarityResult.spotName || '-' }}</div>
               <div class="summary-desc">景点 ID：{{ similarityResult.spotId }}</div>
             </div>
-            <div class="summary-card">
+            <div class="summary-card summary-card--compact">
               <div class="summary-label">可用邻居数</div>
-              <div class="summary-value">{{ similarityResult.totalNeighbors ?? 0 }}</div>
+              <div class="summary-value summary-value--accent">{{ similarityResult.totalNeighbors ?? 0 }}</div>
               <div class="summary-desc">当前从 Redis 相似度矩阵读取</div>
             </div>
-            <div class="summary-card">
+            <div class="summary-card summary-card--compact">
               <div class="summary-label">矩阵更新时间</div>
-              <div class="summary-value summary-value--sm">{{ similarityResult.lastUpdateTime || '暂无记录' }}</div>
+              <div class="summary-value summary-value--sm summary-value--accent">{{ similarityResult.lastUpdateTime || '暂无记录' }}</div>
               <div class="summary-desc">用于确认预览的矩阵版本</div>
             </div>
           </div>
@@ -351,6 +373,8 @@ defineProps({
   debugItems: { type: Array, required: true },
   debugSummaryCards: { type: Array, required: true },
   debugInfo: { type: Object, default: null },
+  rotateSwitchDisabled: { type: Boolean, required: true },
+  showDebugPipeline: { type: Boolean, required: true },
   behaviorStats: { type: Array, required: true },
   behaviorDetails: { type: Array, required: true },
   debugInsights: { type: Array, required: true },
@@ -360,7 +384,8 @@ defineProps({
   resultContributions: { type: Array, required: true },
   topDebugItems: { type: Array, required: true },
   debugOutput: { type: String, required: true },
-  debugTableRows: { type: Array, required: true }
+  debugTableRows: { type: Array, required: true },
+  previewModeTagText: { type: String, required: true }
 })
 
 const emit = defineEmits([
@@ -391,10 +416,7 @@ defineExpose({
 }
 .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
 .title-section { display: flex; align-items: center; gap: 12px; }
-.title {
-  font-size: 16px; font-weight: 600; color: var(--wt-text-primary); position: relative; padding-left: 12px;
-  &::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 16px; background: var(--el-color-primary); border-radius: 2px; }
-}
+.title { font-size: 16px; }
 .preview-tabs :deep(.el-tabs__header) { margin-bottom: 18px; }
 .preview-tabs :deep(.el-tabs__nav-wrap::after) { background-color: var(--wt-border-soft); }
 .preview-tabs :deep(.el-tabs__item) { font-weight: 600; }
@@ -403,28 +425,21 @@ defineExpose({
 .debug-label { font-size: 13px; color: var(--wt-text-regular); white-space: nowrap; }
 .preview-action-group { display: flex; align-items: center; }
 .cache-preview-button { border-color: var(--wt-border-default); background: var(--wt-surface-muted); color: var(--wt-text-regular); }
-.update-preview-button { border-color: #ff6b18; background: linear-gradient(135deg, #ff7a1a 0%, #ff5a14 100%); color: #fff; font-weight: 600; box-shadow: 0 8px 18px rgba(255, 107, 24, 0.2); }
+.update-preview-button { border-color: color-mix(in srgb, var(--wt-accent-amber-text) 60%, var(--wt-border-default)); background: var(--wt-accent-gradient-amber); color: #fff; font-weight: 600; box-shadow: 0 8px 18px color-mix(in srgb, var(--wt-accent-amber-text) 20%, transparent); }
 .debug-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .debug-summary { margin-bottom: 16px; }
 .debug-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .debug-summary-grid--triple { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.summary-card { padding: 18px; border-radius: 18px; background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%); border: 1px solid var(--wt-border-default); }
-.summary-label { margin-bottom: 8px; font-size: 12px; color: var(--wt-text-secondary); }
-.summary-value { font-size: 24px; font-weight: 700; color: #1d4ed8; line-height: 1.2; }
+.summary-label { margin-bottom: 8px; }
+.summary-value { line-height: 1.2; }
 .summary-value--sm { font-size: 18px; line-height: 1.4; }
-.summary-desc { margin-top: 8px; font-size: 12px; line-height: 1.6; color: var(--wt-text-regular); }
+.summary-desc { margin-top: 8px; line-height: 1.6; }
 .debug-conclusion, .debug-insights, .debug-top-results, .debug-pipeline, .debug-sections { margin-bottom: 16px; }
 .behavior-alert { margin-bottom: 12px; }
 .pipeline-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .pipeline-card {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 74%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 48%, var(--wt-surface-muted)) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
 }
 .pipeline-label { font-size: 12px; color: color-mix(in srgb, var(--wt-tag-warning-text) 82%, var(--wt-text-secondary)); }
 .pipeline-value { margin-top: 8px; font-size: 18px; font-weight: 700; line-height: 1.5; color: color-mix(in srgb, var(--wt-tag-warning-text) 92%, var(--wt-text-primary)); }
@@ -434,58 +449,44 @@ defineExpose({
 .insight-item {
   padding: 14px 16px;
   border-radius: 14px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 72%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 46%, var(--wt-surface-muted)) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--wt-tag-warning-text) 20%, var(--wt-border-default));
   color: color-mix(in srgb, var(--wt-tag-warning-text) 88%, var(--wt-text-primary));
   line-height: 1.7;
   font-size: 13px;
 }
 .insight-item--blue {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-info-bg) 74%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-info-bg) 48%, var(--wt-surface-muted)) 100%
-  );
-  border-color: color-mix(in srgb, var(--wt-tag-info-text) 20%, var(--wt-border-default));
   color: color-mix(in srgb, var(--wt-tag-info-text) 86%, var(--wt-text-primary));
 }
 .top-result-list { display: grid; gap: 12px; }
-.top-result-card { display: grid; grid-template-columns: 72px minmax(0, 1fr) 150px; align-items: center; gap: 14px; padding: 18px; border-radius: 18px; background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%); border: 1px solid var(--wt-border-default); }
-.top-result-rank { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; background: linear-gradient(135deg, #1677ff 0%, #69b1ff 100%); color: #fff; font-size: 18px; font-weight: 700; }
+.top-result-card { display: grid; grid-template-columns: 72px minmax(0, 1fr) 150px; align-items: center; gap: 14px; padding: 18px; border-radius: 18px; }
+.top-result-rank { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; background: var(--wt-accent-gradient-blue); color: #fff; font-size: 18px; font-weight: 700; }
 .top-result-name { font-size: 16px; font-weight: 700; color: var(--wt-text-primary); }
 .top-result-meta { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--wt-text-secondary); }
 .top-result-score { text-align: right; }
 .score-label { font-size: 12px; color: var(--wt-text-secondary); }
-.score-value { margin-top: 6px; font-family: 'Consolas', 'Menlo', monospace; font-size: 22px; font-weight: 700; color: #1677ff; }
-.score-value--empty { color: #9ca3af; }
-.debug-output { margin-bottom: 16px; padding: 16px 18px; background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%); border: 1px solid var(--wt-border-soft); border-radius: 16px; }
+.score-value { margin-top: 6px; font-family: 'Consolas', 'Menlo', monospace; font-size: 22px; font-weight: 700; color: var(--wt-accent-blue-text); }
+.score-value--empty { color: var(--wt-text-secondary); }
 .debug-output--compact { margin-bottom: 0; }
-.debug-output pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 13px; line-height: 1.7; color: var(--wt-text-regular); font-family: 'Consolas', 'Menlo', monospace; }
 .debug-table { margin-top: 8px; }
-.score-text { font-family: 'Consolas', 'Menlo', monospace; color: #1677ff; font-weight: 600; }
-.score-empty { color: #bfbfbf; }
+.score-text { font-family: 'Consolas', 'Menlo', monospace; color: var(--wt-accent-blue-text); font-weight: 600; }
+.score-empty { color: var(--wt-text-secondary); }
 
 .highlight-interactions-section :deep(.el-collapse-item__header) {
-  color: #ff6b18;
+  color: var(--wt-accent-amber-text);
   font-weight: 700;
-  background: linear-gradient(90deg, rgba(255, 107, 24, 0.08) 0%, transparent 100%);
+  background: linear-gradient(90deg, var(--wt-accent-amber-bg) 0%, transparent 100%);
   padding-left: 12px;
-  border-left: 3px solid #ff6b18;
+  border-left: 3px solid var(--wt-accent-amber-text);
 }
 .highlight-interactions-table {
-  border: 1px solid rgba(255, 107, 24, 0.2);
+  border: 1px solid color-mix(in srgb, var(--wt-accent-amber-text) 22%, var(--wt-border-default));
   border-radius: 8px;
   overflow: hidden;
 }
 :deep(.highlight-number) {
-  color: #ff6b18;
+  color: var(--wt-accent-amber-text);
   font-family: 'Consolas', 'Menlo', monospace;
   font-weight: 700;
-  background: rgba(255, 107, 24, 0.1);
+  background: var(--wt-accent-amber-bg);
   padding: 0 4px;
   border-radius: 4px;
   margin: 0 2px;

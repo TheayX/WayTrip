@@ -114,10 +114,32 @@ onBeforeUnmount(() => {
 :deep(.w-e-text) {
   padding: 12px 14px !important;
   line-height: 1.8;
-  color: var(--wt-text-regular);
+  color: var(--wt-text-primary);
 }
 
 :deep(.w-e-menu) {
   z-index: 11 !important;
+  color: var(--wt-text-regular);
+}
+
+:deep(.w-e-menu:hover) {
+  background: var(--wt-fill-hover);
+  color: var(--el-color-primary);
+}
+
+:deep(.w-e-toolbar) {
+  background: var(--wt-surface-muted) !important;
+  border-color: var(--wt-border-default) !important;
+}
+
+:deep(.w-e-text-container),
+:deep(.w-e-panel-container) {
+  border-color: var(--wt-border-default) !important;
+}
+
+:deep(.w-e-panel-container) {
+  background: var(--wt-surface-elevated) !important;
+  color: var(--wt-text-regular);
+  box-shadow: var(--wt-shadow-float);
 }
 </style>

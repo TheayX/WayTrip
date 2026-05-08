@@ -3,12 +3,12 @@
   <!-- 状态卡片 -->
   <el-row :gutter="24" class="status-row">
     <el-col :span="6">
-      <el-card shadow="hover" class="status-card" :body-style="{ padding: '0px' }">
+      <div class="status-card">
         <div class="status-card-content engine-bg">
           <div class="status-info">
             <div class="status-label">引擎状态</div>
             <div class="status-value">
-              <el-tag :type="status.computing ? 'warning' : 'success'" effect="dark" round>
+              <el-tag :type="status.computing ? 'warning' : 'success'" effect="light" round>
                 {{ status.computing ? '计算中...' : '就绪' }}
               </el-tag>
             </div>
@@ -17,11 +17,11 @@
             <el-icon><Cpu /></el-icon>
           </div>
         </div>
-      </el-card>
+      </div>
     </el-col>
 
     <el-col :span="6">
-      <el-card shadow="hover" class="status-card" :body-style="{ padding: '0px' }">
+      <div class="status-card">
         <div class="status-card-content time-bg">
           <div class="status-info">
             <div class="status-label">上次更新</div>
@@ -31,11 +31,11 @@
             <el-icon><Timer /></el-icon>
           </div>
         </div>
-      </el-card>
+      </div>
     </el-col>
 
     <el-col :span="6">
-      <el-card shadow="hover" class="status-card" :body-style="{ padding: '0px' }">
+      <div class="status-card">
         <div class="status-card-content users-bg">
           <div class="status-info">
             <div class="status-label">覆盖用户</div>
@@ -45,11 +45,11 @@
             <el-icon><User /></el-icon>
           </div>
         </div>
-      </el-card>
+      </div>
     </el-col>
 
     <el-col :span="6">
-      <el-card shadow="hover" class="status-card" :body-style="{ padding: '0px' }">
+      <div class="status-card">
         <div class="status-card-content spots-bg">
           <div class="status-info">
             <div class="status-label">覆盖景点</div>
@@ -59,7 +59,7 @@
             <el-icon><Location /></el-icon>
           </div>
         </div>
-      </el-card>
+      </div>
     </el-col>
   </el-row>
 </template>
@@ -80,20 +80,7 @@ defineProps({
 
 <style lang="scss" scoped>
 .status-card {
-  border-radius: 20px;
-  border: none;
-  transition: all 0.3s;
-  background: transparent;
-  overflow: hidden;
-
-  :deep(.el-card__body) {
-    padding: 0 !important;
-  }
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--wt-shadow-soft) !important;
-  }
+  height: 100%;
 }
 
 .status-card-content {
@@ -102,11 +89,16 @@ defineProps({
   align-items: center;
   padding: 24px;
   border-radius: 20px;
-  color: #fff;
+  color: var(--wt-text-primary);
   position: relative;
   overflow: hidden;
   min-height: 136px;
   box-sizing: border-box;
+  border: 1px solid var(--wt-border-default);
+  background:
+    radial-gradient(circle at top right, var(--wt-overlay-bg) 0%, transparent 44%),
+    linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 
   &::after {
     content: '';
@@ -119,10 +111,35 @@ defineProps({
     border-radius: 50%;
   }
 
-  &.engine-bg { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); }
-  &.time-bg { background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%); }
-  &.users-bg { background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%); }
-  &.spots-bg { background: linear-gradient(135deg, #9f1239 0%, #e11d48 100%); }
+  &.engine-bg {
+    background:
+      radial-gradient(circle at top right, rgba(34, 211, 238, 0.16) 0%, transparent 42%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
+
+  &.time-bg {
+    background:
+      radial-gradient(circle at top right, rgba(96, 165, 250, 0.18) 0%, transparent 42%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
+
+  &.users-bg {
+    background:
+      radial-gradient(circle at top right, rgba(148, 163, 184, 0.14) 0%, transparent 42%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
+
+  &.spots-bg {
+    background:
+      radial-gradient(circle at top right, rgba(251, 191, 36, 0.16) 0%, transparent 42%),
+      linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
+  }
+}
+
+.status-card:hover .status-card-content {
+  transform: translateY(-4px);
+  box-shadow: var(--wt-shadow-soft);
+  border-color: var(--el-color-primary-light-7);
 }
 
 .status-info {
@@ -150,9 +167,10 @@ defineProps({
 
 .status-icon {
   font-size: 56px;
-  opacity: 0.8;
+  opacity: 0.72;
   z-index: 1;
   transition: transform 0.3s;
+  color: var(--wt-text-secondary);
 }
 
 .status-card:hover .status-icon {

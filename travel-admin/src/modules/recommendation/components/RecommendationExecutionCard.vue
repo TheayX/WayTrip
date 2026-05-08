@@ -4,25 +4,28 @@
     <template #header>
       <div class="card-header">
         <div class="title-section">
-          <span class="title">执行区</span>
+          <span class="title panel-title-accent">执行区</span>
           <el-tag effect="plain" type="warning" round>先保存，再重建矩阵</el-tag>
         </div>
       </div>
     </template>
 
     <div class="execution-stack">
-      <div class="execution-intro">
+      <div class="execution-intro feature-panel feature-panel--warning">
         配置修改会立即影响新的推荐请求；相似度矩阵只有在手动更新或定时任务执行后，才会按新参数重算。
       </div>
 
-      <div class="execution-brief">
+      <div class="execution-brief feature-panel feature-panel--soft">
         <div class="execution-brief-title">执行建议</div>
         <div class="execution-brief-text">
           修改交互权重、浏览行为修正、近邻数量 K、相似度矩阵 TTL 后，保存配置还不够，还需要手动重建相似度矩阵；热度同步权重、在线候选和用户缓存参数保存后会直接影响新请求。
         </div>
       </div>
 
-      <div class="matrix-action-callout" :class="{ pending: matrixChangeSummary.needsRebuild }">
+      <div
+        class="matrix-action-callout feature-panel feature-panel--success"
+        :class="{ pending: matrixChangeSummary.needsRebuild, 'feature-panel--warning': matrixChangeSummary.needsRebuild }"
+      >
         <div class="matrix-action-title">
           <span>重建相似度矩阵</span>
           <el-tag
@@ -48,24 +51,24 @@
           <el-icon><Check /></el-icon>
           保存配置
         </el-button>
-        <el-button color="#722ed1" @click="emit('update-matrix')" :loading="updatingMatrix" round>
+        <el-button class="matrix-button" @click="emit('update-matrix')" :loading="updatingMatrix" round>
           <el-icon><Refresh /></el-icon>
           重建相似度矩阵
         </el-button>
       </div>
 
       <div class="execution-grid">
-        <div class="execution-metric">
+        <div class="execution-metric feature-panel">
           <div class="execution-metric-label">推荐缓存 TTL</div>
           <div class="execution-metric-value">{{ config.cache.userRecTTLMinutes }} 分钟</div>
           <div class="execution-metric-desc">用户推荐结果缓存时长</div>
         </div>
-        <div class="execution-metric">
+        <div class="execution-metric feature-panel">
           <div class="execution-metric-label">矩阵缓存 TTL</div>
           <div class="execution-metric-value">{{ config.cache.similarityTTLHours }} 小时</div>
           <div class="execution-metric-desc">景点相似度矩阵缓存时长</div>
         </div>
-        <div class="execution-metric">
+        <div class="execution-metric feature-panel">
           <div class="execution-metric-label">当前矩阵覆盖</div>
           <div class="execution-metric-value">{{ status.totalSpots ?? '-' }} 个景点</div>
           <div class="execution-metric-desc">最近一次离线矩阵计算涉及的景点数量</div>
@@ -73,11 +76,11 @@
       </div>
 
       <div class="execution-notes">
-        <div class="execution-note">
+        <div class="execution-note feature-panel feature-panel--soft">
           <div class="execution-note-title">推荐链路</div>
           <div class="execution-note-text">行为权重决定候选分数，热度同步权重影响热门排序和最终轻量重排。</div>
         </div>
-        <div class="execution-note">
+        <div class="execution-note feature-panel feature-panel--soft">
           <div class="execution-note-title">缓存链路</div>
           <div class="execution-note-text">推荐结果和相似度矩阵都在 Redis 中缓存，但更新节奏不同。</div>
         </div>
@@ -137,25 +140,7 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
   gap: 12px;
 }
 
-.title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--wt-text-primary);
-  position: relative;
-  padding-left: 12px;
-
-    &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 16px;
-      background: var(--el-color-primary);
-      border-radius: 2px;
-    }
-}
+.title { font-size: 16px; }
 
 .execution-stack {
   display: grid;
@@ -165,12 +150,6 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .execution-intro {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 72%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 48%, var(--wt-surface-muted)) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
   color: color-mix(in srgb, var(--wt-tag-warning-text) 88%, var(--wt-text-primary));
   line-height: 1.7;
   font-size: 13px;
@@ -179,8 +158,6 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .execution-brief {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  border: 1px solid var(--wt-border-default);
 }
 
 .execution-brief-title {
@@ -199,21 +176,6 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .matrix-action-callout {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-success-bg) 72%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-success-bg) 48%, var(--wt-surface-muted)) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--wt-tag-success-text) 18%, var(--wt-border-default));
-}
-
-.matrix-action-callout.pending {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 74%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--wt-tag-warning-bg) 52%, var(--wt-surface-muted)) 100%
-  );
-  border-color: color-mix(in srgb, var(--wt-tag-warning-text) 22%, var(--wt-border-default));
 }
 
 .matrix-action-title {
@@ -243,6 +205,17 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
   margin-left: 0;
 }
 
+.execution-actions .matrix-button {
+  border-color: color-mix(in srgb, var(--wt-accent-cyan-text) 28%, var(--wt-border-default));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--wt-accent-cyan-bg) 72%, var(--wt-surface-elevated)) 0%,
+    color-mix(in srgb, var(--wt-accent-cyan-bg) 42%, var(--wt-surface-muted)) 100%
+  );
+  color: var(--wt-accent-cyan-text);
+  font-weight: 600;
+}
+
 .execution-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -252,12 +225,6 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .execution-metric {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--el-color-primary-light-9) 56%, var(--wt-surface-elevated)) 0%,
-    color-mix(in srgb, var(--el-color-primary-light-9) 34%, var(--wt-surface-muted)) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--el-color-primary) 14%, var(--wt-border-default));
 }
 
 .execution-metric-label {
@@ -288,8 +255,6 @@ const emit = defineEmits(['reset-config', 'save-config', 'update-matrix'])
 .execution-note {
   padding: 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  border: 1px solid var(--wt-border-default);
 }
 
 .execution-note-title {

@@ -60,7 +60,7 @@ public class RecommendationResponse {
         private Long userId;
         private String userNickname;
         private Integer requestLimit;
-        private Boolean refresh;
+        private String mode;
         private Boolean debugEnabled;
         private String triggerReason;
         private Integer interactionCount;

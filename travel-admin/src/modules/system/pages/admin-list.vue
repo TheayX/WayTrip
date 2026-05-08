@@ -429,38 +429,4 @@ onMounted(() => {
   flex-direction: column;
   gap: 20px;
 }
-
-.hero-left {
-  flex: 1;
-}
-
-.subtitle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
-}
-
-.hero-secondary-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.admin-table {
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-:deep(.admin-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-
-:deep(.admin-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
-}
-
 </style>

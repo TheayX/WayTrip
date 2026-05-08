@@ -415,17 +415,6 @@ onMounted(() => {
   gap: 20px;
 }
 
-.hero-left {
-  flex: 1;
-}
-
-.hero-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-end;
-}
-
 .hero-action-btn {
   margin-left: 0 !important;
 }
@@ -433,13 +422,6 @@ onMounted(() => {
 .hero-action-btn-add {
   position: relative;
   top: 32px;
-}
-
-.subtitle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
 }
 
 .summary-grid {
@@ -459,7 +441,8 @@ onMounted(() => {
   width: 160px;
   height: 80px;
   border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--wt-border-default);
+  box-shadow: var(--wt-shadow-soft);
 }
 
 .banner-status {
@@ -467,15 +450,6 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-}
-
-.text-muted {
-  color: var(--wt-text-secondary);
-}
-
-.banner-table {
-  border-radius: 18px;
-  overflow: hidden;
 }
 
 .management-card :deep(.banner-table) {
@@ -490,17 +464,6 @@ onMounted(() => {
   width: 100%;
 }
 
-:deep(.banner-table th.el-table__cell) {
-  background: var(--wt-fill-hover);
-  color: var(--wt-text-secondary);
-  font-weight: 600;
-}
-
-
-:deep(.banner-table .el-table__row:hover > td.el-table__cell) {
-  background: var(--wt-row-gradient-hover) !important;
-}
-
 .upload-container {
   .image-uploader {
     :deep(.el-upload) {
@@ -509,7 +472,8 @@ onMounted(() => {
       cursor: pointer;
       overflow: hidden;
       transition: all 0.3s;
-      &:hover { border-color: var(--el-color-primary); background: var(--wt-fill-hover); }
+      background: var(--wt-surface-muted);
+      &:hover { border-color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
     }
   }
   .uploaded-image {
@@ -524,6 +488,7 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     color: var(--wt-text-secondary);
+    background: var(--wt-surface-muted);
     .el-icon { font-size: 28px; margin-bottom: 8px; }
     span { font-size: 12px; }
   }
@@ -532,12 +497,6 @@ onMounted(() => {
     color: var(--wt-text-secondary);
     margin-top: 8px;
   }
-}
-.form-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--wt-text-secondary);
 }
 
 .spot-name-cell {
@@ -573,5 +532,4 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 }
-
 </style>

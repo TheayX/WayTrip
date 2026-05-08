@@ -49,10 +49,19 @@ export const getRecommendations = (limit = 10) => {
 }
 
 /**
- * 刷新个性推荐
+ * 轮换个性推荐
  * @param limit
  * @returns {*}
  */
-export const refreshRecommendations = (limit = 10) => {
-  return post('/recommendations/refresh', null, { params: { limit } })
+export const rotateRecommendations = (limit = 10) => {
+  return post('/recommendations/rotate', null, { params: { limit } })
+}
+
+/**
+ * 重算个性推荐
+ * @param limit
+ * @returns {*}
+ */
+export const recomputeRecommendations = (limit = 10) => {
+  return post('/recommendations/recompute', null, { params: { limit } })
 }

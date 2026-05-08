@@ -143,7 +143,7 @@ const containsHtml = (content) => /<[^>]+>/.test(content || '')
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 
   &.published {
-    color: #16a34a;
+    color: var(--wt-accent-emerald-text);
   }
 
   &.unpublished {

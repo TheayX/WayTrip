@@ -216,6 +216,10 @@ defineExpose({
     padding: 0;
     overflow: hidden;
   }
+
+  :deep(.el-drawer__header) {
+    flex: none;
+  }
 }
 
 .flex { display: flex; }
@@ -278,7 +282,7 @@ defineExpose({
 
   &.active {
     border-color: var(--el-color-primary);
-    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.08);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--el-color-primary) 14%, transparent);
   }
 }
 
@@ -340,7 +344,7 @@ defineExpose({
 
   :deep(.el-input__wrapper),
   :deep(.el-textarea__inner) {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 0 0 1px var(--el-input-border-color) inset !important;
   }
 }
 
@@ -405,8 +409,8 @@ defineExpose({
     .hover-mask {
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      color: white;
+      background: color-mix(in srgb, var(--wt-overlay-bg) 72%, transparent);
+      color: var(--wt-text-primary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -444,6 +448,12 @@ defineExpose({
     font-size: 12px;
     color: var(--wt-text-secondary);
   }
+}
+
+.drawer-footer {
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--wt-surface-page) 18%, transparent);
 }
 
 @media (max-width: 960px) {
