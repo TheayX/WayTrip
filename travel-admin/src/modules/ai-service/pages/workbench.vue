@@ -569,7 +569,8 @@ onMounted(() => {
   .preview-hit-card__snippet {
     padding: 14px 16px;
     border-radius: 12px;
-    background: var(--wt-overlay-bg);
+    border: 1px solid var(--wt-border-soft);
+    background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
     white-space: pre-wrap;
   }
 

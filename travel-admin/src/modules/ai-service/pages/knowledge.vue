@@ -293,7 +293,7 @@
           <el-table-column prop="updatedAt" label="更新时间" width="180" align="center" />
           <el-table-column label="操作" width="280" fixed="right" align="left" header-align="center">
             <template #default="{ row }">
-              <div class="table-actions">
+              <div class="table-actions table-actions--start">
                 <el-button link type="primary" @click="handleView(row)">查看</el-button>
                 <el-button link type="warning" @click="handleEdit(row)">编辑</el-button>
                 <el-button
@@ -1042,6 +1042,10 @@ onMounted(() => {
   .table-actions {
     flex-wrap: wrap;
     gap: 0 10px;
+  }
+
+  .table-actions--start {
+    justify-content: flex-start;
   }
 
   .form-w-220 {

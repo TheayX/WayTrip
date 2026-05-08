@@ -501,7 +501,7 @@ onMounted(() => {
 
     .el-button {
       margin-left: 0;
-      justify-content: center;
+      justify-content: flex-start;
     }
   }
 

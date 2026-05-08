@@ -109,7 +109,9 @@ const emit = defineEmits(['update:visible'])
   gap: 20px;
 }
 
-  .detail-hero { padding: 20px; }
+.detail-hero {
+  padding: 20px;
+}
 
 .detail-hero__header,
 .detail-stats,
@@ -132,32 +134,32 @@ const emit = defineEmits(['update:visible'])
 .detail-kicker {
   margin: 0 0 6px;
   font-size: 12px;
-  opacity: 0.86;
+  color: var(--wt-text-secondary);
 }
 
-  .detail-title {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
+.detail-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--wt-text-primary);
+}
 
 .detail-stats {
   margin-top: 18px;
 }
 
-  .detail-stat-card {
-    flex: 1;
-    min-width: 0;
-    padding: 14px 16px;
-  }
+.detail-stat-card {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+}
 
-  .detail-stat-label {
-    display: block;
-    font-size: 12px;
-    color: var(--wt-text-secondary);
-    margin-bottom: 6px;
-  }
+.detail-stat-label {
+  display: block;
+  font-size: 12px;
+  color: var(--wt-text-secondary);
+  margin-bottom: 6px;
+}
 
 .detail-section {
   display: flex;
@@ -165,18 +167,22 @@ const emit = defineEmits(['update:visible'])
   gap: 12px;
 }
 
-  .section-title { margin: 0; }
+.section-title {
+  margin: 0;
+}
 
-  .section-title--plain {
-    padding-left: 12px;
-  }
+.section-title--plain {
+  padding-left: 12px;
+}
 
 .section-hint {
   font-size: 12px;
   color: var(--wt-text-secondary);
 }
 
-  .content-panel { margin-bottom: 0; }
+.content-panel {
+  margin-bottom: 0;
+}
 
 .chunk-list {
   display: flex;
@@ -184,7 +190,9 @@ const emit = defineEmits(['update:visible'])
   gap: 12px;
 }
 
-  .chunk-card { padding: 14px 16px; }
+.chunk-card {
+  padding: 14px 16px;
+}
 
 .chunk-index {
   font-size: 13px;
@@ -200,6 +208,10 @@ const emit = defineEmits(['update:visible'])
 
 .chunk-card__body {
   margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--wt-border-soft);
+  background: linear-gradient(180deg, var(--wt-surface-muted) 0%, var(--wt-surface-elevated) 100%);
   color: var(--wt-text-regular);
   line-height: 1.75;
   white-space: pre-wrap;
