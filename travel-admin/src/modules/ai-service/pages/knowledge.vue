@@ -14,22 +14,22 @@
     </section>
 
     <section class="summary-grid">
-      <el-card shadow="hover" class="summary-card summary-card--teal">
+      <el-card shadow="hover" class="summary-card">
         <div class="summary-label">文档总数</div>
         <div class="summary-value">{{ summaryMetrics.total }}</div>
         <div class="summary-desc">当前知识库中已接入的文档总量</div>
       </el-card>
-      <el-card shadow="hover" class="summary-card summary-card--blue">
+      <el-card shadow="hover" class="summary-card">
         <div class="summary-label">启用文档</div>
         <div class="summary-value">{{ summaryMetrics.enabled }}</div>
         <div class="summary-desc">当前允许被 AI 检索引用的文档数量</div>
       </el-card>
-      <el-card shadow="hover" class="summary-card summary-card--purple">
+      <el-card shadow="hover" class="summary-card">
         <div class="summary-label">分片总数</div>
         <div class="summary-value">{{ summaryMetrics.totalChunks }}</div>
         <div class="summary-desc">所有文档拆分后的知识分片累计规模</div>
       </el-card>
-      <el-card shadow="hover" class="summary-card summary-card--rose">
+      <el-card shadow="hover" class="summary-card">
         <div class="summary-label">筛选结果</div>
         <div class="summary-value">{{ filteredDocuments.length }}</div>
         <div class="summary-desc">符合当前筛选条件的知识文档数量</div>
@@ -61,27 +61,27 @@
           />
 
           <div class="status-overview">
-            <div class="status-chip" :class="{ 'status-chip--active': vectorStatus.ragEnabled }">
+            <div class="status-chip feature-panel" :class="{ 'feature-panel--success': vectorStatus.ragEnabled }">
               <span class="status-chip__label">RAG</span>
               <strong>{{ vectorStatus.ragEnabled ? '已启用' : '未启用' }}</strong>
             </div>
-            <div class="status-chip" :class="{ 'status-chip--warn': vectorStatus.needsRebuild }">
+            <div class="status-chip feature-panel" :class="{ 'feature-panel--warning': vectorStatus.needsRebuild }">
               <span class="status-chip__label">检索状态</span>
               <strong>{{ vectorStatus.retrievalReady ? '可检索' : vectorStatus.needsRebuild ? '需重建' : '未就绪' }}</strong>
             </div>
-            <div class="status-chip" :class="{ 'status-chip--warn': vectorStatus.mixedProviderMode }">
+            <div class="status-chip feature-panel" :class="{ 'feature-panel--warning': vectorStatus.mixedProviderMode }">
               <span class="status-chip__label">模型模式</span>
               <strong>{{ vectorStatus.mixedProviderMode ? '双模型混用' : '单模型统一' }}</strong>
             </div>
-            <div class="status-chip">
+            <div class="status-chip feature-panel feature-panel--soft">
               <span class="status-chip__label">Redis 索引</span>
               <strong>{{ vectorStatus.indexName || '--' }}</strong>
             </div>
           </div>
 
           <div class="status-detail-grid">
-            <div class="status-panel">
-              <div class="status-panel__title">模型链路</div>
+            <div class="status-panel feature-panel feature-panel--soft">
+              <div class="panel-title-accent">模型链路</div>
               <div class="status-kv-list">
                 <div class="status-kv-item">
                   <span>聊天 Provider</span>
@@ -102,8 +102,8 @@
               </div>
             </div>
 
-            <div class="status-panel">
-              <div class="status-panel__title">Redis 与索引</div>
+            <div class="status-panel feature-panel feature-panel--soft">
+              <div class="panel-title-accent">Redis 与索引</div>
               <div class="status-kv-list">
                 <div class="status-kv-item">
                   <span>主机</span>
@@ -126,19 +126,19 @@
           </div>
 
           <div class="status-metrics-grid">
-            <div class="status-metric status-metric--slate">
+            <div class="status-metric feature-panel feature-panel--soft">
               <span class="status-metric__label">总分片</span>
               <strong class="status-metric__value">{{ vectorStatus.totalChunkCount || 0 }}</strong>
             </div>
-            <div class="status-metric status-metric--amber">
+            <div class="status-metric feature-panel feature-panel--warning">
               <span class="status-metric__label">待向量化</span>
               <strong class="status-metric__value">{{ vectorStatus.pendingChunkCount || 0 }}</strong>
             </div>
-            <div class="status-metric status-metric--emerald">
+            <div class="status-metric feature-panel feature-panel--success">
               <span class="status-metric__label">已完成</span>
               <strong class="status-metric__value">{{ vectorStatus.completedChunkCount || 0 }}</strong>
             </div>
-            <div class="status-metric status-metric--rose">
+            <div class="status-metric feature-panel feature-panel--info">
               <span class="status-metric__label">失败分片</span>
               <strong class="status-metric__value">{{ vectorStatus.failedChunkCount || 0 }}</strong>
             </div>
@@ -154,7 +154,7 @@
         </template>
 
         <div class="danger-panel">
-          <div class="danger-panel__intro">
+          <div class="danger-panel__intro feature-panel feature-panel--warning">
             <div class="danger-panel__title">切换 embedding 模型后，从这里统一维护向量索引</div>
             <div class="danger-panel__desc">
               清空只会重置当前知识向量数据；清空并重建会按当前启用文档与当前向量模型重新入库，避免 Redis 维度残留。
@@ -187,7 +187,7 @@
             </el-button>
           </div>
 
-          <div class="maintenance-feedback" v-if="maintenanceSummary.message">
+          <div class="maintenance-feedback feature-panel feature-panel--soft" v-if="maintenanceSummary.message">
             <div class="maintenance-feedback__title">最近一次维护结果</div>
             <div class="maintenance-feedback__message">{{ maintenanceSummary.message }}</div>
             <div class="maintenance-feedback__meta">
@@ -210,7 +210,7 @@
         </div>
       </template>
 
-      <el-form :model="filters" inline class="search-form" @submit.prevent>
+      <el-form :model="filters" inline class="search-form admin-filter-bar" @submit.prevent>
         <el-form-item label="关键词">
           <el-input
             v-model="filters.keyword"
@@ -240,7 +240,7 @@
       </el-form>
 
       <div class="domain-overview">
-        <div v-for="item in domainSummaryList" :key="item.domain" class="domain-overview__item">
+        <div v-for="item in domainSummaryList" :key="item.domain" class="domain-overview__item feature-panel feature-panel--soft">
           <div class="domain-overview__title">{{ item.label }}</div>
           <div class="domain-overview__meta">{{ item.enabledCount }}/{{ item.totalCount }} 启用 · {{ item.totalChunkCount }} 分片</div>
         </div>
@@ -258,7 +258,7 @@
         <el-table
           :data="filteredDocuments"
           v-loading="loading"
-          class="knowledge-table"
+          class="knowledge-table admin-table"
           empty-text="当前条件下暂无知识文档"
         >
           <el-table-column prop="title" label="文档标题" min-width="220" show-overflow-tooltip>
@@ -850,68 +850,11 @@ onMounted(() => {
   }
 
   .summary-grid {
-    display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
   }
 
   .summary-card {
-    border: none;
-
-    :deep(.el-card__body) {
-      padding: 0 !important;
-    }
-  }
-
-
-  .summary-card :deep(.el-card__body) {
-    border-radius: 20px;
-  }
-
-  .summary-card--teal :deep(.el-card__body) {
-    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
-  }
-
-  .summary-card--blue :deep(.el-card__body) {
-    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
-  }
-
-  .summary-card--purple :deep(.el-card__body) {
-    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-  }
-
-  .summary-card--rose :deep(.el-card__body) {
-    background: linear-gradient(135deg, #be123c 0%, #fb7185 100%);
-  }
-
-  .summary-label,
-  .summary-value,
-  .summary-desc {
-    color: #fff;
-  }
-
-  .summary-label {
-    font-size: 12px;
-    opacity: 0.88;
-  }
-
-  .summary-value {
-    margin-top: 10px;
-    font-size: 26px;
-    font-weight: 700;
-  }
-
-  .summary-desc {
-    margin-top: 10px;
-    font-size: 12px;
-    line-height: 1.7;
-    opacity: 0.92;
-  }
-
-  .summary-card :deep(.el-card__body) {
-    padding: 20px !important;
     min-height: 150px;
-    box-sizing: border-box;
   }
 
   .management-card {
@@ -964,14 +907,6 @@ onMounted(() => {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .status-chip,
-  .status-panel,
-  .status-metric,
-  .maintenance-feedback {
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
-
   .status-chip {
     display: flex;
     flex-direction: column;
@@ -988,25 +923,11 @@ onMounted(() => {
   }
 
   .status-chip__label,
-  .status-panel__title,
   .maintenance-feedback__title {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.04em;
     color: var(--wt-text-secondary);
-  }
-
-  .status-chip--active {
-    border-color: color-mix(in srgb, #22c55e 35%, var(--wt-border-default));
-  }
-
-  .status-chip--warn {
-    border-color: color-mix(in srgb, #f59e0b 35%, var(--wt-border-default));
-  }
-
-  .status-panel {
-    padding: 16px;
-    border-radius: 16px;
   }
 
   .status-kv-list {
@@ -1035,11 +956,6 @@ onMounted(() => {
     font-size: 12px;
   }
 
-  .status-metric {
-    padding: 14px 16px;
-    border-radius: 16px;
-  }
-
   .status-metric__label {
     font-size: 12px;
     color: var(--wt-text-secondary);
@@ -1051,42 +967,6 @@ onMounted(() => {
     font-size: 24px;
     font-weight: 700;
     color: var(--wt-text-primary);
-  }
-
-  .status-metric--slate {
-    background: linear-gradient(135deg, color-mix(in srgb, #0f172a 90%, white) 0%, color-mix(in srgb, #334155 88%, white) 100%);
-
-    .status-metric__label,
-    .status-metric__value {
-      color: #f8fafc;
-    }
-  }
-
-  .status-metric--amber {
-    background: linear-gradient(135deg, #92400e 0%, #f59e0b 100%);
-
-    .status-metric__label,
-    .status-metric__value {
-      color: #fff;
-    }
-  }
-
-  .status-metric--emerald {
-    background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
-
-    .status-metric__label,
-    .status-metric__value {
-      color: #fff;
-    }
-  }
-
-  .status-metric--rose {
-    background: linear-gradient(135deg, #9f1239 0%, #f43f5e 100%);
-
-    .status-metric__label,
-    .status-metric__value {
-      color: #fff;
-    }
   }
 
   .danger-panel {
@@ -1118,11 +998,6 @@ onMounted(() => {
     }
   }
 
-  .maintenance-feedback {
-    padding: 16px;
-    border-radius: 16px;
-  }
-
   .maintenance-feedback__meta {
     display: flex;
     flex-wrap: wrap;
@@ -1138,9 +1013,6 @@ onMounted(() => {
 
   .domain-overview__item {
     padding: 14px 16px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .domain-overview__title {

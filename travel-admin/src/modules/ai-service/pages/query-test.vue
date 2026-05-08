@@ -14,7 +14,7 @@
 
     <el-row :gutter="24" class="content-row">
       <el-col :xl="9" :lg="10" :md="24">
-        <el-card shadow="hover" class="panel-card query-form-card">
+        <el-card shadow="hover" class="panel-card admin-management-card query-form-card">
           <template #header>
             <div class="card-header">
               <span>测试条件</span>
@@ -40,7 +40,7 @@
               </el-select>
             </el-form-item>
 
-            <div class="scenario-hint">
+            <div class="scenario-hint feature-panel feature-panel--soft">
               <div class="scenario-hint__label">当前知识域</div>
               <div class="scenario-hint__value">{{ selectedScenarioDomainLabel }}</div>
             </div>
@@ -66,7 +66,7 @@
       </el-col>
 
       <el-col :xl="15" :lg="14" :md="24">
-        <el-card shadow="hover" class="panel-card result-card" v-loading="previewing">
+        <el-card shadow="hover" class="panel-card admin-management-card result-card" v-loading="previewing">
           <template #header>
             <div class="card-header">
               <span>命中结果</span>
@@ -91,27 +91,26 @@
           />
           <div v-else class="result-panel">
             <div class="result-summary-grid">
-              <div class="result-summary-item">
+              <div class="result-summary-item feature-panel feature-panel--soft">
                 <div class="result-summary-item__label">命中知识域</div>
                 <div class="result-summary-item__value">{{ activeDomainLabel }}</div>
               </div>
-              <div class="result-summary-item">
+              <div class="result-summary-item feature-panel feature-panel--primary">
                 <div class="result-summary-item__label">命中数量</div>
                 <div class="result-summary-item__value">{{ result.hitCount }}</div>
               </div>
             </div>
 
-            <div class="result-query-card">
+            <div class="result-query-card feature-panel feature-panel--soft">
               <div class="result-query-card__label">查询内容</div>
               <div class="result-query-card__value">{{ result.query || form.query.trim() }}</div>
             </div>
 
             <div class="hit-list">
-              <el-card
+              <div
                 v-for="item in resultHits"
                 :key="`${item.documentId}-${item.chunkId}`"
-                shadow="hover"
-                class="hit-card"
+                class="hit-card feature-panel feature-panel--soft"
               >
                 <div class="hit-card__head">
                   <div>
@@ -132,7 +131,7 @@
                 </div>
 
                 <div class="hit-card__snippet">{{ item.snippet || '暂无片段内容' }}</div>
-              </el-card>
+              </div>
             </div>
           </div>
         </el-card>
@@ -225,10 +224,6 @@ const handlePreview = async () => {
 
   .scenario-hint {
     margin: 2px 0 18px;
-    padding: 14px 16px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .scenario-hint__value {
@@ -259,14 +254,6 @@ const handlePreview = async () => {
     gap: 16px;
   }
 
-  .result-summary-item,
-  .result-query-card,
-  .hit-card {
-    border-radius: 16px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
-
   .result-summary-item {
     padding: 18px;
   }
@@ -294,13 +281,9 @@ const handlePreview = async () => {
   }
 
   .hit-card {
-    overflow: hidden;
-
-    :deep(.el-card__body) {
-      display: grid;
-      gap: 14px;
-      padding: 18px;
-    }
+    display: grid;
+    gap: 14px;
+    padding: 18px;
   }
 
   .hit-card__head {

@@ -22,24 +22,24 @@
     />
 
     <section class="summary-grid">
-      <el-card shadow="hover" class="summary-card summary-card--teal">
+      <el-card shadow="hover" class="summary-card">
         <div class="summary-label">场景总数</div>
         <div class="summary-value">{{ summaryMetrics.total }}</div>
         <div class="summary-desc">当前一期接入的 AI 服务场景总量</div>
       </el-card>
-      <el-card shadow="hover" class="summary-card summary-card--blue">
+      <el-card shadow="hover" class="summary-card">
         <div class="summary-label">已启用场景</div>
         <div class="summary-value">{{ summaryMetrics.enabled }}</div>
         <div class="summary-desc">当前允许被前台接入和测试的问题场景数量</div>
       </el-card>
-      <el-card shadow="hover" class="summary-card summary-card--rose">
+      <el-card shadow="hover" class="summary-card">
         <div class="summary-label">已停用场景</div>
         <div class="summary-value">{{ summaryMetrics.disabled }}</div>
         <div class="summary-desc">当前仅保留配置、暂未开放使用的场景数量</div>
       </el-card>
     </section>
 
-    <el-card shadow="hover" class="management-card">
+    <el-card shadow="hover" class="management-card admin-management-card">
       <template #header>
         <div class="card-header">
           <span>场景配置卡片</span>
@@ -65,7 +65,7 @@
       title="编辑本地场景配置"
     >
       <template v-if="editingScenario">
-        <div class="dialog-intro">
+        <div class="dialog-intro feature-panel feature-panel--soft">
           <div class="dialog-intro__title">{{ editingScenario.title }}</div>
           <div class="dialog-intro__meta">
             <span>场景编码：{{ editingScenario.scenario }}</span>
@@ -263,49 +263,18 @@ const handleResetLocalConfig = () => {
   }
 
   .summary-grid {
-    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
     margin-bottom: 20px;
   }
 
-  .summary-card,
   .management-card {
     border-radius: 20px;
-    border: 1px solid var(--wt-border-default);
   }
 
-  .summary-label,
   .card-header__hint,
   .dialog-intro__meta {
     font-size: 12px;
     color: var(--wt-text-secondary);
-  }
-
-  .summary-value {
-    margin-top: 10px;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-  }
-
-  .summary-desc {
-    margin-top: 10px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
-  }
-
-  .summary-card--teal {
-    background: linear-gradient(135deg, color-mix(in srgb, #14b8a6 16%, white) 0%, var(--wt-surface-elevated) 100%);
-  }
-
-  .summary-card--blue {
-    background: linear-gradient(135deg, color-mix(in srgb, #60a5fa 18%, white) 0%, var(--wt-surface-elevated) 100%);
-  }
-
-  .summary-card--rose {
-    background: linear-gradient(135deg, color-mix(in srgb, #fb7185 18%, white) 0%, var(--wt-surface-elevated) 100%);
   }
 
   .card-header,
@@ -324,10 +293,6 @@ const handleResetLocalConfig = () => {
 
   .dialog-intro {
     margin-bottom: 18px;
-    padding: 16px 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .dialog-intro__title {

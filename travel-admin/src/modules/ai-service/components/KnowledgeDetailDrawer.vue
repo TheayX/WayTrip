@@ -9,7 +9,7 @@
   >
     <div v-loading="loading" class="detail-container">
       <template v-if="detail">
-        <section class="detail-hero">
+        <section class="detail-hero summary-card">
           <div class="detail-hero__header">
             <div>
               <p class="detail-kicker">Knowledge Document</p>
@@ -21,15 +21,15 @@
           </div>
 
           <div class="detail-stats">
-            <div class="detail-stat-card">
+            <div class="detail-stat-card feature-panel feature-panel--soft">
               <span class="detail-stat-label">知识域</span>
               <strong>{{ getDomainLabel(detail.knowledgeDomain) }}</strong>
             </div>
-            <div class="detail-stat-card">
+            <div class="detail-stat-card feature-panel feature-panel--soft">
               <span class="detail-stat-label">来源类型</span>
               <strong>{{ getSourceTypeLabel(detail.sourceType) }}</strong>
             </div>
-            <div class="detail-stat-card">
+            <div class="detail-stat-card feature-panel feature-panel--primary">
               <span class="detail-stat-label">分片数量</span>
               <strong>{{ detail.chunkCount }}</strong>
             </div>
@@ -37,7 +37,7 @@
         </section>
 
         <section class="detail-section">
-          <h4 class="section-title">核心元数据</h4>
+          <h4 class="section-title panel-title-accent">核心元数据</h4>
           <el-descriptions :column="1" border class="detail-descriptions">
             <el-descriptions-item label="文档 ID">{{ detail.id ?? '--' }}</el-descriptions-item>
             <el-descriptions-item label="知识域">{{ getDomainLabel(detail.knowledgeDomain) }}</el-descriptions-item>
@@ -50,18 +50,18 @@
         </section>
 
         <section class="detail-section">
-          <h4 class="section-title">完整内容</h4>
-          <div class="content-panel">{{ detail.content || '暂无内容' }}</div>
+          <h4 class="section-title panel-title-accent">完整内容</h4>
+          <div class="content-panel panel-code-block"><pre>{{ detail.content || '暂无内容' }}</pre></div>
         </section>
 
         <section class="detail-section">
           <div class="section-header">
-            <h4 class="section-title section-title--plain">分片列表</h4>
+            <h4 class="section-title section-title--plain panel-title-accent">分片列表</h4>
             <span class="section-hint">共 {{ detail.chunkCount }} 条</span>
           </div>
 
           <div v-if="detail.chunks.length" class="chunk-list">
-            <div v-for="(chunk, index) in detail.chunks" :key="chunk.chunkId || index" class="chunk-card">
+            <div v-for="(chunk, index) in detail.chunks" :key="chunk.chunkId || index" class="chunk-card feature-panel feature-panel--soft">
               <div class="chunk-card__header">
                 <span class="chunk-index">分片 {{ index + 1 }}</span>
                 <span class="chunk-meta">ID {{ chunk.chunkId || '--' }}</span>
@@ -109,12 +109,7 @@ const emit = defineEmits(['update:visible'])
   gap: 20px;
 }
 
-.detail-hero {
-  border-radius: 18px;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
-  color: #fff;
-  padding: 20px;
-}
+  .detail-hero { padding: 20px; }
 
 .detail-hero__header,
 .detail-stats,
@@ -140,30 +135,29 @@ const emit = defineEmits(['update:visible'])
   opacity: 0.86;
 }
 
-.detail-title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-}
+  .detail-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--wt-text-primary);
+  }
 
 .detail-stats {
   margin-top: 18px;
 }
 
-.detail-stat-card {
-  flex: 1;
-  min-width: 0;
-  border-radius: 14px;
-  background: color-mix(in srgb, white 18%, transparent);
-  padding: 14px 16px;
-}
+  .detail-stat-card {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 16px;
+  }
 
-.detail-stat-label {
-  display: block;
-  font-size: 12px;
-  opacity: 0.86;
-  margin-bottom: 6px;
-}
+  .detail-stat-label {
+    display: block;
+    font-size: 12px;
+    color: var(--wt-text-secondary);
+    margin-bottom: 6px;
+  }
 
 .detail-section {
   display: flex;
@@ -171,35 +165,18 @@ const emit = defineEmits(['update:visible'])
   gap: 12px;
 }
 
-.section-title {
-  margin: 0;
-  padding-left: 10px;
-  border-left: 4px solid var(--el-color-primary);
-  color: var(--wt-text-primary);
-  font-size: 14px;
-  font-weight: 700;
-}
+  .section-title { margin: 0; }
 
-.section-title--plain {
-  padding-left: 0;
-  border-left: 0;
-}
+  .section-title--plain {
+    padding-left: 12px;
+  }
 
 .section-hint {
   font-size: 12px;
   color: var(--wt-text-secondary);
 }
 
-.content-panel {
-  border-radius: 14px;
-  border: 1px solid var(--wt-border-default);
-  background: linear-gradient(180deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  padding: 16px;
-  color: var(--wt-text-regular);
-  line-height: 1.8;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
+  .content-panel { margin-bottom: 0; }
 
 .chunk-list {
   display: flex;
@@ -207,12 +184,7 @@ const emit = defineEmits(['update:visible'])
   gap: 12px;
 }
 
-.chunk-card {
-  border-radius: 14px;
-  border: 1px solid var(--wt-border-default);
-  background: var(--wt-surface-elevated);
-  padding: 14px 16px;
-}
+  .chunk-card { padding: 14px 16px; }
 
 .chunk-index {
   font-size: 13px;

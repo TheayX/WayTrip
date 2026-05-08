@@ -8,13 +8,13 @@
         <p class="page-subtitle">一期先展示后续规划，用于承接用户反馈、人工兜底与知识优化动作。</p>
       </div>
       <div class="hero-actions">
-        <el-tag type="warning" effect="dark" round>即将开放</el-tag>
+        <el-tag type="warning" effect="light" round>即将开放</el-tag>
       </div>
     </section>
 
     <el-row :gutter="24" class="content-row">
       <el-col :xl="16" :lg="15" :md="24">
-        <el-card shadow="hover" class="placeholder-card">
+        <el-card shadow="hover" class="placeholder-card admin-management-card">
           <template #header>
             <div class="card-header">
               <span>规划能力</span>
@@ -22,7 +22,7 @@
           </template>
 
           <div class="capability-list">
-            <div v-for="item in plannedCapabilities" :key="item.title" class="capability-item">
+            <div v-for="item in plannedCapabilities" :key="item.title" class="capability-item feature-panel feature-panel--soft">
               <div class="capability-title">{{ item.title }}</div>
               <div class="capability-desc">{{ item.desc }}</div>
             </div>
@@ -31,14 +31,14 @@
       </el-col>
 
       <el-col :xl="8" :lg="9" :md="24">
-        <el-card shadow="hover" class="placeholder-card status-card">
+        <el-card shadow="hover" class="placeholder-card status-card admin-management-card">
           <template #header>
             <div class="card-header">
               <span>开放说明</span>
             </div>
           </template>
 
-          <div class="status-panel">
+          <div class="status-panel feature-panel feature-panel--warning">
             <div class="status-title">即将开放</div>
             <div class="status-desc">当前阶段先完成知识底座和占位导航，后续会补齐反馈采集、问题归因与知识回写能力。</div>
             <el-alert
@@ -88,12 +88,7 @@ const plannedCapabilities = [
     gap: 14px;
   }
 
-  .capability-item {
-    padding: 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
+  .capability-item { padding: 18px; }
 
   .capability-title,
   .status-title {

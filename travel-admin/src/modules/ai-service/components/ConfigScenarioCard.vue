@@ -1,6 +1,6 @@
 <!-- AI 场景配置卡片 -->
 <template>
-  <el-card shadow="hover" class="scenario-card">
+  <el-card shadow="hover" class="scenario-card summary-card summary-card--detail">
     <div class="scenario-card__header">
       <div>
         <div class="scenario-card__title-row">
@@ -21,12 +21,12 @@
     </div>
 
     <div class="scenario-card__body">
-      <div class="scenario-section">
+      <div class="scenario-section feature-panel feature-panel--soft">
         <div class="scenario-section__label">场景说明</div>
         <div class="scenario-section__value">{{ scenario.description || '暂无说明' }}</div>
       </div>
 
-      <div class="scenario-section">
+      <div class="scenario-section feature-panel feature-panel--soft">
         <div class="scenario-section__label">示例问题</div>
         <div class="scenario-section__value scenario-section__value--quote">
           {{ scenario.exampleQuestion || '暂无示例问题' }}
@@ -49,9 +49,6 @@ const emit = defineEmits(['edit'])
 
 <style lang="scss" scoped>
 .scenario-card {
-  border-radius: 18px;
-  border: 1px solid var(--wt-border-default);
-
   :deep(.el-card__body) {
     display: flex;
     flex-direction: column;
@@ -99,9 +96,6 @@ const emit = defineEmits(['edit'])
 
 .scenario-section {
   padding: 16px;
-  border-radius: 14px;
-  border: 1px solid var(--wt-border-default);
-  background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
 }
 
 .scenario-section__label {

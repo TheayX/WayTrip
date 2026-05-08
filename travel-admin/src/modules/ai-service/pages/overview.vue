@@ -30,40 +30,32 @@
         :title="vectorStatus.warningMessage"
       />
 
-      <div v-loading="loading" class="hero-grid">
-        <el-card shadow="hover" class="hero-card hero-card-docs">
-          <div class="hero-card-content">
-            <div class="hero-label">启用文档</div>
-            <div class="hero-value">{{ metrics.enabledDocumentCount }}</div>
-            <div class="hero-desc">当前可被 AI 检索使用的知识文档数量</div>
-          </div>
+      <section v-loading="loading" class="summary-grid hero-grid">
+        <el-card shadow="hover" class="summary-card">
+          <div class="summary-label">启用文档</div>
+          <div class="summary-value">{{ metrics.enabledDocumentCount }}</div>
+          <div class="summary-desc">当前可被 AI 检索使用的知识文档数量</div>
         </el-card>
-        <el-card shadow="hover" class="hero-card hero-card-chunks">
-          <div class="hero-card-content">
-            <div class="hero-label">知识分片总数</div>
-            <div class="hero-value">{{ metrics.totalChunkCount }}</div>
-            <div class="hero-desc">一期知识底座累计沉淀的向量分片规模</div>
-          </div>
+        <el-card shadow="hover" class="summary-card">
+          <div class="summary-label">知识分片总数</div>
+          <div class="summary-value">{{ metrics.totalChunkCount }}</div>
+          <div class="summary-desc">一期知识底座累计沉淀的向量分片规模</div>
         </el-card>
-        <el-card shadow="hover" class="hero-card hero-card-scenarios">
-          <div class="hero-card-content">
-            <div class="hero-label">启用场景</div>
-            <div class="hero-value">{{ metrics.enabledScenarioCount }}</div>
-            <div class="hero-desc">已配置并开放的一期 AI 服务场景数量</div>
-          </div>
+        <el-card shadow="hover" class="summary-card">
+          <div class="summary-label">启用场景</div>
+          <div class="summary-value">{{ metrics.enabledScenarioCount }}</div>
+          <div class="summary-desc">已配置并开放的一期 AI 服务场景数量</div>
         </el-card>
-        <el-card shadow="hover" class="hero-card hero-card-update">
-          <div class="hero-card-content">
-            <div class="hero-label">最近更新</div>
-            <div class="hero-value hero-value-sm">{{ metrics.latestUpdateAt || '暂无记录' }}</div>
-            <div class="hero-desc">最近一次文档更新或重建生效时间</div>
-          </div>
+        <el-card shadow="hover" class="summary-card">
+          <div class="summary-label">最近更新</div>
+          <div class="summary-value summary-value--sm">{{ metrics.latestUpdateAt || '暂无记录' }}</div>
+          <div class="summary-desc">最近一次文档更新或重建生效时间</div>
         </el-card>
-      </div>
+      </section>
 
       <el-row v-loading="loading" :gutter="24" class="content-row">
         <el-col :xl="16" :lg="15" :md="24">
-          <el-card shadow="hover" class="summary-card">
+          <el-card shadow="hover" class="admin-management-card">
             <template #header>
               <div class="card-header">
                 <span>向量索引健康摘要</span>
@@ -75,41 +67,41 @@
 
             <div class="vector-health-grid">
               <div
-                class="vector-health-card"
+                class="feature-panel"
                 :class="{
-                  'vector-health-card--ok': vectorStatus.retrievalReady,
-                  'vector-health-card--danger': vectorStatus.needsRebuild
+                  'feature-panel--success': vectorStatus.retrievalReady,
+                  'feature-panel--warning': vectorStatus.needsRebuild
                 }"
               >
-                <div class="vector-health-card__label">维度一致性</div>
-                <div class="vector-health-card__value">
+                <div class="feature-panel-title">维度一致性</div>
+                <div class="feature-panel-main">
                   {{ vectorStatus.retrievalReady ? '可检索' : vectorStatus.needsRebuild ? '需重建' : '未检测' }}
                 </div>
-                <div class="vector-health-card__desc">
+                <div class="feature-panel-sub">
                   模型 {{ displayAiMetric(vectorStatus.modelDimension) }} 维 · 索引 {{ displayAiMetric(vectorStatus.indexDimension) }} 维
                 </div>
               </div>
-              <div class="vector-health-card">
-                <div class="vector-health-card__label">向量模型</div>
-                <div class="vector-health-card__value vector-health-card__value--sm">{{ vectorStatus.embeddingModel || '--' }}</div>
-                <div class="vector-health-card__desc">{{ vectorStatus.embeddingProvider || '--' }}</div>
+              <div class="feature-panel feature-panel--soft">
+                <div class="feature-panel-title">向量模型</div>
+                <div class="feature-panel-main vector-main-sm">{{ vectorStatus.embeddingModel || '--' }}</div>
+                <div class="feature-panel-sub">{{ vectorStatus.embeddingProvider || '--' }}</div>
               </div>
-              <div class="vector-health-card">
-                <div class="vector-health-card__label">Redis 索引</div>
-                <div class="vector-health-card__value vector-health-card__value--sm">{{ vectorStatus.indexName || '--' }}</div>
-                <div class="vector-health-card__desc">{{ vectorStatus.redisHost || '--' }}:{{ vectorStatus.redisPort || '--' }}</div>
+              <div class="feature-panel feature-panel--soft">
+                <div class="feature-panel-title">Redis 索引</div>
+                <div class="feature-panel-main vector-main-sm">{{ vectorStatus.indexName || '--' }}</div>
+                <div class="feature-panel-sub">{{ vectorStatus.redisHost || '--' }}:{{ vectorStatus.redisPort || '--' }}</div>
               </div>
-              <div class="vector-health-card">
-                <div class="vector-health-card__label">完成分片</div>
-                <div class="vector-health-card__value">{{ displayAiMetric(vectorStatus.completedChunkCount) }}</div>
-                <div class="vector-health-card__desc">
+              <div class="feature-panel feature-panel--primary">
+                <div class="feature-panel-title">完成分片</div>
+                <div class="feature-panel-main">{{ displayAiMetric(vectorStatus.completedChunkCount) }}</div>
+                <div class="feature-panel-sub">
                   待处理 {{ displayAiMetric(vectorStatus.pendingChunkCount) }} · 失败 {{ displayAiMetric(vectorStatus.failedChunkCount) }}
                 </div>
               </div>
             </div>
           </el-card>
 
-          <el-card shadow="hover">
+          <el-card shadow="hover" class="admin-management-card">
             <template #header>
               <div class="card-header">
                 <span>一期工作台入口</span>
@@ -121,21 +113,21 @@
                 v-for="item in placeholderEntries"
                 :key="item.title"
                 type="button"
-                class="entry-card"
-                :class="item.tone"
+                class="entry-card feature-panel feature-panel--interactive"
+                :class="item.tone === 'tone-workbench' ? 'feature-panel--warning' : 'feature-panel--info'"
                 @click="goTo(item.path)"
               >
-                <div class="entry-head">
-                  <div class="entry-title">{{ item.title }}</div>
+                <div class="feature-panel-head">
+                  <div class="feature-panel-title--strong">{{ item.title }}</div>
                   <el-tag size="small" effect="plain" :type="item.tagType" round>{{ item.tag }}</el-tag>
                 </div>
-                <div class="entry-desc">{{ item.desc }}</div>
-                <div class="entry-action">查看规划能力</div>
+                <div class="feature-panel-sub">{{ item.desc }}</div>
+                <div class="feature-panel-action">查看规划能力</div>
               </button>
             </div>
           </el-card>
 
-          <el-card shadow="hover" class="summary-card">
+          <el-card shadow="hover" class="admin-management-card">
             <template #header>
               <div class="card-header">
                 <span>知识摘要</span>
@@ -143,7 +135,7 @@
             </template>
 
             <div class="summary-grid">
-              <div class="summary-panel">
+              <div class="feature-panel feature-panel--soft">
                 <div class="summary-title">最近更新文档</div>
                 <template v-if="recentDocuments.length">
                   <div v-for="item in recentDocuments" :key="item.id" class="document-item">
@@ -163,7 +155,7 @@
                 <el-empty v-else description="暂无知识文档" :image-size="72" />
               </div>
 
-              <div class="summary-panel">
+              <div class="feature-panel feature-panel--soft">
                 <div class="summary-title">知识域覆盖</div>
                 <template v-if="domainSummaryList.length">
                   <div v-for="item in domainSummaryList" :key="item.domain" class="domain-item">
@@ -180,7 +172,7 @@
                 <el-empty v-else description="暂无知识域数据" :image-size="72" />
               </div>
 
-              <div class="summary-panel">
+              <div class="feature-panel feature-panel--soft">
                 <div class="summary-title">场景接入摘要</div>
                 <div v-for="item in scenarioSummaryList" :key="item.scenario" class="scenario-item">
                   <div class="scenario-head">
@@ -197,7 +189,7 @@
         </el-col>
 
         <el-col :xl="8" :lg="9" :md="24">
-          <el-card shadow="hover" class="panel-card">
+          <el-card shadow="hover" class="admin-management-card panel-card">
             <template #header>
               <div class="card-header">
                 <span>快捷操作</span>
@@ -211,7 +203,7 @@
             </div>
           </el-card>
 
-          <el-card shadow="hover" class="panel-card">
+          <el-card shadow="hover" class="admin-management-card panel-card">
             <template #header>
               <div class="card-header">
                 <span>一期关注点</span>
@@ -219,7 +211,7 @@
             </template>
 
             <div class="tips-list">
-              <div v-for="item in phaseOneTips" :key="item.title" class="tips-item">
+              <div v-for="item in phaseOneTips" :key="item.title" class="tips-item feature-panel feature-panel--soft">
                 <div class="tips-title">{{ item.title }}</div>
                 <div class="tips-desc">{{ item.desc }}</div>
               </div>
@@ -397,86 +389,15 @@ onMounted(() => {
 <style lang="scss" scoped>
 .ai-overview-page {
   .hero-grid {
-    display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
   }
 
   .ai-warning-alert {
     margin-bottom: 16px;
   }
 
-  .hero-card {
-    border: none;
-
-    :deep(.el-card__body) {
-      padding: 0 !important;
-    }
-  }
-
-  .hero-card-content {
-    position: relative;
-    overflow: hidden;
-    padding: 20px;
-    color: #fff;
-    border-radius: 20px;
-    min-height: 152px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-sizing: border-box;
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: -20px;
-      right: -20px;
-      width: 96px;
-      height: 96px;
-      border-radius: 50%;
-      background: color-mix(in srgb, var(--wt-overlay-bg) 38%, transparent);
-    }
-  }
-
-  .hero-card-docs .hero-card-content {
-    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
-  }
-
-  .hero-card-chunks .hero-card-content {
-    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
-  }
-
-  .hero-card-scenarios .hero-card-content {
-    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-  }
-
-  .hero-card-update .hero-card-content {
-    background: linear-gradient(135deg, #be123c 0%, #fb7185 100%);
-  }
-
-  .hero-label {
-    font-size: 12px;
-    opacity: 0.88;
-  }
-
-  .hero-value {
-    margin-top: 8px;
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
-
-  .hero-value-sm {
-    font-size: 16px;
-    line-height: 1.4;
-    word-break: break-word;
-  }
-
-  .hero-desc {
-    margin-top: 8px;
-    font-size: 12px;
-    line-height: 1.65;
-    opacity: 0.9;
+  .summary-card {
+    min-height: 148px;
   }
 
   .entry-grid,
@@ -498,70 +419,15 @@ onMounted(() => {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .vector-health-card {
-    padding: 18px;
-    border-radius: 16px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
-
-  .vector-health-card--ok {
-    border-color: color-mix(in srgb, #22c55e 38%, var(--wt-border-default));
-  }
-
-  .vector-health-card--danger {
-    border-color: color-mix(in srgb, #f43f5e 42%, var(--wt-border-default));
-  }
-
-  .vector-health-card__label {
-    font-size: 12px;
-    color: var(--wt-text-secondary);
-  }
-
-  .vector-health-card__value {
-    margin-top: 10px;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--wt-text-primary);
-    line-height: 1.3;
-  }
-
-  .vector-health-card__value--sm {
+  .vector-main-sm {
     font-size: 16px;
     word-break: break-word;
   }
 
-  .vector-health-card__desc {
-    margin-top: 10px;
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--wt-text-regular);
-  }
-
   .entry-card {
-    padding: 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: none;
     text-align: left;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--wt-shadow-soft);
-    }
   }
 
-  .entry-card.tone-workbench {
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, color-mix(in srgb, var(--wt-tag-warning-bg) 60%, var(--wt-surface-muted)) 100%);
-  }
-
-  .entry-card.tone-feedback {
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, color-mix(in srgb, var(--wt-tag-info-bg) 60%, var(--wt-surface-muted)) 100%);
-  }
-
-  .entry-head,
   .document-main,
   .domain-head,
   .scenario-head {
@@ -571,7 +437,6 @@ onMounted(() => {
     gap: 12px;
   }
 
-  .entry-title,
   .document-title,
   .domain-title,
   .scenario-title {
@@ -580,7 +445,6 @@ onMounted(() => {
     color: var(--wt-text-primary);
   }
 
-  .entry-desc,
   .scenario-desc,
   .tips-desc,
   .document-meta,
@@ -589,20 +453,6 @@ onMounted(() => {
     font-size: 13px;
     line-height: 1.7;
     color: var(--wt-text-regular);
-  }
-
-  .entry-action {
-    margin-top: 14px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #245bdb;
-  }
-
-  .summary-panel {
-    padding: 18px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
   }
 
   .summary-title {
@@ -620,8 +470,7 @@ onMounted(() => {
 
   .document-item + .document-item,
   .domain-item + .domain-item,
-  .scenario-item + .scenario-item,
-  .tips-item + .tips-item {
+  .scenario-item + .scenario-item {
     border-top: 1px solid var(--wt-border-default);
   }
 
@@ -635,6 +484,15 @@ onMounted(() => {
     font-size: 13px;
     font-weight: 700;
     color: var(--wt-text-primary);
+  }
+
+  .tips-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .tips-item {
+    padding: 16px 18px;
   }
 
   .quick-actions {

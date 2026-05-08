@@ -23,7 +23,7 @@
 
     <template v-else>
       <section class="workbench-top-grid" v-loading="loading">
-        <el-card shadow="hover" class="workbench-card chain-card">
+        <el-card shadow="hover" class="workbench-card admin-management-card">
           <template #header>
             <div class="card-header">
               <span>模型链路</span>
@@ -31,32 +31,32 @@
           </template>
 
           <div class="chain-grid">
-            <div class="chain-node">
-              <div class="chain-node__label">聊天链路</div>
-              <div class="chain-node__value">{{ vectorStatus.chatProvider || '--' }}</div>
-              <div class="chain-node__desc">{{ vectorStatus.chatModel || '--' }}</div>
+            <div class="chain-node feature-panel feature-panel--soft">
+              <div class="feature-panel-title">聊天链路</div>
+              <div class="feature-panel-main">{{ vectorStatus.chatProvider || '--' }}</div>
+              <div class="feature-panel-sub">{{ vectorStatus.chatModel || '--' }}</div>
             </div>
-            <div class="chain-node chain-node--accent">
-              <div class="chain-node__label">向量链路</div>
-              <div class="chain-node__value">{{ vectorStatus.embeddingProvider || '--' }}</div>
-              <div class="chain-node__desc">{{ vectorStatus.embeddingModel || '--' }}</div>
+            <div class="chain-node feature-panel feature-panel--primary">
+              <div class="feature-panel-title">向量链路</div>
+              <div class="feature-panel-main">{{ vectorStatus.embeddingProvider || '--' }}</div>
+              <div class="feature-panel-sub">{{ vectorStatus.embeddingModel || '--' }}</div>
             </div>
-            <div class="chain-node">
-              <div class="chain-node__label">Redis 索引</div>
-              <div class="chain-node__value chain-node__value--sm">{{ vectorStatus.indexName || '--' }}</div>
-              <div class="chain-node__desc">{{ vectorStatus.redisHost || '--' }}:{{ vectorStatus.redisPort || '--' }}</div>
+            <div class="chain-node feature-panel feature-panel--soft">
+              <div class="feature-panel-title">Redis 索引</div>
+              <div class="feature-panel-main chain-node__value--sm">{{ vectorStatus.indexName || '--' }}</div>
+              <div class="feature-panel-sub">{{ vectorStatus.redisHost || '--' }}:{{ vectorStatus.redisPort || '--' }}</div>
             </div>
           </div>
         </el-card>
 
-        <el-card shadow="hover" class="workbench-card health-card">
+        <el-card shadow="hover" class="workbench-card admin-management-card">
           <template #header>
             <div class="card-header">
               <span>维度健康</span>
             </div>
           </template>
 
-          <div class="health-state" :class="{ 'health-state--ok': vectorStatus.dimensionMatched, 'health-state--danger': vectorStatus.dimensionMatched === false }">
+          <div class="health-state feature-panel" :class="{ 'feature-panel--success': vectorStatus.dimensionMatched, 'feature-panel--warning': vectorStatus.dimensionMatched === false }">
             <div class="health-state__title">
               {{ vectorStatus.dimensionMatched === null ? '未检测到索引维度' : vectorStatus.dimensionMatched ? '当前维度一致' : '检测到维度冲突' }}
             </div>
@@ -72,7 +72,7 @@
           </div>
         </el-card>
 
-        <el-card shadow="hover" class="workbench-card metrics-card">
+        <el-card shadow="hover" class="workbench-card admin-management-card">
           <template #header>
             <div class="card-header">
               <span>索引进度</span>
@@ -80,19 +80,19 @@
           </template>
 
           <div class="mini-metrics">
-            <div class="mini-metric">
+            <div class="mini-metric feature-panel feature-panel--soft">
               <span>总分片</span>
               <strong>{{ displayAiMetric(vectorStatus.totalChunkCount) }}</strong>
             </div>
-            <div class="mini-metric">
+            <div class="mini-metric feature-panel feature-panel--warning">
               <span>待处理</span>
               <strong>{{ displayAiMetric(vectorStatus.pendingChunkCount) }}</strong>
             </div>
-            <div class="mini-metric">
+            <div class="mini-metric feature-panel feature-panel--success">
               <span>已完成</span>
               <strong>{{ displayAiMetric(vectorStatus.completedChunkCount) }}</strong>
             </div>
-            <div class="mini-metric">
+            <div class="mini-metric feature-panel feature-panel--info">
               <span>失败</span>
               <strong>{{ displayAiMetric(vectorStatus.failedChunkCount) }}</strong>
             </div>
@@ -102,7 +102,7 @@
 
       <el-row :gutter="24" class="content-row">
         <el-col :xl="10" :lg="10" :md="24">
-          <el-card shadow="hover" class="workbench-card maintenance-card">
+          <el-card shadow="hover" class="workbench-card admin-management-card maintenance-card">
             <template #header>
               <div class="card-header">
                 <span>运维操作</span>
@@ -115,7 +115,7 @@
               <el-button type="danger" :loading="clearingAndRebuilding" @click="handleClearAndRebuild">清空后重建</el-button>
             </div>
 
-            <div class="maintenance-result" v-if="maintenanceSummary.message">
+            <div class="maintenance-result feature-panel feature-panel--soft" v-if="maintenanceSummary.message">
               <div class="maintenance-result__title">最近维护结果</div>
               <div class="maintenance-result__message">{{ maintenanceSummary.message }}</div>
               <div class="maintenance-result__meta">
@@ -135,7 +135,7 @@
         </el-col>
 
         <el-col :xl="14" :lg="14" :md="24">
-          <el-card shadow="hover" class="workbench-card preview-card" v-loading="previewing">
+          <el-card shadow="hover" class="workbench-card admin-management-card preview-card" v-loading="previewing">
             <template #header>
               <div class="card-header">
                 <span>RAG 查询预览</span>
@@ -164,7 +164,7 @@
                 </el-form-item>
 
                 <el-form-item label="知识域">
-                  <div class="domain-pill">{{ selectedScenarioDomainLabel }}</div>
+                  <div class="domain-pill feature-panel feature-panel--soft">{{ selectedScenarioDomainLabel }}</div>
                 </el-form-item>
               </div>
 
@@ -200,18 +200,18 @@
             />
             <div v-else class="preview-result">
               <div class="preview-summary">
-                <div class="preview-summary__item">
+                <div class="preview-summary__item feature-panel feature-panel--soft">
                   <span>命中知识域</span>
                   <strong>{{ previewDomainLabel }}</strong>
                 </div>
-                <div class="preview-summary__item">
+                <div class="preview-summary__item feature-panel feature-panel--primary">
                   <span>命中数量</span>
                   <strong>{{ previewResult.hitCount }}</strong>
                 </div>
               </div>
 
               <div class="preview-hit-list">
-                <div v-for="item in previewHits" :key="`${item.documentId}-${item.chunkId}`" class="preview-hit-card">
+                <div v-for="item in previewHits" :key="`${item.documentId}-${item.chunkId}`" class="preview-hit-card feature-panel feature-panel--soft">
                   <div class="preview-hit-card__head">
                     <div>
                       <div class="preview-hit-card__title">{{ item.title || '未命名文档' }}</div>
@@ -446,20 +446,6 @@ onMounted(() => {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .chain-node,
-  .mini-metric,
-  .preview-hit-card {
-    padding: 18px;
-    border-radius: 16px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
-
-  .chain-node--accent {
-    border-color: color-mix(in srgb, #2563eb 38%, var(--wt-border-default));
-  }
-
-  .chain-node__label,
   .mini-metric span,
   .preview-hit-card__meta,
   .scenario-option__domain,
@@ -470,7 +456,6 @@ onMounted(() => {
     color: var(--wt-text-secondary);
   }
 
-  .chain-node__value,
   .health-state__title,
   .preview-summary__item strong {
     margin-top: 8px;
@@ -485,7 +470,6 @@ onMounted(() => {
     word-break: break-word;
   }
 
-  .chain-node__desc,
   .health-state__desc,
   .maintenance-result__message,
   .preview-hit-card__snippet {
@@ -498,23 +482,6 @@ onMounted(() => {
 
   .health-state {
     padding: 20px;
-    border-radius: 18px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, color-mix(in srgb, #0f172a 92%, white) 0%, color-mix(in srgb, #1e293b 92%, white) 100%);
-  }
-
-  .health-state--ok {
-    border-color: color-mix(in srgb, #22c55e 42%, var(--wt-border-default));
-  }
-
-  .health-state--danger {
-    border-color: color-mix(in srgb, #f43f5e 46%, var(--wt-border-default));
-  }
-
-  .health-state__title,
-  .health-state__meta,
-  .health-state__desc {
-    color: #f8fafc;
   }
 
   .mini-metrics {
@@ -545,13 +512,6 @@ onMounted(() => {
     }
   }
 
-  .maintenance-result {
-    padding: 16px;
-    border-radius: 16px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
-  }
-
   .maintenance-result__meta {
     display: flex;
     flex-wrap: wrap;
@@ -572,9 +532,6 @@ onMounted(() => {
   .domain-pill,
   .preview-summary__item {
     padding: 14px 16px;
-    border-radius: 14px;
-    border: 1px solid var(--wt-border-default);
-    background: linear-gradient(135deg, var(--wt-surface-elevated) 0%, var(--wt-surface-muted) 100%);
     min-height: 52px;
     display: flex;
     flex-direction: column;
