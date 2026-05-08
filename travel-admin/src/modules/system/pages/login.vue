@@ -15,7 +15,7 @@
       <div class="login-left">
           <div class="left-content">
             <div class="brand">
-            <img :src="brandLogoUrl" alt="WayTrip Admin" class="brand-logo" />
+            <img :src="currentBrandLogoUrl" alt="WayTrip Admin" class="brand-logo" />
           </div>
           <div class="eyebrow">WayTrip Admin</div>
           <h2 class="slogan">统一管理内容、交易与用户行为</h2>
@@ -62,11 +62,12 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/app/store/user.js'
 import { ElMessage } from 'element-plus'
 import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
+import brandLogoDarkUrl from '@/shared/assets/brand/waytrip-standard-dark.svg'
 import { Moon, Sunny } from '@element-plus/icons-vue'
 import { useTheme } from '@/shared/composables/useTheme.js'
 
@@ -74,6 +75,7 @@ import { useTheme } from '@/shared/composables/useTheme.js'
 const router = useRouter()
 const userStore = useUserStore()
 const { currentTheme, toggleTheme } = useTheme()
+const currentBrandLogoUrl = computed(() => (currentTheme.value === 'dark' ? brandLogoDarkUrl : brandLogoUrl))
 const formRef = ref()
 const loading = ref(false)
 
