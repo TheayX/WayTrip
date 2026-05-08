@@ -197,9 +197,22 @@
             </template>
 
             <div class="quick-actions">
-              <el-button type="primary" @click="loadPageData">刷新知识统计</el-button>
-              <el-button @click="goTo('/ai-service/workbench')">查看工作台规划</el-button>
-              <el-button @click="goTo('/ai-service/feedback')">查看反馈闭环规划</el-button>
+              <button
+                v-for="item in quickActions"
+                :key="item.title"
+                type="button"
+                class="quick-action-card feature-panel feature-panel--interactive"
+                :class="item.tone"
+                @click="item.action"
+              >
+                <div class="quick-action-card__icon">
+                  <el-icon><component :is="item.icon" /></el-icon>
+                </div>
+                <div class="quick-action-card__body">
+                  <div class="quick-action-card__title">{{ item.title }}</div>
+                  <div class="quick-action-card__desc">{{ item.desc }}</div>
+                </div>
+              </button>
             </div>
           </el-card>
 
@@ -227,6 +240,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { ChatDotRound, Connection, RefreshRight } from '@element-plus/icons-vue'
 import { getAiKnowledgeDocuments, getAiVectorIndexStatus } from '@/modules/ai-service/api.js'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_CONFIGS } from '@/modules/ai-service/constants.js'
 import { createEmptyAiVectorStatus, displayAiMetric } from '@/modules/ai-service/utils.js'
@@ -271,6 +285,30 @@ const phaseOneTips = [
   {
     title: '为后续反馈闭环预留入口',
     desc: '工作台与反馈页先提供占位入口，后续直接承接调试、标注与运营回看能力。'
+  }
+]
+
+const quickActions = [
+  {
+    title: '刷新知识统计',
+    desc: '重新拉取文档统计与索引健康状态。',
+    icon: RefreshRight,
+    tone: 'feature-panel--primary',
+    action: () => loadPageData()
+  },
+  {
+    title: '进入工作台',
+    desc: '查看链路状态并执行 RAG 查询预览。',
+    icon: Connection,
+    tone: 'feature-panel--warning',
+    action: () => goTo('/ai-service/workbench')
+  },
+  {
+    title: '查看反馈规划',
+    desc: '回看反馈闭环的后续承接方向。',
+    icon: ChatDotRound,
+    tone: 'feature-panel--info',
+    action: () => goTo('/ai-service/feedback')
   }
 ]
 
@@ -501,16 +539,46 @@ onMounted(() => {
 
   .quick-actions {
     display: grid;
-    gap: 10px;
-    justify-content: flex-start;
+    gap: 12px;
+  }
 
-    .el-button {
-      margin-left: 0;
-      justify-content: flex-start;
-      min-width: 136px;
-      height: 40px;
-      padding: 0 16px;
-    }
+  .quick-action-card {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    text-align: left;
+  }
+
+  .quick-action-card__icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--wt-surface-elevated) 72%, transparent);
+    color: var(--wt-text-primary);
+    font-size: 18px;
+  }
+
+  .quick-action-card__body {
+    min-width: 0;
+  }
+
+  .quick-action-card__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--wt-text-primary);
+  }
+
+  .quick-action-card__desc {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--wt-text-secondary);
   }
 
   @media (max-width: 1200px) {

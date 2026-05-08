@@ -146,26 +146,25 @@
             </template>
 
             <el-form label-position="top" @submit.prevent>
-              <div class="preview-form-grid">
-                <el-form-item label="场景">
-                  <el-select v-model="previewForm.scenario" class="w-full" placeholder="请选择场景">
-                    <el-option
-                      v-for="item in AI_SCENARIO_OPTIONS"
-                      :key="item.value"
-                      :label="item.label"
-                      :value="item.value"
-                    >
-                      <div class="scenario-option">
-                        <span>{{ item.label }}</span>
-                        <span class="scenario-option__domain">{{ getDomainLabel(item.domain) }}</span>
-                      </div>
-                    </el-option>
-                  </el-select>
-                </el-form-item>
-
-                <el-form-item label="知识域">
-                  <div class="domain-pill feature-panel feature-panel--soft">{{ selectedScenarioDomainLabel }}</div>
-                </el-form-item>
+              <div class="preview-field">
+                <div class="preview-field__label">场景</div>
+                <el-select v-model="previewForm.scenario" class="preview-scenario-select" placeholder="请选择场景">
+                  <el-option
+                    v-for="item in AI_SCENARIO_OPTIONS"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  >
+                    <div class="scenario-option">
+                      <span>{{ item.label }}</span>
+                      <span class="scenario-option__domain">{{ getDomainLabel(item.domain) }}</span>
+                    </div>
+                  </el-option>
+                </el-select>
+                <div class="preview-field-meta">
+                  <span class="preview-field-meta__label">知识域</span>
+                  <span class="preview-field-meta__value">{{ selectedScenarioDomainLabel }}</span>
+                </div>
               </div>
 
               <el-form-item label="测试问题">
@@ -518,24 +517,59 @@ onMounted(() => {
     gap: 8px 16px;
   }
 
-  .preview-form-grid,
   .preview-summary {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
   }
 
-  .w-full {
-    width: 100%;
+  .preview-scenario-select {
+    width: min(200px, 100%);
   }
 
-  .domain-pill,
+  .preview-field {
+    min-width: 0;
+    margin-bottom: 16px;
+  }
+
+  .preview-field__label {
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--wt-text-secondary);
+  }
+
+  .preview-field :deep(.el-select__wrapper) {
+    min-height: 40px;
+    border-radius: 10px;
+  }
+
   .preview-summary__item {
-    padding: 14px 16px;
     min-height: 52px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+  }
+
+  .preview-field-meta {
+    margin-top: 8px;
+    padding: 4px 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .preview-field-meta__label {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--wt-text-secondary);
+  }
+
+  .preview-field-meta__value {
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--wt-text-regular);
   }
 
   .domain-pill,
@@ -577,7 +611,6 @@ onMounted(() => {
   @media (max-width: 1200px) {
     .workbench-top-grid,
     .chain-grid,
-    .preview-form-grid,
     .preview-summary {
       grid-template-columns: 1fr;
     }
