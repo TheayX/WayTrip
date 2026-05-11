@@ -185,13 +185,14 @@
                           :action="uploadUrl"
                           :headers="uploadHeaders"
                           :data="galleryUploadData"
+                          multiple
                           :show-file-list="false"
                           :on-success="handleGalleryUploadSuccess"
                           :on-error="handleUploadError"
                           :before-upload="beforeUpload"
                           accept="image/*"
                       >
-                        <el-button type="primary" plain class="modern-btn-plain"><el-icon class="mr-1"><Upload /></el-icon>继续添加图片</el-button>
+                        <el-button type="primary" plain class="modern-btn-plain"><el-icon class="mr-1"><Upload /></el-icon>选择图片</el-button>
                       </el-upload>
                     </div>
 
@@ -208,6 +209,7 @@
                     </div>
 
                     <el-empty v-else description="暂无详情图" :image-size="60" class="py-4" />
+                    <div class="upload-tip mt-2">支持一次选择多张图片，也可分多次继续补传；单张大小不超过 5MB</div>
                   </div>
                 </el-form-item>
               </el-col>
