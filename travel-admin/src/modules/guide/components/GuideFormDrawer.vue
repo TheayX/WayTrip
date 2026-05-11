@@ -103,7 +103,7 @@
                 <el-tag effect="light" type="success">可选增强</el-tag>
               </div>
               <el-form-item label="关联景点">
-                <el-select v-model="form.spotIds" multiple filterable collapse-tags collapse-tags-tooltip placeholder="请选择关联景点" class="w-full" size="large">
+                <el-select v-model="form.spotIds" multiple filterable placeholder="请选择关联景点" class="w-full" size="large">
                   <el-option
                     v-for="spot in mergedSpotOptions"
                     :key="spot.id"
