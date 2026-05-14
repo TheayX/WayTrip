@@ -7,8 +7,8 @@
     :row-class-name="getRowClassName"
     @selection-change="handleSelectionChange"
   >
-    <el-table-column type="selection" width="50" align="center" />
-    <el-table-column prop="id" label="ID" width="70" align="center" />
+    <el-table-column type="selection" width="30" align="center" />
+    <el-table-column prop="id" label="ID" width="58" align="center" />
     <el-table-column label="封面" width="90" align="center">
       <template #default="{ row }">
         <el-image
