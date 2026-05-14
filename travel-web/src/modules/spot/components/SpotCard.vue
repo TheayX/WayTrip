@@ -18,13 +18,15 @@
         </div>
       </div>
       <h3 class="spot-name">{{ spot.name }}</h3>
-      <div class="spot-tags">
-        <span class="tag-chip">{{ spot.categoryName || '分类待补充' }}</span>
-        <span class="tag-chip subtle">{{ spot.avgRating ? `评分 ${spot.avgRating}` : '评分待补充' }}</span>
-      </div>
-      <div class="spot-footer">
-        <span class="spot-meta">查看详情</span>
-        <span class="spot-rating">立即浏览</span>
+      <div class="spot-bottom">
+        <div class="spot-tags">
+          <span class="tag-chip">{{ spot.categoryName || '分类待补充' }}</span>
+          <span class="tag-chip subtle">{{ spot.avgRating ? `评分 ${spot.avgRating}` : '评分待补充' }}</span>
+        </div>
+        <div class="spot-footer">
+          <span class="spot-meta">查看详情</span>
+          <span class="spot-rating">立即浏览</span>
+        </div>
       </div>
     </div>
   </article>
@@ -47,6 +49,9 @@ defineEmits(['select'])
 
 <style lang="scss" scoped>
 .spot-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   cursor: pointer;
 }
@@ -89,6 +94,9 @@ defineEmits(['select'])
 }
 
 .spot-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 18px 18px 20px;
 }
 
@@ -111,7 +119,11 @@ defineEmits(['select'])
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 14px 0 16px;
+  margin: 0 0 16px;
+}
+
+.spot-bottom {
+  margin-top: auto;
 }
 
 .tag-chip {

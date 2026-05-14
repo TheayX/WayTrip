@@ -28,5 +28,6 @@ public class HotSpotResponse {
         private BigDecimal avgRating;
         private Integer heatScore;
         private String categoryName;
+        private String regionName;
     }
 }
