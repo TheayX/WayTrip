@@ -52,6 +52,16 @@ cp .env.example .env
 1. [schema.sql](./src/main/resources/db/schema.sql)
 2. [data.sql](./src/main/resources/db/data.sql)
 
+如果需要追加扩容数据，再按需执行：
+
+- [db/seed/bulk](./src/main/resources/db/seed/bulk)
+
+补充说明：
+
+- `data.sql` 用于基础演示数据初始化，会清空并重建基础数据。
+- 如果数据库里已经有你在后台手工改过的景点图片或其他基础内容，不要重复执行 `data.sql`。
+- `db/seed/bulk/*.sql` 约定为追加型扩容数据，只插入新 ID，不覆盖、不清空、不修改已有基础数据。
+
 ### 启动项目
 
 ```bash
@@ -163,6 +173,13 @@ mvn test
 
 ```bash
 mvn clean package
+```
+
+扩容 SQL 生成：
+
+```bash
+node scripts/generate-ai-spot-sql.mjs
+node scripts/generate-bulk-behavior-sql.mjs
 ```
 
 ## 相关文档
