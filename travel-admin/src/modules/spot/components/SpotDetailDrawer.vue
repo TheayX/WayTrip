@@ -78,7 +78,10 @@
       </div>
 
       <div class="info-section" v-if="detail.images?.length">
-        <h3 class="text-sm font-bold text-gray-800 mb-3 border-l-4 border-primary pl-2 uppercase tracking-winder">详情图库</h3>
+        <div class="section-header mb-3">
+          <h3 class="text-sm font-bold text-gray-800 border-l-4 border-primary pl-2 uppercase tracking-winder mb-0">详情图库</h3>
+          <div class="gallery-count-chip">{{ detail.images.length }} 张</div>
+        </div>
         <div class="grid grid-cols-2 gap-3">
           <el-image v-for="(img, idx) in detail.images" :key="idx" :src="getImageUrl(img)" fit="cover" class="h-24 rounded-lg shadow-sm" :preview-src-list="[getImageUrl(img)]" />
         </div>
@@ -113,6 +116,7 @@ const emitVisible = (val) => {
 .mb-3 { margin-bottom: 12px; }
 .mb-2 { margin-bottom: 8px; }
 .mb-1 { margin-bottom: 4px; }
+.mb-0 { margin-bottom: 0; }
 .mt-4 { margin-top: 16px; }
 .pb-6 { padding-bottom: 24px; }
 .mt-0 { margin-top: 0; }
@@ -177,6 +181,13 @@ const emitVisible = (val) => {
   position: relative;
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .status-badge {
   background: color-mix(in srgb, var(--wt-surface-elevated) 92%, transparent);
   backdrop-filter: blur(4px);
@@ -210,6 +221,18 @@ const emitVisible = (val) => {
   font-size: 18px;
   font-weight: 700;
   color: var(--wt-text-primary);
+}
+
+.gallery-count-chip {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--wt-border-default);
+  background: var(--wt-surface-elevated);
+  color: var(--wt-text-secondary);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
 }
 
 .content-panel {
