@@ -46,6 +46,8 @@ public class AdminSpotDetailResponse {
 
     private Long viewCount;
 
+    private Long orderCount;
+
     private Boolean published;
 
     private BigDecimal avgRating;

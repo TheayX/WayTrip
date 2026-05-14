@@ -51,6 +51,10 @@
             <div class="mini-stat-label">浏览量</div>
             <div class="mini-stat-value">{{ detail.viewCount ?? 0 }}</div>
           </div>
+          <div class="mini-stat-card">
+            <div class="mini-stat-label">订单量</div>
+            <div class="mini-stat-value">{{ detail.orderCount ?? 0 }}</div>
+          </div>
         </div>
       </div>
 
@@ -185,7 +189,7 @@ const emitVisible = (val) => {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 

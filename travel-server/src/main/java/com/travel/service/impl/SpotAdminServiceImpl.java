@@ -12,12 +12,15 @@ import com.travel.dto.spot.response.AdminSpotDetailResponse;
 import com.travel.dto.spot.response.AdminSpotListResponse;
 import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.entity.GuideSpotRelation;
+import com.travel.entity.Order;
 import com.travel.entity.Spot;
 import com.travel.entity.SpotImage;
 import com.travel.entity.SpotBanner;
 import com.travel.entity.UserSpotFavorite;
 import com.travel.entity.UserSpotView;
+import com.travel.enums.OrderStatus;
 import com.travel.mapper.GuideSpotRelationMapper;
+import com.travel.mapper.OrderMapper;
 import com.travel.mapper.SpotImageMapper;
 import com.travel.mapper.SpotBannerMapper;
 import com.travel.mapper.SpotMapper;
@@ -55,6 +58,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     private final SpotImageMapper spotImageMapper;
     private final SpotBannerMapper spotBannerMapper;
     private final GuideSpotRelationMapper guideSpotRelationMapper;
+    private final OrderMapper orderMapper;
     private final ReviewMapper reviewMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final UserSpotViewMapper userSpotViewMapper;
@@ -134,6 +138,13 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         ));
         response.setViewCount(userSpotViewMapper.selectCount(
             new LambdaQueryWrapper<UserSpotView>().eq(UserSpotView::getSpotId, spotId)
+        ));
+        // 管理端详情页的订单量与看板口径保持一致，不把已取消订单混进运营数据。
+        response.setOrderCount(orderMapper.selectCount(
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getSpotId, spotId)
+                .eq(Order::getIsDeleted, 0)
+                .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
         ));
         response.setPublished(spot.getIsPublished() == 1);
         response.setAvgRating(spot.getAvgRating());
