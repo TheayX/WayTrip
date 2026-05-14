@@ -15,6 +15,7 @@ import com.travel.dto.user.request.AdminUserViewListRequest;
 import com.travel.entity.*;
 import com.travel.mapper.*;
 import com.travel.service.AdminUserInsightService;
+import com.travel.service.support.spot.SpotTreeSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
     private final UserMapper userMapper;
     private final SpotMapper spotMapper;
     private final SpotCategoryMapper spotCategoryMapper;
+    private final SpotTreeSupport spotTreeSupport;
     private final UserPreferenceMapper userPreferenceMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final UserSpotViewMapper userSpotViewMapper;
@@ -53,10 +55,14 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         }
 
         if (request.getCategoryId() != null) {
+            Set<Long> categoryIds = spotTreeSupport.findCategoryAndChildrenIds(request.getCategoryId());
+            if (categoryIds.isEmpty()) {
+                categoryIds = Collections.singleton(request.getCategoryId());
+            }
             Set<Long> matchedUserIds = userPreferenceMapper.selectList(
                 new LambdaQueryWrapper<UserPreference>()
                     .eq(UserPreference::getIsDeleted, 0)
-                    .eq(UserPreference::getTag, String.valueOf(request.getCategoryId()))
+                    .in(UserPreference::getTag, categoryIds.stream().map(String::valueOf).collect(Collectors.toSet()))
                     .select(UserPreference::getUserId)
             ).stream().map(UserPreference::getUserId).collect(Collectors.toSet());
 

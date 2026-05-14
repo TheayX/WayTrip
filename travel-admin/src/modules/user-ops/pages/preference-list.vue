@@ -33,9 +33,10 @@
     <el-card shadow="hover" class="management-card admin-management-card">
 
 
-      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
-
-        <el-form-item label="用户昵称">
+      <el-form :model="searchForm" inline class="search-form admin-filter-bar" @submit.prevent>
+        <div class="filter-row">
+          <div class="filter-main">
+        <el-form-item label="用户昵称" class="filter-item">
           <el-input
             v-model="searchForm.nickname"
             placeholder="请输入用户昵称"
@@ -45,23 +46,22 @@
             @clear="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="偏好分类">
-          <el-select
-            v-model="searchForm.categoryId"
-            placeholder="全部"
+        <el-form-item label="偏好分类" class="filter-item">
+          <el-cascader
+            v-model="uiFilters.categoryPath"
+            :options="categoryTree"
+            :props="categoryCascaderProps"
             clearable
-            filterable
             class="form-w-220"
             @change="handleSearch"
-            @clear="handleSearch"
-          >
-            <el-option v-for="item in categoryOptions" :key="item.id" :label="item.label" :value="item.id" />
-          </el-select>
+          />
         </el-form-item>
-        <el-form-item>
+          </div>
+          <div class="filter-actions">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+          </div>
+        </div>
       </el-form>
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -123,8 +123,18 @@ const skipNextRouteLoad = ref(false)
 // 列表状态
 const loading = ref(false)
 const tableData = ref([])
-const categoryOptions = ref([])
+const categoryTree = ref([])
 const errorMessage = ref('')
+const uiFilters = reactive({
+  categoryPath: []
+})
+const categoryCascaderProps = {
+  value: 'id',
+  label: 'name',
+  children: 'children',
+  checkStrictly: true,
+  emitPath: true
+}
 
 // 查询参数
 const searchForm = reactive({
@@ -168,24 +178,10 @@ const formatPhone = (phone) => {
   return normalized
 }
 
-// 构建分类选项
-const buildCategoryOptions = (nodes = [], level = 0) => {
-  return nodes.reduce((acc, node) => {
-    acc.push({
-      id: node.id,
-      label: `${'  '.repeat(level)}${level > 0 ? '└ ' : ''}${node.name}`
-    })
-    if (Array.isArray(node.children) && node.children.length) {
-      acc.push(...buildCategoryOptions(node.children, level + 1))
-    }
-    return acc
-  }, [])
-}
-
 // 获取筛选项
 const fetchFilters = async () => {
   const res = await getFilters()
-  categoryOptions.value = buildCategoryOptions(res.data.categoryTree || [])
+  categoryTree.value = res.data.categoryTree || []
 }
 
 // 获取偏好列表
@@ -212,6 +208,9 @@ const fetchPreferenceList = async () => {
 // 搜索操作
 const handleSearch = () => {
   pagination.page = 1
+  searchForm.categoryId = uiFilters.categoryPath?.length
+    ? Number(uiFilters.categoryPath[uiFilters.categoryPath.length - 1])
+    : null
   syncRouteQuery()
   fetchPreferenceList()
 }
@@ -220,6 +219,7 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.nickname = ''
   searchForm.categoryId = null
+  uiFilters.categoryPath = []
   handleSearch()
 }
 
@@ -242,6 +242,28 @@ const syncRouteQuery = () => {
 const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.categoryId = typeof route.query.categoryId === 'string' ? Number(route.query.categoryId) : null
+  uiFilters.categoryPath = findPathById(searchForm.categoryId, categoryTree.value)
+}
+
+// 级联筛选需要回填完整路径，避免只存叶子 ID 时界面失去上下文。
+const findPathById = (targetId, tree) => {
+  if (!targetId || !Array.isArray(tree) || !tree.length) {
+    return []
+  }
+  const stack = tree.map((node) => ({ node, path: [node.id] }))
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (current.node.id === targetId) {
+      return current.path
+    }
+    if (Array.isArray(current.node.children) && current.node.children.length) {
+      for (const child of current.node.children) {
+        stack.push({ node: child, path: [...current.path, child.id] })
+      }
+    }
+  }
+  return []
 }
 
 const handleOpenUser = (row) => {
@@ -251,8 +273,9 @@ const handleOpenUser = (row) => {
 
 // 页面初始化
 onMounted(() => {
-  applyRouteQuery()
-  fetchFilters()
+  fetchFilters().then(() => {
+    applyRouteQuery()
+  })
   fetchPreferenceList()
 })
 

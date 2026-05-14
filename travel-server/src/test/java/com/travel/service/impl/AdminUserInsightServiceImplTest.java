@@ -20,6 +20,7 @@ import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
+import com.travel.service.support.spot.SpotTreeSupport;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.BeforeAll;
@@ -69,6 +70,9 @@ class AdminUserInsightServiceImplTest {
     private SpotCategoryMapper spotCategoryMapper;
 
     @Mock
+    private SpotTreeSupport spotTreeSupport;
+
+    @Mock
     private UserPreferenceMapper userPreferenceMapper;
 
     @Mock
@@ -99,6 +103,7 @@ class AdminUserInsightServiceImplTest {
         invalidPreference.setTag("invalid-tag");
         invalidPreference.setIsDeleted(0);
         invalidPreference.setUpdatedAt(LocalDateTime.now());
+        when(spotTreeSupport.findCategoryAndChildrenIds(any())).thenReturn(java.util.Collections.emptySet());
         when(userPreferenceMapper.selectList(any())).thenReturn(List.of(invalidPreference));
 
         AdminUserPreferenceListRequest request = new AdminUserPreferenceListRequest();
