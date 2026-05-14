@@ -30,7 +30,7 @@
       </el-card>
     </section>
 
-    <el-row :gutter="20">
+    <el-row :gutter="20" class="split-workspace">
       <!-- 左侧：一级地区 -->
       <el-col :span="6">
         <el-card shadow="hover" class="left-card">
@@ -80,6 +80,7 @@
           <el-table
             :data="level2List"
             v-loading="loading2"
+            height="100%"
             element-loading-text="正在加载地区数据..."
             class="content-table borderless-table"
           >
