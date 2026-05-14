@@ -41,56 +41,69 @@
         title="说明：这里展示的是数据库原始来源值；推荐算法计算时会再归并到首页、搜索、攻略、推荐、默认这几个来源挡位。"
       />
 
-      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+      <el-form :model="searchForm" inline class="search-form admin-filter-bar" @submit.prevent>
+        <div class="filter-row">
+          <div class="filter-main">
+            <el-form-item label="用户昵称" class="filter-item">
+              <el-input
+                v-model="searchForm.nickname"
+                placeholder="请输入用户昵称"
+                clearable
+                class="form-w-180"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="景点名称" class="filter-item">
+              <el-input
+                v-model="searchForm.spotName"
+                placeholder="请输入景点名称"
+                clearable
+                class="form-w-180"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-button type="primary" link class="toggle-btn" @click="showAdvanced = !showAdvanced">
+              <el-icon><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
+              {{ showAdvanced ? '收起条件' : '更多条件' }}
+            </el-button>
+          </div>
+          <div class="filter-actions">
+            <el-button type="primary" @click="handleSearch">搜索</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </div>
+        </div>
 
-        <el-form-item label="用户昵称">
-          <el-input
-            v-model="searchForm.nickname"
-            placeholder="请输入用户昵称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="景点名称">
-          <el-input
-            v-model="searchForm.spotName"
-            placeholder="请输入景点名称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="来源">
-          <el-select
-            v-model="searchForm.source"
-            placeholder="全部来源"
-            clearable
-            class="form-w-140"
-            @change="handleSearch"
-            @clear="handleSearch"
-          >
-            <el-option v-for="item in sourceOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="浏览时间">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            class="form-w-240"
-            @change="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+        <!-- 来源与浏览时间属于补充筛选，折叠后可避免首行操作区被挤压。 -->
+        <el-collapse-transition>
+          <div v-show="showAdvanced" class="advanced-panel">
+            <el-form-item label="来源" class="filter-item advanced-filter-item">
+              <el-select
+                v-model="searchForm.source"
+                placeholder="全部来源"
+                clearable
+                class="form-w-140"
+                @change="handleSearch"
+                @clear="handleSearch"
+              >
+                <el-option v-for="item in sourceOptions" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="浏览时间" class="filter-item advanced-filter-item">
+              <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                value-format="YYYY-MM-DD"
+                class="form-w-240"
+                @change="handleSearch"
+              />
+            </el-form-item>
+          </div>
+        </el-collapse-transition>
       </el-form>
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -154,6 +167,7 @@
 import { computed, reactive, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { CaretTop, Filter } from '@element-plus/icons-vue'
 import { deleteView, getViewList } from '@/modules/user-ops/api/view-log.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getResourceUrl } from '@/shared/lib/resource.js'
@@ -169,6 +183,7 @@ const loading = ref(false)
 const tableData = ref([])
 const dateRange = ref([])
 const errorMessage = ref('')
+const showAdvanced = ref(false)
 
 // 查询参数
 const searchForm = reactive({
@@ -357,6 +372,10 @@ watch(
   font-size: 12px;
   color: var(--wt-text-secondary);
   line-height: 1.4;
+}
+
+.advanced-filter-item {
+  margin-bottom: 0;
 }
 
 </style>

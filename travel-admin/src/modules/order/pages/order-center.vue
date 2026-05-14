@@ -58,27 +58,27 @@
           class="order-table"
           empty-text="当前条件下暂无匹配订单"
         >
-          <el-table-column label="订单号" width="200" align="left">
+          <el-table-column label="订单号" width="176" align="left">
             <template #default="{ row }">
               <el-button link type="primary" class="order-link" @click="handleDetail(row)">
                 {{ row.orderNo }}
               </el-button>
             </template>
           </el-table-column>
-          <el-table-column label="景点名称" min-width="180" show-overflow-tooltip align="left">
+          <el-table-column label="景点名称" min-width="220" show-overflow-tooltip align="left">
             <template #default="{ row }">
               <el-button link type="primary" class="spot-link" :disabled="isInvalidSpot(row)" @click="handleOpenSpot(row)">{{ getDisplaySpotName(row) }}</el-button>
             </template>
           </el-table-column>
-          <el-table-column prop="userNickname" label="用户" width="120" align="left" />
-          <el-table-column label="支付金额" width="150" align="left">
+          <el-table-column prop="userNickname" label="用户" width="100" align="left" />
+          <el-table-column label="支付金额" width="128" align="left">
             <template #default="{ row }">
               <span class="metric-inline metric-inline--price">¥{{ formatCurrency(row.totalPrice) }}</span>
               <span class="quantity">({{ row.quantity }}张)</span>
             </template>
           </el-table-column>
           <el-table-column prop="visitDate" label="游玩日期" width="120" align="center" />
-          <el-table-column label="联系人" width="160" align="left">
+          <el-table-column label="联系人" width="100" align="left">
             <template #default="{ row }">
               <div>{{ row.contactName || '--' }}</div>
               <div class="text-subtle">{{ row.contactPhone || '--' }}</div>

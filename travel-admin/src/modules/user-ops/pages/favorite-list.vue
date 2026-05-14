@@ -33,44 +33,57 @@
     <el-card shadow="hover" class="management-card admin-management-card">
 
 
-      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+      <el-form :model="searchForm" inline class="search-form admin-filter-bar" @submit.prevent>
+        <div class="filter-row">
+          <div class="filter-main">
+            <el-form-item label="用户昵称" class="filter-item">
+              <el-input
+                v-model="searchForm.nickname"
+                placeholder="请输入用户昵称"
+                clearable
+                class="form-w-180"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="景点名称" class="filter-item">
+              <el-input
+                v-model="searchForm.spotName"
+                placeholder="请输入景点名称"
+                clearable
+                class="form-w-180"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-button type="primary" link class="toggle-btn" @click="showAdvanced = !showAdvanced">
+              <el-icon><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
+              {{ showAdvanced ? '收起条件' : '更多条件' }}
+            </el-button>
+          </div>
+          <div class="filter-actions">
+            <el-button type="primary" @click="handleSearch">搜索</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </div>
+        </div>
 
-        <el-form-item label="用户昵称">
-          <el-input
-            v-model="searchForm.nickname"
-            placeholder="请输入用户昵称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="景点名称">
-          <el-input
-            v-model="searchForm.spotName"
-            placeholder="请输入景点名称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="收藏时间">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            class="form-w-240"
-            @change="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+        <!-- 低频的时间筛选折叠到高级区，保证操作按钮始终留在首行。 -->
+        <el-collapse-transition>
+          <div v-show="showAdvanced" class="advanced-panel">
+            <el-form-item label="收藏时间" class="filter-item advanced-filter-item">
+              <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                value-format="YYYY-MM-DD"
+                class="form-w-240"
+                @change="handleSearch"
+              />
+            </el-form-item>
+          </div>
+        </el-collapse-transition>
       </el-form>
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -123,6 +136,7 @@
 import { computed, reactive, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { CaretTop, Filter } from '@element-plus/icons-vue'
 import { deleteFavorite, getFavoriteList } from '@/modules/user-ops/api/favorite.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getResourceUrl } from '@/shared/lib/resource.js'
@@ -137,6 +151,7 @@ const loading = ref(false)
 const tableData = ref([])
 const dateRange = ref([])
 const errorMessage = ref('')
+const showAdvanced = ref(false)
 
 // 查询参数
 const searchForm = reactive({
@@ -288,6 +303,10 @@ watch(
 
 .favorite-page {
   @include userOps.page-shell;
+}
+
+.advanced-filter-item {
+  margin-bottom: 0;
 }
 
 </style>
