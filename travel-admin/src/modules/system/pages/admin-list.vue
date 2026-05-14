@@ -20,7 +20,7 @@
 
 
       <!-- 搜索表单 -->
-      <el-form :model="queryParams" inline class="search-form" @submit.prevent>
+      <el-form :model="queryParams" inline class="search-form admin-filter-bar" @submit.prevent>
         <el-form-item label="关键字">
           <el-input
               v-model="queryParams.keyword"
