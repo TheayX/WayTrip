@@ -41,14 +41,20 @@ SELECT
   10000 + favorite_seed.n AS `user_id`,
   CASE favorite_seed.slot
     WHEN 1 THEN ELT(1 + MOD(favorite_seed.n - 1, 8), 1, 3, 5, 7, 9, 11, 14, 16)
-    WHEN 2 THEN 1001 + MOD(favorite_seed.n + 5, 60)
+    WHEN 2 THEN ELT(1 + MOD(favorite_seed.n + 1, 10), 1002, 1004, 1006, 1011, 1013, 1017, 1021, 1031, 1045, 1058)
     WHEN 3 THEN 1001 + MOD(favorite_seed.n + 17, 60)
     WHEN 4 THEN ELT(1 + MOD(favorite_seed.n + 2, 8), 2, 4, 6, 8, 10, 12, 13, 15)
-    WHEN 5 THEN 1001 + MOD(favorite_seed.n + 29, 60)
+    WHEN 5 THEN ELT(1 + MOD(favorite_seed.n + 3, 10), 1008, 1010, 1014, 1018, 1023, 1025, 1034, 1041, 1048, 1060)
     ELSE 1001 + MOD(favorite_seed.n + 41, 60)
   END AS `spot_id`,
   0 AS `is_deleted`,
-  DATE_ADD('2026-02-01 10:00:00', INTERVAL favorite_seed.n * 2 + favorite_seed.slot DAY) AS `created_at`,
-  DATE_ADD('2026-02-01 10:00:00', INTERVAL favorite_seed.n * 2 + favorite_seed.slot DAY) AS `updated_at`
+  DATE_ADD(
+    DATE_ADD('2026-02-01 10:00:00', INTERVAL favorite_seed.n + favorite_seed.slot + MOD(favorite_seed.n, 11) DAY),
+    INTERVAL MOD(favorite_seed.n * 37 + favorite_seed.slot * 19, 780) MINUTE
+  ) AS `created_at`,
+  DATE_ADD(
+    DATE_ADD('2026-02-01 10:00:00', INTERVAL favorite_seed.n + favorite_seed.slot + MOD(favorite_seed.n, 11) DAY),
+    INTERVAL MOD(favorite_seed.n * 37 + favorite_seed.slot * 19, 780) MINUTE
+  ) AS `updated_at`
 FROM favorite_seed
 WHERE favorite_seed.slot <= favorite_seed.favorite_count;

@@ -40,7 +40,7 @@ order_seed AS (
     10000 + user_seq.n AS user_id,
     CASE
       WHEN order_slot.slot = 1 THEN ELT(1 + MOD(user_seq.n + 4, 8), 1, 3, 5, 7, 9, 11, 14, 16)
-      WHEN order_slot.slot = 2 THEN 1001 + MOD(user_seq.n + 23, 60)
+      WHEN order_slot.slot = 2 THEN ELT(1 + MOD(user_seq.n + 6, 10), 1002, 1004, 1006, 1011, 1013, 1017, 1021, 1031, 1045, 1058)
       ELSE 1001 + MOD(user_seq.n + 41, 60)
     END AS spot_id,
     1 + MOD(user_seq.n + order_slot.slot, 3) AS quantity,
@@ -51,8 +51,11 @@ order_seed AS (
       WHEN 3 THEN 2
       ELSE 3
     END AS status,
-    DATE_ADD('2026-05-20', INTERVAL user_seq.n + order_slot.slot DAY) AS visit_date,
-    DATE_ADD('2026-03-01 09:00:00', INTERVAL user_seq.n * 2 + order_slot.slot DAY) AS created_at
+    DATE_ADD('2026-05-20', INTERVAL user_seq.n + MOD(user_seq.n, 13) + order_slot.slot DAY) AS visit_date,
+    DATE_ADD(
+      DATE_ADD('2026-03-01 09:00:00', INTERVAL user_seq.n + MOD(user_seq.n, 9) + order_slot.slot DAY),
+      INTERVAL MOD(user_seq.n * 43 + order_slot.slot * 29, 960) MINUTE
+    ) AS created_at
   FROM user_seq
   CROSS JOIN order_slot
 )

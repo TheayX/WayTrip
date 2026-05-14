@@ -41,7 +41,7 @@ SELECT
   10000 + review_seed.n AS `user_id`,
   CASE review_seed.slot
     WHEN 1 THEN ELT(1 + MOD(review_seed.n + 1, 8), 1, 3, 5, 7, 9, 11, 14, 16)
-    WHEN 2 THEN 1001 + MOD(review_seed.n + 19, 60)
+    WHEN 2 THEN ELT(1 + MOD(review_seed.n + 3, 10), 1002, 1004, 1006, 1011, 1013, 1017, 1021, 1031, 1045, 1058)
     ELSE 1001 + MOD(review_seed.n + 37, 60)
   END AS `spot_id`,
   CASE MOD(review_seed.n + review_seed.slot, 10)
@@ -65,7 +65,13 @@ SELECT
     ELSE '整体值得去，拍照和步行体验都比较在线。'
   END AS `comment`,
   0 AS `is_deleted`,
-  DATE_ADD('2026-03-15 09:00:00', INTERVAL review_seed.n * 2 + review_seed.slot DAY) AS `created_at`,
-  DATE_ADD('2026-03-15 09:00:00', INTERVAL review_seed.n * 2 + review_seed.slot DAY) AS `updated_at`
+  DATE_ADD(
+    DATE_ADD('2026-03-15 09:00:00', INTERVAL review_seed.n + MOD(review_seed.n, 7) + review_seed.slot DAY),
+    INTERVAL MOD(review_seed.n * 31 + review_seed.slot * 17, 1080) MINUTE
+  ) AS `created_at`,
+  DATE_ADD(
+    DATE_ADD('2026-03-15 09:00:00', INTERVAL review_seed.n + MOD(review_seed.n, 7) + review_seed.slot DAY),
+    INTERVAL MOD(review_seed.n * 31 + review_seed.slot * 17, 1080) MINUTE
+  ) AS `updated_at`
 FROM review_seed
 WHERE review_seed.slot <= review_seed.review_count;
