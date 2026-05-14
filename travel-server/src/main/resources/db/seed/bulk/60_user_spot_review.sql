@@ -21,23 +21,42 @@ WITH RECURSIVE user_seq AS (
 review_slot AS (
   SELECT 1 AS slot
   UNION ALL
-  SELECT slot + 1 FROM review_slot WHERE slot < 2
+  SELECT slot + 1 FROM review_slot WHERE slot < 3
+),
+review_seed AS (
+  SELECT
+    user_seq.n,
+    review_slot.slot,
+    CASE
+      WHEN MOD(user_seq.n, 18) IN (0, 1) THEN 3
+      WHEN MOD(user_seq.n, 18) IN (2, 3, 4, 5, 6, 7) THEN 2
+      WHEN MOD(user_seq.n, 18) IN (8, 9, 10, 11, 12) THEN 1
+      ELSE 0
+    END AS review_count
+  FROM user_seq
+  CROSS JOIN review_slot
 )
 SELECT
-  50000 + (user_seq.n - 1) * 2 + review_slot.slot AS `id`,
-  10000 + user_seq.n AS `user_id`,
-  CASE review_slot.slot
-    WHEN 1 THEN 1 + MOD(user_seq.n + 2, 16)
-    ELSE 1001 + MOD(user_seq.n + 19, 60)
+  50000 + (review_seed.n - 1) * 3 + review_seed.slot AS `id`,
+  10000 + review_seed.n AS `user_id`,
+  CASE review_seed.slot
+    WHEN 1 THEN ELT(1 + MOD(review_seed.n + 1, 8), 1, 3, 5, 7, 9, 11, 14, 16)
+    WHEN 2 THEN 1001 + MOD(review_seed.n + 19, 60)
+    ELSE 1001 + MOD(review_seed.n + 37, 60)
   END AS `spot_id`,
-  CASE MOD(user_seq.n + review_slot.slot, 5)
+  CASE MOD(review_seed.n + review_seed.slot, 10)
     WHEN 0 THEN 5
     WHEN 1 THEN 4
     WHEN 2 THEN 5
     WHEN 3 THEN 4
-    ELSE 3
+    WHEN 4 THEN 5
+    WHEN 5 THEN 4
+    WHEN 6 THEN 3
+    WHEN 7 THEN 5
+    WHEN 8 THEN 4
+    ELSE 2
   END AS `score`,
-  CASE MOD(user_seq.n + review_slot.slot, 6)
+  CASE MOD(review_seed.n + review_seed.slot, 6)
     WHEN 0 THEN '整体体验顺畅，线路安排合理的话会更舒服。'
     WHEN 1 THEN '景点辨识度不错，适合放进城市核心行程里。'
     WHEN 2 THEN '现场氛围比预期稳定，错峰过去体验更好。'
@@ -46,7 +65,7 @@ SELECT
     ELSE '整体值得去，拍照和步行体验都比较在线。'
   END AS `comment`,
   0 AS `is_deleted`,
-  DATE_ADD('2026-03-15 09:00:00', INTERVAL user_seq.n * 2 + review_slot.slot DAY) AS `created_at`,
-  DATE_ADD('2026-03-15 09:00:00', INTERVAL user_seq.n * 2 + review_slot.slot DAY) AS `updated_at`
-FROM user_seq
-CROSS JOIN review_slot;
+  DATE_ADD('2026-03-15 09:00:00', INTERVAL review_seed.n * 2 + review_seed.slot DAY) AS `created_at`,
+  DATE_ADD('2026-03-15 09:00:00', INTERVAL review_seed.n * 2 + review_seed.slot DAY) AS `updated_at`
+FROM review_seed
+WHERE review_seed.slot <= review_seed.review_count;

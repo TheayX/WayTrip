@@ -23,18 +23,25 @@ WITH RECURSIVE user_seq AS (
 order_slot AS (
   SELECT 1 AS slot
   UNION ALL
-  SELECT slot + 1 FROM order_slot WHERE slot < 2
+  SELECT slot + 1 FROM order_slot WHERE slot < 3
 ),
 order_seed AS (
   SELECT
     user_seq.n,
     order_slot.slot,
-    60000 + (user_seq.n - 1) * 2 + order_slot.slot AS id,
-    CONCAT('BULK', DATE_FORMAT(DATE_ADD('2026-03-01 09:00:00', INTERVAL user_seq.n + order_slot.slot DAY), '%Y%m%d'), LPAD((user_seq.n - 1) * 2 + order_slot.slot, 5, '0')) AS order_no,
+    CASE
+      WHEN MOD(user_seq.n, 20) IN (0, 1, 2) THEN 3
+      WHEN MOD(user_seq.n, 20) IN (3, 4, 5, 6, 7, 8, 9) THEN 2
+      WHEN MOD(user_seq.n, 20) IN (10, 11, 12, 13, 14) THEN 1
+      ELSE 0
+    END AS order_count,
+    60000 + (user_seq.n - 1) * 3 + order_slot.slot AS id,
+    CONCAT('BULK', DATE_FORMAT(DATE_ADD('2026-03-01 09:00:00', INTERVAL user_seq.n + order_slot.slot DAY), '%Y%m%d'), LPAD((user_seq.n - 1) * 3 + order_slot.slot, 5, '0')) AS order_no,
     10000 + user_seq.n AS user_id,
     CASE
-      WHEN order_slot.slot = 1 THEN 1 + MOD(user_seq.n + 4, 16)
-      ELSE 1001 + MOD(user_seq.n + 23, 60)
+      WHEN order_slot.slot = 1 THEN ELT(1 + MOD(user_seq.n + 4, 8), 1, 3, 5, 7, 9, 11, 14, 16)
+      WHEN order_slot.slot = 2 THEN 1001 + MOD(user_seq.n + 23, 60)
+      ELSE 1001 + MOD(user_seq.n + 41, 60)
     END AS spot_id,
     1 + MOD(user_seq.n + order_slot.slot, 3) AS quantity,
     CASE MOD(user_seq.n + order_slot.slot, 5)
@@ -87,4 +94,5 @@ SELECT
   END AS updated_at
 FROM order_seed
 JOIN `user` user ON user.id = order_seed.user_id
-JOIN spot ON spot.id = order_seed.spot_id;
+JOIN spot ON spot.id = order_seed.spot_id
+WHERE order_seed.slot <= order_seed.order_count;

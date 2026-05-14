@@ -21,24 +21,38 @@ WITH RECURSIVE user_seq AS (
 view_slot AS (
   SELECT 1 AS slot
   UNION ALL
-  SELECT slot + 1 FROM view_slot WHERE slot < 12
+  SELECT slot + 1 FROM view_slot WHERE slot < 20
+),
+view_seed AS (
+  SELECT
+    user_seq.n,
+    view_slot.slot,
+    CASE
+      WHEN MOD(user_seq.n, 15) IN (0, 1) THEN 20
+      WHEN MOD(user_seq.n, 15) IN (2, 3, 4) THEN 15
+      WHEN MOD(user_seq.n, 15) IN (5, 6, 7, 8, 9) THEN 10
+      ELSE 6
+    END AS view_count
+  FROM user_seq
+  CROSS JOIN view_slot
 )
 SELECT
-  40000 + (user_seq.n - 1) * 12 + view_slot.slot AS `id`,
-  10000 + user_seq.n AS `user_id`,
+  40000 + (view_seed.n - 1) * 20 + view_seed.slot AS `id`,
+  10000 + view_seed.n AS `user_id`,
   CASE
-    WHEN view_slot.slot BETWEEN 1 AND 3 THEN 1 + MOD(user_seq.n + view_slot.slot - 2, 16)
-    WHEN view_slot.slot BETWEEN 4 AND 8 THEN 1001 + MOD(user_seq.n + view_slot.slot + 7, 60)
-    ELSE 1001 + MOD(user_seq.n + view_slot.slot + 27, 60)
+    WHEN view_seed.slot BETWEEN 1 AND 2 THEN ELT(1 + MOD(view_seed.n + view_seed.slot - 1, 8), 1, 3, 5, 7, 9, 11, 14, 16)
+    WHEN view_seed.slot BETWEEN 3 AND 5 THEN 1 + MOD(view_seed.n + view_seed.slot - 3, 16)
+    WHEN view_seed.slot BETWEEN 6 AND 12 THEN 1001 + MOD(view_seed.n + view_seed.slot + 7, 60)
+    ELSE 1001 + MOD(view_seed.n + view_seed.slot + 29, 60)
   END AS `spot_id`,
-  CASE MOD(view_slot.slot, 5)
+  CASE MOD(view_seed.slot, 5)
     WHEN 1 THEN 'home'
     WHEN 2 THEN 'search'
     WHEN 3 THEN 'recommendation'
     WHEN 4 THEN 'guide'
     ELSE 'detail'
   END AS `view_source`,
-  60 + MOD(user_seq.n * 17 + view_slot.slot * 23, 241) AS `view_duration`,
-  DATE_ADD('2026-03-01 08:00:00', INTERVAL user_seq.n * 3 + view_slot.slot DAY) AS `created_at`
-FROM user_seq
-CROSS JOIN view_slot;
+  45 + MOD(view_seed.n * 17 + view_seed.slot * 23, 316) AS `view_duration`,
+  DATE_ADD('2026-03-01 08:00:00', INTERVAL view_seed.n * 2 + view_seed.slot DAY) AS `created_at`
+FROM view_seed
+WHERE view_seed.slot <= view_seed.view_count;

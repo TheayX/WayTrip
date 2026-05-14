@@ -21,18 +21,34 @@ WITH RECURSIVE user_seq AS (
 fav_slot AS (
   SELECT 1 AS slot
   UNION ALL
-  SELECT slot + 1 FROM fav_slot WHERE slot < 3
+  SELECT slot + 1 FROM fav_slot WHERE slot < 6
+),
+favorite_seed AS (
+  SELECT
+    user_seq.n,
+    fav_slot.slot,
+    CASE
+      WHEN MOD(user_seq.n, 12) IN (0, 1) THEN 6
+      WHEN MOD(user_seq.n, 12) IN (2, 3, 4) THEN 4
+      WHEN MOD(user_seq.n, 12) IN (5, 6, 7, 8) THEN 3
+      ELSE 1
+    END AS favorite_count
+  FROM user_seq
+  CROSS JOIN fav_slot
 )
 SELECT
-  30000 + (user_seq.n - 1) * 3 + fav_slot.slot AS `id`,
-  10000 + user_seq.n AS `user_id`,
-  CASE fav_slot.slot
-    WHEN 1 THEN 1 + MOD(user_seq.n - 1, 16)
-    WHEN 2 THEN 1001 + MOD(user_seq.n + 11, 60)
-    ELSE 1001 + MOD(user_seq.n + 27, 60)
+  30000 + (favorite_seed.n - 1) * 6 + favorite_seed.slot AS `id`,
+  10000 + favorite_seed.n AS `user_id`,
+  CASE favorite_seed.slot
+    WHEN 1 THEN ELT(1 + MOD(favorite_seed.n - 1, 8), 1, 3, 5, 7, 9, 11, 14, 16)
+    WHEN 2 THEN 1001 + MOD(favorite_seed.n + 5, 60)
+    WHEN 3 THEN 1001 + MOD(favorite_seed.n + 17, 60)
+    WHEN 4 THEN ELT(1 + MOD(favorite_seed.n + 2, 8), 2, 4, 6, 8, 10, 12, 13, 15)
+    WHEN 5 THEN 1001 + MOD(favorite_seed.n + 29, 60)
+    ELSE 1001 + MOD(favorite_seed.n + 41, 60)
   END AS `spot_id`,
   0 AS `is_deleted`,
-  DATE_ADD('2026-02-01 10:00:00', INTERVAL user_seq.n * 2 + fav_slot.slot DAY) AS `created_at`,
-  DATE_ADD('2026-02-01 10:00:00', INTERVAL user_seq.n * 2 + fav_slot.slot DAY) AS `updated_at`
-FROM user_seq
-CROSS JOIN fav_slot;
+  DATE_ADD('2026-02-01 10:00:00', INTERVAL favorite_seed.n * 2 + favorite_seed.slot DAY) AS `created_at`,
+  DATE_ADD('2026-02-01 10:00:00', INTERVAL favorite_seed.n * 2 + favorite_seed.slot DAY) AS `updated_at`
+FROM favorite_seed
+WHERE favorite_seed.slot <= favorite_seed.favorite_count;
