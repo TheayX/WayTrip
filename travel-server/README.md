@@ -51,16 +51,28 @@ cp .env.example .env
 
 1. [schema.sql](./src/main/resources/db/schema.sql)
 2. [data.sql](./src/main/resources/db/data.sql)
+3. [seed/10_region.sql](./src/main/resources/db/seed/10_region.sql)（补充主要省份与核心城市）
 
 如果需要追加扩容数据，再按需执行：
 
 - [db/seed/bulk](./src/main/resources/db/seed/bulk)
 
+当前手工扩容顺序建议：
+
+1. [10_spot.sql](./src/main/resources/db/seed/bulk/10_spot.sql)
+2. [20_user.sql](./src/main/resources/db/seed/bulk/20_user.sql)
+3. [30_user_preference.sql](./src/main/resources/db/seed/bulk/30_user_preference.sql)
+4. [40_user_spot_favorite.sql](./src/main/resources/db/seed/bulk/40_user_spot_favorite.sql)
+5. [50_user_spot_view.sql](./src/main/resources/db/seed/bulk/50_user_spot_view.sql)
+6. [60_user_spot_review.sql](./src/main/resources/db/seed/bulk/60_user_spot_review.sql)
+7. [70_order.sql](./src/main/resources/db/seed/bulk/70_order.sql)
+
 补充说明：
 
 - `data.sql` 用于基础演示数据初始化，会清空并重建基础数据。
 - 如果数据库里已经有你在后台手工改过的景点图片或其他基础内容，不要重复执行 `data.sql`。
-- `db/seed/bulk/*.sql` 约定为追加型扩容数据，只插入新 ID，不覆盖、不清空、不修改已有基础数据。
+- `seed/10_region.sql` 与 `db/seed/bulk/*.sql` 约定为追加型扩容数据，只插入新 ID，不覆盖、不清空、不修改已有基础数据。
+- 当前扩容 SQL 默认依赖 MySQL 8，部分文件使用递归 CTE 生成批量数据。
 
 ### 启动项目
 
@@ -175,12 +187,10 @@ mvn test
 mvn clean package
 ```
 
-扩容 SQL 生成：
+扩容数据维护：
 
-```bash
-node scripts/generate-ai-spot-sql.mjs
-node scripts/generate-bulk-behavior-sql.mjs
-```
+- 当前主流程以 `src/main/resources/db/seed/` 下的手工 SQL 为准。
+- `scripts/` 下的历史生成脚本不属于当前推荐导库流程。
 
 ## 相关文档
 
