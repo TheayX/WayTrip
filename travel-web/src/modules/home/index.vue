@@ -2,7 +2,7 @@
 <template>
   <div class="home-page">
     <section class="hero">
-      <el-carousel class="hero-carousel" height="620px" :interval="5000" autoplay :pause-on-hover="false" arrow="never" indicator-position="none">
+      <el-carousel class="hero-carousel" height="620px" :interval="5000" autoplay :pause-on-hover="false" arrow="never">
         <el-carousel-item v-for="banner in banners" :key="banner.id">
           <div class="hero-slide" :class="{ clickable: !!banner.spotId }" @click="handleBannerClick(banner)">
             <img :src="getImageUrl(banner.imageUrl)" class="hero-bg" alt="" />
@@ -371,6 +371,28 @@ onMounted(async () => {
   height: 100%;
 }
 
+.hero-carousel :deep(.el-carousel__indicators) {
+  bottom: 28px;
+  transform: none;
+}
+
+.hero-carousel :deep(.el-carousel__button) {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.46);
+  transition: width 0.24s ease, background-color 0.24s ease, opacity 0.24s ease;
+}
+
+.hero-carousel :deep(.el-carousel__indicator:hover .el-carousel__button) {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.hero-carousel :deep(.el-carousel__indicator.is-active .el-carousel__button) {
+  width: 28px;
+  background: #ffffff;
+}
+
 .hero-bg {
   object-fit: cover;
   filter: brightness(0.42);
@@ -541,6 +563,10 @@ onMounted(async () => {
   .hero {
     border-bottom-left-radius: 28px;
     border-bottom-right-radius: 28px;
+  }
+
+  .hero-carousel :deep(.el-carousel__indicators) {
+    bottom: 18px;
   }
 
   .hero-inner {
