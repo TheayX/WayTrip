@@ -56,6 +56,7 @@
             <el-image
               :src="getImageUrl(row.imageUrl)"
               :preview-src-list="[getImageUrl(row.imageUrl)]"
+              preview-teleported
               fit="cover"
               class="banner-preview"
             />

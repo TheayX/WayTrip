@@ -11,7 +11,13 @@
     <el-table-column prop="id" label="ID" width="70" align="center" />
     <el-table-column label="封面" width="90" align="center">
       <template #default="{ row }">
-        <el-image :src="getImageUrl(row.coverImage)" class="table-cover-img" fit="cover" />
+        <el-image
+          :src="getImageUrl(row.coverImage)"
+          :preview-src-list="[getImageUrl(row.coverImage)]"
+          preview-teleported
+          class="table-cover-img"
+          fit="cover"
+        />
       </template>
     </el-table-column>
     <el-table-column prop="title" label="标题" min-width="220" show-overflow-tooltip align="left">
