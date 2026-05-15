@@ -81,17 +81,25 @@
       <div class="filters-grid">
         <div v-if="showSpotFilters" class="filter-group">
           <span class="filter-label">地区</span>
-          <el-select v-model="selectedRegionId" clearable placeholder="全部地区" @change="handleSpotFilter">
-            <el-option label="全部" value="" />
-            <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
+          <el-cascader
+            v-model="selectedRegionPath"
+            :options="regionTree"
+            :props="spotCascaderProps"
+            clearable
+            placeholder="全部地区"
+            @change="handleSpotFilter"
+          />
         </div>
         <div v-if="showSpotFilters" class="filter-group">
           <span class="filter-label">分类</span>
-          <el-select v-model="selectedSpotCategoryId" clearable placeholder="全部分类" @change="handleSpotFilter">
-            <el-option label="全部" value="" />
-            <el-option v-for="item in spotCategories" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
+          <el-cascader
+            v-model="selectedSpotCategoryPath"
+            :options="spotCategoryTree"
+            :props="spotCascaderProps"
+            clearable
+            placeholder="全部分类"
+            @change="handleSpotFilter"
+          />
         </div>
         <div v-if="showGuideFilters" class="filter-group">
           <span class="filter-label">主题</span>
@@ -253,11 +261,11 @@ const router = useRouter()
 // 页面数据状态
 const activeTab = ref('all')
 const activeScene = ref('all')
-const regions = ref([])
-const spotCategories = ref([])
+const regionTree = ref([])
+const spotCategoryTree = ref([])
 const guideCategories = ref([])
-const selectedRegionId = ref('')
-const selectedSpotCategoryId = ref('')
+const selectedRegionPath = ref([])
+const selectedSpotCategoryPath = ref([])
 const selectedGuideCategory = ref('')
 const spotList = ref([])
 const guideList = ref([])
@@ -280,6 +288,54 @@ const {
 } = useRecommendationFeed(12)
 
 // 计算属性
+const selectedRegionId = computed(() => selectedRegionPath.value[selectedRegionPath.value.length - 1] || '')
+const selectedSpotCategoryId = computed(() => selectedSpotCategoryPath.value[selectedSpotCategoryPath.value.length - 1] || '')
+
+const findTreeNodeById = (tree, targetId) => {
+  if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) {
+    return null
+  }
+
+  const normalizedTargetId = String(targetId)
+  const stack = [...tree]
+
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (String(current.id) === normalizedTargetId) {
+      return current
+    }
+    if (Array.isArray(current.children) && current.children.length) {
+      stack.push(...current.children)
+    }
+  }
+
+  return null
+}
+
+const findPathById = (tree, targetId) => {
+  if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) {
+    return []
+  }
+
+  const normalizedTargetId = String(targetId)
+  const stack = tree.map((node) => ({ node, path: [node.id] }))
+
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (String(current.node.id) === normalizedTargetId) {
+      return current.path
+    }
+    if (Array.isArray(current.node.children) && current.node.children.length) {
+      for (const child of current.node.children) {
+        stack.push({ node: child, path: [...current.path, child.id] })
+      }
+    }
+  }
+
+  return []
+}
 const showSpotFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
 const showGuideFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
 const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
@@ -299,11 +355,11 @@ const nearbyEmptyText = computed(() => {
 const filterSummary = computed(() => {
   const segments = []
   if (selectedRegionId.value) {
-    const region = regions.value.find(item => item.id === selectedRegionId.value)
+    const region = findTreeNodeById(regionTree.value, selectedRegionId.value)
     segments.push(`地区：${region?.name || '已选择'}`)
   }
   if (selectedSpotCategoryId.value) {
-    const category = spotCategories.value.find(item => item.id === selectedSpotCategoryId.value)
+    const category = findTreeNodeById(spotCategoryTree.value, selectedSpotCategoryId.value)
     segments.push(`分类：${category?.name || '已选择'}`)
   }
   if (selectedGuideCategory.value) {
@@ -316,6 +372,14 @@ const sceneEntries = computed(() => ([
   { key: 'recommend', title: '为你推荐', desc: userStore.isLoggedIn ? '优先浏览更贴近兴趣的内容。' : '登录后查看更贴近兴趣的推荐。', badge: '推荐' },
   { key: 'nearby', title: '附近探索', desc: '基于定位快速浏览周边值得去的地方。', badge: '附近' }
 ]))
+
+const spotCascaderProps = {
+  value: 'id',
+  label: 'name',
+  children: 'children',
+  checkStrictly: true,
+  emitPath: true
+}
 
 // 工具方法
 // 发现页承担多种探索场景，持久化场景和筛选状态可以避免用户来回切页时丢上下文。
@@ -349,8 +413,8 @@ const restoreState = () => {
   const state = JSON.parse(raw)
   activeTab.value = DISCOVER_TABS.includes(state.tab) ? state.tab : 'all'
   activeScene.value = DISCOVER_SCENES.includes(state.scene) ? state.scene : 'all'
-  selectedRegionId.value = state.selectedRegionId || ''
-  selectedSpotCategoryId.value = state.selectedSpotCategoryId || ''
+  selectedRegionPath.value = state.selectedRegionId ? [state.selectedRegionId] : []
+  selectedSpotCategoryPath.value = state.selectedSpotCategoryId ? [state.selectedSpotCategoryId] : []
   selectedGuideCategory.value = state.selectedGuideCategory || ''
 }
 
@@ -364,14 +428,20 @@ const applyRoutePreset = () => {
     activeScene.value = scene
   }
   if (typeof route.query.regionId === 'string') {
-    selectedRegionId.value = route.query.regionId
+    selectedRegionPath.value = [route.query.regionId]
   }
   if (typeof route.query.categoryId === 'string') {
-    selectedSpotCategoryId.value = route.query.categoryId
+    selectedSpotCategoryPath.value = [route.query.categoryId]
   }
   if (typeof route.query.guideCategory === 'string') {
     selectedGuideCategory.value = route.query.guideCategory
   }
+}
+
+// 路由与本地缓存只保留最终节点 ID，树数据就绪后再还原成父子选择。
+const applyTreeSelection = (tree, targetId, parentRef, childRef) => {
+  const path = findPathById(tree, targetId)
+  parentRef.value = path
 }
 
 const toggleCategory = (id) => {
@@ -394,8 +464,15 @@ const handleKeywordSelect = (value) => {
 // 数据加载方法
 const fetchSpotFilters = async () => {
   const res = await getFilters()
-  regions.value = res.data?.regions || []
-  spotCategories.value = res.data?.categories || []
+  regionTree.value = res.data?.regionTree?.length ? res.data.regionTree : (res.data?.regions || [])
+  spotCategoryTree.value = res.data?.categoryTree?.length ? res.data.categoryTree : (res.data?.categories || [])
+
+  if (selectedRegionId.value) {
+    applyTreeSelection(regionTree.value, selectedRegionId.value, selectedRegionPath)
+  }
+  if (selectedSpotCategoryId.value) {
+    applyTreeSelection(spotCategoryTree.value, selectedSpotCategoryId.value, selectedSpotCategoryPath)
+  }
 }
 
 const fetchGuideCategories = async () => {
@@ -731,6 +808,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 10px;
 }
+
 
 .filter-label {
   color: #475569;

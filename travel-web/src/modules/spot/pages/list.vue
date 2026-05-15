@@ -14,10 +14,10 @@
     />
 
     <SpotFilterBar
-      v-model:region-id="filters.regionId"
-      v-model:category-id="filters.categoryId"
-      :regions="flatRegions"
-      :categories="flatCategories"
+      v-model:region-path="filters.regionPath"
+      v-model:category-path="filters.categoryPath"
+      :regions="regionTree"
+      :categories="categoryTree"
       @change="handleFilter"
     />
 
@@ -79,35 +79,63 @@ const regionTree = ref([])
 const categoryTree = ref([])
 
 const filters = reactive({
-  regionId: '',
-  categoryId: '',
+  regionPath: [],
+  categoryPath: [],
   sortBy: 'heat'
 })
 
-// 计算属性
-const flatRegions = computed(() => {
-  if (!regionTree.value.length) return []
-  return regionTree.value.flatMap((item) => {
-    if (Array.isArray(item.children) && item.children.length) {
-      return [{ id: item.id, name: item.name }, ...item.children]
-    }
-    return [{ id: item.id, name: item.name }]
-  })
-})
+const selectedRegionId = computed(() => filters.regionPath[filters.regionPath.length - 1] || '')
+const selectedCategoryId = computed(() => filters.categoryPath[filters.categoryPath.length - 1] || '')
 
-const flatCategories = computed(() => {
-  if (!categoryTree.value.length) return []
-  return categoryTree.value.flatMap((item) => {
-    if (Array.isArray(item.children) && item.children.length) {
-      return [{ id: item.id, name: item.name }, ...item.children]
+const findTreeNodeById = (tree, targetId) => {
+  if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) {
+    return null
+  }
+
+  const normalizedTargetId = String(targetId)
+  const stack = [...tree]
+
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (String(current.id) === normalizedTargetId) {
+      return current
     }
-    return [{ id: item.id, name: item.name }]
-  })
-})
+    if (Array.isArray(current.children) && current.children.length) {
+      stack.push(...current.children)
+    }
+  }
+
+  return null
+}
+
+const findPathById = (tree, targetId) => {
+  if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) {
+    return []
+  }
+
+  const normalizedTargetId = String(targetId)
+  const stack = tree.map((node) => ({ node, path: [node.id] }))
+
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (String(current.node.id) === normalizedTargetId) {
+      return current.path
+    }
+    if (Array.isArray(current.node.children) && current.node.children.length) {
+      for (const child of current.node.children) {
+        stack.push({ node: child, path: [...current.path, child.id] })
+      }
+    }
+  }
+
+  return []
+}
 
 const currentStateText = computed(() => {
-  const region = flatRegions.value.find((item) => String(item.id) === String(filters.regionId))?.name || '全部地区'
-  const category = flatCategories.value.find((item) => String(item.id) === String(filters.categoryId))?.name || '全部分类'
+  const region = findTreeNodeById(regionTree.value, selectedRegionId.value)?.name || '全部地区'
+  const category = findTreeNodeById(categoryTree.value, selectedCategoryId.value)?.name || '全部分类'
   const sortMap = {
     heat: '综合热度',
     rating: '评分最高',
@@ -119,8 +147,8 @@ const currentStateText = computed(() => {
 
 const activeFilterTags = computed(() => {
   const tags = []
-  const region = flatRegions.value.find((item) => String(item.id) === String(filters.regionId))?.name
-  const category = flatCategories.value.find((item) => String(item.id) === String(filters.categoryId))?.name
+  const region = findTreeNodeById(regionTree.value, selectedRegionId.value)?.name
+  const category = findTreeNodeById(categoryTree.value, selectedCategoryId.value)?.name
   if (region) tags.push(region)
   if (category) tags.push(category)
   if (filters.sortBy !== 'heat') {
@@ -167,11 +195,16 @@ const syncRouteQuery = () => {
   router.replace({
     path: '/spots',
     query: {
-      ...(filters.regionId ? { regionId: filters.regionId } : {}),
-      ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
+      ...(selectedRegionId.value ? { regionId: selectedRegionId.value } : {}),
+      ...(selectedCategoryId.value ? { categoryId: selectedCategoryId.value } : {}),
       ...(filters.sortBy ? { sortBy: filters.sortBy } : {})
     }
   })
+}
+
+// 路由只存最终生效节点 ID，页面加载后还原成级联路径，避免暴露多余筛选状态。
+const applyTreeSelectionById = (tree, targetId, pathKey) => {
+  filters[pathKey] = findPathById(tree, targetId)
 }
 
 // 数据加载方法
@@ -189,8 +222,8 @@ const fetchSpotList = async () => {
       pageSize,
       sortBy: filters.sortBy
     }
-    if (filters.regionId) params.regionId = filters.regionId
-    if (filters.categoryId) params.categoryId = filters.categoryId
+    if (selectedRegionId.value) params.regionId = selectedRegionId.value
+    if (selectedCategoryId.value) params.categoryId = selectedCategoryId.value
 
     const res = await getSpotList(params)
     spotList.value = res.data?.list || []
@@ -214,25 +247,25 @@ const changeSort = (value) => {
 }
 
 const resetFilters = () => {
-  filters.regionId = ''
-  filters.categoryId = ''
+  filters.regionPath = []
+  filters.categoryPath = []
   filters.sortBy = 'heat'
   handleFilter()
 }
 
 // 生命周期
 onMounted(async () => {
-  if (typeof route.query.regionId === 'string') {
-    filters.regionId = route.query.regionId
-  }
-  if (typeof route.query.categoryId === 'string') {
-    filters.categoryId = route.query.categoryId
-  }
   if (typeof route.query.sortBy === 'string') {
     filters.sortBy = route.query.sortBy
   }
 
   await fetchFilters()
+  if (typeof route.query.regionId === 'string') {
+    applyTreeSelectionById(regionTree.value, route.query.regionId, 'regionPath')
+  }
+  if (typeof route.query.categoryId === 'string') {
+    applyTreeSelectionById(categoryTree.value, route.query.categoryId, 'categoryPath')
+  }
   await fetchSpotList()
   applyUpdatedSpot()
 })
