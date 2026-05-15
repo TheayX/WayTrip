@@ -3,17 +3,17 @@
   <div class="page-container spot-list-page">
     <SpotListToolbar
       :description="currentStateText"
-      :sort-by="filters.sortBy"
-      @sort-change="changeSort"
-      @reset="resetFilters"
     />
 
     <SpotFilterBar
       v-model:region-path="filters.regionPath"
       v-model:category-path="filters.categoryPath"
+      v-model:sort-by="filters.sortBy"
       :regions="regionTree"
       :categories="categoryTree"
+      :sort-options="sortOptions"
       @change="handleFilter"
+      @reset="resetFilters"
     />
 
     <section class="active-filters premium-card" v-if="activeFilterTags.length">
@@ -77,6 +77,12 @@ const filters = reactive({
   categoryPath: [],
   sortBy: 'heat'
 })
+const sortOptions = [
+  { label: '综合热度', value: 'heat' },
+  { label: '评分最高', value: 'rating' },
+  { label: '价格最低', value: 'price_asc' },
+  { label: '价格最高', value: 'price_desc' }
+]
 
 const selectedRegionId = computed(() => filters.regionPath[filters.regionPath.length - 1] || '')
 const selectedCategoryId = computed(() => filters.categoryPath[filters.categoryPath.length - 1] || '')
@@ -232,12 +238,6 @@ const handleFilter = () => {
   page.value = 1
   syncRouteQuery()
   fetchSpotList()
-}
-
-const changeSort = (value) => {
-  if (filters.sortBy === value) return
-  filters.sortBy = value
-  handleFilter()
 }
 
 const resetFilters = () => {

@@ -30,6 +30,25 @@
           @change="$emit('change')"
         />
       </div>
+      <div class="filter-group">
+        <span class="filter-label">排序</span>
+        <el-select
+          :model-value="sortBy"
+          placeholder="选择排序"
+          @update:model-value="$emit('update:sortBy', $event)"
+          @change="$emit('change')"
+        >
+          <el-option
+            v-for="option in sortOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
+        </el-select>
+      </div>
+      <div class="filter-actions">
+        <el-button plain @click="$emit('reset')">重置</el-button>
+      </div>
     </div>
   </section>
 </template>
@@ -45,6 +64,14 @@ defineProps({
     type: Array,
     default: () => []
   },
+  sortBy: {
+    type: String,
+    required: true
+  },
+  sortOptions: {
+    type: Array,
+    default: () => []
+  },
   regions: {
     type: Array,
     default: () => []
@@ -56,7 +83,7 @@ defineProps({
 })
 
 // 通过 update 事件保持组件无状态，避免筛选栏和列表页出现双份源数据。
-defineEmits(['update:regionPath', 'update:categoryPath', 'change'])
+defineEmits(['update:regionPath', 'update:categoryPath', 'update:sortBy', 'change', 'reset'])
 
 // 筛选栏使用单入口级联选择，交互与管理端高级筛选保持一致。
 const cascaderProps = {
@@ -103,6 +130,11 @@ const cascaderProps = {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
 }
 
 .filter-label {

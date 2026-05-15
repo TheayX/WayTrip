@@ -3,23 +3,29 @@
   <div class="page-container guide-list-page">
     <GuideListToolbar
       :description="currentStateText"
-      :sort-by="sortBy"
-      @sort-change="changeSort"
-      @reset="resetFilters"
     />
 
     <section class="category-bar premium-card">
-      <p class="category-kicker">攻略主题</p>
-      <div class="category-tags">
-        <el-check-tag :checked="currentCategory === ''" @change="selectCategory('')">全部</el-check-tag>
-        <el-check-tag
-          v-for="cat in categories"
-          :key="cat"
-          :checked="currentCategory === cat"
-          @change="selectCategory(cat)"
-        >
-          {{ cat }}
-        </el-check-tag>
+      <div class="category-head">
+        <p class="category-kicker">筛选条件</p>
+      </div>
+      <div class="category-row">
+        <div class="category-field">
+          <span class="category-label">主题</span>
+          <el-select :model-value="currentCategory" placeholder="全部主题" @change="selectCategory">
+            <el-option label="全部" value="" />
+            <el-option v-for="cat in categories" :key="cat" :label="cat" :value="cat" />
+          </el-select>
+        </div>
+        <div class="category-field">
+          <span class="category-label">排序</span>
+          <el-select :model-value="sortBy" placeholder="选择排序" @change="changeSort">
+            <el-option v-for="option in sortOptions" :key="option.value" :label="option.label" :value="option.value" />
+          </el-select>
+        </div>
+        <div class="category-actions">
+          <el-button plain @click="resetFilters">重置</el-button>
+        </div>
       </div>
     </section>
 
@@ -70,6 +76,10 @@ const pageSize = 12
 const total = ref(0)
 const loading = ref(false)
 const sortBy = ref('time')
+const sortOptions = [
+  { label: '最新优先', value: 'time' },
+  { label: '分类排序', value: 'category' }
+]
 
 // 计算属性
 const currentStateText = computed(() => {
@@ -188,8 +198,11 @@ onMounted(async () => {
   padding: 16px 18px;
 }
 
+.category-head {
+  margin-bottom: 14px;
+}
+
 .category-kicker {
-  margin-bottom: 10px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -197,10 +210,28 @@ onMounted(async () => {
   color: #64748b;
 }
 
-.category-tags {
+.category-row {
   display: flex;
   flex-wrap: wrap;
+  gap: 16px;
+}
+
+.category-field {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+}
+
+.category-label {
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.category-actions {
+  display: flex;
+  align-items: flex-end;
 }
 
 .guide-grid {
