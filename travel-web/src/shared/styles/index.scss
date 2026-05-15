@@ -8,7 +8,7 @@
   --wt-color-primary: #2563eb;
   --wt-color-primary-strong: #1d4ed8;
   --wt-color-primary-soft: #eff6ff;
-  --wt-color-accent: #c8a95b;
+  --wt-color-accent: #ca8a04;
   --wt-color-success: #059669;
   --wt-color-warning: #d97706;
   --wt-color-danger: #dc2626;
@@ -18,24 +18,24 @@
   --wt-ink-soft: #64748b;
   --wt-ink-placeholder: #94a3b8;
 
-  --wt-surface-page: #f5f7fb;
+  --wt-surface-page: #f7f8fb;
   --wt-surface-base: #ffffff;
   --wt-surface-soft: #f8fafc;
   --wt-surface-muted: #eef2f7;
   --wt-border-color: #e2e8f0;
   --wt-border-strong: #d7e2ee;
 
-  --wt-shadow-sm: 0 10px 30px -24px rgba(15, 23, 42, 0.28);
-  --wt-shadow-md: 0 22px 44px -30px rgba(15, 23, 42, 0.26);
-  --wt-shadow-lg: 0 28px 70px -42px rgba(15, 23, 42, 0.34);
+  --wt-shadow-sm: 0 10px 24px -18px rgba(15, 23, 42, 0.16);
+  --wt-shadow-md: 0 18px 38px -24px rgba(15, 23, 42, 0.18);
+  --wt-shadow-lg: 0 28px 56px -34px rgba(15, 23, 42, 0.22);
 
-  --wt-radius-xs: 10px;
-  --wt-radius-sm: 14px;
-  --wt-radius-md: 20px;
-  --wt-radius-lg: 28px;
+  --wt-radius-xs: 8px;
+  --wt-radius-sm: 12px;
+  --wt-radius-md: 16px;
+  --wt-radius-lg: 20px;
   --wt-radius-pill: 999px;
 
-  --wt-container: 1240px;
+  --wt-container: 1180px;
 
   --el-color-primary: var(--wt-color-primary);
   --el-color-primary-light-3: #60a5fa;
@@ -79,13 +79,13 @@ body,
 }
 
 body {
-  font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+  font-family: 'Plus Jakarta Sans', 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
     'Segoe UI', sans-serif;
   color: var(--wt-ink-strong);
   background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 24%),
-    radial-gradient(circle at top right, rgba(200, 169, 91, 0.08), transparent 20%),
-    linear-gradient(180deg, #f8fafd 0%, #f4f7fb 100%);
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.06), transparent 24%),
+    radial-gradient(circle at top right, rgba(202, 138, 4, 0.06), transparent 18%),
+    linear-gradient(180deg, #fafbfc 0%, #f5f7fb 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -135,7 +135,7 @@ img {
 .page-container {
   width: min(100%, var(--wt-container));
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 20px;
 }
 
 .page-section {
@@ -147,12 +147,12 @@ img {
 .page-stack {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
 }
 
 .section-title {
-  font-size: 28px;
-  line-height: 1.15;
+  font-size: 26px;
+  line-height: 1.2;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--wt-ink-strong);
@@ -165,10 +165,9 @@ img {
 
 .card,
 .premium-card {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #ffffff 100%);
-  border: 1px solid rgba(226, 232, 240, 0.92);
-  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #ffffff 100%);
+  border: 1px solid rgba(226, 232, 240, 0.88);
+  border-radius: 16px;
   box-shadow: var(--wt-shadow-sm);
   transition:
     transform 0.22s ease,
@@ -178,14 +177,14 @@ img {
 
 .card:hover,
 .premium-card:hover {
-  border-color: rgba(191, 219, 254, 0.95);
+  border-color: rgba(191, 219, 254, 0.9);
   box-shadow: var(--wt-shadow-md);
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
   box-shadow: var(--wt-shadow-sm);
 }
 
@@ -273,7 +272,7 @@ img {
 .el-select__wrapper,
 .el-textarea__inner {
   background: rgba(248, 250, 252, 0.96);
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: 0 0 0 1px rgba(226, 232, 240, 0.96) inset !important;
   transition:
     box-shadow 0.2s ease,
@@ -294,7 +293,7 @@ img {
 }
 
 .el-dialog {
-  border-radius: 28px;
+  border-radius: 18px;
   overflow: hidden;
   box-shadow: var(--wt-shadow-lg);
 }
@@ -313,7 +312,7 @@ img {
 
 .el-dropdown-menu {
   padding: 8px;
-  border-radius: 18px !important;
+  border-radius: 14px !important;
   border: 1px solid rgba(226, 232, 240, 0.96) !important;
   box-shadow: var(--wt-shadow-md) !important;
 }
@@ -383,10 +382,10 @@ img {
 @media (max-width: 768px) {
   .card,
   .premium-card {
-    border-radius: 22px;
+    border-radius: 14px;
   }
 
   .page-stack {
-    gap: 22px;
+    gap: 20px;
   }
 }

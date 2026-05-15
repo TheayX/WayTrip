@@ -616,17 +616,17 @@ onMounted(async () => {
 .discover-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-top: 4px;
+  gap: 16px;
+  padding-top: 2px;
 }
 
 .discover-hero {
-  padding: 28px;
+  padding: 24px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 16px;
   background:
-    radial-gradient(circle at top right, rgba(200, 169, 91, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(202, 138, 4, 0.12), transparent 28%),
     linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
@@ -641,10 +641,10 @@ onMounted(async () => {
 }
 
 .page-title {
-  font-size: 38px;
-  line-height: 1.08;
+  font-size: 32px;
+  line-height: 1.12;
   font-weight: 700;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: #0f172a;
 }
 
@@ -657,14 +657,14 @@ onMounted(async () => {
 }
 
 .hero-search-row {
-  margin-top: 22px;
+  margin-top: 18px;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
 .hero-search {
-  min-height: 52px;
+  min-height: 48px;
   padding: 0 18px;
   border: 1px solid #e2e8f0;
   border-radius: 999px;
@@ -700,15 +700,15 @@ onMounted(async () => {
 }
 
 .status-card {
-  padding: 18px;
-  border-radius: 22px;
+  padding: 16px;
+  border-radius: 14px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #ffffff 100%);
   border: 1px solid #eef2f7;
 }
 
 .status-card strong {
   display: block;
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1;
   color: #0f172a;
 }
@@ -723,11 +723,11 @@ onMounted(async () => {
 .scene-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .scene-card {
-  padding: 20px;
+  padding: 16px 18px;
   cursor: pointer;
   border: 1px solid transparent;
 }
@@ -746,7 +746,7 @@ onMounted(async () => {
 }
 
 .scene-top strong {
-  font-size: 18px;
+  font-size: 16px;
   color: #0f172a;
 }
 
@@ -770,7 +770,7 @@ onMounted(async () => {
 .tab-panel,
 .filters,
 .hint-banner {
-  padding: 20px 22px;
+  padding: 18px 20px;
 }
 
 .tab-panel-main {
@@ -793,14 +793,14 @@ onMounted(async () => {
 }
 
 .filters-head h3 {
-  font-size: 24px;
+  font-size: 20px;
   color: #0f172a;
 }
 
 .filters-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .filter-group {
@@ -819,7 +819,7 @@ onMounted(async () => {
 .content-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .section-head,
@@ -832,7 +832,7 @@ onMounted(async () => {
 
 .section-head h3 {
   margin-bottom: 6px;
-  font-size: 30px;
+  font-size: 24px;
   color: #0f172a;
   letter-spacing: -0.03em;
 }
@@ -846,7 +846,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   cursor: pointer;
 }
 
@@ -864,7 +864,7 @@ onMounted(async () => {
 .guide-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 .preference-tags {
@@ -894,7 +894,7 @@ onMounted(async () => {
   }
 
   .page-title {
-    font-size: 32px;
+    font-size: 28px;
   }
 
   .hero-search-row {
