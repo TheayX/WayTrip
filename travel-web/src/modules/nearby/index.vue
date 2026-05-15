@@ -141,7 +141,7 @@ onMounted(async () => {
   font-size: 28px;
   line-height: 1.14;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 

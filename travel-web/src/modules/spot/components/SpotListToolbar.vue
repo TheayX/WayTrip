@@ -55,7 +55,7 @@ defineEmits(['sort-change', 'reset'])
   font-size: 32px;
   line-height: 1.1;
   font-weight: 700;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 

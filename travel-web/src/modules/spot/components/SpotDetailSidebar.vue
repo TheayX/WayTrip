@@ -133,7 +133,7 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
   line-height: 1.14;
   font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   margin-bottom: 8px;
 }
 
@@ -218,7 +218,7 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 12px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .detail-item {

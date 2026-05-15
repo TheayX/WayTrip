@@ -89,7 +89,7 @@ const cascaderProps = {
 .filter-head h3 {
   font-size: 22px;
   color: #0f172a;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .filter-row {

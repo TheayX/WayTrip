@@ -120,7 +120,7 @@ onMounted(() => {
 .hero-title {
   font-size: 28px;
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .hero-desc,

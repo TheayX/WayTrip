@@ -52,7 +52,7 @@ defineProps({
   line-height: 1.18;
   font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   text-wrap: balance;
 }
 

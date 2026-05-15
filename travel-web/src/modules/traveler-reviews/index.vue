@@ -161,7 +161,7 @@ onMounted(() => {
 .hero-title,
 .tab-copy h2 {
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .hero-title {

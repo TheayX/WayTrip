@@ -63,7 +63,7 @@ defineEmits(['select'])
 .sidebar-title {
   font-size: 22px;
   color: #0f172a;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .related-spot {

@@ -487,7 +487,7 @@ onUnmounted(() => {
   font-size: 22px;
   font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .section-header-row {

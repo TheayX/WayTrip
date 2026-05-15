@@ -32,7 +32,6 @@
           </div>
           <h3>{{ item.title }}</h3>
           <p>{{ item.desc }}</p>
-          <span class="grid-link">进入玩法</span>
         </article>
       </div>
     </section>
@@ -142,7 +141,7 @@ const handleEntryClick = (item) => {
 .hero-card h1,
 .group-card h2 {
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .hero-card h1 {
@@ -235,7 +234,6 @@ const handleEntryClick = (item) => {
   font-size: 14px;
 }
 
-.grid-link,
 .grid-badge {
   display: inline-flex;
   align-items: center;
@@ -245,11 +243,6 @@ const handleEntryClick = (item) => {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-}
-
-.grid-link {
-  background: #eff6ff;
-  color: #1d4ed8;
 }
 
 .grid-badge {

@@ -52,7 +52,7 @@ defineProps({
 .quick-copy h3 {
   margin-bottom: 10px;
   font-size: 20px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 

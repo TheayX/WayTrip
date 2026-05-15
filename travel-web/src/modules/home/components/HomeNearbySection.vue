@@ -121,7 +121,7 @@ defineEmits(['more', 'action', 'select'])
 .nearby-copy h3 {
   font-size: 28px;
   line-height: 1.2;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 

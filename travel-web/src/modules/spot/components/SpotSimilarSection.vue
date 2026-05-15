@@ -73,7 +73,7 @@ defineEmits(['select'])
   font-size: 26px;
   font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .section-hint {

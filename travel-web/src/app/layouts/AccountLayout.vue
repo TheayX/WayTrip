@@ -110,7 +110,7 @@ const isActive = (item) => {
 .account-user-meta strong {
   font-size: 20px;
   color: #0f172a;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .account-user-meta span {

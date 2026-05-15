@@ -644,7 +644,7 @@ onMounted(async () => {
   font-size: 32px;
   line-height: 1.12;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 
@@ -834,7 +834,7 @@ onMounted(async () => {
   margin-bottom: 6px;
   font-size: 24px;
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .section-link:disabled {

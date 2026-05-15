@@ -122,7 +122,7 @@ onMounted(() => {
     color: #0f172a;
     line-height: 1.35;
     margin: 1.4em 0 0.7em;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
   }
 
   :deep(p) {

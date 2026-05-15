@@ -83,7 +83,7 @@ import brandLogoUrl from '@/shared/assets/brand/waytrip-standard.svg'
 .auth-hero h1 {
   font-size: 48px;
   line-height: 1.08;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 
