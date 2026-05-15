@@ -381,11 +381,11 @@ onMounted(async () => {
 .profile-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .hero {
-  padding: 24px;
+  padding: 22px 24px;
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -399,13 +399,13 @@ onMounted(async () => {
 }
 
 .user-name {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .user-phone {
-  color: #909399;
+  color: #64748b;
 }
 
 .hero-actions {
@@ -420,7 +420,7 @@ onMounted(async () => {
 }
 
 .stats-card {
-  padding: 22px;
+  padding: 20px 18px;
   cursor: pointer;
   text-align: center;
 }
@@ -428,26 +428,32 @@ onMounted(async () => {
 .stats-card strong,
 .order-card strong {
   display: block;
-  font-size: 30px;
-  color: #111827;
+  font-size: 28px;
+  color: #0f172a;
 }
 
 .stats-card span,
 .order-card span {
   display: block;
-  margin-top: 10px;
+  margin-top: 8px;
   color: #64748b;
 }
 
 .order-overview {
-  padding: 24px;
+  padding: 22px 24px;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+}
+
+.section-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
 }
 
 :deep(.el-button.overview-link-button) {
@@ -468,23 +474,28 @@ onMounted(async () => {
 }
 
 .order-card {
-  padding: 22px;
-  border-radius: 16px;
+  padding: 20px 18px;
+  border-radius: 14px;
   text-align: center;
   background: #f8fafc;
   cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.order-card:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
 }
 
 .profile-layout {
   display: flex;
-  gap: 24px;
+  gap: 20px;
 }
 
 .profile-sidebar {
-  width: 240px;
+  width: 228px;
   flex-shrink: 0;
-  border-radius: 12px;
-  padding: 24px 0;
+  padding: 18px 0;
   height: fit-content;
 }
 
@@ -493,19 +504,18 @@ onMounted(async () => {
 }
 
 .section-card {
-  padding: 24px;
-  border-radius: 12px;
+  padding: 22px 24px;
 }
 
 .card-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .tip {
-  color: #909399;
-  margin-bottom: 16px;
+  color: #64748b;
+  margin-bottom: 14px;
 }
 
 .preference-tags {
@@ -550,6 +560,26 @@ onMounted(async () => {
   color: #f56c6c;
 }
 
+:deep(.profile-sidebar .el-menu) {
+  border-right: none;
+}
+
+:deep(.profile-sidebar .el-menu-item) {
+  height: 44px;
+  margin: 0 10px 4px;
+  border-radius: 10px;
+}
+
+:deep(.profile-sidebar .el-menu-item.is-active) {
+  background: rgba(226, 232, 240, 0.7);
+}
+
+:deep(.preference-tags .el-check-tag) {
+  min-height: 34px;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
 @media (max-width: 992px) {
   .stats-grid,
   .order-grid {
@@ -568,12 +598,30 @@ onMounted(async () => {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .hero-actions {
+    width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
   .stats-grid,
   .order-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hero,
+  .order-overview,
+  .section-card {
+    padding: 18px;
+  }
+
+  .hero-main {
+    align-items: flex-start;
+  }
+
+  .user-name {
+    font-size: 21px;
   }
 }
 </style>

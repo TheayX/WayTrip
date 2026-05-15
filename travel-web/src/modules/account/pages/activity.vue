@@ -240,17 +240,17 @@ onMounted(() => {
 }
 
 .activity-card {
-  padding: 16px;
+  padding: 18px;
   display: flex;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .cover {
-  width: 120px;
-  height: 90px;
+  width: 132px;
+  height: 96px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -267,12 +267,20 @@ onMounted(() => {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .review-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.star-text,
+.price,
+.content p,
+.content span {
+  color: #64748b;
 }
 
 .review-action-button {
@@ -302,5 +310,17 @@ onMounted(() => {
 .review-action-button--danger:hover {
   background: #fee2e2;
   color: #991b1b;
+}
+
+@media (max-width: 768px) {
+  .activity-card {
+    padding: 16px;
+    flex-direction: column;
+  }
+
+  .cover {
+    width: 100%;
+    height: 180px;
+  }
 }
 </style>

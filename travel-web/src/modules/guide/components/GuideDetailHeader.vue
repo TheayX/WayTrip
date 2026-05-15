@@ -30,12 +30,12 @@ defineProps({
 
 <style lang="scss" scoped>
 .guide-header {
-  padding: 24px;
-  margin-top: -48px;
+  padding: 20px;
+  margin-top: -36px;
   position: relative;
   z-index: 1;
-  margin-left: 24px;
-  margin-right: 24px;
+  margin-left: 20px;
+  margin-right: 20px;
 }
 
 .guide-kicker {
@@ -48,16 +48,16 @@ defineProps({
 }
 
 .guide-title {
-  font-size: 34px;
-  line-height: 1.15;
+  font-size: 28px;
+  line-height: 1.18;
   font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
 .guide-meta {
-  margin-top: 16px;
+  margin-top: 14px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -68,12 +68,14 @@ defineProps({
 
 @media (max-width: 768px) {
   .guide-header {
-    margin-left: 16px;
-    margin-right: 16px;
+    margin-top: -24px;
+    margin-left: 14px;
+    margin-right: 14px;
+    padding: 18px;
   }
 
   .guide-title {
-    font-size: 28px;
+    font-size: 24px;
   }
 }
 </style>

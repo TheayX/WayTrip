@@ -131,21 +131,21 @@ onMounted(() => {
 .random-pick-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-top: 4px;
-  padding-bottom: 32px;
+  gap: 16px;
+  padding-top: 2px;
+  padding-bottom: 24px;
 }
 
 .hero-card,
 .state-card,
 .tips-card {
-  padding: 26px;
+  padding: 20px;
 }
 
 .hero-card {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   align-items: center;
   background:
     radial-gradient(circle at top right, rgba(124, 58, 237, 0.16), transparent 28%),
@@ -162,9 +162,9 @@ onMounted(() => {
 }
 
 .title {
-  font-size: 36px;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  font-size: 28px;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
   color: #0f172a;
 }
 
@@ -196,7 +196,7 @@ onMounted(() => {
 }
 
 .picked-content {
-  padding: 28px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -218,22 +218,22 @@ onMounted(() => {
 .picked-content h2,
 .tips-card h2,
 .loading-card h2 {
-  margin-top: 16px;
-  font-size: 34px;
+  margin-top: 14px;
+  font-size: 28px;
   line-height: 1.12;
   color: #0f172a;
   letter-spacing: -0.03em;
 }
 
 .picked-desc {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .meta-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 22px;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .meta-pill {
@@ -256,16 +256,16 @@ onMounted(() => {
 }
 
 .loading-orb {
-  width: 88px;
-  height: 88px;
-  border-radius: 28px;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
   background: linear-gradient(135deg, #7c3aed 0%, #c4b5fd 100%);
-  box-shadow: 0 18px 36px rgba(124, 58, 237, 0.22);
+  box-shadow: 0 14px 28px rgba(124, 58, 237, 0.18);
 }
 
 .action-bar {
   display: flex;
-  gap: 16px;
+  gap: 12px;
 }
 
 .action-bar-mobile {
@@ -292,7 +292,7 @@ onMounted(() => {
 @media (max-width: 768px) {
   .title,
   .picked-content h2 {
-    font-size: 30px;
+    font-size: 24px;
   }
 
   .picked-image {

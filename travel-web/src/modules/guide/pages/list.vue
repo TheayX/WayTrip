@@ -180,12 +180,12 @@ onMounted(async () => {
 .guide-list-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding-top: 4px;
+  gap: 16px;
+  padding-top: 2px;
 }
 
 .category-bar {
-  padding: 18px 20px;
+  padding: 16px 18px;
 }
 
 .category-kicker {
@@ -206,14 +206,14 @@ onMounted(async () => {
 .guide-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
   min-height: 200px;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 @media (max-width: 992px) {

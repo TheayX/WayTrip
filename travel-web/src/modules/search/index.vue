@@ -421,7 +421,8 @@ onMounted(async () => {
 .search-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  padding-top: 2px;
 }
 
 .search-input {
@@ -449,12 +450,12 @@ onMounted(async () => {
 .search-hero,
 .search-box,
 .search-hint {
-  padding: 24px;
+  padding: 20px;
 }
 
 .search-hero {
   background:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 26%),
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.1), transparent 24%),
     linear-gradient(135deg, #f8fafc 0%, #eef6ff 100%);
 }
 
@@ -467,9 +468,9 @@ onMounted(async () => {
 }
 
 .page-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .page-subtitle,
@@ -479,7 +480,7 @@ onMounted(async () => {
 }
 
 .search-meta {
-  margin-top: 16px;
+  margin-top: 14px;
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -488,7 +489,7 @@ onMounted(async () => {
 
 .search-actions {
   display: flex;
-  margin-top: 18px;
+  margin-top: 16px;
   gap: 12px;
   flex-direction: column;
   align-items: stretch;
@@ -497,7 +498,7 @@ onMounted(async () => {
 .result-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .section-head {
@@ -509,13 +510,13 @@ onMounted(async () => {
 
 .section-head h3 {
   margin-bottom: 6px;
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .result-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   min-height: 120px;
 }
 
@@ -526,15 +527,15 @@ onMounted(async () => {
 }
 
 .result-img {
-  width: 240px;
-  height: 170px;
+  width: 220px;
+  height: 156px;
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .result-info {
   flex: 1;
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -542,7 +543,7 @@ onMounted(async () => {
 
 .result-name,
 .guide-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: #0f172a;
 }
@@ -574,7 +575,7 @@ onMounted(async () => {
 .guide-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+  gap: 16px;
   min-height: 120px;
 }
 
@@ -585,15 +586,15 @@ onMounted(async () => {
 
 .guide-image {
   width: 100%;
-  height: 220px;
+  height: 200px;
   object-fit: cover;
 }
 
 .guide-content {
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .guide-tag {
@@ -613,9 +614,9 @@ onMounted(async () => {
 .empty-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .search-hint {
@@ -623,7 +624,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 260px;
+  min-height: 220px;
   color: #94a3b8;
 }
 
@@ -644,13 +645,19 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
+  .search-hero,
+  .search-box,
+  .search-hint {
+    padding: 18px;
+  }
+
   .result-card {
     flex-direction: column;
   }
 
   .result-img {
     width: 100%;
-    height: 220px;
+    height: 200px;
   }
 }
 </style>

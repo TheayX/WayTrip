@@ -58,19 +58,32 @@ const clearCache = async () => {
 
 <style lang="scss" scoped>
 .settings-card {
-  border-radius: 18px;
+  padding: 6px 0;
 }
 
 .settings-item {
-  padding: 22px 24px;
+  min-height: 58px;
+  padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  border-bottom: 1px solid #f0f2f5;
+  color: #0f172a;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  transition: background-color 0.2s ease, color 0.2s ease;
 
   &:last-child {
     border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba(248, 250, 252, 0.92);
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-item {
+    padding: 15px 18px;
   }
 }
 </style>

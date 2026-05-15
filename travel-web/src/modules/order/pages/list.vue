@@ -1,6 +1,6 @@
 <!-- 订单列表页 -->
 <template>
-  <div class="page-container">
+  <div class="page-container order-list-page">
     <AccountPageHeader title="我的订单" subtitle="查看订单状态、完成支付和发起评价。" />
 
     <el-tabs v-model="currentTab" @tab-change="handleTabChange" class="order-tabs">
@@ -179,6 +179,12 @@ watch(() => route.query.status, (status) => {
   margin-bottom: 8px;
 }
 
+.order-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .order-list {
   display: flex;
   flex-direction: column;
@@ -187,13 +193,13 @@ watch(() => route.query.status, (status) => {
 }
 
 .order-card {
-  padding: 20px;
-  border-radius: 12px;
+  padding: 20px 22px;
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
   }
 }
 
@@ -206,7 +212,7 @@ watch(() => route.query.status, (status) => {
 
 .order-no {
   font-size: 13px;
-  color: #909399;
+  color: #64748b;
 }
 
 .order-body {
@@ -215,10 +221,10 @@ watch(() => route.query.status, (status) => {
 }
 
 .order-img {
-  width: 120px;
-  height: 80px;
+  width: 128px;
+  height: 88px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -227,16 +233,16 @@ watch(() => route.query.status, (status) => {
 }
 
 .order-spot-name {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  color: #303133;
-  margin-bottom: 4px;
+  color: #0f172a;
+  margin-bottom: 6px;
 }
 
 .order-date {
   font-size: 13px;
-  color: #909399;
-  margin-bottom: 6px;
+  color: #64748b;
+  margin-bottom: 8px;
 }
 
 .order-price-row {
@@ -247,21 +253,43 @@ watch(() => route.query.status, (status) => {
 
 .order-qty {
   font-size: 13px;
-  color: #c0c4cc;
+  color: #94a3b8;
 }
 
 .order-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
 }
 
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 32px;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .order-card {
+    padding: 18px;
+  }
+
+  .order-header,
+  .order-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .order-img {
+    width: 100%;
+    height: 184px;
+  }
+
+  .order-actions {
+    justify-content: flex-start;
+  }
 }
 </style>

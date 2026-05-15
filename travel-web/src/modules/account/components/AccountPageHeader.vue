@@ -41,8 +41,8 @@ defineProps({
 .account-page-header {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .header-main {
@@ -54,14 +54,15 @@ defineProps({
 
 .page-title {
   margin: 0;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
-  color: #111827;
+  line-height: 1.2;
+  color: #0f172a;
 }
 
 .page-subtitle {
-  margin: 8px 0 0;
-  color: #6b7280;
+  margin: 6px 0 0;
+  color: #64748b;
   line-height: 1.6;
 }
 
@@ -72,6 +73,10 @@ defineProps({
 @media (max-width: 768px) {
   .header-main {
     flex-direction: column;
+  }
+
+  .page-title {
+    font-size: 23px;
   }
 }
 </style>

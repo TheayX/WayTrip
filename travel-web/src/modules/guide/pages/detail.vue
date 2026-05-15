@@ -93,8 +93,8 @@ onMounted(() => {
 <style lang="scss" scoped>
 .guide-detail-layout {
   display: flex;
-  gap: 24px;
-  padding-top: 4px;
+  gap: 20px;
+  padding-top: 2px;
 }
 
 .guide-main {
@@ -104,15 +104,15 @@ onMounted(() => {
 
 .guide-cover {
   width: 100%;
-  height: 430px;
+  height: 390px;
   object-fit: cover;
-  border-radius: 28px;
+  border-radius: 16px;
 }
 
 .guide-content {
-  padding: 28px;
-  margin-top: 18px;
-  line-height: 1.9;
+  padding: 22px;
+  margin-top: 16px;
+  line-height: 1.8;
   font-size: 15px;
   color: #334155;
 
@@ -131,8 +131,8 @@ onMounted(() => {
 
   :deep(img) {
     max-width: 100%;
-    border-radius: 16px;
-    margin: 16px 0;
+    border-radius: 12px;
+    margin: 14px 0;
   }
 
   :deep(ul),
@@ -143,11 +143,11 @@ onMounted(() => {
 
   :deep(blockquote) {
     margin: 1.2em 0;
-    padding: 14px 18px;
-    border-left: 3px solid rgba(200, 169, 91, 0.5);
+    padding: 12px 16px;
+    border-left: 3px solid rgba(202, 138, 4, 0.42);
     background: #fffdf7;
     color: #475569;
-    border-radius: 16px;
+    border-radius: 12px;
   }
 }
 
@@ -165,7 +165,13 @@ onMounted(() => {
   }
 
   .guide-cover {
-    height: 320px;
+    height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .guide-content {
+    padding: 18px;
   }
 }
 </style>

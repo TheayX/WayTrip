@@ -1,6 +1,6 @@
 <!-- 订单详情页 -->
 <template>
-  <div class="page-container" v-if="order">
+  <div class="page-container order-detail-page" v-if="order">
     <AccountPageHeader title="订单详情" subtitle="查看订单状态、联系人信息和价格明细。" />
 
     <div class="detail-layout">
@@ -105,7 +105,7 @@
       </div>
     </div>
   </div>
-  <div v-else class="page-container">
+  <div v-else class="page-container order-detail-page">
     <el-skeleton :rows="10" animated />
   </div>
 </template>
@@ -305,10 +305,15 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.order-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .detail-layout {
   display: flex;
-  gap: 24px;
-  margin-top: 8px;
+  gap: 20px;
 }
 
 .detail-main {
@@ -319,13 +324,12 @@ onUnmounted(() => {
 }
 
 .detail-sidebar {
-  width: 280px;
+  width: 304px;
   flex-shrink: 0;
 }
 
 .status-card {
-  padding: 24px;
-  border-radius: 12px;
+  padding: 22px 24px;
 
   &.pending { background: linear-gradient(135deg, #fff7e6, #fff1cc); }
   &.paid { background: linear-gradient(135deg, #e6f7e6, #c8f0c8); }
@@ -345,14 +349,14 @@ onUnmounted(() => {
 }
 
 .status-text {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .status-desc {
   font-size: 14px;
-  color: #606266;
+  color: #475569;
 }
 
 .countdown-text {
@@ -363,8 +367,7 @@ onUnmounted(() => {
 }
 
 .info-card {
-  padding: 20px;
-  border-radius: 12px;
+  padding: 20px 22px;
 }
 
 .info-card.is-disabled {
@@ -372,9 +375,9 @@ onUnmounted(() => {
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .spot-row {
@@ -389,10 +392,10 @@ onUnmounted(() => {
 }
 
 .spot-thumb {
-  width: 80px;
-  height: 60px;
+  width: 88px;
+  height: 64px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
   flex-shrink: 0;
 }
 
@@ -409,17 +412,18 @@ onUnmounted(() => {
 
 .spot-date {
   font-size: 13px;
-  color: #909399;
+  color: #64748b;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
+  gap: 16px;
+  padding: 10px 0;
   font-size: 14px;
 
-  .label { color: #909399; }
-  .value { color: #303133; }
+  .label { color: #64748b; }
+  .value { color: #0f172a; text-align: right; }
 
   &.total {
     font-weight: 600;
@@ -435,14 +439,14 @@ onUnmounted(() => {
 
 .sidebar-card {
   padding: 20px;
-  border-radius: 12px;
   position: sticky;
-  top: 80px;
+  top: 88px;
 }
 
 .action-btn {
   width: 100%;
-  border-radius: 8px;
+  height: 42px;
+  border-radius: 10px;
   margin-bottom: 8px;
   margin-left: 0 !important;
 
@@ -458,6 +462,24 @@ onUnmounted(() => {
 
   .detail-sidebar {
     width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .status-card,
+  .info-card,
+  .sidebar-card {
+    padding: 18px;
+  }
+
+  .status-info,
+  .spot-row,
+  .info-row {
+    align-items: flex-start;
+  }
+
+  .info-row {
+    flex-direction: column;
   }
 }
 </style>

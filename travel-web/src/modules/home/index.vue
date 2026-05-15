@@ -358,10 +358,10 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .hero {
   position: relative;
-  min-height: 560px;
+  min-height: 520px;
   overflow: hidden;
-  border-bottom-left-radius: 36px;
-  border-bottom-right-radius: 36px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 
 .hero-carousel,
@@ -372,7 +372,7 @@ onMounted(async () => {
 }
 
 .hero-carousel :deep(.el-carousel__indicators) {
-  bottom: 28px;
+  bottom: 22px;
   transform: none;
 }
 
@@ -395,7 +395,7 @@ onMounted(async () => {
 
 .hero-bg {
   object-fit: cover;
-  filter: brightness(0.42);
+  filter: brightness(0.48);
 }
 
 .hero-slide.clickable {
@@ -412,23 +412,23 @@ onMounted(async () => {
 }
 
 .hero-inner {
-  min-height: 560px;
-  padding-top: 56px;
-  padding-bottom: 64px;
+  min-height: 520px;
+  padding-top: 48px;
+  padding-bottom: 52px;
   display: flex;
   align-items: end;
   justify-content: center;
 }
 
 .hero-copy {
-  max-width: 900px;
+  max-width: 780px;
   color: #fff;
   text-align: center;
 }
 
 .hero-eyebrow {
-  margin-bottom: 16px;
-  letter-spacing: 0.26em;
+  margin-bottom: 14px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
@@ -436,31 +436,31 @@ onMounted(async () => {
 }
 
 .hero-title {
-  font-size: 64px;
-  line-height: 1.02;
-  letter-spacing: -0.05em;
+  font-size: 52px;
+  line-height: 1.04;
+  letter-spacing: -0.04em;
 }
 
 .hero-subtitle {
-  max-width: 620px;
-  margin: 20px auto 0;
-  font-size: 16px;
-  line-height: 1.75;
+  max-width: 560px;
+  margin: 16px auto 0;
+  font-size: 15px;
+  line-height: 1.7;
   color: rgba(255, 255, 255, 0.86);
 }
 
 .home-content {
-  margin-top: 28px;
-  padding-bottom: 18px;
+  margin-top: 20px;
+  padding-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .section-header,
@@ -504,15 +504,15 @@ onMounted(async () => {
 .recommend-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  gap: 16px;
 }
 
 .preference-tip {
-  padding: 18px 20px;
+  padding: 16px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   cursor: pointer;
 }
 
@@ -550,7 +550,7 @@ onMounted(async () => {
   }
 
   .hero-title {
-    font-size: 46px;
+    font-size: 40px;
   }
 
   .section-header {
@@ -561,21 +561,21 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .hero {
-    border-bottom-left-radius: 28px;
-    border-bottom-right-radius: 28px;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
   }
 
   .hero-carousel :deep(.el-carousel__indicators) {
-    bottom: 18px;
+    bottom: 14px;
   }
 
   .hero-inner {
-    padding-top: 28px;
-    padding-bottom: 40px;
+    padding-top: 24px;
+    padding-bottom: 30px;
   }
 
   .hero-title {
-    font-size: 36px;
+    font-size: 32px;
   }
 
   .spot-grid,
