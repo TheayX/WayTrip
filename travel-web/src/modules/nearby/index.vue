@@ -8,7 +8,6 @@
         <p class="page-subtitle">{{ subtitle }}</p>
       </div>
       <div class="hero-actions">
-        <el-button text @click="router.push({ path: APP_ROUTE_PATHS.discover, query: { tab: 'spot', scene: 'nearby' } })">返回发现页</el-button>
         <el-button :loading="loading" type="primary" @click="handleLocate">{{ loading ? '定位中' : '重新定位' }}</el-button>
       </div>
     </section>
@@ -35,7 +34,6 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/modules/account/store/user.js'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { getNearbySpots } from '@/modules/home/api.js'
-import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import { getLocationSnapshot, getCurrentLocation } from '@/shared/lib/location.js'
 

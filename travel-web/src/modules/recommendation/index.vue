@@ -5,10 +5,9 @@
       <div>
         <p class="hero-eyebrow">Recommendation Detail</p>
         <h2 class="page-title">{{ userStore.isLoggedIn ? recommendType : '推荐景点' }}</h2>
-        <p class="page-subtitle">集中查看推荐结果，也可以回发现页继续筛选。</p>
+        <p class="page-subtitle">集中查看推荐结果，适合直接从推荐里继续深入浏览。</p>
       </div>
       <div class="hero-actions">
-        <el-button text @click="$router.push({ path: APP_ROUTE_PATHS.discover, query: { scene: 'recommend' } })">返回发现页</el-button>
         <el-button v-if="userStore.isLoggedIn" :loading="refreshing" type="primary" @click="handleRefresh">换一批</el-button>
         <el-button v-if="userStore.isLoggedIn" @click="showPreferencePopup">偏好设置</el-button>
       </div>
@@ -62,7 +61,7 @@ import { useUserStore } from '@/modules/account/store/user.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
-import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 
 // 基础依赖与用户状态
 const userStore = useUserStore()

@@ -838,8 +838,8 @@ onMounted(async () => {
   font-size: 24px;
 }
 
-.nearby-entry p,
-.guide-entry p {
+.nearby-entry > div p,
+.guide-entry > div p {
   margin-top: 8px;
   color: #64748b;
   line-height: 1.75;

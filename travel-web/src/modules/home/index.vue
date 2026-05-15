@@ -320,7 +320,7 @@ const goNearby = async () => {
     }
   }
 
-  router.push({ path: APP_ROUTE_PATHS.discover, query: { tab: 'spot', scene: 'nearby' } })
+  router.push(APP_ROUTE_PATHS.nearby)
 }
 
 const goOrders = () => {
