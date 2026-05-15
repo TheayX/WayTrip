@@ -48,10 +48,15 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
     // 用户偏好查询
     @Override
     public PageResult<AdminUserPreferenceListItem> getPreferenceList(AdminUserPreferenceListRequest request) {
-        LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<UserPreference> preferenceWrapper = new LambdaQueryWrapper<>();
+        preferenceWrapper.eq(UserPreference::getIsDeleted, 0);
 
-        if (request.getNickname() != null && !request.getNickname().isBlank()) {
-            userWrapper.like(User::getNickname, request.getNickname().trim());
+        Set<Long> filteredUserIds = resolveUserIdsByNickname(request.getNickname());
+        if (filteredUserIds != null) {
+            if (filteredUserIds.isEmpty()) {
+                return emptyPageResult(request.getPage(), request.getPageSize());
+            }
+            preferenceWrapper.in(UserPreference::getUserId, filteredUserIds);
         }
 
         if (request.getCategoryId() != null) {
@@ -59,37 +64,46 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             if (categoryIds.isEmpty()) {
                 categoryIds = Collections.singleton(request.getCategoryId());
             }
-            Set<Long> matchedUserIds = userPreferenceMapper.selectList(
-                new LambdaQueryWrapper<UserPreference>()
-                    .eq(UserPreference::getIsDeleted, 0)
-                    .in(UserPreference::getTag, categoryIds.stream().map(String::valueOf).collect(Collectors.toSet()))
-                    .select(UserPreference::getUserId)
-            ).stream().map(UserPreference::getUserId).collect(Collectors.toSet());
-
-            if (matchedUserIds.isEmpty()) {
-                return emptyPageResult(request.getPage(), request.getPageSize());
-            }
-            userWrapper.in(User::getId, matchedUserIds);
+            preferenceWrapper.in(UserPreference::getTag, categoryIds.stream().map(String::valueOf).collect(Collectors.toSet()));
         }
 
-        userWrapper.orderByDesc(User::getUpdatedAt);
-
-        Page<User> page = new Page<>(request.getPage(), request.getPageSize());
-        Page<User> result = userMapper.selectPage(page, userWrapper);
-        List<User> users = result.getRecords();
-        if (users.isEmpty()) {
-            return PageResult.of(Collections.emptyList(), result.getTotal(), request.getPage(), request.getPageSize());
+        List<UserPreference> preferences = userPreferenceMapper.selectList(preferenceWrapper);
+        if (preferences.isEmpty()) {
+            return emptyPageResult(request.getPage(), request.getPageSize());
         }
-
-        Set<Long> userIds = users.stream().map(User::getId).collect(Collectors.toSet());
-        List<UserPreference> preferences = userPreferenceMapper.selectList(
-            new LambdaQueryWrapper<UserPreference>()
-                .in(UserPreference::getUserId, userIds)
-                .eq(UserPreference::getIsDeleted, 0)
-        );
 
         Map<Long, List<UserPreference>> preferenceMap = preferences.stream()
             .collect(Collectors.groupingBy(UserPreference::getUserId));
+
+        List<Long> orderedUserIds = preferenceMap.entrySet().stream()
+            .sorted((left, right) -> {
+                LocalDateTime leftUpdatedAt = left.getValue().stream()
+                    .map(UserPreference::getUpdatedAt)
+                    .filter(Objects::nonNull)
+                    .max(LocalDateTime::compareTo)
+                    .orElse(LocalDateTime.MIN);
+                LocalDateTime rightUpdatedAt = right.getValue().stream()
+                    .map(UserPreference::getUpdatedAt)
+                    .filter(Objects::nonNull)
+                    .max(LocalDateTime::compareTo)
+                    .orElse(LocalDateTime.MIN);
+                return rightUpdatedAt.compareTo(leftUpdatedAt);
+            })
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
+
+        int total = orderedUserIds.size();
+        int page = request.getPage() == null || request.getPage() < 1 ? 1 : request.getPage();
+        int pageSize = request.getPageSize() == null || request.getPageSize() < 1 ? 10 : request.getPageSize();
+        int fromIndex = Math.min((page - 1) * pageSize, total);
+        int toIndex = Math.min(fromIndex + pageSize, total);
+        List<Long> pageUserIds = orderedUserIds.subList(fromIndex, toIndex);
+        if (pageUserIds.isEmpty()) {
+            return PageResult.of(Collections.emptyList(), total, page, pageSize);
+        }
+
+        Map<Long, User> userMap = userMapper.selectBatchIds(pageUserIds).stream()
+            .collect(Collectors.toMap(User::getId, Function.identity()));
 
         Set<Long> categoryIds = preferences.stream()
             .map(UserPreference::getTag)
@@ -102,8 +116,9 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             : spotCategoryMapper.selectBatchIds(categoryIds).stream()
                 .collect(Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
 
-        List<AdminUserPreferenceListItem> list = users.stream().map(user -> {
-            List<UserPreference> userPreferences = preferenceMap.getOrDefault(user.getId(), Collections.emptyList());
+        List<AdminUserPreferenceListItem> list = pageUserIds.stream().map(userId -> {
+            User user = userMap.get(userId);
+            List<UserPreference> userPreferences = preferenceMap.getOrDefault(userId, Collections.emptyList());
             String latestUpdatedAt = userPreferences.stream()
                 .map(UserPreference::getUpdatedAt)
                 .filter(Objects::nonNull)
@@ -121,16 +136,16 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
                 .collect(Collectors.toList());
 
             return AdminUserPreferenceListItem.builder()
-                .userId(user.getId())
+                .userId(userId)
                 .nickname(resolveDisplayNickname(user))
-                .phone(user.getPhone())
+                .phone(user != null ? user.getPhone() : null)
                 .preferenceTags(tags)
                 .updatedAt(latestUpdatedAt)
-                .createdAt(formatDateTime(user.getCreatedAt()))
+                .createdAt(formatDateTime(user != null ? user.getCreatedAt() : null))
                 .build();
         }).collect(Collectors.toList());
 
-        return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
+        return PageResult.of(list, total, page, pageSize);
     }
 
     // 用户收藏查询与治理

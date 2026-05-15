@@ -35,6 +35,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -86,25 +87,21 @@ class AdminUserInsightServiceImplTest {
 
     @Test
     void getPreferenceList_skipsCategoryBatchQueryWhenNoValidCategoryId() {
-        User user = new User();
-        user.setId(1L);
-        user.setNickname("用户A");
-        user.setPhone("13800138000");
-        user.setCreatedAt(LocalDateTime.now().minusDays(3));
-        user.setUpdatedAt(LocalDateTime.now().minusDays(1));
-
-        Page<User> page = new Page<>(1, 10);
-        page.setRecords(List.of(user));
-        page.setTotal(1L);
-        when(userMapper.selectPage(any(Page.class), any())).thenReturn(page);
-
         UserPreference invalidPreference = new UserPreference();
         invalidPreference.setUserId(1L);
         invalidPreference.setTag("invalid-tag");
         invalidPreference.setIsDeleted(0);
         invalidPreference.setUpdatedAt(LocalDateTime.now());
-        when(spotTreeSupport.findCategoryAndChildrenIds(any())).thenReturn(java.util.Collections.emptySet());
         when(userPreferenceMapper.selectList(any())).thenReturn(List.of(invalidPreference));
+
+        User user = new User();
+        user.setId(1L);
+        user.setNickname("用户A");
+        user.setPhone("13800138000");
+        user.setCreatedAt(LocalDateTime.now().minusDays(3));
+        when(userMapper.selectBatchIds(any())).thenReturn(List.of(user));
+
+        when(spotTreeSupport.findCategoryAndChildrenIds(any())).thenReturn(java.util.Collections.emptySet());
 
         AdminUserPreferenceListRequest request = new AdminUserPreferenceListRequest();
         request.setPage(1);
@@ -119,6 +116,22 @@ class AdminUserInsightServiceImplTest {
         assertEquals(0, result.getList().get(0).getPreferenceTags().size());
 
         verify(spotCategoryMapper, never()).selectBatchIds(any());
+    }
+
+    @Test
+    void getPreferenceList_excludesUsersWithoutPreferenceRecords() {
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+
+        AdminUserPreferenceListRequest request = new AdminUserPreferenceListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+
+        PageResult<AdminUserPreferenceListItem> result = service.getPreferenceList(request);
+
+        assertEquals(0L, result.getTotal());
+        assertNotNull(result.getList());
+        assertTrue(result.getList().isEmpty());
+        verify(userMapper, never()).selectBatchIds(any());
     }
 
     @Test
