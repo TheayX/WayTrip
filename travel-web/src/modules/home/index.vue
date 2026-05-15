@@ -438,7 +438,7 @@ onMounted(async () => {
 .hero-title {
   font-size: 52px;
   line-height: 1.04;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 .hero-subtitle {

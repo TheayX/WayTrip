@@ -1,6 +1,13 @@
 <!-- 景点卡片 -->
 <template>
-  <article class="spot-card premium-card" @click="$emit('select', spot)">
+  <article
+    class="spot-card premium-card"
+    role="button"
+    tabindex="0"
+    @click="emit('select', spot)"
+    @keydown.enter.prevent="emit('select', spot)"
+    @keydown.space.prevent="emit('select', spot)"
+  >
     <div class="spot-image-box">
       <img :src="getImageUrl(spot.coverImage)" class="spot-image" alt="" />
       <div v-if="spot.avgRating" class="rating-badge">
@@ -19,13 +26,9 @@
       </div>
       <h3 class="spot-name">{{ spot.name }}</h3>
       <div class="spot-bottom">
-        <div class="spot-tags">
+        <div class="spot-meta-row">
           <span class="tag-chip">{{ spot.categoryName || '分类待补充' }}</span>
-          <span class="tag-chip subtle">{{ spot.avgRating ? `评分 ${spot.avgRating}` : '评分待补充' }}</span>
-        </div>
-        <div class="spot-footer">
-          <span class="spot-meta">查看详情</span>
-          <span class="spot-rating">立即浏览</span>
+          <span class="spot-hint">查看详情</span>
         </div>
       </div>
     </div>
@@ -44,7 +47,7 @@ defineProps({
 })
 
 // 选中事件上抛后，列表和推荐区块都可以复用同一张卡片。
-defineEmits(['select'])
+const emit = defineEmits(['select'])
 </script>
 
 <style lang="scss" scoped>
@@ -54,10 +57,16 @@ defineEmits(['select'])
   flex-direction: column;
   overflow: hidden;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .spot-card:hover {
   transform: translateY(-2px);
+}
+
+.spot-card:focus-visible {
+  outline: 2px solid #0f172a;
+  outline-offset: 3px;
 }
 
 .spot-image-box {
@@ -97,7 +106,7 @@ defineEmits(['select'])
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 18px 18px 20px;
+  padding: 18px 18px 18px;
 }
 
 .spot-head {
@@ -115,15 +124,9 @@ defineEmits(['select'])
   color: #0f172a;
 }
 
-.spot-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 16px;
-}
-
 .spot-bottom {
   margin-top: auto;
+  padding-top: 18px;
 }
 
 .tag-chip {
@@ -148,14 +151,14 @@ defineEmits(['select'])
   color: #8a6a2f;
 }
 
-.spot-footer {
+.spot-meta-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
 }
 
-.spot-meta {
+.spot-hint {
   color: #334155;
   font-size: 13px;
   font-weight: 600;
@@ -176,8 +179,7 @@ defineEmits(['select'])
   font-weight: 700;
 }
 
-.suffix,
-.spot-rating {
+.suffix {
   color: #64748b;
   font-size: 13px;
 }
