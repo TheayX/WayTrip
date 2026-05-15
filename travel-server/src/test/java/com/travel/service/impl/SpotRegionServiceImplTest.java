@@ -18,6 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -75,6 +76,31 @@ class SpotRegionServiceImplTest {
         SpotRegion updatedCurrent = updateCaptor.getAllValues().get(2);
         assertEquals(20L, updatedCurrent.getParentId());
         assertEquals(2, updatedCurrent.getSortOrder());
+    }
+
+    @Test
+    void updateRegion_shouldNotLookupTopLevelParent_whenTargetParentIsZero() {
+        SpotRegion current = buildRegion(3L, 10L, 2);
+        SpotRegion oldFollowing = buildRegion(4L, 10L, 3);
+        SpotRegion topFirst = buildRegion(5L, 0L, 1);
+        SpotRegion topSecond = buildRegion(6L, 0L, 2);
+
+        when(spotRegionMapper.selectById(3L)).thenReturn(current);
+        when(spotRegionMapper.selectList(any())).thenReturn(
+            List.of(current, oldFollowing),
+            List.of(topFirst, topSecond)
+        );
+        when(spotRegionMapper.updateById(any())).thenReturn(1);
+
+        AdminRegionRequest request = new AdminRegionRequest();
+        request.setParentId(0L);
+        request.setName("top-region");
+        request.setSortOrder(2);
+
+        spotRegionService.updateRegion(3L, request);
+
+        verify(spotRegionMapper, never()).selectById(0L);
+        assertEquals(2, oldFollowing.getSortOrder());
     }
 
     @Test

@@ -115,7 +115,7 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
      * 地区树取消外键后，父地区引用必须在写入前显式校验。
      */
     private void validateParentRegion(Long parentId, Long currentId) {
-        if (parentId == null) {
+        if (parentId == null || parentId <= 0) {
             return;
         }
         if (Objects.equals(parentId, currentId)) {
