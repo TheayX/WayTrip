@@ -5,7 +5,7 @@
       <div>
         <p class="hero-eyebrow">Recommendation Detail</p>
         <h2 class="page-title">{{ userStore.isLoggedIn ? recommendType : '推荐景点' }}</h2>
-        <p class="page-subtitle">这个页面保留为推荐结果直达页，更完整的探索与筛选已经合并到发现页。</p>
+        <p class="page-subtitle">集中查看推荐结果，也可以回发现页继续筛选。</p>
       </div>
       <div class="hero-actions">
         <el-button text @click="$router.push({ path: APP_ROUTE_PATHS.discover, query: { scene: 'recommend' } })">返回发现页</el-button>
@@ -17,7 +17,7 @@
     <section v-if="userStore.isLoggedIn && needPreference" class="preference-tip premium-card" @click="showPreferencePopup">
       <div>
         <strong>你还没有设置偏好分类</strong>
-        <p>先选几类感兴趣的景点，推荐结果会更稳定。</p>
+        <p>先选几类感兴趣的景点，推荐结果会更贴近你的兴趣。</p>
       </div>
       <el-icon><ArrowRight /></el-icon>
     </section>

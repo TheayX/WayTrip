@@ -8,7 +8,6 @@
       <p class="guide-summary">{{ resolveGuideSummary(guide.summary) }}</p>
       <div class="guide-meta">
         <span class="guide-views">浏览 {{ guide.viewCount || 0 }}</span>
-        <span class="guide-link">继续阅读</span>
       </div>
     </div>
   </article>
@@ -20,7 +19,7 @@ import { resolveWebGuideCategory, resolveWebGuideDisplayText } from '@/shared/co
 
 const resolveGuideText = (value) => resolveWebGuideDisplayText(value)
 const resolveGuideCategory = (value) => resolveWebGuideCategory(value)
-const resolveGuideSummary = (value) => value || '整理路线、玩法与出行经验，帮助你更快形成这次旅程的安排。'
+const resolveGuideSummary = (value) => value || '暂无摘要'
 
 // 卡片只承接展示和选中事件，详情跳转策略由外层列表页面决定。
 defineProps({
@@ -87,7 +86,6 @@ defineEmits(['select'])
 .guide-meta {
   margin-top: 16px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 10px;
 }
@@ -95,11 +93,5 @@ defineEmits(['select'])
 .guide-views {
   color: #64748b;
   font-size: 13px;
-}
-
-.guide-link {
-  color: #334155;
-  font-size: 13px;
-  font-weight: 700;
 }
 </style>

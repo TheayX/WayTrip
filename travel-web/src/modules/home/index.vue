@@ -15,7 +15,7 @@
           <div class="hero-copy">
             <p class="hero-eyebrow">{{ APP_NAME }} Curated Travel</p>
             <h1 class="hero-title">选一个方向，开始这次旅行。</h1>
-            <p class="hero-subtitle">热门景点、个性推荐、附近探索与实用攻略，帮你更快找到想去的地方。</p>
+            <p class="hero-subtitle">从热门景点、个性推荐、附近探索和实用攻略里，先找到这次想去的地方。</p>
           </div>
         </div>
       </div>
@@ -31,7 +31,6 @@
       />
 
       <HomeNearbySection
-        :headline="nearbyHeadline"
         :summary="nearbySummary"
         :action-text="nearbyActionText"
         :loading="nearbyLoading"
@@ -47,7 +46,6 @@
           <div>
             <p class="section-kicker">Popular Spots</p>
             <h2 class="section-title">热门景点精选</h2>
-            <p class="section-subtitle">优先展示当前最值得继续点开的景点。</p>
           </div>
           <button type="button" class="section-link" @click="router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`)">查看全部</button>
         </div>
@@ -68,7 +66,6 @@
           <div>
             <p class="section-kicker">Recommendations</p>
             <h2 class="section-title">{{ recommendationSectionTitle }}</h2>
-            <p class="section-subtitle">根据你的浏览偏好，优先整理值得继续查看的景点。</p>
           </div>
           <div class="section-actions">
             <button type="button" class="section-link" @click="goRecommendations">查看更多</button>
@@ -79,7 +76,7 @@
         <div v-if="needPreference && userStore.isLoggedIn" class="preference-tip premium-card" @click="showPreferencePopup">
           <div>
             <strong>还没有设置偏好分类</strong>
-            <p>先选几类感兴趣的景点，推荐会更稳定。</p>
+            <p>先选几类感兴趣的景点，推荐结果会更贴近你的兴趣。</p>
           </div>
           <el-icon><ArrowRight /></el-icon>
         </div>
@@ -170,13 +167,6 @@ const {
 
 const recommendationSectionTitle = computed(() => (userStore.isLoggedIn ? recommendType.value : '推荐景点'))
 
-const nearbyHeadline = computed(() => {
-  if (nearbyLoading.value) return '定位中'
-  if (nearbyStatus.value === 'ready') return '附近可探索'
-  if (!userStore.isLoggedIn) return '登录后查看'
-  return '开启定位'
-})
-
 const nearbySummary = computed(() => {
   if (nearbyLoading.value) return '正在获取附近景点。'
   if (nearbyStatus.value === 'ready' && nearbySpots.value.length) {
@@ -193,10 +183,10 @@ const nearbyActionText = computed(() => {
 })
 
 const quickActions = computed(() => ([
-  { id: 'discover', title: '发现灵感', desc: '浏览推荐、附近与精选内容', icon: Star, theme: 'amber', handler: () => router.push(APP_ROUTE_PATHS.discover) },
-  { id: 'spots', title: '全部景点', desc: '按热度进入景点列表', icon: MapLocation, theme: 'blue', handler: () => router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`) },
-  { id: 'guides', title: '游玩攻略', desc: '快速查看最新攻略', icon: Guide, theme: 'orange', handler: () => router.push(APP_ROUTE_PATHS.guides) },
-  { id: 'orders', title: '行程订单', desc: '管理当前与历史订单', icon: Tickets, theme: 'emerald', handler: () => goOrders() }
+  { id: 'discover', title: '发现灵感', desc: '集中看推荐、附近和精选内容', icon: Star, theme: 'amber', handler: () => router.push(APP_ROUTE_PATHS.discover) },
+  { id: 'spots', title: '全部景点', desc: '按热度浏览全部景点', icon: MapLocation, theme: 'blue', handler: () => router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`) },
+  { id: 'guides', title: '游玩攻略', desc: '查看最新游玩攻略', icon: Guide, theme: 'orange', handler: () => router.push(APP_ROUTE_PATHS.guides) },
+  { id: 'orders', title: '行程订单', desc: '查看当前和历史订单', icon: Tickets, theme: 'emerald', handler: () => goOrders() }
 ]))
 
 const formatDistance = (value) => {

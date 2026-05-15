@@ -55,7 +55,7 @@ const subtitle = computed(() => {
     return `共找到 ${spots.value.length} 个景点，最近约 ${formatDistance(spots.value[0].distanceKm)}。`
   }
   if (locationStatus.value === 'empty') return '当前位置附近暂时没有可展示的景点。'
-  return '这个页面保留为直达入口，更完整的探索流已经合并到发现页。'
+  return '按当前位置查看附近景点。'
 })
 
 const emptyText = computed(() => {

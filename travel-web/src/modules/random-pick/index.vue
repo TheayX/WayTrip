@@ -5,7 +5,7 @@
       <div class="hero-copy">
         <p class="eyebrow">Random Pick</p>
         <h1 class="title">把选择交给今天的运气</h1>
-        <p class="subtitle">这个页面不追求信息量，而是给用户一个更轻、更快的随机出发入口。</p>
+        <p class="subtitle">随机给你一个景点，适合不想筛选的时候。</p>
       </div>
       <div class="action-bar action-bar-desktop">
         <el-button size="large" @click="drawSpot" :loading="loading">换一个</el-button>

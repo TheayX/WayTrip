@@ -46,7 +46,7 @@
     </section>
 
     <section v-if="activeTab === 'spots'" class="content-section">
-      <p class="section-tip">优先展示价格更低、同时热度更高的景点结果。</p>
+      <p class="section-tip">按价格和热度显示更省钱的景点。</p>
 
       <div v-if="budgetSpots.length" class="spot-grid">
         <SpotCard
@@ -64,7 +64,7 @@
     </section>
 
     <section v-else class="content-section">
-      <p class="section-tip">根据攻略关联景点的价格，优先筛出更适合低预算出行的内容。</p>
+      <p class="section-tip">按关联景点的价格筛选低预算攻略。</p>
 
       <div v-if="budgetGuides.length" class="guide-grid">
         <GuideCard

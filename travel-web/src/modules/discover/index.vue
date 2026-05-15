@@ -5,7 +5,7 @@
       <div class="discover-hero-main">
         <p class="hero-eyebrow">Discover More</p>
         <h2 class="page-title">发现灵感</h2>
-        <p class="page-subtitle">从推荐、附近、景点和攻略里继续缩小范围，找到更适合这次出行的选择。</p>
+        <p class="page-subtitle">把推荐、附近、景点和攻略放在一起筛，方便直接比较。</p>
 
         <div class="hero-search-row">
           <button type="button" class="hero-search" @click="$router.push(APP_ROUTE_PATHS.search)">
@@ -116,7 +116,7 @@
         <div>
           <p class="panel-kicker">推荐</p>
           <h3>{{ userStore.isLoggedIn ? recommendType : '推荐景点' }}</h3>
-          <p>根据你的浏览偏好，优先整理值得继续查看的景点。</p>
+          <p>按偏好返回推荐结果。</p>
         </div>
         <div class="section-actions">
           <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.recommendations)">查看全部</button>
@@ -150,7 +150,7 @@
         <div>
           <p class="panel-kicker">附近</p>
           <h3>附近探索</h3>
-          <p>结合当前位置，快速看看周边有哪些值得去的地方。</p>
+          <p>按当前位置查看附近景点。</p>
         </div>
         <div class="section-actions">
           <el-button :loading="nearbyLoading" type="primary" @click="handleLocate">{{ nearbyLoading ? '定位中' : '重新定位' }}</el-button>
@@ -176,7 +176,7 @@
         <div>
           <p class="panel-kicker">景点</p>
           <h3>精选景点</h3>
-          <p>按地区和分类继续缩小范围，先挑出值得继续查看的目的地。</p>
+          <p>按地区和分类筛选景点。</p>
         </div>
         <button type="button" class="section-link" @click="$router.push(APP_ROUTE_PATHS.spots)">查看全部</button>
       </div>
@@ -196,7 +196,7 @@
         <div>
           <p class="panel-kicker">攻略</p>
           <h3>精选攻略</h3>
-          <p>从路线、玩法和经验里找到更适合自己的出行灵感。</p>
+          <p>按主题查看路线和玩法。</p>
         </div>
         <button type="button" class="section-link" @click="$router.push(APP_ROUTE_PATHS.guides)">查看全部</button>
       </div>
@@ -343,9 +343,9 @@ const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.v
 const showRecommendationSection = computed(() => activeScene.value === 'all' || activeScene.value === 'recommend')
 const showNearbySection = computed(() => activeScene.value === 'all' || activeScene.value === 'nearby')
 const currentSceneDescription = computed(() => {
-  if (activeScene.value === 'recommend') return '优先浏览更贴近你兴趣的推荐内容。'
-  if (activeScene.value === 'nearby') return '优先查看距离更近、适合立刻出发的地点。'
-  return '综合浏览会同时展示推荐、附近、景点与攻略内容。'
+  if (activeScene.value === 'recommend') return '当前只看推荐结果。'
+  if (activeScene.value === 'nearby') return '当前只看附近景点。'
+  return '当前同时显示推荐、附近、景点和攻略。'
 })
 const nearbyEmptyText = computed(() => {
   if (!userStore.isLoggedIn) return '登录后查看附近景点'
@@ -369,8 +369,8 @@ const filterSummary = computed(() => {
 })
 const sceneEntries = computed(() => ([
   { key: 'all', title: '综合探索', desc: '同时查看推荐、附近、景点和攻略。', badge: '全部' },
-  { key: 'recommend', title: '为你推荐', desc: userStore.isLoggedIn ? '优先浏览更贴近兴趣的内容。' : '登录后查看更贴近兴趣的推荐。', badge: '推荐' },
-  { key: 'nearby', title: '附近探索', desc: '基于定位快速浏览周边值得去的地方。', badge: '附近' }
+  { key: 'recommend', title: '为你推荐', desc: userStore.isLoggedIn ? '只看推荐结果。' : '登录后查看推荐结果。', badge: '推荐' },
+  { key: 'nearby', title: '附近探索', desc: '只看当前位置附近的景点。', badge: '附近' }
 ]))
 
 const spotCascaderProps = {

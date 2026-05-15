@@ -26,10 +26,7 @@
       </div>
       <h3 class="spot-name">{{ spot.name }}</h3>
       <div class="spot-bottom">
-        <div class="spot-meta-row">
-          <span class="tag-chip">{{ spot.categoryName || '分类待补充' }}</span>
-          <span class="spot-hint">查看详情</span>
-        </div>
+        <span class="tag-chip">{{ spot.categoryName || '分类待补充' }}</span>
       </div>
     </div>
   </article>
@@ -144,24 +141,6 @@ const emit = defineEmits(['select'])
 .tag-chip.plain {
   background: #f3f4f6;
   color: #475569;
-}
-
-.tag-chip.subtle {
-  background: #fffdf7;
-  color: #8a6a2f;
-}
-
-.spot-meta-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.spot-hint {
-  color: #334155;
-  font-size: 13px;
-  font-weight: 600;
 }
 
 .price-box {
