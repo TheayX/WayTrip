@@ -76,7 +76,7 @@
         <div v-if="needPreference && userStore.isLoggedIn" class="preference-tip premium-card" @click="showPreferencePopup">
           <div>
             <strong>还没有设置偏好分类</strong>
-            <p>先选几类感兴趣的景点，推荐结果会更贴近你的兴趣。</p>
+            <p>先设置偏好，再看推荐。</p>
           </div>
           <el-icon><ArrowRight /></el-icon>
         </div>
@@ -179,7 +179,7 @@ const nearbySummary = computed(() => {
 const nearbyActionText = computed(() => {
   if (nearbyLoading.value) return '加载中'
   if (!userStore.isLoggedIn) return '去登录'
-  return '进入发现'
+  return '查看附近景点'
 })
 
 const quickActions = computed(() => ([

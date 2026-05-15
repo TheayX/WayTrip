@@ -5,77 +5,45 @@
       <div class="discover-hero-main">
         <p class="hero-eyebrow">Discover More</p>
         <h2 class="page-title">发现灵感</h2>
-        <p class="page-subtitle">把推荐、附近、景点和攻略放在一起筛，方便直接比较。</p>
+        <p class="page-subtitle">按来源和内容类型切换，再配合筛选条件缩小范围。</p>
+      </div>
+    </section>
 
-        <div class="hero-search-row">
-          <button type="button" class="hero-search" @click="$router.push(APP_ROUTE_PATHS.search)">
-            <el-icon><Search /></el-icon>
-            <span>搜索景点、攻略或目的地</span>
+    <section class="browse-panel premium-card">
+      <div class="keyword-row">
+        <span class="toolbar-label">热门搜索</span>
+        <div class="keyword-list">
+          <button
+            v-for="item in hotKeywords"
+            :key="item"
+            type="button"
+            class="keyword-chip"
+            @click="handleKeywordSelect(item)"
+          >
+            {{ item }}
           </button>
-          <button type="button" class="hero-link" @click="router.push(APP_ROUTE_PATHS.guides)">浏览攻略</button>
         </div>
       </div>
 
-      <div class="hero-status">
-        <article class="status-card">
-          <strong>{{ recommendations.length || 0 }}</strong>
-          <span>推荐结果</span>
-        </article>
-        <article class="status-card">
-          <strong>{{ nearbySpots.length || 0 }}</strong>
-          <span>附近地点</span>
-        </article>
-        <article class="status-card">
-          <strong>{{ spotList.length + guideList.length }}</strong>
-          <span>当前内容</span>
-        </article>
+      <div class="browse-toolbar">
+        <div class="toolbar-group">
+          <span class="toolbar-label">来源</span>
+          <el-segmented v-model="activeScene" :options="sceneOptions" @change="handleSceneChange" />
+        </div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">内容</span>
+          <el-segmented v-model="activeTab" :options="contentOptions" @change="handleTabChange" />
+        </div>
+        <div class="toolbar-actions">
+          <el-button v-if="activeScene === 'nearby' && userStore.isLoggedIn" :loading="nearbyLoading" @click="handleLocate">
+            {{ nearbyLoading ? '定位中' : '重新定位' }}
+          </el-button>
+          <button v-if="hasBrowseChanges" type="button" class="section-link" @click="resetBrowseState">重置</button>
+        </div>
       </div>
-    </section>
 
-    <ExploreKeywordGroup
-      title="热门搜索"
-      :items="hotKeywords"
-      @select="handleKeywordSelect"
-    />
-
-    <section class="scene-grid">
-      <article
-        v-for="item in sceneEntries"
-        :key="item.key"
-        class="scene-card premium-card"
-        :class="{ active: activeScene === item.key }"
-        @click="activateScene(item.key)"
-      >
-        <div class="scene-top">
-          <strong>{{ item.title }}</strong>
-          <span>{{ item.badge }}</span>
-        </div>
-        <p>{{ item.desc }}</p>
-      </article>
-    </section>
-
-    <section class="tab-panel premium-card">
-      <div class="tab-panel-main">
-        <div>
-          <p class="panel-kicker">浏览内容</p>
-          <el-radio-group v-model="activeTab" @change="handleTabChange">
-            <el-radio-button label="all">综合浏览</el-radio-button>
-            <el-radio-button label="spot">景点</el-radio-button>
-            <el-radio-button label="guide">攻略</el-radio-button>
-          </el-radio-group>
-        </div>
-        <button type="button" class="section-link" @click="clearScene">清除场景</button>
-      </div>
-      <p class="tab-panel-desc">{{ currentSceneDescription }}</p>
-    </section>
-
-    <section class="filters premium-card">
-      <div class="filters-head">
-        <div>
-          <p class="panel-kicker">筛选条件</p>
-          <h3>当前筛选条件</h3>
-        </div>
-        <p class="filters-summary">{{ filterSummary }}</p>
+      <div v-if="activeFilterPills.length" class="active-filters">
+        <span v-for="item in activeFilterPills" :key="item" class="filter-pill">{{ item }}</span>
       </div>
 
       <div class="filters-grid">
@@ -103,20 +71,24 @@
         </div>
         <div v-if="showGuideFilters" class="filter-group">
           <span class="filter-label">主题</span>
-          <el-select v-model="selectedGuideCategory" clearable placeholder="全部主题" @change="handleGuideFilter">
-            <el-option label="全部" value="" />
-            <el-option v-for="item in guideCategories" :key="item" :label="item" :value="item" />
-          </el-select>
+          <el-cascader
+            v-model="selectedGuideCategory"
+            :options="guideCategoryOptions"
+            :props="guideCascaderProps"
+            clearable
+            placeholder="全部主题"
+            @change="handleGuideFilter"
+          />
         </div>
       </div>
+
+      <p v-if="activeScene === 'nearby'" class="browse-note">{{ nearbySectionSummary }}</p>
     </section>
 
     <section v-if="showRecommendationSection" class="content-section">
       <div class="section-head">
         <div>
-          <p class="panel-kicker">推荐</p>
           <h3>{{ userStore.isLoggedIn ? recommendType : '推荐景点' }}</h3>
-          <p>按偏好返回推荐结果。</p>
         </div>
         <div class="section-actions">
           <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.recommendations)">查看全部</button>
@@ -127,7 +99,7 @@
       <div v-if="needPreference && userStore.isLoggedIn" class="hint-banner premium-card" @click="showPreferencePopup">
         <div>
           <strong>还没有设置偏好分类</strong>
-          <p>先选几类感兴趣的景点，推荐结果会更贴近你的出游偏好。</p>
+          <p>先设置偏好，再看推荐。</p>
         </div>
         <el-icon><ArrowRight /></el-icon>
       </div>
@@ -137,7 +109,7 @@
           v-for="spot in recommendations.slice(0, 6)"
           :key="spot.id"
           :spot="spot"
-          @select="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.RECOMMENDATION))"
+          @select="router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.RECOMMENDATION))"
         />
       </div>
       <el-empty v-else :description="userStore.isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点'">
@@ -148,13 +120,10 @@
     <section v-if="showNearbySection" class="content-section">
       <div class="section-head">
         <div>
-          <p class="panel-kicker">附近</p>
-          <h3>附近探索</h3>
-          <p>按当前位置查看附近景点。</p>
+          <h3>附近景点</h3>
         </div>
         <div class="section-actions">
-          <el-button :loading="nearbyLoading" type="primary" @click="handleLocate">{{ nearbyLoading ? '定位中' : '重新定位' }}</el-button>
-          <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.nearby)">独立页查看</button>
+          <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.nearby)">附近页</button>
         </div>
       </div>
 
@@ -163,29 +132,28 @@
           v-for="spot in nearbySpots"
           :key="spot.id"
           :spot="spot"
-          @select="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.NEARBY))"
+          @select="router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.NEARBY))"
         />
       </div>
       <el-empty v-else :description="nearbyEmptyText">
-        <el-button type="primary" @click="handleLocate">开启定位</el-button>
+        <el-button v-if="userStore.isLoggedIn" type="primary" @click="handleLocate">开启定位</el-button>
+        <el-button v-else type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
       </el-empty>
     </section>
 
     <section v-if="showSpotSection" class="content-section">
       <div class="section-head">
         <div>
-          <p class="panel-kicker">景点</p>
-          <h3>精选景点</h3>
-          <p>按地区和分类筛选景点。</p>
+          <h3>{{ spotSectionTitle }}</h3>
         </div>
-        <button type="button" class="section-link" @click="$router.push(APP_ROUTE_PATHS.spots)">查看全部</button>
+        <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.spots)">查看全部</button>
       </div>
       <div v-if="spotList.length" class="spot-grid">
         <SpotCard
           v-for="spot in spotList"
           :key="spot.id"
           :spot="spot"
-          @select="$router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.DISCOVER))"
+          @select="router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.DISCOVER))"
         />
       </div>
       <el-empty v-else description="当前条件暂无景点" />
@@ -194,18 +162,16 @@
     <section v-if="showGuideSection" class="content-section">
       <div class="section-head">
         <div>
-          <p class="panel-kicker">攻略</p>
-          <h3>精选攻略</h3>
-          <p>按主题查看路线和玩法。</p>
+          <h3>{{ guideSectionTitle }}</h3>
         </div>
-        <button type="button" class="section-link" @click="$router.push(APP_ROUTE_PATHS.guides)">查看全部</button>
+        <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.guides)">查看全部</button>
       </div>
       <div v-if="guideList.length" class="guide-grid">
         <GuideCard
           v-for="guide in guideList"
           :key="guide.id"
           :guide="guide"
-          @select="$router.push(`/guides/${guide.id}`)"
+          @select="router.push(`/guides/${guide.id}`)"
         />
       </div>
       <el-empty v-else description="当前条件暂无攻略" />
@@ -233,7 +199,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowRight, Search } from '@element-plus/icons-vue'
+import { ArrowRight } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import GuideCard from '@/modules/guide/components/GuideCard.vue'
 import { getGuideList, getCategories } from '@/modules/guide/api.js'
@@ -246,19 +212,26 @@ import { getCurrentLocation, getLocationSnapshot } from '@/shared/lib/location.j
 import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
 import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
-import ExploreKeywordGroup from '@/shared/ui/ExploreKeywordGroup.vue'
 
 const DISCOVER_STATE_KEY = 'discover_state'
 const DISCOVER_TABS = ['all', 'spot', 'guide']
 const DISCOVER_SCENES = ['all', 'recommend', 'nearby']
 const hotKeywords = SEARCH_HOT_KEYWORDS
+const tabOptions = [
+  { label: '全部', value: 'all' },
+  { label: '景点', value: 'spot' },
+  { label: '攻略', value: 'guide' }
+]
+const sceneOptions = [
+  { label: '全部来源', value: 'all' },
+  { label: '推荐', value: 'recommend' },
+  { label: '附近', value: 'nearby' }
+]
 
-// 基础依赖与用户状态
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 
-// 页面数据状态
 const activeTab = ref('all')
 const activeScene = ref('all')
 const regionTree = ref([])
@@ -287,9 +260,104 @@ const {
   savePreferences
 } = useRecommendationFeed(12)
 
-// 计算属性
 const selectedRegionId = computed(() => selectedRegionPath.value[selectedRegionPath.value.length - 1] || '')
 const selectedSpotCategoryId = computed(() => selectedSpotCategoryPath.value[selectedSpotCategoryPath.value.length - 1] || '')
+const contentOptions = computed(() => {
+  const isSourceLimited = activeScene.value === 'recommend' || activeScene.value === 'nearby'
+
+  return [
+    { label: '全部', value: 'all', disabled: isSourceLimited },
+    { label: '景点', value: 'spot', disabled: false },
+    { label: '攻略', value: 'guide', disabled: isSourceLimited }
+  ]
+})
+const showSpotFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
+const showGuideFilters = computed(() => activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'guide'))
+const showRecommendationSection = computed(() => (
+  activeScene.value === 'recommend'
+  || (activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'spot'))
+))
+const showNearbySection = computed(() => (
+  activeScene.value === 'nearby'
+  || (activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'spot'))
+))
+const showSpotSection = computed(() => (
+  activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'spot')
+))
+const showGuideSection = computed(() => (
+  activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'guide')
+))
+const hasBrowseChanges = computed(() => (
+  activeScene.value !== 'all'
+  || activeTab.value !== 'all'
+  || !!selectedRegionId.value
+  || !!selectedSpotCategoryId.value
+  || !!selectedGuideCategory.value
+))
+const hasSpotFilters = computed(() => !!selectedRegionId.value || !!selectedSpotCategoryId.value)
+const hasGuideFilter = computed(() => !!selectedGuideCategory.value)
+const spotSectionTitle = computed(() => {
+  if (hasSpotFilters.value) return '景点结果'
+  return '热门景点'
+})
+const guideSectionTitle = computed(() => {
+  if (hasGuideFilter.value) return '攻略结果'
+  return '最新攻略'
+})
+const nearbyEmptyText = computed(() => {
+  if (!userStore.isLoggedIn) return '登录后查看附近景点'
+  if (nearbyStatus.value === 'empty') return '附近暂时没有景点'
+  return '还没有加载附近景点'
+})
+const nearbySectionSummary = computed(() => {
+  if (!userStore.isLoggedIn) return '登录后可以按当前位置加载附近景点。'
+  if (nearbyLoading.value) return '正在获取当前位置附近的景点。'
+  if (nearbyStatus.value === 'ready' && nearbySpots.value.length) {
+    return `已找到 ${nearbySpots.value.length} 个附近景点，最近约 ${formatDistance(nearbySpots.value[0].distanceKm)}。`
+  }
+  if (nearbyStatus.value === 'empty') return '当前位置附近暂时没有景点。'
+  return '切换到附近后可以重新定位。'
+})
+const activeFilterPills = computed(() => {
+  const pills = []
+
+  if (activeScene.value === 'recommend') pills.push('来源：推荐')
+  if (activeScene.value === 'nearby') pills.push('来源：附近')
+  if (activeTab.value === 'spot') pills.push('内容：景点')
+  if (activeTab.value === 'guide') pills.push('内容：攻略')
+
+  if (selectedRegionId.value) {
+    const region = findTreeNodeById(regionTree.value, selectedRegionId.value)
+    pills.push(`地区：${region?.name || '已选择'}`)
+  }
+  if (selectedSpotCategoryId.value) {
+    const category = findTreeNodeById(spotCategoryTree.value, selectedSpotCategoryId.value)
+    pills.push(`分类：${category?.name || '已选择'}`)
+  }
+  if (selectedGuideCategory.value) {
+    pills.push(`主题：${selectedGuideCategory.value}`)
+  }
+
+  return pills
+})
+const guideCategoryOptions = computed(() => guideCategories.value.map((item) => ({
+  value: item,
+  label: item
+})))
+
+const spotCascaderProps = {
+  value: 'id',
+  label: 'name',
+  children: 'children',
+  checkStrictly: true,
+  emitPath: true
+}
+const guideCascaderProps = {
+  value: 'value',
+  label: 'label',
+  checkStrictly: true,
+  emitPath: false
+}
 
 const findTreeNodeById = (tree, targetId) => {
   if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) {
@@ -298,13 +366,10 @@ const findTreeNodeById = (tree, targetId) => {
 
   const normalizedTargetId = String(targetId)
   const stack = [...tree]
-
   while (stack.length) {
     const current = stack.pop()
     if (!current) continue
-    if (String(current.id) === normalizedTargetId) {
-      return current
-    }
+    if (String(current.id) === normalizedTargetId) return current
     if (Array.isArray(current.children) && current.children.length) {
       stack.push(...current.children)
     }
@@ -320,7 +385,6 @@ const findPathById = (tree, targetId) => {
 
   const normalizedTargetId = String(targetId)
   const stack = tree.map((node) => ({ node, path: [node.id] }))
-
   while (stack.length) {
     const current = stack.pop()
     if (!current) continue
@@ -336,53 +400,13 @@ const findPathById = (tree, targetId) => {
 
   return []
 }
-const showSpotFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
-const showGuideFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
-const showSpotSection = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
-const showGuideSection = computed(() => activeTab.value === 'all' || activeTab.value === 'guide')
-const showRecommendationSection = computed(() => activeScene.value === 'all' || activeScene.value === 'recommend')
-const showNearbySection = computed(() => activeScene.value === 'all' || activeScene.value === 'nearby')
-const currentSceneDescription = computed(() => {
-  if (activeScene.value === 'recommend') return '当前只看推荐结果。'
-  if (activeScene.value === 'nearby') return '当前只看附近景点。'
-  return '当前同时显示推荐、附近、景点和攻略。'
-})
-const nearbyEmptyText = computed(() => {
-  if (!userStore.isLoggedIn) return '登录后查看附近景点'
-  if (nearbyStatus.value === 'empty') return '附近暂时没有景点'
-  return '还没有加载附近景点'
-})
-const filterSummary = computed(() => {
-  const segments = []
-  if (selectedRegionId.value) {
-    const region = findTreeNodeById(regionTree.value, selectedRegionId.value)
-    segments.push(`地区：${region?.name || '已选择'}`)
-  }
-  if (selectedSpotCategoryId.value) {
-    const category = findTreeNodeById(spotCategoryTree.value, selectedSpotCategoryId.value)
-    segments.push(`分类：${category?.name || '已选择'}`)
-  }
-  if (selectedGuideCategory.value) {
-    segments.push(`主题：${selectedGuideCategory.value}`)
-  }
-  return segments.length ? segments.join(' / ') : '当前为默认筛选'
-})
-const sceneEntries = computed(() => ([
-  { key: 'all', title: '综合探索', desc: '同时查看推荐、附近、景点和攻略。', badge: '全部' },
-  { key: 'recommend', title: '为你推荐', desc: userStore.isLoggedIn ? '只看推荐结果。' : '登录后查看推荐结果。', badge: '推荐' },
-  { key: 'nearby', title: '附近探索', desc: '只看当前位置附近的景点。', badge: '附近' }
-]))
 
-const spotCascaderProps = {
-  value: 'id',
-  label: 'name',
-  children: 'children',
-  checkStrictly: true,
-  emitPath: true
+const formatDistance = (value) => {
+  const distance = Number(value)
+  if (!Number.isFinite(distance)) return '-- km'
+  return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
 }
 
-// 工具方法
-// 发现页承担多种探索场景，持久化场景和筛选状态可以避免用户来回切页时丢上下文。
 const persistState = () => {
   localStorage.setItem(DISCOVER_STATE_KEY, JSON.stringify({
     tab: activeTab.value,
@@ -421,27 +445,11 @@ const restoreState = () => {
 const applyRoutePreset = () => {
   const tab = typeof route.query.tab === 'string' ? route.query.tab : ''
   const scene = typeof route.query.scene === 'string' ? route.query.scene : ''
-  if (DISCOVER_TABS.includes(tab)) {
-    activeTab.value = tab
-  }
-  if (DISCOVER_SCENES.includes(scene)) {
-    activeScene.value = scene
-  }
-  if (typeof route.query.regionId === 'string') {
-    selectedRegionPath.value = [route.query.regionId]
-  }
-  if (typeof route.query.categoryId === 'string') {
-    selectedSpotCategoryPath.value = [route.query.categoryId]
-  }
-  if (typeof route.query.guideCategory === 'string') {
-    selectedGuideCategory.value = route.query.guideCategory
-  }
-}
-
-// 路由与本地缓存只保留最终节点 ID，树数据就绪后再还原成父子选择。
-const applyTreeSelection = (tree, targetId, parentRef, childRef) => {
-  const path = findPathById(tree, targetId)
-  parentRef.value = path
+  if (DISCOVER_TABS.includes(tab)) activeTab.value = tab
+  if (DISCOVER_SCENES.includes(scene)) activeScene.value = scene
+  if (typeof route.query.regionId === 'string') selectedRegionPath.value = [route.query.regionId]
+  if (typeof route.query.categoryId === 'string') selectedSpotCategoryPath.value = [route.query.categoryId]
+  if (typeof route.query.guideCategory === 'string') selectedGuideCategory.value = route.query.guideCategory
 }
 
 const toggleCategory = (id) => {
@@ -461,17 +469,16 @@ const handleKeywordSelect = (value) => {
   router.push({ path: APP_ROUTE_PATHS.search, query: { keyword: value } })
 }
 
-// 数据加载方法
 const fetchSpotFilters = async () => {
   const res = await getFilters()
   regionTree.value = res.data?.regionTree?.length ? res.data.regionTree : (res.data?.regions || [])
   spotCategoryTree.value = res.data?.categoryTree?.length ? res.data.categoryTree : (res.data?.categories || [])
 
   if (selectedRegionId.value) {
-    applyTreeSelection(regionTree.value, selectedRegionId.value, selectedRegionPath)
+    selectedRegionPath.value = findPathById(regionTree.value, selectedRegionId.value)
   }
   if (selectedSpotCategoryId.value) {
-    applyTreeSelection(spotCategoryTree.value, selectedSpotCategoryId.value, selectedSpotCategoryPath)
+    selectedSpotCategoryPath.value = findPathById(spotCategoryTree.value, selectedSpotCategoryId.value)
   }
 }
 
@@ -524,10 +531,15 @@ const refreshDiscover = async () => {
   ])
 }
 
-// 交互处理方法
 const handleTabChange = async () => {
+  if (activeTab.value === 'guide' && activeScene.value !== 'all') {
+    activeScene.value = 'all'
+  }
   syncRouteQuery()
-  await refreshDiscover()
+  await Promise.all([
+    fetchSpotPreview(),
+    fetchGuidePreview()
+  ])
 }
 
 const handleSpotFilter = async () => {
@@ -540,24 +552,28 @@ const handleGuideFilter = async () => {
   await fetchGuidePreview()
 }
 
-const activateScene = async (scene) => {
-  if (activeScene.value === scene) return
-  activeScene.value = scene
+const handleSceneChange = async () => {
+  if ((activeScene.value === 'recommend' || activeScene.value === 'nearby') && activeTab.value !== 'spot') {
+    activeTab.value = 'spot'
+  }
   syncRouteQuery()
-
-  // 场景切换时只补拉对应核心内容，避免每次都让整个发现页重新进入重加载状态。
-  if (scene === 'recommend') {
+  if (activeScene.value === 'recommend') {
     await fetchRecommendationList()
     return
   }
-  if (scene === 'nearby') {
-    await handleLocate()
+  if (activeScene.value === 'nearby' && userStore.isLoggedIn && nearbyStatus.value === 'idle') {
+    await tryLoadNearbyAutomatically()
   }
 }
 
-const clearScene = () => {
+const resetBrowseState = async () => {
+  activeTab.value = 'all'
   activeScene.value = 'all'
+  selectedRegionPath.value = []
+  selectedSpotCategoryPath.value = []
+  selectedGuideCategory.value = ''
   syncRouteQuery()
+  await refreshDiscover()
 }
 
 const handleRefresh = async () => {
@@ -585,7 +601,7 @@ const handleSavePreference = async () => {
 
 const handleLocate = async () => {
   if (!userStore.isLoggedIn) {
-    router.push(AUTH_ROUTE_PATHS.login)
+    nearbyStatus.value = 'idle'
     return
   }
 
@@ -603,7 +619,6 @@ const handleLocate = async () => {
 
 watch([activeTab, activeScene, selectedRegionId, selectedSpotCategoryId, selectedGuideCategory], persistState)
 
-// 生命周期
 onMounted(async () => {
   restoreState()
   applyRoutePreset()
@@ -622,16 +637,16 @@ onMounted(async () => {
 
 .discover-hero {
   padding: 24px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 240px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   gap: 16px;
   background:
     radial-gradient(circle at top right, rgba(202, 138, 4, 0.12), transparent 28%),
     linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
-.hero-eyebrow,
-.panel-kicker {
+.hero-eyebrow {
   margin-bottom: 8px;
   font-size: 12px;
   letter-spacing: 0.14em;
@@ -649,34 +664,12 @@ onMounted(async () => {
 }
 
 .page-subtitle,
-.tab-panel-desc,
-.section-head p,
-.filters-summary {
+.browse-note,
+.hint-banner p {
   color: #64748b;
   line-height: 1.8;
 }
 
-.hero-search-row {
-  margin-top: 18px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.hero-search {
-  min-height: 48px;
-  padding: 0 18px;
-  border: 1px solid #e2e8f0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #475569;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.hero-link,
 .section-link {
   border: none;
   padding: 0;
@@ -688,116 +681,98 @@ onMounted(async () => {
   transition: color 0.2s ease;
 }
 
-.hero-link:hover,
 .section-link:hover:not(:disabled) {
   color: #0f172a;
 }
 
-.hero-status {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.status-card {
-  padding: 16px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #ffffff 100%);
-  border: 1px solid #eef2f7;
-}
-
-.status-card strong {
-  display: block;
-  font-size: 26px;
-  line-height: 1;
-  color: #0f172a;
-}
-
-.status-card span {
-  display: block;
-  margin-top: 8px;
-  color: #64748b;
-  font-size: 13px;
-}
-
-.scene-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.scene-card {
-  padding: 16px 18px;
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-
-.scene-card.active {
-  border-color: rgba(200, 169, 91, 0.42);
-  background: linear-gradient(180deg, #fffdf7 0%, #ffffff 100%);
-}
-
-.scene-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.scene-top strong {
-  font-size: 16px;
-  color: #0f172a;
-}
-
-.scene-top span {
-  min-height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-  color: #8a6a2f;
-  background: #f7f0db;
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.scene-card p {
-  color: #64748b;
-  line-height: 1.8;
-}
-
-.tab-panel,
-.filters,
+.browse-panel,
 .hint-banner {
   padding: 18px 20px;
 }
 
-.tab-panel-main {
+.keyword-row {
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.tab-panel-desc {
-  margin-top: 14px;
-}
-
-.filters-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 18px;
   margin-bottom: 18px;
+  border-bottom: 1px solid #eef2f7;
 }
 
-.filters-head h3 {
-  font-size: 20px;
+.keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.browse-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.toolbar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toolbar-label,
+.filter-label {
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.active-filters {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.keyword-chip {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.keyword-chip:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
   color: #0f172a;
 }
 
 .filters-grid {
+  margin-top: 18px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
@@ -809,11 +784,8 @@ onMounted(async () => {
   gap: 10px;
 }
 
-
-.filter-label {
-  color: #475569;
-  font-weight: 600;
-  font-size: 13px;
+.browse-note {
+  margin-top: 16px;
 }
 
 .content-section {
@@ -831,7 +803,6 @@ onMounted(async () => {
 }
 
 .section-head h3 {
-  margin-bottom: 6px;
   font-size: 24px;
   color: #0f172a;
   letter-spacing: 0;
@@ -856,8 +827,6 @@ onMounted(async () => {
 
 .hint-banner p {
   margin-top: 6px;
-  color: #64748b;
-  line-height: 1.75;
 }
 
 .spot-grid,
@@ -874,21 +843,17 @@ onMounted(async () => {
 }
 
 @media (max-width: 1100px) {
-  .discover-hero,
   .filters-grid,
   .spot-grid,
-  .guide-grid,
-  .scene-grid {
+  .guide-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
   .discover-hero,
-  .tab-panel-main,
-  .filters-head,
+  .browse-toolbar,
   .section-head {
-    grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
   }
@@ -897,9 +862,9 @@ onMounted(async () => {
     font-size: 28px;
   }
 
-  .hero-search-row {
-    flex-direction: column;
-    align-items: stretch;
+  .toolbar-actions {
+    justify-content: flex-start;
+    margin-left: 0;
   }
 }
 </style>

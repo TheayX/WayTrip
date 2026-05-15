@@ -17,7 +17,7 @@
     <section v-if="userStore.isLoggedIn && needPreference" class="preference-tip premium-card" @click="showPreferencePopup">
       <div>
         <strong>你还没有设置偏好分类</strong>
-        <p>先选几类感兴趣的景点，推荐结果会更贴近你的兴趣。</p>
+        <p>先设置偏好，再看推荐。</p>
       </div>
       <el-icon><ArrowRight /></el-icon>
     </section>
