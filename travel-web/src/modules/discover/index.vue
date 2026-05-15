@@ -2,179 +2,203 @@
 <template>
   <div class="page-container discover-page">
     <section class="discover-hero premium-card">
-      <div class="discover-hero-main">
+      <div>
         <p class="hero-eyebrow">Discover More</p>
         <h2 class="page-title">发现灵感</h2>
-        <p class="page-subtitle">按来源和内容类型切换，再配合筛选条件缩小范围。</p>
+        <p class="page-subtitle">先看推荐、热门、附近和攻略，再决定往哪里深入。</p>
       </div>
+      <el-segmented v-model="viewMode" :options="viewModeOptions" @change="handleModeChange" />
     </section>
 
-    <section class="browse-panel premium-card">
-      <div class="keyword-row">
-        <span class="toolbar-label">热门搜索</span>
-        <div class="keyword-list">
-          <button
-            v-for="item in hotKeywords"
-            :key="item"
-            type="button"
-            class="keyword-chip"
-            @click="handleKeywordSelect(item)"
-          >
-            {{ item }}
-          </button>
-        </div>
-      </div>
-
-      <div class="browse-toolbar">
-        <div class="toolbar-group">
-          <span class="toolbar-label">来源</span>
-          <el-segmented v-model="activeScene" :options="sceneOptions" @change="handleSceneChange" />
-        </div>
-        <div class="toolbar-group">
-          <span class="toolbar-label">内容</span>
-          <el-segmented v-model="activeTab" :options="contentOptions" @change="handleTabChange" />
-        </div>
-        <div class="toolbar-actions">
-          <el-button v-if="activeScene === 'nearby' && userStore.isLoggedIn" :loading="nearbyLoading" @click="handleLocate">
-            {{ nearbyLoading ? '定位中' : '重新定位' }}
-          </el-button>
-          <button v-if="hasBrowseChanges" type="button" class="section-link" @click="resetBrowseState">重置</button>
-        </div>
-      </div>
-
-      <div v-if="activeFilterPills.length" class="active-filters">
-        <span v-for="item in activeFilterPills" :key="item" class="filter-pill">{{ item }}</span>
-      </div>
-
-      <div class="filters-grid">
-        <div v-if="showSpotFilters" class="filter-group">
-          <span class="filter-label">地区</span>
-          <el-cascader
-            v-model="selectedRegionPath"
-            :options="regionTree"
-            :props="spotCascaderProps"
-            clearable
-            placeholder="全部地区"
-            @change="handleSpotFilter"
-          />
-        </div>
-        <div v-if="showSpotFilters" class="filter-group">
-          <span class="filter-label">分类</span>
-          <el-cascader
-            v-model="selectedSpotCategoryPath"
-            :options="spotCategoryTree"
-            :props="spotCascaderProps"
-            clearable
-            placeholder="全部分类"
-            @change="handleSpotFilter"
-          />
-        </div>
-        <div v-if="showGuideFilters" class="filter-group">
-          <span class="filter-label">主题</span>
-          <el-cascader
-            v-model="selectedGuideCategory"
-            :options="guideCategoryOptions"
-            :props="guideCascaderProps"
-            clearable
-            placeholder="全部主题"
-            @change="handleGuideFilter"
-          />
-        </div>
-      </div>
-
-      <p v-if="activeScene === 'nearby'" class="browse-note">{{ nearbySectionSummary }}</p>
-    </section>
-
-    <section v-if="showRecommendationSection" class="content-section">
-      <div class="section-head">
-        <div>
-          <h3>{{ userStore.isLoggedIn ? recommendType : '推荐景点' }}</h3>
-        </div>
-        <div class="section-actions">
-          <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.recommendations)">查看全部</button>
-          <button v-if="userStore.isLoggedIn" type="button" class="section-link" :disabled="refreshing" @click="handleRefresh">换一批</button>
-        </div>
-      </div>
-
-      <div v-if="needPreference && userStore.isLoggedIn" class="hint-banner premium-card" @click="showPreferencePopup">
-        <div>
-          <strong>还没有设置偏好分类</strong>
-          <p>先设置偏好，再看推荐。</p>
-        </div>
-        <el-icon><ArrowRight /></el-icon>
-      </div>
-
-      <div v-if="recommendations.length" class="spot-grid">
-        <SpotCard
-          v-for="spot in recommendations.slice(0, 6)"
-          :key="spot.id"
-          :spot="spot"
-          @select="router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.RECOMMENDATION))"
+    <section v-if="showSpotFilters || showGuideFilter" class="filter-panel premium-card">
+      <div v-if="showSpotFilters" class="filter-group">
+        <span class="filter-label">地区</span>
+        <el-cascader
+          v-model="selectedRegionPath"
+          :options="regionTree"
+          :props="spotCascaderProps"
+          clearable
+          placeholder="全部地区"
+          @change="handleSpotFilter"
         />
       </div>
-      <el-empty v-else :description="userStore.isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点'">
-        <el-button v-if="!userStore.isLoggedIn" type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
-      </el-empty>
+      <div v-if="showSpotFilters" class="filter-group">
+        <span class="filter-label">分类</span>
+        <el-cascader
+          v-model="selectedSpotCategoryPath"
+          :options="spotCategoryTree"
+          :props="spotCascaderProps"
+          clearable
+          placeholder="全部分类"
+          @change="handleSpotFilter"
+        />
+      </div>
+      <div v-if="showGuideFilter" class="filter-group">
+        <span class="filter-label">主题</span>
+        <el-cascader
+          v-model="selectedGuideCategory"
+          :options="guideCategoryOptions"
+          :props="guideCascaderProps"
+          clearable
+          placeholder="全部主题"
+          @change="handleGuideFilter"
+        />
+      </div>
+      <button v-if="hasFilters" type="button" class="section-link filter-reset" @click="resetFilters">重置筛选</button>
     </section>
 
-    <section v-if="showNearbySection" class="content-section">
+    <section v-if="viewMode === 'all'" class="discover-board">
+      <div class="board-main">
+        <section class="content-block">
+          <div class="section-head">
+            <h3>{{ userStore.isLoggedIn ? '个性推荐' : '推荐景点' }}</h3>
+            <div class="section-actions">
+              <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.recommendations)">查看全部</button>
+              <button v-if="userStore.isLoggedIn" type="button" class="section-link" :disabled="refreshing" @click="handleRefresh">换一批</button>
+            </div>
+          </div>
+
+          <div v-if="needPreference && userStore.isLoggedIn" class="hint-banner premium-card" @click="showPreferencePopup">
+            <div>
+              <strong>还没有设置偏好分类</strong>
+              <p>先设置偏好，再看推荐。</p>
+            </div>
+            <el-icon><ArrowRight /></el-icon>
+          </div>
+
+          <div v-if="recommendations.length" class="spot-grid two-columns">
+            <SpotCard
+              v-for="spot in recommendations.slice(0, 4)"
+              :key="spot.id"
+              :spot="spot"
+              @select="goSpot(spot.id, SPOT_DETAIL_SOURCE.RECOMMENDATION)"
+            />
+          </div>
+          <el-empty v-else :description="userStore.isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点'">
+            <el-button v-if="!userStore.isLoggedIn" type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
+          </el-empty>
+        </section>
+
+        <section class="content-block">
+          <div class="section-head">
+            <h3>热门景点</h3>
+            <button type="button" class="section-link" @click="router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`)">查看全部</button>
+          </div>
+
+          <div v-if="hotSpots.length" class="spot-grid two-columns">
+            <SpotCard
+              v-for="spot in hotSpots.slice(0, 4)"
+              :key="spot.id"
+              :spot="spot"
+              @select="goSpot(spot.id, SPOT_DETAIL_SOURCE.DISCOVER)"
+            />
+          </div>
+          <el-empty v-else description="暂无热门景点" />
+        </section>
+      </div>
+
+      <aside class="board-side">
+        <section class="side-block premium-card">
+          <div class="section-head compact">
+            <h3>附近景点</h3>
+            <button type="button" class="section-link" @click="activateNearby">查看附近</button>
+          </div>
+
+          <div v-if="nearbySpots.length" class="nearby-list">
+            <article v-for="spot in nearbySpots.slice(0, 3)" :key="spot.id" class="nearby-card" @click="goSpot(spot.id, SPOT_DETAIL_SOURCE.NEARBY)">
+              <img :src="getImageUrl(spot.coverImage)" class="nearby-image" alt="" />
+              <div>
+                <h4>{{ spot.name }}</h4>
+                <p>{{ spot.regionName || '附近区域' }} · {{ formatDistance(spot.distanceKm) }}</p>
+              </div>
+            </article>
+          </div>
+          <el-empty v-else :description="nearbyEmptyText" :image-size="72">
+            <el-button v-if="userStore.isLoggedIn" size="small" type="primary" :loading="nearbyLoading" @click="handleLocate">开启定位</el-button>
+            <el-button v-else size="small" type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
+          </el-empty>
+        </section>
+
+        <section class="side-block premium-card">
+          <div class="section-head compact">
+            <h3>攻略精选</h3>
+            <button type="button" class="section-link" @click="activateGuides">展开</button>
+          </div>
+
+          <div v-if="guideList.length" class="guide-compact-list">
+            <article v-for="guide in guideList.slice(0, 3)" :key="guide.id" class="guide-compact-card" @click="goGuide(guide.id)">
+              <span>{{ resolveGuideCategory(guide.category) }}</span>
+              <h4>{{ resolveGuideText(guide.title) }}</h4>
+              <p>{{ resolveGuideSummary(guide.summary) }}</p>
+            </article>
+          </div>
+          <el-empty v-else description="暂无攻略" :image-size="72" />
+        </section>
+      </aside>
+    </section>
+
+    <section v-else-if="viewMode === 'spots'" class="content-block">
       <div class="section-head">
-        <div>
-          <h3>附近景点</h3>
-        </div>
+        <h3>{{ hasSpotFilters ? '景点结果' : '景点发现' }}</h3>
+        <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.spots)">查看全部</button>
+      </div>
+
+      <div v-if="spotModeItems.length" class="spot-grid three-columns">
+        <SpotCard
+          v-for="spot in spotModeItems"
+          :key="spot.id"
+          :spot="spot"
+          @select="goSpot(spot.id, SPOT_DETAIL_SOURCE.DISCOVER)"
+        />
+      </div>
+      <el-empty v-else description="当前条件暂无景点" />
+    </section>
+
+    <section v-else-if="viewMode === 'guides'" class="content-block">
+      <div class="section-head">
+        <h3>{{ selectedGuideCategory ? '攻略结果' : '攻略精选' }}</h3>
+        <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.guides)">查看全部</button>
+      </div>
+
+      <div v-if="guideList.length" class="guide-featured-list">
+        <article v-for="guide in guideList" :key="guide.id" class="guide-featured-card premium-card" @click="goGuide(guide.id)">
+          <img :src="getImageUrl(guide.coverImage)" class="guide-featured-image" alt="" />
+          <div class="guide-featured-content">
+            <span>{{ resolveGuideCategory(guide.category) }}</span>
+            <h3>{{ resolveGuideText(guide.title) }}</h3>
+            <p>{{ resolveGuideSummary(guide.summary) }}</p>
+            <div class="guide-meta">
+              <span>浏览 {{ guide.viewCount || 0 }}</span>
+              <span>{{ guide.createdAt || '时间待补充' }}</span>
+            </div>
+          </div>
+        </article>
+      </div>
+      <el-empty v-else description="当前条件暂无攻略" />
+    </section>
+
+    <section v-else class="content-block">
+      <div class="section-head">
+        <h3>附近景点</h3>
         <div class="section-actions">
+          <el-button v-if="userStore.isLoggedIn" :loading="nearbyLoading" @click="handleLocate">{{ nearbyLoading ? '定位中' : '重新定位' }}</el-button>
           <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.nearby)">附近页</button>
         </div>
       </div>
 
-      <div v-if="nearbySpots.length" class="spot-grid">
+      <p class="nearby-note">{{ nearbySectionSummary }}</p>
+      <div v-if="nearbySpots.length" class="spot-grid three-columns">
         <SpotCard
           v-for="spot in nearbySpots"
           :key="spot.id"
           :spot="spot"
-          @select="router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.NEARBY))"
+          @select="goSpot(spot.id, SPOT_DETAIL_SOURCE.NEARBY)"
         />
       </div>
       <el-empty v-else :description="nearbyEmptyText">
         <el-button v-if="userStore.isLoggedIn" type="primary" @click="handleLocate">开启定位</el-button>
         <el-button v-else type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
       </el-empty>
-    </section>
-
-    <section v-if="showSpotSection" class="content-section">
-      <div class="section-head">
-        <div>
-          <h3>{{ spotSectionTitle }}</h3>
-        </div>
-        <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.spots)">查看全部</button>
-      </div>
-      <div v-if="spotList.length" class="spot-grid">
-        <SpotCard
-          v-for="spot in spotList"
-          :key="spot.id"
-          :spot="spot"
-          @select="router.push(buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.DISCOVER))"
-        />
-      </div>
-      <el-empty v-else description="当前条件暂无景点" />
-    </section>
-
-    <section v-if="showGuideSection" class="content-section">
-      <div class="section-head">
-        <div>
-          <h3>{{ guideSectionTitle }}</h3>
-        </div>
-        <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.guides)">查看全部</button>
-      </div>
-      <div v-if="guideList.length" class="guide-grid">
-        <GuideCard
-          v-for="guide in guideList"
-          :key="guide.id"
-          :guide="guide"
-          @select="router.push(`/guides/${guide.id}`)"
-        />
-      </div>
-      <el-empty v-else description="当前条件暂无攻略" />
     </section>
 
     <el-dialog v-model="preferenceVisible" title="选择你感兴趣的景点分类" width="520px" :close-on-click-modal="false">
@@ -201,30 +225,24 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import GuideCard from '@/modules/guide/components/GuideCard.vue'
 import { getGuideList, getCategories } from '@/modules/guide/api.js'
-import { getNearbySpots } from '@/modules/home/api.js'
+import { getHotSpots, getNearbySpots } from '@/modules/home/api.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { getSpotList, getFilters } from '@/modules/spot/api.js'
 import { useUserStore } from '@/modules/account/store/user.js'
 import { getCurrentLocation, getLocationSnapshot } from '@/shared/lib/location.js'
-import { SEARCH_HOT_KEYWORDS } from '@/shared/constants/search.js'
+import { getImageUrl } from '@/shared/api/client.js'
 import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
+import { resolveWebGuideCategory, resolveWebGuideDisplayText } from '@/shared/constants/resource-display.js'
 
 const DISCOVER_STATE_KEY = 'discover_state'
-const DISCOVER_TABS = ['all', 'spot', 'guide']
-const DISCOVER_SCENES = ['all', 'recommend', 'nearby']
-const hotKeywords = SEARCH_HOT_KEYWORDS
-const tabOptions = [
-  { label: '全部', value: 'all' },
-  { label: '景点', value: 'spot' },
-  { label: '攻略', value: 'guide' }
-]
-const sceneOptions = [
-  { label: '全部来源', value: 'all' },
-  { label: '推荐', value: 'recommend' },
+const DISCOVER_MODES = ['all', 'spots', 'guides', 'nearby']
+const viewModeOptions = [
+  { label: '综合', value: 'all' },
+  { label: '景点', value: 'spots' },
+  { label: '攻略', value: 'guides' },
   { label: '附近', value: 'nearby' }
 ]
 
@@ -232,8 +250,7 @@ const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 
-const activeTab = ref('all')
-const activeScene = ref('all')
+const viewMode = ref('all')
 const regionTree = ref([])
 const spotCategoryTree = ref([])
 const guideCategories = ref([])
@@ -241,6 +258,7 @@ const selectedRegionPath = ref([])
 const selectedSpotCategoryPath = ref([])
 const selectedGuideCategory = ref('')
 const spotList = ref([])
+const hotSpots = ref([])
 const guideList = ref([])
 const nearbySpots = ref([])
 const nearbyLoading = ref(false)
@@ -253,57 +271,22 @@ const {
   categories,
   selectedCategories,
   preferenceVisible,
-  recommendType,
   fetchRecommendationList,
   rotateRecommendationList,
   openPreferenceDialog,
   savePreferences
-} = useRecommendationFeed(12)
+} = useRecommendationFeed(8)
 
 const selectedRegionId = computed(() => selectedRegionPath.value[selectedRegionPath.value.length - 1] || '')
 const selectedSpotCategoryId = computed(() => selectedSpotCategoryPath.value[selectedSpotCategoryPath.value.length - 1] || '')
-const contentOptions = computed(() => {
-  const isSourceLimited = activeScene.value === 'recommend' || activeScene.value === 'nearby'
-
-  return [
-    { label: '全部', value: 'all', disabled: isSourceLimited },
-    { label: '景点', value: 'spot', disabled: false },
-    { label: '攻略', value: 'guide', disabled: isSourceLimited }
-  ]
-})
-const showSpotFilters = computed(() => activeTab.value === 'all' || activeTab.value === 'spot')
-const showGuideFilters = computed(() => activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'guide'))
-const showRecommendationSection = computed(() => (
-  activeScene.value === 'recommend'
-  || (activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'spot'))
-))
-const showNearbySection = computed(() => (
-  activeScene.value === 'nearby'
-  || (activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'spot'))
-))
-const showSpotSection = computed(() => (
-  activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'spot')
-))
-const showGuideSection = computed(() => (
-  activeScene.value === 'all' && (activeTab.value === 'all' || activeTab.value === 'guide')
-))
-const hasBrowseChanges = computed(() => (
-  activeScene.value !== 'all'
-  || activeTab.value !== 'all'
-  || !!selectedRegionId.value
-  || !!selectedSpotCategoryId.value
-  || !!selectedGuideCategory.value
-))
+const showSpotFilters = computed(() => viewMode.value === 'spots')
+const showGuideFilter = computed(() => viewMode.value === 'guides')
 const hasSpotFilters = computed(() => !!selectedRegionId.value || !!selectedSpotCategoryId.value)
-const hasGuideFilter = computed(() => !!selectedGuideCategory.value)
-const spotSectionTitle = computed(() => {
-  if (hasSpotFilters.value) return '景点结果'
-  return '热门景点'
-})
-const guideSectionTitle = computed(() => {
-  if (hasGuideFilter.value) return '攻略结果'
-  return '最新攻略'
-})
+const hasFilters = computed(() => hasSpotFilters.value || !!selectedGuideCategory.value)
+const spotModeItems = computed(() => (hasSpotFilters.value ? spotList.value : [
+  ...recommendations.value.slice(0, 3),
+  ...hotSpots.value.slice(0, 6)
+]))
 const nearbyEmptyText = computed(() => {
   if (!userStore.isLoggedIn) return '登录后查看附近景点'
   if (nearbyStatus.value === 'empty') return '附近暂时没有景点'
@@ -316,29 +299,7 @@ const nearbySectionSummary = computed(() => {
     return `已找到 ${nearbySpots.value.length} 个附近景点，最近约 ${formatDistance(nearbySpots.value[0].distanceKm)}。`
   }
   if (nearbyStatus.value === 'empty') return '当前位置附近暂时没有景点。'
-  return '切换到附近后可以重新定位。'
-})
-const activeFilterPills = computed(() => {
-  const pills = []
-
-  if (activeScene.value === 'recommend') pills.push('来源：推荐')
-  if (activeScene.value === 'nearby') pills.push('来源：附近')
-  if (activeTab.value === 'spot') pills.push('内容：景点')
-  if (activeTab.value === 'guide') pills.push('内容：攻略')
-
-  if (selectedRegionId.value) {
-    const region = findTreeNodeById(regionTree.value, selectedRegionId.value)
-    pills.push(`地区：${region?.name || '已选择'}`)
-  }
-  if (selectedSpotCategoryId.value) {
-    const category = findTreeNodeById(spotCategoryTree.value, selectedSpotCategoryId.value)
-    pills.push(`分类：${category?.name || '已选择'}`)
-  }
-  if (selectedGuideCategory.value) {
-    pills.push(`主题：${selectedGuideCategory.value}`)
-  }
-
-  return pills
+  return '允许定位后查看附近景点。'
 })
 const guideCategoryOptions = computed(() => guideCategories.value.map((item) => ({
   value: item,
@@ -359,38 +320,19 @@ const guideCascaderProps = {
   emitPath: false
 }
 
-const findTreeNodeById = (tree, targetId) => {
-  if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) {
-    return null
-  }
-
-  const normalizedTargetId = String(targetId)
-  const stack = [...tree]
-  while (stack.length) {
-    const current = stack.pop()
-    if (!current) continue
-    if (String(current.id) === normalizedTargetId) return current
-    if (Array.isArray(current.children) && current.children.length) {
-      stack.push(...current.children)
-    }
-  }
-
-  return null
-}
+const resolveGuideText = (value) => resolveWebGuideDisplayText(value)
+const resolveGuideCategory = (value) => resolveWebGuideCategory(value)
+const resolveGuideSummary = (value) => value || '暂无摘要'
 
 const findPathById = (tree, targetId) => {
-  if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) {
-    return []
-  }
+  if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) return []
 
   const normalizedTargetId = String(targetId)
   const stack = tree.map((node) => ({ node, path: [node.id] }))
   while (stack.length) {
     const current = stack.pop()
     if (!current) continue
-    if (String(current.node.id) === normalizedTargetId) {
-      return current.path
-    }
+    if (String(current.node.id) === normalizedTargetId) return current.path
     if (Array.isArray(current.node.children) && current.node.children.length) {
       for (const child of current.node.children) {
         stack.push({ node: child, path: [...current.path, child.id] })
@@ -409,25 +351,11 @@ const formatDistance = (value) => {
 
 const persistState = () => {
   localStorage.setItem(DISCOVER_STATE_KEY, JSON.stringify({
-    tab: activeTab.value,
-    scene: activeScene.value,
+    mode: viewMode.value,
     selectedRegionId: selectedRegionId.value,
     selectedSpotCategoryId: selectedSpotCategoryId.value,
     selectedGuideCategory: selectedGuideCategory.value
   }))
-}
-
-const syncRouteQuery = () => {
-  router.replace({
-    path: APP_ROUTE_PATHS.discover,
-    query: {
-      ...(activeTab.value !== 'all' ? { tab: activeTab.value } : {}),
-      ...(activeScene.value !== 'all' ? { scene: activeScene.value } : {}),
-      ...(selectedRegionId.value ? { regionId: selectedRegionId.value } : {}),
-      ...(selectedSpotCategoryId.value ? { categoryId: selectedSpotCategoryId.value } : {}),
-      ...(selectedGuideCategory.value ? { guideCategory: selectedGuideCategory.value } : {})
-    }
-  })
 }
 
 const restoreState = () => {
@@ -435,38 +363,37 @@ const restoreState = () => {
   if (!raw) return
 
   const state = JSON.parse(raw)
-  activeTab.value = DISCOVER_TABS.includes(state.tab) ? state.tab : 'all'
-  activeScene.value = DISCOVER_SCENES.includes(state.scene) ? state.scene : 'all'
+  viewMode.value = DISCOVER_MODES.includes(state.mode) ? state.mode : 'all'
   selectedRegionPath.value = state.selectedRegionId ? [state.selectedRegionId] : []
   selectedSpotCategoryPath.value = state.selectedSpotCategoryId ? [state.selectedSpotCategoryId] : []
   selectedGuideCategory.value = state.selectedGuideCategory || ''
 }
 
+const syncRouteQuery = () => {
+  router.replace({
+    path: APP_ROUTE_PATHS.discover,
+    query: {
+      ...(viewMode.value !== 'all' ? { mode: viewMode.value } : {}),
+      ...(selectedRegionId.value ? { regionId: selectedRegionId.value } : {}),
+      ...(selectedSpotCategoryId.value ? { categoryId: selectedSpotCategoryId.value } : {}),
+      ...(selectedGuideCategory.value ? { guideCategory: selectedGuideCategory.value } : {})
+    }
+  })
+}
+
 const applyRoutePreset = () => {
-  const tab = typeof route.query.tab === 'string' ? route.query.tab : ''
-  const scene = typeof route.query.scene === 'string' ? route.query.scene : ''
-  if (DISCOVER_TABS.includes(tab)) activeTab.value = tab
-  if (DISCOVER_SCENES.includes(scene)) activeScene.value = scene
+  const legacyScene = typeof route.query.scene === 'string' ? route.query.scene : ''
+  const legacyTab = typeof route.query.tab === 'string' ? route.query.tab : ''
+  const mode = typeof route.query.mode === 'string' ? route.query.mode : ''
+
+  if (DISCOVER_MODES.includes(mode)) viewMode.value = mode
+  if (legacyScene === 'nearby') viewMode.value = 'nearby'
+  if (legacyScene === 'recommend') viewMode.value = 'spots'
+  if (legacyTab === 'guide') viewMode.value = 'guides'
+  if (legacyTab === 'spot') viewMode.value = 'spots'
   if (typeof route.query.regionId === 'string') selectedRegionPath.value = [route.query.regionId]
   if (typeof route.query.categoryId === 'string') selectedSpotCategoryPath.value = [route.query.categoryId]
   if (typeof route.query.guideCategory === 'string') selectedGuideCategory.value = route.query.guideCategory
-}
-
-const toggleCategory = (id) => {
-  const index = selectedCategories.value.indexOf(id)
-  if (index > -1) {
-    selectedCategories.value.splice(index, 1)
-  } else {
-    selectedCategories.value.push(id)
-  }
-}
-
-const showPreferencePopup = async () => {
-  await openPreferenceDialog()
-}
-
-const handleKeywordSelect = (value) => {
-  router.push({ path: APP_ROUTE_PATHS.search, query: { keyword: value } })
 }
 
 const fetchSpotFilters = async () => {
@@ -488,15 +415,20 @@ const fetchGuideCategories = async () => {
 }
 
 const fetchSpotPreview = async () => {
-  const params = { page: 1, pageSize: 6, sortBy: 'heat' }
+  const params = { page: 1, pageSize: 6, sortBy: hasSpotFilters.value ? 'heat' : 'heat' }
   if (selectedRegionId.value) params.regionId = selectedRegionId.value
   if (selectedSpotCategoryId.value) params.categoryId = selectedSpotCategoryId.value
   const res = await getSpotList(params)
   spotList.value = res.data?.list || []
 }
 
+const fetchHotPreview = async () => {
+  const res = await getHotSpots(6)
+  hotSpots.value = res.data?.list || []
+}
+
 const fetchGuidePreview = async () => {
-  const params = { page: 1, pageSize: 6, sortBy: 'time' }
+  const params = { page: 1, pageSize: viewMode.value === 'guides' ? 10 : 4, sortBy: 'time' }
   if (selectedGuideCategory.value) params.category = selectedGuideCategory.value
   const res = await getGuideList(params)
   guideList.value = res.data?.list || []
@@ -504,7 +436,7 @@ const fetchGuidePreview = async () => {
 
 const fetchNearbyPreview = async (location) => {
   if (!location) return
-  const res = await getNearbySpots(location.latitude, location.longitude, 6)
+  const res = await getNearbySpots(location.latitude, location.longitude, viewMode.value === 'nearby' ? 9 : 3)
   nearbySpots.value = res.data?.list || []
   nearbyStatus.value = nearbySpots.value.length ? 'ready' : 'empty'
 }
@@ -524,22 +456,27 @@ const tryLoadNearbyAutomatically = async () => {
 
 const refreshDiscover = async () => {
   await Promise.all([
+    fetchRecommendationList(),
+    fetchHotPreview(),
     fetchSpotPreview(),
     fetchGuidePreview(),
-    fetchRecommendationList(),
     tryLoadNearbyAutomatically()
   ])
 }
 
-const handleTabChange = async () => {
-  if (activeTab.value === 'guide' && activeScene.value !== 'all') {
-    activeScene.value = 'all'
-  }
+const handleModeChange = async () => {
   syncRouteQuery()
-  await Promise.all([
-    fetchSpotPreview(),
-    fetchGuidePreview()
-  ])
+  if (viewMode.value === 'nearby') {
+    await handleLocate()
+    return
+  }
+  if (viewMode.value === 'guides') {
+    await fetchGuidePreview()
+    return
+  }
+  if (viewMode.value === 'spots') {
+    await Promise.all([fetchRecommendationList(), fetchHotPreview(), fetchSpotPreview()])
+  }
 }
 
 const handleSpotFilter = async () => {
@@ -552,28 +489,12 @@ const handleGuideFilter = async () => {
   await fetchGuidePreview()
 }
 
-const handleSceneChange = async () => {
-  if ((activeScene.value === 'recommend' || activeScene.value === 'nearby') && activeTab.value !== 'spot') {
-    activeTab.value = 'spot'
-  }
-  syncRouteQuery()
-  if (activeScene.value === 'recommend') {
-    await fetchRecommendationList()
-    return
-  }
-  if (activeScene.value === 'nearby' && userStore.isLoggedIn && nearbyStatus.value === 'idle') {
-    await tryLoadNearbyAutomatically()
-  }
-}
-
-const resetBrowseState = async () => {
-  activeTab.value = 'all'
-  activeScene.value = 'all'
+const resetFilters = async () => {
   selectedRegionPath.value = []
   selectedSpotCategoryPath.value = []
   selectedGuideCategory.value = ''
   syncRouteQuery()
-  await refreshDiscover()
+  await Promise.all([fetchSpotPreview(), fetchGuidePreview()])
 }
 
 const handleRefresh = async () => {
@@ -617,7 +538,38 @@ const handleLocate = async () => {
   }
 }
 
-watch([activeTab, activeScene, selectedRegionId, selectedSpotCategoryId, selectedGuideCategory], persistState)
+const activateNearby = async () => {
+  viewMode.value = 'nearby'
+  await handleModeChange()
+}
+
+const activateGuides = async () => {
+  viewMode.value = 'guides'
+  await handleModeChange()
+}
+
+const toggleCategory = (id) => {
+  const index = selectedCategories.value.indexOf(id)
+  if (index > -1) {
+    selectedCategories.value.splice(index, 1)
+  } else {
+    selectedCategories.value.push(id)
+  }
+}
+
+const showPreferencePopup = async () => {
+  await openPreferenceDialog()
+}
+
+const goSpot = (id, source) => {
+  router.push(buildSpotDetailRoute(id, source))
+}
+
+const goGuide = (id) => {
+  router.push(`/guides/${id}`)
+}
+
+watch([viewMode, selectedRegionId, selectedSpotCategoryId, selectedGuideCategory], persistState)
 
 onMounted(async () => {
   restoreState()
@@ -641,9 +593,7 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: flex-end;
   gap: 16px;
-  background:
-    radial-gradient(circle at top right, rgba(202, 138, 4, 0.12), transparent 28%),
-    linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
 .hero-eyebrow {
@@ -664,10 +614,33 @@ onMounted(async () => {
 }
 
 .page-subtitle,
-.browse-note,
-.hint-banner p {
+.nearby-note,
+.hint-banner p,
+.guide-compact-card p,
+.guide-featured-card p,
+.nearby-card p {
   color: #64748b;
-  line-height: 1.8;
+  line-height: 1.75;
+}
+
+.filter-panel {
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-label {
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
 }
 
 .section-link {
@@ -685,113 +658,32 @@ onMounted(async () => {
   color: #0f172a;
 }
 
-.browse-panel,
-.hint-banner {
-  padding: 18px 20px;
+.section-link:disabled {
+  color: #94a3b8;
+  cursor: default;
 }
 
-.keyword-row {
+.filter-reset {
+  min-height: 32px;
+}
+
+.discover-board {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.board-main,
+.board-side,
+.content-block {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-bottom: 18px;
-  margin-bottom: 18px;
-  border-bottom: 1px solid #eef2f7;
-}
-
-.keyword-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.browse-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
   gap: 16px;
 }
 
-.toolbar-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.toolbar-label,
-.filter-label {
-  color: #475569;
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: auto;
-}
-
-.active-filters {
-  margin-top: 16px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.filter-pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.keyword-chip {
-  min-height: 32px;
-  padding: 0 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-}
-
-.keyword-chip:hover {
-  border-color: #cbd5e1;
-  background: #f8fafc;
-  color: #0f172a;
-}
-
-.filters-grid {
-  margin-top: 18px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.browse-note {
-  margin-top: 16px;
-}
-
-.content-section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+.side-block {
+  padding: 18px;
 }
 
 .section-head,
@@ -802,18 +694,22 @@ onMounted(async () => {
   gap: 12px;
 }
 
+.section-head.compact {
+  margin-bottom: 12px;
+}
+
 .section-head h3 {
   font-size: 24px;
   color: #0f172a;
   letter-spacing: 0;
 }
 
-.section-link:disabled {
-  color: #94a3b8;
-  cursor: default;
+.section-head.compact h3 {
+  font-size: 18px;
 }
 
 .hint-banner {
+  padding: 16px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -829,11 +725,136 @@ onMounted(async () => {
   margin-top: 6px;
 }
 
-.spot-grid,
-.guide-grid {
+.spot-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+}
+
+.two-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.three-columns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nearby-list,
+.guide-compact-list,
+.guide-featured-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nearby-card,
+.guide-compact-card {
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.nearby-card:hover,
+.guide-compact-card:hover,
+.guide-featured-card:hover {
+  transform: translateY(-2px);
+  border-color: #bfdbfe;
+}
+
+.nearby-card {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.nearby-image {
+  width: 76px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.nearby-card h4,
+.guide-compact-card h4 {
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.nearby-card p {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.guide-compact-card {
+  padding: 14px;
+}
+
+.guide-compact-card span,
+.guide-featured-card span {
+  color: #8a6a2f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.guide-compact-card h4 {
+  margin-top: 8px;
+}
+
+.guide-compact-card p {
+  margin-top: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.guide-featured-card {
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.guide-featured-image {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
+}
+
+.guide-featured-content {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.guide-featured-content h3 {
+  margin-top: 10px;
+  font-size: 24px;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.guide-featured-content p {
+  margin-top: 12px;
+}
+
+.guide-meta {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.nearby-note {
+  margin-top: -4px;
 }
 
 .preference-tags {
@@ -842,29 +863,36 @@ onMounted(async () => {
   gap: 12px;
 }
 
-@media (max-width: 1100px) {
-  .filters-grid,
-  .spot-grid,
-  .guide-grid {
+@media (max-width: 1200px) {
+  .discover-board {
     grid-template-columns: 1fr;
+  }
+
+  .three-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .discover-hero,
-  .browse-toolbar,
   .section-head {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .filter-panel,
+  .two-columns,
+  .three-columns,
+  .guide-featured-card {
+    grid-template-columns: 1fr;
   }
 
   .page-title {
     font-size: 28px;
   }
 
-  .toolbar-actions {
-    justify-content: flex-start;
-    margin-left: 0;
+  .guide-featured-image {
+    min-height: 200px;
   }
 }
 </style>

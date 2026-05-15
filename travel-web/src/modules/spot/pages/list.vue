@@ -1,11 +1,6 @@
 <!-- 景点列表页 -->
 <template>
   <div class="page-container spot-list-page">
-    <section class="search-strip premium-card" @click="$router.push('/search')">
-      <el-icon><Search /></el-icon>
-      <span>搜索景点名称、城市或分类</span>
-    </section>
-
     <SpotListToolbar
       :description="currentStateText"
       :sort-by="filters.sortBy"
@@ -56,7 +51,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Search } from '@element-plus/icons-vue'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import SpotFilterBar from '@/modules/spot/components/SpotFilterBar.vue'
 import SpotListToolbar from '@/modules/spot/components/SpotListToolbar.vue'
@@ -277,16 +271,6 @@ onMounted(async () => {
   flex-direction: column;
   gap: 16px;
   padding-top: 2px;
-}
-
-.search-strip {
-  min-height: 52px;
-  padding: 0 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #475569;
-  cursor: pointer;
 }
 
 .active-filters {
