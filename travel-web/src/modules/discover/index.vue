@@ -3,11 +3,17 @@
   <div class="page-container discover-page">
     <section class="discover-hero premium-card">
       <div>
-        <p class="hero-eyebrow">Discover More</p>
-        <h2 class="page-title">发现灵感</h2>
-        <p class="page-subtitle">先看推荐、热门、附近和攻略，再决定往哪里深入。</p>
+        <p class="hero-eyebrow">Travel Discovery</p>
+        <h2 class="page-title">今天想去哪里？</h2>
+        <p class="page-subtitle">从推荐、热度和真实攻略里快速缩小选择范围。</p>
       </div>
-      <el-segmented v-model="viewMode" :options="viewModeOptions" @change="handleModeChange" />
+      <div class="hero-actions">
+        <button type="button" class="hero-search" @click="router.push(APP_ROUTE_PATHS.search)">
+          <el-icon><Search /></el-icon>
+          <span>搜索景点、城市或攻略</span>
+        </button>
+        <el-segmented v-model="viewMode" :options="viewModeOptions" @change="handleModeChange" />
+      </div>
     </section>
 
     <section v-if="showSpotFilters || showGuideFilter" class="filter-panel premium-card">
@@ -48,40 +54,46 @@
     </section>
 
     <section v-if="viewMode === 'all'" class="discover-board">
-      <div class="board-main">
-        <section class="content-block">
-          <div class="section-head">
-            <h3>{{ userStore.isLoggedIn ? '个性推荐' : '推荐景点' }}</h3>
-            <div class="section-actions">
-              <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.recommendations)">查看全部</button>
-              <button v-if="userStore.isLoggedIn" type="button" class="section-link" :disabled="refreshing" @click="handleRefresh">换一批</button>
-            </div>
+      <section class="content-block focus-block">
+        <div class="section-head">
+          <div>
+            <h3>{{ userStore.isLoggedIn ? '为你挑选' : '先看这些景点' }}</h3>
+            <p>先给出少量高价值选择，避免一上来就陷入长列表。</p>
           </div>
+          <div class="section-actions">
+            <button type="button" class="section-link" @click="router.push(APP_ROUTE_PATHS.recommendations)">查看全部</button>
+            <button v-if="userStore.isLoggedIn" type="button" class="section-link" :disabled="refreshing" @click="handleRefresh">换一批</button>
+          </div>
+        </div>
 
-          <div v-if="needPreference && userStore.isLoggedIn" class="hint-banner premium-card" @click="showPreferencePopup">
+        <div v-if="needPreference && userStore.isLoggedIn" class="hint-banner premium-card" @click="showPreferencePopup">
+          <div>
+            <strong>补充偏好后推荐会更准</strong>
+            <p>选择感兴趣的景点分类，后续会优先展示相关内容。</p>
+          </div>
+          <el-icon><ArrowRight /></el-icon>
+        </div>
+
+        <div v-if="recommendations.length" class="spot-grid spotlight-grid">
+          <SpotCard
+            v-for="spot in recommendations.slice(0, 3)"
+            :key="spot.id"
+            :spot="spot"
+            @select="goSpot(spot.id, SPOT_DETAIL_SOURCE.RECOMMENDATION)"
+          />
+        </div>
+        <el-empty v-else :description="userStore.isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点'">
+          <el-button v-if="!userStore.isLoggedIn" type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
+        </el-empty>
+      </section>
+
+      <div class="discovery-columns">
+        <section class="content-block compact-block">
+          <div class="section-head">
             <div>
-              <strong>还没有设置偏好分类</strong>
-              <p>先设置偏好，再看推荐。</p>
+              <h3>热门景点</h3>
+              <p>近期更容易被浏览和收藏的目的地。</p>
             </div>
-            <el-icon><ArrowRight /></el-icon>
-          </div>
-
-          <div v-if="recommendations.length" class="spot-grid two-columns">
-            <SpotCard
-              v-for="spot in recommendations.slice(0, 4)"
-              :key="spot.id"
-              :spot="spot"
-              @select="goSpot(spot.id, SPOT_DETAIL_SOURCE.RECOMMENDATION)"
-            />
-          </div>
-          <el-empty v-else :description="userStore.isLoggedIn ? '当前暂无推荐景点' : '登录后查看推荐景点'">
-            <el-button v-if="!userStore.isLoggedIn" type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
-          </el-empty>
-        </section>
-
-        <section class="content-block">
-          <div class="section-head">
-            <h3>热门景点</h3>
             <button type="button" class="section-link" @click="router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`)">查看全部</button>
           </div>
 
@@ -95,46 +107,68 @@
           </div>
           <el-empty v-else description="暂无热门景点" />
         </section>
-      </div>
 
-      <aside class="board-side">
-        <section class="side-block premium-card">
-          <div class="section-head compact">
-            <h3>附近景点</h3>
-            <button type="button" class="section-link" @click="activateNearby">查看附近</button>
-          </div>
-
-          <div v-if="nearbySpots.length" class="nearby-list">
-            <article v-for="spot in nearbySpots.slice(0, 3)" :key="spot.id" class="nearby-card" @click="goSpot(spot.id, SPOT_DETAIL_SOURCE.NEARBY)">
-              <img :src="getImageUrl(spot.coverImage)" class="nearby-image" alt="" />
+        <div class="discovery-side">
+          <section class="nearby-entry premium-card">
+            <div class="section-head">
               <div>
-                <h4>{{ spot.name }}</h4>
-                <p>{{ spot.regionName || '附近区域' }} · {{ formatDistance(spot.distanceKm) }}</p>
+                <p class="entry-kicker">Nearby</p>
+                <h3>附近探索</h3>
+                <p>{{ nearbySectionSummary }}</p>
               </div>
-            </article>
-          </div>
-          <el-empty v-else :description="nearbyEmptyText" :image-size="72">
-            <el-button v-if="userStore.isLoggedIn" size="small" type="primary" :loading="nearbyLoading" @click="handleLocate">开启定位</el-button>
-            <el-button v-else size="small" type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">去登录</el-button>
-          </el-empty>
-        </section>
+              <button type="button" class="section-link" @click="activateNearby">进入附近</button>
+            </div>
 
-        <section class="side-block premium-card">
-          <div class="section-head compact">
-            <h3>攻略精选</h3>
-            <button type="button" class="section-link" @click="activateGuides">展开</button>
-          </div>
+            <div v-if="nearbySpots.length" class="nearby-entry-list">
+              <article
+                v-for="spot in nearbySpots.slice(0, 3)"
+                :key="spot.id"
+                class="nearby-entry-card"
+                @click="goSpot(spot.id, SPOT_DETAIL_SOURCE.NEARBY)"
+              >
+                <img :src="getImageUrl(spot.coverImage)" class="nearby-entry-image" :alt="spot.name || '附近景点图片'" />
+                <div>
+                  <h4>{{ spot.name }}</h4>
+                  <p>{{ spot.regionName || '附近区域' }} · {{ formatDistance(spot.distanceKm) }}</p>
+                </div>
+              </article>
+            </div>
+            <el-empty v-else :description="nearbyEmptyText" :image-size="72">
+              <el-button v-if="userStore.isLoggedIn" size="small" type="primary" :loading="nearbyLoading" @click="handleLocate">
+                {{ nearbyLoading ? '定位中' : '刷新附近' }}
+              </el-button>
+              <el-button v-else size="small" type="primary" @click="router.push(AUTH_ROUTE_PATHS.login)">登录后查看</el-button>
+            </el-empty>
+          </section>
 
-          <div v-if="guideList.length" class="guide-compact-list">
-            <article v-for="guide in guideList.slice(0, 3)" :key="guide.id" class="guide-compact-card" @click="goGuide(guide.id)">
-              <span>{{ resolveGuideCategory(guide.category) }}</span>
-              <h4>{{ resolveGuideText(guide.title) }}</h4>
-              <p>{{ resolveGuideSummary(guide.summary) }}</p>
-            </article>
-          </div>
-          <el-empty v-else description="暂无攻略" :image-size="72" />
-        </section>
-      </aside>
+          <section class="guide-entry premium-card">
+            <div>
+              <p class="entry-kicker">Guides</p>
+              <h3>攻略灵感</h3>
+              <p>用路线、预算和游玩主题反推目的地，适合还没确定去哪的时候。</p>
+            </div>
+
+            <div v-if="guideList.length" class="guide-entry-list">
+              <button
+                v-for="guide in guideList.slice(0, 3)"
+                :key="guide.id"
+                type="button"
+                class="guide-entry-item"
+                @click="goGuide(guide.id)"
+              >
+                <span>{{ resolveGuideCategory(guide.category) }}</span>
+                <strong>{{ resolveGuideText(guide.title) }}</strong>
+              </button>
+            </div>
+            <el-empty v-else description="暂无攻略" :image-size="72" />
+
+            <div class="entry-actions">
+              <el-button type="primary" @click="router.push(APP_ROUTE_PATHS.guides)">查看攻略</el-button>
+              <button type="button" class="section-link" @click="activateGuides">按主题筛选</button>
+            </div>
+          </section>
+        </div>
+      </div>
     </section>
 
     <section v-else-if="viewMode === 'spots'" class="content-block">
@@ -223,7 +257,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowRight } from '@element-plus/icons-vue'
+import { ArrowRight, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { getGuideList, getCategories } from '@/modules/guide/api.js'
 import { getHotSpots, getNearbySpots } from '@/modules/home/api.js'
@@ -588,12 +622,44 @@ onMounted(async () => {
 }
 
 .discover-hero {
-  padding: 24px;
+  padding: 26px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  align-items: center;
+  gap: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 28%),
+    linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.hero-actions {
+  width: min(100%, 420px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hero-search {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 18px 36px -28px rgba(37, 99, 235, 0.58);
+  transition: border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-search:hover {
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  box-shadow: 0 22px 40px -28px rgba(37, 99, 235, 0.72);
 }
 
 .hero-eyebrow {
@@ -616,9 +682,9 @@ onMounted(async () => {
 .page-subtitle,
 .nearby-note,
 .hint-banner p,
-.guide-compact-card p,
+.section-head p,
 .guide-featured-card p,
-.nearby-card p {
+.nearby-entry-card p {
   color: #64748b;
   line-height: 1.75;
 }
@@ -668,22 +734,32 @@ onMounted(async () => {
 }
 
 .discover-board {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 16px;
-  align-items: start;
 }
 
-.board-main,
-.board-side,
+.discovery-columns,
+.discovery-side,
 .content-block {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.side-block {
-  padding: 18px;
+.discovery-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+  align-items: stretch;
+}
+
+.focus-block,
+.compact-block {
+  height: 100%;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .section-head,
@@ -694,18 +770,15 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.section-head.compact {
-  margin-bottom: 12px;
-}
-
 .section-head h3 {
   font-size: 24px;
   color: #0f172a;
   letter-spacing: 0;
 }
 
-.section-head.compact h3 {
-  font-size: 18px;
+.section-head p {
+  margin-top: 6px;
+  font-size: 14px;
 }
 
 .hint-banner {
@@ -738,77 +811,141 @@ onMounted(async () => {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.nearby-list,
-.guide-compact-list,
+.spotlight-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nearby-entry,
+.guide-entry {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.entry-kicker {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.nearby-entry h3,
+.guide-entry h3 {
+  color: #0f172a;
+  font-size: 24px;
+}
+
+.nearby-entry p,
+.guide-entry p {
+  margin-top: 8px;
+  color: #64748b;
+  line-height: 1.75;
+}
+
+.nearby-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nearby-entry-card {
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.nearby-entry-card:hover {
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+
+.nearby-entry-image {
+  width: 96px;
+  height: 76px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.nearby-entry-card h4 {
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.nearby-entry-card p {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.guide-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guide-entry-item {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.guide-entry-item:hover {
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.guide-entry-item span {
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.guide-entry-item strong {
+  line-height: 1.4;
+  font-size: 15px;
+}
+
+.entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
 .guide-featured-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.nearby-card,
-.guide-compact-card {
-  cursor: pointer;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #ffffff;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.nearby-card:hover,
-.guide-compact-card:hover,
 .guide-featured-card:hover {
   transform: translateY(-2px);
   border-color: #bfdbfe;
 }
 
-.nearby-card {
-  padding: 10px;
-  display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-}
-
-.nearby-image {
-  width: 76px;
-  height: 64px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.nearby-card h4,
-.guide-compact-card h4 {
-  color: #0f172a;
-  line-height: 1.35;
-}
-
-.nearby-card p {
-  margin-top: 6px;
-  font-size: 12px;
-}
-
-.guide-compact-card {
-  padding: 14px;
-}
-
-.guide-compact-card span,
 .guide-featured-card span {
   color: #8a6a2f;
   font-size: 12px;
   font-weight: 700;
-}
-
-.guide-compact-card h4 {
-  margin-top: 8px;
-}
-
-.guide-compact-card p {
-  margin-top: 8px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .guide-featured-card {
@@ -864,7 +1001,7 @@ onMounted(async () => {
 }
 
 @media (max-width: 1200px) {
-  .discover-board {
+  .discovery-columns {
     grid-template-columns: 1fr;
   }
 
@@ -883,6 +1020,7 @@ onMounted(async () => {
   .filter-panel,
   .two-columns,
   .three-columns,
+  .spotlight-grid,
   .guide-featured-card {
     grid-template-columns: 1fr;
   }

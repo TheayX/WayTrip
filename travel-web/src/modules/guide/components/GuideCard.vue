@@ -1,13 +1,21 @@
 <!-- 攻略卡片 -->
 <template>
-  <article class="guide-card premium-card" @click="$emit('select', guide)">
-    <img :src="getImageUrl(guide.coverImage)" class="guide-image" alt="" />
+  <article
+    class="guide-card premium-card"
+    role="button"
+    tabindex="0"
+    @click="emit('select', guide)"
+    @keydown.enter.prevent="emit('select', guide)"
+    @keydown.space.prevent="emit('select', guide)"
+  >
+    <img :src="getImageUrl(guide.coverImage)" class="guide-image" :alt="resolveGuideText(guide.title)" />
     <div class="guide-content">
       <span class="guide-category">{{ resolveGuideCategory(guide.category) }}</span>
       <h3 class="guide-title">{{ resolveGuideText(guide.title) }}</h3>
       <p class="guide-summary">{{ resolveGuideSummary(guide.summary) }}</p>
       <div class="guide-meta">
         <span class="guide-views">浏览 {{ guide.viewCount || 0 }}</span>
+        <span>{{ guide.createdAt || '时间待补充' }}</span>
       </div>
     </div>
   </article>
@@ -30,17 +38,23 @@ defineProps({
 })
 
 // 选中事件统一上抛，便于列表页复用在网格、轮播等不同容器中。
-defineEmits(['select'])
+const emit = defineEmits(['select'])
 </script>
 
 <style lang="scss" scoped>
 .guide-card {
   overflow: hidden;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .guide-card:hover {
   transform: translateY(-2px);
+}
+
+.guide-card:focus-visible {
+  outline: 2px solid #0f172a;
+  outline-offset: 3px;
 }
 
 .guide-image {
@@ -87,10 +101,12 @@ defineEmits(['select'])
   margin-top: 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.guide-views {
+.guide-meta span {
   color: #64748b;
   font-size: 13px;
 }

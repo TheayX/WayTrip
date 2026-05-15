@@ -12,16 +12,10 @@
       :regions="regionTree"
       :categories="categoryTree"
       :sort-options="sortOptions"
+      :active-tags="activeFilterTags"
       @change="handleFilter"
       @reset="resetFilters"
     />
-
-    <section class="active-filters premium-card" v-if="activeFilterTags.length">
-      <p class="filter-kicker">当前已选</p>
-      <div class="tag-row">
-        <span v-for="tag in activeFilterTags" :key="tag" class="tag-chip">{{ tag }}</span>
-      </div>
-    </section>
 
     <section v-loading="loading" class="spot-grid">
       <SpotCard
@@ -271,37 +265,6 @@ onMounted(async () => {
   flex-direction: column;
   gap: 16px;
   padding-top: 2px;
-}
-
-.active-filters {
-  padding: 16px 18px;
-}
-
-.filter-kicker {
-  margin-bottom: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.tag-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 600;
 }
 
 .spot-grid {

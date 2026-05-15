@@ -9,7 +9,7 @@
     @keydown.space.prevent="emit('select', spot)"
   >
     <div class="spot-image-box">
-      <img :src="getImageUrl(spot.coverImage)" class="spot-image" alt="" />
+      <img :src="getImageUrl(spot.coverImage)" class="spot-image" :alt="spot.name || '景点图片'" />
       <div v-if="spot.avgRating" class="rating-badge">
         <span class="score">{{ spot.avgRating }}</span>
         <span class="unit">评分</span>
@@ -25,6 +25,7 @@
         </div>
       </div>
       <h3 class="spot-name">{{ spot.name }}</h3>
+      <p v-if="spot.intro" class="spot-summary">{{ spot.intro }}</p>
       <div class="spot-bottom">
         <span class="tag-chip">{{ spot.categoryName || '分类待补充' }}</span>
       </div>
@@ -119,6 +120,16 @@ const emit = defineEmits(['select'])
   font-weight: 700;
   line-height: 1.3;
   color: #0f172a;
+}
+
+.spot-summary {
+  margin-top: 8px;
+  color: #64748b;
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .spot-bottom {

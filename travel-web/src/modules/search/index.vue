@@ -1,15 +1,12 @@
 <!-- 综合搜索页 -->
 <template>
   <div class="page-container search-page">
-    <section class="search-hero card">
-      <div>
+    <section class="search-box premium-card">
+      <div class="search-head">
         <p class="hero-eyebrow">Search</p>
-        <h2 class="page-title">综合搜索</h2>
-        <p class="page-subtitle">同一关键词下同时浏览景点和攻略，更符合 Web 端的信息检索习惯。</p>
+        <h2 class="page-title">搜索旅行内容</h2>
+        <p class="page-subtitle">输入目的地、景点名称或攻略主题，快速查看相关结果。</p>
       </div>
-    </section>
-
-    <section class="search-box card">
       <el-input
         v-model="keyword"
         placeholder="搜索景点名称、城市、攻略标题..."
@@ -140,7 +137,7 @@
       >
         <template #default>
           <div class="empty-panel">
-            <p>换个关键词试试，或者直接从下面的推荐内容继续浏览。</p>
+            <p>换个关键词试试，或从推荐内容继续浏览。</p>
             <ExploreKeywordGroup
               v-if="recentKeywords.length"
               title="最近搜索"
@@ -178,9 +175,23 @@
       </section>
     </template>
 
-    <section v-else class="search-hint card">
-      <el-icon :size="64" color="#c0c4cc"><Search /></el-icon>
-      <p>输入关键词后，同时查看景点和攻略结果。</p>
+    <section v-else class="search-hint premium-card">
+      <div class="section-head">
+        <div>
+          <h3>先看看这些</h3>
+          <p>还没输入关键词时，可以从热门景点和最新攻略开始。</p>
+        </div>
+      </div>
+      <ExploreSuggestionGrid
+        v-if="fallbackSpotCards.length"
+        :items="fallbackSpotCards.slice(0, 2)"
+        @select="handleFallbackSpotSelect"
+      />
+      <ExploreSuggestionGrid
+        v-if="fallbackGuideCards.length"
+        :items="fallbackGuideCards.slice(0, 2)"
+        @select="handleFallbackGuideSelect"
+      />
     </section>
   </div>
 </template>
@@ -252,10 +263,6 @@ const fallbackGuideCards = computed(() => fallbackGuides.value.map((guide) => ({
   title: resolveGuideTitle(guide.title),
   subtitle: `${resolveGuideCategory(guide.category)} · ${guide.createdAt || '--'}`
 })))
-const hintCards = computed(() => [
-  ...fallbackSpotCards.value.slice(0, 2),
-  ...fallbackGuideCards.value.slice(0, 1)
-])
 
 // 工具方法
 const saveRecentKeyword = (value) => {
@@ -311,14 +318,6 @@ const handleFallbackSpotSelect = (item) => {
 
 const handleFallbackGuideSelect = (item) => {
   router.push(`/guides/${item.targetId}`)
-}
-
-const handleHintSelect = (item) => {
-  if (item.type === 'spot') {
-    handleFallbackSpotSelect(item)
-    return
-  }
-  handleFallbackGuideSelect(item)
 }
 
 // 数据加载方法
@@ -447,16 +446,19 @@ onMounted(async () => {
   }
 }
 
-.search-hero,
 .search-box,
 .search-hint {
   padding: 20px;
 }
 
-.search-hero {
+.search-box {
   background:
     radial-gradient(circle at top left, rgba(14, 165, 233, 0.1), transparent 24%),
     linear-gradient(135deg, #f8fafc 0%, #eef6ff 100%);
+}
+
+.search-head {
+  margin-bottom: 18px;
 }
 
 .hero-eyebrow {
@@ -622,14 +624,7 @@ onMounted(async () => {
 .search-hint {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 220px;
-  color: #94a3b8;
-}
-
-.search-hint p {
-  margin-top: 16px;
+  gap: 16px;
 }
 
 @media (max-width: 992px) {
@@ -645,7 +640,6 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
-  .search-hero,
   .search-box,
   .search-hint {
     padding: 18px;

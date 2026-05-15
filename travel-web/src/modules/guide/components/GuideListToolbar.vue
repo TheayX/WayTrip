@@ -2,8 +2,8 @@
 <template>
   <section class="state-card premium-card">
     <div class="state-main">
-      <p class="state-kicker">内容浏览</p>
-      <h2 class="state-title">旅行攻略</h2>
+      <p class="state-kicker">Travel Notes</p>
+      <h2 class="state-title">攻略库</h2>
       <p class="state-desc">{{ description }}</p>
     </div>
   </section>

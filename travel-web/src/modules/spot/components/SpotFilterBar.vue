@@ -2,8 +2,11 @@
 <template>
   <section class="filter-bar premium-card">
     <div class="filter-head">
-      <p class="filter-kicker">缩小范围</p>
-      <h3>筛选条件</h3>
+      <div>
+        <p class="filter-kicker">Refine</p>
+        <h3>快速筛选</h3>
+      </div>
+      <button v-if="activeTags.length" type="button" class="filter-reset-link" @click="$emit('reset')">清空</button>
     </div>
     <div class="filter-row">
       <div class="filter-group">
@@ -50,6 +53,9 @@
         <el-button plain @click="$emit('reset')">重置</el-button>
       </div>
     </div>
+    <div v-if="activeTags.length" class="selected-row">
+      <span v-for="tag in activeTags" :key="tag" class="selected-chip">{{ tag }}</span>
+    </div>
   </section>
 </template>
 
@@ -79,6 +85,10 @@ defineProps({
   categories: {
     type: Array,
     default: () => []
+  },
+  activeTags: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -102,6 +112,10 @@ const cascaderProps = {
 
 .filter-head {
   margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
 }
 
 .filter-kicker {
@@ -142,5 +156,32 @@ const cascaderProps = {
   color: #475569;
   font-weight: 600;
   font-size: 13px;
+}
+
+.filter-reset-link {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.selected-row {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selected-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
 }
 </style>

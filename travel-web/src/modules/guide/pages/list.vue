@@ -7,7 +7,11 @@
 
     <section class="category-bar premium-card">
       <div class="category-head">
-        <p class="category-kicker">筛选条件</p>
+        <div>
+          <p class="category-kicker">Guides</p>
+          <h3>筛选攻略</h3>
+        </div>
+        <button v-if="activeGuideTags.length" type="button" class="category-reset" @click="resetFilters">清空</button>
       </div>
       <div class="category-row">
         <div class="category-field">
@@ -26,6 +30,9 @@
         <div class="category-actions">
           <el-button plain @click="resetFilters">重置</el-button>
         </div>
+      </div>
+      <div v-if="activeGuideTags.length" class="selected-row">
+        <span v-for="tag in activeGuideTags" :key="tag" class="selected-chip">{{ tag }}</span>
       </div>
     </section>
 
@@ -86,6 +93,12 @@ const currentStateText = computed(() => {
   const categoryText = currentCategory.value || '全部分类'
   const sortText = sortBy.value === 'category' ? '分类排序' : '最新优先'
   return `${categoryText} · 共 ${total.value} 条 · ${sortText}`
+})
+const activeGuideTags = computed(() => {
+  const tags = []
+  if (currentCategory.value) tags.push(currentCategory.value)
+  if (sortBy.value !== 'time') tags.push('分类排序')
+  return tags
 })
 
 // 工具方法
@@ -200,14 +213,24 @@ onMounted(async () => {
 
 .category-head {
   margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
 }
 
 .category-kicker {
+  margin-bottom: 8px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #64748b;
+}
+
+.category-head h3 {
+  color: #0f172a;
+  font-size: 22px;
 }
 
 .category-row {
@@ -234,11 +257,38 @@ onMounted(async () => {
   align-items: flex-end;
 }
 
+.category-reset {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 700;
+}
+
 .guide-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   min-height: 200px;
+}
+
+.selected-row {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selected-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .pagination {
