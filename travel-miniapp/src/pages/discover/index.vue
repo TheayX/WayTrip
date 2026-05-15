@@ -174,6 +174,7 @@ import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 const resolveGuideText = (value) => value || '--'
 const resolveGuideTitle = (value) => resolveMiniappGuideDisplayText(value)

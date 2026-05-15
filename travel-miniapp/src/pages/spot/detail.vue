@@ -197,6 +197,7 @@ import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { resolveMiniappUserDisplayName } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 基础依赖与用户状态
 const spot = ref(null)

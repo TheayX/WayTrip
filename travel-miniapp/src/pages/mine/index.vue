@@ -136,6 +136,7 @@ import { getUserInfo } from '@/api/user'
 import AuthPopup from './components/AuthPopup.vue'
 import { consumeLoginRedirect } from '@/utils/auth'
 import { getAvatarUrl } from '@/utils/request'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 基础依赖与用户状态
 const userStore = useUserStore()

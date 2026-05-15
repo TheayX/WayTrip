@@ -54,6 +54,7 @@
 
 <script setup>
 import { getContentImageUrl } from '@/utils/request'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 该区域同时承接热门卡片和附近地图，但数据都由首页统一提供，组件只负责展示与事件透传。
 // 地图、附近列表和热门列表分开透传事件，便于首页按入口来源处理跳转与埋点。

@@ -46,6 +46,7 @@
 
 <script setup>
 import { getContentImageUrl } from '@/utils/request'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 推荐区本身不持有状态，只透传首页聚合好的登录态和列表数据。
 // 刷新、查看更多和卡片点击都交给父层处理，保证推荐策略只在首页页面收口。

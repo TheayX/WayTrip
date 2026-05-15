@@ -152,6 +152,7 @@ import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 import { getContentImageUrl, getImageUrl } from '@/utils/request'
 import { isMiniappInvalidSpotDisplay, resolveMiniappSpotDisplayName } from '@/utils/resource-display'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 常量配置
 const tabs = [
