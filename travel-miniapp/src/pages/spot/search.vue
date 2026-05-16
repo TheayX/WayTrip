@@ -64,6 +64,7 @@ import { searchSpots } from '@/api/spot'
 import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
+import UniSearchBar from '@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue'
 
 // 页面数据状态
 const keyword = ref('')

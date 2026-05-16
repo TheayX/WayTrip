@@ -175,6 +175,7 @@ import { getImageUrl } from '@/utils/request'
 import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
+import UniSearchBar from '@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue'
 
 const resolveGuideText = (value) => value || '--'
 const resolveGuideTitle = (value) => resolveMiniappGuideDisplayText(value)
