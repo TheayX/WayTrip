@@ -143,6 +143,11 @@
         </el-descriptions-item>
         <el-descriptions-item label="昵称">{{ currentUser.nickname }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ formatPhone(currentUser.phone) }}</el-descriptions-item>
+        <el-descriptions-item label="账号状态">
+          <el-tag :type="currentUser.isDeleted === 1 ? 'warning' : 'success'" effect="light">
+            {{ currentUser.isDeleted === 1 ? '已停用' : '正常' }}
+          </el-tag>
+        </el-descriptions-item>
         <el-descriptions-item label="偏好标签" :span="2">{{ currentUser.preferences || '未设置' }}</el-descriptions-item>
         <el-descriptions-item label="注册时间" :span="2">{{ currentUser.createdAt }}</el-descriptions-item>
         <el-descriptions-item label="修改时间" :span="2">{{ currentUser.updatedAt }}</el-descriptions-item>

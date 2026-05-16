@@ -126,6 +126,9 @@
         <el-form-item v-if="!isEdit" label="用户名" prop="username">
           <el-input v-model="form.username" placeholder="仅支持字母/数字/下划线" />
         </el-form-item>
+        <el-form-item v-else label="用户名">
+          <el-input v-model="form.username" readonly />
+        </el-form-item>
         <el-form-item v-if="!isEdit" label="密码" prop="password">
           <el-input v-model="form.password" type="password" show-password placeholder="至少 6 位" />
         </el-form-item>
@@ -325,6 +328,7 @@ const handleEdit = (row) => {
   isEdit.value = true
   resetFormState()
   editingId.value = row.id
+  form.username = row.username
   form.realName = row.realName
   form.status = row.status
   isEditingCurrentAdmin.value = row.id === currentAdminId.value
