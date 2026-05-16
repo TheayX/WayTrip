@@ -17,7 +17,7 @@ public class SpotListResponse {
     private String coverImage;
     private BigDecimal price;
     private BigDecimal avgRating;
-    private Integer ratingCount;
+    private Integer reviewCount;
     private String regionName;
     private String categoryName;
 }

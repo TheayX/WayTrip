@@ -1,7 +1,8 @@
 package com.travel.dto.spot.response;
 
-import lombok.Data;
 import lombok.Builder;
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,10 +24,9 @@ public class SpotDetailResponse {
     private BigDecimal longitude;
     private List<String> images;
     private BigDecimal avgRating;
-    private Integer ratingCount;
+    private Integer reviewCount;
     private String regionName;
     private String categoryName;
-    private Long reviewCount;
     private Long favoriteCount;
     private Long viewCount;
     private LocalDateTime createdAt;
@@ -34,7 +34,7 @@ public class SpotDetailResponse {
     private Boolean isFavorite;
     private Integer userRating;
     private List<CommentItem> latestComments;
-    
+
     /**
      * 景点详情页最新评论对象。
      */

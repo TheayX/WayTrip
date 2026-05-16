@@ -6,7 +6,6 @@ import com.travel.common.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.PageResult;
 import com.travel.common.result.ResultCode;
-import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.dto.spot.request.SpotListRequest;
 import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.dto.spot.response.SpotFilterResponse;
@@ -181,7 +180,6 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         );
         List<String> imageUrls = buildSpotImageUrls(spot, images);
         UserInteractionState interactionState = loadUserInteractionState(userId, spotId);
-        SpotRatingStats ratingStats = reviewMapper.selectSpotRatingStats(spotId);
 
         List<SpotDetailResponse.CommentItem> comments = reviewMapper.selectLatestComments(spotId, 5).stream()
             // 评价主体保留，但账号已失效时统一降级成注销文案，避免页面出现空昵称。
@@ -199,10 +197,9 @@ public class SpotQueryServiceImpl implements SpotQueryService {
             .longitude(spot.getLongitude())
             .images(imageUrls)
             .avgRating(spot.getAvgRating())
-            .ratingCount(spot.getRatingCount())
+            .reviewCount(spot.getReviewCount())
             .regionName(spotResponseAssembler.getRegionName(spot.getRegionId()))
             .categoryName(spotResponseAssembler.getCategoryName(spot.getCategoryId()))
-            .reviewCount(ratingStats == null ? 0L : ratingStats.getRatingCount())
             .favoriteCount(userSpotFavoriteMapper.selectCount(
                 new LambdaQueryWrapper<UserSpotFavorite>()
                     .eq(UserSpotFavorite::getSpotId, spotId)
@@ -236,7 +233,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     }
 
     /**
-     * 聚合当前用户对景点的收藏和评分状态，减少详情方法里的查询噪音。
+     * 聚合当前用户对景点的收藏和个人评价状态，减少详情方法里的查询噪音。
      */
     private UserInteractionState loadUserInteractionState(Long userId, Long spotId) {
         if (userId == null) {
@@ -303,3 +300,4 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         return spot != null && spot.getIsDeleted() == 0 && spot.getIsPublished() == 1;
     }
 }
+

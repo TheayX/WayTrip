@@ -1,4 +1,4 @@
-﻿<!-- 评价管理页面 -->
+<!-- 评价管理页面 -->
 <template>
   <div class="review-page admin-page-shell">
     <section class="page-hero">
@@ -225,7 +225,7 @@ const handleOpenSpot = (row) => {
 // 删除评价
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除这条评价吗？删除后会同步更新景点评分。', '删除确认', {
+    await ElMessageBox.confirm('确定要删除这条评价记录吗？删除后会同步更新景点评分。', '删除确认', {
       type: 'warning'
     })
     await deleteReview(row.id)

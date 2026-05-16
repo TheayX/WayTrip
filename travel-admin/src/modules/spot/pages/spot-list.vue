@@ -401,7 +401,7 @@ const rules = {
 
 const heatForm = reactive({
   avgRating: 0,
-  ratingCount: 0,
+  reviewCount: 0,
   heatLevel: 0,
   heatScore: 0
 })
@@ -602,7 +602,7 @@ const handleHeatEdit = async (row) => {
     const res = await getSpotDetail(row.id)
     heatSpotDetail.value = res.data
     heatForm.avgRating = res.data.avgRating ?? 0
-    heatForm.ratingCount = res.data.ratingCount ?? 0
+    heatForm.reviewCount = res.data.reviewCount ?? 0
     heatForm.heatLevel = res.data.heatLevel ?? 0
     heatForm.heatScore = res.data.heatScore ?? 0
     heatDialogVisible.value = true

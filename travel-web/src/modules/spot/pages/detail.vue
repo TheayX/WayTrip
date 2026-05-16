@@ -382,7 +382,7 @@ const handleSubmitRating = async () => {
 
 const handleDeleteComment = async (comment) => {
   try {
-    await ElMessageBox.confirm('确认删除这条评价吗？删除后评分会一并撤销。', '提示', {
+    await ElMessageBox.confirm('确认删除这条评价记录吗？删除后评分会一并撤销。', '提示', {
       type: 'warning'
     })
     await deleteReview(comment.id)

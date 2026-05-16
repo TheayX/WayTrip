@@ -33,7 +33,7 @@ VALUES
 -- 2. 扩容景点
 INSERT INTO `spot`
   (`id`, `name`, `description`, `price`, `open_time`, `address`, `latitude`, `longitude`, `cover_image_url`,
-   `category_id`, `region_id`, `heat_level`, `heat_score`, `avg_rating`, `rating_count`,
+   `category_id`, `region_id`, `heat_level`, `heat_score`, `avg_rating`, `review_count`,
    `is_published`, `is_deleted`, `created_at`, `updated_at`)
 VALUES
   (1001, '天坛公园', '明清皇家祭天建筑群保存完整，适合文化观光、传统建筑拍照和慢速步行。', 15.00, '06:30-21:00', '北京市东城区天坛东里甲1号', 39.8822300, 116.4065400, '/uploads/spot/default/cover/default.jpg', 34, 11, 2, 8420, 4.7, 268, 1, 0, '2026-05-01 09:10:00', '2026-05-01 09:10:00'),

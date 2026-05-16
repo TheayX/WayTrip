@@ -1,4 +1,4 @@
-﻿<!-- 用户管理页面 -->
+<!-- 用户管理页面 -->
 <template>
   <div class="user-page admin-page-shell">
     <section class="page-hero">
@@ -89,7 +89,7 @@
         </el-table-column>
         <el-table-column prop="orderCount" label="订单数" width="100" align="center" header-align="center" />
         <el-table-column prop="favoriteCount" label="收藏数" width="100" align="center" header-align="center" />
-        <el-table-column prop="ratingCount" label="评价数" width="100" align="center" header-align="center" />
+        <el-table-column prop="reviewCount" label="评价人数" width="100" align="center" header-align="center" />
         <el-table-column prop="createdAt" label="注册时间" width="170" align="center" header-align="center" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" align="center" header-align="center" />
         <el-table-column label="操作" width="260" fixed="right" align="left" header-align="center">
@@ -153,7 +153,7 @@
         <el-descriptions-item label="修改时间" :span="2">{{ currentUser.updatedAt }}</el-descriptions-item>
         <el-descriptions-item label="订单数">{{ currentUser.orderCount }}</el-descriptions-item>
         <el-descriptions-item label="收藏数">{{ currentUser.favoriteCount }}</el-descriptions-item>
-        <el-descriptions-item label="评价数">{{ currentUser.ratingCount }}</el-descriptions-item>
+        <el-descriptions-item label="评价人数">{{ currentUser.reviewCount }}</el-descriptions-item>
         <el-descriptions-item label="浏览数">{{ currentUser.viewCount }}</el-descriptions-item>
       </el-descriptions>
 
@@ -251,7 +251,7 @@ const detailVisible = ref(false)
 const currentUser = ref(null)
 const currentPageOrderCount = computed(() => userList.value.reduce((sum, item) => sum + Number(item.orderCount || 0), 0))
 const currentPageEngagementCount = computed(() => userList.value.reduce((sum, item) => {
-  return sum + Number(item.favoriteCount || 0) + Number(item.ratingCount || 0) + Number(item.viewCount || 0)
+  return sum + Number(item.favoriteCount || 0) + Number(item.reviewCount || 0) + Number(item.viewCount || 0)
 }, 0))
 
 // 格式化手机号显示

@@ -6,7 +6,7 @@
       <h1 class="spot-name">{{ spot.name }}</h1>
       <div class="spot-meta">
         <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
-        <span class="meta-count">({{ spot.ratingCount || 0 }}条评价)</span>
+        <span class="meta-count">({{ spot.reviewCount || 0 }}条评价)</span>
         <span>{{ spot.regionName }} / {{ spot.categoryName }}</span>
       </div>
       <div class="spot-stats">

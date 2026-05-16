@@ -3,7 +3,7 @@ package com.travel.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.travel.dto.review.stats.SpotRatingStats;
+import com.travel.dto.review.stats.SpotReviewStats;
 import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.entity.Review;
 import org.apache.ibatis.annotations.Mapper;
@@ -47,7 +47,7 @@ public interface ReviewMapper extends BaseMapper<Review> {
     List<SpotDetailResponse.CommentItem> selectLatestComments(@Param("spotId") Long spotId, @Param("limit") int limit);
 
     /**
-     * 统计指定景点的评分汇总信息。
+     * 统计指定景点的评价汇总信息。
      */
-    SpotRatingStats selectSpotRatingStats(@Param("spotId") Long spotId);
+    SpotReviewStats selectSpotReviewStats(@Param("spotId") Long spotId);
 }

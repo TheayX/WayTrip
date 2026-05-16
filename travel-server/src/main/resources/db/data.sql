@@ -100,7 +100,7 @@ VALUES
 -- 4. 景点
 INSERT INTO `spot`
   (`id`, `name`, `description`, `price`, `open_time`, `address`, `latitude`, `longitude`, `cover_image_url`,
-   `category_id`, `region_id`, `heat_level`, `heat_score`, `avg_rating`, `rating_count`,
+   `category_id`, `region_id`, `heat_level`, `heat_score`, `avg_rating`, `review_count`,
    `is_published`, `is_deleted`, `created_at`, `updated_at`)
 VALUES
   (1, '故宫博物院', '明清两代皇家宫殿建筑群，适合历史文化深度游、亲子研学和中轴线主题行程，旺季需提前预约。', 60.00, '08:30-17:00（周一闭馆）', '北京市东城区景山前街4号', 39.9163450, 116.3971550, '/uploads/spot/default/cover/default.jpg', 11, 11, 3, 9850, 4.7, 3, 1, 0, '2025-01-10 09:00:00', '2026-04-01 10:30:00'),

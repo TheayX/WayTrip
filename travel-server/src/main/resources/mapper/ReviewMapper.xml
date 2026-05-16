@@ -118,10 +118,10 @@
         LIMIT #{limit}
     </select>
 
-    <!-- 景点评分统计查询 -->
-    <select id="selectSpotRatingStats" resultType="com.travel.dto.review.stats.SpotRatingStats">
+    <!-- 景点评分和评价数量统计查询 -->
+    <select id="selectSpotReviewStats" resultType="com.travel.dto.review.stats.SpotReviewStats">
         SELECT COALESCE(ROUND(AVG(r.score), 1), 0.0) AS avgRating,
-               COUNT(*) AS ratingCount
+               COUNT(*) AS reviewCount
         FROM user_spot_review r
         WHERE r.spot_id = #{spotId}
           AND r.is_deleted = 0

@@ -272,7 +272,7 @@
                     <span>{{ row.priceText }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="评分概况" min-width="180">
+                <el-table-column label="评价概况" min-width="180">
                   <template #default="{ row }">
                     <span>{{ row.ratingText }}</span>
                   </template>

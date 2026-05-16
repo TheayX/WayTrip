@@ -27,7 +27,7 @@
             <div class="text-lg font-bold text-red-500">¥{{ detail.price }}</div>
           </div>
           <div class="stat-item px-4 py-2 rounded-lg flex-1">
-            <div class="text-xs text-gray-500 mb-1">用户评分</div>
+            <div class="text-xs text-gray-500 mb-1">平均评分</div>
             <div class="text-lg font-bold text-gray-800 flex items-center gap-1">
               <el-icon class="rating-star"><StarFilled /></el-icon> {{ detail.avgRating || '暂无' }}
             </div>

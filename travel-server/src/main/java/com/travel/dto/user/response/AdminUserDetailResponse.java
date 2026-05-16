@@ -23,7 +23,7 @@ public class AdminUserDetailResponse {
     // 统计数据
     private Integer orderCount;
     private Integer favoriteCount;
-    private Integer ratingCount;
+    private Integer reviewCount;
     private Integer viewCount;
 
     // 行为摘要

@@ -30,7 +30,7 @@ public class SpotResponseAssembler {
             .coverImage(spot.getCoverImageUrl())
             .price(spot.getPrice())
             .avgRating(spot.getAvgRating())
-            .ratingCount(spot.getRatingCount())
+            .reviewCount(spot.getReviewCount())
             .regionName(getRegionName(spot.getRegionId()))
             .categoryName(getCategoryName(spot.getCategoryId()))
             .build();
@@ -48,7 +48,7 @@ public class SpotResponseAssembler {
             .regionName(getRegionName(spot.getRegionId()))
             .categoryName(getCategoryName(spot.getCategoryId()))
             .avgRating(spot.getAvgRating())
-            .ratingCount(spot.getRatingCount())
+            .reviewCount(spot.getReviewCount())
             .heatLevel(spot.getHeatLevel())
             .heatScore(spot.getHeatScore())
             .published(spot.getIsPublished() == 1)
@@ -79,3 +79,4 @@ public class SpotResponseAssembler {
         return category != null && category.getIsDeleted() == 0 ? category.getName() : null;
     }
 }
+

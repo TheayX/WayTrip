@@ -6,7 +6,7 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.review.request.ReviewRequest;
 import com.travel.dto.review.response.ReviewResponse;
-import com.travel.dto.review.stats.SpotRatingStats;
+import com.travel.dto.review.stats.SpotReviewStats;
 import com.travel.dto.spot.response.SpotDetailResponse;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
@@ -79,7 +79,7 @@ class ReviewServiceImplTest {
     void deleteReview_marksOwnReviewDeleted_andRefreshesSpotStats() {
         when(userMapper.selectById(1L)).thenReturn(user);
         when(reviewMapper.selectById(10L)).thenReturn(review);
-        when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("3.5", 2L));
+        when(reviewMapper.selectSpotReviewStats(100L)).thenReturn(buildStats("3.5", 2L));
 
         reviewService.deleteReview(1L, 10L);
 
@@ -104,14 +104,14 @@ class ReviewServiceImplTest {
     void deleteReview_resetsSpotStatsWhenLastReviewRemoved() {
         when(userMapper.selectById(1L)).thenReturn(user);
         when(reviewMapper.selectById(10L)).thenReturn(review);
-        when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("0.0", 0L));
+        when(reviewMapper.selectSpotReviewStats(100L)).thenReturn(buildStats("0.0", 0L));
 
         reviewService.deleteReview(1L, 10L);
 
         ArgumentCaptor<UpdateWrapper<Spot>> wrapperCaptor = ArgumentCaptor.forClass(UpdateWrapper.class);
         verify(spotMapper).update(isNull(), wrapperCaptor.capture());
         String sqlSegment = wrapperCaptor.getValue().getSqlSet();
-        assertEquals("avg_rating=#{ew.paramNameValuePairs.MPGENVAL1},rating_count=#{ew.paramNameValuePairs.MPGENVAL2}", sqlSegment);
+        assertEquals("avg_rating=#{ew.paramNameValuePairs.MPGENVAL1},review_count=#{ew.paramNameValuePairs.MPGENVAL2}", sqlSegment);
     }
 
     @Test
@@ -123,7 +123,7 @@ class ReviewServiceImplTest {
         when(userMapper.selectById(1L)).thenReturn(user);
         when(spotMapper.selectById(100L)).thenReturn(spot);
         when(reviewMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(review);
-        when(reviewMapper.selectSpotRatingStats(100L)).thenReturn(buildStats("4.0", 3L));
+        when(reviewMapper.selectSpotReviewStats(100L)).thenReturn(buildStats("4.0", 3L));
 
         ReviewRequest request = new ReviewRequest();
         request.setSpotId(100L);
@@ -237,10 +237,10 @@ class ReviewServiceImplTest {
     /**
      * 构造评分统计结果，模拟聚合查询返回值。
      */
-    private SpotRatingStats buildStats(String avgRating, Long ratingCount) {
-        SpotRatingStats stats = new SpotRatingStats();
+    private SpotReviewStats buildStats(String avgRating, Long reviewCount) {
+        SpotReviewStats stats = new SpotReviewStats();
         stats.setAvgRating(new java.math.BigDecimal(avgRating));
-        stats.setRatingCount(ratingCount);
+        stats.setReviewCount(reviewCount);
         return stats;
     }
 }

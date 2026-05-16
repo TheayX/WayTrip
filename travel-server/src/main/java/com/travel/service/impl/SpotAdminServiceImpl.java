@@ -10,7 +10,6 @@ import com.travel.dto.spot.request.AdminSpotListRequest;
 import com.travel.dto.spot.request.AdminSpotUpsertRequest;
 import com.travel.dto.spot.response.AdminSpotDetailResponse;
 import com.travel.dto.spot.response.AdminSpotListResponse;
-import com.travel.dto.review.stats.SpotRatingStats;
 import com.travel.entity.GuideSpotRelation;
 import com.travel.entity.Order;
 import com.travel.entity.Spot;
@@ -24,7 +23,6 @@ import com.travel.mapper.OrderMapper;
 import com.travel.mapper.SpotImageMapper;
 import com.travel.mapper.SpotBannerMapper;
 import com.travel.mapper.SpotMapper;
-import com.travel.mapper.ReviewMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.RecommendationService;
@@ -59,7 +57,6 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     private final SpotBannerMapper spotBannerMapper;
     private final GuideSpotRelationMapper guideSpotRelationMapper;
     private final OrderMapper orderMapper;
-    private final ReviewMapper reviewMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final UserSpotViewMapper userSpotViewMapper;
     private final SpotResponseAssembler spotResponseAssembler;
@@ -129,8 +126,6 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         response.setRegionName(spotResponseAssembler.getRegionName(spot.getRegionId()));
         response.setCategoryId(spot.getCategoryId());
         response.setCategoryName(spotResponseAssembler.getCategoryName(spot.getCategoryId()));
-        SpotRatingStats ratingStats = reviewMapper.selectSpotRatingStats(spotId);
-        response.setReviewCount(ratingStats == null ? 0L : ratingStats.getRatingCount());
         response.setFavoriteCount(userSpotFavoriteMapper.selectCount(
             new LambdaQueryWrapper<UserSpotFavorite>()
                 .eq(UserSpotFavorite::getSpotId, spotId)
@@ -148,7 +143,7 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         ));
         response.setPublished(spot.getIsPublished() == 1);
         response.setAvgRating(spot.getAvgRating());
-        response.setRatingCount(spot.getRatingCount());
+        response.setReviewCount(spot.getReviewCount());
         response.setHeatLevel(spot.getHeatLevel());
         response.setHeatScore(spot.getHeatScore());
         response.setCreatedAt(spot.getCreatedAt());
@@ -290,3 +285,4 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         return sortOrder == null ? 1 : sortOrder;
     }
 }
+

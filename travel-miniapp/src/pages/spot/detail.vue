@@ -22,9 +22,9 @@
       <view class="info-meta">
         <view class="rating-chip">
           <uni-icons type="star-filled" size="14" color="#d97706" />
-          <text class="rating">{{ spot.avgRating }}</text>
+          <text class="review">{{ spot.avgRating }}</text>
         </view>
-        <text class="rating-count">({{ spot.ratingCount }}条评价)</text>
+        <text class="rating-count">({{ spot.reviewCount }}条评价)</text>
         <text class="divider">·</text>
         <text class="category">{{ spot.regionName }} · {{ spot.categoryName }}</text>
       </view>

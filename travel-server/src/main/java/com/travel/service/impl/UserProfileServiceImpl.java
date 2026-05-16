@@ -82,10 +82,10 @@ public class UserProfileServiceImpl implements UserProfileService {
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
 
-        // 详情页需要聚合订单、收藏和评价数量。
+        // 详情页需要聚合订单、收藏和评价人数。
         response.setOrderCount(countOrders(userId));
         response.setFavoriteCount(countFavorites(userId));
-        response.setRatingCount(countRatings(userId));
+        response.setReviewCount(countReviews(userId));
         response.setViewCount(countViews(userId));
 
         response.setPreferenceSummary(buildPreferenceSummary(userId));
@@ -260,7 +260,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         ));
     }
 
-    private int countRatings(Long userId) {
+    private int countReviews(Long userId) {
         return Math.toIntExact(reviewMapper.selectCount(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -328,7 +328,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         // 列表页同步返回关键统计项，减少前端二次查询。
         item.setOrderCount(countOrders(user.getId()));
         item.setFavoriteCount(countFavorites(user.getId()));
-        item.setRatingCount(countRatings(user.getId()));
+        item.setReviewCount(countReviews(user.getId()));
 
         return item;
     }

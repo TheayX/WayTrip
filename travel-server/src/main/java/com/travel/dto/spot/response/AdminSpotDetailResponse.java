@@ -40,8 +40,6 @@ public class AdminSpotDetailResponse {
 
     private String categoryName;
 
-    private Long reviewCount;
-
     private Long favoriteCount;
 
     private Long viewCount;
@@ -52,7 +50,7 @@ public class AdminSpotDetailResponse {
 
     private BigDecimal avgRating;
 
-    private Integer ratingCount;
+    private Integer reviewCount;
 
     private Integer heatLevel;
 

@@ -388,3 +388,4 @@ public class DashboardServiceImpl implements DashboardService {
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
+

@@ -88,7 +88,7 @@ const getRandomReason = () => {
 
 const formatRating = (value) => {
   const rating = Number(value)
-  if (!Number.isFinite(rating) || rating <= 0) return '暂无评分'
+  if (!Number.isFinite(rating) || rating <= 0) return '暂无评价'
   return `${rating.toFixed(1)} 分`
 }
 
