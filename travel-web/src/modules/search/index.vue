@@ -93,7 +93,13 @@
             <h3>攻略结果</h3>
             <p>共找到 {{ guideTotal }} 篇相关攻略</p>
           </div>
-          <el-button v-if="activeTab === 'all' && guideTotal > 0" text type="primary" @click="activeTab = 'guide'">只看攻略</el-button>
+          <div class="section-actions">
+            <el-radio-group v-if="guideTotal > 0" v-model="guideSortBy" size="small" @change="handleGuideSortChange">
+              <el-radio-button label="view_count">浏览量优先</el-radio-button>
+              <el-radio-button label="time">最新优先</el-radio-button>
+            </el-radio-group>
+            <el-button v-if="activeTab === 'all' && guideTotal > 0" text type="primary" @click="activeTab = 'guide'">只看攻略</el-button>
+          </div>
         </div>
 
         <div v-loading="guideLoading" class="guide-grid">
@@ -157,7 +163,7 @@
         <div class="section-head">
           <div>
             <h3>不如先看看这些</h3>
-            <p>搜索没有命中时，继续从热门景点和最新攻略里找灵感。</p>
+            <p>搜索没有命中时，继续从热门景点和高浏览攻略里找灵感。</p>
           </div>
         </div>
 
@@ -179,7 +185,7 @@
       <div class="section-head">
         <div>
           <h3>先看看这些</h3>
-          <p>还没输入关键词时，可以从热门景点和最新攻略开始。</p>
+          <p>还没输入关键词时，可以从热门景点和高浏览攻略开始。</p>
         </div>
       </div>
       <ExploreSuggestionGrid
@@ -237,6 +243,7 @@ const spotPage = ref(1)
 const guidePage = ref(1)
 const spotPageSize = 8
 const guidePageSize = 6
+const guideSortBy = ref('view_count')
 const spotTotal = ref(0)
 const guideTotal = ref(0)
 const recentKeywords = ref([])
@@ -302,7 +309,8 @@ const syncRouteQuery = () => {
     path: APP_ROUTE_PATHS.search,
     query: {
       ...(keyword.value.trim() ? { keyword: keyword.value.trim() } : {}),
-      ...(activeTab.value !== 'all' ? { tab: activeTab.value } : {})
+      ...(activeTab.value !== 'all' ? { tab: activeTab.value } : {}),
+      ...(guideSortBy.value !== 'view_count' ? { guideSortBy: guideSortBy.value } : {})
     }
   })
 }
@@ -351,7 +359,7 @@ const fetchGuideResults = async () => {
       keyword: keyword.value.trim(),
       page: guidePage.value,
       pageSize: guidePageSize,
-      sortBy: 'time'
+      sortBy: guideSortBy.value
     })
     guideResults.value = res.data?.list || res.data || []
     guideTotal.value = res.data?.total || 0
@@ -363,7 +371,7 @@ const fetchGuideResults = async () => {
 const fetchFallbackContent = async () => {
   const [spotRes, guideRes] = await Promise.all([
     getHotSpots(4),
-    getGuideList({ page: 1, pageSize: 3, sortBy: 'time' })
+    getGuideList({ page: 1, pageSize: 3, sortBy: 'view_count' })
   ])
 
   fallbackSpots.value = spotRes.data?.list || []
@@ -400,6 +408,13 @@ const handleTabChange = async () => {
   await Promise.all([fetchSpotResults(), fetchGuideResults()])
 }
 
+const handleGuideSortChange = async () => {
+  guidePage.value = 1
+  syncRouteQuery()
+  if (!searched.value) return
+  await fetchGuideResults()
+}
+
 // 生命周期
 onMounted(async () => {
   restoreRecentKeywords()
@@ -407,6 +422,10 @@ onMounted(async () => {
 
   if (typeof route.query.tab === 'string' && SEARCH_TABS.includes(route.query.tab)) {
     activeTab.value = route.query.tab
+  }
+
+  if (route.query.guideSortBy === 'time' || route.query.guideSortBy === 'view_count') {
+    guideSortBy.value = route.query.guideSortBy
   }
 
   if (typeof route.query.keyword === 'string' && route.query.keyword.trim()) {
@@ -508,6 +527,14 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .section-head h3 {

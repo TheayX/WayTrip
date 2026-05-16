@@ -559,7 +559,7 @@ const goSpotList = () => {
 }
 
 const goGuideList = () => {
-  uni.navigateTo({ url: '/pages/guide/list?sortBy=time' })
+  uni.navigateTo({ url: '/pages/guide/list?sortBy=view_count' })
 }
 
 const goRecommendationSpots = () => {

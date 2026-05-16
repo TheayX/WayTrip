@@ -462,7 +462,7 @@ const fetchHotPreview = async () => {
 }
 
 const fetchGuidePreview = async () => {
-  const params = { page: 1, pageSize: viewMode.value === 'guides' ? 10 : 4, sortBy: 'time' }
+  const params = { page: 1, pageSize: viewMode.value === 'guides' ? 10 : 4, sortBy: 'view_count' }
   if (selectedGuideCategory.value) params.category = selectedGuideCategory.value
   const res = await getGuideList(params)
   guideList.value = res.data?.list || []
