@@ -110,6 +110,7 @@ const nearbyLoading = ref(false)
 const locationStatus = ref('idle')
 const nearbySessionToken = ref('')
 const lastHomeRefreshAt = ref(0)
+const lastObservedToken = ref(userStore.token || '')
 
 // 常量配置
 const markerIcon = '/static/marker/spot.png'
@@ -582,6 +583,20 @@ const refreshHome = async ({ force = false } = {}) => {
   await Promise.all([fetchBanners(), fetchHotSpots(), fetchRecommendations()])
 }
 
+// 登录态变化会影响推荐、附近景点和冷启动弹层，必须绕过普通首页刷新节流。
+const syncHomeAuthState = () => {
+  const currentToken = userStore.token || ''
+  if (currentToken === lastObservedToken.value) {
+    return false
+  }
+
+  lastObservedToken.value = currentToken
+  resetNearbyState()
+  resetRecommendationState()
+  preferencePopupTriggered.value = false
+  return true
+}
+
 // 生命周期
 onPullDownRefresh(async () => {
   await refreshHome({ force: true })
@@ -589,6 +604,8 @@ onPullDownRefresh(async () => {
 })
 
 onShow(() => {
+  const authChanged = syncHomeAuthState()
+
   if (!userStore.token || nearbySessionToken.value !== userStore.token) {
     resetNearbyState()
     preferencePopupTriggered.value = false
@@ -600,7 +617,7 @@ onShow(() => {
   if (!banners.value.length || !popularSpots.value.length) {
     restoreHomeBaseFromCache()
   }
-  void refreshHome({ force: false })
+  void refreshHome({ force: authChanged })
   void tryLoadNearbyAutomatically()
 })
 </script>
