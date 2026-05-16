@@ -119,6 +119,17 @@
             </el-row>
 
             <el-row :gutter="24">
+              <el-col :span="24">
+                <div class="coord-helper">
+                  <span class="coord-helper__label">坐标拾取：</span>
+                  <el-link href="https://lbs.navinfo.com/picker/index.html" target="_blank" rel="noopener noreferrer" type="primary">
+                    lbs.navinfo.com
+                  </el-link>
+                </div>
+              </el-col>
+            </el-row>
+
+            <el-row :gutter="24">
               <el-col :span="12">
                 <el-form-item label="开放时间">
                   <el-input v-model="form.openTime" placeholder="例如：全年 08:30-17:00" size="large">
@@ -534,5 +545,19 @@ defineExpose({
 :deep(.el-step.is-simple .el-step__title) {
   font-size: 14px;
   font-weight: 600;
+}
+
+.coord-helper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -4px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--wt-text-secondary);
+}
+
+.coord-helper__label {
+  flex-shrink: 0;
 }
 </style>
