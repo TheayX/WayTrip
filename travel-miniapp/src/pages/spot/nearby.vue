@@ -80,7 +80,7 @@ const locationStatus = ref('idle')
 // 常量配置
 const markerIcon = '/static/marker/spot.png'
 const MAX_NEARBY_DISTANCE_KM = 100
-const DISTANT_FALLBACK_LIMIT = 2
+const NEARBY_DISPLAY_LIMIT = 10
 
 // 工具方法
 const toFiniteNumber = (value) => {
@@ -96,6 +96,11 @@ const isValidCoordinate = (latitude, longitude) => isValidLatitude(latitude) && 
 const heroSubtitle = computed(() => {
   if (loading.value) return '正在根据当前位置获取周边景点'
   if (isUsingDistantFallback.value && displaySpots.value.length) {
+    const nearbyCount = nearbySpotsWithinRange.value.length
+    const fallbackCount = displaySpots.value.length - nearbyCount
+    if (nearbyCount > 0 && fallbackCount > 0) {
+      return `附近 ${MAX_NEARBY_DISTANCE_KM} km 内有 ${nearbyCount} 个景点，已补充 ${fallbackCount} 个较远结果`
+    }
     return `当前位置周边较远，先展示最近的 ${displaySpots.value.length} 个景点`
   }
   if (locationStatus.value === 'ready' && displaySpots.value.length) {
@@ -134,18 +139,26 @@ const hasReasonableNearbySpots = computed(() => {
   return nearestDistance === null || nearestDistance <= MAX_NEARBY_DISTANCE_KM
 })
 
+const nearbySpotsWithinRange = computed(() => {
+  return normalizedSpots.value.filter((spot) => {
+    return spot.distanceKm === null || spot.distanceKm <= MAX_NEARBY_DISTANCE_KM
+  })
+})
+
 const displaySpots = computed(() => {
   if (!normalizedSpots.value.length) return []
-  if (hasReasonableNearbySpots.value) {
-    return normalizedSpots.value.filter((spot) => {
-      return spot.distanceKm === null || spot.distanceKm <= MAX_NEARBY_DISTANCE_KM
-    })
+  const nearbyItems = nearbySpotsWithinRange.value
+  if (nearbyItems.length >= NEARBY_DISPLAY_LIMIT) {
+    return nearbyItems.slice(0, NEARBY_DISPLAY_LIMIT)
   }
-  return normalizedSpots.value.slice(0, DISTANT_FALLBACK_LIMIT)
+
+  const nearbyIds = new Set(nearbyItems.map(spot => spot.id))
+  const fallbackItems = normalizedSpots.value.filter((spot) => !nearbyIds.has(spot.id))
+  return [...nearbyItems, ...fallbackItems].slice(0, NEARBY_DISPLAY_LIMIT)
 })
 
 const isUsingDistantFallback = computed(() => {
-  return normalizedSpots.value.length > 0 && !hasReasonableNearbySpots.value
+  return displaySpots.value.length > nearbySpotsWithinRange.value.length
 })
 
 const canShowMap = computed(() => {
