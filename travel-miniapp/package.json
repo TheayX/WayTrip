@@ -34,11 +34,11 @@
   },
   "devDependencies": {
     "@dcloudio/types": "3.4.28",
-    "@dcloudio/uni-automator": "3.0.0-alpha-5000720260416001",
-    "@dcloudio/uni-cli-shared": "3.0.0-alpha-5000720260416001",
-    "@dcloudio/uni-stacktracey": "3.0.0-alpha-5000720260416001",
-    "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000720260416001",
-    "@vue/runtime-core": "3.5.32",
+    "@dcloudio/uni-automator": "3.0.0-alpha-5000820260508001",
+    "@dcloudio/uni-cli-shared": "3.0.0-alpha-5000820260508001",
+    "@dcloudio/uni-stacktracey": "3.0.0-alpha-5000820260508001",
+    "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000820260508001",
+    "@vue/runtime-core": "3.5.34",
     "eslint": "^9.36.0",
     "sass-embedded": "^1.77.5",
     "vite": "5.2.8"
