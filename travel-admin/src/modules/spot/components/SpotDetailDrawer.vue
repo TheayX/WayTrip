@@ -34,7 +34,12 @@
           </div>
           <div class="stat-item px-4 py-2 rounded-lg flex-1">
             <div class="text-xs text-gray-500 mb-1">热度分数</div>
-            <div class="text-lg font-bold text-gray-800">{{ detail.heatScore || 0 }}</div>
+            <div class="text-lg font-bold text-gray-800 heat-score-row">
+              <span>{{ detail.heatScore || 0 }}</span>
+              <el-tag :type="getHeatLevelTagType(detail.heatLevel)" effect="light" class="round-tag capsule-badge heat-level-tag">
+                {{ getHeatLevelLabel(detail.heatLevel) }}
+              </el-tag>
+            </div>
           </div>
         </div>
 
@@ -99,7 +104,9 @@ defineProps({
   visible: { type: Boolean, required: true },
   detail: { type: Object, default: null },
   getImageUrl: { type: Function, required: true },
-  formatDate: { type: Function, required: true }
+  formatDate: { type: Function, required: true },
+  getHeatLevelLabel: { type: Function, required: true },
+  getHeatLevelTagType: { type: Function, required: true }
 })
 
 const emit = defineEmits(['update:visible'])
@@ -200,27 +207,49 @@ const emitVisible = (val) => {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
 .mini-stat-card {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--wt-border-default);
   background: var(--wt-surface-elevated);
+  min-width: 0;
 }
 
 .mini-stat-label {
   font-size: 12px;
   color: var(--wt-text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .mini-stat-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--wt-text-primary);
+}
+
+.heat-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.heat-level-tag {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+:deep(.heat-level-tag.el-tag) {
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 20px;
+  height: 20px;
 }
 
 .gallery-count-chip {
@@ -257,7 +286,7 @@ const emitVisible = (val) => {
 
 @media (max-width: 640px) {
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

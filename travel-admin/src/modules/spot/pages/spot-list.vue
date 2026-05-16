@@ -124,6 +124,8 @@
       :detail="spotDetail"
       :get-image-url="getImageUrl"
       :format-date="formatDate"
+      :get-heat-level-label="getHeatLevelLabel"
+      :get-heat-level-tag-type="getHeatLevelTagType"
     />
 
     <!-- Batch Floating Action Bar -->
