@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -83,6 +84,22 @@ class GuideQueryServiceImplTest {
         verify(guideMapper).selectPage(any(Page.class), any(LambdaQueryWrapper.class));
         assertEquals(1, response.getList().size());
         assertEquals(1L, response.getList().get(0).getId());
+    }
+
+    @Test
+    void getGuideList_usesViewCountAsDefaultSort() {
+        GuideListRequest request = new GuideListRequest();
+        Page<Guide> page = new Page<>(1, 10);
+        page.setRecords(List.of(buildGuide(1L, 1)));
+        page.setTotal(1L);
+        when(guideMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class))).thenReturn(page);
+
+        var response = guideQueryService.getGuideList(request);
+
+        verify(guideMapper).selectPage(any(Page.class), any(LambdaQueryWrapper.class));
+        assertEquals("view_count", request.getSortBy());
+        assertNotNull(response);
+        assertEquals(1, response.getList().size());
     }
 
     @Test

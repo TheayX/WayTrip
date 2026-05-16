@@ -10,6 +10,13 @@
       <view class="state-actions">
         <text
           class="sort-chip"
+          :class="{ active: sortBy === 'view_count' }"
+          @click="changeSort('view_count')"
+        >
+          浏览量
+        </text>
+        <text
+          class="sort-chip"
           :class="{ active: sortBy === 'time' }"
           @click="changeSort('time')"
         >
@@ -100,7 +107,7 @@ const resolveGuideSummary = (value) => value || '整理路线、玩法与出行�
 // 页面数据状态
 const categories = ref([])
 const currentCategory = ref('')
-const sortBy = ref('time')
+const sortBy = ref('view_count')
 
 const guideList = ref([])
 const page = ref(1)
@@ -112,7 +119,12 @@ const hasMore = computed(() => guideList.value.length < total.value)
 // 计算属性
 const currentStateText = computed(() => {
   const categoryText = currentCategory.value ? currentCategory.value : '全部主题'
-  const sortText = sortBy.value === 'category' ? '按主题整理' : '按发布时间整理'
+  const sortTextMap = {
+    view_count: '按浏览量整理',
+    time: '按发布时间整理',
+    category: '按主题整理'
+  }
+  const sortText = sortTextMap[sortBy.value] || '按浏览量整理'
   return `${categoryText} · ${total.value} 篇攻略 · ${sortText}`
 })
 
@@ -181,7 +193,7 @@ const changeSort = (value) => {
 
 const resetFilters = () => {
   currentCategory.value = ''
-  sortBy.value = 'time'
+  sortBy.value = 'view_count'
   fetchGuideList(true)
 }
 
@@ -205,7 +217,7 @@ onLoad((options) => {
     currentCategory.value = decodeURIComponent(options.category)
   }
 
-  if (options?.sortBy === 'time' || options?.sortBy === 'category') {
+  if (options?.sortBy === 'view_count' || options?.sortBy === 'time' || options?.sortBy === 'category') {
     sortBy.value = options.sortBy
   }
 })

@@ -82,8 +82,9 @@ const page = ref(1)
 const pageSize = 12
 const total = ref(0)
 const loading = ref(false)
-const sortBy = ref('time')
+const sortBy = ref('view_count')
 const sortOptions = [
+  { label: '浏览量优先', value: 'view_count' },
   { label: '最新优先', value: 'time' },
   { label: '分类排序', value: 'category' }
 ]
@@ -91,13 +92,20 @@ const sortOptions = [
 // 计算属性
 const currentStateText = computed(() => {
   const categoryText = currentCategory.value || '全部分类'
-  const sortText = sortBy.value === 'category' ? '分类排序' : '最新优先'
+  const sortTextMap = {
+    view_count: '浏览量优先',
+    time: '最新优先',
+    category: '分类排序'
+  }
+  const sortText = sortTextMap[sortBy.value] || '浏览量优先'
   return `${categoryText} · 共 ${total.value} 条 · ${sortText}`
 })
 const activeGuideTags = computed(() => {
   const tags = []
   if (currentCategory.value) tags.push(currentCategory.value)
-  if (sortBy.value !== 'time') tags.push('分类排序')
+  if (sortBy.value !== 'view_count') {
+    tags.push(sortBy.value === 'category' ? '分类排序' : '最新优先')
+  }
   return tags
 })
 
@@ -178,7 +186,7 @@ const changeSort = (value) => {
 
 const resetFilters = () => {
   currentCategory.value = ''
-  sortBy.value = 'time'
+  sortBy.value = 'view_count'
   page.value = 1
   syncRouteQuery()
   fetchGuideList()
@@ -189,7 +197,7 @@ onMounted(async () => {
   if (typeof route.query.category === 'string' && route.query.category) {
     currentCategory.value = route.query.category
   }
-  if (route.query.sortBy === 'time' || route.query.sortBy === 'category') {
+  if (route.query.sortBy === 'view_count' || route.query.sortBy === 'time' || route.query.sortBy === 'category') {
     sortBy.value = route.query.sortBy
   }
 

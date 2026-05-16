@@ -11,5 +11,5 @@ public class GuideListRequest {
     private Integer pageSize = 10;
     private String keyword;
     private String category;
-    private String sortBy = "time"; // time, category
+    private String sortBy = "view_count"; // view_count, time, category
 }
