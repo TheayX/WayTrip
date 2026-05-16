@@ -80,6 +80,7 @@ const locationStatus = ref('idle')
 // 常量配置
 const markerIcon = '/static/marker/spot.png'
 const MAX_NEARBY_DISTANCE_KM = 100
+const DISTANT_FALLBACK_LIMIT = 2
 
 // 工具方法
 const toFiniteNumber = (value) => {
@@ -94,6 +95,9 @@ const isValidCoordinate = (latitude, longitude) => isValidLatitude(latitude) && 
 // 计算属性
 const heroSubtitle = computed(() => {
   if (loading.value) return '正在根据当前位置获取周边景点'
+  if (isUsingDistantFallback.value && displaySpots.value.length) {
+    return `当前位置周边较远，先展示最近的 ${displaySpots.value.length} 个景点`
+  }
   if (locationStatus.value === 'ready' && displaySpots.value.length) {
     return `共找到 ${displaySpots.value.length} 个景点，最近约 ${formatDistance(displaySpots.value[0].distanceKm)}`
   }
@@ -131,11 +135,21 @@ const hasReasonableNearbySpots = computed(() => {
 })
 
 const displaySpots = computed(() => {
-  return hasReasonableNearbySpots.value ? normalizedSpots.value : []
+  if (!normalizedSpots.value.length) return []
+  if (hasReasonableNearbySpots.value) {
+    return normalizedSpots.value.filter((spot) => {
+      return spot.distanceKm === null || spot.distanceKm <= MAX_NEARBY_DISTANCE_KM
+    })
+  }
+  return normalizedSpots.value.slice(0, DISTANT_FALLBACK_LIMIT)
+})
+
+const isUsingDistantFallback = computed(() => {
+  return normalizedSpots.value.length > 0 && !hasReasonableNearbySpots.value
 })
 
 const canShowMap = computed(() => {
-  if (locationStatus.value !== 'ready' || !hasReasonableNearbySpots.value) return false
+  if (locationStatus.value !== 'ready' || !displaySpots.value.length) return false
   const latitude = toFiniteNumber(locationInfo.value?.latitude)
   const longitude = toFiniteNumber(locationInfo.value?.longitude)
   return isValidCoordinate(latitude, longitude)
@@ -179,7 +193,7 @@ const emptyTitle = computed(() => {
 })
 
 const emptyDesc = computed(() => {
-  if (locationStatus.value === 'empty') return `你可以重新定位，或前往首页查看热门景点（仅展示 ${MAX_NEARBY_DISTANCE_KM} km 内结果）`
+  if (locationStatus.value === 'empty') return '你可以重新定位，或前往首页查看热门景点'
   return '点击按钮后会重新申请定位并加载附近景点'
 })
 
@@ -196,7 +210,7 @@ const fetchNearby = async (latitude, longitude, showErrorToast = false) => {
     locationInfo.value = { latitude, longitude }
     const res = await getNearbySpots(latitude, longitude, 10)
     nearbySpots.value = res.data?.list || []
-    locationStatus.value = hasReasonableNearbySpots.value ? 'ready' : 'empty'
+    locationStatus.value = normalizedSpots.value.length ? 'ready' : 'empty'
   } catch (error) {
     if (error?.code === 10002) {
       return
