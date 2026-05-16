@@ -75,6 +75,7 @@ import RecommendSpots from './components/RecommendSpots.vue'
 import NearbyAndHot from './components/NearbyAndHot.vue'
 import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getFeatureEntryById, getHomeEntryItems } from '@/constants/feature-entry-registry'
+import { switchTabSafely } from '@/utils/navigation'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
@@ -590,7 +591,7 @@ const goSearch = () => {
 }
 
 const goMine = () => {
-  uni.switchTab({ url: '/pages/mine/index' })
+  void switchTabSafely('/pages/mine/index')
 }
 
 const refreshHome = async ({ force = false } = {}) => {
