@@ -70,7 +70,7 @@
             </el-button>
           </div>
           <div class="filter-actions">
-            <el-button type="primary" @click="handleSearch">搜索</el-button>
+            <el-button type="primary" @click="handleSearch">查询</el-button>
             <el-button @click="handleReset">重置</el-button>
           </div>
         </div>
@@ -81,7 +81,7 @@
             <el-form-item label="来源" class="filter-item advanced-filter-item">
               <el-select
                 v-model="searchForm.source"
-                placeholder="全部来源"
+                placeholder="全部"
                 clearable
                 class="form-w-140"
                 @change="handleSearch"

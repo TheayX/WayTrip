@@ -5,42 +5,42 @@
 
       <div class="filter-row">
         <div class="filter-main">
-          <el-form-item class="filter-item">
+          <el-form-item label="订单号" class="filter-item">
             <el-input
               v-model="searchForm.orderNo"
-              placeholder="搜索订单号"
+              placeholder="请输入订单号"
               clearable
               class="filter-input"
               @keyup.enter="emit('search')"
               @clear="emit('search')"
             />
           </el-form-item>
-          <el-form-item class="filter-item">
+          <el-form-item label="景点名称" class="filter-item">
             <el-input
               v-model="searchForm.spotName"
-              placeholder="搜索景点名称"
+              placeholder="请输入景点名称"
               clearable
               class="filter-input"
               @keyup.enter="emit('search')"
               @clear="emit('search')"
             />
           </el-form-item>
-          <el-form-item class="filter-item">
+          <el-form-item label="用户昵称" class="filter-item">
             <el-input
               v-model="searchForm.userNickname"
-              placeholder="搜索用户昵称"
+              placeholder="请输入用户昵称"
               clearable
               class="filter-input"
               @keyup.enter="emit('search')"
               @clear="emit('search')"
             />
           </el-form-item>
-          <el-form-item class="filter-item">
+          <el-form-item label="订单状态" class="filter-item">
             <el-select
               v-model="searchForm.status"
-              placeholder="全部状态"
+              placeholder="全部"
               clearable
-              class="filter-select"
+              class="form-w-100"
               :disabled="currentTab !== 'all'"
               @change="emit('search')"
               @clear="emit('search')"
@@ -133,8 +133,7 @@ const handleVisitDateChange = (value) => {
 </script>
 
 <style lang="scss" scoped>
-.filter-input,
-.filter-select {
+.filter-input {
   width: 220px;
 }
 

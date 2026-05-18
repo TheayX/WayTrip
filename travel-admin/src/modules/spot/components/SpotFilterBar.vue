@@ -4,12 +4,12 @@
   <div class="search-form admin-filter-bar">
     <el-form :inline="true" :model="queryParams" @submit.prevent>
 
-      <div class="filter-row">
-        <div class="filter-main">
-          <el-form-item class="filter-item">
+        <div class="filter-row">
+          <div class="filter-main">
+          <el-form-item label="景点名称" class="filter-item">
             <el-input
               v-model="queryParams.keyword"
-              placeholder="搜索景点名称"
+              placeholder="请输入景点名称"
               clearable
               class="filter-input"
               :prefix-icon="Search"
@@ -18,10 +18,10 @@
             />
           </el-form-item>
 
-          <el-form-item class="filter-item">
+          <el-form-item label="发布状态" class="filter-item">
             <el-select
               v-model="uiFilters.published"
-              placeholder="发布状态"
+              placeholder="全部"
               clearable
               class="status-select"
               @change="emitFilterChange"
@@ -53,7 +53,7 @@
               :options="regionCascaderOptions"
               :props="regionCascaderProps"
               clearable
-              placeholder="全国任意地区"
+              placeholder="全部"
               class="filter-cascader"
               @change="emitFilterChange"
             />
@@ -65,7 +65,7 @@
               :options="categoryCascaderOptions"
               :props="categoryCascaderProps"
               clearable
-              placeholder="全部分类"
+              placeholder="全部"
               class="filter-cascader"
               @change="emitFilterChange"
               @clear="emitFilterChange"
@@ -74,7 +74,7 @@
           <el-form-item label="热度档位" class="filter-item">
             <el-select
               v-model="uiFilters.heatLevel"
-              placeholder="全部档位"
+              placeholder="全部"
               clearable
               class="status-select"
               @change="emitFilterChange"
@@ -131,7 +131,7 @@ const emitFilterChange = () => emit('filter-change')
 }
 
 .status-select {
-  width: 140px;
+  width: 100px;
 }
 
 .toggle-btn {

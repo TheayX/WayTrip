@@ -24,19 +24,19 @@
         <el-form-item label="关键字">
           <el-input
               v-model="queryParams.keyword"
-              placeholder="用户名/姓名"
+              placeholder="请输入用户名或姓名"
               clearable
               class="form-w-220"
               @keyup.enter="handleSearch"
               @clear="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="账号状态">
           <el-select
               v-model="uiStatus"
               placeholder="全部"
               clearable
-              class="form-w-140"
+              class="form-w-100"
               @change="handleSearch"
               @clear="handleSearch"
           >
@@ -45,7 +45,7 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>

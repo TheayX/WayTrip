@@ -5,20 +5,20 @@
 
       <div class="filter-row">
         <div class="filter-main">
-          <el-form-item class="filter-item">
+          <el-form-item label="攻略标题" class="filter-item">
             <el-input
               v-model="queryParams.keyword"
-              placeholder="搜索攻略标题"
+              placeholder="请输入攻略标题"
               clearable
               class="filter-input"
               @keyup.enter="emit('search')"
               @clear="emit('search')"
             />
           </el-form-item>
-          <el-form-item class="filter-item">
+          <el-form-item label="分类" class="filter-item">
             <el-select
               v-model="queryParams.category"
-              placeholder="全部分类"
+              placeholder="全部"
               clearable
               class="filter-select"
               @change="emit('search')"
@@ -27,10 +27,10 @@
               <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
             </el-select>
           </el-form-item>
-          <el-form-item class="filter-item">
+          <el-form-item label="发布状态" class="filter-item">
             <el-select
               v-model="uiFilters.published"
-              placeholder="全部状态"
+              placeholder="全部"
               clearable
               class="status-select"
               @change="emit('filter-change')"
@@ -47,7 +47,7 @@
         </div>
 
         <div class="filter-actions">
-          <el-button type="primary" @click="emit('search')">搜索</el-button>
+          <el-button type="primary" @click="emit('search')">查询</el-button>
           <el-button @click="emit('reset')">重置</el-button>
         </div>
       </div>
@@ -111,7 +111,8 @@ const showAdvanced = ref(false)
   width: 200px;
 }
 
-.status-select { width: 140px; }
+.status-select {
+  width: 100px; }
 
 .date-picker {
   width: 280px;

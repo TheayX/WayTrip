@@ -37,22 +37,22 @@
       <el-form :model="searchForm" inline class="search-form admin-filter-bar" @submit.prevent>
         <div class="filter-row">
           <div class="filter-main">
-            <el-form-item label="昵称" class="filter-item">
+            <el-form-item label="用户昵称" class="filter-item">
               <el-input
                 v-model="searchForm.nickname"
-                placeholder="请输入昵称"
+                placeholder="请输入用户昵称"
                 clearable
                 class="form-w-180"
                 @keyup.enter="handleSearch"
                 @clear="handleSearch"
               />
             </el-form-item>
-            <el-form-item label="状态" class="filter-item">
+            <el-form-item label="账号状态" class="filter-item">
               <el-select
                 v-model="searchForm.status"
-                placeholder="全部状态"
+                placeholder="全部"
                 clearable
-                class="form-w-140"
+                class="form-w-100"
                 @change="handleSearch"
                 @clear="handleSearch"
               >
@@ -66,7 +66,7 @@
             </el-button>
           </div>
           <div class="filter-actions">
-            <el-button type="primary" @click="handleSearch">搜索</el-button>
+            <el-button type="primary" @click="handleSearch">查询</el-button>
             <el-button @click="handleReset">重置</el-button>
           </div>
         </div>
