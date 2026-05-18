@@ -61,7 +61,7 @@
           empty-text="当前条件下暂无匹配订单"
           @sort-change="handleSortChange"
         >
-          <el-table-column label="订单号" width="176" align="left">
+          <el-table-column label="订单号" width="176" align="left" header-align="center">
             <template #default="{ row }">
               <el-button link type="primary" class="order-link" @click="handleDetail(row)">
                 {{ row.orderNo }}

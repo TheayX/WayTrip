@@ -92,7 +92,7 @@
             element-loading-text="正在加载分类数据..."
             class="content-table borderless-table"
           >
-            <el-table-column label="图标" width="100">
+            <el-table-column label="图标" width="100" align="center" header-align="center">
               <template #default="{ row }">
                 <el-image 
                   v-if="row.iconUrl"
@@ -109,14 +109,14 @@
                 <span v-else>无</span>
               </template>
             </el-table-column>
-            <el-table-column prop="name" label="分类名称" />
-            <el-table-column prop="sortOrder" label="排序" width="100" />
-            <el-table-column prop="createdAt" label="创建时间" width="180">
+            <el-table-column prop="name" label="分类名称" align="center" header-align="center" />
+            <el-table-column prop="sortOrder" label="排序" width="100" align="center" header-align="center" />
+            <el-table-column prop="createdAt" label="创建时间" width="180" align="center" header-align="center">
               <template #default="{ row }">
                 {{ formatDate(row.createdAt) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" fixed="right" header-align="center">
+            <el-table-column label="操作" width="150" fixed="right" align="center" header-align="center">
               <template #default="{ row }">
                 <div class="row-actions-nowrap">
                   <el-button type="primary" link @click="handleEditLevel2(row)">编辑</el-button>

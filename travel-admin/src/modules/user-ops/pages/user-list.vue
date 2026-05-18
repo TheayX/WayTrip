@@ -111,7 +111,7 @@
       <!-- 用户列表 -->
       <el-table v-else :data="userList" v-loading="loading" class="user-table borderless-table" @sort-change="handleSortChange">
         <el-table-column prop="id" label="ID" width="88" align="center" header-align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
-        <el-table-column label="头像" width="80">
+        <el-table-column label="头像" width="80" header-align="center">
           <template #default="{ row }">
             <el-avatar :src="row.avatar" :size="40">{{ row.nickname?.charAt(0) }}</el-avatar>
           </template>

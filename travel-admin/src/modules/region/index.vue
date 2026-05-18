@@ -84,14 +84,14 @@
             element-loading-text="正在加载地区数据..."
             class="content-table borderless-table"
           >
-            <el-table-column prop="name" label="地区名称" />
-            <el-table-column prop="sortOrder" label="排序" width="100" />
-            <el-table-column prop="createdAt" label="创建时间" width="180">
+            <el-table-column prop="name" label="地区名称" align="center" header-align="center" />
+            <el-table-column prop="sortOrder" label="排序" width="100" align="center" header-align="center" />
+            <el-table-column prop="createdAt" label="创建时间" width="180" align="center" header-align="center">
               <template #default="{ row }">
                 {{ formatDate(row.createdAt) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" fixed="right" header-align="center">
+            <el-table-column label="操作" width="150" fixed="right" align="center" header-align="center">
               <template #default="{ row }">
                 <div style="white-space: nowrap;">
                   <el-button type="primary" link @click="handleEditLevel2(row)">编辑</el-button>

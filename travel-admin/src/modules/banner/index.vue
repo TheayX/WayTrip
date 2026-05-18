@@ -51,7 +51,7 @@
         class="banner-table borderless-table"
         empty-text="当前暂无轮播图数据"
       >
-        <el-table-column label="预览" width="200">
+        <el-table-column label="预览" width="200" header-align="center">
           <template #default="{ row }">
             <el-image
               :src="getImageUrl(row.imageUrl)"

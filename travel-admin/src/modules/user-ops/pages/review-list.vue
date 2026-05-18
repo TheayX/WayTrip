@@ -114,7 +114,7 @@
 
       <!-- 评价列表 -->
       <el-table v-else :data="reviewList" v-loading="loading" class="review-table borderless-table" @sort-change="handleSortChange">
-        <el-table-column label="用户" min-width="180">
+        <el-table-column label="用户" min-width="180" header-align="center">
           <template #default="{ row }">
             <div class="user-cell">
               <el-avatar :src="row.avatar" :size="36">{{ getDisplayNickname(row)?.[0] }}</el-avatar>
