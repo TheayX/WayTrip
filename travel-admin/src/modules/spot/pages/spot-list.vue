@@ -62,6 +62,7 @@
         :get-heat-level-label="getHeatLevelLabel"
         :get-heat-level-tag-type="getHeatLevelTagType"
         @selection-change="handleSelectionChange"
+        @sort-change="handleSortChange"
         @view="handleView"
         @edit="handleEdit"
         @heat-edit="handleHeatEdit"
@@ -169,6 +170,7 @@ import {
 } from '@/modules/spot/api.js'
 import { useUserStore } from '@/app/store/user.js'
 import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
+import { applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -347,7 +349,9 @@ const queryParams = reactive({
   regionId: null,
   categoryId: null,
   heatLevel: null,
-  published: null
+  published: null,
+  sortBy: '',
+  sortOrder: ''
 })
 const uiFilters = reactive({
   regionPath: [],
@@ -494,6 +498,11 @@ const handleSearch = () => {
 
 const handleFilterChange = () => {
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(queryParams, sortPayload)
+  loadData()
 }
 
 // 重置搜索条件

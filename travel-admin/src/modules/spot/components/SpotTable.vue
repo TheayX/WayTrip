@@ -6,9 +6,10 @@
     class="premium-table borderless-table"
     :row-class-name="getRowClassName"
     @selection-change="handleSelectionChange"
+    @sort-change="handleSortChange"
   >
     <el-table-column type="selection" width="30" align="center" />
-    <el-table-column prop="id" label="ID" width="58" align="center" />
+    <el-table-column prop="id" label="ID" width="72" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
     <el-table-column label="封面" width="90" align="center">
       <template #default="{ row }">
         <el-image
@@ -31,24 +32,24 @@
         <el-tag effect="plain" type="info" size="small">{{ resolveCategoryDisplayName(row.categoryName) }}</el-tag>
       </template>
     </el-table-column>
-    <el-table-column prop="price" label="价格" width="100" align="center">
+    <el-table-column prop="price" label="价格" width="108" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
       <template #default="{ row }">
         <span class="metric-inline metric-inline--price">¥{{ row.price }}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="avgRating" label="评分" width="90" align="center">
+    <el-table-column prop="avgRating" label="评分" width="98" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
       <template #default="{ row }">
         <span class="metric-inline metric-inline--accent"><el-icon class="rating-star"><StarFilled /></el-icon> {{ row.avgRating || '暂无' }}</span>
       </template>
     </el-table-column>
-    <el-table-column label="热度档位" width="100" align="center">
+    <el-table-column prop="heatLevel" label="热度档位" width="118" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
       <template #default="{ row }">
         <el-tag :type="getHeatLevelTagType(row.heatLevel)" effect="light" class="round-tag capsule-badge">
           {{ getHeatLevelLabel(row.heatLevel) }}
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column label="热度分数" width="100" align="center">
+    <el-table-column prop="heatScore" label="热度分数" width="118" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
       <template #default="{ row }">
         <span class="heat-score-text">{{ row.heatScore ?? 0 }}</span>
       </template>
@@ -92,6 +93,7 @@
 <script setup>
 import { ArrowDown, StarFilled } from '@element-plus/icons-vue'
 import { resolveCategoryDisplayName } from '@/shared/lib/resource-display.js'
+import { TABLE_SORT_ORDERS } from '@/shared/composables/useTableSort.js'
 
 // 表格组件只负责展示和透传行级操作，业务处理全部回到页面层统一执行。
 defineProps({
@@ -105,11 +107,15 @@ defineProps({
 })
 
 const emit = defineEmits([
-  'selection-change', 'edit', 'view', 'heat-edit', 'refresh-heat', 'refresh-rating', 'toggle-publish', 'delete'
+  'selection-change', 'sort-change', 'edit', 'view', 'heat-edit', 'refresh-heat', 'refresh-rating', 'toggle-publish', 'delete'
 ])
 
 const handleSelectionChange = (selection) => {
   emit('selection-change', selection)
+}
+
+const handleSortChange = (sortPayload) => {
+  emit('sort-change', sortPayload)
 }
 
 const handleCommand = (command, row) => {

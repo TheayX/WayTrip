@@ -113,7 +113,7 @@
       </div>
 
       <!-- 评价列表 -->
-      <el-table v-else :data="reviewList" v-loading="loading" class="review-table borderless-table">
+      <el-table v-else :data="reviewList" v-loading="loading" class="review-table borderless-table" @sort-change="handleSortChange">
         <el-table-column label="用户" min-width="180">
           <template #default="{ row }">
             <div class="user-cell">
@@ -146,14 +146,14 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="score" label="评分" width="100">
+        <el-table-column prop="score" label="评分" width="108" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">
             <span class="score-text">★ {{ row.score }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="comment" label="评价内容" min-width="260" show-overflow-tooltip />
-        <el-table-column prop="createdAt" label="创建时间" width="170" align="center" />
-        <el-table-column prop="updatedAt" label="更新时间" width="170" align="center" />
+        <el-table-column prop="createdAt" label="创建时间" width="178" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
+        <el-table-column prop="updatedAt" label="更新时间" width="178" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="操作" width="120" fixed="right" align="center">
           <template #default="{ row }">
             <el-button link type="danger" @click="handleDelete(row)">违规删除</el-button>
@@ -185,6 +185,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteReview, getReviewList } from '@/modules/user-ops/api/review.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { isDeactivatedUserDisplay, isInvalidSpotDisplay, resolveSpotDisplayName, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -208,7 +209,9 @@ const searchForm = reactive({
 const pagination = reactive({
   page: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
+  sortBy: '',
+  sortOrder: ''
 })
 const currentPageAverageScore = computed(() => {
   if (!reviewList.value.length) return '0.0'
@@ -247,6 +250,8 @@ const fetchReviewList = async () => {
       maxScore,
       page: pagination.page,
       pageSize: pagination.pageSize,
+      sortBy: pagination.sortBy,
+      sortOrder: pagination.sortOrder,
       startDate: dateRange.value?.length === 2 ? dateRange.value[0] : undefined,
       endDate: dateRange.value?.length === 2 ? dateRange.value[1] : undefined
     })
@@ -273,6 +278,11 @@ const handleReset = () => {
   searchForm.scorePreset = ''
   dateRange.value = []
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(pagination, sortPayload)
+  fetchReviewList()
 }
 
 const syncRouteQuery = () => {

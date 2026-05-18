@@ -36,7 +36,9 @@ public interface ReviewMapper extends BaseMapper<Review> {
                                         @Param("minScore") Integer minScore,
                                         @Param("maxScore") Integer maxScore,
                                         @Param("startDate") String startDate,
-                                        @Param("endDate") String endDate);
+                                        @Param("endDate") String endDate,
+                                        @Param("sortColumn") String sortColumn,
+                                        @Param("sortOrder") String sortOrder);
 
     /**
      * 分页查询口碑流。

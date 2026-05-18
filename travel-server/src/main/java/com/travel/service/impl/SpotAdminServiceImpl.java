@@ -27,6 +27,7 @@ import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
 import com.travel.service.RecommendationService;
 import com.travel.service.SpotAdminService;
+import com.travel.service.support.admin.AdminSortSupport;
 import com.travel.service.support.spot.SpotResponseAssembler;
 import com.travel.service.support.spot.SpotTreeSupport;
 import com.travel.service.support.spot.SpotWriteSupport;
@@ -38,6 +39,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -96,7 +98,15 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         if (request.getHeatLevel() != null) {
             wrapper.eq(Spot::getHeatLevel, request.getHeatLevel());
         }
-        wrapper.orderByAsc(Spot::getId);
+        AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
+            "id", Spot::getId,
+            "price", Spot::getPrice,
+            "avgRating", Spot::getAvgRating,
+            "heatLevel", Spot::getHeatLevel,
+            "heatScore", Spot::getHeatScore,
+            "createdAt", Spot::getCreatedAt,
+            "updatedAt", Spot::getUpdatedAt
+        ), () -> wrapper.orderByAsc(Spot::getId));
 
         Page<Spot> result = spotMapper.selectPage(page, wrapper);
         List<AdminSpotListResponse> list = result.getRecords().stream()

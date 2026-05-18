@@ -20,4 +20,6 @@ public class AdminGuideListRequest {
     private LocalDate createdEndDate;
     private LocalDate updatedStartDate;
     private LocalDate updatedEndDate;
+    private String sortBy;
+    private String sortOrder;
 }

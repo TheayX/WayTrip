@@ -14,4 +14,6 @@ public class AdminSpotListRequest {
     private Long categoryId;
     private Integer heatLevel;
     private Integer published; // 0-未发布, 1-已发布
+    private String sortBy;
+    private String sortOrder;
 }

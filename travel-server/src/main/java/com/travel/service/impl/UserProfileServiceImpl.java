@@ -11,6 +11,7 @@ import com.travel.entity.*;
 import com.travel.enums.OrderStatus;
 import com.travel.mapper.*;
 import com.travel.service.UserProfileService;
+import com.travel.service.support.admin.AdminSortSupport;
 import com.travel.util.mask.MaskUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -69,7 +71,12 @@ public class UserProfileServiceImpl implements UserProfileService {
             wrapper.le(User::getCreatedAt, buildEndDateTime(request.getEndDate()));
         }
 
-        wrapper.orderByDesc(User::getCreatedAt);
+        AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
+            "id", User::getId,
+            "createdAt", User::getCreatedAt,
+            "updatedAt", User::getUpdatedAt,
+            "lastLoginAt", User::getLastLoginAt
+        ), () -> wrapper.orderByDesc(User::getCreatedAt));
 
         Page<User> page = new Page<>(request.getPage(), request.getPageSize());
         Page<User> result = userMapper.selectPage(page, wrapper);

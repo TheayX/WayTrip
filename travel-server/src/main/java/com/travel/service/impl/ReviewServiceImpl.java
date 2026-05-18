@@ -172,7 +172,9 @@ public class ReviewServiceImpl implements ReviewService {
             request.getMinScore(),
             request.getMaxScore(),
             request.getStartDate() != null ? request.getStartDate().toString() : null,
-            request.getEndDate() != null ? request.getEndDate().toString() : null
+            request.getEndDate() != null ? request.getEndDate().toString() : null,
+            resolveAdminReviewSortColumn(request.getSortBy()),
+            resolveAdminReviewSortOrder(request.getSortOrder())
         );
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
@@ -260,6 +262,26 @@ public class ReviewServiceImpl implements ReviewService {
             throw new BusinessException(ResultCode.REVIEW_NOT_FOUND);
         }
         return review;
+    }
+
+    private String resolveAdminReviewSortColumn(String sortBy) {
+        if ("id".equals(sortBy)) {
+            return "r.id";
+        }
+        if ("score".equals(sortBy)) {
+            return "r.score";
+        }
+        if ("createdAt".equals(sortBy)) {
+            return "r.created_at";
+        }
+        if ("updatedAt".equals(sortBy)) {
+            return "r.updated_at";
+        }
+        return null;
+    }
+
+    private String resolveAdminReviewSortOrder(String sortOrder) {
+        return "asc".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
     }
 
     private void updateSpotAvgRating(Long spotId) {

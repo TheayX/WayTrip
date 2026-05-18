@@ -15,6 +15,7 @@ import com.travel.dto.user.request.AdminUserViewListRequest;
 import com.travel.entity.*;
 import com.travel.mapper.*;
 import com.travel.service.AdminUserInsightService;
+import com.travel.service.support.admin.AdminSortSupport;
 import com.travel.service.support.spot.SpotTreeSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -75,20 +76,9 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         Map<Long, List<UserPreference>> preferenceMap = preferences.stream()
             .collect(Collectors.groupingBy(UserPreference::getUserId));
 
+        Comparator<Map.Entry<Long, List<UserPreference>>> preferenceComparator = buildPreferenceComparator(request);
         List<Long> orderedUserIds = preferenceMap.entrySet().stream()
-            .sorted((left, right) -> {
-                LocalDateTime leftUpdatedAt = left.getValue().stream()
-                    .map(UserPreference::getUpdatedAt)
-                    .filter(Objects::nonNull)
-                    .max(LocalDateTime::compareTo)
-                    .orElse(LocalDateTime.MIN);
-                LocalDateTime rightUpdatedAt = right.getValue().stream()
-                    .map(UserPreference::getUpdatedAt)
-                    .filter(Objects::nonNull)
-                    .max(LocalDateTime::compareTo)
-                    .orElse(LocalDateTime.MIN);
-                return rightUpdatedAt.compareTo(leftUpdatedAt);
-            })
+            .sorted(preferenceComparator)
             .map(Map.Entry::getKey)
             .collect(Collectors.toList());
 
@@ -177,7 +167,13 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             wrapper.le(UserSpotFavorite::getCreatedAt, request.getEndDate().atTime(23, 59, 59));
         }
 
-        wrapper.orderByDesc(UserSpotFavorite::getCreatedAt);
+        AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
+            "id", UserSpotFavorite::getId,
+            "userId", UserSpotFavorite::getUserId,
+            "spotId", UserSpotFavorite::getSpotId,
+            "createdAt", UserSpotFavorite::getCreatedAt,
+            "updatedAt", UserSpotFavorite::getUpdatedAt
+        ), () -> wrapper.orderByDesc(UserSpotFavorite::getCreatedAt));
 
         Page<UserSpotFavorite> page = new Page<>(request.getPage(), request.getPageSize());
         Page<UserSpotFavorite> result = userSpotFavoriteMapper.selectPage(page, wrapper);
@@ -236,7 +232,13 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             wrapper.le(UserSpotView::getCreatedAt, request.getEndDate().atTime(23, 59, 59));
         }
 
-        wrapper.orderByDesc(UserSpotView::getCreatedAt).orderByDesc(UserSpotView::getId);
+        AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
+            "id", UserSpotView::getId,
+            "userId", UserSpotView::getUserId,
+            "spotId", UserSpotView::getSpotId,
+            "duration", UserSpotView::getViewDuration,
+            "createdAt", UserSpotView::getCreatedAt
+        ), () -> wrapper.orderByDesc(UserSpotView::getCreatedAt).orderByDesc(UserSpotView::getId));
 
         Page<UserSpotView> page = new Page<>(request.getPage(), request.getPageSize());
         Page<UserSpotView> result = userSpotViewMapper.selectPage(page, wrapper);
@@ -338,6 +340,27 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
                 .like(Spot::getName, spotName.trim())
                 .select(Spot::getId)
         ).stream().map(Spot::getId).collect(Collectors.toSet());
+    }
+
+    private Comparator<Map.Entry<Long, List<UserPreference>>> buildPreferenceComparator(AdminUserPreferenceListRequest request) {
+        Comparator<Map.Entry<Long, List<UserPreference>>> comparator;
+        if ("userId".equals(request.getSortBy())) {
+            comparator = Comparator.comparing(Map.Entry::getKey);
+        } else if ("tagCount".equals(request.getSortBy())) {
+            comparator = Comparator.comparing(entry -> entry.getValue().size());
+        } else {
+            // 偏好列表按用户聚合，更新时间需要取该用户偏好中的最新一次变更。
+            comparator = Comparator.comparing(entry -> resolveLatestPreferenceUpdatedAt(entry.getValue()));
+        }
+        return "asc".equalsIgnoreCase(request.getSortOrder()) ? comparator : comparator.reversed();
+    }
+
+    private LocalDateTime resolveLatestPreferenceUpdatedAt(List<UserPreference> preferences) {
+        return preferences.stream()
+            .map(UserPreference::getUpdatedAt)
+            .filter(Objects::nonNull)
+            .max(LocalDateTime::compareTo)
+            .orElse(LocalDateTime.MIN);
     }
 
     private Long parseCategoryId(String tag) {

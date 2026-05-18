@@ -12,6 +12,7 @@ import com.travel.dto.admin.request.AdminUpdateRequest;
 import com.travel.entity.Admin;
 import com.travel.mapper.AdminMapper;
 import com.travel.service.AdminManagementService;
+import com.travel.service.support.admin.AdminSortSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -53,7 +55,12 @@ public class AdminManagementServiceImpl implements AdminManagementService {
         if (request.getStatus() != null) {
             wrapper.eq(Admin::getIsEnabled, request.getStatus());
         }
-        wrapper.orderByAsc(Admin::getId);
+        AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
+            "id", Admin::getId,
+            "lastLoginAt", Admin::getLastLoginAt,
+            "createdAt", Admin::getCreatedAt,
+            "updatedAt", Admin::getUpdatedAt
+        ), () -> wrapper.orderByAsc(Admin::getId));
 
         Page<Admin> result = adminMapper.selectPage(new Page<>(page, pageSize), wrapper);
 

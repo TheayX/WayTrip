@@ -61,6 +61,7 @@
         :format-date="formatDate"
         :get-row-class-name="getRowClassName"
         @selection-change="handleSelectionChange"
+        @sort-change="handleSortChange"
         @view="handleView"
         @edit="handleEdit"
         @edit-view-count="handleEditViewCount"
@@ -175,6 +176,7 @@ import { useUserStore } from '@/app/store/user.js'
 import { getAdminUploadUrl, getResourceUrl } from '@/shared/lib/resource.js'
 import { fetchAllSpotOptions } from '@/modules/spot/composables/useSpotOptions.js'
 import { resolveGuideDisplayText } from '@/shared/lib/resource-display.js'
+import { applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -262,7 +264,9 @@ const queryParams = reactive({
   createdEndDate: '',
   updatedStartDate: '',
   updatedEndDate: '',
-  published: null
+  published: null,
+  sortBy: '',
+  sortOrder: ''
 })
 
 const uiFilters = reactive({
@@ -360,6 +364,11 @@ const handleSearch = () => {
 
 const handleFilterChange = () => {
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(queryParams, sortPayload)
+  loadData()
 }
 
 const handleReset = () => {

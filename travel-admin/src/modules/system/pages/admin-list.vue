@@ -59,8 +59,8 @@
       </div>
 
       <!-- 数据表格 -->
-      <el-table v-else :data="tableData" v-loading="loading" stripe class="admin-table borderless-table">
-        <el-table-column prop="id" label="ID" width="80" align="center" />
+      <el-table v-else :data="tableData" v-loading="loading" stripe class="admin-table borderless-table" @sort-change="handleSortChange">
+        <el-table-column prop="id" label="ID" width="88" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column prop="username" label="用户名" min-width="140" align="left" />
         <el-table-column prop="realName" label="姓名" min-width="140" align="left" />
         <el-table-column label="状态" width="100" align="center">
@@ -71,17 +71,17 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="lastLoginAt" label="最近登录" width="180" align="center">
+        <el-table-column prop="lastLoginAt" label="最近登录" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">
             {{ formatDate(row.lastLoginAt) || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180" align="center">
+        <el-table-column prop="createdAt" label="创建时间" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column prop="updatedAt" label="修改时间" width="180" align="center">
+        <el-table-column prop="updatedAt" label="修改时间" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">
             {{ formatDate(row.updatedAt) }}
           </template>
@@ -170,6 +170,7 @@ import { ArrowDown } from '@element-plus/icons-vue'
 import { useUserStore } from '@/app/store/user.js'
 import { useRoute, useRouter } from 'vue-router'
 import { createAdmin, deleteAdmin, getAdminList, resetAdminPassword, updateAdmin } from '@/modules/system/api/admin.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -188,7 +189,9 @@ const queryParams = reactive({
   page: 1,
   pageSize: 10,
   keyword: '',
-  status: null
+  status: null,
+  sortBy: '',
+  sortOrder: ''
 })
 
 // 对话框与表单状态
@@ -274,6 +277,11 @@ const handleReset = () => {
   queryParams.status = null
   uiStatus.value = ''
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(queryParams, sortPayload)
+  fetchData()
 }
 
 const syncRouteQuery = () => {

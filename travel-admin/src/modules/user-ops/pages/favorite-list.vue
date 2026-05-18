@@ -94,8 +94,8 @@
         </el-result>
       </div>
 
-      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table">
-        <el-table-column prop="id" label="记录ID" width="90" />
+      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table" @sort-change="handleSortChange">
+        <el-table-column prop="id" label="记录ID" width="104" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="用户昵称" width="160">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="isDeactivatedUser(row)" @click="handleOpenUser(row)">{{ getDisplayNickname(row) }}</el-button>
@@ -109,7 +109,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="收藏时间" width="170" align="center" />
+        <el-table-column prop="createdAt" label="收藏时间" width="178" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="操作" width="100" fixed="right" align="center">
           <template #default="{ row }">
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
@@ -141,6 +141,7 @@ import { deleteFavorite, getFavoriteList } from '@/modules/user-ops/api/favorite
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getResourceUrl } from '@/shared/lib/resource.js'
 import { isDeactivatedUserDisplay, isInvalidSpotDisplay, resolveSpotDisplayName, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -163,7 +164,9 @@ const searchForm = reactive({
 const pagination = reactive({
   page: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
+  sortBy: '',
+  sortOrder: ''
 })
 // 当前页统计
 const currentPageUserCount = computed(() => new Set(tableData.value.map(item => item.userId)).size)
@@ -181,7 +184,9 @@ const fetchFavoriteList = async () => {
     const params = {
       ...searchForm,
       page: pagination.page,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      sortBy: pagination.sortBy,
+      sortOrder: pagination.sortOrder
     }
     if (dateRange.value?.length === 2) {
       params.startDate = dateRange.value[0]
@@ -212,6 +217,11 @@ const handleReset = () => {
   searchForm.spotName = ''
   dateRange.value = []
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(pagination, sortPayload)
+  fetchFavoriteList()
 }
 
 // 同步路由参数

@@ -109,8 +109,8 @@
       </div>
 
       <!-- 用户列表 -->
-      <el-table v-else :data="userList" v-loading="loading" class="user-table borderless-table">
-        <el-table-column prop="id" label="ID" width="80" align="center" header-align="center" />
+      <el-table v-else :data="userList" v-loading="loading" class="user-table borderless-table" @sort-change="handleSortChange">
+        <el-table-column prop="id" label="ID" width="88" align="center" header-align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="头像" width="80">
           <template #default="{ row }">
             <el-avatar :src="row.avatar" :size="40">{{ row.nickname?.charAt(0) }}</el-avatar>
@@ -138,8 +138,8 @@
         <el-table-column prop="orderCount" label="订单数" width="100" align="center" header-align="center" />
         <el-table-column prop="favoriteCount" label="收藏数" width="100" align="center" header-align="center" />
         <el-table-column prop="reviewCount" label="评价数" width="100" align="center" header-align="center" />
-        <el-table-column prop="createdAt" label="注册时间" width="170" align="center" header-align="center" />
-        <el-table-column prop="updatedAt" label="修改时间" width="170" align="center" header-align="center" />
+        <el-table-column prop="createdAt" label="注册时间" width="178" align="center" header-align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
+        <el-table-column prop="updatedAt" label="修改时间" width="178" align="center" header-align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="操作" width="260" fixed="right" align="left" header-align="center">
           <template #default="{ row }">
             <div class="table-actions">
@@ -274,6 +274,7 @@ import { getUserList, getUserDetail, resetUserPassword, restoreUserAccount, susp
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getSourceBucketLabel, getSourceLabel as resolveSourceLabel } from '@/shared/constants/view-source.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -295,7 +296,9 @@ const errorMessage = ref('')
 const pagination = reactive({
   page: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
+  sortBy: '',
+  sortOrder: ''
 })
 
 // 对话框与表单状态
@@ -339,6 +342,8 @@ const fetchUserList = async () => {
       isDeleted: searchForm.status === '' ? undefined : Number(searchForm.status),
       page: pagination.page,
       pageSize: pagination.pageSize,
+      sortBy: pagination.sortBy,
+      sortOrder: pagination.sortOrder,
       startDate: dateRange.value?.length === 2 ? dateRange.value[0] : undefined,
       endDate: dateRange.value?.length === 2 ? dateRange.value[1] : undefined
     })
@@ -367,6 +372,11 @@ const handleReset = () => {
   searchForm.status = ''
   dateRange.value = []
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(pagination, sortPayload)
+  fetchUserList()
 }
 
 const syncRouteQuery = () => {

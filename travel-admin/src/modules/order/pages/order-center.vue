@@ -59,6 +59,7 @@
           element-loading-text="正在加载订单数据..."
           class="order-table"
           empty-text="当前条件下暂无匹配订单"
+          @sort-change="handleSortChange"
         >
           <el-table-column label="订单号" width="176" align="left">
             <template #default="{ row }">
@@ -73,13 +74,13 @@
             </template>
           </el-table-column>
           <el-table-column prop="userNickname" label="用户" width="100" align="left" />
-          <el-table-column label="支付金额" width="128" align="left">
+          <el-table-column prop="totalPrice" label="支付金额" width="136" align="left" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
             <template #default="{ row }">
               <span class="metric-inline metric-inline--price">¥{{ formatCurrency(row.totalPrice) }}</span>
               <span class="quantity">({{ row.quantity }}张)</span>
             </template>
           </el-table-column>
-          <el-table-column prop="visitDate" label="游玩日期" width="120" align="center" />
+          <el-table-column prop="visitDate" label="游玩日期" width="132" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
           <el-table-column label="联系人" width="100" align="left">
             <template #default="{ row }">
               <div>{{ row.contactName || '--' }}</div>
@@ -93,7 +94,7 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="下单时间" width="180" align="center" />
+          <el-table-column prop="createdAt" label="下单时间" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
           <el-table-column label="操作" width="220" fixed="right" align="left" header-align="center">
             <template #default="{ row }">
               <div class="table-actions table-actions--start">
@@ -145,6 +146,7 @@ import { isInvalidSpotDisplay, resolveSpotDisplayName } from '@/shared/lib/resou
 import OrderFilterBar from '@/modules/order/components/OrderFilterBar.vue'
 import OrderSummaryCards from '@/modules/order/components/OrderSummaryCards.vue'
 import OrderDetailDrawer from '@/modules/order/components/OrderDetailDrawer.vue'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -168,6 +170,7 @@ const detailLoading = ref(false)
 const errorMessage = ref('')
 const orderList = ref([])
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
+const sortState = reactive({ page: 1, sortBy: '', sortOrder: '' })
 const detailVisible = ref(false)
 const currentOrder = ref(null)
 const summaryStats = reactive({
@@ -194,6 +197,8 @@ const buildBaseParams = (page, pageSize) => {
     orderNo: searchForm.orderNo,
     spotName: searchForm.spotName,
     userNickname: searchForm.userNickname,
+    sortBy: sortState.sortBy,
+    sortOrder: sortState.sortOrder,
     page,
     pageSize
   }
@@ -239,13 +244,24 @@ const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 const mergeCompositeList = (responses, page, pageSize) => {
   const merged = responses
     .flatMap((item) => item.data.list || [])
-    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+    .sort(compareCompositeOrders)
 
   const start = (page - 1) * pageSize
   return {
     list: merged.slice(start, start + pageSize),
     total: responses.reduce((sum, item) => sum + Number(item.data.total || 0), 0)
   }
+}
+
+const compareCompositeOrders = (left, right) => {
+  const direction = sortState.sortOrder === 'asc' ? 1 : -1
+  const field = sortState.sortBy || 'createdAt'
+  const leftValue = left?.[field]
+  const rightValue = right?.[field]
+  if (field === 'totalPrice' || field === 'quantity' || field === 'id') {
+    return direction * (Number(leftValue || 0) - Number(rightValue || 0))
+  }
+  return direction * String(leftValue || '').localeCompare(String(rightValue || ''))
 }
 
 // 复合状态页签通过按需扩容抓取，优先保证分页结果正确，再考虑后端是否补复合筛选接口。
@@ -428,6 +444,12 @@ const handleTabChange = (tabKey) => {
   searchForm.status = ''
   pagination.page = 1
   syncRouteQuery()
+  fetchOrderList()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(sortState, sortPayload)
+  pagination.page = 1
   fetchOrderList()
 }
 
