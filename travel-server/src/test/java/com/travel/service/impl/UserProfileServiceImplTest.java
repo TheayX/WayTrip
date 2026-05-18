@@ -150,6 +150,28 @@ class UserProfileServiceImplTest {
     }
 
     @Test
+    void getAdminUsers_acceptsExtendedFilters() {
+        Page<User> page = new Page<>(1, 10);
+        page.setRecords(List.of());
+        page.setTotal(0L);
+        when(userMapper.selectPage(any(Page.class), any())).thenReturn(page);
+
+        AdminUserListRequest request = new AdminUserListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+        request.setNickname("用户");
+        request.setPhone("138");
+        request.setIsDeleted(1);
+        request.setStartDate(LocalDate.of(2026, 1, 1));
+        request.setEndDate(LocalDate.of(2026, 1, 31));
+
+        AdminUserListResponse response = userService.getAdminUsers(request);
+
+        assertEquals(0L, response.getTotal());
+        verify(userMapper).selectPage(any(Page.class), any());
+    }
+
+    @Test
     void getAdminUserDetail_returnsAggregatedDetailAndRecentOrders() {
         User user = buildUser(1L, "用户A");
         user.setPreferences("自然风光,历史文化");

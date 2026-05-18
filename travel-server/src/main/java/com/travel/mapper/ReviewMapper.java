@@ -32,7 +32,11 @@ public interface ReviewMapper extends BaseMapper<Review> {
      */
     IPage<Review> selectAdminReviewPage(Page<Review> page,
                                         @Param("nickname") String nickname,
-                                        @Param("spotName") String spotName);
+                                        @Param("spotName") String spotName,
+                                        @Param("minScore") Integer minScore,
+                                        @Param("maxScore") Integer maxScore,
+                                        @Param("startDate") String startDate,
+                                        @Param("endDate") String endDate);
 
     /**
      * 分页查询口碑流。

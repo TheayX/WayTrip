@@ -75,6 +75,18 @@
         <if test="spotName != null and spotName != ''">
             AND s.name LIKE CONCAT('%', #{spotName}, '%')
         </if>
+        <if test="minScore != null">
+            AND r.score <![CDATA[>=]]> #{minScore}
+        </if>
+        <if test="maxScore != null">
+            AND r.score <![CDATA[<=]]> #{maxScore}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND r.created_at <![CDATA[>=]]> CONCAT(#{startDate}, ' 00:00:00')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND r.created_at <![CDATA[<=]]> CONCAT(#{endDate}, ' 23:59:59')
+        </if>
         ORDER BY r.updated_at DESC, r.created_at DESC
     </select>
 

@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +50,23 @@ public class UserProfileServiceImpl implements UserProfileService {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
 
         if (StringUtils.hasText(request.getNickname())) {
-            wrapper.like(User::getNickname, request.getNickname());
+            wrapper.like(User::getNickname, request.getNickname().trim());
+        }
+
+        if (StringUtils.hasText(request.getPhone())) {
+            wrapper.like(User::getPhone, request.getPhone().trim());
+        }
+
+        if (request.getIsDeleted() != null) {
+            wrapper.eq(User::getIsDeleted, request.getIsDeleted());
+        }
+
+        if (request.getStartDate() != null) {
+            wrapper.ge(User::getCreatedAt, request.getStartDate().atStartOfDay());
+        }
+
+        if (request.getEndDate() != null) {
+            wrapper.le(User::getCreatedAt, buildEndDateTime(request.getEndDate()));
         }
 
         wrapper.orderByDesc(User::getCreatedAt);
@@ -311,6 +328,10 @@ public class UserProfileServiceImpl implements UserProfileService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private LocalDateTime buildEndDateTime(LocalDate date) {
+        return date.atTime(23, 59, 59);
     }
 
     // 内部转换方法

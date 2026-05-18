@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
+import com.travel.dto.review.request.AdminReviewListRequest;
 import com.travel.dto.review.request.ReviewRequest;
 import com.travel.dto.review.response.ReviewResponse;
 import com.travel.dto.review.stats.SpotReviewStats;
@@ -222,9 +223,9 @@ class ReviewServiceImplTest {
         page.setRecords(java.util.List.of(adminReview));
         page.setTotal(1L);
 
-        when(reviewMapper.selectAdminReviewPage(any(), any(), any())).thenReturn(page);
+        when(reviewMapper.selectAdminReviewPage(any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
 
-        var request = new com.travel.dto.review.request.AdminReviewListRequest();
+        var request = new AdminReviewListRequest();
         request.setPage(1);
         request.setPageSize(10);
 
@@ -232,6 +233,29 @@ class ReviewServiceImplTest {
 
         assertEquals("西湖", result.getList().get(0).getSpotName());
         assertEquals("/uploads/spot/xihu.jpg", result.getList().get(0).getCoverImageUrl());
+    }
+
+    @Test
+    void getAdminReviews_acceptsScoreAndDateFilters() {
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Review> page =
+            new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 10);
+        page.setRecords(java.util.List.of());
+        page.setTotal(0L);
+
+        when(reviewMapper.selectAdminReviewPage(any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
+
+        AdminReviewListRequest request = new AdminReviewListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+        request.setMinScore(1);
+        request.setMaxScore(2);
+        request.setStartDate(java.time.LocalDate.of(2026, 1, 1));
+        request.setEndDate(java.time.LocalDate.of(2026, 1, 31));
+
+        var result = reviewService.getAdminReviews(request);
+
+        assertEquals(0L, result.getTotal());
+        verify(reviewMapper).selectAdminReviewPage(any(), any(), any(), any(), any(), any(), any());
     }
 
     /**

@@ -165,7 +165,15 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public PageResult<ReviewResponse> getAdminReviews(AdminReviewListRequest request) {
         Page<Review> pageObj = new Page<>(request.getPage(), request.getPageSize());
-        pageObj = (Page<Review>) reviewMapper.selectAdminReviewPage(pageObj, request.getNickname(), request.getSpotName());
+        pageObj = (Page<Review>) reviewMapper.selectAdminReviewPage(
+            pageObj,
+            request.getNickname(),
+            request.getSpotName(),
+            request.getMinScore(),
+            request.getMaxScore(),
+            request.getStartDate() != null ? request.getStartDate().toString() : null,
+            request.getEndDate() != null ? request.getEndDate().toString() : null
+        );
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
             .map(review -> convertToResponse(review, true))
