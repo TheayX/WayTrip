@@ -101,8 +101,6 @@ class AdminUserInsightServiceImplTest {
         user.setCreatedAt(LocalDateTime.now().minusDays(3));
         when(userMapper.selectBatchIds(any())).thenReturn(List.of(user));
 
-        when(spotTreeSupport.findCategoryAndChildrenIds(any())).thenReturn(java.util.Collections.emptySet());
-
         AdminUserPreferenceListRequest request = new AdminUserPreferenceListRequest();
         request.setPage(1);
         request.setPageSize(10);
@@ -198,6 +196,25 @@ class AdminUserInsightServiceImplTest {
         PageResult<AdminUserViewListItem> result = service.getViewList(request);
 
         assertEquals("已清除用户", result.getList().get(0).getNickname());
+    }
+
+    @Test
+    void getViewList_acceptsDurationRange() {
+        Page<UserSpotView> page = new Page<>(1, 10);
+        page.setRecords(List.of());
+        page.setTotal(0L);
+        when(userSpotViewMapper.selectPage(any(Page.class), any())).thenReturn(page);
+
+        AdminUserViewListRequest request = new AdminUserViewListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+        request.setMinDuration(60);
+        request.setMaxDuration(180);
+
+        PageResult<AdminUserViewListItem> result = service.getViewList(request);
+
+        assertEquals(0L, result.getTotal());
+        verify(userSpotViewMapper).selectPage(any(Page.class), any());
     }
 }
 

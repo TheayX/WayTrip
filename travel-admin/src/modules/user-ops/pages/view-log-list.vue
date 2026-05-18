@@ -102,6 +102,27 @@
                 @change="handleSearch"
               />
             </el-form-item>
+            <el-form-item label="停留时长" class="filter-item advanced-filter-item duration-filter-item">
+              <div class="duration-range-block">
+                <div class="duration-range-summary">
+                  <span class="duration-range-value">{{ durationRangeText }}</span>
+                  <el-button link type="primary" class="duration-reset-btn" @click="resetDurationRange">恢复默认</el-button>
+                </div>
+                <el-slider
+                  v-model="durationRange"
+                  range
+                  :min="DURATION_MIN"
+                  :max="DURATION_MAX"
+                  :step="5"
+                  :marks="durationMarks"
+                  :format-tooltip="formatDurationTooltip"
+                  range-start-label="最短停留时长"
+                  range-end-label="最长停留时长"
+                  class="duration-slider"
+                  @change="handleSearch"
+                />
+              </div>
+            </el-form-item>
           </div>
         </el-collapse-transition>
       </el-form>
@@ -177,11 +198,15 @@ import { isDeactivatedUserDisplay, isInvalidSpotDisplay, resolveSpotDisplayName,
 const router = useRouter()
 const route = useRoute()
 const skipNextRouteLoad = ref(false)
+const DURATION_MIN = 0
+const DURATION_MAX = 420
+const DEFAULT_DURATION_RANGE = [DURATION_MIN, DURATION_MAX]
 
 // 列表状态
 const loading = ref(false)
 const tableData = ref([])
 const dateRange = ref([])
+const durationRange = ref([...DEFAULT_DURATION_RANGE])
 const errorMessage = ref('')
 const showAdvanced = ref(false)
 
@@ -220,6 +245,24 @@ const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
 const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
 const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
 const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
+const durationMarks = {
+  0: '0秒',
+  60: '1分钟',
+  180: '3分钟',
+  300: '5分钟',
+  420: '7分钟'
+}
+const isDefaultDurationRange = computed(() => {
+  return durationRange.value[0] === DEFAULT_DURATION_RANGE[0] && durationRange.value[1] === DEFAULT_DURATION_RANGE[1]
+})
+const durationRangeText = computed(() => {
+  if (isDefaultDurationRange.value) {
+    return '全部时长'
+  }
+  return `${durationRange.value[0]} 秒 - ${durationRange.value[1]} 秒`
+})
+
+const formatDurationTooltip = (value) => `${value} 秒`
 
 // 获取浏览列表
 const fetchViewList = async () => {
@@ -230,6 +273,10 @@ const fetchViewList = async () => {
       ...searchForm,
       page: pagination.page,
       pageSize: pagination.pageSize
+    }
+    if (!isDefaultDurationRange.value) {
+      params.minDuration = durationRange.value[0]
+      params.maxDuration = durationRange.value[1]
     }
     if (dateRange.value?.length === 2) {
       params.startDate = dateRange.value[0]
@@ -260,6 +307,12 @@ const handleReset = () => {
   searchForm.spotName = ''
   searchForm.source = ''
   dateRange.value = []
+  durationRange.value = [...DEFAULT_DURATION_RANGE]
+  handleSearch()
+}
+
+const resetDurationRange = () => {
+  durationRange.value = [...DEFAULT_DURATION_RANGE]
   handleSearch()
 }
 
@@ -269,6 +322,10 @@ const syncRouteQuery = () => {
   if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
   if (searchForm.spotName) nextQuery.spotName = searchForm.spotName
   if (searchForm.source) nextQuery.source = searchForm.source
+  if (!isDefaultDurationRange.value) {
+    nextQuery.minDuration = String(durationRange.value[0])
+    nextQuery.maxDuration = String(durationRange.value[1])
+  }
   if (dateRange.value?.length === 2) {
     nextQuery.startDate = dateRange.value[0]
     nextQuery.endDate = dateRange.value[1]
@@ -277,6 +334,8 @@ const syncRouteQuery = () => {
   if (typeof route.query.nickname === 'string' && route.query.nickname) currentQuery.nickname = route.query.nickname
   if (typeof route.query.spotName === 'string' && route.query.spotName) currentQuery.spotName = route.query.spotName
   if (typeof route.query.source === 'string' && route.query.source) currentQuery.source = route.query.source
+  if (typeof route.query.minDuration === 'string' && route.query.minDuration) currentQuery.minDuration = route.query.minDuration
+  if (typeof route.query.maxDuration === 'string' && route.query.maxDuration) currentQuery.maxDuration = route.query.maxDuration
   if (typeof route.query.startDate === 'string' && route.query.startDate) currentQuery.startDate = route.query.startDate
   if (typeof route.query.endDate === 'string' && route.query.endDate) currentQuery.endDate = route.query.endDate
   const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
@@ -291,8 +350,20 @@ const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
   searchForm.source = typeof route.query.source === 'string' ? route.query.source : ''
+  const minDuration = typeof route.query.minDuration === 'string' ? Number(route.query.minDuration) : null
+  const maxDuration = typeof route.query.maxDuration === 'string' ? Number(route.query.maxDuration) : null
+  if (Number.isInteger(minDuration) && Number.isInteger(maxDuration)) {
+    durationRange.value = [
+      Math.max(DURATION_MIN, minDuration),
+      Math.min(DURATION_MAX, maxDuration)
+    ]
+    showAdvanced.value = true
+  } else {
+    durationRange.value = [...DEFAULT_DURATION_RANGE]
+  }
   if (typeof route.query.startDate === 'string' && typeof route.query.endDate === 'string') {
     dateRange.value = [route.query.startDate, route.query.endDate]
+    showAdvanced.value = true
   } else {
     dateRange.value = []
   }
@@ -376,6 +447,48 @@ watch(
 
 .advanced-filter-item {
   margin-bottom: 0;
+}
+
+.duration-filter-item {
+  width: min(420px, 100%);
+}
+
+.duration-range-block {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 14px 6px;
+  border: 1px solid var(--wt-border-default);
+  border-radius: 12px;
+  background: var(--wt-surface-elevated);
+}
+
+.duration-range-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.duration-range-value {
+  color: var(--wt-text-primary);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.duration-reset-btn {
+  padding: 0;
+  min-height: auto;
+}
+
+.duration-slider {
+  margin-inline: 4px;
+}
+
+:deep(.duration-slider .el-slider__marks-text) {
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--wt-text-secondary);
 }
 
 </style>

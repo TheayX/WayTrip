@@ -223,6 +223,12 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         if (request.getSource() != null && !request.getSource().isBlank()) {
             wrapper.eq(UserSpotView::getViewSource, request.getSource().trim());
         }
+        if (request.getMinDuration() != null) {
+            wrapper.ge(UserSpotView::getViewDuration, request.getMinDuration());
+        }
+        if (request.getMaxDuration() != null) {
+            wrapper.le(UserSpotView::getViewDuration, request.getMaxDuration());
+        }
         if (request.getStartDate() != null) {
             wrapper.ge(UserSpotView::getCreatedAt, request.getStartDate().atStartOfDay());
         }
