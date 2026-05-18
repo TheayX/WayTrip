@@ -103,24 +103,30 @@
               />
             </el-form-item>
             <el-form-item label="停留时长" class="filter-item advanced-filter-item duration-filter-item">
-              <div class="duration-range-block">
-                <div class="duration-range-summary">
-                  <span class="duration-range-value">{{ durationRangeText }}</span>
-                  <el-button link type="primary" class="duration-reset-btn" @click="resetDurationRange">恢复默认</el-button>
-                </div>
+              <div class="duration-inline-field">
                 <el-slider
                   v-model="durationRange"
                   range
                   :min="DURATION_MIN"
                   :max="DURATION_MAX"
                   :step="5"
-                  :marks="durationMarks"
                   :format-tooltip="formatDurationTooltip"
+                  tooltip-class="duration-slider-tooltip"
                   range-start-label="最短停留时长"
                   range-end-label="最长停留时长"
-                  class="duration-slider"
+                  class="duration-slider duration-slider-compact"
                   @change="handleSearch"
                 />
+                <span class="duration-inline-value">{{ durationRangeText }}</span>
+                <el-button
+                  v-if="!isDefaultDurationRange"
+                  link
+                  type="primary"
+                  class="duration-reset-btn"
+                  @click="resetDurationRange"
+                >
+                  重置
+                </el-button>
               </div>
             </el-form-item>
           </div>
@@ -245,13 +251,6 @@ const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
 const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
 const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
 const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
-const durationMarks = {
-  0: '0秒',
-  60: '1分钟',
-  180: '3分钟',
-  300: '5分钟',
-  420: '7分钟'
-}
 const isDefaultDurationRange = computed(() => {
   return durationRange.value[0] === DEFAULT_DURATION_RANGE[0] && durationRange.value[1] === DEFAULT_DURATION_RANGE[1]
 })
@@ -259,7 +258,7 @@ const durationRangeText = computed(() => {
   if (isDefaultDurationRange.value) {
     return '全部时长'
   }
-  return `${durationRange.value[0]} 秒 - ${durationRange.value[1]} 秒`
+  return `${durationRange.value[0]}-${durationRange.value[1]}秒`
 })
 
 const formatDurationTooltip = (value) => `${value} 秒`
@@ -454,45 +453,66 @@ watch(
 }
 
 .duration-filter-item {
-  width: min(420px, 100%);
+  flex: 0 0 auto;
+  width: 360px;
+  max-width: 100%;
 }
 
-.duration-range-block {
-  width: 100%;
-  min-width: 0;
-  padding: 10px 14px 6px;
-  border: 1px solid var(--wt-border-default);
-  border-radius: 12px;
-  background: var(--wt-surface-elevated);
-}
-
-.duration-range-summary {
+.duration-inline-field {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 6px;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 0 12px;
+  height: 32px;
+  border: 1px solid var(--wt-border-default);
+  border-radius: 10px;
+  background: var(--wt-surface-elevated);
+  box-shadow: var(--wt-shadow-soft);
 }
 
-.duration-range-value {
+.duration-inline-value {
+  flex: 0 0 auto;
+  white-space: nowrap;
   color: var(--wt-text-primary);
   font-weight: 600;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .duration-reset-btn {
   padding: 0;
   min-height: auto;
+  font-size: 12px;
 }
 
 .duration-slider {
-  margin-inline: 4px;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
 }
 
-:deep(.duration-slider .el-slider__marks-text) {
-  white-space: nowrap;
-  font-size: 12px;
-  color: var(--wt-text-secondary);
+:deep(.duration-slider-compact .el-slider__runway) {
+  margin: 0;
+}
+
+:deep(.duration-slider-compact .el-slider__button) {
+  width: 12px;
+  height: 12px;
+}
+
+:global(.duration-slider-tooltip) {
+  color: var(--wt-text-primary) !important;
+  background: var(--wt-surface-elevated) !important;
+  border: 1px solid var(--wt-border-default) !important;
+  box-shadow: var(--wt-shadow-float) !important;
+}
+
+@media (max-width: 960px) {
+  .duration-filter-item {
+    width: 100%;
+  }
 }
 
 </style>
