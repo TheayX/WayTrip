@@ -137,7 +137,7 @@
         </el-table-column>
         <el-table-column prop="orderCount" label="订单数" width="100" align="center" header-align="center" />
         <el-table-column prop="favoriteCount" label="收藏数" width="100" align="center" header-align="center" />
-        <el-table-column prop="reviewCount" label="评价人数" width="100" align="center" header-align="center" />
+        <el-table-column prop="reviewCount" label="评价数" width="100" align="center" header-align="center" />
         <el-table-column prop="createdAt" label="注册时间" width="170" align="center" header-align="center" />
         <el-table-column prop="updatedAt" label="修改时间" width="170" align="center" header-align="center" />
         <el-table-column label="操作" width="260" fixed="right" align="left" header-align="center">
@@ -201,7 +201,7 @@
         <el-descriptions-item label="修改时间" :span="2">{{ currentUser.updatedAt }}</el-descriptions-item>
         <el-descriptions-item label="订单数">{{ currentUser.orderCount }}</el-descriptions-item>
         <el-descriptions-item label="收藏数">{{ currentUser.favoriteCount }}</el-descriptions-item>
-        <el-descriptions-item label="评价人数">{{ currentUser.reviewCount }}</el-descriptions-item>
+        <el-descriptions-item label="评价数">{{ currentUser.reviewCount }}</el-descriptions-item>
         <el-descriptions-item label="浏览数">{{ currentUser.viewCount }}</el-descriptions-item>
       </el-descriptions>
 
