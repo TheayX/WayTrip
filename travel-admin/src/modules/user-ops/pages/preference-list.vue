@@ -74,7 +74,7 @@
       </div>
 
       <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table" @sort-change="handleSortChange">
-        <el-table-column prop="userId" label="用户ID" width="104" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
+        <el-table-column prop="userId" label="用户ID" width="104" align="center" header-align="center" header-class-name="preference-user-id-header" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="用户昵称" min-width="140">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="isDeactivatedUser(row)" @click="handleOpenUser(row)">{{ getDisplayNickname(row) }}</el-button>
@@ -309,6 +309,14 @@ watch(
 
 .preference-page {
   @include userOps.page-shell;
+}
+
+.preference-page :deep(th.preference-user-id-header .cell) {
+  justify-content: center;
+}
+
+.preference-page :deep(th.preference-user-id-header.is-sortable .cell) {
+  transform: translateX(0);
 }
 
 .tag-list {

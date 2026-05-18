@@ -114,7 +114,7 @@
 
       <!-- 评价列表 -->
       <el-table v-else :data="reviewList" v-loading="loading" class="review-table borderless-table" @sort-change="handleSortChange">
-        <el-table-column label="用户" min-width="180" header-align="center">
+        <el-table-column label="用户" min-width="180" align="center" header-align="center" header-class-name="review-user-header" class-name="review-user-column">
           <template #default="{ row }">
             <div class="user-cell">
               <el-avatar :src="row.avatar" :size="36">{{ getDisplayNickname(row)?.[0] }}</el-avatar>
@@ -146,7 +146,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="score" label="评分" width="108" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
+        <el-table-column prop="score" label="评分" width="108" align="center" header-align="center" header-class-name="review-score-header" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">
             <span class="score-text">★ {{ row.score }}</span>
           </template>
@@ -390,6 +390,29 @@ watch(
   color: var(--wt-accent-amber-text);
   font-weight: 700;
   font-size: 14px;
+}
+
+.review-page :deep(th.review-user-header .cell) {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.review-page :deep(td.review-user-column .cell) {
+  display: flex;
+  justify-content: center;
+}
+
+.review-page :deep(th.review-score-header .cell) {
+  justify-content: center;
+}
+
+.review-page :deep(th.review-score-header.is-sortable .cell) {
+  transform: translateX(0);
+}
+
+.user-cell {
+  justify-content: center;
 }
 
 </style>

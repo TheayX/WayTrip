@@ -111,7 +111,7 @@
       <!-- 用户列表 -->
       <el-table v-else :data="userList" v-loading="loading" class="user-table borderless-table" @sort-change="handleSortChange">
         <el-table-column prop="id" label="ID" width="88" align="center" header-align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
-        <el-table-column label="头像" width="80" header-align="center">
+        <el-table-column label="头像" width="80" align="center" header-align="center" header-class-name="avatar-header" class-name="avatar-column">
           <template #default="{ row }">
             <el-avatar :src="row.avatar" :size="40">{{ row.nickname?.charAt(0) }}</el-avatar>
           </template>
@@ -622,6 +622,17 @@ watch(
 
 .nickname-link {
   font-weight: 600;
+}
+
+.user-page :deep(th.avatar-header .cell) {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.user-page :deep(td.avatar-column .cell) {
+  display: flex;
+  justify-content: center;
 }
 
 @media (max-width: 900px) {
