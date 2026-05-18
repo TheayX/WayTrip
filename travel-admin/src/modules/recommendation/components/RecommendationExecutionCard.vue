@@ -68,11 +68,6 @@
           <div class="execution-metric-value">{{ config.cache.similarityTTLHours }} 小时</div>
           <div class="execution-metric-desc">景点相似度矩阵缓存时长</div>
         </div>
-        <div class="execution-metric feature-panel">
-          <div class="execution-metric-label">当前矩阵覆盖</div>
-          <div class="execution-metric-value">{{ status.totalSpots ?? '-' }} 个景点</div>
-          <div class="execution-metric-desc">最近一次离线矩阵计算涉及的景点数量</div>
-        </div>
       </div>
 
       <div class="execution-notes">
