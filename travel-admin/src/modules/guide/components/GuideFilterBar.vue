@@ -104,18 +104,18 @@ const showAdvanced = ref(false)
 
 <style lang="scss" scoped>
 .filter-input {
-  width: 240px;
+  width: 200px;
 }
 
 .filter-select {
-  width: 200px;
+  width: 100px;
 }
 
 .status-select {
   width: 100px; }
 
 .date-picker {
-  width: 280px;
+  width: 140px;
 }
 
 .toggle-btn {
@@ -136,9 +136,16 @@ const showAdvanced = ref(false)
 
   .filter-input,
   .filter-select,
-  .status-select,
-  .date-picker {
+  .status-select {
     width: 100%;
   }
+
+  .date-picker {
+    width: 140px;
+  }
+}
+
+:deep(.date-picker.el-date-editor) {
+  width: 240px !important;
 }
 </style>

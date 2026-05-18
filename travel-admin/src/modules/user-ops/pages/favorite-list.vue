@@ -41,7 +41,7 @@
                 v-model="searchForm.nickname"
                 placeholder="请输入用户昵称"
                 clearable
-                class="form-w-180"
+                class="form-w-168"
                 @keyup.enter="handleSearch"
                 @clear="handleSearch"
               />
@@ -51,7 +51,7 @@
                 v-model="searchForm.spotName"
                 placeholder="请输入景点名称"
                 clearable
-                class="form-w-180"
+                class="form-w-168"
                 @keyup.enter="handleSearch"
                 @clear="handleSearch"
               />
@@ -78,7 +78,7 @@
                 start-placeholder="开始日期"
                 end-placeholder="结束日期"
                 value-format="YYYY-MM-DD"
-                class="form-w-240"
+                class="tight-date-picker"
                 @change="handleSearch"
               />
             </el-form-item>
@@ -307,6 +307,10 @@ watch(
 
 .advanced-filter-item {
   margin-bottom: 0;
+}
+
+:deep(.tight-date-picker.el-date-editor) {
+  width: 240px !important;
 }
 
 </style>

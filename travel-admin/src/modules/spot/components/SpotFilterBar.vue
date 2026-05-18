@@ -123,11 +123,11 @@ const emitFilterChange = () => emit('filter-change')
 }
 
 .filter-input {
-  width: 260px;
+  width: 200px;
 }
 
 .filter-cascader {
-  width: 192px;
+  width: 168px;
 }
 
 .status-select {
@@ -140,9 +140,16 @@ const emitFilterChange = () => emit('filter-change')
 
 @media (max-width: 960px) {
   .filter-input,
-  .filter-cascader,
   .status-select {
     width: 100%;
   }
+
+  .filter-cascader {
+    width: 180px;
+  }
+}
+
+:deep(.filter-cascader.el-cascader) {
+  width: 180px !important;
 }
 </style>

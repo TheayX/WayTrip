@@ -3,32 +3,12 @@
   <div class="search-form admin-filter-bar">
     <el-form :model="searchForm" @submit.prevent>
 
-      <div class="filter-row">
+        <div class="filter-row">
         <div class="filter-main">
           <el-form-item label="订单号" class="filter-item">
             <el-input
               v-model="searchForm.orderNo"
               placeholder="请输入订单号"
-              clearable
-              class="filter-input"
-              @keyup.enter="emit('search')"
-              @clear="emit('search')"
-            />
-          </el-form-item>
-          <el-form-item label="景点名称" class="filter-item">
-            <el-input
-              v-model="searchForm.spotName"
-              placeholder="请输入景点名称"
-              clearable
-              class="filter-input"
-              @keyup.enter="emit('search')"
-              @clear="emit('search')"
-            />
-          </el-form-item>
-          <el-form-item label="用户昵称" class="filter-item">
-            <el-input
-              v-model="searchForm.userNickname"
-              placeholder="请输入用户昵称"
               clearable
               class="filter-input"
               @keyup.enter="emit('search')"
@@ -75,6 +55,26 @@
       <!-- 低频条件默认折叠，避免页面顶部持续过厚 -->
       <el-collapse-transition>
         <div v-show="showAdvanced" class="advanced-panel order-advanced-panel">
+          <el-form-item label="景点名称" class="filter-item advanced-filter-item">
+            <el-input
+              v-model="searchForm.spotName"
+              placeholder="请输入景点名称"
+              clearable
+              class="filter-input"
+              @keyup.enter="emit('search')"
+              @clear="emit('search')"
+            />
+          </el-form-item>
+          <el-form-item label="用户昵称" class="filter-item advanced-filter-item">
+            <el-input
+              v-model="searchForm.userNickname"
+              placeholder="请输入用户昵称"
+              clearable
+              class="filter-input"
+              @keyup.enter="emit('search')"
+              @clear="emit('search')"
+            />
+          </el-form-item>
           <el-form-item label="下单时间" class="filter-item date-filter-item">
             <el-date-picker
               :model-value="dateRange"
@@ -134,7 +134,7 @@ const handleVisitDateChange = (value) => {
 
 <style lang="scss" scoped>
 .filter-input {
-  width: 220px;
+  width: 200px;
 }
 
 .scope-alert {
@@ -148,7 +148,7 @@ const handleVisitDateChange = (value) => {
 }
 
 .date-picker {
-  width: 320px;
+  width: 240px;
 }
 
 .toggle-btn {
@@ -167,6 +167,10 @@ const handleVisitDateChange = (value) => {
   flex: 0 0 auto;
 }
 
+.advanced-filter-item {
+  margin-bottom: 0;
+}
+
 @media (max-width: 960px) {
 
   .filter-input,
@@ -174,5 +178,9 @@ const handleVisitDateChange = (value) => {
   .date-picker {
     width: 100%;
   }
+}
+
+:deep(.date-picker.el-date-editor) {
+  width: 240px !important;
 }
 </style>

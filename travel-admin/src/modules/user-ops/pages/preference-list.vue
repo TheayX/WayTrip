@@ -41,7 +41,7 @@
             v-model="searchForm.nickname"
             placeholder="请输入用户昵称"
             clearable
-            class="form-w-180"
+            class="form-w-168"
             @keyup.enter="handleSearch"
             @clear="handleSearch"
           />
@@ -53,7 +53,7 @@
             :props="categoryCascaderProps"
             clearable
             placeholder="全部"
-            class="form-w-220"
+            class="form-w-180"
             @change="handleSearch"
           />
         </el-form-item>

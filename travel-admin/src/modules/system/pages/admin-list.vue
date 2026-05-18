@@ -26,7 +26,7 @@
               v-model="queryParams.keyword"
               placeholder="请输入用户名或姓名"
               clearable
-              class="form-w-220"
+              class="form-w-200"
               @keyup.enter="handleSearch"
               @clear="handleSearch"
           />
