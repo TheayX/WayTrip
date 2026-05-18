@@ -40,6 +40,10 @@
               <el-option label="未发布" value="0" />
             </el-select>
           </el-form-item>
+          <el-button type="primary" link class="toggle-btn" @click="showAdvanced = !showAdvanced">
+            <el-icon><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
+            {{ showAdvanced ? '收起条件' : '更多条件' }}
+          </el-button>
         </div>
 
         <div class="filter-actions">
@@ -47,11 +51,44 @@
           <el-button @click="emit('reset')">重置</el-button>
         </div>
       </div>
+
+      <!-- 时间筛选属于复盘分析条件，折叠后优先保证首行检索效率。 -->
+      <el-collapse-transition>
+        <div v-show="showAdvanced" class="advanced-panel guide-advanced-panel">
+          <el-form-item label="创建时间" class="filter-item advanced-filter-item">
+            <el-date-picker
+              v-model="uiFilters.createdDateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+              class="date-picker"
+              @change="emit('search')"
+            />
+          </el-form-item>
+          <el-form-item label="更新时间" class="filter-item advanced-filter-item">
+            <el-date-picker
+              v-model="uiFilters.updatedDateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+              class="date-picker"
+              @change="emit('search')"
+            />
+          </el-form-item>
+        </div>
+      </el-collapse-transition>
     </el-form>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { CaretTop, Filter } from '@element-plus/icons-vue'
+
 // 组件只维护输入控件，筛选字段解释与请求节奏交给父页面统一控制。
 defineProps({
   queryParams: { type: Object, required: true },
@@ -60,6 +97,7 @@ defineProps({
 })
 
 const emit = defineEmits(['search', 'reset', 'filter-change'])
+const showAdvanced = ref(false)
 
 // 过滤条件变更和显式搜索分开上抛，便于父层区分即时筛选与手动触发查询。
 </script>
@@ -75,11 +113,30 @@ const emit = defineEmits(['search', 'reset', 'filter-change'])
 
 .status-select { width: 140px; }
 
+.date-picker {
+  width: 280px;
+}
+
+.toggle-btn {
+  gap: 4px;
+}
+
+.guide-advanced-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.advanced-filter-item {
+  margin-bottom: 0;
+}
+
 @media (max-width: 960px) {
 
   .filter-input,
   .filter-select,
-  .status-select {
+  .status-select,
+  .date-picker {
     width: 100%;
   }
 }

@@ -64,6 +64,18 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         if (request.getPublished() != null) {
             wrapper.eq(Guide::getIsPublished, request.getPublished());
         }
+        if (request.getCreatedStartDate() != null) {
+            wrapper.ge(Guide::getCreatedAt, request.getCreatedStartDate().atStartOfDay());
+        }
+        if (request.getCreatedEndDate() != null) {
+            wrapper.le(Guide::getCreatedAt, request.getCreatedEndDate().atTime(23, 59, 59));
+        }
+        if (request.getUpdatedStartDate() != null) {
+            wrapper.ge(Guide::getUpdatedAt, request.getUpdatedStartDate().atStartOfDay());
+        }
+        if (request.getUpdatedEndDate() != null) {
+            wrapper.le(Guide::getUpdatedAt, request.getUpdatedEndDate().atTime(23, 59, 59));
+        }
         wrapper.orderByAsc(Guide::getId);
 
         Page<Guide> result = guideMapper.selectPage(page, wrapper);

@@ -258,11 +258,17 @@ const queryParams = reactive({
   pageSize: 10,
   keyword: '',
   category: '',
+  createdStartDate: '',
+  createdEndDate: '',
+  updatedStartDate: '',
+  updatedEndDate: '',
   published: null
 })
 
 const uiFilters = reactive({
-  published: ''
+  published: '',
+  createdDateRange: [],
+  updatedDateRange: []
 })
 
 const form = reactive({
@@ -344,6 +350,10 @@ const handleSearch = () => {
   queryParams.published = uiFilters.published === '' || uiFilters.published == null
     ? null
     : Number(uiFilters.published)
+  queryParams.createdStartDate = uiFilters.createdDateRange?.length === 2 ? uiFilters.createdDateRange[0] : ''
+  queryParams.createdEndDate = uiFilters.createdDateRange?.length === 2 ? uiFilters.createdDateRange[1] : ''
+  queryParams.updatedStartDate = uiFilters.updatedDateRange?.length === 2 ? uiFilters.updatedDateRange[0] : ''
+  queryParams.updatedEndDate = uiFilters.updatedDateRange?.length === 2 ? uiFilters.updatedDateRange[1] : ''
   syncRouteQuery()
   loadData()
 }
@@ -355,8 +365,14 @@ const handleFilterChange = () => {
 const handleReset = () => {
   queryParams.keyword = ''
   queryParams.category = ''
+  queryParams.createdStartDate = ''
+  queryParams.createdEndDate = ''
+  queryParams.updatedStartDate = ''
+  queryParams.updatedEndDate = ''
   queryParams.published = null
   uiFilters.published = ''
+  uiFilters.createdDateRange = []
+  uiFilters.updatedDateRange = []
   handleSearch()
 }
 
@@ -365,12 +381,44 @@ const syncRouteQuery = (guideId = activeGuideId.value) => {
   if (queryParams.keyword) {
     nextQuery.keyword = queryParams.keyword
   }
+  if (queryParams.category) {
+    nextQuery.category = queryParams.category
+  }
+  if (queryParams.published != null) {
+    nextQuery.published = String(queryParams.published)
+  }
+  if (queryParams.createdStartDate && queryParams.createdEndDate) {
+    nextQuery.createdStartDate = queryParams.createdStartDate
+    nextQuery.createdEndDate = queryParams.createdEndDate
+  }
+  if (queryParams.updatedStartDate && queryParams.updatedEndDate) {
+    nextQuery.updatedStartDate = queryParams.updatedStartDate
+    nextQuery.updatedEndDate = queryParams.updatedEndDate
+  }
   if (guideId) {
     nextQuery.guideId = String(guideId)
   }
   const currentQuery = {}
   if (typeof route.query.keyword === 'string' && route.query.keyword) {
     currentQuery.keyword = route.query.keyword
+  }
+  if (typeof route.query.category === 'string' && route.query.category) {
+    currentQuery.category = route.query.category
+  }
+  if (typeof route.query.published === 'string' && route.query.published) {
+    currentQuery.published = route.query.published
+  }
+  if (typeof route.query.createdStartDate === 'string' && route.query.createdStartDate) {
+    currentQuery.createdStartDate = route.query.createdStartDate
+  }
+  if (typeof route.query.createdEndDate === 'string' && route.query.createdEndDate) {
+    currentQuery.createdEndDate = route.query.createdEndDate
+  }
+  if (typeof route.query.updatedStartDate === 'string' && route.query.updatedStartDate) {
+    currentQuery.updatedStartDate = route.query.updatedStartDate
+  }
+  if (typeof route.query.updatedEndDate === 'string' && route.query.updatedEndDate) {
+    currentQuery.updatedEndDate = route.query.updatedEndDate
   }
   if (typeof route.query.guideId === 'string' && route.query.guideId) {
     currentQuery.guideId = route.query.guideId
@@ -390,6 +438,19 @@ const normalizeRouteGuideId = (value) => {
 
 const applyRouteQuery = () => {
   queryParams.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
+  queryParams.category = typeof route.query.category === 'string' ? route.query.category : ''
+  queryParams.published = typeof route.query.published === 'string' ? Number(route.query.published) : null
+  queryParams.createdStartDate = typeof route.query.createdStartDate === 'string' ? route.query.createdStartDate : ''
+  queryParams.createdEndDate = typeof route.query.createdEndDate === 'string' ? route.query.createdEndDate : ''
+  queryParams.updatedStartDate = typeof route.query.updatedStartDate === 'string' ? route.query.updatedStartDate : ''
+  queryParams.updatedEndDate = typeof route.query.updatedEndDate === 'string' ? route.query.updatedEndDate : ''
+  uiFilters.published = queryParams.published == null ? '' : String(queryParams.published)
+  uiFilters.createdDateRange = queryParams.createdStartDate && queryParams.createdEndDate
+    ? [queryParams.createdStartDate, queryParams.createdEndDate]
+    : []
+  uiFilters.updatedDateRange = queryParams.updatedStartDate && queryParams.updatedEndDate
+    ? [queryParams.updatedStartDate, queryParams.updatedEndDate]
+    : []
   const nextGuideId = normalizeRouteGuideId(route.query.guideId)
   if (nextGuideId !== activeGuideId.value) {
     autoOpenedGuideId.value = null
