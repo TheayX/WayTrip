@@ -71,6 +71,18 @@
               @clear="emitFilterChange"
             />
           </el-form-item>
+          <el-form-item label="热度档位" class="filter-item">
+            <el-select
+              v-model="uiFilters.heatLevel"
+              placeholder="全部档位"
+              clearable
+              class="status-select"
+              @change="emitFilterChange"
+              @clear="emitFilterChange"
+            >
+              <el-option v-for="item in heatLevelOptions" :key="item.value" :label="item.label" :value="String(item.value)" />
+            </el-select>
+          </el-form-item>
 
         </div>
       </el-collapse-transition>
@@ -89,7 +101,8 @@ defineProps({
   regionCascaderOptions: { type: Array, required: true },
   categoryCascaderOptions: { type: Array, required: true },
   regionCascaderProps: { type: Object, required: true },
-  categoryCascaderProps: { type: Object, required: true }
+  categoryCascaderProps: { type: Object, required: true },
+  heatLevelOptions: { type: Array, required: true }
 })
 
 const emit = defineEmits(['search', 'reset', 'filter-change'])

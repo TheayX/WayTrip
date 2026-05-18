@@ -35,11 +35,13 @@
         :tab-label="getTabMeta(currentTab).label"
         :search-form="searchForm"
         :date-range="dateRange"
+        :visit-date-range="visitDateRange"
         :show-advanced="showAdvanced"
         @search="handleSearch"
         @reset="handleReset"
         @toggle-advanced="showAdvanced = !showAdvanced"
         @update:date-range="dateRange = $event"
+        @update:visit-date-range="visitDateRange = $event"
       />
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -157,8 +159,9 @@ const tabs = [
 
 const currentTab = ref('all')
 const showAdvanced = ref(false)
-const searchForm = reactive({ orderNo: '', spotName: '', status: '' })
+const searchForm = reactive({ orderNo: '', spotName: '', userNickname: '', status: '' })
 const dateRange = ref([])
+const visitDateRange = ref([])
 const loading = ref(false)
 const summaryLoading = ref(false)
 const detailLoading = ref(false)
@@ -190,6 +193,7 @@ const buildBaseParams = (page, pageSize) => {
   const params = {
     orderNo: searchForm.orderNo,
     spotName: searchForm.spotName,
+    userNickname: searchForm.userNickname,
     page,
     pageSize
   }
@@ -197,6 +201,10 @@ const buildBaseParams = (page, pageSize) => {
   if (dateRange.value?.length === 2) {
     params.startDate = dateRange.value[0]
     params.endDate = dateRange.value[1]
+  }
+  if (visitDateRange.value?.length === 2) {
+    params.visitStartDate = visitDateRange.value[0]
+    params.visitEndDate = visitDateRange.value[1]
   }
 
   return params
@@ -327,8 +335,19 @@ const syncRouteQuery = () => {
   if (searchForm.spotName) {
     nextQuery.spotName = searchForm.spotName
   }
+  if (searchForm.userNickname) {
+    nextQuery.userNickname = searchForm.userNickname
+  }
   if (searchForm.status) {
     nextQuery.status = searchForm.status
+  }
+  if (dateRange.value?.length === 2) {
+    nextQuery.startDate = dateRange.value[0]
+    nextQuery.endDate = dateRange.value[1]
+  }
+  if (visitDateRange.value?.length === 2) {
+    nextQuery.visitStartDate = visitDateRange.value[0]
+    nextQuery.visitEndDate = visitDateRange.value[1]
   }
   const currentQuery = {}
   if (typeof route.query.orderNo === 'string' && route.query.orderNo) {
@@ -337,8 +356,23 @@ const syncRouteQuery = () => {
   if (typeof route.query.spotName === 'string' && route.query.spotName) {
     currentQuery.spotName = route.query.spotName
   }
+  if (typeof route.query.userNickname === 'string' && route.query.userNickname) {
+    currentQuery.userNickname = route.query.userNickname
+  }
   if (typeof route.query.status === 'string' && route.query.status) {
     currentQuery.status = route.query.status
+  }
+  if (typeof route.query.startDate === 'string' && route.query.startDate) {
+    currentQuery.startDate = route.query.startDate
+  }
+  if (typeof route.query.endDate === 'string' && route.query.endDate) {
+    currentQuery.endDate = route.query.endDate
+  }
+  if (typeof route.query.visitStartDate === 'string' && route.query.visitStartDate) {
+    currentQuery.visitStartDate = route.query.visitStartDate
+  }
+  if (typeof route.query.visitEndDate === 'string' && route.query.visitEndDate) {
+    currentQuery.visitEndDate = route.query.visitEndDate
   }
   const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
   if (changed) {
@@ -351,7 +385,20 @@ const syncRouteQuery = () => {
 const applyRouteQuery = () => {
   searchForm.orderNo = typeof route.query.orderNo === 'string' ? route.query.orderNo : ''
   searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
+  searchForm.userNickname = typeof route.query.userNickname === 'string' ? route.query.userNickname : ''
   searchForm.status = typeof route.query.status === 'string' ? route.query.status : ''
+  if (typeof route.query.startDate === 'string' && typeof route.query.endDate === 'string') {
+    dateRange.value = [route.query.startDate, route.query.endDate]
+    showAdvanced.value = true
+  } else {
+    dateRange.value = []
+  }
+  if (typeof route.query.visitStartDate === 'string' && typeof route.query.visitEndDate === 'string') {
+    visitDateRange.value = [route.query.visitStartDate, route.query.visitEndDate]
+    showAdvanced.value = true
+  } else {
+    visitDateRange.value = []
+  }
 }
 
 const handleSearch = () => {
@@ -363,9 +410,12 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.orderNo = ''
   searchForm.spotName = ''
+  searchForm.userNickname = ''
   searchForm.status = ''
   dateRange.value = []
+  visitDateRange.value = []
   pagination.page = 1
+  syncRouteQuery()
   refreshDashboardData()
 }
 

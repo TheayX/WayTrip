@@ -26,6 +26,16 @@
             />
           </el-form-item>
           <el-form-item class="filter-item">
+            <el-input
+              v-model="searchForm.userNickname"
+              placeholder="搜索用户昵称"
+              clearable
+              class="filter-input"
+              @keyup.enter="emit('search')"
+              @clear="emit('search')"
+            />
+          </el-form-item>
+          <el-form-item class="filter-item">
             <el-select
               v-model="searchForm.status"
               placeholder="全部状态"
@@ -78,6 +88,19 @@
               @change="emit('search')"
             />
           </el-form-item>
+          <el-form-item label="游玩日期" class="filter-item date-filter-item">
+            <el-date-picker
+              :model-value="visitDateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+              class="date-picker"
+              @update:model-value="handleVisitDateChange"
+              @change="emit('search')"
+            />
+          </el-form-item>
         </div>
       </el-collapse-transition>
     </el-form>
@@ -93,14 +116,19 @@ defineProps({
   tabLabel: { type: String, required: true },
   searchForm: { type: Object, required: true },
   dateRange: { type: Array, required: true },
+  visitDateRange: { type: Array, required: true },
   showAdvanced: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['search', 'reset', 'toggle-advanced', 'update:date-range'])
+const emit = defineEmits(['search', 'reset', 'toggle-advanced', 'update:date-range', 'update:visit-date-range'])
 
 const handleDateChange = (value) => {
   // 日期组件清空时统一回传空数组，避免父层额外兼容 null。
   emit('update:date-range', value || [])
+}
+
+const handleVisitDateChange = (value) => {
+  emit('update:visit-date-range', value || [])
 }
 </script>
 

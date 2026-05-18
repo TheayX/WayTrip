@@ -12,5 +12,6 @@ public class AdminSpotListRequest {
     private String keyword;
     private Long regionId;
     private Long categoryId;
+    private Integer heatLevel;
     private Integer published; // 0-未发布, 1-已发布
 }

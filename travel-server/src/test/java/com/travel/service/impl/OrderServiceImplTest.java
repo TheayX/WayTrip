@@ -346,6 +346,30 @@ class OrderServiceImplTest {
         assertEquals("已清除用户", response.getList().get(0).getUserNickname());
     }
 
+    @Test
+    void getAdminOrders_acceptsUserAndVisitDateFilters() {
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Order> page =
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 10);
+        page.setRecords(List.of());
+        page.setTotal(0);
+
+        when(userMapper.selectList(any())).thenReturn(List.of(user));
+        when(orderMapper.selectPage(any(), any())).thenReturn(page);
+
+        AdminOrderListRequest request = new AdminOrderListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+        request.setUserNickname("测试");
+        request.setVisitStartDate(LocalDate.of(2026, 1, 1));
+        request.setVisitEndDate(LocalDate.of(2026, 1, 31));
+
+        AdminOrderListResponse response = orderService.getAdminOrders(request);
+
+        assertEquals(0L, response.getTotal());
+        verify(userMapper).selectList(any());
+        verify(orderMapper).selectPage(any(), any());
+    }
+
     /**
      * 按指定状态构造订单夹具。
      */

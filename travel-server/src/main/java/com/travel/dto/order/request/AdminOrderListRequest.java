@@ -21,6 +21,11 @@ public class AdminOrderListRequest {
     private String spotName;
 
     /**
+     * 用户昵称搜索
+     */
+    private String userNickname;
+
+    /**
      * 订单状态筛选
      */
     private String status;
@@ -34,6 +39,16 @@ public class AdminOrderListRequest {
      * 结束日期
      */
     private LocalDate endDate;
+
+    /**
+     * 游玩开始日期
+     */
+    private LocalDate visitStartDate;
+
+    /**
+     * 游玩结束日期
+     */
+    private LocalDate visitEndDate;
 
     private Integer page = 1;
 

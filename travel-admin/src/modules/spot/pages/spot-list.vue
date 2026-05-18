@@ -47,6 +47,7 @@
         :category-cascader-options="categoryCascaderOptions"
         :region-cascader-props="regionCascaderProps"
         :category-cascader-props="categoryCascaderProps"
+        :heat-level-options="heatLevelOptions"
         @search="handleSearch"
         @reset="handleReset"
         @filter-change="handleFilterChange"
@@ -345,11 +346,13 @@ const queryParams = reactive({
   keyword: '',
   regionId: null,
   categoryId: null,
+  heatLevel: null,
   published: null
 })
 const uiFilters = reactive({
   regionPath: [],
   categoryPath: [],
+  heatLevel: '',
   published: ''
 })
 
@@ -414,6 +417,7 @@ const heatRules = {
 onMounted(async () => {
   applyRouteQuery()
   await loadFilters()
+  applyRouteQuery()
   await loadData()
 })
 
@@ -438,6 +442,9 @@ const syncFilters = () => {
     : null
   queryParams.regionId = selectedRegionId ? Number(selectedRegionId) : null
   queryParams.categoryId = selectedCategoryId ? Number(selectedCategoryId) : null
+  queryParams.heatLevel = uiFilters.heatLevel === '' || uiFilters.heatLevel == null
+    ? null
+    : Number(uiFilters.heatLevel)
   queryParams.published = uiFilters.published === '' || uiFilters.published == null
     ? null
     : Number(uiFilters.published)
@@ -494,9 +501,11 @@ const handleReset = () => {
   queryParams.keyword = ''
   queryParams.regionId = null
   queryParams.categoryId = null
+  queryParams.heatLevel = null
   queryParams.published = null
   uiFilters.regionPath = []
   uiFilters.categoryPath = []
+  uiFilters.heatLevel = ''
   uiFilters.published = ''
   handleSearch()
 }
@@ -506,7 +515,34 @@ const syncRouteQuery = () => {
   if (queryParams.keyword) {
     nextQuery.keyword = queryParams.keyword
   }
-  const currentQuery = route.query.keyword ? { keyword: route.query.keyword } : {}
+  if (queryParams.regionId != null) {
+    nextQuery.regionId = String(queryParams.regionId)
+  }
+  if (queryParams.categoryId != null) {
+    nextQuery.categoryId = String(queryParams.categoryId)
+  }
+  if (queryParams.heatLevel != null) {
+    nextQuery.heatLevel = String(queryParams.heatLevel)
+  }
+  if (queryParams.published != null) {
+    nextQuery.published = String(queryParams.published)
+  }
+  const currentQuery = {}
+  if (typeof route.query.keyword === 'string' && route.query.keyword) {
+    currentQuery.keyword = route.query.keyword
+  }
+  if (typeof route.query.regionId === 'string' && route.query.regionId) {
+    currentQuery.regionId = route.query.regionId
+  }
+  if (typeof route.query.categoryId === 'string' && route.query.categoryId) {
+    currentQuery.categoryId = route.query.categoryId
+  }
+  if (typeof route.query.heatLevel === 'string' && route.query.heatLevel) {
+    currentQuery.heatLevel = route.query.heatLevel
+  }
+  if (typeof route.query.published === 'string' && route.query.published) {
+    currentQuery.published = route.query.published
+  }
   const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
   if (changed) {
     skipNextRouteLoad.value = true
@@ -523,6 +559,14 @@ const normalizeRouteSpotId = (value) => {
 // 同步路由参数
 const applyRouteQuery = () => {
   queryParams.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
+  queryParams.regionId = typeof route.query.regionId === 'string' ? Number(route.query.regionId) : null
+  queryParams.categoryId = typeof route.query.categoryId === 'string' ? Number(route.query.categoryId) : null
+  queryParams.heatLevel = typeof route.query.heatLevel === 'string' ? Number(route.query.heatLevel) : null
+  queryParams.published = typeof route.query.published === 'string' ? Number(route.query.published) : null
+  uiFilters.regionPath = findPathById(queryParams.regionId, regionCascaderOptions.value)
+  uiFilters.categoryPath = findPathById(queryParams.categoryId, categoryCascaderOptions.value)
+  uiFilters.heatLevel = queryParams.heatLevel == null ? '' : String(queryParams.heatLevel)
+  uiFilters.published = queryParams.published == null ? '' : String(queryParams.published)
   const nextSpotId = normalizeRouteSpotId(route.query.spotId)
   if (nextSpotId !== activeSpotId.value) {
     autoOpenedSpotId.value = null

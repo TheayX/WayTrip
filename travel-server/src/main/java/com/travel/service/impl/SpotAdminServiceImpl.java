@@ -93,6 +93,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         if (request.getPublished() != null) {
             wrapper.eq(Spot::getIsPublished, request.getPublished());
         }
+        if (request.getHeatLevel() != null) {
+            wrapper.eq(Spot::getHeatLevel, request.getHeatLevel());
+        }
         wrapper.orderByAsc(Spot::getId);
 
         Page<Spot> result = spotMapper.selectPage(page, wrapper);
