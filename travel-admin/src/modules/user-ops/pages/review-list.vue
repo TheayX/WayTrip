@@ -382,13 +382,4 @@ watch(
   font-size: 14px;
 }
 
-.advanced-filter-item {
-  margin-bottom: 0;
-}
-
-:deep(.tight-date-picker.el-date-editor) {
-  width: 240px !important;
-}
-
 </style>
-

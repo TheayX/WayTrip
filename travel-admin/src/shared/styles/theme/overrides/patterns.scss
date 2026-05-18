@@ -191,13 +191,27 @@
   }
 
   .advanced-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid var(--wt-border-default);
   }
 
+  .advanced-filter-item {
+    margin-bottom: 0;
+  }
+
   .toggle-btn {
+    gap: 4px;
     font-weight: 600;
+  }
+
+  .date-picker.el-date-editor,
+  .tight-date-picker.el-date-editor {
+    width: 240px !important;
   }
 
   .el-input__wrapper,

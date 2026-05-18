@@ -10,7 +10,7 @@
               v-model="queryParams.keyword"
               placeholder="请输入攻略标题"
               clearable
-              class="filter-input"
+              class="form-w-200"
               @keyup.enter="emit('search')"
               @clear="emit('search')"
             />
@@ -20,7 +20,7 @@
               v-model="queryParams.category"
               placeholder="全部"
               clearable
-              class="filter-select"
+              class="form-w-100"
               @change="emit('search')"
               @clear="emit('search')"
             >
@@ -32,7 +32,7 @@
               v-model="uiFilters.published"
               placeholder="全部"
               clearable
-              class="status-select"
+              class="form-w-100"
               @change="emit('filter-change')"
               @clear="emit('filter-change')"
             >
@@ -54,7 +54,7 @@
 
       <!-- 时间筛选属于复盘分析条件，折叠后优先保证首行检索效率。 -->
       <el-collapse-transition>
-        <div v-show="showAdvanced" class="advanced-panel guide-advanced-panel">
+        <div v-show="showAdvanced" class="advanced-panel">
           <el-form-item label="创建时间" class="filter-item advanced-filter-item">
             <el-date-picker
               v-model="uiFilters.createdDateRange"
@@ -63,7 +63,7 @@
               start-placeholder="开始日期"
               end-placeholder="结束日期"
               value-format="YYYY-MM-DD"
-              class="date-picker"
+              class="form-w-240 date-picker"
               @change="emit('search')"
             />
           </el-form-item>
@@ -75,7 +75,7 @@
               start-placeholder="开始日期"
               end-placeholder="结束日期"
               value-format="YYYY-MM-DD"
-              class="date-picker"
+              class="form-w-240 date-picker"
               @change="emit('search')"
             />
           </el-form-item>
@@ -101,51 +101,3 @@ const showAdvanced = ref(false)
 
 // 过滤条件变更和显式搜索分开上抛，便于父层区分即时筛选与手动触发查询。
 </script>
-
-<style lang="scss" scoped>
-.filter-input {
-  width: 200px;
-}
-
-.filter-select {
-  width: 100px;
-}
-
-.status-select {
-  width: 100px; }
-
-.date-picker {
-  width: 140px;
-}
-
-.toggle-btn {
-  gap: 4px;
-}
-
-.guide-advanced-panel {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.advanced-filter-item {
-  margin-bottom: 0;
-}
-
-@media (max-width: 960px) {
-
-  .filter-input,
-  .filter-select,
-  .status-select {
-    width: 100%;
-  }
-
-  .date-picker {
-    width: 140px;
-  }
-}
-
-:deep(.date-picker.el-date-editor) {
-  width: 240px !important;
-}
-</style>

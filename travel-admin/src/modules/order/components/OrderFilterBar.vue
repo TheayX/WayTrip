@@ -2,15 +2,14 @@
 <template>
   <div class="search-form admin-filter-bar">
     <el-form :model="searchForm" @submit.prevent>
-
-        <div class="filter-row">
+      <div class="filter-row">
         <div class="filter-main">
           <el-form-item label="订单号" class="filter-item">
             <el-input
               v-model="searchForm.orderNo"
               placeholder="请输入订单号"
               clearable
-              class="filter-input"
+              class="form-w-200"
               @keyup.enter="emit('search')"
               @clear="emit('search')"
             />
@@ -54,13 +53,13 @@
 
       <!-- 低频条件默认折叠，避免页面顶部持续过厚 -->
       <el-collapse-transition>
-        <div v-show="showAdvanced" class="advanced-panel order-advanced-panel">
+        <div v-show="showAdvanced" class="advanced-panel">
           <el-form-item label="景点名称" class="filter-item advanced-filter-item">
             <el-input
               v-model="searchForm.spotName"
               placeholder="请输入景点名称"
               clearable
-              class="filter-input"
+              class="form-w-200"
               @keyup.enter="emit('search')"
               @clear="emit('search')"
             />
@@ -70,7 +69,7 @@
               v-model="searchForm.userNickname"
               placeholder="请输入用户昵称"
               clearable
-              class="filter-input"
+              class="form-w-200"
               @keyup.enter="emit('search')"
               @clear="emit('search')"
             />
@@ -83,7 +82,7 @@
               start-placeholder="开始日期"
               end-placeholder="结束日期"
               value-format="YYYY-MM-DD"
-              class="date-picker"
+              class="form-w-240 date-picker"
               @update:model-value="handleDateChange"
               @change="emit('search')"
             />
@@ -96,7 +95,7 @@
               start-placeholder="开始日期"
               end-placeholder="结束日期"
               value-format="YYYY-MM-DD"
-              class="date-picker"
+              class="form-w-240 date-picker"
               @update:model-value="handleVisitDateChange"
               @change="emit('search')"
             />
@@ -133,10 +132,6 @@ const handleVisitDateChange = (value) => {
 </script>
 
 <style lang="scss" scoped>
-.filter-input {
-  width: 200px;
-}
-
 .scope-alert {
   margin-top: 14px;
   border-radius: 14px;
@@ -147,40 +142,8 @@ const handleVisitDateChange = (value) => {
   }
 }
 
-.date-picker {
-  width: 240px;
-}
-
-.toggle-btn {
-  gap: 4px;
-}
-
-.order-advanced-panel {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-
 .date-filter-item {
   margin-bottom: 0;
   flex: 0 0 auto;
-}
-
-.advanced-filter-item {
-  margin-bottom: 0;
-}
-
-@media (max-width: 960px) {
-
-  .filter-input,
-  .filter-select,
-  .date-picker {
-    width: 100%;
-  }
-}
-
-:deep(.date-picker.el-date-editor) {
-  width: 240px !important;
 }
 </style>

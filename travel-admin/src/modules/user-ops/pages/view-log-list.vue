@@ -444,14 +444,6 @@ watch(
   line-height: 1.4;
 }
 
-.advanced-filter-item {
-  margin-bottom: 0;
-}
-
-:deep(.tight-date-picker.el-date-editor) {
-  width: 240px !important;
-}
-
 .duration-filter-item {
   flex: 0 0 auto;
   width: 360px;

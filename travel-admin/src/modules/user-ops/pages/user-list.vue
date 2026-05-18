@@ -614,14 +614,6 @@ watch(
   font-weight: 600;
 }
 
-.advanced-filter-item {
-  margin-bottom: 0;
-}
-
-:deep(.tight-date-picker.el-date-editor) {
-  width: 240px !important;
-}
-
 @media (max-width: 900px) {
   .user-page {
     .summary-grid {

@@ -3,15 +3,14 @@
   <!-- 搜索筛选表单 -->
   <div class="search-form admin-filter-bar">
     <el-form :inline="true" :model="queryParams" @submit.prevent>
-
-        <div class="filter-row">
-          <div class="filter-main">
+      <div class="filter-row">
+        <div class="filter-main">
           <el-form-item label="景点名称" class="filter-item">
             <el-input
               v-model="queryParams.keyword"
               placeholder="请输入景点名称"
               clearable
-              class="filter-input"
+              class="form-w-200"
               :prefix-icon="Search"
               @keyup.enter="emitSearch"
               @clear="emitSearch"
@@ -23,7 +22,7 @@
               v-model="uiFilters.published"
               placeholder="全部"
               clearable
-              class="status-select"
+              class="form-w-100"
               @change="emitFilterChange"
               @clear="emitFilterChange"
             >
@@ -46,7 +45,7 @@
 
       <!-- 高级筛选区域 -->
       <el-collapse-transition>
-        <div v-show="showAdvanced" class="advanced-panel advanced-filters">
+        <div v-show="showAdvanced" class="advanced-panel">
           <el-form-item label="地区" class="filter-item">
             <el-cascader
               v-model="uiFilters.regionPath"
@@ -54,7 +53,7 @@
               :props="regionCascaderProps"
               clearable
               placeholder="全部"
-              class="filter-cascader"
+              class="form-w-180"
               @change="emitFilterChange"
             />
           </el-form-item>
@@ -66,7 +65,7 @@
               :props="categoryCascaderProps"
               clearable
               placeholder="全部"
-              class="filter-cascader"
+              class="form-w-180"
               @change="emitFilterChange"
               @clear="emitFilterChange"
             />
@@ -76,7 +75,7 @@
               v-model="uiFilters.heatLevel"
               placeholder="全部"
               clearable
-              class="status-select"
+              class="form-w-100"
               @change="emitFilterChange"
               @clear="emitFilterChange"
             >
@@ -114,42 +113,3 @@ const emitSearch = () => emit('search')
 const emitReset = () => emit('reset')
 const emitFilterChange = () => emit('filter-change')
 </script>
-
-<style lang="scss" scoped>
-.advanced-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.filter-input {
-  width: 200px;
-}
-
-.filter-cascader {
-  width: 168px;
-}
-
-.status-select {
-  width: 100px;
-}
-
-.toggle-btn {
-  gap: 4px;
-}
-
-@media (max-width: 960px) {
-  .filter-input,
-  .status-select {
-    width: 100%;
-  }
-
-  .filter-cascader {
-    width: 180px;
-  }
-}
-
-:deep(.filter-cascader.el-cascader) {
-  width: 180px !important;
-}
-</style>
