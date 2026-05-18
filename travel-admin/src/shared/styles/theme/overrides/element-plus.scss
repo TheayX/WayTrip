@@ -52,6 +52,11 @@
     border-bottom: 1px solid var(--wt-divider-soft) !important;
   }
 
+  th.el-table__cell.is-sortable .cell {
+    // 排序箭头会占用右侧视觉宽度，整体轻微右移以保持表头文字接近原来的居中位置。
+    transform: translateX(13px);
+  }
+
   td.el-table__cell {
     padding: 14px 0;
     border-bottom: 1px solid var(--wt-divider-faint) !important;
