@@ -36,7 +36,6 @@ order_seed AS (
       ELSE 0
     END AS order_count,
     60000 + (user_seq.n - 1) * 3 + order_slot.slot AS id,
-    CONCAT('BULK', DATE_FORMAT(DATE_ADD('2026-03-01 09:00:00', INTERVAL user_seq.n + order_slot.slot DAY), '%Y%m%d'), LPAD((user_seq.n - 1) * 3 + order_slot.slot, 5, '0')) AS order_no,
     10000 + user_seq.n AS user_id,
     CASE
       WHEN order_slot.slot = 1 THEN ELT(1 + MOD(user_seq.n + 4, 8), 1, 3, 5, 7, 9, 11, 14, 16)
@@ -61,7 +60,7 @@ order_seed AS (
 )
 SELECT
   order_seed.id,
-  order_seed.order_no,
+  CONCAT('T', DATE_FORMAT(order_seed.created_at, '%Y%m%d%H%i%s'), LPAD(MOD(order_seed.id, 10000), 4, '0')) AS order_no,
   order_seed.user_id,
   order_seed.spot_id,
   order_seed.quantity,
