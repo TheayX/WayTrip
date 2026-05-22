@@ -40,7 +40,7 @@ public class UserProfileAiTools {
         result.put("nickname", detail.getNickname());
         result.put("orderCount", detail.getOrderCount());
         result.put("favoriteCount", detail.getFavoriteCount());
-        result.put("ratingCount", detail.getRatingCount());
+        result.put("reviewCount", detail.getReviewCount());
         result.put("viewCount", detail.getViewCount());
         result.put("preferenceSummary", detail.getPreferenceSummary());
         result.put("favoriteSummary", detail.getFavoriteSummary());

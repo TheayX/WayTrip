@@ -180,7 +180,7 @@ public class SpotAiTools {
         row.put("openTime", detail.getOpenTime());
         row.put("address", detail.getAddress());
         row.put("avgRating", detail.getAvgRating());
-        row.put("ratingCount", detail.getRatingCount());
+        row.put("reviewCount", detail.getReviewCount());
         row.put("regionName", detail.getRegionName());
         row.put("categoryName", detail.getCategoryName());
         row.put("description", detail.getDescription());
