@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs/promises";
+import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -8,6 +9,11 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SERVER_ROOT = path.resolve(__dirname, "..");
+const DB_ROOT = path.join(SERVER_ROOT, "src", "main", "resources", "db");
+const DEFAULT_OUTPUT_DIR = path.join(DB_ROOT, "seed", "bulk");
+const DEFAULT_UPLOAD_ROOT = path.join(SERVER_ROOT, "uploads");
+const DEFAULT_SPOT_COVER_URL = "/uploads/spot/default/cover/default.jpg";
+const DEFAULT_SPOT_GALLERY_URL = "/uploads/spot/default/gallery/default.jpg";
 
 const REGION_OPTIONS = [
   { id: 11, name: "北京市" },
@@ -61,22 +67,17 @@ const EXISTING_SPOT_NAMES = [
 ];
 
 const DEFAULT_OUTPUT = path.join(
-  SERVER_ROOT,
-  "src",
-  "main",
-  "resources",
-  "db",
-  "seed",
-  "bulk",
-  "10_spot.sql"
+  DEFAULT_OUTPUT_DIR,
+  "ai_spot.sql"
 );
 
 const DEFAULTS = {
   count: 12,
-  startId: 1001,
+  startId: null,
   imageCount: 3,
-  bannerCount: 6,
+  bannerCount: 0,
   output: DEFAULT_OUTPUT,
+  uploadRoot: DEFAULT_UPLOAD_ROOT,
   model: process.env.APP_AI_GENERATION_MODEL || "qwen3.5-plus",
   temperature: Number(process.env.APP_AI_GENERATION_TEMPERATURE || "0.2")
 };
@@ -91,15 +92,21 @@ async function main() {
   }
 
   const config = buildConfig(args);
+  const seedState = await loadSeedState(config);
+  applySeedState(config, seedState);
+  if (args["inspect-state"]) {
+    printSeedState(config, seedState);
+    return;
+  }
   validateConfig(config);
 
-  console.log(`[1/4] 生成 ${config.count} 条景点草稿...`);
+  console.log(`[1/4] 生成 ${config.count} 条景点草稿，起始景点 ID ${config.startId}...`);
   const draft = await generateSpotDraft(config);
 
-  console.log("[2/4] 补齐 Wikipedia / Wikimedia 图片链接...");
+  console.log("[2/4] 补齐 Wikipedia / Wikimedia 图片并落盘到 uploads...");
   const spotsWithImages = [];
   for (const spot of draft.spots) {
-    const enrichedSpot = await enrichSpotImages(spot, config.imageCount);
+    const enrichedSpot = await enrichSpotImages(spot, config);
     spotsWithImages.push(enrichedSpot);
   }
 
@@ -118,12 +125,14 @@ function printHelp() {
 
 选项:
   --count <n>         生成景点数量，默认 12
-  --start-id <n>      景点起始 ID，默认 1001
+  --start-id <n>      景点起始 ID，默认自动取现有最大 spot.id + 1
   --image-count <n>   每个景点最多生成多少条图库图，默认 3
-  --banner-count <n>  额外生成多少条 banner SQL，默认 6
+  --banner-count <n>  额外生成多少条 banner SQL，默认 0
   --model <name>      覆盖生成模型，默认取 APP_AI_GENERATION_MODEL
   --temperature <n>   覆盖温度参数，默认取 APP_AI_GENERATION_TEMPERATURE
-  --output <path>     输出 SQL 文件路径
+  --output <path>     输出 SQL 文件路径，默认 src/main/resources/db/seed/bulk/ai_spot.sql
+  --upload-root <dir> 图片落盘根目录，默认 travel-server/uploads
+  --inspect-state     只查看自动推断的 ID 和已有景点数量，不调用 AI，不写文件
   --help              查看帮助
 
 环境变量:
@@ -142,6 +151,10 @@ function parseArgs(argv) {
     const token = argv[i];
     if (token === "--help") {
       args.help = true;
+      continue;
+    }
+    if (token === "--inspect-state") {
+      args["inspect-state"] = true;
       continue;
     }
     if (!token.startsWith("--")) {
@@ -172,10 +185,11 @@ function buildConfig(args) {
 
   return {
     count: parseInteger(args.count, DEFAULTS.count),
-    startId: parseInteger(args["start-id"], DEFAULTS.startId),
+    startId: args["start-id"] == null ? DEFAULTS.startId : parseInteger(args["start-id"], DEFAULTS.startId),
     imageCount: parseInteger(args["image-count"], DEFAULTS.imageCount),
     bannerCount: parseInteger(args["banner-count"], DEFAULTS.bannerCount),
     output: args.output ? path.resolve(process.cwd(), args.output) : DEFAULTS.output,
+    uploadRoot: args["upload-root"] ? path.resolve(process.cwd(), args["upload-root"]) : DEFAULTS.uploadRoot,
     model: args.model || DEFAULTS.model,
     temperature: parseFloatValue(args.temperature, DEFAULTS.temperature),
     baseUrl,
@@ -190,8 +204,14 @@ function validateConfig(config) {
   if (config.count < 1 || config.count > 50) {
     throw new Error("--count 必须在 1 到 50 之间。");
   }
-  if (config.startId < 1) {
+  if (!Number.isInteger(config.startId) || config.startId < 1) {
     throw new Error("--start-id 必须大于 0。");
+  }
+  if (!Number.isInteger(config.startImageId) || config.startImageId < 1) {
+    throw new Error("自动推断的 spot_image 起始 ID 无效。");
+  }
+  if (!Number.isInteger(config.startBannerId) || config.startBannerId < 1) {
+    throw new Error("自动推断的 spot_banner 起始 ID 无效。");
   }
   if (config.imageCount < 1 || config.imageCount > 6) {
     throw new Error("--image-count 必须在 1 到 6 之间。");
@@ -201,10 +221,195 @@ function validateConfig(config) {
   }
 }
 
+async function loadSeedState(config) {
+  const sqlFiles = await collectSqlFiles(DB_ROOT);
+  const state = {
+    maxSpotId: 0,
+    maxSpotImageId: 0,
+    maxSpotBannerId: 0,
+    spotNames: new Set(EXISTING_SPOT_NAMES)
+  };
+
+  for (const filePath of sqlFiles) {
+    const content = await fs.readFile(filePath, "utf8");
+    scanSpotRows(content, state);
+    scanIdRows(content, "spot_image", "maxSpotImageId", state);
+    scanIdRows(content, "spot_banner", "maxSpotBannerId", state);
+  }
+
+  return state;
+}
+
+async function collectSqlFiles(rootDir) {
+  const files = [];
+
+  async function walk(currentDir) {
+    let entries = [];
+    try {
+      entries = await fs.readdir(currentDir, { withFileTypes: true });
+    } catch (error) {
+      if (error.code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+
+    for (const entry of entries) {
+      const entryPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(entryPath);
+        continue;
+      }
+      if (entry.isFile() && entry.name.endsWith(".sql")) {
+        files.push(entryPath);
+      }
+    }
+  }
+
+  await walk(rootDir);
+  return files;
+}
+
+function applySeedState(config, state) {
+  config.startId = config.startId || state.maxSpotId + 1;
+  config.startImageId = state.maxSpotImageId + 1;
+  config.startBannerId = state.maxSpotBannerId + 1;
+  config.existingSpotNames = state.spotNames;
+  config.existingSpotNameSet = new Set(Array.from(state.spotNames).map(normalizeSpotName));
+}
+
+function printSeedState(config, state) {
+  console.log("当前 seed 状态:");
+  console.log(`  已有景点数量: ${state.spotNames.size}`);
+  console.log(`  当前最大 spot.id: ${state.maxSpotId}`);
+  console.log(`  下一个 spot.id: ${config.startId}`);
+  console.log(`  当前最大 spot_image.id: ${state.maxSpotImageId}`);
+  console.log(`  下一个 spot_image.id: ${config.startImageId}`);
+  console.log(`  当前最大 spot_banner.id: ${state.maxSpotBannerId}`);
+  console.log(`  下一个 spot_banner.id: ${config.startBannerId}`);
+  console.log(`  默认输出文件: ${config.output}`);
+  console.log(`  默认 banner 生成数量: ${config.bannerCount}`);
+}
+
+function scanSpotRows(sql, state) {
+  for (const tuple of extractInsertTuples(sql, "spot")) {
+    const fields = splitSqlFields(tuple);
+    const id = Number.parseInt(fields[0], 10);
+    if (Number.isInteger(id)) {
+      state.maxSpotId = Math.max(state.maxSpotId, id);
+    }
+
+    const name = parseSqlString(fields[1]);
+    if (name) {
+      state.spotNames.add(name);
+    }
+  }
+}
+
+function scanIdRows(sql, tableName, stateKey, state) {
+  for (const tuple of extractInsertTuples(sql, tableName)) {
+    const fields = splitSqlFields(tuple);
+    const id = Number.parseInt(fields[0], 10);
+    if (Number.isInteger(id)) {
+      state[stateKey] = Math.max(state[stateKey], id);
+    }
+  }
+}
+
+function extractInsertTuples(sql, tableName) {
+  const tuples = [];
+  const escapedTableName = tableName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(
+    "INSERT\\s+INTO\\s+`?" + escapedTableName + "`?(?=\\s|\\()[\\s\\S]*?VALUES\\s*([\\s\\S]*?);",
+    "gi"
+  );
+
+  let match;
+  while ((match = pattern.exec(sql)) !== null) {
+    tuples.push(...splitSqlTuples(match[1]));
+  }
+  return tuples;
+}
+
+function splitSqlTuples(source) {
+  const tuples = [];
+  let quote = false;
+  let depth = 0;
+  let start = -1;
+
+  for (let i = 0; i < source.length; i += 1) {
+    const char = source[i];
+    const next = source[i + 1];
+
+    if (char === "'" && quote && next === "'") {
+      i += 1;
+      continue;
+    }
+    if (char === "'") {
+      quote = !quote;
+      continue;
+    }
+    if (quote) {
+      continue;
+    }
+    if (char === "(") {
+      if (depth === 0) {
+        start = i + 1;
+      }
+      depth += 1;
+      continue;
+    }
+    if (char === ")") {
+      depth -= 1;
+      if (depth === 0 && start >= 0) {
+        tuples.push(source.slice(start, i));
+        start = -1;
+      }
+    }
+  }
+
+  return tuples;
+}
+
+function splitSqlFields(tuple) {
+  const fields = [];
+  let quote = false;
+  let start = 0;
+
+  for (let i = 0; i < tuple.length; i += 1) {
+    const char = tuple[i];
+    const next = tuple[i + 1];
+
+    if (char === "'" && quote && next === "'") {
+      i += 1;
+      continue;
+    }
+    if (char === "'") {
+      quote = !quote;
+      continue;
+    }
+    if (!quote && char === ",") {
+      fields.push(tuple.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+
+  fields.push(tuple.slice(start).trim());
+  return fields;
+}
+
+function parseSqlString(value) {
+  const text = String(value ?? "").trim();
+  if (!text.startsWith("'") || !text.endsWith("'")) {
+    return "";
+  }
+  return text.slice(1, -1).replace(/''/g, "'").replace(/\\\\/g, "\\").trim();
+}
+
 async function generateSpotDraft(config) {
   const regionText = REGION_OPTIONS.map((item) => `${item.id}:${item.name}`).join("、");
   const categoryText = CATEGORY_OPTIONS.map((item) => `${item.id}:${item.name}`).join("、");
-  const existingSpotText = EXISTING_SPOT_NAMES.join("、");
+  const existingSpotText = Array.from(config.existingSpotNames).sort().join("、");
 
   const prompt = `
 请生成 ${config.count} 个中国真实存在的旅游景点测试数据，严格输出 JSON 对象，不要输出 Markdown。
@@ -272,11 +477,18 @@ async function generateSpotDraft(config) {
 
   const uniqueNames = new Set();
   const normalized = spots.slice(0, config.count).map((spot, index) => {
-    const normalizedSpot = normalizeSpotDraft(spot, index);
-    if (uniqueNames.has(normalizedSpot.name)) {
+    const normalizedSpot = {
+      ...normalizeSpotDraft(spot, index),
+      seedId: config.startId + index
+    };
+    const normalizedName = normalizeSpotName(normalizedSpot.name);
+    if (uniqueNames.has(normalizedName)) {
       throw new Error(`模型返回了重复景点: ${normalizedSpot.name}`);
     }
-    uniqueNames.add(normalizedSpot.name);
+    if (config.existingSpotNameSet.has(normalizedName)) {
+      throw new Error(`模型返回了已存在景点: ${normalizedSpot.name}`);
+    }
+    uniqueNames.add(normalizedName);
     return normalizedSpot;
   });
 
@@ -318,22 +530,26 @@ function normalizeSpotDraft(spot, index) {
   };
 }
 
-async function enrichSpotImages(spot, imageCount) {
+async function enrichSpotImages(spot, config) {
   const matchedTitle = await resolveWikipediaTitle(spot.wikiTitle || spot.name);
   const imageBundle = matchedTitle
-    ? await fetchWikipediaImages(matchedTitle, imageCount)
+    ? await fetchWikipediaImages(matchedTitle, config.imageCount)
     : null;
 
-  const coverImageUrl = imageBundle?.coverImageUrl || "";
-  const galleryImages = imageBundle?.galleryImages?.length
+  const remoteImages = imageBundle?.galleryImages?.length
     ? imageBundle.galleryImages
-    : (coverImageUrl ? [coverImageUrl] : []);
+    : [];
+  const localImages = await downloadSpotImages(spot, remoteImages, config);
+  const coverImageUrl = localImages.coverImageUrl || DEFAULT_SPOT_COVER_URL;
+  const galleryImages = localImages.galleryImages.length
+    ? localImages.galleryImages
+    : [DEFAULT_SPOT_GALLERY_URL];
 
   return {
     ...spot,
     wikiResolvedTitle: matchedTitle || spot.wikiTitle || spot.name,
     coverImageUrl,
-    galleryImages: galleryImages.slice(0, imageCount)
+    galleryImages: galleryImages.slice(0, config.imageCount)
   };
 }
 
@@ -369,6 +585,89 @@ async function fetchWikipediaImages(title, imageCount) {
   };
 }
 
+async function downloadSpotImages(spot, remoteImages, config) {
+  const slug = buildSpotSlug(spot);
+  const coverDir = path.join(config.uploadRoot, "spot", slug, "cover");
+  const galleryDir = path.join(config.uploadRoot, "spot", slug, "gallery");
+  const localImages = [];
+
+  for (let i = 0; i < remoteImages.length; i += 1) {
+    const remoteUrl = remoteImages[i];
+    try {
+      const targetDir = i === 0 ? coverDir : galleryDir;
+      const prefix = i === 0 ? `cover_${slug}` : `gallery_${slug}`;
+      const stored = await downloadImage(remoteUrl, targetDir, prefix);
+      localImages.push(`/uploads/spot/${slug}/${i === 0 ? "cover" : "gallery"}/${stored.filename}`);
+    } catch (error) {
+      console.warn(`图片下载失败，已使用默认图兜底: ${spot.name} ${remoteUrl} (${error.message})`);
+    }
+  }
+
+  if (!localImages.length) {
+    return {
+      coverImageUrl: DEFAULT_SPOT_COVER_URL,
+      galleryImages: [DEFAULT_SPOT_GALLERY_URL]
+    };
+  }
+
+  return {
+    coverImageUrl: localImages[0],
+    galleryImages: localImages.length > 1 ? localImages.slice(1) : [localImages[0]]
+  };
+}
+
+async function downloadImage(url, targetDir, filenamePrefix) {
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "WayTripSeedGenerator/1.0"
+    }
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (!buffer.length) {
+    throw new Error("空图片内容");
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  const extension = resolveImageExtension(url, contentType);
+  const hash = crypto.createHash("sha1").update(buffer).digest("hex").slice(0, 6);
+  const filename = `${filenamePrefix}_${formatDateCompact(new Date())}_${hash}${extension}`;
+  await fs.mkdir(targetDir, { recursive: true });
+  await fs.writeFile(path.join(targetDir, filename), buffer);
+  return { filename };
+}
+
+function resolveImageExtension(url, contentType) {
+  const normalizedType = contentType.toLowerCase();
+  if (normalizedType.includes("image/png")) {
+    return ".png";
+  }
+  if (normalizedType.includes("image/webp")) {
+    return ".webp";
+  }
+  if (normalizedType.includes("image/jpeg") || normalizedType.includes("image/jpg")) {
+    return ".jpg";
+  }
+
+  const ext = path.extname(new URL(url).pathname).toLowerCase();
+  return [".jpg", ".jpeg", ".png", ".webp"].includes(ext) ? ext : ".jpg";
+}
+
+function buildSpotSlug(spot) {
+  if (spot.seedId) {
+    return `ai-spot-${spot.seedId}`;
+  }
+
+  const raw = String(spot.name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return raw || `ai-spot-${Date.now()}`;
+}
+
 function buildSql(spots, config) {
   const now = formatSqlDatetime(new Date());
   const spotRows = [];
@@ -376,8 +675,8 @@ function buildSql(spots, config) {
   const bannerRows = [];
 
   let spotId = config.startId;
-  let imageId = config.startId * 10;
-  let bannerId = config.startId * 10;
+  let imageId = config.startImageId;
+  let bannerId = config.startBannerId;
 
   for (const spot of spots) {
     const currentSpotId = spotId;
@@ -459,6 +758,15 @@ function formatSqlDatetime(date) {
   ].join(":");
 }
 
+function formatDateCompact(date) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate())
+  ].join("");
+}
+
 function sqlString(value) {
   const text = String(value ?? "").replace(/\\/g, "\\\\").replace(/'/g, "''");
   return `'${text}'`;
@@ -505,6 +813,14 @@ function stripQuotes(value) {
     return value.slice(1, -1);
   }
   return value;
+}
+
+function normalizeSpotName(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(/[（）]/g, (char) => (char === "（" ? "(" : ")"))
+    .toLowerCase();
 }
 
 function parseInteger(value, defaultValue) {

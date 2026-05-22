@@ -42,7 +42,7 @@ async function main() {
 
   const spotPool = await loadSpotPool(config);
   if (!spotPool.length) {
-    throw new Error("没有可用景点数据。请先准备 db/data.sql，或先生成 bulk/10_spot.sql。");
+    throw new Error("没有可用景点数据。请先准备 db/data.sql，或先生成 db/seed/bulk/*.sql。");
   }
 
   const rng = createRng(config.seed);
@@ -134,7 +134,7 @@ function validateConfig(config) {
 async function loadSpotPool(config) {
   const files = [
     path.join(DB_ROOT, "data.sql"),
-    path.join(config.outputDir, "10_spot.sql")
+    ...(await listSqlFiles(config.outputDir))
   ];
   const spotMap = new Map();
 
@@ -152,6 +152,21 @@ async function loadSpotPool(config) {
   }
 
   return Array.from(spotMap.values()).sort((left, right) => left.id - right.id);
+}
+
+async function listSqlFiles(dir) {
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
+      .map((entry) => path.join(dir, entry.name))
+      .sort();
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
 }
 
 function parseSpotRows(sql) {
