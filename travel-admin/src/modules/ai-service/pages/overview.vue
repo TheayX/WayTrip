@@ -30,7 +30,7 @@
         :title="vectorStatus.warningMessage"
       />
 
-      <section v-loading="loading" class="summary-grid hero-grid">
+      <section v-loading="loading" class="summary-grid metric-cards--order hero-grid">
         <el-card shadow="hover" class="summary-card">
           <div class="summary-label">启用文档</div>
           <div class="summary-value">{{ metrics.enabledDocumentCount }}</div>
@@ -432,10 +432,6 @@ onMounted(() => {
 
   .summary-card {
     min-height: 122px;
-  }
-
-  .hero-grid .summary-card :deep(.el-card__body) {
-    padding: 12px 14px !important;
   }
 
   .entry-grid,

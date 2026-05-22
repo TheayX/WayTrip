@@ -21,7 +21,7 @@
       description="本页用于帮助运营和开发快速确认场景启停、知识域归属、场景说明与示例问题。当前修改仅保存在本页面运行时内，刷新后会恢复为 constants.js 中的默认配置。"
     />
 
-    <section class="summary-grid">
+    <section class="summary-grid metric-cards--order">
       <el-card shadow="hover" class="summary-card">
         <div class="summary-label">场景总数</div>
         <div class="summary-value">{{ summaryMetrics.total }}</div>
@@ -269,14 +269,6 @@ const handleResetLocalConfig = () => {
 
   .summary-card {
     min-height: 118px;
-  }
-
-  .summary-card :deep(.el-card__body) {
-    padding: 12px 14px !important;
-  }
-
-  .management-card {
-    border-radius: 20px;
   }
 
   .card-header__hint,

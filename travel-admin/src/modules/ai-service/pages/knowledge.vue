@@ -12,7 +12,7 @@
       </div>
     </section>
 
-    <section class="summary-grid">
+    <section class="summary-grid metric-cards--order">
       <el-card shadow="hover" class="summary-card">
         <div class="summary-label">文档总数</div>
         <div class="summary-value">{{ summaryMetrics.total }}</div>
@@ -216,7 +216,7 @@
             <div class="filter-main">
               <el-form-item class="filter-item">
                 <el-input
-                  v-model="filters.keyword"
+                  v-model="filterDraft.keyword"
                   clearable
                   class="filter-input"
                   :prefix-icon="Search"
@@ -224,7 +224,7 @@
                 />
               </el-form-item>
               <el-form-item class="filter-item">
-                <el-select v-model="filters.knowledgeDomain" clearable class="status-select" placeholder="知识域">
+                <el-select v-model="filterDraft.knowledgeDomain" clearable class="status-select" placeholder="知识域">
                   <el-option v-for="item in knowledgeDomainOptions" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
               </el-form-item>
@@ -235,7 +235,7 @@
             </div>
 
             <div class="filter-actions">
-              <el-button type="primary">查询</el-button>
+              <el-button type="primary" @click="applyFilters">查询</el-button>
               <el-button @click="resetFilters">重置</el-button>
             </div>
           </div>
@@ -243,12 +243,12 @@
           <el-collapse-transition>
             <div v-show="showAdvanced" class="advanced-panel knowledge-advanced-panel">
               <el-form-item label="来源类型" class="filter-item">
-                <el-select v-model="filters.sourceType" clearable class="form-w-180" placeholder="全部来源">
+                <el-select v-model="filterDraft.sourceType" clearable class="form-w-180" placeholder="全部来源">
                   <el-option v-for="item in sourceTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
               </el-form-item>
               <el-form-item label="启用状态" class="filter-item">
-                <el-select v-model="filters.enabled" clearable class="form-w-180" placeholder="全部状态">
+                <el-select v-model="filterDraft.enabled" clearable class="form-w-180" placeholder="全部状态">
                   <el-option v-for="item in enabledOptions" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
               </el-form-item>
@@ -416,12 +416,8 @@ const vectorStatus = reactive(createEmptyAiVectorStatus())
 const maintenanceSummary = reactive(createEmptyAiMaintenanceSummary())
 const showAdvanced = ref(false)
 
-const filters = reactive({
-  keyword: '',
-  knowledgeDomain: '',
-  sourceType: '',
-  enabled: ''
-})
+const filterDraft = reactive(createEmptyFilters())
+const appliedFilters = reactive(createEmptyFilters())
 
 // 表单数据独立维护，新增和编辑都基于同一份 reactive 状态切换。
 const formData = reactive(createEmptyForm())
@@ -456,6 +452,16 @@ function createEmptyForm() {
   }
 }
 
+// 筛选条件分为草稿态和应用态，保证“查询”按钮语义和其他后台列表页一致。
+function createEmptyFilters() {
+  return {
+    keyword: '',
+    knowledgeDomain: '',
+    sourceType: '',
+    enabled: ''
+  }
+}
+
 // 先把接口返回统一归一，后续表格、筛选和摘要统计全部复用这份结构。
 const normalizedDocuments = computed(() => {
   return (documents.value || []).map((item, index) => {
@@ -482,22 +488,22 @@ const normalizedDocuments = computed(() => {
 
 // 筛选统一收口在计算属性里，避免接口重拉和本地过滤逻辑混在一起。
 const filteredDocuments = computed(() => {
-  const keyword = filters.keyword.trim().toLowerCase()
+  const keyword = appliedFilters.keyword.trim().toLowerCase()
 
   return normalizedDocuments.value.filter((item) => {
-    if (filters.knowledgeDomain && item.knowledgeDomain !== filters.knowledgeDomain) {
+    if (appliedFilters.knowledgeDomain && item.knowledgeDomain !== appliedFilters.knowledgeDomain) {
       return false
     }
 
-    if (filters.sourceType && item.sourceType !== filters.sourceType) {
+    if (appliedFilters.sourceType && item.sourceType !== appliedFilters.sourceType) {
       return false
     }
 
-    if (filters.enabled === 'enabled' && !item.isEnabled) {
+    if (appliedFilters.enabled === 'enabled' && !item.isEnabled) {
       return false
     }
 
-    if (filters.enabled === 'disabled' && item.isEnabled) {
+    if (appliedFilters.enabled === 'disabled' && item.isEnabled) {
       return false
     }
 
@@ -510,6 +516,11 @@ const filteredDocuments = computed(() => {
       .some(field => String(field).toLowerCase().includes(keyword))
   })
 })
+
+// 查询只应用当前草稿筛选，不重新请求接口，避免本地过滤场景产生不必要的网络开销。
+const applyFilters = () => {
+  Object.assign(appliedFilters, filterDraft)
+}
 
 // 顶部四张统计卡只依赖当前文档列表，不额外读取向量状态。
 const summaryMetrics = computed(() => {
@@ -848,10 +859,8 @@ const handleClearAndRebuild = async () => {
 
 // 重置筛选时只清理本地表单，不重新拉取接口，保证操作轻量。
 const resetFilters = () => {
-  filters.keyword = ''
-  filters.knowledgeDomain = ''
-  filters.sourceType = ''
-  filters.enabled = ''
+  Object.assign(filterDraft, createEmptyFilters())
+  Object.assign(appliedFilters, createEmptyFilters())
 }
 
 onMounted(() => {
@@ -875,10 +884,6 @@ onMounted(() => {
 
   .summary-card {
     min-height: 122px;
-  }
-
-  .summary-card :deep(.el-card__body) {
-    padding: 12px 14px !important;
   }
 
   .management-card {
