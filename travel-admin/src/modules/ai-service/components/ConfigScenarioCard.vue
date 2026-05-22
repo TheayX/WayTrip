@@ -17,7 +17,10 @@
         </div>
       </div>
 
-      <el-button type="primary" plain @click="emit('edit', scenario)">编辑本地配置</el-button>
+      <el-button type="primary" plain @click="emit('edit', scenario)">
+        <el-icon><EditPen /></el-icon>
+        编辑
+      </el-button>
     </div>
 
     <div class="scenario-card__body">
@@ -37,6 +40,8 @@
 </template>
 
 <script setup>
+import { EditPen } from '@element-plus/icons-vue'
+
 // 场景卡片只负责展示当前配置和抛出编辑事件，不持有本地编辑状态。
 defineProps({
   scenario: { type: Object, required: true },
@@ -50,6 +55,7 @@ const emit = defineEmits(['edit'])
 <style lang="scss" scoped>
 .scenario-card {
   :deep(.el-card__body) {
+    min-height: 100%;
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -92,6 +98,7 @@ const emit = defineEmits(['edit'])
 .scenario-card__body {
   display: grid;
   gap: 14px;
+  flex: 1;
 }
 
 .scenario-section {

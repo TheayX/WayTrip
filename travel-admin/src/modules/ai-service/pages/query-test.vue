@@ -7,6 +7,9 @@
         <h1 class="page-title">查询测试</h1>
         <p class="page-subtitle">按场景输入测试问题，快速预览当前知识库的检索命中结果与片段内容。</p>
       </div>
+      <div class="hero-actions">
+        <el-tag effect="plain" round>{{ selectedScenarioDomainLabel }}</el-tag>
+      </div>
     </section>
 
     <el-row :gutter="24" class="content-row">
@@ -42,6 +45,21 @@
               <div class="scenario-hint__value">{{ selectedScenarioDomainLabel }}</div>
             </div>
 
+            <div class="quick-query-panel">
+              <div class="quick-query-panel__label">快捷问题</div>
+              <div class="quick-query-list">
+                <el-button
+                  v-for="item in quickQueries"
+                  :key="item"
+                  size="small"
+                  plain
+                  @click="applyQuickQuery(item)"
+                >
+                  {{ item }}
+                </el-button>
+              </div>
+            </div>
+
             <el-form-item label="测试问题" class="query-field">
               <el-input
                 v-model="form.query"
@@ -56,7 +74,10 @@
             </el-form-item>
 
             <div class="form-actions">
-              <el-button type="primary" :loading="previewing" @click="handlePreview">开始预览</el-button>
+              <el-button type="primary" :loading="previewing" @click="handlePreview">
+                <el-icon><Search /></el-icon>
+                开始预览
+              </el-button>
             </div>
           </el-form>
         </el-card>
@@ -139,6 +160,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { Search } from '@element-plus/icons-vue'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_PREVIEW_DEFAULT_SCENARIO, AI_SCENARIO_OPTIONS } from '@/modules/ai-service/constants.js'
 import { useAiKnowledgePreview } from '@/modules/ai-service/composables/useAiKnowledgePreview.js'
 
@@ -164,6 +186,17 @@ const {
 })
 
 const getDomainLabel = (value) => AI_KNOWLEDGE_DOMAIN_LABELS[value] || value || '未分类'
+
+// 常用测试问题用于快速验证订单、规则和内容检索链路。
+const quickQueries = [
+  '退款多久到账？',
+  '推荐适合亲子游的景点',
+  '景点门票可以退吗？'
+]
+
+const applyQuickQuery = (query) => {
+  form.query = query
+}
 
 // 查询测试页只保留自己的文案入口，底层 preview 状态交给共享 composable。
 const handlePreview = async () => {
@@ -232,6 +265,27 @@ const handlePreview = async () => {
 
   .query-field {
     margin-bottom: 10px;
+  }
+
+  .quick-query-panel {
+    margin: 0 0 18px;
+  }
+
+  .quick-query-panel__label {
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--wt-text-secondary);
+  }
+
+  .quick-query-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .el-button {
+      margin-left: 0;
+    }
   }
 
   .form-actions {

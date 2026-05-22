@@ -8,7 +8,10 @@
         <p class="page-subtitle">集中维护 AI 客服一期知识文档，支持筛选、详情查看、编辑与重建操作。</p>
       </div>
       <div class="hero-actions">
-        <el-button :loading="loading || rebuildingAll" @click="loadDocuments">刷新数据</el-button>
+        <el-button :loading="loading || rebuildingAll" @click="loadDocuments">
+          <el-icon><RefreshRight /></el-icon>
+          刷新数据
+        </el-button>
       </div>
     </section>
 
@@ -41,7 +44,10 @@
           <div class="card-header">
             <span>向量索引状态</span>
             <div class="card-header__actions">
-              <el-button :loading="statusLoading" @click="loadVectorIndexStatus">刷新状态</el-button>
+              <el-button :loading="statusLoading" @click="loadVectorIndexStatus">
+                <el-icon><RefreshRight /></el-icon>
+                刷新状态
+              </el-button>
             </div>
           </div>
         </template>
@@ -167,6 +173,7 @@
               :loading="clearingVector"
               @click="handleClearVectorIndex"
             >
+              <el-icon><Delete /></el-icon>
               清空向量
             </el-button>
             <el-button
@@ -175,6 +182,7 @@
               :loading="rebuildingAll"
               @click="handleRebuildAll"
             >
+              <el-icon><RefreshRight /></el-icon>
               重建全部
             </el-button>
             <el-button
@@ -182,6 +190,7 @@
               :loading="clearingAndRebuilding"
               @click="handleClearAndRebuild"
             >
+              <el-icon><MagicStick /></el-icon>
               清空后重建
             </el-button>
           </div>
@@ -204,8 +213,14 @@
         <div class="card-header">
           <span>知识文档管理</span>
           <div class="card-header__actions">
-            <el-button type="primary" @click="openCreateDrawer">新增文档</el-button>
-            <el-button type="warning" plain :loading="rebuildingAll" @click="handleRebuildAll">重建全部</el-button>
+            <el-button type="primary" @click="openCreateDrawer">
+              <el-icon><Plus /></el-icon>
+              新增文档
+            </el-button>
+            <el-button type="warning" plain :loading="rebuildingAll" @click="handleRebuildAll">
+              <el-icon><RefreshRight /></el-icon>
+              重建全部
+            </el-button>
           </div>
         </div>
       </template>
@@ -235,8 +250,14 @@
             </div>
 
             <div class="filter-actions">
-              <el-button type="primary" @click="applyFilters">查询</el-button>
-              <el-button @click="resetFilters">重置</el-button>
+              <el-button type="primary" @click="applyFilters">
+                <el-icon><Search /></el-icon>
+                查询
+              </el-button>
+              <el-button @click="resetFilters">
+                <el-icon><RefreshRight /></el-icon>
+                重置
+              </el-button>
             </div>
           </div>
 
@@ -359,7 +380,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { CaretTop, Filter, Search } from '@element-plus/icons-vue'
+import { CaretTop, Delete, Filter, MagicStick, Plus, RefreshRight, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   clearAiVectorIndex,

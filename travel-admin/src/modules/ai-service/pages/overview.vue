@@ -8,7 +8,10 @@
         <p class="page-subtitle">查看一期知识底座状态、场景覆盖与后续工作台入口。</p>
       </div>
       <div class="hero-actions">
-        <el-button type="primary" :loading="loading" @click="loadPageData">刷新概览</el-button>
+        <el-button type="primary" :loading="loading" @click="loadPageData">
+          <el-icon><RefreshRight /></el-icon>
+          刷新概览
+        </el-button>
       </div>
     </section>
 
@@ -60,7 +63,10 @@
               <div class="card-header">
                 <span>向量索引健康摘要</span>
                 <div class="card-header__extra">
-                  <el-button text type="primary" @click="goTo('/ai-service/knowledge')">前往维护</el-button>
+                  <el-button text type="primary" @click="goTo('/ai-service/knowledge')">
+                    <el-icon><Connection /></el-icon>
+                    前往维护
+                  </el-button>
                 </div>
               </div>
             </template>

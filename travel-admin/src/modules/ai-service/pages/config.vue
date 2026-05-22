@@ -8,7 +8,10 @@
         <p class="page-subtitle">面向一期 AI 客服场景的轻量配置视图，当前仅支持本地编辑与页面内预览，不涉及模型、提示词平台或后端持久化。</p>
       </div>
       <div class="hero-actions">
-        <el-button @click="handleResetLocalConfig">重置本地修改</el-button>
+        <el-button @click="handleResetLocalConfig">
+          <el-icon><RefreshLeft /></el-icon>
+          重置本地修改
+        </el-button>
       </div>
     </section>
 
@@ -133,6 +136,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { RefreshLeft } from '@element-plus/icons-vue'
 import ConfigScenarioCard from '@/modules/ai-service/components/ConfigScenarioCard.vue'
 import { AI_KNOWLEDGE_DOMAIN_LABELS, AI_SCENARIO_CONFIGS } from '@/modules/ai-service/constants.js'
 

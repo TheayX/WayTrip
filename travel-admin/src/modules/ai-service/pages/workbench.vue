@@ -8,8 +8,14 @@
         <p class="page-subtitle">集中查看模型链路、维度健康状态，并在同一工作区完成 RAG 查询预览与向量维护操作。</p>
       </div>
       <div class="hero-actions">
-        <el-button :loading="loading" @click="loadWorkbenchData">刷新工作台</el-button>
-        <el-button type="primary" @click="goToKnowledge">前往知识库管理</el-button>
+        <el-button :loading="loading" @click="loadWorkbenchData">
+          <el-icon><RefreshRight /></el-icon>
+          刷新工作台
+        </el-button>
+        <el-button type="primary" @click="goToKnowledge">
+          <el-icon><Files /></el-icon>
+          前往知识库管理
+        </el-button>
       </div>
     </section>
 
@@ -110,9 +116,18 @@
             </template>
 
             <div class="maintenance-actions">
-              <el-button type="warning" plain :loading="clearingVector" @click="handleClearVectorIndex">清空向量</el-button>
-              <el-button type="primary" plain :loading="rebuildingAll" @click="handleRebuildAll">重建全部</el-button>
-              <el-button type="danger" :loading="clearingAndRebuilding" @click="handleClearAndRebuild">清空后重建</el-button>
+              <el-button type="warning" plain :loading="clearingVector" @click="handleClearVectorIndex">
+                <el-icon><Delete /></el-icon>
+                清空向量
+              </el-button>
+              <el-button type="primary" plain :loading="rebuildingAll" @click="handleRebuildAll">
+                <el-icon><RefreshRight /></el-icon>
+                重建全部
+              </el-button>
+              <el-button type="danger" :loading="clearingAndRebuilding" @click="handleClearAndRebuild">
+                <el-icon><MagicStick /></el-icon>
+                清空后重建
+              </el-button>
             </div>
 
             <div class="maintenance-result feature-panel feature-panel--soft" v-if="maintenanceSummary.message">
@@ -140,7 +155,10 @@
               <div class="card-header">
                 <span>RAG 查询预览</span>
                 <div class="card-header__actions">
-                  <el-button type="primary" :loading="previewing" @click="handlePreview">开始预览</el-button>
+                  <el-button type="primary" :loading="previewing" @click="handlePreview">
+                    <el-icon><Search /></el-icon>
+                    开始预览
+                  </el-button>
                 </div>
               </div>
             </template>
@@ -237,6 +255,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Delete, Files, MagicStick, RefreshRight, Search } from '@element-plus/icons-vue'
 import {
   clearAiVectorIndex,
   clearAndRebuildAiVectorIndex,
