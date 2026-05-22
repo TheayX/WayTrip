@@ -51,11 +51,12 @@
         class="banner-table borderless-table"
         empty-text="当前暂无轮播图数据"
       >
-        <el-table-column label="预览" width="200">
+        <el-table-column label="预览" width="200" align="center" header-align="center" header-class-name="preview-header" class-name="preview-column">
           <template #default="{ row }">
             <el-image
               :src="getImageUrl(row.imageUrl)"
               :preview-src-list="[getImageUrl(row.imageUrl)]"
+              preview-teleported
               fit="cover"
               class="banner-preview"
             />
@@ -458,6 +459,17 @@ onMounted(() => {
 
 .management-card :deep(.el-card__body) {
   padding-top: 0 !important;
+}
+
+.management-card :deep(th.preview-header .cell) {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.management-card :deep(td.preview-column .cell) {
+  display: flex;
+  justify-content: center;
 }
 
 .full-width-select {

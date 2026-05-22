@@ -30,6 +30,7 @@
 
 <script setup>
 import { featureEntryThemeMap, getMoreEntryGroups } from '@/constants/feature-entry-registry'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 图标主题色统一从注册表映射，避免展示层各自维护颜色常量。
 const resolveThemeColor = (theme) => featureEntryThemeMap[theme] || '#4b5563'

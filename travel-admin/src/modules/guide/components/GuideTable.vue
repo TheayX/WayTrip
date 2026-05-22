@@ -6,12 +6,19 @@
     class="premium-table borderless-table"
     :row-class-name="getRowClassName"
     @selection-change="handleSelectionChange"
+    @sort-change="handleSortChange"
   >
-    <el-table-column type="selection" width="50" align="center" />
-    <el-table-column prop="id" label="ID" width="70" align="center" />
+    <el-table-column type="selection" width="30" align="center" />
+    <el-table-column prop="id" label="ID" width="72" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
     <el-table-column label="封面" width="90" align="center">
       <template #default="{ row }">
-        <el-image :src="getImageUrl(row.coverImage)" class="table-cover-img" fit="cover" />
+        <el-image
+          :src="getImageUrl(row.coverImage)"
+          :preview-src-list="[getImageUrl(row.coverImage)]"
+          preview-teleported
+          class="table-cover-img"
+          fit="cover"
+        />
       </template>
     </el-table-column>
     <el-table-column prop="title" label="标题" min-width="220" show-overflow-tooltip align="left">
@@ -29,7 +36,7 @@
         <span class="admin-name-text">{{ resolveAdminDisplayName(row.adminName) }}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="viewCount" label="浏览量" width="100" align="center">
+    <el-table-column prop="viewCount" label="浏览量" width="112" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
       <template #default="{ row }">
         <span class="metric-inline">{{ row.viewCount ?? 0 }}</span>
       </template>
@@ -42,12 +49,12 @@
         </div>
       </template>
     </el-table-column>
-    <el-table-column prop="createdAt" label="创建时间" width="180" align="center">
+    <el-table-column prop="createdAt" label="创建时间" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
       <template #default="{ row }">
         {{ formatDate(row.createdAt) }}
       </template>
     </el-table-column>
-    <el-table-column prop="updatedAt" label="修改时间" width="180" align="center">
+    <el-table-column prop="updatedAt" label="修改时间" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
       <template #default="{ row }">
         {{ formatDate(row.updatedAt) }}
       </template>
@@ -81,6 +88,7 @@
 <script setup>
 import { ArrowDown } from '@element-plus/icons-vue'
 import { resolveAdminDisplayName, resolveCategoryDisplayName } from '@/shared/lib/resource-display.js'
+import { TABLE_SORT_ORDERS } from '@/shared/composables/useTableSort.js'
 
 // 列表仅负责渲染和事件分发，具体变更动作由页面层统一处理。
 defineProps({
@@ -91,10 +99,14 @@ defineProps({
   getRowClassName: { type: Function, required: true }
 })
 
-const emit = defineEmits(['selection-change', 'view', 'edit', 'edit-view-count', 'toggle-publish', 'delete'])
+const emit = defineEmits(['selection-change', 'sort-change', 'view', 'edit', 'edit-view-count', 'toggle-publish', 'delete'])
 
 const handleSelectionChange = (selection) => {
   emit('selection-change', selection)
+}
+
+const handleSortChange = (sortPayload) => {
+  emit('sort-change', sortPayload)
 }
 
 const handleCommand = (command, row) => {

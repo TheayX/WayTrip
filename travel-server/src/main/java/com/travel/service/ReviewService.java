@@ -9,7 +9,7 @@ import com.travel.dto.review.response.ReviewResponse;
 /**
  * 评价服务接口。
  * <p>
- * 定义用户端评价提交、查询、删除，以及管理端评价查询和景点评分同步能力。
+ * 定义用户端评价提交、查询、删除，以及管理端评价查询和景点评价聚合同步能力。
  */
 public interface ReviewService {
 
@@ -90,14 +90,14 @@ public interface ReviewService {
     int getUserReviewCount(Long userId);
 
     /**
-     * 刷新单个景点的评分统计信息。
+     * 刷新单个景点的评分与评价数量。
      *
      * @param spotId 景点 ID
      */
     void refreshSpotRating(Long spotId);
 
     /**
-     * 刷新全部景点的评分统计信息。
+     * 刷新全部景点的评分与评价数量。
      */
     void refreshAllSpotRatings();
 }

@@ -21,6 +21,7 @@ import com.travel.mapper.SpotMapper;
 import com.travel.mapper.UserMapper;
 import com.travel.service.OrderService;
 import com.travel.service.RecommendationService;
+import com.travel.service.support.admin.AdminSortSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -219,6 +220,19 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toSet());
             wrapper.in(Order::getSpotId, spotIds);
         }
+
+        if (request.getUserNickname() != null && !request.getUserNickname().isEmpty()) {
+            List<User> matchingUsers = userMapper.selectList(
+                new LambdaQueryWrapper<User>().like(User::getNickname, request.getUserNickname())
+            );
+            if (matchingUsers.isEmpty()) {
+                return buildEmptyAdminOrderListResponse(request.getPage(), request.getPageSize());
+            }
+            Set<Long> userIds = matchingUsers.stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+            wrapper.in(Order::getUserId, userIds);
+        }
         
         if (request.getStatus() != null && !request.getStatus().isEmpty()) {
             OrderStatus statusEnum = OrderStatus.fromKey(request.getStatus());
@@ -232,8 +246,21 @@ public class OrderServiceImpl implements OrderService {
         if (request.getEndDate() != null) {
             wrapper.le(Order::getCreatedAt, request.getEndDate().atTime(23, 59, 59));
         }
+        if (request.getVisitStartDate() != null) {
+            wrapper.ge(Order::getVisitDate, request.getVisitStartDate());
+        }
+        if (request.getVisitEndDate() != null) {
+            wrapper.le(Order::getVisitDate, request.getVisitEndDate());
+        }
 
-        wrapper.orderByDesc(Order::getCreatedAt);
+        AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
+            "id", Order::getId,
+            "totalPrice", Order::getTotalAmount,
+            "quantity", Order::getQuantity,
+            "visitDate", Order::getVisitDate,
+            "createdAt", Order::getCreatedAt,
+            "updatedAt", Order::getUpdatedAt
+        ), () -> wrapper.orderByDesc(Order::getCreatedAt));
 
         Page<Order> page = new Page<>(request.getPage(), request.getPageSize());
         Page<Order> result = orderMapper.selectPage(page, wrapper);

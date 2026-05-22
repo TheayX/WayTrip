@@ -48,6 +48,7 @@
             v-for="spot in detail.spotOptions"
             :key="spot.id"
             class="spot-tag"
+            size="large"
             :type="spot.isDeleted === 1 ? 'danger' : (spot.published === 1 ? 'success' : 'warning')"
             effect="light"
           >

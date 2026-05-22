@@ -119,7 +119,11 @@
    表单工具 - Form Width Utilities
    ───────────────────────────────────────────────────────────── */
 
+.form-w-100 { width: 100px; }
 .form-w-140 { width: 140px; }
+.form-w-145 { width: 145px; }
+.form-w-160 { width: 160px; }
+.form-w-168 { width: 168px; }
 .form-w-180 { width: 180px; }
 .form-w-200 { width: 200px; }
 .form-w-220 { width: 220px; }
@@ -187,13 +191,27 @@
   }
 
   .advanced-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid var(--wt-border-default);
   }
 
+  .advanced-filter-item {
+    margin-bottom: 0;
+  }
+
   .toggle-btn {
+    gap: 4px;
     font-weight: 600;
+  }
+
+  .date-picker.el-date-editor,
+  .tight-date-picker.el-date-editor {
+    width: 240px !important;
   }
 
   .el-input__wrapper,

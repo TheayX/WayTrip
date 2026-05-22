@@ -23,4 +23,8 @@ public class AdminUserFavoriteListRequest {
     private Integer page = 1;
 
     private Integer pageSize = 10;
+
+    private String sortBy;
+
+    private String sortOrder;
 }

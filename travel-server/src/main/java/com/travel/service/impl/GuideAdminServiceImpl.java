@@ -20,6 +20,7 @@ import com.travel.mapper.GuideSpotRelationMapper;
 import com.travel.mapper.AdminMapper;
 import com.travel.mapper.SpotMapper;
 import com.travel.service.GuideAdminService;
+import com.travel.service.support.admin.AdminSortSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -64,7 +65,24 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         if (request.getPublished() != null) {
             wrapper.eq(Guide::getIsPublished, request.getPublished());
         }
-        wrapper.orderByAsc(Guide::getId);
+        if (request.getCreatedStartDate() != null) {
+            wrapper.ge(Guide::getCreatedAt, request.getCreatedStartDate().atStartOfDay());
+        }
+        if (request.getCreatedEndDate() != null) {
+            wrapper.le(Guide::getCreatedAt, request.getCreatedEndDate().atTime(23, 59, 59));
+        }
+        if (request.getUpdatedStartDate() != null) {
+            wrapper.ge(Guide::getUpdatedAt, request.getUpdatedStartDate().atStartOfDay());
+        }
+        if (request.getUpdatedEndDate() != null) {
+            wrapper.le(Guide::getUpdatedAt, request.getUpdatedEndDate().atTime(23, 59, 59));
+        }
+        AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
+            "id", Guide::getId,
+            "viewCount", Guide::getViewCount,
+            "createdAt", Guide::getCreatedAt,
+            "updatedAt", Guide::getUpdatedAt
+        ), () -> wrapper.orderByAsc(Guide::getId));
 
         Page<Guide> result = guideMapper.selectPage(page, wrapper);
         List<Guide> guides = result.getRecords();

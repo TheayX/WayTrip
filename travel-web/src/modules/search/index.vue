@@ -1,15 +1,12 @@
 <!-- 综合搜索页 -->
 <template>
   <div class="page-container search-page">
-    <section class="search-hero card">
-      <div>
+    <section class="search-box premium-card">
+      <div class="search-head">
         <p class="hero-eyebrow">Search</p>
-        <h2 class="page-title">综合搜索</h2>
-        <p class="page-subtitle">同一关键词下同时浏览景点和攻略，更符合 Web 端的信息检索习惯。</p>
+        <h2 class="page-title">搜索旅行内容</h2>
+        <p class="page-subtitle">输入目的地、景点名称或攻略主题，快速查看相关结果。</p>
       </div>
-    </section>
-
-    <section class="search-box card">
       <el-input
         v-model="keyword"
         placeholder="搜索景点名称、城市、攻略标题..."
@@ -96,7 +93,13 @@
             <h3>攻略结果</h3>
             <p>共找到 {{ guideTotal }} 篇相关攻略</p>
           </div>
-          <el-button v-if="activeTab === 'all' && guideTotal > 0" text type="primary" @click="activeTab = 'guide'">只看攻略</el-button>
+          <div class="section-actions">
+            <el-radio-group v-if="guideTotal > 0" v-model="guideSortBy" size="small" @change="handleGuideSortChange">
+              <el-radio-button label="view_count">浏览量优先</el-radio-button>
+              <el-radio-button label="time">最新优先</el-radio-button>
+            </el-radio-group>
+            <el-button v-if="activeTab === 'all' && guideTotal > 0" text type="primary" @click="activeTab = 'guide'">只看攻略</el-button>
+          </div>
         </div>
 
         <div v-loading="guideLoading" class="guide-grid">
@@ -140,7 +143,7 @@
       >
         <template #default>
           <div class="empty-panel">
-            <p>换个关键词试试，或者直接从下面的推荐内容继续浏览。</p>
+            <p>换个关键词试试，或从推荐内容继续浏览。</p>
             <ExploreKeywordGroup
               v-if="recentKeywords.length"
               title="最近搜索"
@@ -160,7 +163,7 @@
         <div class="section-head">
           <div>
             <h3>不如先看看这些</h3>
-            <p>搜索没有命中时，继续从热门景点和最新攻略里找灵感。</p>
+            <p>搜索没有命中时，继续从热门景点和高浏览攻略里找灵感。</p>
           </div>
         </div>
 
@@ -178,9 +181,23 @@
       </section>
     </template>
 
-    <section v-else class="search-hint card">
-      <el-icon :size="64" color="#c0c4cc"><Search /></el-icon>
-      <p>输入关键词后，同时查看景点和攻略结果。</p>
+    <section v-else class="search-hint premium-card">
+      <div class="section-head">
+        <div>
+          <h3>先看看这些</h3>
+          <p>还没输入关键词时，可以从热门景点和高浏览攻略开始。</p>
+        </div>
+      </div>
+      <ExploreSuggestionGrid
+        v-if="fallbackSpotCards.length"
+        :items="fallbackSpotCards.slice(0, 2)"
+        @select="handleFallbackSpotSelect"
+      />
+      <ExploreSuggestionGrid
+        v-if="fallbackGuideCards.length"
+        :items="fallbackGuideCards.slice(0, 2)"
+        @select="handleFallbackGuideSelect"
+      />
     </section>
   </div>
 </template>
@@ -226,6 +243,7 @@ const spotPage = ref(1)
 const guidePage = ref(1)
 const spotPageSize = 8
 const guidePageSize = 6
+const guideSortBy = ref('view_count')
 const spotTotal = ref(0)
 const guideTotal = ref(0)
 const recentKeywords = ref([])
@@ -252,10 +270,6 @@ const fallbackGuideCards = computed(() => fallbackGuides.value.map((guide) => ({
   title: resolveGuideTitle(guide.title),
   subtitle: `${resolveGuideCategory(guide.category)} · ${guide.createdAt || '--'}`
 })))
-const hintCards = computed(() => [
-  ...fallbackSpotCards.value.slice(0, 2),
-  ...fallbackGuideCards.value.slice(0, 1)
-])
 
 // 工具方法
 const saveRecentKeyword = (value) => {
@@ -295,7 +309,8 @@ const syncRouteQuery = () => {
     path: APP_ROUTE_PATHS.search,
     query: {
       ...(keyword.value.trim() ? { keyword: keyword.value.trim() } : {}),
-      ...(activeTab.value !== 'all' ? { tab: activeTab.value } : {})
+      ...(activeTab.value !== 'all' ? { tab: activeTab.value } : {}),
+      ...(guideSortBy.value !== 'view_count' ? { guideSortBy: guideSortBy.value } : {})
     }
   })
 }
@@ -311,14 +326,6 @@ const handleFallbackSpotSelect = (item) => {
 
 const handleFallbackGuideSelect = (item) => {
   router.push(`/guides/${item.targetId}`)
-}
-
-const handleHintSelect = (item) => {
-  if (item.type === 'spot') {
-    handleFallbackSpotSelect(item)
-    return
-  }
-  handleFallbackGuideSelect(item)
 }
 
 // 数据加载方法
@@ -352,7 +359,7 @@ const fetchGuideResults = async () => {
       keyword: keyword.value.trim(),
       page: guidePage.value,
       pageSize: guidePageSize,
-      sortBy: 'time'
+      sortBy: guideSortBy.value
     })
     guideResults.value = res.data?.list || res.data || []
     guideTotal.value = res.data?.total || 0
@@ -364,7 +371,7 @@ const fetchGuideResults = async () => {
 const fetchFallbackContent = async () => {
   const [spotRes, guideRes] = await Promise.all([
     getHotSpots(4),
-    getGuideList({ page: 1, pageSize: 3, sortBy: 'time' })
+    getGuideList({ page: 1, pageSize: 3, sortBy: 'view_count' })
   ])
 
   fallbackSpots.value = spotRes.data?.list || []
@@ -401,6 +408,13 @@ const handleTabChange = async () => {
   await Promise.all([fetchSpotResults(), fetchGuideResults()])
 }
 
+const handleGuideSortChange = async () => {
+  guidePage.value = 1
+  syncRouteQuery()
+  if (!searched.value) return
+  await fetchGuideResults()
+}
+
 // 生命周期
 onMounted(async () => {
   restoreRecentKeywords()
@@ -408,6 +422,10 @@ onMounted(async () => {
 
   if (typeof route.query.tab === 'string' && SEARCH_TABS.includes(route.query.tab)) {
     activeTab.value = route.query.tab
+  }
+
+  if (route.query.guideSortBy === 'time' || route.query.guideSortBy === 'view_count') {
+    guideSortBy.value = route.query.guideSortBy
   }
 
   if (typeof route.query.keyword === 'string' && route.query.keyword.trim()) {
@@ -421,7 +439,8 @@ onMounted(async () => {
 .search-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  padding-top: 2px;
 }
 
 .search-input {
@@ -446,16 +465,19 @@ onMounted(async () => {
   }
 }
 
-.search-hero,
 .search-box,
 .search-hint {
-  padding: 24px;
+  padding: 20px;
 }
 
-.search-hero {
+.search-box {
   background:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 26%),
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.1), transparent 24%),
     linear-gradient(135deg, #f8fafc 0%, #eef6ff 100%);
+}
+
+.search-head {
+  margin-bottom: 18px;
 }
 
 .hero-eyebrow {
@@ -467,9 +489,9 @@ onMounted(async () => {
 }
 
 .page-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .page-subtitle,
@@ -479,7 +501,7 @@ onMounted(async () => {
 }
 
 .search-meta {
-  margin-top: 16px;
+  margin-top: 14px;
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -488,7 +510,7 @@ onMounted(async () => {
 
 .search-actions {
   display: flex;
-  margin-top: 18px;
+  margin-top: 16px;
   gap: 12px;
   flex-direction: column;
   align-items: stretch;
@@ -497,7 +519,7 @@ onMounted(async () => {
 .result-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .section-head {
@@ -507,15 +529,23 @@ onMounted(async () => {
   gap: 16px;
 }
 
+.section-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .section-head h3 {
   margin-bottom: 6px;
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .result-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   min-height: 120px;
 }
 
@@ -526,15 +556,15 @@ onMounted(async () => {
 }
 
 .result-img {
-  width: 240px;
-  height: 170px;
+  width: 220px;
+  height: 156px;
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .result-info {
   flex: 1;
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -542,7 +572,7 @@ onMounted(async () => {
 
 .result-name,
 .guide-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: #0f172a;
 }
@@ -574,7 +604,7 @@ onMounted(async () => {
 .guide-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+  gap: 16px;
   min-height: 120px;
 }
 
@@ -585,15 +615,15 @@ onMounted(async () => {
 
 .guide-image {
   width: 100%;
-  height: 220px;
+  height: 200px;
   object-fit: cover;
 }
 
 .guide-content {
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .guide-tag {
@@ -613,22 +643,15 @@ onMounted(async () => {
 .empty-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .search-hint {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 260px;
-  color: #94a3b8;
-}
-
-.search-hint p {
-  margin-top: 16px;
+  gap: 16px;
 }
 
 @media (max-width: 992px) {
@@ -644,13 +667,18 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
+  .search-box,
+  .search-hint {
+    padding: 18px;
+  }
+
   .result-card {
     flex-direction: column;
   }
 
   .result-img {
     width: 100%;
-    height: 220px;
+    height: 200px;
   }
 }
 </style>

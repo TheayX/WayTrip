@@ -17,7 +17,7 @@ export const sourceOptions = [
   { label: '订单', value: 'order' },
   { label: '浏览记录', value: 'footprint' },
   { label: '收藏', value: 'favorite' },
-  { label: '我的评价', value: 'review' },
+  { label: '我的评价', value: 'rating' },
   { label: '详情页', value: 'detail' }
 ]
 

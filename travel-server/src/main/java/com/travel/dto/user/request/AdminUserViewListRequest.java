@@ -18,6 +18,10 @@ public class AdminUserViewListRequest {
 
     private String source;
 
+    private Integer minDuration;
+
+    private Integer maxDuration;
+
     private LocalDate startDate;
 
     private LocalDate endDate;
@@ -25,4 +29,8 @@ public class AdminUserViewListRequest {
     private Integer page = 1;
 
     private Integer pageSize = 10;
+
+    private String sortBy;
+
+    private String sortOrder;
 }

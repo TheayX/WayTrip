@@ -11,7 +11,7 @@ export const formatFeaturePrice = (value, {
 }
 
 export const formatFeatureRating = (value, {
-  emptyText = '暂无评分',
+  emptyText = '暂无评价',
   suffix = ' 分'
 } = {}) => {
   const num = Number(value)

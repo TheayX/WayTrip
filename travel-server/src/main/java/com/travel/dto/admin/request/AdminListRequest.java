@@ -14,4 +14,6 @@ public class AdminListRequest {
     private Integer pageSize = 10;
     private String keyword;
     private Integer status;
+    private String sortBy;
+    private String sortOrder;
 }

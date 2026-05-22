@@ -1,6 +1,6 @@
 <!-- 订单创建页 -->
 <template>
-  <div class="page-container" v-if="spot">
+  <div class="page-container order-create-page" v-if="spot">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item :to="buildSpotDetailRoute(spot.id, SPOT_DETAIL_SOURCE.ORDER)">{{ spot.name }}</el-breadcrumb-item>
@@ -70,7 +70,7 @@
       </div>
     </div>
   </div>
-  <div v-else class="page-container">
+  <div v-else class="page-container order-create-page">
     <el-skeleton :rows="8" animated />
   </div>
 </template>
@@ -159,10 +159,15 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.order-create-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .order-create-layout {
   display: flex;
-  gap: 24px;
-  margin-top: 8px;
+  gap: 20px;
 }
 
 .order-main {
@@ -170,23 +175,22 @@ onMounted(() => {
 }
 
 .order-sidebar {
-  width: 340px;
+  width: 320px;
   flex-shrink: 0;
 }
 
 .spot-card {
   display: flex;
   gap: 16px;
-  padding: 20px;
-  border-radius: 12px;
+  padding: 20px 22px;
   margin-bottom: 16px;
 }
 
 .spot-thumb {
-  width: 120px;
-  height: 90px;
+  width: 128px;
+  height: 92px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -198,38 +202,37 @@ onMounted(() => {
 }
 
 .spot-name {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
 }
 
 .spot-price {
-  font-size: 16px;
+  font-size: 17px;
   color: #f56c6c;
   font-weight: 600;
 }
 
 .form-card, .price-card {
-  padding: 24px;
-  border-radius: 12px;
+  padding: 22px 24px;
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .price-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 10px 0;
   font-size: 14px;
-  color: #606266;
+  color: #475569;
 
   &.total {
     font-size: 16px;
     font-weight: 600;
-    color: #303133;
+    color: #0f172a;
   }
 }
 
@@ -241,9 +244,9 @@ onMounted(() => {
 
 .submit-btn {
   width: 100%;
-  height: 48px;
+  height: 44px;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-top: 16px;
 }
 
@@ -254,6 +257,23 @@ onMounted(() => {
 
   .order-sidebar {
     width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .spot-card,
+  .form-card,
+  .price-card {
+    padding: 18px;
+  }
+
+  .spot-card {
+    flex-direction: column;
+  }
+
+  .spot-thumb {
+    width: 100%;
+    height: 192px;
   }
 }
 </style>

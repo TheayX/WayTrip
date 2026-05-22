@@ -6,8 +6,8 @@
       <el-form-item label="当前评分">
         <span>{{ heatForm.avgRating ?? 0 }}</span>
       </el-form-item>
-      <el-form-item label="评价数">
-        <span>{{ heatForm.ratingCount ?? 0 }}</span>
+      <el-form-item label="评价人数">
+        <span>{{ heatForm.reviewCount ?? 0 }}</span>
       </el-form-item>
       <el-form-item label="当前热度分数">
         <span>{{ heatForm.heatScore ?? 0 }}</span>

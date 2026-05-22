@@ -262,8 +262,8 @@ export function useRecommendationPreview({ status, fetchStatus }) {
       const scoreText = item.score == null ? '-' : Number(item.score).toFixed(4)
       const priceText = item.price == null ? '-' : `¥${item.price}`
       const ratingText = item.avgRating == null
-        ? '暂无评分'
-        : `${Number(item.avgRating).toFixed(1)} 分 / ${item.ratingCount || 0} 条评价`
+        ? '暂无评价'
+        : `${Number(item.avgRating).toFixed(1)} 分 / ${item.reviewCount || 0} 条评价`
       let reason = '请结合后端详细日志查看交互权重、候选分数与过滤过程。'
       if (debugResult.value?.type === 'personalized') {
         reason = item.score == null

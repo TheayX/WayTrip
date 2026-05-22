@@ -3,23 +3,36 @@
   <div class="page-container guide-list-page">
     <GuideListToolbar
       :description="currentStateText"
-      :sort-by="sortBy"
-      @sort-change="changeSort"
-      @reset="resetFilters"
     />
 
     <section class="category-bar premium-card">
-      <p class="category-kicker">攻略主题</p>
-      <div class="category-tags">
-        <el-check-tag :checked="currentCategory === ''" @change="selectCategory('')">全部</el-check-tag>
-        <el-check-tag
-          v-for="cat in categories"
-          :key="cat"
-          :checked="currentCategory === cat"
-          @change="selectCategory(cat)"
-        >
-          {{ cat }}
-        </el-check-tag>
+      <div class="category-head">
+        <div>
+          <p class="category-kicker">Guides</p>
+          <h3>筛选攻略</h3>
+        </div>
+        <button v-if="activeGuideTags.length" type="button" class="category-reset" @click="resetFilters">清空</button>
+      </div>
+      <div class="category-row">
+        <div class="category-field">
+          <span class="category-label">主题</span>
+          <el-select :model-value="currentCategory" placeholder="全部主题" @change="selectCategory">
+            <el-option label="全部" value="" />
+            <el-option v-for="cat in categories" :key="cat" :label="cat" :value="cat" />
+          </el-select>
+        </div>
+        <div class="category-field">
+          <span class="category-label">排序</span>
+          <el-select :model-value="sortBy" placeholder="选择排序" @change="changeSort">
+            <el-option v-for="option in sortOptions" :key="option.value" :label="option.label" :value="option.value" />
+          </el-select>
+        </div>
+        <div class="category-actions">
+          <el-button plain @click="resetFilters">重置</el-button>
+        </div>
+      </div>
+      <div v-if="activeGuideTags.length" class="selected-row">
+        <span v-for="tag in activeGuideTags" :key="tag" class="selected-chip">{{ tag }}</span>
       </div>
     </section>
 
@@ -69,13 +82,31 @@ const page = ref(1)
 const pageSize = 12
 const total = ref(0)
 const loading = ref(false)
-const sortBy = ref('time')
+const sortBy = ref('view_count')
+const sortOptions = [
+  { label: '浏览量优先', value: 'view_count' },
+  { label: '最新优先', value: 'time' },
+  { label: '分类排序', value: 'category' }
+]
 
 // 计算属性
 const currentStateText = computed(() => {
   const categoryText = currentCategory.value || '全部分类'
-  const sortText = sortBy.value === 'category' ? '分类排序' : '最新优先'
+  const sortTextMap = {
+    view_count: '浏览量优先',
+    time: '最新优先',
+    category: '分类排序'
+  }
+  const sortText = sortTextMap[sortBy.value] || '浏览量优先'
   return `${categoryText} · 共 ${total.value} 条 · ${sortText}`
+})
+const activeGuideTags = computed(() => {
+  const tags = []
+  if (currentCategory.value) tags.push(currentCategory.value)
+  if (sortBy.value !== 'view_count') {
+    tags.push(sortBy.value === 'category' ? '分类排序' : '最新优先')
+  }
+  return tags
 })
 
 // 工具方法
@@ -155,7 +186,7 @@ const changeSort = (value) => {
 
 const resetFilters = () => {
   currentCategory.value = ''
-  sortBy.value = 'time'
+  sortBy.value = 'view_count'
   page.value = 1
   syncRouteQuery()
   fetchGuideList()
@@ -166,7 +197,7 @@ onMounted(async () => {
   if (typeof route.query.category === 'string' && route.query.category) {
     currentCategory.value = route.query.category
   }
-  if (route.query.sortBy === 'time' || route.query.sortBy === 'category') {
+  if (route.query.sortBy === 'view_count' || route.query.sortBy === 'time' || route.query.sortBy === 'category') {
     sortBy.value = route.query.sortBy
   }
 
@@ -180,16 +211,24 @@ onMounted(async () => {
 .guide-list-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding-top: 4px;
+  gap: 16px;
+  padding-top: 2px;
 }
 
 .category-bar {
-  padding: 18px 20px;
+  padding: 16px 18px;
+}
+
+.category-head {
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
 }
 
 .category-kicker {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -197,23 +236,73 @@ onMounted(async () => {
   color: #64748b;
 }
 
-.category-tags {
+.category-head h3 {
+  color: #0f172a;
+  font-size: 22px;
+}
+
+.category-row {
   display: flex;
   flex-wrap: wrap;
+  gap: 16px;
+}
+
+.category-field {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+}
+
+.category-label {
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.category-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.category-reset {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 700;
 }
 
 .guide-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
   min-height: 200px;
+}
+
+.selected-row {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selected-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 @media (max-width: 992px) {

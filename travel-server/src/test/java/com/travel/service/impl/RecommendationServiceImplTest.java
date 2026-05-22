@@ -518,7 +518,7 @@ class RecommendationServiceImplTest {
     @Test
     void getHotSpots_returnsCachedResult_withoutDatabaseQuery() {
         HotSpotResponse cached = new HotSpotResponse();
-        cached.setList(List.of(new HotSpotResponse.SpotItem(1L, "缓存热门", "/cover.jpg", null, null, 99, "分类")));
+        cached.setList(List.of(new HotSpotResponse.SpotItem(1L, "缓存热门", "/cover.jpg", null, null, 99, "分类", null)));
         when(recommendationCacheService.getHomeHotSpots(3)).thenReturn(cached);
 
         HotSpotResponse response = recommendationService.getHotSpots(3);

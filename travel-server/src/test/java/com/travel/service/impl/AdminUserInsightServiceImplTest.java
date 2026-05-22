@@ -20,6 +20,7 @@ import com.travel.mapper.UserMapper;
 import com.travel.mapper.UserPreferenceMapper;
 import com.travel.mapper.UserSpotFavoriteMapper;
 import com.travel.mapper.UserSpotViewMapper;
+import com.travel.service.support.spot.SpotTreeSupport;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,6 +35,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -69,6 +71,9 @@ class AdminUserInsightServiceImplTest {
     private SpotCategoryMapper spotCategoryMapper;
 
     @Mock
+    private SpotTreeSupport spotTreeSupport;
+
+    @Mock
     private UserPreferenceMapper userPreferenceMapper;
 
     @Mock
@@ -82,24 +87,19 @@ class AdminUserInsightServiceImplTest {
 
     @Test
     void getPreferenceList_skipsCategoryBatchQueryWhenNoValidCategoryId() {
-        User user = new User();
-        user.setId(1L);
-        user.setNickname("用户A");
-        user.setPhone("13800138000");
-        user.setCreatedAt(LocalDateTime.now().minusDays(3));
-        user.setUpdatedAt(LocalDateTime.now().minusDays(1));
-
-        Page<User> page = new Page<>(1, 10);
-        page.setRecords(List.of(user));
-        page.setTotal(1L);
-        when(userMapper.selectPage(any(Page.class), any())).thenReturn(page);
-
         UserPreference invalidPreference = new UserPreference();
         invalidPreference.setUserId(1L);
         invalidPreference.setTag("invalid-tag");
         invalidPreference.setIsDeleted(0);
         invalidPreference.setUpdatedAt(LocalDateTime.now());
         when(userPreferenceMapper.selectList(any())).thenReturn(List.of(invalidPreference));
+
+        User user = new User();
+        user.setId(1L);
+        user.setNickname("用户A");
+        user.setPhone("13800138000");
+        user.setCreatedAt(LocalDateTime.now().minusDays(3));
+        when(userMapper.selectBatchIds(any())).thenReturn(List.of(user));
 
         AdminUserPreferenceListRequest request = new AdminUserPreferenceListRequest();
         request.setPage(1);
@@ -114,6 +114,22 @@ class AdminUserInsightServiceImplTest {
         assertEquals(0, result.getList().get(0).getPreferenceTags().size());
 
         verify(spotCategoryMapper, never()).selectBatchIds(any());
+    }
+
+    @Test
+    void getPreferenceList_excludesUsersWithoutPreferenceRecords() {
+        when(userPreferenceMapper.selectList(any())).thenReturn(List.of());
+
+        AdminUserPreferenceListRequest request = new AdminUserPreferenceListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+
+        PageResult<AdminUserPreferenceListItem> result = service.getPreferenceList(request);
+
+        assertEquals(0L, result.getTotal());
+        assertNotNull(result.getList());
+        assertTrue(result.getList().isEmpty());
+        verify(userMapper, never()).selectBatchIds(any());
     }
 
     @Test
@@ -180,6 +196,25 @@ class AdminUserInsightServiceImplTest {
         PageResult<AdminUserViewListItem> result = service.getViewList(request);
 
         assertEquals("已清除用户", result.getList().get(0).getNickname());
+    }
+
+    @Test
+    void getViewList_acceptsDurationRange() {
+        Page<UserSpotView> page = new Page<>(1, 10);
+        page.setRecords(List.of());
+        page.setTotal(0L);
+        when(userSpotViewMapper.selectPage(any(Page.class), any())).thenReturn(page);
+
+        AdminUserViewListRequest request = new AdminUserViewListRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+        request.setMinDuration(60);
+        request.setMaxDuration(180);
+
+        PageResult<AdminUserViewListItem> result = service.getViewList(request);
+
+        assertEquals(0L, result.getTotal());
+        verify(userSpotViewMapper).selectPage(any(Page.class), any());
     }
 }
 

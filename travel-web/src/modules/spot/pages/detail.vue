@@ -382,7 +382,7 @@ const handleSubmitRating = async () => {
 
 const handleDeleteComment = async (comment) => {
   try {
-    await ElMessageBox.confirm('确认删除这条评价吗？删除后评分会一并撤销。', '提示', {
+    await ElMessageBox.confirm('确认删除这条评价记录吗？删除后评分会一并撤销。', '提示', {
       type: 'warning'
     })
     await deleteReview(comment.id)
@@ -428,12 +428,12 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .spot-detail {
-  padding-top: 4px;
+  padding-top: 2px;
 }
 
 .detail-layout {
   display: flex;
-  gap: 24px;
+  gap: 20px;
 }
 
 .detail-main {
@@ -441,7 +441,7 @@ onUnmounted(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .hero-block {
@@ -450,7 +450,7 @@ onUnmounted(() => {
 }
 
 .image-carousel {
-  border-radius: 28px;
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -462,16 +462,16 @@ onUnmounted(() => {
 }
 
 .no-image {
-  height: 320px;
+  height: 300px;
   background: #f8fafc;
-  border-radius: 28px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .info-section {
-  padding: 24px;
+  padding: 20px;
 }
 
 .section-kicker {
@@ -484,10 +484,10 @@ onUnmounted(() => {
 }
 
 .section-label {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .section-header-row {
@@ -495,13 +495,13 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .desc-text {
   font-size: 15px;
   color: #64748b;
-  line-height: 1.9;
+  line-height: 1.8;
   white-space: pre-wrap;
 }
 
@@ -518,13 +518,13 @@ onUnmounted(() => {
 .comment-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .comment-item {
   display: flex;
   gap: 12px;
-  padding: 14px 0;
+  padding: 12px 0;
   border-bottom: 1px solid #eef2f7;
 }
 
@@ -579,6 +579,20 @@ onUnmounted(() => {
 @media (max-width: 992px) {
   .detail-layout {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .image-carousel {
+    border-radius: 14px;
+  }
+
+  .info-section {
+    padding: 18px;
+  }
+
+  .section-label {
+    font-size: 20px;
   }
 }
 </style>

@@ -46,7 +46,7 @@ public class RecommendationResponse {
         private String coverImage;
         private BigDecimal price;
         private BigDecimal avgRating;
-        private Integer ratingCount;
+        private Integer reviewCount;
         private String categoryName;
         private String regionName;
         private Double score; // 推荐分数

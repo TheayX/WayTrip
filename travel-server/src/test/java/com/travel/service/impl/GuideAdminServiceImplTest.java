@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -175,6 +176,25 @@ class GuideAdminServiceImplTest {
             guideAdminService.getAdminGuideList(new com.travel.dto.guide.request.AdminGuideListRequest());
 
         assertEquals("已停用管理员", result.getList().get(0).getAdminName());
+    }
+
+    @Test
+    void getAdminGuideList_acceptsDateFilters() {
+        Page<Guide> page = new Page<>(1, 10);
+        page.setRecords(List.of());
+        page.setTotal(0L);
+
+        when(guideMapper.selectPage(any(), any())).thenReturn(page);
+
+        com.travel.dto.guide.request.AdminGuideListRequest request = new com.travel.dto.guide.request.AdminGuideListRequest();
+        request.setCreatedStartDate(LocalDate.of(2026, 1, 1));
+        request.setCreatedEndDate(LocalDate.of(2026, 1, 31));
+        request.setUpdatedStartDate(LocalDate.of(2026, 2, 1));
+        request.setUpdatedEndDate(LocalDate.of(2026, 2, 28));
+
+        PageResult<com.travel.dto.guide.response.AdminGuideListResponse> result = guideAdminService.getAdminGuideList(request);
+
+        assertEquals(0L, result.getTotal());
     }
 
     @Test

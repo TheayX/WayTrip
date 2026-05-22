@@ -5,10 +5,9 @@
       <div>
         <p class="hero-eyebrow">Recommendation Detail</p>
         <h2 class="page-title">{{ userStore.isLoggedIn ? recommendType : '推荐景点' }}</h2>
-        <p class="page-subtitle">这个页面保留为推荐结果直达页，更完整的探索与筛选已经合并到发现页。</p>
+        <p class="page-subtitle">集中查看推荐结果，适合直接从推荐里继续深入浏览。</p>
       </div>
       <div class="hero-actions">
-        <el-button text @click="$router.push({ path: APP_ROUTE_PATHS.discover, query: { scene: 'recommend' } })">返回发现页</el-button>
         <el-button v-if="userStore.isLoggedIn" :loading="refreshing" type="primary" @click="handleRefresh">换一批</el-button>
         <el-button v-if="userStore.isLoggedIn" @click="showPreferencePopup">偏好设置</el-button>
       </div>
@@ -17,7 +16,7 @@
     <section v-if="userStore.isLoggedIn && needPreference" class="preference-tip premium-card" @click="showPreferencePopup">
       <div>
         <strong>你还没有设置偏好分类</strong>
-        <p>先选几类感兴趣的景点，推荐结果会更稳定。</p>
+        <p>先设置偏好，再看推荐。</p>
       </div>
       <el-icon><ArrowRight /></el-icon>
     </section>
@@ -62,7 +61,7 @@ import { useUserStore } from '@/modules/account/store/user.js'
 import { useRecommendationFeed } from '@/modules/recommendation/composables/useRecommendationFeed.js'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
-import { APP_ROUTE_PATHS, AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
+import { AUTH_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 
 // 基础依赖与用户状态
 const userStore = useUserStore()
@@ -128,16 +127,16 @@ onMounted(() => {
 .recommendation-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-top: 4px;
+  gap: 16px;
+  padding-top: 2px;
 }
 
 .hero {
-  padding: 26px;
+  padding: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   background:
     radial-gradient(circle at top right, rgba(37, 99, 235, 0.14), transparent 28%),
     linear-gradient(135deg, #f8fbff 0%, #ffffff 60%, #eef5ff 100%);
@@ -153,17 +152,17 @@ onMounted(() => {
 }
 
 .page-title {
-  font-size: 34px;
-  line-height: 1.1;
+  font-size: 28px;
+  line-height: 1.14;
   font-weight: 700;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 
 .page-subtitle {
-  margin-top: 12px;
+  margin-top: 10px;
   color: #64748b;
-  line-height: 1.8;
+  line-height: 1.75;
 }
 
 .hero-actions {
@@ -174,11 +173,11 @@ onMounted(() => {
 }
 
 .preference-tip {
-  padding: 18px 20px;
+  padding: 16px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   cursor: pointer;
 }
 
@@ -195,7 +194,7 @@ onMounted(() => {
 .recommend-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 .preference-tags {

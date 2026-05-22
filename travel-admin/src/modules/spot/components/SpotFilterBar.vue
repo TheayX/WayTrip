@@ -3,27 +3,26 @@
   <!-- 搜索筛选表单 -->
   <div class="search-form admin-filter-bar">
     <el-form :inline="true" :model="queryParams" @submit.prevent>
-
       <div class="filter-row">
         <div class="filter-main">
-          <el-form-item class="filter-item">
+          <el-form-item label="景点名称" class="filter-item">
             <el-input
               v-model="queryParams.keyword"
-              placeholder="搜索景点名称"
+              placeholder="请输入景点名称"
               clearable
-              class="filter-input"
+              class="form-w-200"
               :prefix-icon="Search"
               @keyup.enter="emitSearch"
               @clear="emitSearch"
             />
           </el-form-item>
 
-          <el-form-item class="filter-item">
+          <el-form-item label="发布状态" class="filter-item">
             <el-select
               v-model="uiFilters.published"
-              placeholder="发布状态"
+              placeholder="全部"
               clearable
-              class="status-select"
+              class="form-w-100"
               @change="emitFilterChange"
               @clear="emitFilterChange"
             >
@@ -46,15 +45,15 @@
 
       <!-- 高级筛选区域 -->
       <el-collapse-transition>
-        <div v-show="showAdvanced" class="advanced-panel advanced-filters">
+        <div v-show="showAdvanced" class="advanced-panel">
           <el-form-item label="地区" class="filter-item">
             <el-cascader
               v-model="uiFilters.regionPath"
               :options="regionCascaderOptions"
               :props="regionCascaderProps"
               clearable
-              placeholder="全国任意地区"
-              class="filter-cascader"
+              placeholder="全部"
+              class="form-w-180"
               @change="emitFilterChange"
             />
           </el-form-item>
@@ -65,11 +64,23 @@
               :options="categoryCascaderOptions"
               :props="categoryCascaderProps"
               clearable
-              placeholder="全部分类"
-              class="filter-cascader"
+              placeholder="全部"
+              class="form-w-180"
               @change="emitFilterChange"
               @clear="emitFilterChange"
             />
+          </el-form-item>
+          <el-form-item label="热度档位" class="filter-item">
+            <el-select
+              v-model="uiFilters.heatLevel"
+              placeholder="全部"
+              clearable
+              class="form-w-100"
+              @change="emitFilterChange"
+              @clear="emitFilterChange"
+            >
+              <el-option v-for="item in heatLevelOptions" :key="item.value" :label="item.label" :value="String(item.value)" />
+            </el-select>
           </el-form-item>
 
         </div>
@@ -89,7 +100,8 @@ defineProps({
   regionCascaderOptions: { type: Array, required: true },
   categoryCascaderOptions: { type: Array, required: true },
   regionCascaderProps: { type: Object, required: true },
-  categoryCascaderProps: { type: Object, required: true }
+  categoryCascaderProps: { type: Object, required: true },
+  heatLevelOptions: { type: Array, required: true }
 })
 
 const emit = defineEmits(['search', 'reset', 'filter-change'])
@@ -101,35 +113,3 @@ const emitSearch = () => emit('search')
 const emitReset = () => emit('reset')
 const emitFilterChange = () => emit('filter-change')
 </script>
-
-<style lang="scss" scoped>
-.advanced-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.filter-input {
-  width: 260px;
-}
-
-.filter-cascader {
-  width: 192px;
-}
-
-.status-select {
-  width: 140px;
-}
-
-.toggle-btn {
-  gap: 4px;
-}
-
-@media (max-width: 960px) {
-  .filter-input,
-  .filter-cascader,
-  .status-select {
-    width: 100%;
-  }
-}
-</style>

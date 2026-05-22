@@ -35,11 +35,13 @@
         :tab-label="getTabMeta(currentTab).label"
         :search-form="searchForm"
         :date-range="dateRange"
+        :visit-date-range="visitDateRange"
         :show-advanced="showAdvanced"
         @search="handleSearch"
         @reset="handleReset"
         @toggle-advanced="showAdvanced = !showAdvanced"
         @update:date-range="dateRange = $event"
+        @update:visit-date-range="visitDateRange = $event"
       />
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -57,28 +59,29 @@
           element-loading-text="正在加载订单数据..."
           class="order-table"
           empty-text="当前条件下暂无匹配订单"
+          @sort-change="handleSortChange"
         >
-          <el-table-column label="订单号" width="200" align="left">
+          <el-table-column label="订单号" width="176" align="left" header-align="center">
             <template #default="{ row }">
               <el-button link type="primary" class="order-link" @click="handleDetail(row)">
                 {{ row.orderNo }}
               </el-button>
             </template>
           </el-table-column>
-          <el-table-column label="景点名称" min-width="180" show-overflow-tooltip align="left">
+          <el-table-column label="景点名称" min-width="220" show-overflow-tooltip align="left">
             <template #default="{ row }">
               <el-button link type="primary" class="spot-link" :disabled="isInvalidSpot(row)" @click="handleOpenSpot(row)">{{ getDisplaySpotName(row) }}</el-button>
             </template>
           </el-table-column>
-          <el-table-column prop="userNickname" label="用户" width="120" align="left" />
-          <el-table-column label="支付金额" width="150" align="left">
+          <el-table-column prop="userNickname" label="用户" width="100" align="left" />
+          <el-table-column prop="totalPrice" label="支付金额" width="136" align="left" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
             <template #default="{ row }">
               <span class="metric-inline metric-inline--price">¥{{ formatCurrency(row.totalPrice) }}</span>
               <span class="quantity">({{ row.quantity }}张)</span>
             </template>
           </el-table-column>
-          <el-table-column prop="visitDate" label="游玩日期" width="120" align="center" />
-          <el-table-column label="联系人" width="160" align="left">
+          <el-table-column prop="visitDate" label="游玩日期" width="132" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
+          <el-table-column label="联系人" width="100" align="left">
             <template #default="{ row }">
               <div>{{ row.contactName || '--' }}</div>
               <div class="text-subtle">{{ row.contactPhone || '--' }}</div>
@@ -91,7 +94,7 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="下单时间" width="180" align="center" />
+          <el-table-column prop="createdAt" label="下单时间" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
           <el-table-column label="操作" width="220" fixed="right" align="left" header-align="center">
             <template #default="{ row }">
               <div class="table-actions table-actions--start">
@@ -143,6 +146,7 @@ import { isInvalidSpotDisplay, resolveSpotDisplayName } from '@/shared/lib/resou
 import OrderFilterBar from '@/modules/order/components/OrderFilterBar.vue'
 import OrderSummaryCards from '@/modules/order/components/OrderSummaryCards.vue'
 import OrderDetailDrawer from '@/modules/order/components/OrderDetailDrawer.vue'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -157,14 +161,16 @@ const tabs = [
 
 const currentTab = ref('all')
 const showAdvanced = ref(false)
-const searchForm = reactive({ orderNo: '', spotName: '', status: '' })
+const searchForm = reactive({ orderNo: '', spotName: '', userNickname: '', status: '' })
 const dateRange = ref([])
+const visitDateRange = ref([])
 const loading = ref(false)
 const summaryLoading = ref(false)
 const detailLoading = ref(false)
 const errorMessage = ref('')
 const orderList = ref([])
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
+const sortState = reactive({ page: 1, sortBy: '', sortOrder: '' })
 const detailVisible = ref(false)
 const currentOrder = ref(null)
 const summaryStats = reactive({
@@ -190,6 +196,9 @@ const buildBaseParams = (page, pageSize) => {
   const params = {
     orderNo: searchForm.orderNo,
     spotName: searchForm.spotName,
+    userNickname: searchForm.userNickname,
+    sortBy: sortState.sortBy,
+    sortOrder: sortState.sortOrder,
     page,
     pageSize
   }
@@ -197,6 +206,10 @@ const buildBaseParams = (page, pageSize) => {
   if (dateRange.value?.length === 2) {
     params.startDate = dateRange.value[0]
     params.endDate = dateRange.value[1]
+  }
+  if (visitDateRange.value?.length === 2) {
+    params.visitStartDate = visitDateRange.value[0]
+    params.visitEndDate = visitDateRange.value[1]
   }
 
   return params
@@ -231,13 +244,24 @@ const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 const mergeCompositeList = (responses, page, pageSize) => {
   const merged = responses
     .flatMap((item) => item.data.list || [])
-    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+    .sort(compareCompositeOrders)
 
   const start = (page - 1) * pageSize
   return {
     list: merged.slice(start, start + pageSize),
     total: responses.reduce((sum, item) => sum + Number(item.data.total || 0), 0)
   }
+}
+
+const compareCompositeOrders = (left, right) => {
+  const direction = sortState.sortOrder === 'asc' ? 1 : -1
+  const field = sortState.sortBy || 'createdAt'
+  const leftValue = left?.[field]
+  const rightValue = right?.[field]
+  if (field === 'totalPrice' || field === 'quantity' || field === 'id') {
+    return direction * (Number(leftValue || 0) - Number(rightValue || 0))
+  }
+  return direction * String(leftValue || '').localeCompare(String(rightValue || ''))
 }
 
 // 复合状态页签通过按需扩容抓取，优先保证分页结果正确，再考虑后端是否补复合筛选接口。
@@ -327,8 +351,19 @@ const syncRouteQuery = () => {
   if (searchForm.spotName) {
     nextQuery.spotName = searchForm.spotName
   }
+  if (searchForm.userNickname) {
+    nextQuery.userNickname = searchForm.userNickname
+  }
   if (searchForm.status) {
     nextQuery.status = searchForm.status
+  }
+  if (dateRange.value?.length === 2) {
+    nextQuery.startDate = dateRange.value[0]
+    nextQuery.endDate = dateRange.value[1]
+  }
+  if (visitDateRange.value?.length === 2) {
+    nextQuery.visitStartDate = visitDateRange.value[0]
+    nextQuery.visitEndDate = visitDateRange.value[1]
   }
   const currentQuery = {}
   if (typeof route.query.orderNo === 'string' && route.query.orderNo) {
@@ -337,8 +372,23 @@ const syncRouteQuery = () => {
   if (typeof route.query.spotName === 'string' && route.query.spotName) {
     currentQuery.spotName = route.query.spotName
   }
+  if (typeof route.query.userNickname === 'string' && route.query.userNickname) {
+    currentQuery.userNickname = route.query.userNickname
+  }
   if (typeof route.query.status === 'string' && route.query.status) {
     currentQuery.status = route.query.status
+  }
+  if (typeof route.query.startDate === 'string' && route.query.startDate) {
+    currentQuery.startDate = route.query.startDate
+  }
+  if (typeof route.query.endDate === 'string' && route.query.endDate) {
+    currentQuery.endDate = route.query.endDate
+  }
+  if (typeof route.query.visitStartDate === 'string' && route.query.visitStartDate) {
+    currentQuery.visitStartDate = route.query.visitStartDate
+  }
+  if (typeof route.query.visitEndDate === 'string' && route.query.visitEndDate) {
+    currentQuery.visitEndDate = route.query.visitEndDate
   }
   const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
   if (changed) {
@@ -351,7 +401,20 @@ const syncRouteQuery = () => {
 const applyRouteQuery = () => {
   searchForm.orderNo = typeof route.query.orderNo === 'string' ? route.query.orderNo : ''
   searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
+  searchForm.userNickname = typeof route.query.userNickname === 'string' ? route.query.userNickname : ''
   searchForm.status = typeof route.query.status === 'string' ? route.query.status : ''
+  if (typeof route.query.startDate === 'string' && typeof route.query.endDate === 'string') {
+    dateRange.value = [route.query.startDate, route.query.endDate]
+    showAdvanced.value = true
+  } else {
+    dateRange.value = []
+  }
+  if (typeof route.query.visitStartDate === 'string' && typeof route.query.visitEndDate === 'string') {
+    visitDateRange.value = [route.query.visitStartDate, route.query.visitEndDate]
+    showAdvanced.value = true
+  } else {
+    visitDateRange.value = []
+  }
 }
 
 const handleSearch = () => {
@@ -363,9 +426,12 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.orderNo = ''
   searchForm.spotName = ''
+  searchForm.userNickname = ''
   searchForm.status = ''
   dateRange.value = []
+  visitDateRange.value = []
   pagination.page = 1
+  syncRouteQuery()
   refreshDashboardData()
 }
 
@@ -378,6 +444,12 @@ const handleTabChange = (tabKey) => {
   searchForm.status = ''
   pagination.page = 1
   syncRouteQuery()
+  fetchOrderList()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(sortState, sortPayload)
+  pagination.page = 1
   fetchOrderList()
 }
 

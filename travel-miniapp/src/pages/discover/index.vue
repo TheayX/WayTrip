@@ -174,6 +174,8 @@ import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
+import UniSearchBar from '@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue'
 
 const resolveGuideText = (value) => value || '--'
 const resolveGuideTitle = (value) => resolveMiniappGuideDisplayText(value)
@@ -246,7 +248,7 @@ const fetchSpotPreview = async () => {
 
 const fetchGuidePreview = async () => {
   try {
-    const params = { page: 1, pageSize: 6, sortBy: 'time' }
+    const params = { page: 1, pageSize: 6, sortBy: 'view_count' }
     if (selectedGuideCategory.value) params.category = selectedGuideCategory.value
     const res = await getGuideList(params)
     guideList.value = res.data?.list || []
@@ -328,7 +330,7 @@ const goSpotList = () => {
 }
 
 const goGuideList = () => {
-  const query = ['sortBy=time']
+  const query = ['sortBy=view_count']
   if (selectedGuideCategory.value) query.push(`category=${encodeURIComponent(selectedGuideCategory.value)}`)
   uni.navigateTo({ url: `/pages/guide/list?${query.join('&')}` })
 }

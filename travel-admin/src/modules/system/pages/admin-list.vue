@@ -20,23 +20,23 @@
 
 
       <!-- 搜索表单 -->
-      <el-form :model="queryParams" inline class="search-form" @submit.prevent>
+      <el-form :model="queryParams" inline class="search-form admin-filter-bar" @submit.prevent>
         <el-form-item label="关键字">
           <el-input
               v-model="queryParams.keyword"
-              placeholder="用户名/姓名"
+              placeholder="请输入用户名或姓名"
               clearable
-              class="form-w-220"
+              class="form-w-200"
               @keyup.enter="handleSearch"
               @clear="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="账号状态">
           <el-select
               v-model="uiStatus"
               placeholder="全部"
               clearable
-              class="form-w-140"
+              class="form-w-100"
               @change="handleSearch"
               @clear="handleSearch"
           >
@@ -45,7 +45,7 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -59,8 +59,8 @@
       </div>
 
       <!-- 数据表格 -->
-      <el-table v-else :data="tableData" v-loading="loading" stripe class="admin-table borderless-table">
-        <el-table-column prop="id" label="ID" width="80" align="center" />
+      <el-table v-else :data="tableData" v-loading="loading" stripe class="admin-table borderless-table" @sort-change="handleSortChange">
+        <el-table-column prop="id" label="ID" width="88" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column prop="username" label="用户名" min-width="140" align="left" />
         <el-table-column prop="realName" label="姓名" min-width="140" align="left" />
         <el-table-column label="状态" width="100" align="center">
@@ -71,17 +71,17 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="lastLoginAt" label="最近登录" width="180" align="center">
+        <el-table-column prop="lastLoginAt" label="最近登录" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">
             {{ formatDate(row.lastLoginAt) || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180" align="center">
+        <el-table-column prop="createdAt" label="创建时间" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column prop="updatedAt" label="修改时间" width="180" align="center">
+        <el-table-column prop="updatedAt" label="修改时间" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">
             {{ formatDate(row.updatedAt) }}
           </template>
@@ -126,6 +126,9 @@
         <el-form-item v-if="!isEdit" label="用户名" prop="username">
           <el-input v-model="form.username" placeholder="仅支持字母/数字/下划线" />
         </el-form-item>
+        <el-form-item v-else label="用户名">
+          <el-input v-model="form.username" readonly />
+        </el-form-item>
         <el-form-item v-if="!isEdit" label="密码" prop="password">
           <el-input v-model="form.password" type="password" show-password placeholder="至少 6 位" />
         </el-form-item>
@@ -167,6 +170,7 @@ import { ArrowDown } from '@element-plus/icons-vue'
 import { useUserStore } from '@/app/store/user.js'
 import { useRoute, useRouter } from 'vue-router'
 import { createAdmin, deleteAdmin, getAdminList, resetAdminPassword, updateAdmin } from '@/modules/system/api/admin.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -185,7 +189,9 @@ const queryParams = reactive({
   page: 1,
   pageSize: 10,
   keyword: '',
-  status: null
+  status: null,
+  sortBy: '',
+  sortOrder: ''
 })
 
 // 对话框与表单状态
@@ -273,6 +279,11 @@ const handleReset = () => {
   handleSearch()
 }
 
+const handleSortChange = (sortPayload) => {
+  applySortChange(queryParams, sortPayload)
+  fetchData()
+}
+
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (queryParams.keyword) {
@@ -325,6 +336,7 @@ const handleEdit = (row) => {
   isEdit.value = true
   resetFormState()
   editingId.value = row.id
+  form.username = row.username
   form.realName = row.realName
   form.status = row.status
   isEditingCurrentAdmin.value = row.id === currentAdminId.value

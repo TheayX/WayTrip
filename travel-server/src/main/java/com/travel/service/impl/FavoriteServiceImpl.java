@@ -168,7 +168,7 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .coverImage(null)
                 .price(null)
                 .avgRating(null)
-                .ratingCount(null)
+                .reviewCount(null)
                 .regionName(null)
                 .categoryName(null)
                 .build();
@@ -179,7 +179,7 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .coverImage(spot.getCoverImageUrl())
                 .price(spot.getPrice())
                 .avgRating(spot.getAvgRating())
-                .ratingCount(spot.getRatingCount())
+                .reviewCount(spot.getReviewCount())
                 .regionName(getRegionName(spot.getRegionId()))
                 .categoryName(getCategoryName(spot.getCategoryId()))
                 .build();
@@ -198,3 +198,4 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
 }
+

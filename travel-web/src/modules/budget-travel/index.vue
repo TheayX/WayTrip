@@ -46,7 +46,7 @@
     </section>
 
     <section v-if="activeTab === 'spots'" class="content-section">
-      <p class="section-tip">优先展示价格更低、同时热度更高的景点结果。</p>
+      <p class="section-tip">按价格和热度显示更省钱的景点。</p>
 
       <div v-if="budgetSpots.length" class="spot-grid">
         <SpotCard
@@ -64,7 +64,7 @@
     </section>
 
     <section v-else class="content-section">
-      <p class="section-tip">根据攻略关联景点的价格，优先筛出更适合低预算出行的内容。</p>
+      <p class="section-tip">按关联景点的价格筛选低预算攻略。</p>
 
       <div v-if="budgetGuides.length" class="guide-grid">
         <GuideCard
@@ -203,21 +203,21 @@ onMounted(() => {
 .budget-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-top: 4px;
-  padding-bottom: 32px;
+  gap: 16px;
+  padding-top: 2px;
+  padding-bottom: 24px;
 }
 
 .hero-card,
 .control-card,
 .loading-row {
-  padding: 26px;
+  padding: 20px;
 }
 
 .hero-card {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
+  gap: 16px;
   align-items: flex-end;
   background:
     radial-gradient(circle at top right, rgba(249, 115, 22, 0.12), transparent 28%),
@@ -236,11 +236,11 @@ onMounted(() => {
 .hero-title,
 .control-head h2 {
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .hero-title {
-  font-size: 36px;
+  font-size: 28px;
 }
 
 .hero-desc,
@@ -253,19 +253,19 @@ onMounted(() => {
 
 .hero-stats {
   display: flex;
-  gap: 14px;
+  gap: 12px;
 }
 
 .hero-stat {
   min-width: 140px;
-  padding: 18px 20px;
-  border-radius: 20px;
+  padding: 16px 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.8);
 }
 
 .hero-stat strong {
   display: block;
-  font-size: 28px;
+  font-size: 24px;
   color: #111827;
 }
 
@@ -283,7 +283,7 @@ onMounted(() => {
 }
 
 .control-row {
-  margin-top: 18px;
+  margin-top: 16px;
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -292,7 +292,7 @@ onMounted(() => {
 
 .filter-options {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .filter-chip {
@@ -314,14 +314,14 @@ onMounted(() => {
 .content-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .spot-grid,
 .guide-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 @media (max-width: 992px) {

@@ -82,6 +82,15 @@ CREATE DATABASE waytrip_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 - [schema.sql](./travel-server/src/main/resources/db/schema.sql)
 - [data.sql](./travel-server/src/main/resources/db/data.sql)
+- 地区补充：[db/seed/10_region.sql](./travel-server/src/main/resources/db/seed/10_region.sql)
+- 可选扩容目录：[db/seed/bulk](./travel-server/src/main/resources/db/seed/bulk)
+
+说明：
+
+- `data.sql` 仍是基础演示数据脚本，适合初始化全新数据库。
+- 如果你已经在后台改过景点图片、文案或其他基础数据，不要再次执行 `data.sql`。
+- 如需导入手工扩容数据，按顺序执行 `seed/10_region.sql` 和 `seed/bulk/*.sql`，详细顺序见 [travel-server/README.md](./travel-server/README.md)。
+- 扩容数据改为单独维护在 `db/seed/bulk/*.sql`，默认只追加，不覆盖，不清空，不修改已有基础数据。
 
 ### 1. 启动后端（[README](./travel-server/README.md)）
 

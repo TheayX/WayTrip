@@ -22,9 +22,9 @@
       <view class="info-meta">
         <view class="rating-chip">
           <uni-icons type="star-filled" size="14" color="#d97706" />
-          <text class="rating">{{ spot.avgRating }}</text>
+          <text class="review">{{ spot.avgRating }}</text>
         </view>
-        <text class="rating-count">({{ spot.ratingCount }}条评价)</text>
+        <text class="rating-count">({{ spot.reviewCount }}条评价)</text>
         <text class="divider">·</text>
         <text class="category">{{ spot.regionName }} · {{ spot.categoryName }}</text>
       </view>
@@ -197,6 +197,7 @@ import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { resolveMiniappUserDisplayName } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 基础依赖与用户状态
 const spot = ref(null)

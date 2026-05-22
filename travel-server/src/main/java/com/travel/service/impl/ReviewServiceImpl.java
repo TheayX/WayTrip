@@ -11,7 +11,7 @@ import com.travel.dto.review.request.AdminReviewListRequest;
 import com.travel.dto.review.request.ReviewFeedRequest;
 import com.travel.dto.review.request.ReviewRequest;
 import com.travel.dto.review.response.ReviewResponse;
-import com.travel.dto.review.stats.SpotRatingStats;
+import com.travel.dto.review.stats.SpotReviewStats;
 import com.travel.entity.Review;
 import com.travel.entity.Spot;
 import com.travel.entity.User;
@@ -165,7 +165,17 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public PageResult<ReviewResponse> getAdminReviews(AdminReviewListRequest request) {
         Page<Review> pageObj = new Page<>(request.getPage(), request.getPageSize());
-        pageObj = (Page<Review>) reviewMapper.selectAdminReviewPage(pageObj, request.getNickname(), request.getSpotName());
+        pageObj = (Page<Review>) reviewMapper.selectAdminReviewPage(
+            pageObj,
+            request.getNickname(),
+            request.getSpotName(),
+            request.getMinScore(),
+            request.getMaxScore(),
+            request.getStartDate() != null ? request.getStartDate().toString() : null,
+            request.getEndDate() != null ? request.getEndDate().toString() : null,
+            resolveAdminReviewSortColumn(request.getSortBy()),
+            resolveAdminReviewSortOrder(request.getSortOrder())
+        );
 
         List<ReviewResponse> list = pageObj.getRecords().stream()
             .map(review -> convertToResponse(review, true))
@@ -254,13 +264,33 @@ public class ReviewServiceImpl implements ReviewService {
         return review;
     }
 
+    private String resolveAdminReviewSortColumn(String sortBy) {
+        if ("id".equals(sortBy)) {
+            return "r.id";
+        }
+        if ("score".equals(sortBy)) {
+            return "r.score";
+        }
+        if ("createdAt".equals(sortBy)) {
+            return "r.created_at";
+        }
+        if ("updatedAt".equals(sortBy)) {
+            return "r.updated_at";
+        }
+        return null;
+    }
+
+    private String resolveAdminReviewSortOrder(String sortOrder) {
+        return "asc".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
+    }
+
     private void updateSpotAvgRating(Long spotId) {
-        SpotRatingStats stats = reviewMapper.selectSpotRatingStats(spotId);
+        SpotReviewStats stats = reviewMapper.selectSpotReviewStats(spotId);
         BigDecimal avgRating = stats != null && stats.getAvgRating() != null
             ? stats.getAvgRating()
             : BigDecimal.ZERO;
-        long ratingCount = stats != null && stats.getRatingCount() != null
-            ? stats.getRatingCount()
+        long reviewCount = stats != null && stats.getReviewCount() != null
+            ? stats.getReviewCount()
             : 0L;
 
         spotMapper.update(
@@ -268,7 +298,7 @@ public class ReviewServiceImpl implements ReviewService {
             new UpdateWrapper<Spot>()
                 .eq("id", spotId)
                 .set("avg_rating", avgRating)
-                .set("rating_count", ratingCount)
+                .set("review_count", reviewCount)
         );
     }
 
@@ -346,3 +376,4 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
 }
+

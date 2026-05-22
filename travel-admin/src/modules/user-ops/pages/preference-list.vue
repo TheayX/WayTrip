@@ -33,35 +33,36 @@
     <el-card shadow="hover" class="management-card admin-management-card">
 
 
-      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
-
-        <el-form-item label="用户昵称">
+      <el-form :model="searchForm" inline class="search-form admin-filter-bar" @submit.prevent>
+        <div class="filter-row">
+          <div class="filter-main">
+        <el-form-item label="用户昵称" class="filter-item">
           <el-input
             v-model="searchForm.nickname"
             placeholder="请输入用户昵称"
             clearable
-            class="form-w-180"
+            class="form-w-168"
             @keyup.enter="handleSearch"
             @clear="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="偏好分类">
-          <el-select
-            v-model="searchForm.categoryId"
-            placeholder="全部"
+        <el-form-item label="偏好分类" class="filter-item">
+          <el-cascader
+            v-model="uiFilters.categoryPath"
+            :options="categoryTree"
+            :props="categoryCascaderProps"
             clearable
-            filterable
-            class="form-w-220"
+            placeholder="全部"
+            class="form-w-180"
             @change="handleSearch"
-            @clear="handleSearch"
-          >
-            <el-option v-for="item in categoryOptions" :key="item.id" :label="item.label" :value="item.id" />
-          </el-select>
+          />
         </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          </div>
+          <div class="filter-actions">
+          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+          </div>
+        </div>
       </el-form>
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -72,8 +73,8 @@
         </el-result>
       </div>
 
-      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table">
-        <el-table-column prop="userId" label="用户ID" width="90" />
+      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table" @sort-change="handleSortChange">
+        <el-table-column prop="userId" label="用户ID" width="104" align="center" header-align="center" header-class-name="preference-user-id-header" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="用户昵称" min-width="140">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="isDeactivatedUser(row)" @click="handleOpenUser(row)">{{ getDisplayNickname(row) }}</el-button>
@@ -90,7 +91,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="updatedAt" label="最近更新时间" width="170" align="center" />
+        <el-table-column prop="updatedAt" label="最近更新时间" width="188" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column prop="createdAt" label="注册时间" width="170" align="center" />
       </el-table>
 
@@ -115,6 +116,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
 import { getFilters } from '@/modules/spot/api.js'
 import { isDeactivatedUserDisplay, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -123,8 +125,18 @@ const skipNextRouteLoad = ref(false)
 // 列表状态
 const loading = ref(false)
 const tableData = ref([])
-const categoryOptions = ref([])
+const categoryTree = ref([])
 const errorMessage = ref('')
+const uiFilters = reactive({
+  categoryPath: []
+})
+const categoryCascaderProps = {
+  value: 'id',
+  label: 'name',
+  children: 'children',
+  checkStrictly: true,
+  emitPath: true
+}
 
 // 查询参数
 const searchForm = reactive({
@@ -136,7 +148,9 @@ const searchForm = reactive({
 const pagination = reactive({
   page: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
+  sortBy: '',
+  sortOrder: ''
 })
 // 当前页统计
 const currentPageTagCount = computed(() => {
@@ -168,24 +182,10 @@ const formatPhone = (phone) => {
   return normalized
 }
 
-// 构建分类选项
-const buildCategoryOptions = (nodes = [], level = 0) => {
-  return nodes.reduce((acc, node) => {
-    acc.push({
-      id: node.id,
-      label: `${'  '.repeat(level)}${level > 0 ? '└ ' : ''}${node.name}`
-    })
-    if (Array.isArray(node.children) && node.children.length) {
-      acc.push(...buildCategoryOptions(node.children, level + 1))
-    }
-    return acc
-  }, [])
-}
-
 // 获取筛选项
 const fetchFilters = async () => {
   const res = await getFilters()
-  categoryOptions.value = buildCategoryOptions(res.data.categoryTree || [])
+  categoryTree.value = res.data.categoryTree || []
 }
 
 // 获取偏好列表
@@ -196,7 +196,9 @@ const fetchPreferenceList = async () => {
     const res = await getPreferenceList({
       ...searchForm,
       page: pagination.page,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      sortBy: pagination.sortBy,
+      sortOrder: pagination.sortOrder
     })
     tableData.value = res.data.list || []
     pagination.total = res.data.total || 0
@@ -212,6 +214,9 @@ const fetchPreferenceList = async () => {
 // 搜索操作
 const handleSearch = () => {
   pagination.page = 1
+  searchForm.categoryId = uiFilters.categoryPath?.length
+    ? Number(uiFilters.categoryPath[uiFilters.categoryPath.length - 1])
+    : null
   syncRouteQuery()
   fetchPreferenceList()
 }
@@ -220,7 +225,13 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.nickname = ''
   searchForm.categoryId = null
+  uiFilters.categoryPath = []
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(pagination, sortPayload)
+  fetchPreferenceList()
 }
 
 // 同步路由参数
@@ -242,6 +253,28 @@ const syncRouteQuery = () => {
 const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.categoryId = typeof route.query.categoryId === 'string' ? Number(route.query.categoryId) : null
+  uiFilters.categoryPath = findPathById(searchForm.categoryId, categoryTree.value)
+}
+
+// 级联筛选需要回填完整路径，避免只存叶子 ID 时界面失去上下文。
+const findPathById = (targetId, tree) => {
+  if (!targetId || !Array.isArray(tree) || !tree.length) {
+    return []
+  }
+  const stack = tree.map((node) => ({ node, path: [node.id] }))
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (current.node.id === targetId) {
+      return current.path
+    }
+    if (Array.isArray(current.node.children) && current.node.children.length) {
+      for (const child of current.node.children) {
+        stack.push({ node: child, path: [...current.path, child.id] })
+      }
+    }
+  }
+  return []
 }
 
 const handleOpenUser = (row) => {
@@ -251,8 +284,9 @@ const handleOpenUser = (row) => {
 
 // 页面初始化
 onMounted(() => {
-  applyRouteQuery()
-  fetchFilters()
+  fetchFilters().then(() => {
+    applyRouteQuery()
+  })
   fetchPreferenceList()
 })
 
@@ -275,6 +309,14 @@ watch(
 
 .preference-page {
   @include userOps.page-shell;
+}
+
+.preference-page :deep(th.preference-user-id-header .cell) {
+  justify-content: center;
+}
+
+.preference-page :deep(th.preference-user-id-header.is-sortable .cell) {
+  transform: translateX(0);
 }
 
 .tag-list {

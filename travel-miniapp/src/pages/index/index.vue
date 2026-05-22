@@ -75,6 +75,7 @@ import RecommendSpots from './components/RecommendSpots.vue'
 import NearbyAndHot from './components/NearbyAndHot.vue'
 import { useRecommendationFeed } from '@/composables/useRecommendationFeed'
 import { getFeatureEntryById, getHomeEntryItems } from '@/constants/feature-entry-registry'
+import { switchTabSafely } from '@/utils/navigation'
 import { getAvatarUrl, getContentImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
@@ -110,12 +111,15 @@ const nearbyLoading = ref(false)
 const locationStatus = ref('idle')
 const nearbySessionToken = ref('')
 const lastHomeRefreshAt = ref(0)
+const lastObservedToken = ref(userStore.token || '')
 
 // 常量配置
 const markerIcon = '/static/marker/spot.png'
 const HOME_BASE_CACHE_KEY = 'waytrip:miniapp:home:base'
 const HOME_BASE_CACHE_TTL_MS = 2 * 60 * 1000
 const HOME_REFRESH_INTERVAL_MS = 30 * 1000
+const NEARBY_PREVIEW_LIMIT = 6
+const NEARBY_FALLBACK_LIMIT = 2
 
 const homeEntryItems = getHomeEntryItems()
 
@@ -157,7 +161,17 @@ const hasReasonableNearbySpots = computed(() => {
 })
 
 const displayNearbySpots = computed(() => {
-  return hasReasonableNearbySpots.value ? normalizedNearbySpots.value : []
+  if (!normalizedNearbySpots.value.length) return []
+  if (hasReasonableNearbySpots.value) {
+    return normalizedNearbySpots.value.filter((spot) => {
+      return spot.distanceKm === null || spot.distanceKm <= MAX_NEARBY_DISTANCE_KM
+    })
+  }
+  return normalizedNearbySpots.value.slice(0, NEARBY_FALLBACK_LIMIT)
+})
+
+const isUsingDistantNearbyFallback = computed(() => {
+  return normalizedNearbySpots.value.length > 0 && !hasReasonableNearbySpots.value
 })
 
 const canShowNearbyMap = computed(() => {
@@ -200,6 +214,7 @@ const nearbyMarkers = computed(() => {
 
 const nearbyHeadline = computed(() => {
   if (nearbyLoading.value) return '定位中'
+  if (isUsingDistantNearbyFallback.value) return '较近推荐'
   if (locationStatus.value === 'ready') return '附近可探索'
   if (locationStatus.value === 'empty') return '附近暂无结果'
   if (!isLoggedIn.value) return '登录后查看'
@@ -215,6 +230,9 @@ const nearbyActionText = computed(() => {
 
 const nearbySummary = computed(() => {
   if (nearbyLoading.value) return '正在获取你周边的景点'
+  if (isUsingDistantNearbyFallback.value && displayNearbySpots.value.length) {
+    return `当前位置周边较远，先展示最近的 ${displayNearbySpots.value.length} 个景点`
+  }
   if (locationStatus.value === 'ready' && displayNearbySpots.value.length) {
     const nearest = displayNearbySpots.value[0]
     return `你附近有 ${displayNearbySpots.value.length} 个景点，最近约 ${formatDistance(nearest.distanceKm)}`
@@ -225,6 +243,9 @@ const nearbySummary = computed(() => {
 })
 
 const nearbyCaption = computed(() => {
+  if (isUsingDistantNearbyFallback.value && displayNearbySpots.value.length) {
+    return `最近约 ${formatDistance(displayNearbySpots.value[0].distanceKm)} · 点击进入附近景点页`
+  }
   if (locationStatus.value === 'ready' && displayNearbySpots.value.length) {
     return `${displayNearbySpots.value[0].regionName || '周边区域'} · 点击进入附近景点页`
   }
@@ -236,7 +257,7 @@ const nearbyCaption = computed(() => {
 const nearbyPlaceholderText = computed(() => {
   if (nearbyLoading.value) return '定位中...'
   if (!isLoggedIn.value) return '登录后开启'
-  if (locationStatus.value === 'empty') return '暂无附近景点'
+  if (locationStatus.value === 'empty') return '暂无可用景点'
   return '点击开启定位'
 })
 
@@ -321,7 +342,7 @@ const fetchNearbyByLocation = async (latitude, longitude, limit = 3) => {
     nearbyLocation.value = { latitude, longitude }
     const res = await getNearbySpots(latitude, longitude, limit)
     nearbySpots.value = res.data?.list || []
-    locationStatus.value = hasReasonableNearbySpots.value ? 'ready' : 'empty'
+    locationStatus.value = normalizedNearbySpots.value.length ? 'ready' : 'empty'
     nearbySessionToken.value = userStore.token || ''
     return displayNearbySpots.value
   } catch (error) {
@@ -345,7 +366,7 @@ const ensureNearbyAccess = async () => {
 
   try {
     const position = await getAuthorizedLocation()
-    await fetchNearbyByLocation(position.latitude, position.longitude, 3)
+    await fetchNearbyByLocation(position.latitude, position.longitude, NEARBY_PREVIEW_LIMIT)
     return position
   } catch (error) {
     if (error?.code === 10002) {
@@ -377,7 +398,7 @@ const tryLoadNearbyAutomatically = async () => {
       }
       return
     }
-    await fetchNearbyByLocation(position.latitude, position.longitude, 3)
+    await fetchNearbyByLocation(position.latitude, position.longitude, NEARBY_PREVIEW_LIMIT)
   } catch (error) {
     if (error?.code === 10002) {
       return
@@ -539,7 +560,7 @@ const goSpotList = () => {
 }
 
 const goGuideList = () => {
-  uni.navigateTo({ url: '/pages/guide/list?sortBy=time' })
+  uni.navigateTo({ url: '/pages/guide/list?sortBy=view_count' })
 }
 
 const goRecommendationSpots = () => {
@@ -570,7 +591,7 @@ const goSearch = () => {
 }
 
 const goMine = () => {
-  uni.switchTab({ url: '/pages/mine/index' })
+  void switchTabSafely('/pages/mine/index')
 }
 
 const refreshHome = async ({ force = false } = {}) => {
@@ -582,6 +603,20 @@ const refreshHome = async ({ force = false } = {}) => {
   await Promise.all([fetchBanners(), fetchHotSpots(), fetchRecommendations()])
 }
 
+// 登录态变化会影响推荐、附近景点和冷启动弹层，必须绕过普通首页刷新节流。
+const syncHomeAuthState = () => {
+  const currentToken = userStore.token || ''
+  if (currentToken === lastObservedToken.value) {
+    return false
+  }
+
+  lastObservedToken.value = currentToken
+  resetNearbyState()
+  resetRecommendationState()
+  preferencePopupTriggered.value = false
+  return true
+}
+
 // 生命周期
 onPullDownRefresh(async () => {
   await refreshHome({ force: true })
@@ -589,6 +624,8 @@ onPullDownRefresh(async () => {
 })
 
 onShow(() => {
+  const authChanged = syncHomeAuthState()
+
   if (!userStore.token || nearbySessionToken.value !== userStore.token) {
     resetNearbyState()
     preferencePopupTriggered.value = false
@@ -600,7 +637,7 @@ onShow(() => {
   if (!banners.value.length || !popularSpots.value.length) {
     restoreHomeBaseFromCache()
   }
-  void refreshHome({ force: false })
+  void refreshHome({ force: authChanged })
   void tryLoadNearbyAutomatically()
 })
 </script>

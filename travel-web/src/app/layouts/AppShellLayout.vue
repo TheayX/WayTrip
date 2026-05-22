@@ -247,17 +247,17 @@ const handleCommand = (command) => {
   position: sticky;
   top: 0;
   z-index: 120;
-  padding: 18px 0 0;
+  padding: 12px 0 0;
 }
 
 .shell-header-bar {
-  min-height: 76px;
-  padding: 12px 16px 12px 20px;
-  border-radius: 28px;
+  min-height: 68px;
+  padding: 10px 14px 10px 16px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 16px;
 }
 
 .shell-left,
@@ -268,7 +268,7 @@ const handleCommand = (command) => {
 }
 
 .shell-left {
-  gap: 22px;
+  gap: 18px;
   min-width: 0;
 }
 
@@ -285,7 +285,7 @@ const handleCommand = (command) => {
 }
 
 .brand-logo {
-  height: 44px;
+  height: 38px;
   width: auto;
   display: block;
   flex-shrink: 0;
@@ -293,11 +293,11 @@ const handleCommand = (command) => {
 
 /* 使用几何图形替代 emoji，让品牌表达更稳定、更像正式产品。 */
 .brand-mark {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   display: block;
   flex-shrink: 0;
-  filter: drop-shadow(0 18px 24px rgba(37, 99, 235, 0.2));
+  filter: drop-shadow(0 14px 20px rgba(37, 99, 235, 0.14));
 }
 
 .shell-nav {
@@ -305,8 +305,8 @@ const handleCommand = (command) => {
 }
 
 .shell-nav-link {
-  min-height: 42px;
-  padding: 0 16px;
+  min-height: 38px;
+  padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -342,9 +342,9 @@ const handleCommand = (command) => {
 }
 
 .search-entry {
-  min-width: 220px;
-  min-height: 46px;
-  padding: 0 16px;
+  min-width: 200px;
+  min-height: 42px;
+  padding: 0 14px;
   border: 1px solid rgba(226, 232, 240, 0.96);
   border-radius: 999px;
   background: rgba(248, 250, 252, 0.92);
@@ -366,7 +366,7 @@ const handleCommand = (command) => {
 }
 
 .user-trigger {
-  min-height: 48px;
+  min-height: 44px;
   padding: 6px 10px 6px 6px;
   border: 1px solid rgba(226, 232, 240, 0.96);
   border-radius: 999px;
@@ -411,20 +411,20 @@ const handleCommand = (command) => {
 
 .shell-main {
   flex: 1;
-  padding-top: 16px;
+  padding-top: 12px;
 }
 
 .context-bar {
   position: sticky;
-  top: 94px;
+  top: 82px;
   z-index: 110;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 .context-bar-inner {
-  min-height: 58px;
-  padding: 10px 16px;
-  border-radius: 24px;
+  min-height: 50px;
+  padding: 8px 14px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -448,14 +448,14 @@ const handleCommand = (command) => {
 }
 
 .shell-footer {
-  padding: 32px 0 28px;
+  padding: 24px 0 22px;
 }
 
 .shell-footer-panel {
-  padding: 28px;
+  padding: 22px 24px;
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) auto auto;
-  gap: 24px;
+  gap: 20px;
   align-items: center;
 }
 
@@ -466,14 +466,14 @@ const handleCommand = (command) => {
 }
 
 .brand-mark-footer {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
 }
 
 .footer-brand strong {
   display: block;
-  font-size: 18px;
+  font-size: 17px;
   color: #0f172a;
 }
 
@@ -487,7 +487,7 @@ const handleCommand = (command) => {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 14px;
 }
 
 .footer-links a {
@@ -540,18 +540,18 @@ const handleCommand = (command) => {
   }
 
   .context-bar {
-    top: 144px;
+    top: 128px;
   }
 }
 
 @media (max-width: 768px) {
   .shell-header {
-    padding-top: 12px;
+    padding-top: 10px;
   }
 
   .shell-header-bar {
-    padding: 14px;
-    border-radius: 24px;
+    padding: 12px;
+    border-radius: 16px;
   }
 
   .context-text,
@@ -579,7 +579,7 @@ const handleCommand = (command) => {
   }
 
   .context-bar {
-    top: 188px;
+    top: 176px;
   }
 
   .context-bar-inner {
@@ -588,7 +588,7 @@ const handleCommand = (command) => {
   }
 
   .shell-footer-panel {
-    padding: 24px 22px;
+    padding: 20px 18px;
   }
 
   .footer-links {

@@ -11,16 +11,16 @@ import com.travel.service.ReviewService;
 import com.travel.service.SpotService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.Map;
 
 /**
  * 管理端景点控制器，负责景点管理与数据刷新接口。
  * <p>
- * 景点内容维护和评分、热度重算都在这一层收口，便于后台页面进行内容与指标联动操作。
+ * 景点内容维护和评价、热度重算都在这一层收口，便于后台页面进行内容与指标联动操作。
  */
 @Tag(name = "管理端-景点", description = "管理端景点管理相关接口")
 @RestController
@@ -82,7 +82,7 @@ public class AdminSpotController {
     @Operation(summary = "按评价表重算全部景点评分")
     @PostMapping("/rating/refresh")
     public ApiResponse<Void> refreshAllSpotRatings() {
-        // 后台保留批量重算入口，便于在脚本导数或评价修复后手动同步指标。
+        // 后台保留批量重算入口，便于在脚本导数或评价修复后手动同步评分指标。
         reviewService.refreshAllSpotRatings();
         return ApiResponse.success();
     }

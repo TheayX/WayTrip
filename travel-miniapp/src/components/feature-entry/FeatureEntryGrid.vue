@@ -19,6 +19,7 @@
 
 <script setup>
 import { featureEntryThemeMap } from '@/constants/feature-entry-registry'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 入口网格只负责渲染和点击分发，跳转策略由页面层统一处理。
 defineProps({

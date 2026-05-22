@@ -10,7 +10,7 @@ export const featureEntryThemeMap = {
 // 功能入口注册表是小程序端功能导航的单一来源，首页和更多页都从这里取数据。
 const featureEntryRegistry = [
   { id: 'spots', title: '景点大全', desc: '按区域和分类浏览', icon: 'location-filled', theme: 'blue', url: '/pages/spot/list?sortBy=heat', section: 'browse' },
-  { id: 'guides', title: '出游攻略', desc: '看路线和游玩经验', icon: 'paperplane-filled', theme: 'orange', url: '/pages/guide/list?sortBy=time', section: 'browse' },
+  { id: 'guides', title: '出游攻略', desc: '看路线和游玩经验', icon: 'paperplane-filled', theme: 'orange', url: '/pages/guide/list?sortBy=view_count', section: 'browse' },
   { id: 'recommend', title: '个性推荐', desc: '查看个性化推荐', icon: 'star-filled', theme: 'amber', url: '/pages/recommendation/index', section: 'browse' },
   { id: 'nearby', title: '附近探索', desc: '定位查看周边景点', icon: 'map-filled', theme: 'emerald', url: '/pages/spot/nearby', section: 'browse' },
   { id: 'random-pick', title: '随心一选', desc: '随机抽一个目的地', icon: 'gift-filled', theme: 'purple', url: '/pages/random-pick/index', section: 'feature' },

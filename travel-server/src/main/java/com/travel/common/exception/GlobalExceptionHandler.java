@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.validation.ConstraintViolation;
@@ -86,6 +87,20 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         log.warn("约束校验失败: {}", message);
         return ApiResponse.error(ResultCode.PARAM_ERROR, message);
+    }
+
+    /**
+     * 处理 multipart 上传大小超限异常。
+     *
+     * @param e 上传大小超限异常
+     * @return 标准错误响应
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+        // 上传超限发生在控制器参数绑定前，需要在全局层单独转换为可读错误。
+        log.warn("上传文件大小超过限制", e);
+        return ApiResponse.error(ResultCode.PARAM_ERROR, "上传文件大小超过限制");
     }
 
     /**

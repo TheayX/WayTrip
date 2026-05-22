@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,6 +51,14 @@ class GlobalExceptionHandlerMvcTest {
                 .andExpect(jsonPath("$.code").value(ResultCode.SYSTEM_ERROR.getCode()));
     }
 
+    @Test
+    void maxUploadSizeExceededException_returnsBadRequestWithParamErrorCode() throws Exception {
+        mockMvc.perform(get("/api/test/exception/max-upload-size").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResultCode.PARAM_ERROR.getCode()))
+                .andExpect(jsonPath("$.message").value("上传文件大小超过限制"));
+    }
+
     @RestController
     static class TestExceptionController {
 
@@ -61,6 +70,11 @@ class GlobalExceptionHandlerMvcTest {
         @GetMapping("/api/test/exception/runtime")
         public String throwRuntimeException() {
             throw new RuntimeException("unexpected");
+        }
+
+        @GetMapping("/api/test/exception/max-upload-size")
+        public String throwMaxUploadSizeExceededException() {
+            throw new MaxUploadSizeExceededException(1024 * 1024);
         }
     }
 }

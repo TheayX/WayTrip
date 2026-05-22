@@ -8,7 +8,6 @@
         <p class="page-subtitle">{{ subtitle }}</p>
       </div>
       <div class="hero-actions">
-        <el-button text @click="router.push({ path: APP_ROUTE_PATHS.discover, query: { tab: 'spot', scene: 'nearby' } })">返回发现页</el-button>
         <el-button :loading="loading" type="primary" @click="handleLocate">{{ loading ? '定位中' : '重新定位' }}</el-button>
       </div>
     </section>
@@ -35,7 +34,6 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/modules/account/store/user.js'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import { getNearbySpots } from '@/modules/home/api.js'
-import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 import { buildSpotDetailRoute, SPOT_DETAIL_SOURCE } from '@/shared/constants/spot-detail.js'
 import { getLocationSnapshot, getCurrentLocation } from '@/shared/lib/location.js'
 
@@ -55,7 +53,7 @@ const subtitle = computed(() => {
     return `共找到 ${spots.value.length} 个景点，最近约 ${formatDistance(spots.value[0].distanceKm)}。`
   }
   if (locationStatus.value === 'empty') return '当前位置附近暂时没有可展示的景点。'
-  return '这个页面保留为直达入口，更完整的探索流已经合并到发现页。'
+  return '按当前位置查看附近景点。'
 })
 
 const emptyText = computed(() => {
@@ -113,15 +111,15 @@ onMounted(async () => {
 .nearby-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-top: 4px;
+  gap: 16px;
+  padding-top: 2px;
 }
 
 .hero {
-  padding: 26px;
+  padding: 20px;
   display: flex;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   align-items: center;
   background:
     radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 28%),
@@ -138,17 +136,17 @@ onMounted(async () => {
 }
 
 .page-title {
-  font-size: 34px;
-  line-height: 1.1;
+  font-size: 28px;
+  line-height: 1.14;
   font-weight: 700;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 
 .page-subtitle {
-  margin-top: 12px;
+  margin-top: 10px;
   color: #64748b;
-  line-height: 1.8;
+  line-height: 1.75;
 }
 
 .hero-actions {
@@ -162,7 +160,7 @@ onMounted(async () => {
 .spot-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 @media (max-width: 992px) {

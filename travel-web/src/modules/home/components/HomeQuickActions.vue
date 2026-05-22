@@ -9,7 +9,6 @@
         <h3>{{ item.title }}</h3>
         <p>{{ item.desc }}</p>
       </div>
-      <span class="quick-arrow">查看</span>
     </div>
   </section>
 </template>
@@ -53,7 +52,7 @@ defineProps({
 .quick-copy h3 {
   margin-bottom: 10px;
   font-size: 20px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 
@@ -93,12 +92,6 @@ defineProps({
 .quick-icon.emerald {
   background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
   color: #059669;
-}
-
-.quick-arrow {
-  color: #334155;
-  font-size: 13px;
-  font-weight: 700;
 }
 
 @media (max-width: 1024px) {

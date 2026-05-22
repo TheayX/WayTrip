@@ -2,7 +2,7 @@
 <template>
   <div class="home-page">
     <section class="hero">
-      <el-carousel class="hero-carousel" height="620px" :interval="5000" autoplay :pause-on-hover="false" arrow="never" indicator-position="none">
+      <el-carousel class="hero-carousel" height="620px" :interval="5000" autoplay :pause-on-hover="false" arrow="never">
         <el-carousel-item v-for="banner in banners" :key="banner.id">
           <div class="hero-slide" :class="{ clickable: !!banner.spotId }" @click="handleBannerClick(banner)">
             <img :src="getImageUrl(banner.imageUrl)" class="hero-bg" alt="" />
@@ -15,7 +15,7 @@
           <div class="hero-copy">
             <p class="hero-eyebrow">{{ APP_NAME }} Curated Travel</p>
             <h1 class="hero-title">选一个方向，开始这次旅行。</h1>
-            <p class="hero-subtitle">热门景点、个性推荐、附近探索与实用攻略，帮你更快找到想去的地方。</p>
+            <p class="hero-subtitle">从热门景点、个性推荐、附近探索和实用攻略里，先找到这次想去的地方。</p>
           </div>
         </div>
       </div>
@@ -31,7 +31,6 @@
       />
 
       <HomeNearbySection
-        :headline="nearbyHeadline"
         :summary="nearbySummary"
         :action-text="nearbyActionText"
         :loading="nearbyLoading"
@@ -47,7 +46,6 @@
           <div>
             <p class="section-kicker">Popular Spots</p>
             <h2 class="section-title">热门景点精选</h2>
-            <p class="section-subtitle">优先展示当前最值得继续点开的景点。</p>
           </div>
           <button type="button" class="section-link" @click="router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`)">查看全部</button>
         </div>
@@ -68,7 +66,6 @@
           <div>
             <p class="section-kicker">Recommendations</p>
             <h2 class="section-title">{{ recommendationSectionTitle }}</h2>
-            <p class="section-subtitle">根据你的浏览偏好，优先整理值得继续查看的景点。</p>
           </div>
           <div class="section-actions">
             <button type="button" class="section-link" @click="goRecommendations">查看更多</button>
@@ -79,7 +76,7 @@
         <div v-if="needPreference && userStore.isLoggedIn" class="preference-tip premium-card" @click="showPreferencePopup">
           <div>
             <strong>还没有设置偏好分类</strong>
-            <p>先选几类感兴趣的景点，推荐会更稳定。</p>
+            <p>先设置偏好，再看推荐。</p>
           </div>
           <el-icon><ArrowRight /></el-icon>
         </div>
@@ -170,13 +167,6 @@ const {
 
 const recommendationSectionTitle = computed(() => (userStore.isLoggedIn ? recommendType.value : '推荐景点'))
 
-const nearbyHeadline = computed(() => {
-  if (nearbyLoading.value) return '定位中'
-  if (nearbyStatus.value === 'ready') return '附近可探索'
-  if (!userStore.isLoggedIn) return '登录后查看'
-  return '开启定位'
-})
-
 const nearbySummary = computed(() => {
   if (nearbyLoading.value) return '正在获取附近景点。'
   if (nearbyStatus.value === 'ready' && nearbySpots.value.length) {
@@ -189,14 +179,14 @@ const nearbySummary = computed(() => {
 const nearbyActionText = computed(() => {
   if (nearbyLoading.value) return '加载中'
   if (!userStore.isLoggedIn) return '去登录'
-  return '进入发现'
+  return '查看附近景点'
 })
 
 const quickActions = computed(() => ([
-  { id: 'discover', title: '发现灵感', desc: '浏览推荐、附近与精选内容', icon: Star, theme: 'amber', handler: () => router.push(APP_ROUTE_PATHS.discover) },
-  { id: 'spots', title: '全部景点', desc: '按热度进入景点列表', icon: MapLocation, theme: 'blue', handler: () => router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`) },
-  { id: 'guides', title: '游玩攻略', desc: '快速查看最新攻略', icon: Guide, theme: 'orange', handler: () => router.push(APP_ROUTE_PATHS.guides) },
-  { id: 'orders', title: '行程订单', desc: '管理当前与历史订单', icon: Tickets, theme: 'emerald', handler: () => goOrders() }
+  { id: 'discover', title: '发现灵感', desc: '集中看推荐、附近和精选内容', icon: Star, theme: 'amber', handler: () => router.push(APP_ROUTE_PATHS.discover) },
+  { id: 'spots', title: '全部景点', desc: '按热度浏览全部景点', icon: MapLocation, theme: 'blue', handler: () => router.push(`${APP_ROUTE_PATHS.spots}?sortBy=heat`) },
+  { id: 'guides', title: '游玩攻略', desc: '查看最新游玩攻略', icon: Guide, theme: 'orange', handler: () => router.push(APP_ROUTE_PATHS.guides) },
+  { id: 'orders', title: '行程订单', desc: '查看当前和历史订单', icon: Tickets, theme: 'emerald', handler: () => goOrders() }
 ]))
 
 const formatDistance = (value) => {
@@ -330,7 +320,7 @@ const goNearby = async () => {
     }
   }
 
-  router.push({ path: APP_ROUTE_PATHS.discover, query: { tab: 'spot', scene: 'nearby' } })
+  router.push(APP_ROUTE_PATHS.nearby)
 }
 
 const goOrders = () => {
@@ -358,10 +348,10 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .hero {
   position: relative;
-  min-height: 560px;
+  min-height: 520px;
   overflow: hidden;
-  border-bottom-left-radius: 36px;
-  border-bottom-right-radius: 36px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 
 .hero-carousel,
@@ -371,9 +361,31 @@ onMounted(async () => {
   height: 100%;
 }
 
+.hero-carousel :deep(.el-carousel__indicators) {
+  bottom: 22px;
+  transform: none;
+}
+
+.hero-carousel :deep(.el-carousel__button) {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.46);
+  transition: width 0.24s ease, background-color 0.24s ease, opacity 0.24s ease;
+}
+
+.hero-carousel :deep(.el-carousel__indicator:hover .el-carousel__button) {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.hero-carousel :deep(.el-carousel__indicator.is-active .el-carousel__button) {
+  width: 28px;
+  background: #ffffff;
+}
+
 .hero-bg {
   object-fit: cover;
-  filter: brightness(0.42);
+  filter: brightness(0.48);
 }
 
 .hero-slide.clickable {
@@ -390,23 +402,23 @@ onMounted(async () => {
 }
 
 .hero-inner {
-  min-height: 560px;
-  padding-top: 56px;
-  padding-bottom: 64px;
+  min-height: 520px;
+  padding-top: 48px;
+  padding-bottom: 52px;
   display: flex;
   align-items: end;
   justify-content: center;
 }
 
 .hero-copy {
-  max-width: 900px;
+  max-width: 780px;
   color: #fff;
   text-align: center;
 }
 
 .hero-eyebrow {
-  margin-bottom: 16px;
-  letter-spacing: 0.26em;
+  margin-bottom: 14px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
@@ -414,31 +426,31 @@ onMounted(async () => {
 }
 
 .hero-title {
-  font-size: 64px;
-  line-height: 1.02;
-  letter-spacing: -0.05em;
+  font-size: 52px;
+  line-height: 1.04;
+  letter-spacing: 0;
 }
 
 .hero-subtitle {
-  max-width: 620px;
-  margin: 20px auto 0;
-  font-size: 16px;
-  line-height: 1.75;
+  max-width: 560px;
+  margin: 16px auto 0;
+  font-size: 15px;
+  line-height: 1.7;
   color: rgba(255, 255, 255, 0.86);
 }
 
 .home-content {
-  margin-top: 28px;
-  padding-bottom: 18px;
+  margin-top: 20px;
+  padding-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .section-header,
@@ -482,15 +494,15 @@ onMounted(async () => {
 .recommend-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  gap: 16px;
 }
 
 .preference-tip {
-  padding: 18px 20px;
+  padding: 16px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   cursor: pointer;
 }
 
@@ -528,7 +540,7 @@ onMounted(async () => {
   }
 
   .hero-title {
-    font-size: 46px;
+    font-size: 40px;
   }
 
   .section-header {
@@ -539,17 +551,21 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .hero {
-    border-bottom-left-radius: 28px;
-    border-bottom-right-radius: 28px;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+  }
+
+  .hero-carousel :deep(.el-carousel__indicators) {
+    bottom: 14px;
   }
 
   .hero-inner {
-    padding-top: 28px;
-    padding-bottom: 40px;
+    padding-top: 24px;
+    padding-bottom: 30px;
   }
 
   .hero-title {
-    font-size: 36px;
+    font-size: 32px;
   }
 
   .spot-grid,

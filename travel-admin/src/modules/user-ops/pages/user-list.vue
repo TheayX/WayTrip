@@ -1,4 +1,4 @@
-﻿<!-- 用户管理页面 -->
+<!-- 用户管理页面 -->
 <template>
   <div class="user-page admin-page-shell">
     <section class="page-hero">
@@ -34,22 +34,70 @@
 
 
       <!-- 搜索表单 -->
-      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+      <el-form :model="searchForm" inline class="search-form admin-filter-bar" @submit.prevent>
+        <div class="filter-row">
+          <div class="filter-main">
+            <el-form-item label="用户昵称" class="filter-item">
+              <el-input
+                v-model="searchForm.nickname"
+                placeholder="请输入用户昵称"
+                clearable
+                class="form-w-168"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="账号状态" class="filter-item">
+              <el-select
+                v-model="searchForm.status"
+                placeholder="全部"
+                clearable
+                class="form-w-100"
+                @change="handleSearch"
+                @clear="handleSearch"
+              >
+                <el-option label="正常" value="0" />
+                <el-option label="已停用" value="1" />
+              </el-select>
+            </el-form-item>
+            <el-button type="primary" link class="toggle-btn" @click="showAdvanced = !showAdvanced">
+              <el-icon><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
+              {{ showAdvanced ? '收起条件' : '更多条件' }}
+            </el-button>
+          </div>
+          <div class="filter-actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </div>
+        </div>
 
-        <el-form-item label="昵称">
-          <el-input
-            v-model="searchForm.nickname"
-            placeholder="请输入昵称"
-            clearable
-            class="form-w-200"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+        <!-- 手机号与注册时间属于辅助检索条件，折叠后可保持首行简洁。 -->
+        <el-collapse-transition>
+          <div v-show="showAdvanced" class="advanced-panel">
+            <el-form-item label="手机号" class="filter-item advanced-filter-item">
+              <el-input
+                v-model="searchForm.phone"
+                placeholder="请输入手机号"
+                clearable
+                class="form-w-168"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="注册时间" class="filter-item advanced-filter-item">
+              <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                value-format="YYYY-MM-DD"
+                class="tight-date-picker"
+                @change="handleSearch"
+              />
+            </el-form-item>
+          </div>
+        </el-collapse-transition>
       </el-form>
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -61,9 +109,9 @@
       </div>
 
       <!-- 用户列表 -->
-      <el-table v-else :data="userList" v-loading="loading" class="user-table borderless-table">
-        <el-table-column prop="id" label="ID" width="80" align="center" header-align="center" />
-        <el-table-column label="头像" width="80">
+      <el-table v-else :data="userList" v-loading="loading" class="user-table borderless-table" @sort-change="handleSortChange">
+        <el-table-column prop="id" label="ID" width="88" align="center" header-align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
+        <el-table-column label="头像" width="80" align="center" header-align="center" header-class-name="avatar-header" class-name="avatar-column">
           <template #default="{ row }">
             <el-avatar :src="row.avatar" :size="40">{{ row.nickname?.charAt(0) }}</el-avatar>
           </template>
@@ -89,9 +137,9 @@
         </el-table-column>
         <el-table-column prop="orderCount" label="订单数" width="100" align="center" header-align="center" />
         <el-table-column prop="favoriteCount" label="收藏数" width="100" align="center" header-align="center" />
-        <el-table-column prop="ratingCount" label="评价数" width="100" align="center" header-align="center" />
-        <el-table-column prop="createdAt" label="注册时间" width="170" align="center" header-align="center" />
-        <el-table-column prop="updatedAt" label="修改时间" width="170" align="center" header-align="center" />
+        <el-table-column prop="reviewCount" label="评价数" width="100" align="center" header-align="center" />
+        <el-table-column prop="createdAt" label="注册时间" width="178" align="center" header-align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
+        <el-table-column prop="updatedAt" label="修改时间" width="178" align="center" header-align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="操作" width="260" fixed="right" align="left" header-align="center">
           <template #default="{ row }">
             <div class="table-actions">
@@ -143,12 +191,17 @@
         </el-descriptions-item>
         <el-descriptions-item label="昵称">{{ currentUser.nickname }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ formatPhone(currentUser.phone) }}</el-descriptions-item>
+        <el-descriptions-item label="账号状态">
+          <el-tag :type="currentUser.isDeleted === 1 ? 'warning' : 'success'" effect="light">
+            {{ currentUser.isDeleted === 1 ? '已停用' : '正常' }}
+          </el-tag>
+        </el-descriptions-item>
         <el-descriptions-item label="偏好标签" :span="2">{{ currentUser.preferences || '未设置' }}</el-descriptions-item>
         <el-descriptions-item label="注册时间" :span="2">{{ currentUser.createdAt }}</el-descriptions-item>
         <el-descriptions-item label="修改时间" :span="2">{{ currentUser.updatedAt }}</el-descriptions-item>
         <el-descriptions-item label="订单数">{{ currentUser.orderCount }}</el-descriptions-item>
         <el-descriptions-item label="收藏数">{{ currentUser.favoriteCount }}</el-descriptions-item>
-        <el-descriptions-item label="评价数">{{ currentUser.ratingCount }}</el-descriptions-item>
+        <el-descriptions-item label="评价数">{{ currentUser.reviewCount }}</el-descriptions-item>
         <el-descriptions-item label="浏览数">{{ currentUser.viewCount }}</el-descriptions-item>
       </el-descriptions>
 
@@ -216,19 +269,24 @@
 <script setup>
 import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { ArrowDown, CaretTop, Filter } from '@element-plus/icons-vue'
 import { getUserList, getUserDetail, resetUserPassword, restoreUserAccount, suspendUserAccount } from '@/modules/user-ops/api/user.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getSourceBucketLabel, getSourceLabel as resolveSourceLabel } from '@/shared/constants/view-source.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
 const skipNextRouteLoad = ref(false)
+const showAdvanced = ref(false)
+const dateRange = ref([])
 
 // 查询参数
 const searchForm = reactive({
-  nickname: ''
+  nickname: '',
+  phone: '',
+  status: ''
 })
 
 // 列表状态
@@ -238,7 +296,9 @@ const errorMessage = ref('')
 const pagination = reactive({
   page: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
+  sortBy: '',
+  sortOrder: ''
 })
 
 // 对话框与表单状态
@@ -246,7 +306,7 @@ const detailVisible = ref(false)
 const currentUser = ref(null)
 const currentPageOrderCount = computed(() => userList.value.reduce((sum, item) => sum + Number(item.orderCount || 0), 0))
 const currentPageEngagementCount = computed(() => userList.value.reduce((sum, item) => {
-  return sum + Number(item.favoriteCount || 0) + Number(item.ratingCount || 0) + Number(item.viewCount || 0)
+  return sum + Number(item.favoriteCount || 0) + Number(item.reviewCount || 0) + Number(item.viewCount || 0)
 }, 0))
 
 // 格式化手机号显示
@@ -277,9 +337,15 @@ const fetchUserList = async () => {
   errorMessage.value = ''
   try {
     const res = await getUserList({
-      ...searchForm,
+      nickname: searchForm.nickname,
+      phone: searchForm.phone,
+      isDeleted: searchForm.status === '' ? undefined : Number(searchForm.status),
       page: pagination.page,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      sortBy: pagination.sortBy,
+      sortOrder: pagination.sortOrder,
+      startDate: dateRange.value?.length === 2 ? dateRange.value[0] : undefined,
+      endDate: dateRange.value?.length === 2 ? dateRange.value[1] : undefined
     })
     userList.value = res.data.list || []
     pagination.total = res.data.total
@@ -302,7 +368,15 @@ const handleSearch = () => {
 // 重置搜索条件
 const handleReset = () => {
   searchForm.nickname = ''
+  searchForm.phone = ''
+  searchForm.status = ''
+  dateRange.value = []
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(pagination, sortPayload)
+  fetchUserList()
 }
 
 const syncRouteQuery = () => {
@@ -310,7 +384,32 @@ const syncRouteQuery = () => {
   if (searchForm.nickname) {
     nextQuery.nickname = searchForm.nickname
   }
-  const currentQuery = route.query.nickname ? { nickname: route.query.nickname } : {}
+  if (searchForm.phone) {
+    nextQuery.phone = searchForm.phone
+  }
+  if (searchForm.status) {
+    nextQuery.status = searchForm.status
+  }
+  if (dateRange.value?.length === 2) {
+    nextQuery.startDate = dateRange.value[0]
+    nextQuery.endDate = dateRange.value[1]
+  }
+  const currentQuery = {}
+  if (typeof route.query.nickname === 'string' && route.query.nickname) {
+    currentQuery.nickname = route.query.nickname
+  }
+  if (typeof route.query.phone === 'string' && route.query.phone) {
+    currentQuery.phone = route.query.phone
+  }
+  if (typeof route.query.status === 'string' && route.query.status) {
+    currentQuery.status = route.query.status
+  }
+  if (typeof route.query.startDate === 'string' && route.query.startDate) {
+    currentQuery.startDate = route.query.startDate
+  }
+  if (typeof route.query.endDate === 'string' && route.query.endDate) {
+    currentQuery.endDate = route.query.endDate
+  }
   const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
   if (changed) {
     skipNextRouteLoad.value = true
@@ -320,6 +419,13 @@ const syncRouteQuery = () => {
 
 const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
+  searchForm.phone = typeof route.query.phone === 'string' ? route.query.phone : ''
+  searchForm.status = typeof route.query.status === 'string' ? route.query.status : ''
+  if (typeof route.query.startDate === 'string' && typeof route.query.endDate === 'string') {
+    dateRange.value = [route.query.startDate, route.query.endDate]
+  } else {
+    dateRange.value = []
+  }
 }
 
 const openUserOpsPage = (path, row) => {
@@ -454,7 +560,7 @@ onMounted(() => {
 })
 
 watch(
-  () => route.query.nickname,
+  () => route.query,
   () => {
     applyRouteQuery()
     if (skipNextRouteLoad.value) {
@@ -462,7 +568,8 @@ watch(
       return
     }
     fetchUserList()
-  }
+  },
+  { deep: true }
 )
 </script>
 
@@ -515,6 +622,17 @@ watch(
 
 .nickname-link {
   font-weight: 600;
+}
+
+.user-page :deep(th.avatar-header .cell) {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.user-page :deep(td.avatar-column .cell) {
+  display: flex;
+  justify-content: center;
 }
 
 @media (max-width: 900px) {

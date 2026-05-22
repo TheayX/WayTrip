@@ -33,44 +33,57 @@
     <el-card shadow="hover" class="management-card admin-management-card">
 
 
-      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+      <el-form :model="searchForm" inline class="search-form admin-filter-bar" @submit.prevent>
+        <div class="filter-row">
+          <div class="filter-main">
+            <el-form-item label="用户昵称" class="filter-item">
+              <el-input
+                v-model="searchForm.nickname"
+                placeholder="请输入用户昵称"
+                clearable
+                class="form-w-168"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="景点名称" class="filter-item">
+              <el-input
+                v-model="searchForm.spotName"
+                placeholder="请输入景点名称"
+                clearable
+                class="form-w-168"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-button type="primary" link class="toggle-btn" @click="showAdvanced = !showAdvanced">
+              <el-icon><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
+              {{ showAdvanced ? '收起条件' : '更多条件' }}
+            </el-button>
+          </div>
+          <div class="filter-actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </div>
+        </div>
 
-        <el-form-item label="用户昵称">
-          <el-input
-            v-model="searchForm.nickname"
-            placeholder="请输入用户昵称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="景点名称">
-          <el-input
-            v-model="searchForm.spotName"
-            placeholder="请输入景点名称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="收藏时间">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            class="form-w-240"
-            @change="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+        <!-- 低频的时间筛选折叠到高级区，保证操作按钮始终留在首行。 -->
+        <el-collapse-transition>
+          <div v-show="showAdvanced" class="advanced-panel">
+            <el-form-item label="收藏时间" class="filter-item advanced-filter-item">
+              <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                value-format="YYYY-MM-DD"
+                class="tight-date-picker"
+                @change="handleSearch"
+              />
+            </el-form-item>
+          </div>
+        </el-collapse-transition>
       </el-form>
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -81,8 +94,8 @@
         </el-result>
       </div>
 
-      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table">
-        <el-table-column prop="id" label="记录ID" width="90" />
+      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table" @sort-change="handleSortChange">
+        <el-table-column prop="id" label="记录ID" width="104" align="center" header-align="center" header-class-name="favorite-record-id-header" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="用户昵称" width="160">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="isDeactivatedUser(row)" @click="handleOpenUser(row)">{{ getDisplayNickname(row) }}</el-button>
@@ -96,7 +109,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="收藏时间" width="170" align="center" />
+        <el-table-column prop="createdAt" label="收藏时间" width="178" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="操作" width="100" fixed="right" align="center">
           <template #default="{ row }">
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
@@ -123,10 +136,12 @@
 import { computed, reactive, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { CaretTop, Filter } from '@element-plus/icons-vue'
 import { deleteFavorite, getFavoriteList } from '@/modules/user-ops/api/favorite.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getResourceUrl } from '@/shared/lib/resource.js'
 import { isDeactivatedUserDisplay, isInvalidSpotDisplay, resolveSpotDisplayName, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -137,6 +152,7 @@ const loading = ref(false)
 const tableData = ref([])
 const dateRange = ref([])
 const errorMessage = ref('')
+const showAdvanced = ref(false)
 
 // 查询参数
 const searchForm = reactive({
@@ -148,7 +164,9 @@ const searchForm = reactive({
 const pagination = reactive({
   page: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
+  sortBy: '',
+  sortOrder: ''
 })
 // 当前页统计
 const currentPageUserCount = computed(() => new Set(tableData.value.map(item => item.userId)).size)
@@ -166,7 +184,9 @@ const fetchFavoriteList = async () => {
     const params = {
       ...searchForm,
       page: pagination.page,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      sortBy: pagination.sortBy,
+      sortOrder: pagination.sortOrder
     }
     if (dateRange.value?.length === 2) {
       params.startDate = dateRange.value[0]
@@ -197,6 +217,11 @@ const handleReset = () => {
   searchForm.spotName = ''
   dateRange.value = []
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(pagination, sortPayload)
+  fetchFavoriteList()
 }
 
 // 同步路由参数
@@ -288,6 +313,14 @@ watch(
 
 .favorite-page {
   @include userOps.page-shell;
+}
+
+.favorite-page :deep(th.favorite-record-id-header .cell) {
+  justify-content: center;
+}
+
+.favorite-page :deep(th.favorite-record-id-header.is-sortable .cell) {
+  transform: translateX(0);
 }
 
 </style>

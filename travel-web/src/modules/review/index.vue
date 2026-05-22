@@ -23,7 +23,7 @@
                   <button type="button" class="review-action-button review-action-button--danger" @click="handleDelete(item)">删除</button>
                 </div>
               </div>
-              <p class="comment">{{ item.comment || '这条评价没有填写文字内容。' }}</p>
+              <p class="comment">{{ item.comment || '这条评价记录没有填写文字内容。' }}</p>
               <button type="button" class="review-action-button" :disabled="isInvalidSpot(item.spotName)" @click="openSpotDetail(item.spotId, item.spotName)">查看景点</button>
             </div>
           </article>
@@ -151,7 +151,7 @@ const submitEdit = async () => {
 
 const handleDelete = async (item) => {
   try {
-    await ElMessageBox.confirm('确认删除这条评价吗？删除后评分也会一并撤销。', '提示', {
+    await ElMessageBox.confirm('确认删除这条评价记录吗？删除后评分也会一并撤销。', '提示', {
       type: 'warning'
     })
     await deleteReview(item.id)

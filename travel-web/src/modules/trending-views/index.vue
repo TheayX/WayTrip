@@ -87,21 +87,21 @@ onMounted(() => {
 .trending-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-top: 4px;
-  padding-bottom: 32px;
+  gap: 16px;
+  padding-top: 2px;
+  padding-bottom: 24px;
 }
 
 .hero-card,
 .empty-wrap,
 .loading-row {
-  padding: 26px;
+  padding: 20px;
 }
 
 .hero-card {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
+  gap: 16px;
   align-items: flex-end;
   background:
     radial-gradient(circle at top right, rgba(217, 119, 6, 0.12), transparent 28%),
@@ -118,9 +118,9 @@ onMounted(() => {
 }
 
 .hero-title {
-  font-size: 36px;
+  font-size: 28px;
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .hero-desc,
@@ -131,19 +131,19 @@ onMounted(() => {
 
 .hero-stats {
   display: flex;
-  gap: 14px;
+  gap: 12px;
 }
 
 .hero-stat {
   min-width: 140px;
-  padding: 18px 20px;
-  border-radius: 20px;
+  padding: 16px 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.8);
 }
 
 .hero-stat strong {
   display: block;
-  font-size: 28px;
+  font-size: 24px;
   color: #111827;
 }
 
@@ -156,7 +156,7 @@ onMounted(() => {
 .spot-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 @media (max-width: 992px) {

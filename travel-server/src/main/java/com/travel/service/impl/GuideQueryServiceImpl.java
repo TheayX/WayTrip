@@ -65,6 +65,9 @@ public class GuideQueryServiceImpl implements GuideQueryService {
 
         if ("category".equals(request.getSortBy())) {
             wrapper.orderByAsc(Guide::getCategory).orderByDesc(Guide::getCreatedAt);
+        } else if ("view_count".equals(request.getSortBy())) {
+            // 攻略列表默认按浏览量倒序展示，同浏览量时再按发布时间兜底，避免结果抖动。
+            wrapper.orderByDesc(Guide::getViewCount).orderByDesc(Guide::getCreatedAt);
         } else {
             wrapper.orderByDesc(Guide::getCreatedAt);
         }

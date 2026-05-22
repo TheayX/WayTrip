@@ -1,4 +1,4 @@
-﻿# 数据库设计文档
+# 数据库设计文档
 
 ## 文档说明
 
@@ -158,7 +158,7 @@ erDiagram
 - `heat_level`
 - `heat_score`
 - `avg_rating`
-- `rating_count`
+- `review_count`
 - `is_published`
 - `is_deleted`
 
@@ -407,3 +407,4 @@ erDiagram
 - 当前数据库基线已从 13 张核心表扩展为 14 张，新增的 `user_spot_view` 已进入推荐主流程。
 - 推荐链路的“数据来源 + Redis 缓存 + 管理端调试”已经基本成型，数据库文档不能再只描述评分矩阵一层。
 - 当前数据库文档应以 `schema.sql` 为唯一真实来源，并同步考虑 `RecommendationServiceImpl` 与四端前端的实际使用方式。
+

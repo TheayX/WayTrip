@@ -2,36 +2,59 @@
 <template>
   <section class="filter-bar premium-card">
     <div class="filter-head">
-      <p class="filter-kicker">缩小范围</p>
-      <h3>筛选条件</h3>
+      <div>
+        <p class="filter-kicker">Refine</p>
+        <h3>快速筛选</h3>
+      </div>
+      <button v-if="activeTags.length" type="button" class="filter-reset-link" @click="$emit('reset')">清空</button>
     </div>
     <div class="filter-row">
       <div class="filter-group">
         <span class="filter-label">地区</span>
-        <el-select
-          :model-value="regionId"
+        <el-cascader
+          :model-value="regionPath"
+          :options="regions"
+          :props="cascaderProps"
           clearable
           placeholder="全部地区"
-          @update:model-value="$emit('update:regionId', $event)"
+          @update:model-value="$emit('update:regionPath', $event || [])"
           @change="$emit('change')"
-        >
-          <el-option label="全部地区" value="" />
-          <el-option v-for="item in regions" :key="item.id" :label="item.name" :value="item.id" />
-        </el-select>
+        />
       </div>
       <div class="filter-group">
         <span class="filter-label">分类</span>
-        <el-select
-          :model-value="categoryId"
+        <el-cascader
+          :model-value="categoryPath"
+          :options="categories"
+          :props="cascaderProps"
           clearable
           placeholder="全部分类"
-          @update:model-value="$emit('update:categoryId', $event)"
+          @update:model-value="$emit('update:categoryPath', $event || [])"
+          @change="$emit('change')"
+        />
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">排序</span>
+        <el-select
+          :model-value="sortBy"
+          placeholder="选择排序"
+          @update:model-value="$emit('update:sortBy', $event)"
           @change="$emit('change')"
         >
-          <el-option label="全部分类" value="" />
-          <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.id" />
+          <el-option
+            v-for="option in sortOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
         </el-select>
       </div>
+      <div class="filter-actions">
+        <el-button plain @click="$emit('reset')">重置</el-button>
+      </div>
+    </div>
+    <div v-if="activeTags.length" class="selected-row">
+      <span v-for="tag in activeTags" :key="tag" class="selected-chip">{{ tag }}</span>
     </div>
   </section>
 </template>
@@ -39,13 +62,21 @@
 <script setup>
 // 筛选值由父层维护，组件只负责透传地区、分类变更和统一查询动作。
 defineProps({
-  regionId: {
-    type: [String, Number],
-    default: ''
+  regionPath: {
+    type: Array,
+    default: () => []
   },
-  categoryId: {
-    type: [String, Number],
-    default: ''
+  categoryPath: {
+    type: Array,
+    default: () => []
+  },
+  sortBy: {
+    type: String,
+    required: true
+  },
+  sortOptions: {
+    type: Array,
+    default: () => []
   },
   regions: {
     type: Array,
@@ -54,11 +85,24 @@ defineProps({
   categories: {
     type: Array,
     default: () => []
+  },
+  activeTags: {
+    type: Array,
+    default: () => []
   }
 })
 
 // 通过 update 事件保持组件无状态，避免筛选栏和列表页出现双份源数据。
-defineEmits(['update:regionId', 'update:categoryId', 'change'])
+defineEmits(['update:regionPath', 'update:categoryPath', 'update:sortBy', 'change', 'reset'])
+
+// 筛选栏使用单入口级联选择，交互与管理端高级筛选保持一致。
+const cascaderProps = {
+  value: 'id',
+  label: 'name',
+  children: 'children',
+  checkStrictly: true,
+  emitPath: true
+}
 </script>
 
 <style lang="scss" scoped>
@@ -68,6 +112,10 @@ defineEmits(['update:regionId', 'update:categoryId', 'change'])
 
 .filter-head {
   margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
 }
 
 .filter-kicker {
@@ -82,7 +130,7 @@ defineEmits(['update:regionId', 'update:categoryId', 'change'])
 .filter-head h3 {
   font-size: 22px;
   color: #0f172a;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .filter-row {
@@ -98,10 +146,42 @@ defineEmits(['update:regionId', 'update:categoryId', 'change'])
   gap: 10px;
 }
 
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
 .filter-label {
   white-space: nowrap;
   color: #475569;
   font-weight: 600;
   font-size: 13px;
+}
+
+.filter-reset-link {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.selected-row {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selected-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
 }
 </style>

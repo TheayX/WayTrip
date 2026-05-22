@@ -15,6 +15,8 @@ import com.travel.dto.user.request.AdminUserViewListRequest;
 import com.travel.entity.*;
 import com.travel.mapper.*;
 import com.travel.service.AdminUserInsightService;
+import com.travel.service.support.admin.AdminSortSupport;
+import com.travel.service.support.spot.SpotTreeSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,7 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
     private final UserMapper userMapper;
     private final SpotMapper spotMapper;
     private final SpotCategoryMapper spotCategoryMapper;
+    private final SpotTreeSupport spotTreeSupport;
     private final UserPreferenceMapper userPreferenceMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
     private final UserSpotViewMapper userSpotViewMapper;
@@ -46,44 +49,51 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
     // 用户偏好查询
     @Override
     public PageResult<AdminUserPreferenceListItem> getPreferenceList(AdminUserPreferenceListRequest request) {
-        LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<UserPreference> preferenceWrapper = new LambdaQueryWrapper<>();
+        preferenceWrapper.eq(UserPreference::getIsDeleted, 0);
 
-        if (request.getNickname() != null && !request.getNickname().isBlank()) {
-            userWrapper.like(User::getNickname, request.getNickname().trim());
+        Set<Long> filteredUserIds = resolveUserIdsByNickname(request.getNickname());
+        if (filteredUserIds != null) {
+            if (filteredUserIds.isEmpty()) {
+                return emptyPageResult(request.getPage(), request.getPageSize());
+            }
+            preferenceWrapper.in(UserPreference::getUserId, filteredUserIds);
         }
 
         if (request.getCategoryId() != null) {
-            Set<Long> matchedUserIds = userPreferenceMapper.selectList(
-                new LambdaQueryWrapper<UserPreference>()
-                    .eq(UserPreference::getIsDeleted, 0)
-                    .eq(UserPreference::getTag, String.valueOf(request.getCategoryId()))
-                    .select(UserPreference::getUserId)
-            ).stream().map(UserPreference::getUserId).collect(Collectors.toSet());
-
-            if (matchedUserIds.isEmpty()) {
-                return emptyPageResult(request.getPage(), request.getPageSize());
+            Set<Long> categoryIds = spotTreeSupport.findCategoryAndChildrenIds(request.getCategoryId());
+            if (categoryIds.isEmpty()) {
+                categoryIds = Collections.singleton(request.getCategoryId());
             }
-            userWrapper.in(User::getId, matchedUserIds);
+            preferenceWrapper.in(UserPreference::getTag, categoryIds.stream().map(String::valueOf).collect(Collectors.toSet()));
         }
 
-        userWrapper.orderByDesc(User::getUpdatedAt);
-
-        Page<User> page = new Page<>(request.getPage(), request.getPageSize());
-        Page<User> result = userMapper.selectPage(page, userWrapper);
-        List<User> users = result.getRecords();
-        if (users.isEmpty()) {
-            return PageResult.of(Collections.emptyList(), result.getTotal(), request.getPage(), request.getPageSize());
+        List<UserPreference> preferences = userPreferenceMapper.selectList(preferenceWrapper);
+        if (preferences.isEmpty()) {
+            return emptyPageResult(request.getPage(), request.getPageSize());
         }
-
-        Set<Long> userIds = users.stream().map(User::getId).collect(Collectors.toSet());
-        List<UserPreference> preferences = userPreferenceMapper.selectList(
-            new LambdaQueryWrapper<UserPreference>()
-                .in(UserPreference::getUserId, userIds)
-                .eq(UserPreference::getIsDeleted, 0)
-        );
 
         Map<Long, List<UserPreference>> preferenceMap = preferences.stream()
             .collect(Collectors.groupingBy(UserPreference::getUserId));
+
+        Comparator<Map.Entry<Long, List<UserPreference>>> preferenceComparator = buildPreferenceComparator(request);
+        List<Long> orderedUserIds = preferenceMap.entrySet().stream()
+            .sorted(preferenceComparator)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
+
+        int total = orderedUserIds.size();
+        int page = request.getPage() == null || request.getPage() < 1 ? 1 : request.getPage();
+        int pageSize = request.getPageSize() == null || request.getPageSize() < 1 ? 10 : request.getPageSize();
+        int fromIndex = Math.min((page - 1) * pageSize, total);
+        int toIndex = Math.min(fromIndex + pageSize, total);
+        List<Long> pageUserIds = orderedUserIds.subList(fromIndex, toIndex);
+        if (pageUserIds.isEmpty()) {
+            return PageResult.of(Collections.emptyList(), total, page, pageSize);
+        }
+
+        Map<Long, User> userMap = userMapper.selectBatchIds(pageUserIds).stream()
+            .collect(Collectors.toMap(User::getId, Function.identity()));
 
         Set<Long> categoryIds = preferences.stream()
             .map(UserPreference::getTag)
@@ -96,8 +106,9 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             : spotCategoryMapper.selectBatchIds(categoryIds).stream()
                 .collect(Collectors.toMap(SpotCategory::getId, SpotCategory::getName));
 
-        List<AdminUserPreferenceListItem> list = users.stream().map(user -> {
-            List<UserPreference> userPreferences = preferenceMap.getOrDefault(user.getId(), Collections.emptyList());
+        List<AdminUserPreferenceListItem> list = pageUserIds.stream().map(userId -> {
+            User user = userMap.get(userId);
+            List<UserPreference> userPreferences = preferenceMap.getOrDefault(userId, Collections.emptyList());
             String latestUpdatedAt = userPreferences.stream()
                 .map(UserPreference::getUpdatedAt)
                 .filter(Objects::nonNull)
@@ -115,16 +126,16 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
                 .collect(Collectors.toList());
 
             return AdminUserPreferenceListItem.builder()
-                .userId(user.getId())
+                .userId(userId)
                 .nickname(resolveDisplayNickname(user))
-                .phone(user.getPhone())
+                .phone(user != null ? user.getPhone() : null)
                 .preferenceTags(tags)
                 .updatedAt(latestUpdatedAt)
-                .createdAt(formatDateTime(user.getCreatedAt()))
+                .createdAt(formatDateTime(user != null ? user.getCreatedAt() : null))
                 .build();
         }).collect(Collectors.toList());
 
-        return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
+        return PageResult.of(list, total, page, pageSize);
     }
 
     // 用户收藏查询与治理
@@ -156,7 +167,13 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             wrapper.le(UserSpotFavorite::getCreatedAt, request.getEndDate().atTime(23, 59, 59));
         }
 
-        wrapper.orderByDesc(UserSpotFavorite::getCreatedAt);
+        AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
+            "id", UserSpotFavorite::getId,
+            "userId", UserSpotFavorite::getUserId,
+            "spotId", UserSpotFavorite::getSpotId,
+            "createdAt", UserSpotFavorite::getCreatedAt,
+            "updatedAt", UserSpotFavorite::getUpdatedAt
+        ), () -> wrapper.orderByDesc(UserSpotFavorite::getCreatedAt));
 
         Page<UserSpotFavorite> page = new Page<>(request.getPage(), request.getPageSize());
         Page<UserSpotFavorite> result = userSpotFavoriteMapper.selectPage(page, wrapper);
@@ -202,6 +219,12 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         if (request.getSource() != null && !request.getSource().isBlank()) {
             wrapper.eq(UserSpotView::getViewSource, request.getSource().trim());
         }
+        if (request.getMinDuration() != null) {
+            wrapper.ge(UserSpotView::getViewDuration, request.getMinDuration());
+        }
+        if (request.getMaxDuration() != null) {
+            wrapper.le(UserSpotView::getViewDuration, request.getMaxDuration());
+        }
         if (request.getStartDate() != null) {
             wrapper.ge(UserSpotView::getCreatedAt, request.getStartDate().atStartOfDay());
         }
@@ -209,7 +232,13 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
             wrapper.le(UserSpotView::getCreatedAt, request.getEndDate().atTime(23, 59, 59));
         }
 
-        wrapper.orderByDesc(UserSpotView::getCreatedAt).orderByDesc(UserSpotView::getId);
+        AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
+            "id", UserSpotView::getId,
+            "userId", UserSpotView::getUserId,
+            "spotId", UserSpotView::getSpotId,
+            "duration", UserSpotView::getViewDuration,
+            "createdAt", UserSpotView::getCreatedAt
+        ), () -> wrapper.orderByDesc(UserSpotView::getCreatedAt).orderByDesc(UserSpotView::getId));
 
         Page<UserSpotView> page = new Page<>(request.getPage(), request.getPageSize());
         Page<UserSpotView> result = userSpotViewMapper.selectPage(page, wrapper);
@@ -311,6 +340,27 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
                 .like(Spot::getName, spotName.trim())
                 .select(Spot::getId)
         ).stream().map(Spot::getId).collect(Collectors.toSet());
+    }
+
+    private Comparator<Map.Entry<Long, List<UserPreference>>> buildPreferenceComparator(AdminUserPreferenceListRequest request) {
+        Comparator<Map.Entry<Long, List<UserPreference>>> comparator;
+        if ("userId".equals(request.getSortBy())) {
+            comparator = Comparator.comparing(Map.Entry::getKey);
+        } else if ("tagCount".equals(request.getSortBy())) {
+            comparator = Comparator.comparing(entry -> entry.getValue().size());
+        } else {
+            // 偏好列表按用户聚合，更新时间需要取该用户偏好中的最新一次变更。
+            comparator = Comparator.comparing(entry -> resolveLatestPreferenceUpdatedAt(entry.getValue()));
+        }
+        return "asc".equalsIgnoreCase(request.getSortOrder()) ? comparator : comparator.reversed();
+    }
+
+    private LocalDateTime resolveLatestPreferenceUpdatedAt(List<UserPreference> preferences) {
+        return preferences.stream()
+            .map(UserPreference::getUpdatedAt)
+            .filter(Objects::nonNull)
+            .max(LocalDateTime::compareTo)
+            .orElse(LocalDateTime.MIN);
     }
 
     private Long parseCategoryId(String tag) {

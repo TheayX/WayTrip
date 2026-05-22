@@ -44,7 +44,7 @@ public class Spot {
 
     private BigDecimal avgRating;
 
-    private Integer ratingCount;
+    private Integer reviewCount;
 
     private Integer isPublished;
 

@@ -11,7 +11,6 @@
 
     <div class="nearby-panel premium-card">
       <div class="nearby-copy">
-        <span class="copy-pill">{{ headline }}</span>
         <h3>把距离感放回旅行决策里。</h3>
         <p>{{ summary }}</p>
         <el-button type="primary" :loading="loading" @click="$emit('action')">{{ actionText }}</el-button>
@@ -40,10 +39,6 @@ import { getImageUrl } from '@/shared/api/client.js'
 
 // 区块数据、文案和动作都由首页统一组织，组件只负责附近场景的视觉表达。
 defineProps({
-  headline: {
-    type: String,
-    required: true
-  },
   summary: {
     type: String,
     required: true
@@ -123,23 +118,10 @@ defineEmits(['more', 'action', 'select'])
   align-items: flex-start;
 }
 
-.copy-pill {
-  min-height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: #f8fafc;
-  color: #475569;
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .nearby-copy h3 {
-  margin-top: 16px;
   font-size: 28px;
   line-height: 1.2;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 

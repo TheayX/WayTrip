@@ -20,7 +20,7 @@ public class AdminSpotListResponse {
     private String regionName;
     private String categoryName;
     private BigDecimal avgRating;
-    private Integer ratingCount;
+    private Integer reviewCount;
     private Integer heatLevel;
     private Integer heatScore;
     private Boolean published;

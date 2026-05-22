@@ -50,7 +50,7 @@
               <h3>{{ resolveSpotDisplayName(item.spotName) }}</h3>
               <span class="star-text">★ {{ item.score }}</span>
             </div>
-            <p>{{ item.comment || '这条评价没有填写文字内容。' }}</p>
+            <p>{{ item.comment || '这条评价记录没有填写文字内容。' }}</p>
             <span>更新于 {{ item.updatedAt || item.createdAt || '-' }}</span>
             <div class="review-actions">
               <button type="button" class="review-action-button" @click="openEdit(item)">编辑</button>
@@ -208,7 +208,7 @@ const submitEdit = async () => {
 }
 
 const handleDeleteReview = async (item) => {
-  await ElMessageBox.confirm('确认删除这条评价吗？删除后评分也会一并撤销。', '提示', {
+  await ElMessageBox.confirm('确认删除这条评价记录吗？删除后评分也会一并撤销。', '提示', {
     type: 'warning'
   })
   await deleteReview(item.id)
@@ -240,17 +240,17 @@ onMounted(() => {
 }
 
 .activity-card {
-  padding: 16px;
+  padding: 18px;
   display: flex;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .cover {
-  width: 120px;
-  height: 90px;
+  width: 132px;
+  height: 96px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -267,12 +267,20 @@ onMounted(() => {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .review-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.star-text,
+.price,
+.content p,
+.content span {
+  color: #64748b;
 }
 
 .review-action-button {
@@ -302,5 +310,17 @@ onMounted(() => {
 .review-action-button--danger:hover {
   background: #fee2e2;
   color: #991b1b;
+}
+
+@media (max-width: 768px) {
+  .activity-card {
+    padding: 16px;
+    flex-direction: column;
+  }
+
+  .cover {
+    width: 100%;
+    height: 180px;
+  }
 }
 </style>

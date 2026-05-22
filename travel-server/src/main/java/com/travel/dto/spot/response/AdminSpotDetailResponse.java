@@ -40,17 +40,17 @@ public class AdminSpotDetailResponse {
 
     private String categoryName;
 
-    private Long reviewCount;
-
     private Long favoriteCount;
 
     private Long viewCount;
+
+    private Long orderCount;
 
     private Boolean published;
 
     private BigDecimal avgRating;
 
-    private Integer ratingCount;
+    private Integer reviewCount;
 
     private Integer heatLevel;
 

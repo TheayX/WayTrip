@@ -55,7 +55,14 @@
         LEFT JOIN spot s ON r.spot_id = s.id AND s.is_deleted = 0
         WHERE r.user_id = #{userId}
           AND r.is_deleted = 0
-        ORDER BY r.updated_at DESC, r.created_at DESC
+        <choose>
+            <when test="sortColumn != null and sortColumn != ''">
+                ORDER BY ${sortColumn} ${sortOrder}, r.id DESC
+            </when>
+            <otherwise>
+                ORDER BY r.updated_at DESC, r.created_at DESC
+            </otherwise>
+        </choose>
     </select>
 
     <!-- 管理端评价分页查询 -->
@@ -74,6 +81,18 @@
         </if>
         <if test="spotName != null and spotName != ''">
             AND s.name LIKE CONCAT('%', #{spotName}, '%')
+        </if>
+        <if test="minScore != null">
+            AND r.score <![CDATA[>=]]> #{minScore}
+        </if>
+        <if test="maxScore != null">
+            AND r.score <![CDATA[<=]]> #{maxScore}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND r.created_at <![CDATA[>=]]> CONCAT(#{startDate}, ' 00:00:00')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND r.created_at <![CDATA[<=]]> CONCAT(#{endDate}, ' 23:59:59')
         </if>
         ORDER BY r.updated_at DESC, r.created_at DESC
     </select>
@@ -118,10 +137,10 @@
         LIMIT #{limit}
     </select>
 
-    <!-- 景点评分统计查询 -->
-    <select id="selectSpotRatingStats" resultType="com.travel.dto.review.stats.SpotRatingStats">
+    <!-- 景点评分和评价数量统计查询 -->
+    <select id="selectSpotReviewStats" resultType="com.travel.dto.review.stats.SpotReviewStats">
         SELECT COALESCE(ROUND(AVG(r.score), 1), 0.0) AS avgRating,
-               COUNT(*) AS ratingCount
+               COUNT(*) AS reviewCount
         FROM user_spot_review r
         WHERE r.spot_id = #{spotId}
           AND r.is_deleted = 0

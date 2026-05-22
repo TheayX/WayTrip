@@ -31,7 +31,7 @@ public class AdminUserListResponse {
         private Integer isDeleted;
         private Integer orderCount;
         private Integer favoriteCount;
-        private Integer ratingCount;
+        private Integer reviewCount;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
     }

@@ -115,7 +115,7 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
      * 分类树不再依赖外键后，父节点引用必须由应用层显式校验。
      */
     private void validateParentCategory(Long parentId, Long currentId) {
-        if (parentId == null) {
+        if (parentId == null || parentId <= 0) {
             return;
         }
         if (Objects.equals(parentId, currentId)) {

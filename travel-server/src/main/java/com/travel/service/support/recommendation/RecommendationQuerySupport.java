@@ -101,7 +101,7 @@ public class RecommendationQuerySupport {
                 item.setCoverImage(spot.getCoverImageUrl());
                 item.setPrice(spot.getPrice());
                 item.setAvgRating(spot.getAvgRating());
-                item.setRatingCount(spot.getRatingCount());
+                item.setReviewCount(spot.getReviewCount());
                 item.setCategoryName(categoryMap.get(spot.getCategoryId()));
                 item.setRegionName(regionMap.get(spot.getRegionId()));
                 item.setScore(scoreMap == null ? null : scoreMap.get(spot.getId()));
@@ -111,3 +111,4 @@ public class RecommendationQuerySupport {
         return response;
     }
 }
+

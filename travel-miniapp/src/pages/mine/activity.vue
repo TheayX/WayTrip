@@ -88,7 +88,7 @@
                 </view>
               </view>
               <text class="review-time">更新于 {{ item.updatedAt || item.createdAt || '-' }}</text>
-              <text class="review-comment">{{ item.comment || '这条评价没有填写文字内容。' }}</text>
+              <text class="review-comment">{{ item.comment || '这条评价记录没有填写文字内容。' }}</text>
               <view class="review-actions">
                 <button class="ghost-btn" @tap="openEdit(item)">编辑</button>
                 <button class="danger-btn" @tap="handleDelete(item)">删除</button>
@@ -152,6 +152,7 @@ import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 import { getContentImageUrl, getImageUrl } from '@/utils/request'
 import { isMiniappInvalidSpotDisplay, resolveMiniappSpotDisplayName } from '@/utils/resource-display'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 常量配置
 const tabs = [
@@ -400,7 +401,7 @@ const submitEdit = async () => {
 const handleDelete = (item) => {
   uni.showModal({
     title: '删除评价',
-    content: '确认删除这条评价吗？删除后评分会一并撤销。',
+    content: '确认删除这条评价记录吗？删除后评分会一并撤销。',
     success: async (res) => {
       if (!res.confirm) return
       try {

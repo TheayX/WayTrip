@@ -10,6 +10,10 @@ spring:
     import:
       - optional:file:./travel-server/.env[.properties] # 兼容从仓库根目录启动，读取 travel-server/.env
       - optional:file:./.env[.properties] # 兼容从 travel-server 目录启动，读取当前目录下的 .env
+  servlet:
+    multipart:
+      max-file-size: ${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE:5MB}
+      max-request-size: ${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE:25MB}
   profiles:
     active: prod # 默认使用生产环境配置，开发时可以切换为 dev
   jackson:

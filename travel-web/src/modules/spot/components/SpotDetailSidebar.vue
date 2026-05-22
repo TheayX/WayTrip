@@ -6,7 +6,7 @@
       <h1 class="spot-name">{{ spot.name }}</h1>
       <div class="spot-meta">
         <span class="star-text">★ {{ spot.avgRating || '-' }}</span>
-        <span class="meta-count">({{ spot.ratingCount || 0 }}条评价)</span>
+        <span class="meta-count">({{ spot.reviewCount || 0 }}条评价)</span>
         <span>{{ spot.regionName }} / {{ spot.categoryName }}</span>
       </div>
       <div class="spot-stats">
@@ -108,15 +108,15 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 
 <style lang="scss" scoped>
 .detail-sidebar {
-  width: 380px;
+  width: 344px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .sidebar-card {
-  padding: 22px;
+  padding: 18px;
 }
 
 .sidebar-kicker {
@@ -129,18 +129,18 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 }
 
 .spot-name {
-  font-size: 30px;
-  line-height: 1.12;
+  font-size: 26px;
+  line-height: 1.14;
   font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.04em;
-  margin-bottom: 10px;
+  letter-spacing: 0;
+  margin-bottom: 8px;
 }
 
 .spot-meta {
   font-size: 13px;
   color: #64748b;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -152,7 +152,7 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 }
 
 .spot-price-row {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .spot-stats {
@@ -160,13 +160,13 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
   align-items: center;
   flex-wrap: wrap;
   gap: 10px 16px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   font-size: 13px;
   color: #64748b;
 }
 
 .big-price {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   color: #ef4444;
 }
@@ -190,7 +190,7 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 
 .buy-btn,
 .fav-btn {
-  min-height: 46px;
+  min-height: 42px;
 }
 
 .fav-btn {
@@ -214,18 +214,18 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 }
 
 .sidebar-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 14px;
-  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  letter-spacing: 0;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 0;
+  padding: 10px 0;
   border-bottom: 1px solid #eef2f7;
 }
 
@@ -250,7 +250,7 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .rating-label {
@@ -259,15 +259,15 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
 }
 
 .submit-rating-btn {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .time-info {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid #eef2f7;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .time-item {
@@ -291,7 +291,6 @@ defineEmits(['buy', 'toggle-favorite', 'submit-rating', 'update:score', 'update:
   .detail-sidebar {
     width: 100%;
   }
-
 
   .action-group {
     grid-template-columns: 1fr;

@@ -1,32 +1,21 @@
 <!-- 景点列表页 -->
 <template>
   <div class="page-container spot-list-page">
-    <section class="search-strip premium-card" @click="$router.push('/search')">
-      <el-icon><Search /></el-icon>
-      <span>搜索景点名称、城市或分类</span>
-    </section>
-
     <SpotListToolbar
       :description="currentStateText"
-      :sort-by="filters.sortBy"
-      @sort-change="changeSort"
-      @reset="resetFilters"
     />
 
     <SpotFilterBar
-      v-model:region-id="filters.regionId"
-      v-model:category-id="filters.categoryId"
-      :regions="flatRegions"
-      :categories="flatCategories"
+      v-model:region-path="filters.regionPath"
+      v-model:category-path="filters.categoryPath"
+      v-model:sort-by="filters.sortBy"
+      :regions="regionTree"
+      :categories="categoryTree"
+      :sort-options="sortOptions"
+      :active-tags="activeFilterTags"
       @change="handleFilter"
+      @reset="resetFilters"
     />
-
-    <section class="active-filters premium-card" v-if="activeFilterTags.length">
-      <p class="filter-kicker">当前已选</p>
-      <div class="tag-row">
-        <span v-for="tag in activeFilterTags" :key="tag" class="tag-chip">{{ tag }}</span>
-      </div>
-    </section>
 
     <section v-loading="loading" class="spot-grid">
       <SpotCard
@@ -56,7 +45,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Search } from '@element-plus/icons-vue'
 import SpotCard from '@/modules/spot/components/SpotCard.vue'
 import SpotFilterBar from '@/modules/spot/components/SpotFilterBar.vue'
 import SpotListToolbar from '@/modules/spot/components/SpotListToolbar.vue'
@@ -79,35 +67,69 @@ const regionTree = ref([])
 const categoryTree = ref([])
 
 const filters = reactive({
-  regionId: '',
-  categoryId: '',
+  regionPath: [],
+  categoryPath: [],
   sortBy: 'heat'
 })
+const sortOptions = [
+  { label: '综合热度', value: 'heat' },
+  { label: '评分最高', value: 'rating' },
+  { label: '价格最低', value: 'price_asc' },
+  { label: '价格最高', value: 'price_desc' }
+]
 
-// 计算属性
-const flatRegions = computed(() => {
-  if (!regionTree.value.length) return []
-  return regionTree.value.flatMap((item) => {
-    if (Array.isArray(item.children) && item.children.length) {
-      return [{ id: item.id, name: item.name }, ...item.children]
-    }
-    return [{ id: item.id, name: item.name }]
-  })
-})
+const selectedRegionId = computed(() => filters.regionPath[filters.regionPath.length - 1] || '')
+const selectedCategoryId = computed(() => filters.categoryPath[filters.categoryPath.length - 1] || '')
 
-const flatCategories = computed(() => {
-  if (!categoryTree.value.length) return []
-  return categoryTree.value.flatMap((item) => {
-    if (Array.isArray(item.children) && item.children.length) {
-      return [{ id: item.id, name: item.name }, ...item.children]
+const findTreeNodeById = (tree, targetId) => {
+  if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) {
+    return null
+  }
+
+  const normalizedTargetId = String(targetId)
+  const stack = [...tree]
+
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (String(current.id) === normalizedTargetId) {
+      return current
     }
-    return [{ id: item.id, name: item.name }]
-  })
-})
+    if (Array.isArray(current.children) && current.children.length) {
+      stack.push(...current.children)
+    }
+  }
+
+  return null
+}
+
+const findPathById = (tree, targetId) => {
+  if (!Array.isArray(tree) || !tree.length || targetId === '' || targetId == null) {
+    return []
+  }
+
+  const normalizedTargetId = String(targetId)
+  const stack = tree.map((node) => ({ node, path: [node.id] }))
+
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) continue
+    if (String(current.node.id) === normalizedTargetId) {
+      return current.path
+    }
+    if (Array.isArray(current.node.children) && current.node.children.length) {
+      for (const child of current.node.children) {
+        stack.push({ node: child, path: [...current.path, child.id] })
+      }
+    }
+  }
+
+  return []
+}
 
 const currentStateText = computed(() => {
-  const region = flatRegions.value.find((item) => String(item.id) === String(filters.regionId))?.name || '全部地区'
-  const category = flatCategories.value.find((item) => String(item.id) === String(filters.categoryId))?.name || '全部分类'
+  const region = findTreeNodeById(regionTree.value, selectedRegionId.value)?.name || '全部地区'
+  const category = findTreeNodeById(categoryTree.value, selectedCategoryId.value)?.name || '全部分类'
   const sortMap = {
     heat: '综合热度',
     rating: '评分最高',
@@ -119,8 +141,8 @@ const currentStateText = computed(() => {
 
 const activeFilterTags = computed(() => {
   const tags = []
-  const region = flatRegions.value.find((item) => String(item.id) === String(filters.regionId))?.name
-  const category = flatCategories.value.find((item) => String(item.id) === String(filters.categoryId))?.name
+  const region = findTreeNodeById(regionTree.value, selectedRegionId.value)?.name
+  const category = findTreeNodeById(categoryTree.value, selectedCategoryId.value)?.name
   if (region) tags.push(region)
   if (category) tags.push(category)
   if (filters.sortBy !== 'heat') {
@@ -167,11 +189,16 @@ const syncRouteQuery = () => {
   router.replace({
     path: '/spots',
     query: {
-      ...(filters.regionId ? { regionId: filters.regionId } : {}),
-      ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
+      ...(selectedRegionId.value ? { regionId: selectedRegionId.value } : {}),
+      ...(selectedCategoryId.value ? { categoryId: selectedCategoryId.value } : {}),
       ...(filters.sortBy ? { sortBy: filters.sortBy } : {})
     }
   })
+}
+
+// 路由只存最终生效节点 ID，页面加载后还原成级联路径，避免暴露多余筛选状态。
+const applyTreeSelectionById = (tree, targetId, pathKey) => {
+  filters[pathKey] = findPathById(tree, targetId)
 }
 
 // 数据加载方法
@@ -189,8 +216,8 @@ const fetchSpotList = async () => {
       pageSize,
       sortBy: filters.sortBy
     }
-    if (filters.regionId) params.regionId = filters.regionId
-    if (filters.categoryId) params.categoryId = filters.categoryId
+    if (selectedRegionId.value) params.regionId = selectedRegionId.value
+    if (selectedCategoryId.value) params.categoryId = selectedCategoryId.value
 
     const res = await getSpotList(params)
     spotList.value = res.data?.list || []
@@ -207,32 +234,26 @@ const handleFilter = () => {
   fetchSpotList()
 }
 
-const changeSort = (value) => {
-  if (filters.sortBy === value) return
-  filters.sortBy = value
-  handleFilter()
-}
-
 const resetFilters = () => {
-  filters.regionId = ''
-  filters.categoryId = ''
+  filters.regionPath = []
+  filters.categoryPath = []
   filters.sortBy = 'heat'
   handleFilter()
 }
 
 // 生命周期
 onMounted(async () => {
-  if (typeof route.query.regionId === 'string') {
-    filters.regionId = route.query.regionId
-  }
-  if (typeof route.query.categoryId === 'string') {
-    filters.categoryId = route.query.categoryId
-  }
   if (typeof route.query.sortBy === 'string') {
     filters.sortBy = route.query.sortBy
   }
 
   await fetchFilters()
+  if (typeof route.query.regionId === 'string') {
+    applyTreeSelectionById(regionTree.value, route.query.regionId, 'regionPath')
+  }
+  if (typeof route.query.categoryId === 'string') {
+    applyTreeSelectionById(categoryTree.value, route.query.categoryId, 'categoryPath')
+  }
   await fetchSpotList()
   applyUpdatedSpot()
 })
@@ -242,61 +263,21 @@ onMounted(async () => {
 .spot-list-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding-top: 4px;
-}
-
-.search-strip {
-  padding: 16px 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #475569;
-  cursor: pointer;
-}
-
-.active-filters {
-  padding: 18px 20px;
-}
-
-.filter-kicker {
-  margin-bottom: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.tag-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 600;
+  gap: 16px;
+  padding-top: 2px;
 }
 
 .spot-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
   min-height: 200px;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 @media (max-width: 992px) {

@@ -20,6 +20,8 @@
 </template>
 
 <script setup>
+import UniSearchBar from '@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue'
+
 // 头部只透传搜索和个人中心入口，避免把首页导航逻辑拆散到样式组件里。
 defineProps({
   avatarUrl: { type: String, default: '' }

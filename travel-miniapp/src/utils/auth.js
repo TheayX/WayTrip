@@ -1,4 +1,5 @@
 import { useUserStore } from '@/stores/user'
+import { switchTabSafely } from '@/utils/navigation'
 
 const LOGIN_REDIRECT_KEY = 'waytrip:auth:redirect'
 
@@ -39,7 +40,7 @@ const redirectAfterLoginCancel = () => {
     return
   }
 
-  uni.switchTab({ url: '/pages/index/index' })
+  void switchTabSafely('/pages/index/index')
 }
 
 // 对外暴露方法
@@ -58,7 +59,7 @@ export const promptLogin = (content = '登录后可查看详情，是否现在�
     cancelText: '再看看',
     success: ({ confirm }) => {
       if (confirm) {
-        uni.switchTab({ url: '/pages/mine/index' })
+        void switchTabSafely('/pages/mine/index')
       }
     }
   })
@@ -80,7 +81,7 @@ export const guardLoginPage = (content = '登录后可查看详情，是否现�
     cancelText: '返回',
     success: ({ confirm }) => {
       if (confirm) {
-        uni.switchTab({ url: '/pages/mine/index' })
+        void switchTabSafely('/pages/mine/index')
         return
       }
 

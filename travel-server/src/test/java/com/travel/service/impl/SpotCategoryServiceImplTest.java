@@ -18,6 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,7 +53,6 @@ class SpotCategoryServiceImplTest {
         SpotCategory second = buildCategory(2L, 0L, 2);
 
         when(spotCategoryMapper.selectList(any())).thenReturn(List.of(first, second));
-        when(spotCategoryMapper.selectById(0L)).thenReturn(buildCategory(0L, null, 1));
         when(spotCategoryMapper.updateById(any())).thenReturn(1);
         when(spotCategoryMapper.insert(any())).thenReturn(1);
 
@@ -64,6 +64,7 @@ class SpotCategoryServiceImplTest {
         spotCategoryService.createCategory(request);
 
         verify(spotCategoryMapper).updateById(second);
+        verify(spotCategoryMapper, never()).selectById(0L);
         assertEquals(3, second.getSortOrder());
 
         ArgumentCaptor<SpotCategory> insertCaptor = ArgumentCaptor.forClass(SpotCategory.class);
@@ -80,7 +81,6 @@ class SpotCategoryServiceImplTest {
         SpotCategory fourth = buildCategory(4L, 0L, 4);
 
         when(spotCategoryMapper.selectById(3L)).thenReturn(current);
-        when(spotCategoryMapper.selectById(0L)).thenReturn(buildCategory(0L, null, 1));
         when(spotCategoryMapper.selectList(any())).thenReturn(List.of(first, second, current, fourth));
         when(spotCategoryMapper.updateById(any())).thenReturn(1);
 
@@ -92,6 +92,7 @@ class SpotCategoryServiceImplTest {
         spotCategoryService.updateCategory(3L, request);
 
         verify(spotCategoryMapper, times(2)).updateById(any());
+        verify(spotCategoryMapper, never()).selectById(0L);
         assertEquals(3, second.getSortOrder());
         assertEquals(2, current.getSortOrder());
     }

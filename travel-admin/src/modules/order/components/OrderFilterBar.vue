@@ -2,35 +2,24 @@
 <template>
   <div class="search-form admin-filter-bar">
     <el-form :model="searchForm" @submit.prevent>
-
       <div class="filter-row">
         <div class="filter-main">
-          <el-form-item class="filter-item">
+          <el-form-item label="订单号" class="filter-item">
             <el-input
               v-model="searchForm.orderNo"
-              placeholder="搜索订单号"
+              placeholder="请输入订单号"
               clearable
-              class="filter-input"
+              class="form-w-200"
               @keyup.enter="emit('search')"
               @clear="emit('search')"
             />
           </el-form-item>
-          <el-form-item class="filter-item">
-            <el-input
-              v-model="searchForm.spotName"
-              placeholder="搜索景点名称"
-              clearable
-              class="filter-input"
-              @keyup.enter="emit('search')"
-              @clear="emit('search')"
-            />
-          </el-form-item>
-          <el-form-item class="filter-item">
+          <el-form-item label="订单状态" class="filter-item">
             <el-select
               v-model="searchForm.status"
-              placeholder="全部状态"
+              placeholder="全部"
               clearable
-              class="filter-select"
+              class="form-w-100"
               :disabled="currentTab !== 'all'"
               @change="emit('search')"
               @clear="emit('search')"
@@ -64,7 +53,27 @@
 
       <!-- 低频条件默认折叠，避免页面顶部持续过厚 -->
       <el-collapse-transition>
-        <div v-show="showAdvanced" class="advanced-panel order-advanced-panel">
+        <div v-show="showAdvanced" class="advanced-panel">
+          <el-form-item label="景点名称" class="filter-item advanced-filter-item">
+            <el-input
+              v-model="searchForm.spotName"
+              placeholder="请输入景点名称"
+              clearable
+              class="form-w-200"
+              @keyup.enter="emit('search')"
+              @clear="emit('search')"
+            />
+          </el-form-item>
+          <el-form-item label="用户昵称" class="filter-item advanced-filter-item">
+            <el-input
+              v-model="searchForm.userNickname"
+              placeholder="请输入用户昵称"
+              clearable
+              class="form-w-200"
+              @keyup.enter="emit('search')"
+              @clear="emit('search')"
+            />
+          </el-form-item>
           <el-form-item label="下单时间" class="filter-item date-filter-item">
             <el-date-picker
               :model-value="dateRange"
@@ -73,8 +82,21 @@
               start-placeholder="开始日期"
               end-placeholder="结束日期"
               value-format="YYYY-MM-DD"
-              class="date-picker"
+              class="form-w-240 date-picker"
               @update:model-value="handleDateChange"
+              @change="emit('search')"
+            />
+          </el-form-item>
+          <el-form-item label="游玩日期" class="filter-item date-filter-item">
+            <el-date-picker
+              :model-value="visitDateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+              class="form-w-240 date-picker"
+              @update:model-value="handleVisitDateChange"
               @change="emit('search')"
             />
           </el-form-item>
@@ -93,23 +115,23 @@ defineProps({
   tabLabel: { type: String, required: true },
   searchForm: { type: Object, required: true },
   dateRange: { type: Array, required: true },
+  visitDateRange: { type: Array, required: true },
   showAdvanced: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['search', 'reset', 'toggle-advanced', 'update:date-range'])
+const emit = defineEmits(['search', 'reset', 'toggle-advanced', 'update:date-range', 'update:visit-date-range'])
 
 const handleDateChange = (value) => {
   // 日期组件清空时统一回传空数组，避免父层额外兼容 null。
   emit('update:date-range', value || [])
 }
+
+const handleVisitDateChange = (value) => {
+  emit('update:visit-date-range', value || [])
+}
 </script>
 
 <style lang="scss" scoped>
-.filter-input,
-.filter-select {
-  width: 220px;
-}
-
 .scope-alert {
   margin-top: 14px;
   border-radius: 14px;
@@ -120,32 +142,8 @@ const handleDateChange = (value) => {
   }
 }
 
-.date-picker {
-  width: 320px;
-}
-
-.toggle-btn {
-  gap: 4px;
-}
-
-.order-advanced-panel {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-
 .date-filter-item {
   margin-bottom: 0;
   flex: 0 0 auto;
-}
-
-@media (max-width: 960px) {
-
-  .filter-input,
-  .filter-select,
-  .date-picker {
-    width: 100%;
-  }
 }
 </style>

@@ -1,4 +1,4 @@
-﻿<!-- 评价管理页面 -->
+<!-- 评价管理页面 -->
 <template>
   <div class="review-page admin-page-shell">
     <section class="page-hero">
@@ -34,32 +34,74 @@
 
 
       <!-- 搜索表单 -->
-      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+      <el-form :model="searchForm" inline class="search-form admin-filter-bar" @submit.prevent>
+        <div class="filter-row">
+          <div class="filter-main">
+            <el-form-item label="用户昵称" class="filter-item">
+              <el-input
+                v-model="searchForm.nickname"
+                placeholder="请输入用户昵称"
+                clearable
+                class="form-w-168"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="景点名称" class="filter-item">
+              <el-input
+                v-model="searchForm.spotName"
+                placeholder="请输入景点名称"
+                clearable
+                class="form-w-168"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="评分" class="filter-item">
+              <el-select
+                v-model="searchForm.scorePreset"
+                placeholder="全部"
+                clearable
+                class="form-w-145"
+                @change="handleSearch"
+                @clear="handleSearch"
+              >
+                <el-option label="低分（1-2分）" value="low" />
+                <el-option label="1 分" value="1" />
+                <el-option label="2 分" value="2" />
+                <el-option label="3 分" value="3" />
+                <el-option label="4 分" value="4" />
+                <el-option label="5 分" value="5" />
+              </el-select>
+            </el-form-item>
+            <el-button type="primary" link class="toggle-btn" @click="showAdvanced = !showAdvanced">
+              <el-icon><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
+              {{ showAdvanced ? '收起条件' : '更多条件' }}
+            </el-button>
+          </div>
+          <div class="filter-actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </div>
+        </div>
 
-        <el-form-item label="用户昵称">
-          <el-input
-            v-model="searchForm.nickname"
-            placeholder="请输入用户昵称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="景点名称">
-          <el-input
-            v-model="searchForm.spotName"
-            placeholder="请输入景点名称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+        <!-- 时间筛选属于复盘型条件，折叠后可优先保证首行检索效率。 -->
+        <el-collapse-transition>
+          <div v-show="showAdvanced" class="advanced-panel">
+            <el-form-item label="评价时间" class="filter-item advanced-filter-item">
+              <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                value-format="YYYY-MM-DD"
+                class="tight-date-picker"
+                @change="handleSearch"
+              />
+            </el-form-item>
+          </div>
+        </el-collapse-transition>
       </el-form>
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -71,8 +113,8 @@
       </div>
 
       <!-- 评价列表 -->
-      <el-table v-else :data="reviewList" v-loading="loading" class="review-table borderless-table">
-        <el-table-column label="用户" min-width="180">
+      <el-table v-else :data="reviewList" v-loading="loading" class="review-table borderless-table" @sort-change="handleSortChange">
+        <el-table-column label="用户" min-width="180" align="center" header-align="center" header-class-name="review-user-header" class-name="review-user-column">
           <template #default="{ row }">
             <div class="user-cell">
               <el-avatar :src="row.avatar" :size="36">{{ getDisplayNickname(row)?.[0] }}</el-avatar>
@@ -104,14 +146,14 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="score" label="评分" width="100">
+        <el-table-column prop="score" label="评分" width="108" align="center" header-align="center" header-class-name="review-score-header" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">
             <span class="score-text">★ {{ row.score }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="comment" label="评价内容" min-width="260" show-overflow-tooltip />
-        <el-table-column prop="createdAt" label="创建时间" width="170" align="center" />
-        <el-table-column prop="updatedAt" label="更新时间" width="170" align="center" />
+        <el-table-column prop="createdAt" label="创建时间" width="178" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
+        <el-table-column prop="updatedAt" label="更新时间" width="178" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="操作" width="120" fixed="right" align="center">
           <template #default="{ row }">
             <el-button link type="danger" @click="handleDelete(row)">违规删除</el-button>
@@ -136,14 +178,20 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { CaretTop, Filter } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteReview, getReviewList } from '@/modules/user-ops/api/review.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { isDeactivatedUserDisplay, isInvalidSpotDisplay, resolveSpotDisplayName, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
+const route = useRoute()
+const skipNextRouteLoad = ref(false)
+const showAdvanced = ref(false)
+const dateRange = ref([])
 
 // 列表状态
 const loading = ref(false)
@@ -153,14 +201,17 @@ const errorMessage = ref('')
 // 查询参数
 const searchForm = reactive({
   nickname: '',
-  spotName: ''
+  spotName: '',
+  scorePreset: ''
 })
 
 // 分页参数
 const pagination = reactive({
   page: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
+  sortBy: '',
+  sortOrder: ''
 })
 const currentPageAverageScore = computed(() => {
   if (!reviewList.value.length) return '0.0'
@@ -173,15 +224,36 @@ const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
 const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
 const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 
+const resolveScoreRange = (scorePreset) => {
+  if (!scorePreset) {
+    return { minScore: undefined, maxScore: undefined }
+  }
+  if (scorePreset === 'low') {
+    return { minScore: 1, maxScore: 2 }
+  }
+  const exactScore = Number(scorePreset)
+  return Number.isNaN(exactScore)
+    ? { minScore: undefined, maxScore: undefined }
+    : { minScore: exactScore, maxScore: exactScore }
+}
+
 // 获取评价列表
 const fetchReviewList = async () => {
   loading.value = true
   errorMessage.value = ''
   try {
+    const { minScore, maxScore } = resolveScoreRange(searchForm.scorePreset)
     const res = await getReviewList({
-      ...searchForm,
+      nickname: searchForm.nickname,
+      spotName: searchForm.spotName,
+      minScore,
+      maxScore,
       page: pagination.page,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      sortBy: pagination.sortBy,
+      sortOrder: pagination.sortOrder,
+      startDate: dateRange.value?.length === 2 ? dateRange.value[0] : undefined,
+      endDate: dateRange.value?.length === 2 ? dateRange.value[1] : undefined
     })
     reviewList.value = res.data.list || []
     pagination.total = res.data.total || 0
@@ -196,13 +268,55 @@ const fetchReviewList = async () => {
 
 const handleSearch = () => {
   pagination.page = 1
+  syncRouteQuery()
   fetchReviewList()
 }
 
 const handleReset = () => {
   searchForm.nickname = ''
   searchForm.spotName = ''
+  searchForm.scorePreset = ''
+  dateRange.value = []
   handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(pagination, sortPayload)
+  fetchReviewList()
+}
+
+const syncRouteQuery = () => {
+  const nextQuery = {}
+  if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
+  if (searchForm.spotName) nextQuery.spotName = searchForm.spotName
+  if (searchForm.scorePreset) nextQuery.scorePreset = searchForm.scorePreset
+  if (dateRange.value?.length === 2) {
+    nextQuery.startDate = dateRange.value[0]
+    nextQuery.endDate = dateRange.value[1]
+  }
+  const currentQuery = {}
+  if (typeof route.query.nickname === 'string' && route.query.nickname) currentQuery.nickname = route.query.nickname
+  if (typeof route.query.spotName === 'string' && route.query.spotName) currentQuery.spotName = route.query.spotName
+  if (typeof route.query.scorePreset === 'string' && route.query.scorePreset) currentQuery.scorePreset = route.query.scorePreset
+  if (typeof route.query.startDate === 'string' && route.query.startDate) currentQuery.startDate = route.query.startDate
+  if (typeof route.query.endDate === 'string' && route.query.endDate) currentQuery.endDate = route.query.endDate
+  const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
+  if (changed) {
+    skipNextRouteLoad.value = true
+    router.replace({ path: route.path, query: nextQuery })
+  }
+}
+
+const applyRouteQuery = () => {
+  searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
+  searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
+  searchForm.scorePreset = typeof route.query.scorePreset === 'string' ? route.query.scorePreset : ''
+  if (typeof route.query.startDate === 'string' && typeof route.query.endDate === 'string') {
+    dateRange.value = [route.query.startDate, route.query.endDate]
+    showAdvanced.value = true
+  } else {
+    dateRange.value = []
+  }
 }
 
 const handleOpenUser = (row) => {
@@ -225,7 +339,7 @@ const handleOpenSpot = (row) => {
 // 删除评价
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除这条评价吗？删除后会同步更新景点评分。', '删除确认', {
+    await ElMessageBox.confirm('确定要删除这条评价记录吗？删除后会同步更新景点评分。', '删除确认', {
       type: 'warning'
     })
     await deleteReview(row.id)
@@ -240,8 +354,22 @@ const handleDelete = async (row) => {
 
 // 页面初始化
 onMounted(() => {
+  applyRouteQuery()
   fetchReviewList()
 })
+
+watch(
+  () => route.query,
+  () => {
+    applyRouteQuery()
+    if (skipNextRouteLoad.value) {
+      skipNextRouteLoad.value = false
+      return
+    }
+    fetchReviewList()
+  },
+  { deep: true }
+)
 </script>
 
 <style lang="scss" scoped>
@@ -264,5 +392,27 @@ onMounted(() => {
   font-size: 14px;
 }
 
-</style>
+.review-page :deep(th.review-user-header .cell) {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
 
+.review-page :deep(td.review-user-column .cell) {
+  display: flex;
+  justify-content: center;
+}
+
+.review-page :deep(th.review-score-header .cell) {
+  justify-content: center;
+}
+
+.review-page :deep(th.review-score-header.is-sortable .cell) {
+  transform: translateX(0);
+}
+
+.user-cell {
+  justify-content: center;
+}
+
+</style>

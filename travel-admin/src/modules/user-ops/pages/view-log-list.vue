@@ -41,56 +41,96 @@
         title="说明：这里展示的是数据库原始来源值；推荐算法计算时会再归并到首页、搜索、攻略、推荐、默认这几个来源挡位。"
       />
 
-      <el-form :model="searchForm" inline class="search-form" @submit.prevent>
+      <el-form :model="searchForm" inline class="search-form admin-filter-bar" @submit.prevent>
+        <div class="filter-row">
+          <div class="filter-main">
+            <el-form-item label="用户昵称" class="filter-item">
+              <el-input
+                v-model="searchForm.nickname"
+                placeholder="请输入用户昵称"
+                clearable
+                class="form-w-168"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="景点名称" class="filter-item">
+              <el-input
+                v-model="searchForm.spotName"
+                placeholder="请输入景点名称"
+                clearable
+                class="form-w-168"
+                @keyup.enter="handleSearch"
+                @clear="handleSearch"
+              />
+            </el-form-item>
+            <el-button type="primary" link class="toggle-btn" @click="showAdvanced = !showAdvanced">
+              <el-icon><Filter v-if="!showAdvanced" /><CaretTop v-else /></el-icon>
+              {{ showAdvanced ? '收起条件' : '更多条件' }}
+            </el-button>
+          </div>
+          <div class="filter-actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </div>
+        </div>
 
-        <el-form-item label="用户昵称">
-          <el-input
-            v-model="searchForm.nickname"
-            placeholder="请输入用户昵称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="景点名称">
-          <el-input
-            v-model="searchForm.spotName"
-            placeholder="请输入景点名称"
-            clearable
-            class="form-w-180"
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="来源">
-          <el-select
-            v-model="searchForm.source"
-            placeholder="全部来源"
-            clearable
-            class="form-w-140"
-            @change="handleSearch"
-            @clear="handleSearch"
-          >
-            <el-option v-for="item in sourceOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="浏览时间">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            class="form-w-240"
-            @change="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
+        <!-- 来源与浏览时间属于补充筛选，折叠后可避免首行操作区被挤压。 -->
+        <el-collapse-transition>
+          <div v-show="showAdvanced" class="advanced-panel">
+            <el-form-item label="来源" class="filter-item advanced-filter-item">
+              <el-select
+                v-model="searchForm.source"
+                placeholder="全部"
+                clearable
+                class="form-w-140"
+                @change="handleSearch"
+                @clear="handleSearch"
+              >
+                <el-option v-for="item in sourceOptions" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="浏览时间" class="filter-item advanced-filter-item">
+              <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                value-format="YYYY-MM-DD"
+                class="tight-date-picker"
+                @change="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="停留时长" class="filter-item advanced-filter-item duration-filter-item">
+              <div class="duration-inline-field">
+                <el-slider
+                  v-model="durationRange"
+                  range
+                  :min="DURATION_MIN"
+                  :max="DURATION_MAX"
+                  :step="5"
+                  :format-tooltip="formatDurationTooltip"
+                  tooltip-class="duration-slider-tooltip"
+                  range-start-label="最短停留时长"
+                  range-end-label="最长停留时长"
+                  class="duration-slider duration-slider-compact"
+                  @change="handleSearch"
+                />
+                <span class="duration-inline-value">{{ durationRangeText }}</span>
+                <el-button
+                  v-if="!isDefaultDurationRange"
+                  link
+                  type="primary"
+                  class="duration-reset-btn"
+                  @click="resetDurationRange"
+                >
+                  重置
+                </el-button>
+              </div>
+            </el-form-item>
+          </div>
+        </el-collapse-transition>
       </el-form>
 
       <div v-if="errorMessage" class="error-state page-error-state">
@@ -101,8 +141,8 @@
         </el-result>
       </div>
 
-      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table">
-        <el-table-column prop="id" label="记录ID" width="90" />
+      <el-table v-else :data="tableData" v-loading="loading" class="ops-table borderless-table" @sort-change="handleSortChange">
+        <el-table-column prop="id" label="记录ID" width="104" align="center" header-align="center" header-class-name="view-log-record-id-header" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="用户昵称" width="160">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="isDeactivatedUser(row)" @click="handleOpenUser(row)">{{ getDisplayNickname(row) }}</el-button>
@@ -124,10 +164,10 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="停留时长" width="120" align="center">
+        <el-table-column prop="duration" label="停留时长" width="132" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS">
           <template #default="{ row }">{{ row.duration || 0 }} 秒</template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="浏览时间" width="170" align="center" />
+        <el-table-column prop="createdAt" label="浏览时间" width="178" align="center" sortable="custom" :sort-orders="TABLE_SORT_ORDERS" />
         <el-table-column label="操作" width="100" fixed="right" align="center">
           <template #default="{ row }">
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
@@ -154,21 +194,28 @@
 import { computed, reactive, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { CaretTop, Filter } from '@element-plus/icons-vue'
 import { deleteView, getViewList } from '@/modules/user-ops/api/view-log.js'
 import { isMessageBoxDismissed } from '@/shared/lib/message-box.js'
 import { getResourceUrl } from '@/shared/lib/resource.js'
 import { getSourceBucketLabel, getSourceLabel, sourceOptions } from '@/shared/constants/view-source.js'
 import { isDeactivatedUserDisplay, isInvalidSpotDisplay, resolveSpotDisplayName, resolveUserDisplayName } from '@/shared/lib/resource-display.js'
+import { TABLE_SORT_ORDERS, applySortChange } from '@/shared/composables/useTableSort.js'
 
 const router = useRouter()
 const route = useRoute()
 const skipNextRouteLoad = ref(false)
+const DURATION_MIN = 0
+const DURATION_MAX = 420
+const DEFAULT_DURATION_RANGE = [DURATION_MIN, DURATION_MAX]
 
 // 列表状态
 const loading = ref(false)
 const tableData = ref([])
 const dateRange = ref([])
+const durationRange = ref([...DEFAULT_DURATION_RANGE])
 const errorMessage = ref('')
+const showAdvanced = ref(false)
 
 // 查询参数
 const searchForm = reactive({
@@ -181,7 +228,9 @@ const searchForm = reactive({
 const pagination = reactive({
   page: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
+  sortBy: '',
+  sortOrder: ''
 })
 // 当前页平均停留时长
 const averageDuration = computed(() => {
@@ -205,6 +254,17 @@ const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
 const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
 const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
 const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
+const isDefaultDurationRange = computed(() => {
+  return durationRange.value[0] === DEFAULT_DURATION_RANGE[0] && durationRange.value[1] === DEFAULT_DURATION_RANGE[1]
+})
+const durationRangeText = computed(() => {
+  if (isDefaultDurationRange.value) {
+    return '全部时长'
+  }
+  return `${durationRange.value[0]}-${durationRange.value[1]}秒`
+})
+
+const formatDurationTooltip = (value) => `${value} 秒`
 
 // 获取浏览列表
 const fetchViewList = async () => {
@@ -214,7 +274,13 @@ const fetchViewList = async () => {
     const params = {
       ...searchForm,
       page: pagination.page,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      sortBy: pagination.sortBy,
+      sortOrder: pagination.sortOrder
+    }
+    if (!isDefaultDurationRange.value) {
+      params.minDuration = durationRange.value[0]
+      params.maxDuration = durationRange.value[1]
     }
     if (dateRange.value?.length === 2) {
       params.startDate = dateRange.value[0]
@@ -245,7 +311,18 @@ const handleReset = () => {
   searchForm.spotName = ''
   searchForm.source = ''
   dateRange.value = []
+  durationRange.value = [...DEFAULT_DURATION_RANGE]
   handleSearch()
+}
+
+const resetDurationRange = () => {
+  durationRange.value = [...DEFAULT_DURATION_RANGE]
+  handleSearch()
+}
+
+const handleSortChange = (sortPayload) => {
+  applySortChange(pagination, sortPayload)
+  fetchViewList()
 }
 
 // 同步路由参数
@@ -254,6 +331,10 @@ const syncRouteQuery = () => {
   if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
   if (searchForm.spotName) nextQuery.spotName = searchForm.spotName
   if (searchForm.source) nextQuery.source = searchForm.source
+  if (!isDefaultDurationRange.value) {
+    nextQuery.minDuration = String(durationRange.value[0])
+    nextQuery.maxDuration = String(durationRange.value[1])
+  }
   if (dateRange.value?.length === 2) {
     nextQuery.startDate = dateRange.value[0]
     nextQuery.endDate = dateRange.value[1]
@@ -262,6 +343,8 @@ const syncRouteQuery = () => {
   if (typeof route.query.nickname === 'string' && route.query.nickname) currentQuery.nickname = route.query.nickname
   if (typeof route.query.spotName === 'string' && route.query.spotName) currentQuery.spotName = route.query.spotName
   if (typeof route.query.source === 'string' && route.query.source) currentQuery.source = route.query.source
+  if (typeof route.query.minDuration === 'string' && route.query.minDuration) currentQuery.minDuration = route.query.minDuration
+  if (typeof route.query.maxDuration === 'string' && route.query.maxDuration) currentQuery.maxDuration = route.query.maxDuration
   if (typeof route.query.startDate === 'string' && route.query.startDate) currentQuery.startDate = route.query.startDate
   if (typeof route.query.endDate === 'string' && route.query.endDate) currentQuery.endDate = route.query.endDate
   const changed = JSON.stringify(currentQuery) !== JSON.stringify(nextQuery)
@@ -276,8 +359,20 @@ const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
   searchForm.source = typeof route.query.source === 'string' ? route.query.source : ''
+  const minDuration = typeof route.query.minDuration === 'string' ? Number(route.query.minDuration) : null
+  const maxDuration = typeof route.query.maxDuration === 'string' ? Number(route.query.maxDuration) : null
+  if (Number.isInteger(minDuration) && Number.isInteger(maxDuration)) {
+    durationRange.value = [
+      Math.max(DURATION_MIN, minDuration),
+      Math.min(DURATION_MAX, maxDuration)
+    ]
+    showAdvanced.value = true
+  } else {
+    durationRange.value = [...DEFAULT_DURATION_RANGE]
+  }
   if (typeof route.query.startDate === 'string' && typeof route.query.endDate === 'string') {
     dateRange.value = [route.query.startDate, route.query.endDate]
+    showAdvanced.value = true
   } else {
     dateRange.value = []
   }
@@ -342,6 +437,14 @@ watch(
   @include userOps.page-shell;
 }
 
+.view-log-page :deep(th.view-log-record-id-header .cell) {
+  justify-content: center;
+}
+
+.view-log-page :deep(th.view-log-record-id-header.is-sortable .cell) {
+  transform: translateX(0);
+}
+
 .source-alert {
   margin-bottom: 12px;
   border-radius: 14px;
@@ -357,6 +460,69 @@ watch(
   font-size: 12px;
   color: var(--wt-text-secondary);
   line-height: 1.4;
+}
+
+.duration-filter-item {
+  flex: 0 0 auto;
+  width: 360px;
+  max-width: 100%;
+}
+
+.duration-inline-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 0 12px;
+  height: 32px;
+  border: 1px solid var(--wt-border-default);
+  border-radius: 10px;
+  background: var(--wt-surface-elevated);
+  box-shadow: var(--wt-shadow-soft);
+}
+
+.duration-inline-value {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--wt-text-primary);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.duration-reset-btn {
+  padding: 0;
+  min-height: auto;
+  font-size: 12px;
+}
+
+.duration-slider {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+:deep(.duration-slider-compact .el-slider__runway) {
+  margin: 0;
+}
+
+:deep(.duration-slider-compact .el-slider__button) {
+  width: 12px;
+  height: 12px;
+}
+
+:global(.duration-slider-tooltip) {
+  color: var(--wt-text-primary) !important;
+  background: var(--wt-surface-elevated) !important;
+  border: 1px solid var(--wt-border-default) !important;
+  box-shadow: var(--wt-shadow-float) !important;
+}
+
+@media (max-width: 960px) {
+  .duration-filter-item {
+    width: 100%;
+  }
 }
 
 </style>

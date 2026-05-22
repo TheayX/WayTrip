@@ -338,6 +338,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                         spotItem.setPrice(item.getPrice());
                         spotItem.setAvgRating(item.getAvgRating());
                         spotItem.setCategoryName(item.getCategoryName());
+                        spotItem.setRegionName(item.getRegionName());
                         return spotItem;
                     })
                     .collect(Collectors.toList()));
@@ -851,6 +852,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         // 第 3 步：补齐列表展示字段。
         // 热门接口只组装首页卡片所需字段，避免返回无用信息增加查询与序列化成本。
         Map<Long, String> categoryMap = getCategoryMap();
+        Map<Long, String> regionMap = getRegionMap();
 
         HotSpotResponse response = new HotSpotResponse();
         response.setList(spots.stream().map(spot -> {
@@ -862,6 +864,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             item.setAvgRating(spot.getAvgRating());
             item.setHeatScore(spot.getHeatScore());
             item.setCategoryName(categoryMap.get(spot.getCategoryId()));
+            item.setRegionName(regionMap.get(spot.getRegionId()));
             return item;
         }).collect(Collectors.toList()));
 
@@ -1285,5 +1288,6 @@ public class RecommendationServiceImpl implements RecommendationService {
         return recommendationSimilaritySupport.buildSimilarityPreview(spotId, limit, getStatus().getLastUpdateTime());
     }
 }
+
 
 

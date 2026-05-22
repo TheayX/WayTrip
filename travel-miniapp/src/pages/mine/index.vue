@@ -135,7 +135,9 @@ import { wxLogin } from '@/api/auth'
 import { getUserInfo } from '@/api/user'
 import AuthPopup from './components/AuthPopup.vue'
 import { consumeLoginRedirect } from '@/utils/auth'
+import { switchTabSafely } from '@/utils/navigation'
 import { getAvatarUrl } from '@/utils/request'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // 基础依赖与用户状态
 const userStore = useUserStore()
@@ -163,7 +165,7 @@ const navigateAfterLogin = (redirect) => {
   if (!redirect) return
 
   if (TABBAR_PATHS.has(redirect)) {
-    uni.switchTab({ url: redirect })
+    void switchTabSafely(redirect)
     return
   }
 

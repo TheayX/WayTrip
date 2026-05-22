@@ -5,7 +5,7 @@
       <div>
         <p class="hero-eyebrow">Feature Collection</p>
         <h1>玩法合集</h1>
-        <p>这里不再重复承载景点、攻略、推荐和附近等主路径，只保留更适合做专题浏览的特色玩法入口。</p>
+        <p>这里收纳随机、预算、口碑和热看这些专题入口。</p>
       </div>
       <div class="hero-actions">
         <el-button text type="primary" @click="router.push(APP_ROUTE_PATHS.discover)">返回发现页</el-button>
@@ -32,7 +32,6 @@
           </div>
           <h3>{{ item.title }}</h3>
           <p>{{ item.desc }}</p>
-          <span class="grid-link">进入玩法</span>
         </article>
       </div>
     </section>
@@ -83,17 +82,17 @@ import { APP_ROUTE_PATHS } from '@/shared/constants/route-paths.js'
 const router = useRouter()
 
 const featureEntries = [
-  { id: 'random-pick', title: '随心一选', desc: '随机抽一个目的地，适合不想做决定的时候。', icon: MagicStick, theme: 'purple', path: APP_ROUTE_PATHS.randomPick },
-  { id: 'budget', title: '穷游玩法', desc: '按更低预算筛景点和攻略，适合轻预算出行。', icon: Discount, theme: 'orange', path: APP_ROUTE_PATHS.budgetTravel },
-  { id: 'reviews', title: '游客口碑', desc: '优先看用户评价，再决定要不要深入浏览。', icon: ChatDotRound, theme: 'blue', path: APP_ROUTE_PATHS.travelerReviews },
-  { id: 'trending', title: '近期热看', desc: '看看最近浏览更高的景点，快速补热门灵感。', icon: Stopwatch, theme: 'amber', path: APP_ROUTE_PATHS.trendingViews }
+  { id: 'random-pick', title: '随心一选', desc: '随机给你一个景点。', icon: MagicStick, theme: 'purple', path: APP_ROUTE_PATHS.randomPick },
+  { id: 'budget', title: '穷游玩法', desc: '集中看低预算景点和攻略。', icon: Discount, theme: 'orange', path: APP_ROUTE_PATHS.budgetTravel },
+  { id: 'reviews', title: '游客口碑', desc: '先看评价，再决定去不去。', icon: ChatDotRound, theme: 'blue', path: APP_ROUTE_PATHS.travelerReviews },
+  { id: 'trending', title: '近期热看', desc: '查看最近浏览量更高的景点。', icon: Stopwatch, theme: 'amber', path: APP_ROUTE_PATHS.trendingViews }
 ]
 
 const upcomingEntries = [
-  { id: 'city-topic', title: '城市专题', desc: '按城市整理主题玩法与精选目的地。', icon: Flag, theme: 'blue', available: false },
-  { id: 'holiday-plan', title: '假日玩法', desc: '节日和假期的阶段性出游专题入口。', icon: Opportunity, theme: 'orange', available: false },
-  { id: 'route-list', title: '路线清单', desc: '半日游和一日游路线组合，适合快速决策。', icon: Connection, theme: 'amber', available: false },
-  { id: 'activity-zone', title: '活动专区', desc: '后续活动与限时专题统一在这里聚合。', icon: Grid, theme: 'purple', available: false }
+  { id: 'city-topic', title: '城市专题', desc: '按城市查看主题内容。', icon: Flag, theme: 'blue', available: false },
+  { id: 'holiday-plan', title: '假日玩法', desc: '按节假日查看出游专题。', icon: Opportunity, theme: 'orange', available: false },
+  { id: 'route-list', title: '路线清单', desc: '查看半日游和一日游路线。', icon: Connection, theme: 'amber', available: false },
+  { id: 'activity-zone', title: '活动专区', desc: '集中放活动和限时专题。', icon: Grid, theme: 'purple', available: false }
 ]
 
 const handleEntryClick = (item) => {
@@ -142,7 +141,7 @@ const handleEntryClick = (item) => {
 .hero-card h1,
 .group-card h2 {
   color: #0f172a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .hero-card h1 {
@@ -235,7 +234,6 @@ const handleEntryClick = (item) => {
   font-size: 14px;
 }
 
-.grid-link,
 .grid-badge {
   display: inline-flex;
   align-items: center;
@@ -245,11 +243,6 @@ const handleEntryClick = (item) => {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-}
-
-.grid-link {
-  background: #eff6ff;
-  color: #1d4ed8;
 }
 
 .grid-badge {
