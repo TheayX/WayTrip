@@ -27,8 +27,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -207,6 +207,33 @@ class ReviewServiceImplTest {
     }
 
     @Test
+    void getUserReviews_keepsDefaultOrderingPathWithoutSortParameters() {
+        Review ownReview = new Review();
+        ownReview.setId(22L);
+        ownReview.setUserId(1L);
+        ownReview.setSpotId(100L);
+        ownReview.setScore(5);
+        ownReview.setComment("我的评价");
+        ownReview.setSpotName("西湖");
+        ownReview.setCoverImageUrl("/uploads/spot/xihu.jpg");
+        ownReview.setIsDeleted(0);
+
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Review> page =
+            new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 10);
+        page.setRecords(java.util.List.of(ownReview));
+        page.setTotal(1L);
+
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(reviewMapper.selectUserReviewPage(any(), eq(1L))).thenReturn(page);
+
+        var result = reviewService.getUserReviews(1L, 1, 10);
+
+        assertEquals(1L, result.getTotal());
+        assertEquals("西湖", result.getList().get(0).getSpotName());
+        verify(reviewMapper).selectUserReviewPage(any(), eq(1L));
+    }
+
+    @Test
     void getAdminReviews_keepsJoinedSpotNameWhenEntityIsNotQueried() {
         Review adminReview = new Review();
         adminReview.setId(30L);
@@ -223,7 +250,7 @@ class ReviewServiceImplTest {
         page.setRecords(java.util.List.of(adminReview));
         page.setTotal(1L);
 
-        when(reviewMapper.selectAdminReviewPage(any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
+        when(reviewMapper.selectAdminReviewPage(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
 
         var request = new AdminReviewListRequest();
         request.setPage(1);
@@ -242,7 +269,7 @@ class ReviewServiceImplTest {
         page.setRecords(java.util.List.of());
         page.setTotal(0L);
 
-        when(reviewMapper.selectAdminReviewPage(any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
+        when(reviewMapper.selectAdminReviewPage(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
 
         AdminReviewListRequest request = new AdminReviewListRequest();
         request.setPage(1);
@@ -255,7 +282,7 @@ class ReviewServiceImplTest {
         var result = reviewService.getAdminReviews(request);
 
         assertEquals(0L, result.getTotal());
-        verify(reviewMapper).selectAdminReviewPage(any(), any(), any(), any(), any(), any(), any());
+        verify(reviewMapper).selectAdminReviewPage(any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     /**
