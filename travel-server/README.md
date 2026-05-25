@@ -134,11 +134,11 @@ travel-server/
 │  │  │  │  └─ web/                 MVC、Swagger 等 Web 层配置
 │  │  │  ├─ constant/               业务常量
 │  │  │  ├─ controller/             接口层
-│  │  │  │  ├─ admin/               管理端接口，如后台登录、景点、订单、推荐、上传
-│  │  │  │  └─ app/                 用户端接口，如首页、景点、攻略、订单、账户
-│  │  │  ├─ dto/                    请求参数、响应对象与缓存/配置传输对象
+│  │  │  │  ├─ admin/               管理端接口，如后台登录、景点、订单、推荐、上传、AI 知识维护
+│  │  │  │  └─ app/                 用户端接口，如首页、景点、攻略、订单、账户与 AI 聊天
+│  │  │  ├─ dto/                    请求参数、响应对象与缓存/配置传输对象，含 AI 请求/响应 DTO
 │  │  │  ├─ entity/                 数据库实体
-│  │  │  ├─ enums/                  枚举定义，如订单状态
+│  │  │  ├─ enums/                  枚举定义，如订单状态、AI 场景与知识状态
 │  │  │  ├─ interceptor/            登录鉴权拦截器
 │  │  │  ├─ mapper/                 MyBatis Mapper 接口
 │  │  │  ├─ service/                业务服务层
@@ -154,11 +154,11 @@ travel-server/
 │  │     ├─ application-prod.yml    生产环境配置
 │  │     ├─ logback-spring.xml      日志输出配置
 │  │     ├─ db/                     建表、基础数据与扩容 SQL
-│  │     ├─ mapper/                 MyBatis XML 映射文件
-│  │     ├─ META-INF/               资源扩展目录，当前保留
-│  │     └─ prompts/                预留资源目录，当前保留
+│  │     └─ mapper/                 MyBatis XML 映射文件
 │  └─ test/
 │     └─ java/com/travel/
+│        ├─ controller/             控制器测试，含管理端 AI 知识接口测试
+│        ├─ service/ai/             AI 聊天、意图识别、RAG、知识导入相关测试
 │        ├─ service/impl/           服务层单元测试
 │        └─ web/                    Web 层与拦截器相关测试
 ├─ scripts/                         辅助脚本，当前包含历史批量数据生成脚本
@@ -220,6 +220,12 @@ service/
   - `RedisVectorAiKnowledgeRetrievalService`：基于 Redis 向量库的检索实现
   - `AiKnowledgeContextAdvisor`：知识上下文增强
   - `AiKnowledgeAdminServiceImpl`：管理端知识预览与检索联调入口
+- `controller/app/ai/`
+  - `AiChatController`：对外聊天入口，负责 SSE 流式输出
+  - `AiSessionController`：会话创建与会话列表能力
+  - `AiFeedbackController`：用户反馈提交入口
+- `controller/admin/`
+  - `AdminAiKnowledgeController`：知识文档维护、preview、向量索引状态与导入任务入口
 - `service/ai/memory/`
   - `RedisChatMemory`：基于 Redis 的对话记忆
   - `AiSessionIdService`：统一会话标识管理
@@ -290,3 +296,4 @@ mvn clean package
 - [设计文档](../docs/specs/travel-recommendation-system/design.md)
 - [API 文档](../docs/specs/travel-recommendation-system/api.md)
 - [数据库文档](../docs/specs/travel-recommendation-system/database.md)
+- [AI 聊天服务说明](../docs/ai-chat-service.md)

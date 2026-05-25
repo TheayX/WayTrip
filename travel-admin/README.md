@@ -96,6 +96,7 @@ travel-admin/
   │  └─ theme/
   │     └─ charts/                 图表主题配置
   └─ modules/                      业务模块层，按领域拆分后台页面与接口
+     ├─ ai-service/               AI 客服后台，含知识库、配置、检索测试与联调工作台
      ├─ banner/                    轮播图管理
      ├─ category/                  分类管理
      ├─ guide/                     攻略管理
@@ -129,6 +130,7 @@ feature-module/
 
 - `overview / banner / category / region` 属于轻量模块，通常以 `api.js + index.vue` 为主
 - `spot / guide / order / recommendation / user-ops / system` 属于复杂模块，按页面、组件、接口进一步拆分
+- `ai-service` 属于 AI 专项模块，当前按 `pages / components / composables / constants / api` 拆分
 
 ## 当前能力
 
@@ -167,3 +169,4 @@ feature-module/
 - [仓库总览](../README.md)
 - [设计文档](../docs/specs/travel-recommendation-system/design.md)
 - [API 文档](../docs/specs/travel-recommendation-system/api.md)
+- [AI 聊天服务说明](../docs/ai-chat-service.md)

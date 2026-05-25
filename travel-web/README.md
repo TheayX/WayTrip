@@ -80,15 +80,17 @@ travel-web/
   │  └─ router/                    路由实例、路由表与导航守卫
   ├─ shared/                       共享层，放跨模块复用的基础能力与资源
   │  ├─ api/
-  │  │  └─ client.js               Axios 请求封装，统一接口访问与错误处理
+  │  │  ├─ client.js               Axios 请求封装，统一接口访问与错误处理
+  │  │  └─ ai.js                   AI 聊天相关请求封装
   │  ├─ assets/
   │  │  ├─ brand/                  品牌资源
   │  │  └─ tabbar/                 默认头像、空态图等通用图片资源
-  │  ├─ constants/                 全局常量，如路由名、路由路径、搜索配置、详情跳转
-  │  ├─ lib/                       通用工具，如浏览足迹、定位、冷启动引导
+  │  ├─ constants/                 全局常量，如路由名、路由路径、搜索配置、详情跳转、AI 聊天配置
+  │  ├─ lib/                       通用工具，如浏览足迹、定位、冷启动引导、AI 会话辅助
+  │  ├─ store/                     跨模块共享状态，如 AI 会话状态
   │  ├─ styles/
   │  │  └─ index.scss              全局样式总入口
-  │  └─ ui/                        跨模块复用界面组件
+  │  └─ ui/                        跨模块复用界面组件，如探索建议与 AI 聊天组件
   └─ modules/                      业务模块层
      ├─ account/                   账户中心，含页面、局部组件、常量与用户状态
      ├─ auth/                      登录注册
@@ -133,6 +135,7 @@ feature-module/
 - `discover / nearby / search / favorite / review / more / traveler-reviews / trending-views / budget-travel / random-pick` 以单页模块为主
 - `spot / guide / order / auth / account` 属于复杂模块，按页面、组件、状态或常量进一步拆分
 - `account/store/user.js` 为当前实际用户状态入口，不在 `app` 下单独维护全局 store 目录
+- `shared/store/ai-chat.js` 负责跨页面复用 AI 会话态，聊天 UI 与请求封装放在 `shared/ui`、`shared/api`、`shared/lib`
 
 ## 主要能力
 
@@ -180,3 +183,4 @@ feature-module/
 - [仓库总览](../README.md)
 - [开发期 HTTPS 与反代说明](../docs/dev-https-proxy.md)
 - [设计文档](../docs/specs/travel-recommendation-system/design.md)
+- [AI 聊天服务说明](../docs/ai-chat-service.md)
