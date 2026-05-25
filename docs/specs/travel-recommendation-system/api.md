@@ -3,7 +3,7 @@
 ## 文档说明
 
 - 对齐基线：`travel-server/src/main/java/com/travel/controller`
-- 更新时间：2026-04-08
+- 更新时间：2026-05-25
 - 说明：本版按当前控制器实现同步用户端、管理端与推荐调试相关接口
 
 ## 用户端接口
@@ -44,7 +44,8 @@
 | GET  | `/api/v1/home/recent-views`       | 获取近期浏览景点 |
 | GET  | `/api/v1/home/nearby`             | 获取附近景点   |
 | GET  | `/api/v1/recommendations`         | 获取个性化推荐  |
-| POST | `/api/v1/recommendations/refresh` | 刷新推荐     |
+| POST | `/api/v1/recommendations/rotate`  | 轮换推荐结果   |
+| POST | `/api/v1/recommendations/recompute` | 重新计算推荐结果 |
 | GET  | `/api/v1/recommendations/similar` | 获取相似景点   |
 
 ### 4. 景点
@@ -155,6 +156,8 @@
 | GET    | `/api/admin/v1/users`                        | 获取用户列表   |
 | GET    | `/api/admin/v1/users/{id}`                   | 获取用户详情   |
 | PUT    | `/api/admin/v1/users/{id}/password`          | 重置用户密码   |
+| DELETE | `/api/admin/v1/users/{id}/account`           | 后台注销用户账户 |
+| PUT    | `/api/admin/v1/users/{id}/account/restore`   | 恢复已注销用户账户 |
 | GET    | `/api/admin/v1/admins`                       | 获取管理员列表  |
 | POST   | `/api/admin/v1/admins`                       | 创建管理员    |
 | PUT    | `/api/admin/v1/admins/{id}`                  | 更新管理员    |
