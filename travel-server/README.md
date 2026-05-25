@@ -6,11 +6,13 @@ WayTrip 后端服务，统一承接用户端与管理端接口、推荐计算、
 
 - Java 17
 - Spring Boot 3.5.11
+- Spring MVC
 - MyBatis-Plus 3.5.5
 - MySQL
 - Redis
 - JWT
 - SpringDoc / OpenAPI 3
+- Maven
 
 ## 快速开始
 
@@ -66,6 +68,7 @@ cp .env.example .env
 5. [50_user_spot_view.sql](./src/main/resources/db/seed/bulk/50_user_spot_view.sql)
 6. [60_user_spot_review.sql](./src/main/resources/db/seed/bulk/60_user_spot_review.sql)
 7. [70_order.sql](./src/main/resources/db/seed/bulk/70_order.sql)
+8. [80_guide_enhance.sql](./src/main/resources/db/seed/bulk/80_guide_enhance.sql)
 
 补充说明：
 
@@ -107,38 +110,54 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 travel-server/
 ├─ .env.example                     环境变量模板，定义数据库、Redis、JWT、微信和上传配置
 ├─ .env                             当前环境实际配置文件，由开发者或部署环境自行创建
-├─ .gitignore                       忽略 target、日志、IDE 文件、私有配置和上传目录
-├─ pom.xml                          Maven 构建入口，管理后端依赖、插件和打包行为
-└─ src/
-   └─ main/
-      ├─ java/com/travel/
-      │  ├─ common/                 通用结果与异常
-      │  ├─ config/                 配置层
-      │  │  ├─ cache/               缓存配置
-      │  │  ├─ persistence/         持久层配置
-      │  │  ├─ security/            安全配置
-      │  │  └─ web/                 Web 配置
-      │  ├─ controller/             接口层
-      │  │  ├─ admin/               管理端接口
-      │  │  └─ app/                 用户端接口
-      │  ├─ dto/                    请求与响应对象
-      │  ├─ entity/                 实体
-      │  ├─ mapper/                 MyBatis Mapper
-      │  ├─ service/                业务服务
-      │  │  ├─ impl/                服务实现
-      │  │  └─ support/             业务支撑逻辑
-      │  ├─ task/                   定时任务
-      │  │  ├─ order/               订单任务
-      │  │  ├─ recommendation/      推荐任务
-      │  │  └─ spot/                景点任务
-      │  └─ util/                   工具类
-      └─ resources/
-         ├─ application.yml         基础配置入口，负责导入 .env 并指定默认 profile
-         ├─ application-dev.yml     本地开发环境配置
-         ├─ application-prod.yml    生产环境配置
-         ├─ logback-spring.xml      日志输出配置
-         ├─ db/                     数据库初始化脚本
-         └─ mapper/                 MyBatis XML 映射文件
+├─ .gitignore                       Git 忽略规则
+├─ pom.xml                          Maven 构建入口，管理依赖、插件和打包行为
+├─ src/
+│  ├─ main/
+│  │  ├─ java/com/travel/
+│  │  │  ├─ TravelApplication.java  Spring Boot 启动入口
+│  │  │  ├─ common/                 通用响应、常量文本与异常处理
+│  │  │  ├─ config/                 应用配置层
+│  │  │  │  ├─ aspect/              AOP 日志等横切配置
+│  │  │  │  ├─ cache/               Redis、缓存键与缓存参数配置
+│  │  │  │  ├─ integration/         外部 HTTP 客户端等集成配置
+│  │  │  │  ├─ persistence/         MyBatis-Plus 与字段填充配置
+│  │  │  │  ├─ security/            安全相关配置
+│  │  │  │  ├─ task/                定时任务调度配置
+│  │  │  │  └─ web/                 MVC、Swagger 等 Web 层配置
+│  │  │  ├─ constant/               业务常量
+│  │  │  ├─ controller/             接口层
+│  │  │  │  ├─ admin/               管理端接口，如后台登录、景点、订单、推荐、上传
+│  │  │  │  └─ app/                 用户端接口，如首页、景点、攻略、订单、账户
+│  │  │  ├─ dto/                    请求参数、响应对象与缓存/配置传输对象
+│  │  │  ├─ entity/                 数据库实体
+│  │  │  ├─ enums/                  枚举定义，如订单状态
+│  │  │  ├─ interceptor/            登录鉴权拦截器
+│  │  │  ├─ mapper/                 MyBatis Mapper 接口
+│  │  │  ├─ service/                业务服务层
+│  │  │  │  ├─ cache/               推荐缓存等缓存服务
+│  │  │  │  ├─ impl/                服务实现
+│  │  │  │  └─ support/             领域支撑逻辑，如 admin、spot、recommendation、storage
+│  │  │  ├─ task/                   定时任务实现，如订单自动取消、热度同步、推荐矩阵刷新
+│  │  │  └─ util/                   通用工具，如 JWT、脱敏、微信调用、上下文处理
+│  │  └─ resources/
+│  │     ├─ application.yml         基础配置入口，负责导入 .env 并指定默认 profile
+│  │     ├─ application-dev.yml     本地开发环境配置
+│  │     ├─ application-prod.yml    生产环境配置
+│  │     ├─ logback-spring.xml      日志输出配置
+│  │     ├─ db/                     建表、基础数据与扩容 SQL
+│  │     ├─ mapper/                 MyBatis XML 映射文件
+│  │     ├─ META-INF/               资源扩展目录，当前保留
+│  │     └─ prompts/                预留资源目录，当前保留
+│  └─ test/
+│     └─ java/com/travel/
+│        ├─ service/impl/           服务层单元测试
+│        └─ web/                    Web 层与拦截器相关测试
+├─ scripts/                         辅助脚本，当前包含历史批量数据生成脚本
+├─ uploads/                         本地上传资源目录，包含默认图片与图标
+├─ logs/                            运行日志目录
+├─ target/                          Maven 构建产物目录
+└─ travel-server.iml                IDE 工程文件
 ```
 
 服务模块内部按职责拆分：
@@ -146,6 +165,7 @@ travel-server/
 ```text
 service/
 ├─ XxxService.java
+├─ cache/                           可选，仅在存在独立缓存职责时创建
 ├─ impl/
 │  └─ XxxServiceImpl.java
 └─ support/                         按领域沉淀复用支撑逻辑
@@ -191,6 +211,13 @@ mvn clean package
 
 - 当前主流程以 `src/main/resources/db/seed/` 下的手工 SQL 为准。
 - `scripts/` 下的历史生成脚本不属于当前推荐导库流程。
+
+## 文档后续可补充
+
+- 包结构说明：补充 `controller / service / support / task` 之间的调用边界
+- Redis 键说明：补充推荐缓存、状态缓存、矩阵缓存的键命名与用途
+- 上传说明：补充 `uploads/` 目录约定、默认资源与访问路径
+- 测试说明：补充当前测试覆盖范围和执行前置条件
 
 ## 相关文档
 
