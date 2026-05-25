@@ -146,9 +146,7 @@ travel-server/
 │  │     ├─ application-prod.yml    生产环境配置
 │  │     ├─ logback-spring.xml      日志输出配置
 │  │     ├─ db/                     建表、基础数据与扩容 SQL
-│  │     ├─ mapper/                 MyBatis XML 映射文件
-│  │     ├─ META-INF/               资源扩展目录，当前保留
-│  │     └─ prompts/                预留资源目录，当前保留
+│  │     └─ mapper/                 MyBatis XML 映射文件
 │  └─ test/
 │     └─ java/com/travel/
 │        ├─ service/impl/           服务层单元测试
