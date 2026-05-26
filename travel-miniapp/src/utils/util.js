@@ -1,4 +1,4 @@
-// 工具方法
+// 通用展示格式化方法，主要服务订单、详情等仍在复用的基础文案格式化场景。
 const formatDate = (date, fmt = 'YYYY-MM-DD') => {
   if (!date) return ''
   if (typeof date === 'string') {
@@ -23,6 +23,7 @@ const formatDate = (date, fmt = 'YYYY-MM-DD') => {
 }
 
 const formatPrice = (price) => {
+  // 金额展示统一保留两位小数，避免 0、10、10.5 在不同页面表现不一致。
   if (price === undefined || price === null) return '0.00'
   return Number(price).toFixed(2)
 }
@@ -36,6 +37,7 @@ const orderStatusText = {
 }
 
 const getOrderStatusText = (status) => {
+  // 未识别状态直接回传原值，方便在异常数据场景下仍能看到后端真实状态码。
   return orderStatusText[status] || status
 }
 

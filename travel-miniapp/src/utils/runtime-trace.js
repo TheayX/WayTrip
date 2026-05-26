@@ -28,6 +28,7 @@ export const traceRuntime = (category, payload = {}) => {
   try {
     const traceStore = globalThis[TRACE_STORE_KEY] || []
     traceStore.push(entry)
+    // 仅保留最近一段轨迹，避免长时间调试把全局内存和日志量不断抬高。
     if (traceStore.length > TRACE_LIMIT) {
       traceStore.splice(0, traceStore.length - TRACE_LIMIT)
     }
@@ -39,5 +40,6 @@ export const traceRuntime = (category, payload = {}) => {
 }
 
 export const getRuntimeTrace = () => {
+  // 读取失败时返回空数组即可，调用方无需感知全局轨迹容器是否已初始化。
   return globalThis[TRACE_STORE_KEY] || []
 }

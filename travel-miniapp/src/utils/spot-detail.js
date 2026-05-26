@@ -34,6 +34,7 @@ export const buildSpotDetailUrl = (spotId, source = SPOT_DETAIL_SOURCE.DETAIL, o
   ]
 
   if (options.openReview) {
+    // 评价弹窗由详情页按 query 决定是否主动打开，避免不同入口重复拼接业务逻辑。
     query.push('openReview=1')
   }
 

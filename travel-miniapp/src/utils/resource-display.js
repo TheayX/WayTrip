@@ -22,6 +22,7 @@ export const MINIAPP_INVALID_SPOT_NAMES = [
   MINIAPP_RESOURCE_DISPLAY.spot.unknown
 ]
 
+// 攻略、分类、用户名都统一提供兜底文案，避免页面模板里散落空值判断。
 export const resolveMiniappGuideDisplayText = (value) => value || MINIAPP_RESOURCE_DISPLAY.guide.unknown
 
 export const resolveMiniappGuideCategory = (value) => value || MINIAPP_RESOURCE_DISPLAY.guide.unknown
@@ -33,5 +34,6 @@ export const resolveMiniappSpotDisplayName = (spotName, emptyText = '--') => {
 }
 
 export const isMiniappInvalidSpotDisplay = (spotName) => {
+  // 统一复用格式化后的口径，避免调用方自己判断时漏掉某些无效态。
   return MINIAPP_INVALID_SPOT_NAMES.includes(resolveMiniappSpotDisplayName(spotName))
 }

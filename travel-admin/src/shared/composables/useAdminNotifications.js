@@ -136,6 +136,10 @@ const normalizeOrderNotification = (item) => {
 
 const sortByLatest = (items) => items.sort((left, right) => toTimestamp(right.createdAt) - toTimestamp(left.createdAt))
 
+/**
+ * 管理端通知面板组合函数，提供用户和订单两类通知的统一接口。
+ * returns {Object} 包含通知列表、未读数、加载状态和相关操作的响应式对象。
+ */
 export function useAdminNotifications() {
   // 组合函数统一维护通知列表、未读数和最近更新时间。
   const loading = ref(false)

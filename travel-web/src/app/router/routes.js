@@ -32,6 +32,7 @@ const accountRoutes = [
   { path: 'reviews', name: ROUTE_NAMES.reviewList, component: () => import('@/modules/review/index.vue'), meta: { title: '我的评价', requiresAuth: true } }
 ]
 
+// 应用主壳路由，包含公共页面和账户中心等需要登录的功能模块。
 export const appShellRoutes = [
   {
     path: '/',

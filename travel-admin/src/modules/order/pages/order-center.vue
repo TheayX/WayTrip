@@ -19,8 +19,6 @@
       @change-tab="handleTabChange"
     />
 
-
-
     <div class="page-action-row page-action-row--flush">
       <el-tabs :model-value="currentTab" class="workspace-tabs" @tab-change="handleTabChange">
         <el-tab-pane v-for="tab in tabs" :key="tab.key" :label="tab.label" :name="tab.key" />
@@ -28,7 +26,6 @@
     </div>
 
     <el-card shadow="never" class="workspace-card admin-management-card">
-
 
       <OrderFilterBar
         :current-tab="currentTab"
@@ -241,6 +238,7 @@ const extractErrorMessage = (error, fallback) => {
 const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
 const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 
+// “已关闭”这类复合页签需要把多个状态的结果合并后再统一排序，否则分页和排序会只对单一状态生效。
 const mergeCompositeList = (responses, page, pageSize) => {
   const merged = responses
     .flatMap((item) => item.data.list || [])
@@ -282,6 +280,7 @@ const fetchOrderList = async () => {
     const currentStatuses = getTabMeta(currentTab.value).statuses
 
     if (currentTab.value === 'all') {
+      // “全部”页签允许再叠加状态筛选，因此仍透传 searchForm.status。
       const params = {
         ...buildBaseParams(pagination.page, pagination.pageSize),
         status: searchForm.status || undefined
@@ -293,6 +292,7 @@ const fetchOrderList = async () => {
     }
 
     if (currentStatuses.length === 1) {
+      // 单状态页签直接走后端分页，避免前端合并带来的额外请求成本。
       const res = await getOrderList({
         ...buildBaseParams(pagination.page, pagination.pageSize),
         status: currentStatuses[0]
@@ -318,6 +318,7 @@ const fetchSummaryStats = async () => {
   summaryLoading.value = true
 
   try {
+    // 摘要卡片只依赖 total，因此每组状态只请求 1 条数据即可，避免和主表列表抢占过多查询成本。
     const [allRes, pendingRes, paidRes, completedRes, cancelledRes, refundedRes] = await Promise.all([
       getOrderList({ ...buildBaseParams(1, 1) }),
       getOrderList({ ...buildBaseParams(1, 1), status: 'pending' }),
@@ -343,6 +344,7 @@ const refreshDashboardData = async () => {
   await Promise.all([fetchOrderList(), fetchSummaryStats()])
 }
 
+// 订单页既会被手工筛选，也会被外部 query 跳转命中，这里统一把本地筛选状态折叠回路由，保证分享与返回行为一致。
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (searchForm.orderNo) {
@@ -480,6 +482,7 @@ const handleDetail = async (row) => {
   detailVisible.value = true
 
   try {
+    // 列表行只保留摘要字段，抽屉打开后再补拉详情，避免主表列表为低频字段付出常驻成本。
     const res = await getOrderDetail(row.id)
     currentOrder.value = res.data
   } catch (error) {
@@ -490,6 +493,7 @@ const handleDetail = async (row) => {
   }
 }
 
+// 各类订单动作共用同一套确认、刷新和详情同步逻辑，避免状态流转分散到多个分支后难以保持一致。
 const runOrderAction = async ({ row, confirmText, hintText, request, successText }) => {
   try {
     await ElMessageBox.confirm(`${confirmText}\n${hintText}`, '订单状态确认', {
@@ -541,6 +545,7 @@ const handleReopen = (row) => runOrderAction({
 })
 
 watch(() => route.query, () => {
+  // 由当前页面主动 replace 的 query 不再触发二次拉取，避免一次筛选造成两轮重复请求。
   if (skipNextRouteLoad.value) {
     skipNextRouteLoad.value = false
     return

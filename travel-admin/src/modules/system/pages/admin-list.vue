@@ -17,8 +17,6 @@
 
     <el-card shadow="hover" class="management-card admin-management-card">
 
-
-
       <!-- 搜索表单 -->
       <el-form :model="queryParams" inline class="search-form admin-filter-bar" @submit.prevent>
         <el-form-item label="关键字">

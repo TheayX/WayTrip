@@ -1,7 +1,7 @@
 // 常量配置
 const LOCATION_CACHE_KEY = 'user_location_cache'
 
-// 内部方法
+// 仅缓存定位快照，不缓存完整原始对象，避免无关字段把存储结构变复杂。
 const saveLocationCache = (location) => {
   if (!location) return
   uni.setStorageSync(LOCATION_CACHE_KEY, {
@@ -11,6 +11,7 @@ const saveLocationCache = (location) => {
   })
 }
 
+// 首次请求定位权限时直接走系统授权弹窗。
 const requestAuthorize = () => new Promise((resolve, reject) => {
   uni.authorize({
     scope: 'scope.userLocation',
@@ -19,6 +20,7 @@ const requestAuthorize = () => new Promise((resolve, reject) => {
   })
 })
 
+// 已拒绝过授权时，引导用户手动进入设置页重新开启。
 const openLocationSetting = () => new Promise((resolve) => {
   uni.showModal({
     title: '开启定位',
@@ -73,6 +75,7 @@ export const getLocationSnapshot = async () => {
   const cached = getCachedLocation()
 
   try {
+    // 优先返回最新定位，但保留缓存结果，方便页面自行决定“先展示旧值还是等新值”。
     const latest = await getLocationIfAuthorized()
     return {
       cached,
@@ -112,6 +115,7 @@ export const getAuthorizedLocation = async () => {
 
 export const getLocationIfAuthorized = async () => {
   const permissionState = await getLocationPermissionState()
+  // 静默读取只在已授权时触发，避免被动拉起系统权限提示打断当前流程。
   if (permissionState !== 'granted') {
     return null
   }

@@ -15,5 +15,6 @@ export const formatFeatureRating = (value, {
   suffix = ' 分'
 } = {}) => {
   const num = Number(value)
+  // 评分统一保留一位小数，避免不同页面出现 4.5 / 4.50 / 4 等混用情况。
   return Number.isFinite(num) && num > 0 ? `${num.toFixed(1)}${suffix}` : emptyText
 }

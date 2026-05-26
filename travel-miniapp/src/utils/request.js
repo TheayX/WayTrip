@@ -8,6 +8,7 @@ const DEFAULT_SERVER_URL = 'http://localhost:8080'
 // 如果需要消除微信开发者工具里的 HTTP 警告，可在 .env.local 中把
 // VITE_API_ORIGIN 改为本机 Nginx 反代出的 HTTPS 地址，例如 https://localhost:8443。
 const SERVER_URL = (import.meta.env.VITE_API_ORIGIN || DEFAULT_SERVER_URL).replace(/\/$/, '')
+// 资源默认与接口同源，只有静态资源拆到单独域名时才通过环境变量覆盖。
 const RESOURCE_URL = (import.meta.env.VITE_RESOURCE_ORIGIN || SERVER_URL).replace(/\/$/, '')
 
 const BASE_URL = `${SERVER_URL.replace(/\/$/, '')}/api/v1`
@@ -28,6 +29,7 @@ const isAbsoluteUrl = (value) => isHttpUrl(value) || isHttpsUrl(value)
 export const getImageUrl = (url) => {
   if (!url) return ''
   if (isAbsoluteUrl(url)) {
+    // 已是完整地址时不再二次改写，避免把调用方显式传入的 HTTPS / CDN 地址覆盖掉。
     return url
   }
   const path = url.startsWith('/') ? url : `/${url}`
@@ -90,6 +92,7 @@ const redirectToLogin = () => {
     return
   }
 
+  // 认证失效时统一回个人中心，避免多个并发请求重复 reLaunch 导致页面闪动。
   authRedirectInProgress = true
   uni.reLaunch({
     url: '/pages/mine/index',
@@ -150,6 +153,7 @@ const request = (options) => {
 
     const pendingWarningTimer = globalThis.setTimeout(() => {
       if (requestFinished) return
+      // 超过阈值先打运行时告警，便于区分“请求最终失败”和“请求长时间卡住”两类问题。
       traceRuntime('request-pending-warning', {
         requestId,
         route,
@@ -272,6 +276,7 @@ export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
 
     const pendingWarningTimer = globalThis.setTimeout(() => {
       if (requestFinished) return
+      // 上传比普通请求更容易卡在网络或文件系统阶段，单独保留 pending 告警便于定位。
       traceRuntime('upload-pending-warning', {
         requestId,
         route,

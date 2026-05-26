@@ -4,51 +4,36 @@ import request from '@/shared/api/request.js'
 /**
  * 获取目的地列表
  * @param params
- * @returns {*}
+ * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export function getRegions(params) {
-  return request({
-    url: '/regions',
-    method: 'get',
-    params
-  })
+  return request.get('/regions', { params })
 }
 
 /**
  * 创建新目的地
  * @param data
- * @returns {*}
+ * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export function createRegion(data) {
-  return request({
-    url: '/regions',
-    method: 'post',
-    data
-  })
+  return request.post('/regions', data)
 }
 
 /**
  * 更新目的地信息
  * @param id
  * @param data
- * @returns {*}
+ * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export function updateRegion(id, data) {
-  return request({
-    url: `/regions/${id}`,
-    method: 'put',
-    data
-  })
+  return request.put(`/regions/${id}`, data)
 }
 
 /**
  * 删除目的地
  * @param id
- * @returns {*}
+ * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export function deleteRegion(id) {
-  return request({
-    url: `/regions/${id}`,
-    method: 'delete'
-  })
+  return request.delete(`/regions/${id}`)
 }

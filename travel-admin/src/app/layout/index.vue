@@ -19,11 +19,14 @@
         router
         class="aside-menu"
       >
+        <!-- 动态渲染菜单项 -->
         <template v-for="group in groupedMenuList" :key="group.key">
+          <!-- 单个菜单项（无子菜单） -->
           <el-menu-item v-if="group.single && group.items.length === 1" :index="group.items[0].fullPath">
             <el-icon><component :is="group.icon" /></el-icon>
             <template #title>{{ group.items[0].meta.title }}</template>
           </el-menu-item>
+          <!-- 带子菜单的分组 -->
           <el-sub-menu v-else :index="group.key">
             <template #title>
               <el-icon><component :is="group.icon" /></el-icon>

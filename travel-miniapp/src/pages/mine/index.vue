@@ -256,15 +256,20 @@ const loadMineOverview = async () => {
   }
 }
 
+// 登录流程：先调用微信登录获取 code，发送给后端换取用户信息和 openid。如果是新用户则进入补全信息流程，否则直接登录并同步信息。
 const doLogin = async () => {
   try {
+    // 1. 调用微信官方API获取临时code
     const loginRes = await uni.login({ provider: 'weixin' })
+    // 2. 把code传给后端
     const res = await wxLogin(loginRes.code)
 
+    // 3. 判断是否新用户
     if (res.data.isNewUser) {
-      pendingOpenid.value = res.data.openid
-      authStep.value = 1
+      pendingOpenid.value = res.data.openid // 保存openid
+      authStep.value = 1 // 弹出绑定手机号弹窗
     } else {
+      // 老用户直接登录成功
       userStore.login(res.data)
       await syncUserInfo()
       await loadMineOverview()

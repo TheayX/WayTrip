@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+// 用户状态统一收口到 store，便于页面、请求层和登录流程共享同一份身份信息。
 export const useUserStore = defineStore('user', () => {
   // 基础状态
   const token = ref('')
@@ -13,7 +14,7 @@ export const useUserStore = defineStore('user', () => {
   function initFromStorage() {
     const storedToken = uni.getStorageSync('token')
     const storedUserInfo = uni.getStorageSync('userInfo')
-    
+
     if (storedToken) {
       token.value = storedToken
     }
@@ -33,6 +34,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function login(data) {
+    // 登录后统一走同一套写入逻辑，避免 token 与用户信息落库口径不一致。
     setToken(data.token)
     setUserInfo(data.user)
   }
@@ -50,6 +52,7 @@ export const useUserStore = defineStore('user', () => {
 
   function updatePreferences(preferences) {
     if (userInfo.value) {
+      // 偏好更新通常只回写局部字段，这里保留已有资料，避免把其他信息覆盖掉。
       userInfo.value = {
         ...userInfo.value,
         ...preferences
