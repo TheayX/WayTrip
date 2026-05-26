@@ -2,7 +2,7 @@ package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.travel.common.constant.ResourceDisplayText;
+import com.travel.constant.ResourceDisplayText;
 import com.travel.dto.user.request.AdminUserListRequest;
 import com.travel.dto.user.request.ResetUserPasswordRequest;
 import com.travel.dto.user.response.AdminUserDetailResponse;

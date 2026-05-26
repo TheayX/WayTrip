@@ -123,7 +123,6 @@ travel-server/
 │  │  │  │  ├─ integration/         外部 HTTP 客户端等集成配置
 │  │  │  │  ├─ persistence/         MyBatis-Plus 与字段填充配置
 │  │  │  │  ├─ security/            安全相关配置
-│  │  │  │  ├─ task/                定时任务调度配置
 │  │  │  │  └─ web/                 MVC、Swagger 等 Web 层配置
 │  │  │  ├─ constant/               业务常量
 │  │  │  ├─ controller/             接口层

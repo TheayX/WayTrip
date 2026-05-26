@@ -1,7 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.travel.common.constant.ResourceDisplayText;
+import com.travel.constant.ResourceDisplayText;
 import com.travel.dto.dashboard.response.DashboardOverviewResponse;
 import com.travel.dto.dashboard.response.HotSpotsResponse;
 import com.travel.dto.dashboard.response.OrderHeatmapResponse;

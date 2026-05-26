@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.exception.BusinessException;
-import com.travel.common.constant.ResourceDisplayText;
+import com.travel.constant.ResourceDisplayText;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.order.request.AdminOrderListRequest;
 import com.travel.dto.order.request.CreateOrderRequest;

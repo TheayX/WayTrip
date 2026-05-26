@@ -1,7 +1,7 @@
 package com.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.travel.common.constant.ResourceDisplayText;
+import com.travel.constant.ResourceDisplayText;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.result.ResultCode;
 import com.travel.dto.home.response.HotSpotResponse;

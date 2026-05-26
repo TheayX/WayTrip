@@ -1,7 +1,7 @@
 package com.travel.service.support.recommendation;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.travel.common.constant.ResourceDisplayText;
+import com.travel.constant.ResourceDisplayText;
 import com.travel.dto.recommendation.config.RecommendationAlgorithmConfigDTO;
 import com.travel.dto.recommendation.config.RecommendationCacheConfigDTO;
 import com.travel.dto.recommendation.response.SimilarityPreviewResponse;

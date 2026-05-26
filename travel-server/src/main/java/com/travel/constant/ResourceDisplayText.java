@@ -1,4 +1,4 @@
-package com.travel.common.constant;
+package com.travel.constant;
 
 /**
  * 统一维护资源失效、主体失效和普通空值的展示文案，避免业务层各自硬编码。
