@@ -8,6 +8,7 @@ const DEFAULT_SERVER_URL = 'http://localhost:8080'
 // 如果需要消除微信开发者工具里的 HTTP 警告，可在 .env.local 中把
 // VITE_API_ORIGIN 改为本机 Nginx 反代出的 HTTPS 地址，例如 https://localhost:8443。
 const SERVER_URL = (import.meta.env.VITE_API_ORIGIN || DEFAULT_SERVER_URL).replace(/\/$/, '')
+const RESOURCE_URL = (import.meta.env.VITE_RESOURCE_ORIGIN || SERVER_URL).replace(/\/$/, '')
 
 const BASE_URL = `${SERVER_URL.replace(/\/$/, '')}/api/v1`
 const SUCCESS_CODE = 0
@@ -23,19 +24,15 @@ const NO_PERMISSION_MESSAGE = '暂无权限访问该功能'
 const isHttpUrl = (value) => /^http:\/\//i.test(value)
 const isHttpsUrl = (value) => /^https:\/\//i.test(value)
 const isAbsoluteUrl = (value) => isHttpUrl(value) || isHttpsUrl(value)
-const isLocalHostUrl = (value) => /\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(\/|$)/i.test(value)
-const toHttps = (value) => value.replace(/^http:\/\//i, 'https://')
 
 export const getImageUrl = (url) => {
   if (!url) return ''
   if (isAbsoluteUrl(url)) {
-    // 小程序本地联调默认允许 localhost 继续走 HTTP，避免把 HTTPS 反代变成必选项。
-    return isHttpUrl(url) && !isLocalHostUrl(url) ? toHttps(url) : url
+    return url
   }
-  const base = SERVER_URL
   const path = url.startsWith('/') ? url : `/${url}`
-  const fullUrl = `${base}${path}`
-  return isHttpUrl(fullUrl) && !isLocalHostUrl(fullUrl) ? toHttps(fullUrl) : fullUrl
+  // 资源域名单独配置，便于本地 API、HTTPS 反代、CDN 场景按环境切换。
+  return `${RESOURCE_URL}${path}`
 }
 
 export const getAvatarUrl = (url) => {
