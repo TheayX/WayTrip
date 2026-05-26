@@ -1,4 +1,4 @@
-// 用户端资源失效和空值展示统一收口，避免小程序页面散落硬编码。
+// 用户端资源展示文案工具，统一处理空值、失效态和对后台术语的弱化展示。
 export const MINIAPP_RESOURCE_DISPLAY = {
   user: {
     unknown: '未知用户'

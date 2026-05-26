@@ -1,4 +1,4 @@
-// 通用展示格式化方法，主要服务订单、详情等仍在复用的基础文案格式化场景。
+// 通用展示格式化工具，集中维护日期、金额和订单状态等基础文案格式规则。
 const formatDate = (date, fmt = 'YYYY-MM-DD') => {
   if (!date) return ''
   if (typeof date === 'string') {
@@ -28,7 +28,6 @@ const formatPrice = (price) => {
   return Number(price).toFixed(2)
 }
 
-// 常量配置
 const orderStatusText = {
   'PENDING_PAYMENT': '待支付',
   'PENDING_USE': '待使用',
@@ -41,7 +40,6 @@ const getOrderStatusText = (status) => {
   return orderStatusText[status] || status
 }
 
-// 对外暴露方法
 export {
   formatDate,
   formatPrice,

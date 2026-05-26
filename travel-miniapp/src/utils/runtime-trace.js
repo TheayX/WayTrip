@@ -1,3 +1,4 @@
+// 运行时追踪工具，统一记录页面切换、请求和异常上下文，便于真机问题回放。
 const TRACE_STORE_KEY = '__WAYTRIP_RUNTIME_TRACE__'
 const TRACE_LIMIT = 200
 

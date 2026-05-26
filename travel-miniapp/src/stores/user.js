@@ -1,16 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-// 用户状态统一收口到 store，便于页面、请求层和登录流程共享同一份身份信息。
+// 用户状态仓库，统一维护登录态、用户资料与本地持久化读写。
+// 页面、请求层和登录流程都通过这里共享同一份身份信息，避免各自维护副本。
 export const useUserStore = defineStore('user', () => {
-  // 基础状态
   const token = ref('')
   const userInfo = ref(null)
-
-  // 计算属性
   const isLoggedIn = computed(() => !!token.value)
-
-  // 内部方法
   function initFromStorage() {
     const storedToken = uni.getStorageSync('token')
     const storedUserInfo = uni.getStorageSync('userInfo')
@@ -61,7 +57,6 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 对外暴露方法
   return {
     token,
     userInfo,

@@ -1,4 +1,4 @@
-// 景点详情跳转与来源统一收口，避免各页面各自拼接 URL。
+// 景点详情跳转工具，统一维护详情页来源参数与评价弹窗入口参数。
 export const SPOT_DETAIL_SOURCE = {
   HOME: 'home',
   LIST: 'list',

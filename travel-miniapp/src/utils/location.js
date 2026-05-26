@@ -1,4 +1,4 @@
-// 常量配置
+// 定位权限与定位快照工具，统一处理授权、缓存和静默读取逻辑。
 const LOCATION_CACHE_KEY = 'user_location_cache'
 
 // 仅缓存定位快照，不缓存完整原始对象，避免无关字段把存储结构变复杂。
@@ -42,7 +42,6 @@ const openLocationSetting = () => new Promise((resolve) => {
   })
 })
 
-// 对外暴露方法
 export const ensureLocationPermission = async () => {
   try {
     await requestAuthorize()

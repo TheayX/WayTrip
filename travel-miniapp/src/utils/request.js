@@ -1,7 +1,8 @@
 import { useUserStore } from '@/stores/user'
 import { getCurrentPageRoute, traceRuntime } from '@/utils/runtime-trace'
 
-// 常量配置
+// 小程序请求与资源地址工具，统一处理接口前缀、鉴权失效、上传和运行时追踪。
+// 页面侧只负责调用 get / post / uploadFile，不再重复处理通用网络细节。
 const DEFAULT_SERVER_URL = 'http://localhost:8080'
 
 // 默认保持“拉下来即可联调”，因此小程序开发环境直接走本地 8080。
@@ -21,7 +22,6 @@ const NETWORK_ERROR_MESSAGE = '网络异常，请稍后重试'
 const REQUEST_FAILED_MESSAGE = '请求失败'
 const NO_PERMISSION_MESSAGE = '暂无权限访问该功能'
 
-// 图片地址处理方法
 const isHttpUrl = (value) => /^http:\/\//i.test(value)
 const isHttpsUrl = (value) => /^https:\/\//i.test(value)
 const isAbsoluteUrl = (value) => isHttpUrl(value) || isHttpsUrl(value)
@@ -64,7 +64,6 @@ const appendQueryParams = (url, params) => {
   return `${url}${url.includes('?') ? '&' : '?'}${query}`
 }
 
-// 全局 Loading 引用计数，避免并发请求造成 show/hide 不配对。
 let loadingRefCount = 0
 let authRedirectInProgress = false
 let requestSequence = 0

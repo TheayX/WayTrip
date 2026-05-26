@@ -1,6 +1,7 @@
 import { useUserStore } from '@/stores/user'
 import { switchTabSafely } from '@/utils/navigation'
 
+// 登录拦截与登录后回跳工具，统一处理页面侧的鉴权提示和跳转策略。
 const LOGIN_REDIRECT_KEY = 'waytrip:auth:redirect'
 
 // 记录登录前所在页面，便于登录成功后按用户来路回跳。
@@ -34,7 +35,6 @@ export const consumeLoginRedirect = () => {
   return redirect || ''
 }
 
-// 内部方法
 const redirectAfterLoginCancel = () => {
   const pages = getCurrentPages()
   if (pages.length > 1) {

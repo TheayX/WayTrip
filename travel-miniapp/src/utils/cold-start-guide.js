@@ -1,4 +1,4 @@
-// 冷启动引导只与具体用户绑定，避免同一台设备切换账号后互相污染引导状态。
+// 冷启动引导状态存储工具，负责按用户维度记录引导是否待展示、已跳过或已完成。
 const buildGuideKey = (userId) => `cold_start_guide:${userId}`
 
 const resolveUserId = (userId) => {
@@ -6,7 +6,6 @@ const resolveUserId = (userId) => {
   return Number.isInteger(value) && value > 0 ? value : null
 }
 
-// 对外暴露方法
 export const getColdStartGuideState = (userId) => {
   const resolvedUserId = resolveUserId(userId)
   if (!resolvedUserId) {

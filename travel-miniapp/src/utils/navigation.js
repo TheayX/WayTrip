@@ -1,4 +1,4 @@
-// 统一处理 tabBar 页面跳转，避免重复切到当前页或偶发 switchTab timeout 造成白屏。
+// tabBar 页面跳转工具，统一处理重复跳转和 switchTab 失败时的兜底策略。
 const normalizePagePath = (url = '') => {
   return String(url).split('?')[0]
 }
