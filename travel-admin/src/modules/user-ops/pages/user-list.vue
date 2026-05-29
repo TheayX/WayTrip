@@ -282,14 +282,12 @@ const skipNextRouteLoad = ref(false)
 const showAdvanced = ref(false)
 const dateRange = ref([])
 
-// 查询参数
 const searchForm = reactive({
   nickname: '',
   phone: '',
   status: ''
 })
 
-// 列表状态
 const loading = ref(false)
 const userList = ref([])
 const errorMessage = ref('')
@@ -301,15 +299,16 @@ const pagination = reactive({
   sortOrder: ''
 })
 
-// 对话框与表单状态
 const detailVisible = ref(false)
 const currentUser = ref(null)
+// 统计当前页用户的订单总量。
 const currentPageOrderCount = computed(() => userList.value.reduce((sum, item) => sum + Number(item.orderCount || 0), 0))
+// 统计当前页用户的收藏、评价与浏览总互动量。
 const currentPageEngagementCount = computed(() => userList.value.reduce((sum, item) => {
   return sum + Number(item.favoriteCount || 0) + Number(item.reviewCount || 0) + Number(item.viewCount || 0)
 }, 0))
 
-// 格式化手机号显示
+// 统一脱敏展示手机号。
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
   const normalized = phone.trim()
@@ -322,16 +321,16 @@ const formatPhone = (phone) => {
   return '已隐藏'
 }
 
-// 格式化时间
+// 统一格式化详情弹窗中的时间字段。
 const formatDateTime = (value) => {
   if (!value) return '暂无'
   return String(value).replace('T', ' ').slice(0, 19)
 }
 
-// 获取浏览来源文案
+// 解析浏览来源展示文案。
 const getViewSourceLabel = (value) => resolveSourceLabel(value || '暂无')
 
-// 获取用户列表
+// 按当前筛选条件加载用户列表。
 const fetchUserList = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -358,14 +357,14 @@ const fetchUserList = async () => {
   }
 }
 
-// 搜索操作
+// 应用搜索条件并重置到第一页。
 const handleSearch = () => {
   pagination.page = 1
   syncRouteQuery()
   fetchUserList()
 }
 
-// 重置搜索条件
+// 清空搜索条件并恢复默认查询状态。
 const handleReset = () => {
   searchForm.nickname = ''
   searchForm.phone = ''
@@ -374,11 +373,13 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 根据表头排序结果刷新用户列表。
 const handleSortChange = (sortPayload) => {
   applySortChange(pagination, sortPayload)
   fetchUserList()
 }
 
+// 将当前搜索条件同步回路由参数。
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (searchForm.nickname) {
@@ -417,6 +418,7 @@ const syncRouteQuery = () => {
   }
 }
 
+// 用路由参数回填当前搜索条件。
 const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.phone = typeof route.query.phone === 'string' ? route.query.phone : ''
@@ -428,6 +430,7 @@ const applyRouteQuery = () => {
   }
 }
 
+// 跳转到用户运营相关子页面，并透传昵称筛选条件。
 const openUserOpsPage = (path, row) => {
   detailVisible.value = false
   router.push({
@@ -438,18 +441,22 @@ const openUserOpsPage = (path, row) => {
   })
 }
 
+// 打开当前用户的偏好运营页。
 const handleOpenPreference = (row) => {
   openUserOpsPage('/preference', row)
 }
 
+// 打开当前用户的收藏运营页。
 const handleOpenFavorite = (row) => {
   openUserOpsPage('/favorite', row)
 }
 
+// 打开当前用户的浏览记录页。
 const handleOpenViewLog = (row) => {
   openUserOpsPage('/view-log', row)
 }
 
+// 根据下拉菜单命令分发对应的用户操作。
 const handleCommand = (command, row) => {
   switch (command) {
     case 'detail':
@@ -467,7 +474,7 @@ const handleCommand = (command, row) => {
   }
 }
 
-// 打开用户详情对话框
+// 加载并打开用户详情弹窗。
 const handleDetail = async (row) => {
   try {
     const res = await getUserDetail(row.id)
@@ -478,7 +485,7 @@ const handleDetail = async (row) => {
   }
 }
 
-// 重置密码
+// 为指定用户重置登录密码。
 const handleResetPassword = async (row) => {
   try {
     const { value } = await ElMessageBox.prompt(
@@ -553,12 +560,13 @@ const handleRestoreUser = async (row) => {
   }
 }
 
-// 页面初始化
+// 页面首次进入时按路由条件初始化并加载列表。
 onMounted(() => {
   applyRouteQuery()
   fetchUserList()
 })
 
+// 监听路由筛选变化，并在外部跳转时重新加载列表。
 watch(
   () => route.query,
   () => {

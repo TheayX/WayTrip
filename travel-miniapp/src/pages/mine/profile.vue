@@ -85,6 +85,7 @@ const syncUserInfo = async () => {
   userStore.setUserInfo(res.data)
 }
 
+// 用当前登录用户资料回填编辑表单。
 const hydrateForm = () => {
   form.nickname = userInfo.value?.nickname || ''
   form.phone = userInfo.value?.phone || ''
@@ -93,6 +94,7 @@ const hydrateForm = () => {
   form.avatarTempFile = ''
 }
 
+// 确保用户已登录，否则返回上一页。
 const ensureLogin = () => {
   if (isLoggedIn.value) return true
   uni.showToast({ title: '请先登录', icon: 'none' })
@@ -110,6 +112,7 @@ const onChooseAvatar = (e) => {
   form.avatarTempFile = url
 }
 
+// 提交账号资料更新，并在成功后同步本地用户信息。
 const submitProfile = async () => {
   try {
     uni.showLoading({ title: '保存中...', mask: true })

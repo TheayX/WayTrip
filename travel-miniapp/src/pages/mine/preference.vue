@@ -48,6 +48,7 @@ const fetchCategories = async () => {
   }
 }
 
+// 加载当前用户已保存的偏好分类。
 const fetchUserPreferences = async () => {
   try {
     const res = await getUserInfo()
@@ -62,6 +63,7 @@ const handleLimitExceed = () => {
   uni.showToast({ title: '最多选择5个', icon: 'none' })
 }
 
+// 保存偏好设置并同步更新本地用户信息。
 const savePreferences = async () => {
   saving.value = true
   try {

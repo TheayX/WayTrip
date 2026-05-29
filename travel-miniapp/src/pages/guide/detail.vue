@@ -81,12 +81,16 @@ const guide = ref(null)
 const guideId = ref(null)
 const loading = ref(true)
 const invalidMessage = ref('未知攻略，暂时无法查看详情')
+// 解析攻略标题展示文案。
 const resolveGuideText = (value) => resolveMiniappGuideDisplayText(value)
+// 解析攻略分类展示文案。
 const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
+// 解析关联景点名称展示文案。
 const resolveSpotText = (value) => resolveMiniappSpotDisplayName(value)
+// 判断攻略内容是否为富文本 HTML。
 const hasGuideHtmlContent = computed(() => /<[^>]+>/.test(guide.value?.content || ''))
 
-// 工具方法
+// 同步详情页最新摘要，便于列表页局部刷新展示。
 const syncGuidePreview = (data) => {
   if (!data?.id) return
   uni.setStorageSync('guide_detail_updated', {
@@ -100,7 +104,7 @@ const syncGuidePreview = (data) => {
   })
 }
 
-// 数据加载方法
+// 加载攻略详情，并回写列表页可复用的预览快照。
 const fetchGuideDetail = async () => {
   try {
     const res = await getGuideDetail(guideId.value)
@@ -127,22 +131,24 @@ const fetchGuideDetail = async () => {
   }
 }
 
-// 页面跳转方法
+// 从攻略详情跳转到关联景点详情页。
 const goSpotDetail = (id) => {
   uni.navigateTo({
     url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.GUIDE)
   })
 }
 
+// 跳转到景点列表页继续浏览更多景点。
 const goSpotList = () => {
   uni.navigateTo({ url: '/pages/spot/list?sortBy=heat' })
 }
 
+// 返回攻略列表页继续浏览其他内容。
 const goGuideList = () => {
   uni.navigateTo({ url: '/pages/guide/list?sortBy=view_count' })
 }
 
-// 生命周期
+// 初始化攻略详情页并拉取详情数据。
 onLoad((options) => {
   if (!guardLoginPage('登录后可查看攻略详情，是否现在去登录？')) {
     return

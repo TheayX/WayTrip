@@ -181,6 +181,7 @@ const formatPhone = (phone) => {
   return '已隐藏'
 }
 
+// 从后端同步最新用户资料。
 const syncUserInfo = async () => {
   try {
     const res = await getUserInfo()
@@ -188,6 +189,7 @@ const syncUserInfo = async () => {
   } catch (e) { console.error('同步用户信息失败', e) }
 }
 
+// 规范化本地缓存中的浏览足迹结构。
 const normalizeFootprints = (list) => {
   if (!Array.isArray(list)) return []
   return list
@@ -202,10 +204,12 @@ const normalizeFootprints = (list) => {
     }))
 }
 
+// 将浏览足迹写回本地缓存并限制最大数量。
 const cacheFootprints = (list) => {
   uni.setStorageSync('spot_footprints', normalizeFootprints(list).slice(0, 20))
 }
 
+// 加载最近浏览足迹，并在必要时回退到接口数据。
 const loadRecentFootprints = async () => {
   const history = uni.getStorageSync('spot_footprints')
   const footprints = normalizeFootprints(history)
@@ -229,6 +233,7 @@ const loadRecentFootprints = async () => {
   dashboardStats.viewed = footprints.length
 }
 
+// 加载我的页概览统计数据。
 const loadMineOverview = async () => {
   if (!isLoggedIn.value) {
     dashboardStats.viewed = 0; dashboardStats.favorites = 0; dashboardStats.reviews = 0
@@ -295,6 +300,7 @@ const doLogin = async () => {
   }
 }
 
+// 补全授权信息后同步资料与概览数据。
 const onAuthSuccess = async () => {
   await syncUserInfo()
   await loadMineOverview()
@@ -305,6 +311,7 @@ const onAuthSuccess = async () => {
   }
 }
 
+// 退出当前登录账号并清空我的页统计。
 const doLogout = () => {
   uni.showModal({
     title: '提示', content: '确定要退出登录吗？',
@@ -321,17 +328,24 @@ const doLogout = () => {
 
 // Routes
 const goOrders = () => uni.navigateTo({ url: '/pages/order/list' })
+// 按指定订单状态跳转到订单列表页。
 const goOrdersByStatus = (status) => uni.navigateTo({ url: `/pages/order/list?status=${status}` })
+// 跳转到我的互动页并定位到指定标签。
 const goActivity = (tab = 'browse') => uni.navigateTo({ url: `/pages/mine/activity?tab=${tab}` })
+// 跳转到偏好设置页。
 const goPreference = () => uni.navigateTo({ url: '/pages/mine/preference' })
+// 跳转到账号资料页。
 const goProfile = () => uni.navigateTo({ url: '/pages/mine/profile' })
+// 跳转到系统设置页。
 const goSettings = () => uni.navigateTo({ url: '/pages/mine/settings/index' })
 
+// 页面显示时刷新用户资料和概览统计。
 onShow(async () => {
   if (isLoggedIn.value) await syncUserInfo()
   await loadMineOverview()
 })
 
+// 监听登录状态变化，补拉资料与概览数据。
 watch(isLoggedIn, async (loggedIn, prevLoggedIn) => {
   if (!loggedIn || loggedIn === prevLoggedIn) return
   await syncUserInfo()

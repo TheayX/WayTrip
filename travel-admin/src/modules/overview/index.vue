@@ -277,7 +277,7 @@ import { useTheme } from '@/shared/composables/useTheme.js'
 import { getChartThemeTokens } from '@/shared/theme/charts/index.js'
 import { getHotSpots, getOrderHeatmap, getOrderTrend, getOverview } from './api.js'
 
-// 图表 DOM 引用统一集中管理，便于初始化、主题切换和销毁时批量处理。
+// 图表 DOM 引用与实例状态统一集中管理，便于初始化、主题切换和销毁时批量处理。
 const sparklineRevenue = ref(null)
 const sparklineUsers = ref(null)
 const sparklineSpots = ref(null)
@@ -291,6 +291,7 @@ const { currentTheme } = useTheme()
 const charts = []
 let mainLineChart = null
 let hasTrendAnimated = false
+// 页面数据状态
 const loading = ref(false)
 const errorMessage = ref('')
 const partialWarning = ref('')
@@ -320,6 +321,7 @@ const heatmapYear = ref(new Date().getFullYear())
 
 const getChartPalette = () => getChartThemeTokens(currentTheme.value)
 
+// 运营入口与提示文案
 const workbenchEntries = [
   {
     title: '订单中心',
@@ -370,7 +372,7 @@ const dashboardTips = [
   }
 ]
 
-// 首屏先初始化图表实例，后续只更新 option，避免反复销毁重建带来闪烁。
+// 图表初始化与更新
 const initSparklines = () => {
   const palette = getChartPalette()
   const configs = [
@@ -388,6 +390,7 @@ const initSparklines = () => {
   })
 }
 
+// 构建顶部趋势卡片的 sparkline 配置。
 const buildSparklineOption = (data, color, areaColor) => ({
   animationDuration: 600,
   animationEasing: 'linear',
@@ -441,6 +444,7 @@ const updateSparklines = () => {
   })
 }
 
+// 初始化订单热力图实例。
 const initHeatmap = () => {
   if (!heatmapRef.value) return
   const chart = echarts.init(heatmapRef.value)
@@ -487,6 +491,7 @@ const initHeatmap = () => {
   })
 }
 
+// 根据接口返回的数据更新热力图展示。
 const updateHeatmap = (year, list) => {
   const chart = charts.find(target => target.getDom() === heatmapRef.value)
   if (!chart) return
@@ -513,6 +518,7 @@ const updateHeatmap = (year, list) => {
   })
 }
 
+// 初始化主趋势图实例。
 const initMainLineChart = () => {
   if (!mainLineChartRef.value) return
   if (mainLineChart) return
@@ -520,6 +526,7 @@ const initMainLineChart = () => {
   charts.push(mainLineChart)
 }
 
+// 工具方法
 const formatMoney = (value) => Number(value || 0)
 const formatCurrency = (value) => Number(value || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatInteger = (value) => Number(value || 0).toLocaleString('zh-CN')
@@ -544,12 +551,14 @@ const getDeltaClass = (current, previous) => {
   return 'text-gray-400'
 }
 
+// 根据当前趋势模式格式化横轴标签。
 const formatAxisLabel = (label) => {
   if (trendMode.value === 'weekday') return label
   const [, month, day] = `${label}`.split('-')
   return month && day ? `${month}-${day}` : label
 }
 
+// 更新订单与收入趋势主图。
 const updateMainLineChart = (list) => {
   if (!mainLineChartRef.value) return
   initMainLineChart()
@@ -689,6 +698,7 @@ const updateMainLineChart = (list) => {
   playTrendRevealAnimation()
 }
 
+// 播放主趋势图首次渲染的揭示动画。
 const playTrendRevealAnimation = () => {
   const shell = trendChartShellRef.value
   if (!shell) return
@@ -697,6 +707,7 @@ const playTrendRevealAnimation = () => {
   trendRevealActive.value = true
 }
 
+// 数据加载方法
 const fetchData = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -755,16 +766,19 @@ const fetchData = async () => {
   loading.value = false
 }
 
+// 交互处理方法
 const handleTrendModeChange = () => {
   // 两种统计方式切换时回到各自最常用的默认时间范围，避免口径混淆。
   selectedRange.value = trendMode.value === 'weekday' ? 0 : 7
   fetchData()
 }
 
+// 统一触发所有图表实例的尺寸重算。
 const handleResize = () => {
   charts.forEach(c => c.resize())
 }
 
+// 页面跳转方法
 const goToSpot = (spot) => {
   if (!spot?.id) return
   router.push({
@@ -780,6 +794,7 @@ const goTo = (path) => {
   router.push(path)
 }
 
+// 生命周期
 onMounted(() => {
   nextTick(() => {
     initSparklines()

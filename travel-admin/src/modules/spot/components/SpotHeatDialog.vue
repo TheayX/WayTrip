@@ -61,6 +61,7 @@ defineProps({
 
 const emit = defineEmits(['update:visible', 'submit'])
 
+// 统一透传弹窗开关状态，便于父层继续按 v-model 方式控制显示。
 const emitVisible = (value) => {
   emit('update:visible', value)
 }

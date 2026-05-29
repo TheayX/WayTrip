@@ -149,6 +149,7 @@ import { useRecommendationConfig } from '@/modules/recommendation/composables/us
 import { useRecommendationPreview } from '@/modules/recommendation/composables/useRecommendationPreview.js'
 
 const route = useRoute()
+// 页面状态
 const pageLoading = ref(false)
 const pageError = ref('')
 const pageWarning = ref('')
@@ -220,7 +221,7 @@ const pageStatusDesc = computed(() => {
   return '当前工作台状态正常，可以继续保存配置、更新矩阵或执行调试预览。'
 })
 
-// 根据路由定位区域
+// 根据路由参数滚动定位到指定工作区块。
 const applyRouteFocus = async () => {
   await nextTick()
   if (route.query.focus === 'execution') {
@@ -234,6 +235,7 @@ const applyRouteFocus = async () => {
   }
 }
 
+// 数据加载方法
 const loadPageData = async () => {
   pageLoading.value = true
   pageError.value = ''
@@ -258,7 +260,7 @@ const loadPageData = async () => {
   pageLoading.value = false
 }
 
-// 页面初始化
+// 生命周期
 onMounted(async () => {
   await loadPageData()
   await applyRouteFocus()

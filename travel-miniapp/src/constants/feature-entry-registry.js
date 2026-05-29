@@ -27,6 +27,7 @@ const featureEntryRegistry = [
 // 首页只展示一部分高频入口，顺序也统一由这里维护。
 const homeEntryIds = ['spots', 'guides', 'recommend', 'nearby', 'random-pick', 'budget', 'reviews', 'more']
 
+// 根据入口 ID 读取注册表配置，避免页面层直接依赖完整入口数组结构。
 export const getFeatureEntryById = (id) => featureEntryRegistry.find(item => item.id === id) || null
 
 // 首页入口先按固定 id 顺序取，再过滤掉空值，避免注册表调整时渲染报错。

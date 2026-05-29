@@ -111,10 +111,12 @@ const emit = defineEmits([
 ])
 
 const handleSelectionChange = (selection) => {
+  // 选中项直接回传给页面层，批量操作入口统一由页面决定是否可用。
   emit('selection-change', selection)
 }
 
 const handleSortChange = (sortPayload) => {
+  // 排序事件保持原始载荷上抛，便于页面层继续复用统一排序参数转换逻辑。
   emit('sort-change', sortPayload)
 }
 

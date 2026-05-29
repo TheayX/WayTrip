@@ -86,9 +86,11 @@ const positiveReviews = ref([])
 const negativeReviews = ref([])
 const loading = ref(false)
 
+// 计算属性
 const activeReviews = computed(() => (activeTab.value === 'positive' ? positiveReviews.value : negativeReviews.value))
 const emptyStateTitle = computed(() => (activeTab.value === 'positive' ? '暂时没有高分种草内容' : '暂时没有真实避雷内容'))
 const emptyStateDesc = computed(() => activeTab.value === 'positive' ? '当前没有高分评论内容。' : '当前没有低分评论内容。')
+// 工具方法
 const isInvalidSpot = (spotName) => isMiniappInvalidSpotDisplay(spotName)
 // 口碑流会在进入页和返回页时都刷新，尽量减少长时间停留后的内容陈旧感。
 const loadTravelerReviewFeed = async () => {
@@ -107,7 +109,7 @@ const loadTravelerReviewFeed = async () => {
   }
 }
 
-// 详情页需要登录后查看，这里统一收口校验可减少卡片层重复逻辑。
+// 页面跳转方法
 const goSpotDetail = (spotId, spotName) => {
   if (!spotId || isInvalidSpot(spotName)) return
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
@@ -116,6 +118,7 @@ const goSpotDetail = (spotId, spotName) => {
   uni.navigateTo({ url: buildSpotDetailUrl(spotId, SPOT_DETAIL_SOURCE.TRAVELER_REVIEWS) })
 }
 
+// 生命周期
 onLoad(() => {
   loadTravelerReviewFeed()
 })

@@ -168,15 +168,20 @@ const pagination = reactive({
   sortBy: '',
   sortOrder: ''
 })
-// 当前页统计
+// 统计当前页涉及的去重用户数量。
 const currentPageUserCount = computed(() => new Set(tableData.value.map(item => item.userId)).size)
+// 统计当前页涉及的去重景点数量。
 const currentPageSpotCount = computed(() => new Set(tableData.value.map(item => item.spotId)).size)
+// 解析收藏记录中的用户昵称展示文案。
 const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
+// 判断收藏记录关联的用户是否已停用。
 const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
+// 解析收藏记录中的景点名称展示文案。
 const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
+// 判断收藏记录关联的景点是否已失效。
 const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 
-// 获取收藏列表
+// 按当前筛选条件加载收藏记录列表。
 const fetchFavoriteList = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -204,14 +209,14 @@ const fetchFavoriteList = async () => {
   }
 }
 
-// 搜索操作
+// 应用筛选条件并重置到第一页。
 const handleSearch = () => {
   pagination.page = 1
   syncRouteQuery()
   fetchFavoriteList()
 }
 
-// 重置搜索条件
+// 清空筛选条件并恢复默认查询状态。
 const handleReset = () => {
   searchForm.nickname = ''
   searchForm.spotName = ''
@@ -219,12 +224,13 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 根据表头排序结果刷新收藏列表。
 const handleSortChange = (sortPayload) => {
   applySortChange(pagination, sortPayload)
   fetchFavoriteList()
 }
 
-// 同步路由参数
+// 将当前筛选条件同步回路由参数。
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
@@ -245,7 +251,7 @@ const syncRouteQuery = () => {
   }
 }
 
-// 回填路由参数
+// 用路由参数回填当前筛选条件。
 const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
@@ -256,13 +262,13 @@ const applyRouteQuery = () => {
   }
 }
 
-// 跳转用户页
+// 跳转到用户管理页查看收藏所属用户。
 const handleOpenUser = (row) => {
   if (isDeactivatedUser(row)) return
   router.push({ path: '/user', query: { nickname: row.nickname || '' } })
 }
 
-// 跳转景点页
+// 跳转到景点管理页查看被收藏的景点。
 const handleOpenSpot = (row) => {
   if (isInvalidSpot(row)) return
   router.push({
@@ -274,7 +280,7 @@ const handleOpenSpot = (row) => {
   })
 }
 
-// 删除收藏
+// 删除单条收藏记录。
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除这条收藏记录吗？', '删除确认', { type: 'warning' })
@@ -288,12 +294,13 @@ const handleDelete = async (row) => {
   }
 }
 
-// 页面初始化
+// 页面首次进入时按路由条件初始化并加载列表。
 onMounted(() => {
   applyRouteQuery()
   fetchFavoriteList()
 })
 
+// 监听路由筛选变化，并在外部跳转时重新加载列表。
 watch(
   () => route.query,
   () => {

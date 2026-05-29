@@ -20,6 +20,7 @@ const getReadNotifications = () => {
   }
 }
 
+// 保存通知已读状态到本地。
 const saveReadNotifications = (state) => {
   try {
     localStorage.setItem(NOTIFICATION_READ_STORAGE_KEY, JSON.stringify(state))
@@ -28,6 +29,7 @@ const saveReadNotifications = (state) => {
   }
 }
 
+// 标记单条通知为已读。
 const markNotificationAsRead = (notificationId) => {
   const state = getReadNotifications()
   state[notificationId] = Date.now()
@@ -36,6 +38,7 @@ const markNotificationAsRead = (notificationId) => {
   readStateUpdateTrigger.value++
 }
 
+// 批量标记通知为已读。
 const markNotificationsAsRead = (notificationIds = []) => {
   const validIds = notificationIds.filter(Boolean)
   if (!validIds.length) {
@@ -51,6 +54,7 @@ const markNotificationsAsRead = (notificationIds = []) => {
   readStateUpdateTrigger.value++
 }
 
+// 判断单条通知是否已读。
 const isNotificationRead = (notificationId) => {
   // 访问触发器确保这个函数总是被重新执行
   readStateUpdateTrigger.value
@@ -64,12 +68,14 @@ const toTimestamp = (value) => {
   return Number.isNaN(time) ? 0 : time
 }
 
+// 判断时间是否仍在通知展示窗口内。
 const isRecent = (value, hours = RECENT_HOURS) => {
   const timestamp = toTimestamp(value)
   if (!timestamp) return false
   return Date.now() - timestamp <= hours * 60 * 60 * 1000
 }
 
+// 格式化完整日期时间。
 const formatDateTime = (value) => {
   if (!value) return ''
   const date = new Date(value)
@@ -77,6 +83,7 @@ const formatDateTime = (value) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
+// 格式化相对时间文案。
 const formatRelativeTime = (value) => {
   const timestamp = toTimestamp(value)
   if (!timestamp) return ''
@@ -93,6 +100,7 @@ const formatRelativeTime = (value) => {
   return formatDateTime(value)
 }
 
+// 对手机号做展示脱敏。
 const maskPhone = (phone) => {
   const normalized = String(phone || '').trim()
   if (!normalized) return ''
@@ -117,6 +125,7 @@ const normalizeUserNotification = (item) => ({
   }
 })
 
+// 将订单记录转换为通知面板结构。
 const normalizeOrderNotification = (item) => {
   const amount = item.totalPrice ?? item.amount ?? item.payAmount ?? item.price
   return {
@@ -134,6 +143,7 @@ const normalizeOrderNotification = (item) => {
   }
 }
 
+// 按创建时间倒序排列。
 const sortByLatest = (items) => items.sort((left, right) => toTimestamp(right.createdAt) - toTimestamp(left.createdAt))
 
 /**
@@ -174,6 +184,7 @@ export function useAdminNotifications() {
   const hasUnreadNotifications = computed(() => notificationCount.value > 0)
   const lastLoadedLabel = computed(() => (lastLoadedAt.value ? `最近更新于 ${formatRelativeTime(lastLoadedAt.value)}` : ''))
 
+  // 拉取并整理通知面板数据。
   const loadNotifications = async () => {
     // 用户和订单并行拉取，减少通知面板首开等待时间。
     loading.value = true

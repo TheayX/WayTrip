@@ -100,7 +100,9 @@ const pagination = reactive({ page: 1, pageSize: 10 })
 const showActions = (order) => {
   return order.status === 'pending' || order.status === 'paid' || order.status === 'completed'
 }
+// 解析订单中的景点名称展示文案。
 const resolveSpotDisplayName = (spotName) => resolveMiniappSpotDisplayName(spotName)
+// 判断订单关联的景点是否已失效。
 const isInvalidSpot = (spotName) => isMiniappInvalidSpotDisplay(spotName)
 
 // 数据加载方法
@@ -144,6 +146,7 @@ const switchTab = (value) => {
   fetchOrders(true)
 }
 
+// 加载下一页订单数据。
 const loadMore = () => {
   if (!noMore.value && !loading.value) {
     pagination.page++
@@ -151,10 +154,12 @@ const loadMore = () => {
   }
 }
 
+// 跳转到订单详情页。
 const goDetail = (id) => {
   uni.navigateTo({ url: `/pages/order/detail?id=${id}` })
 }
 
+// 取消订单或申请退款，并刷新订单列表。
 const handleCancel = async (order) => {
   uni.showModal({
     title: '提示',
@@ -173,10 +178,12 @@ const handleCancel = async (order) => {
   })
 }
 
+// 跳转到订单详情页继续支付。
 const handlePay = (order) => {
   uni.navigateTo({ url: `/pages/order/detail?id=${order.id}` })
 }
 
+// 从已完成订单跳转到景点详情发起评价。
 const handleReview = (order) => {
   if (isInvalidSpot(order?.spotName)) return
   uni.navigateTo({ url: buildSpotDetailUrl(order.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }) })
@@ -192,6 +199,7 @@ onLoad((options) => {
   currentTab.value = options?.status || ''
 })
 
+// 页面重新展示时刷新订单列表。
 onShow(() => {
   if (!accessGranted.value) return
   fetchOrders(true)

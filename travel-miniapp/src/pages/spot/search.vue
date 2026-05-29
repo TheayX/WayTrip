@@ -89,6 +89,7 @@ const doSearch = async () => {
   }
 }
 
+// 加载下一页搜索结果。
 const loadMore = async () => {
   if (!hasMore.value || !keyword.value.trim()) return
   
@@ -110,6 +111,7 @@ const clearKeyword = () => {
   searched.value = false
 }
 
+// 从搜索结果跳转到景点详情页。
 const goDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return

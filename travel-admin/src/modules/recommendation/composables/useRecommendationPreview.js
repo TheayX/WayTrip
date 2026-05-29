@@ -285,6 +285,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     })
   )
 
+  // 执行用户推荐调试预览。
   const handlePreviewRecommendations = async () => {
     if (!debugForm.userId) {
       ElMessage.warning('请输入用户 ID')
@@ -302,6 +303,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     }
   }
 
+  // 预览指定景点的相似邻居。
   const handlePreviewSimilarity = async () => {
     if (!similarityForm.spotId) {
       ElMessage.warning('请输入景点 ID')
@@ -319,6 +321,7 @@ export function useRecommendationPreview({ status, fetchStatus }) {
     }
   }
 
+  // 先重建矩阵，再读取最新相似邻居。
   const handlePreviewSimilarityWithMatrixUpdate = async () => {
     if (!similarityForm.spotId) {
       ElMessage.warning('请输入景点 ID')

@@ -187,8 +187,10 @@ const summaryCards = computed(() => ([
   { key: 'closed', label: '已关闭', value: summaryStats.closed, hint: '已取消与已退款订单的汇总视图' }
 ]))
 
+// 根据当前页签 key 获取对应的状态定义。
 const getTabMeta = (tabKey) => tabs.find((item) => item.key === tabKey) || tabs[0]
 
+// 组装订单列表和摘要查询共用的基础参数。
 const buildBaseParams = (page, pageSize) => {
   const params = {
     orderNo: searchForm.orderNo,
@@ -212,6 +214,7 @@ const buildBaseParams = (page, pageSize) => {
   return params
 }
 
+// 将订单状态映射为表格标签样式。
 const getStatusTagType = (status) => {
   return {
     pending: 'warning',
@@ -222,6 +225,7 @@ const getStatusTagType = (status) => {
   }[status] || 'info'
 }
 
+// 统一格式化订单金额展示。
 const formatCurrency = (value) => {
   if (value === null || value === undefined || value === '') {
     return '0.00'
@@ -231,11 +235,15 @@ const formatCurrency = (value) => {
   return Number.isNaN(numeric) ? String(value) : numeric.toFixed(2)
 }
 
+// 抽取接口错误提示，避免各处重复拼接兜底文案。
 const extractErrorMessage = (error, fallback) => {
   return error?.response?.data?.message || error?.message || fallback
 }
 
+// 解析表格里的景点展示名称。
 const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
+
+// 判断当前景点是否仍可跳转到管理页。
 const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 
 // “已关闭”这类复合页签需要把多个状态的结果合并后再统一排序，否则分页和排序会只对单一状态生效。
@@ -251,6 +259,7 @@ const mergeCompositeList = (responses, page, pageSize) => {
   }
 }
 
+// 按当前排序字段比较复合状态列表中的两条订单记录。
 const compareCompositeOrders = (left, right) => {
   const direction = sortState.sortOrder === 'asc' ? 1 : -1
   const field = sortState.sortBy || 'createdAt'
@@ -272,6 +281,7 @@ const fetchCompositeOrders = async (statuses) => {
   return mergeCompositeList(responses, pagination.page, pagination.pageSize)
 }
 
+// 按当前页签与筛选条件加载订单列表。
 const fetchOrderList = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -314,6 +324,7 @@ const fetchOrderList = async () => {
   }
 }
 
+// 加载订单摘要卡片需要的各状态总数。
 const fetchSummaryStats = async () => {
   summaryLoading.value = true
 
@@ -340,6 +351,7 @@ const fetchSummaryStats = async () => {
   }
 }
 
+// 并行刷新订单列表和摘要卡片。
 const refreshDashboardData = async () => {
   await Promise.all([fetchOrderList(), fetchSummaryStats()])
 }
@@ -419,12 +431,14 @@ const applyRouteQuery = () => {
   }
 }
 
+// 按当前筛选条件重新拉取订单和摘要数据。
 const handleSearch = () => {
   pagination.page = 1
   syncRouteQuery()
   refreshDashboardData()
 }
 
+// 清空筛选项并恢复第一页数据。
 const handleReset = () => {
   searchForm.orderNo = ''
   searchForm.spotName = ''
@@ -437,10 +451,12 @@ const handleReset = () => {
   refreshDashboardData()
 }
 
+// 手动刷新当前页签数据和摘要卡片。
 const handleRefresh = () => {
   refreshDashboardData()
 }
 
+// 切换订单页签后按新状态重新加载列表。
 const handleTabChange = (tabKey) => {
   currentTab.value = tabKey
   searchForm.status = ''
@@ -449,23 +465,27 @@ const handleTabChange = (tabKey) => {
   fetchOrderList()
 }
 
+// 同步表格排序并重新查询订单列表。
 const handleSortChange = (sortPayload) => {
   applySortChange(sortState, sortPayload)
   pagination.page = 1
   fetchOrderList()
 }
 
+// 切换分页页码。
 const handlePageChange = (page) => {
   pagination.page = page
   fetchOrderList()
 }
 
+// 切换分页大小后回到第一页。
 const handlePageSizeChange = (pageSize) => {
   pagination.pageSize = pageSize
   pagination.page = 1
   fetchOrderList()
 }
 
+// 从订单列表跳转到对应景点的管理视图。
 const handleOpenSpot = (row) => {
   if (isInvalidSpot(row)) return
   router.push({
@@ -477,6 +497,7 @@ const handleOpenSpot = (row) => {
   })
 }
 
+// 打开订单详情抽屉并补拉完整详情数据。
 const handleDetail = async (row) => {
   detailLoading.value = true
   detailVisible.value = true
@@ -544,6 +565,7 @@ const handleReopen = (row) => runOrderAction({
   successText: '订单已撤销完成'
 })
 
+// 监听外部 query 变化，同步筛选状态并刷新列表。
 watch(() => route.query, () => {
   // 由当前页面主动 replace 的 query 不再触发二次拉取，避免一次筛选造成两轮重复请求。
   if (skipNextRouteLoad.value) {
@@ -555,6 +577,7 @@ watch(() => route.query, () => {
   refreshDashboardData()
 })
 
+// 页面挂载后按路由参数初始化筛选条件。
 onMounted(() => {
   applyRouteQuery()
   refreshDashboardData()

@@ -172,6 +172,7 @@ const rules = {
   name: [{ required: true, message: '请输入地区名称', trigger: 'blur' }]
 }
 
+// 计算当前工作区标题，便于右侧子地区列表同步展示上下文。
 const dialogTitle = computed(() => {
   const levelStr = isLevel2.value ? '二级地区' : '一级地区'
   return isEdit.value ? `编辑${levelStr}` : `新增${levelStr}`
@@ -183,7 +184,7 @@ const getNextSortOrder = (list) => {
   return maxSortOrder + 1
 }
 
-// 加载一级地区
+// 数据加载方法
 const fetchLevel1 = async () => {
   loading1.value = true
   errorMessage.value = ''
@@ -206,13 +207,13 @@ const fetchLevel1 = async () => {
   }
 }
 
-// 选择一级地区
+// 切换一级地区并同步加载其子地区列表。
 const handleSelectParent = (id) => {
   activeParentId.value = id
   fetchLevel2(id)
 }
 
-// 加载二级地区
+// 加载当前一级地区下的二级地区列表。
 const fetchLevel2 = async (parentId) => {
   loading2.value = true
   try {
@@ -226,6 +227,7 @@ const fetchLevel2 = async (parentId) => {
   }
 }
 
+// 刷新左右两侧地区数据。
 const handleRefresh = () => {
   fetchLevel1()
 }
@@ -239,6 +241,7 @@ const handleAddLevel1 = () => {
   dialogVisible.value = true
 }
 
+// 打开一级地区编辑弹窗并回填表单。
 const handleEditLevel1 = (row) => {
   isEdit.value = true
   isLevel2.value = false
@@ -247,6 +250,7 @@ const handleEditLevel1 = (row) => {
   dialogVisible.value = true
 }
 
+// 删除一级地区前校验其子地区是否已清空。
 const handleDeleteLevel1 = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除该一级地区吗？如有子地区请先删除子地区。', '删除确认', { type: 'warning' })
@@ -268,6 +272,7 @@ const handleAddLevel2 = () => {
   dialogVisible.value = true
 }
 
+// 打开二级地区编辑弹窗并回填表单。
 const handleEditLevel2 = (row) => {
   isEdit.value = true
   isLevel2.value = true
@@ -276,6 +281,7 @@ const handleEditLevel2 = (row) => {
   dialogVisible.value = true
 }
 
+// 删除当前一级地区下的指定二级地区。
 const handleDeleteLevel2 = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除该二级地区吗？', '删除确认', { type: 'warning' })
@@ -285,7 +291,7 @@ const handleDeleteLevel2 = async (row) => {
   } catch (e) {}
 }
 
-// 提交地区表单
+// 提交地区新增或编辑表单，并按层级刷新对应列表。
 const handleSubmit = async () => {
   if (!formRef.value) return
   await formRef.value.validate()
@@ -313,7 +319,7 @@ const handleSubmit = async () => {
   }
 }
 
-// 页面初始化
+// 生命周期
 onMounted(() => {
   fetchLevel1()
 })

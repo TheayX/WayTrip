@@ -7,6 +7,8 @@ export const useUserStore = defineStore('user', () => {
   const token = ref('')
   const userInfo = ref(null)
   const isLoggedIn = computed(() => !!token.value)
+
+  // 从本地缓存恢复登录态。
   function initFromStorage() {
     const storedToken = uni.getStorageSync('token')
     const storedUserInfo = uni.getStorageSync('userInfo')
@@ -19,22 +21,26 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // 写入并持久化登录令牌。
   function setToken(newToken) {
     token.value = newToken
     uni.setStorageSync('token', newToken)
   }
 
+  // 写入并持久化用户资料。
   function setUserInfo(info) {
     userInfo.value = info
     uni.setStorageSync('userInfo', info)
   }
 
+  // 登录成功后同步写入令牌和用户资料。
   function login(data) {
     // 登录后统一走同一套写入逻辑，避免 token 与用户信息落库口径不一致。
     setToken(data.token)
     setUserInfo(data.user)
   }
 
+  // 退出登录并清空本地身份缓存。
   function logout() {
     token.value = ''
     userInfo.value = null
@@ -42,10 +48,12 @@ export const useUserStore = defineStore('user', () => {
     uni.removeStorageSync('userInfo')
   }
 
+  // 返回当前登录态。
   function checkLogin() {
     return isLoggedIn.value
   }
 
+  // 局部合并用户偏好信息。
   function updatePreferences(preferences) {
     if (userInfo.value) {
       // 偏好更新通常只回写局部字段，这里保留已有资料，避免把其他信息覆盖掉。

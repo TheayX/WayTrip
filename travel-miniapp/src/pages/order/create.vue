@@ -115,6 +115,7 @@ const minDate = computed(() => {
   return tomorrow.toISOString().split('T')[0]
 })
 
+// 根据景点单价和购票数量计算订单总价。
 const totalPrice = computed(() => {
   if (!spot.value) return '0.00'
   return (spot.value.price * form.quantity).toFixed(2)
@@ -135,6 +136,7 @@ const onDateChange = (e) => {
   form.visitDate = e.detail.value
 }
 
+// 调整购票数量，并限制在允许范围内。
 const changeQuantity = (delta) => {
   const newQty = form.quantity + delta
   if (newQty >= 1 && newQty <= 99) {
@@ -142,10 +144,12 @@ const changeQuantity = (delta) => {
   }
 }
 
+// 生成创建订单用的幂等键。
 const generateIdempotentKey = () => {
   return `${spotId.value}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }
 
+// 校验订单表单并提交创建请求。
 const handleSubmit = async () => {
   if (!form.visitDate) {
     uni.showToast({ title: '请选择游玩日期', icon: 'none' })

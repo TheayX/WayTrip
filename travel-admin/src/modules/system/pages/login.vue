@@ -71,7 +71,7 @@ import brandLogoDarkUrl from '@/shared/assets/brand/waytrip-standard-dark.svg'
 import { Moon, Sunny } from '@element-plus/icons-vue'
 import { useTheme } from '@/shared/composables/useTheme.js'
 
-// 登录页同时承接账号认证和主题切换入口，避免未登录状态下还要跳去别处改主题。
+// 基础依赖与页面状态
 const router = useRouter()
 const userStore = useUserStore()
 const { currentTheme, toggleTheme } = useTheme()
@@ -84,11 +84,13 @@ const form = reactive({
   password: ''
 })
 
+// 表单校验规则
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }
 
+// 交互处理方法
 const handleLogin = async () => {
   // 先走表单校验，再发起登录请求，避免无效请求频繁打到认证接口。
   if (!formRef.value) return

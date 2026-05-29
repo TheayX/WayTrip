@@ -22,10 +22,16 @@ const NETWORK_ERROR_MESSAGE = '网络异常，请稍后重试'
 const REQUEST_FAILED_MESSAGE = '请求失败'
 const NO_PERMISSION_MESSAGE = '暂无权限访问该功能'
 
+// 判断资源地址是否为 http 绝对地址。
 const isHttpUrl = (value) => /^http:\/\//i.test(value)
+
+// 判断资源地址是否为 https 绝对地址。
 const isHttpsUrl = (value) => /^https:\/\//i.test(value)
+
+// 统一识别完整资源地址，避免二次拼接域名。
 const isAbsoluteUrl = (value) => isHttpUrl(value) || isHttpsUrl(value)
 
+// 解析图片资源完整地址。
 export const getImageUrl = (url) => {
   if (!url) return ''
   if (isAbsoluteUrl(url)) {
@@ -37,16 +43,19 @@ export const getImageUrl = (url) => {
   return `${RESOURCE_URL}${path}`
 }
 
+// 解析头像地址，缺失时回退默认头像。
 export const getAvatarUrl = (url) => {
   if (!url) return '/static/default-avatar.png'
   return getImageUrl(url)
 }
 
+// 解析正文图片地址，缺失时回退占位图。
 export const getContentImageUrl = (url) => {
   if (!url) return '/static/empty-image.png'
   return getImageUrl(url)
 }
 
+// 将 GET 查询参数安全拼接到 URL。
 const appendQueryParams = (url, params) => {
   if (!params || typeof params !== 'object') {
     return url
@@ -68,6 +77,7 @@ let loadingRefCount = 0
 let authRedirectInProgress = false
 let requestSequence = 0
 
+// 显示全局 loading，并通过引用计数避免并发请求互相关闭。
 const showGlobalLoading = (title = '加载中...') => {
   loadingRefCount += 1
   if (loadingRefCount === 1) {
@@ -75,6 +85,7 @@ const showGlobalLoading = (title = '加载中...') => {
   }
 }
 
+// 隐藏全局 loading。
 const hideGlobalLoading = () => {
   if (loadingRefCount <= 0) {
     return
@@ -86,6 +97,7 @@ const hideGlobalLoading = () => {
   }
 }
 
+// 鉴权失效时统一回到个人中心登录入口。
 const redirectToLogin = () => {
   if (authRedirectInProgress) {
     return
@@ -103,6 +115,7 @@ const redirectToLogin = () => {
   })
 }
 
+// 按调用方诉求决定鉴权失效时 resolve 还是 reject。
 const resolveOrRejectAuthExpired = ({ rejectOnAuthExpired, resolve, reject, message }) => {
   const authExpiredResult = {
     code: AUTH_EXPIRED_CODE,
@@ -118,6 +131,7 @@ const resolveOrRejectAuthExpired = ({ rejectOnAuthExpired, resolve, reject, mess
   resolve(authExpiredResult)
 }
 
+// 清理登录态并处理鉴权失效后的页面跳转。
 const handleAuthExpired = ({ hadToken, userStore, rejectOnAuthExpired, resolve, reject, message }) => {
   userStore.logout()
 
@@ -130,6 +144,8 @@ const handleAuthExpired = ({ hadToken, userStore, rejectOnAuthExpired, resolve, 
 }
 
 // 基础请求方法
+
+// 统一封装普通接口请求。
 const request = (options) => {
   return new Promise((resolve, reject) => {
     // 默认不自动弹全局 loading，避免与页面内手动 loading 管理冲突。
@@ -240,22 +256,28 @@ const request = (options) => {
 }
 
 // 对外暴露方法
+
+// 发起 GET 请求。
 export const get = (url, data, options = {}) => {
   return request({ url, method: 'GET', data, ...options })
 }
 
+// 发起 POST 请求。
 export const post = (url, data, options = {}) => {
   return request({ url, method: 'POST', data, ...options })
 }
 
+// 发起 PUT 请求。
 export const put = (url, data, options = {}) => {
   return request({ url, method: 'PUT', data, ...options })
 }
 
+// 发起 DELETE 请求。
 export const del = (url, data, options = {}) => {
   return request({ url, method: 'DELETE', data, ...options })
 }
 
+// 上传文件并统一处理鉴权、loading 和运行时追踪。
 export const uploadFile = (url, filePath, name = 'file', formData = {}) => {
   return new Promise((resolve, reject) => {
     const userStore = useUserStore()

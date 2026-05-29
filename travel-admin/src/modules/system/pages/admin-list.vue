@@ -244,7 +244,7 @@ const passwordRules = {
   ]
 }
 
-// 获取管理员列表
+// 数据加载方法
 const fetchData = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -261,7 +261,7 @@ const fetchData = async () => {
   }
 }
 
-// 搜索操作
+// 应用筛选条件并重新查询管理员列表。
 const handleSearch = () => {
   queryParams.page = 1
   queryParams.status = uiStatus.value === '' || uiStatus.value == null ? null : Number(uiStatus.value)
@@ -269,7 +269,7 @@ const handleSearch = () => {
   fetchData()
 }
 
-// 重置搜索条件
+// 清空筛选条件并恢复默认查询状态。
 const handleReset = () => {
   queryParams.keyword = ''
   queryParams.status = null
@@ -277,11 +277,13 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 根据表头排序结果刷新管理员列表。
 const handleSortChange = (sortPayload) => {
   applySortChange(queryParams, sortPayload)
   fetchData()
 }
 
+// 将当前筛选条件同步回路由参数。
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (queryParams.keyword) {
@@ -311,7 +313,7 @@ const applyRouteQuery = () => {
   queryParams.status = uiStatus.value === '' || uiStatus.value == null ? null : Number(uiStatus.value)
 }
 
-// 重置表单状态
+// 重置新增或编辑管理员弹窗的表单状态。
 const resetFormState = () => {
   form.username = ''
   form.password = ''
@@ -322,14 +324,14 @@ const resetFormState = () => {
   formRef.value?.clearValidate()
 }
 
-// 新增管理员
+// 打开新增管理员弹窗。
 const handleAdd = () => {
   isEdit.value = false
   resetFormState()
   dialogVisible.value = true
 }
 
-// 编辑管理员
+// 打开管理员编辑弹窗并回填表单。
 const handleEdit = (row) => {
   isEdit.value = true
   resetFormState()
@@ -341,7 +343,7 @@ const handleEdit = (row) => {
   dialogVisible.value = true
 }
 
-// 提交管理员表单
+// 提交管理员新增或编辑表单。
 const handleSubmit = async () => {
   await formRef.value.validate()
   submitting.value = true
@@ -365,7 +367,7 @@ const handleSubmit = async () => {
   }
 }
 
-// 打开重置密码对话框
+// 打开管理员密码重置弹窗。
 const handleOpenPasswordDialog = (row) => {
   passwordTargetId.value = row.id
   passwordForm.password = ''
@@ -373,7 +375,7 @@ const handleOpenPasswordDialog = (row) => {
   passwordDialogVisible.value = true
 }
 
-// 重置密码
+// 提交管理员密码重置请求。
 const handleResetPassword = async () => {
   await passwordFormRef.value.validate()
   resettingPassword.value = true
@@ -386,7 +388,7 @@ const handleResetPassword = async () => {
   }
 }
 
-// 删除管理员
+// 删除指定管理员账号。
 const handleDelete = async (row) => {
   await ElMessageBox.confirm(`确定删除管理员「${row.username}」吗？`, '删除确认', { type: 'warning' })
   await deleteAdmin(row.id)
@@ -394,6 +396,7 @@ const handleDelete = async (row) => {
   fetchData()
 }
 
+// 根据下拉菜单命令分发管理员操作。
 const handleCommand = (command, row) => {
   switch (command) {
     case 'edit':
@@ -407,16 +410,16 @@ const handleCommand = (command, row) => {
   }
 }
 
-// 判断是否为当前登录管理员
+// 判断当前行是否为正在登录的管理员本人。
 const isCurrentAdmin = (row) => row.id === currentAdminId.value
 
-// 格式化日期
+// 工具方法
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return dateStr.replace('T', ' ').substring(0, 19)
 }
 
-// 页面初始化
+// 生命周期
 watch(() => route.query, () => {
   if (skipNextRouteLoad.value) {
     skipNextRouteLoad.value = false

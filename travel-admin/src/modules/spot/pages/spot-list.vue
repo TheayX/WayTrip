@@ -192,11 +192,12 @@ const galleryUploadData = computed(() => ({
   name: form.name || ''
 }))
 
-// 补全图片访问地址
+// 将后台返回的资源路径补全为完整访问地址。
 const getImageUrl = (url) => {
   return getResourceUrl(url)
 }
 
+// 格式化后台时间字段用于表格展示。
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return dateStr.replace('T', ' ').substring(0, 19)
@@ -210,10 +211,12 @@ const heatLevelOptions = [
   { value: 3, label: '强推' }
 ]
 
+// 将热度档位值转换为展示文案。
 const getHeatLevelLabel = (level) => {
   return heatLevelOptions.find((item) => item.value === Number(level))?.label || '普通'
 }
 
+// 将热度档位值转换为标签样式。
 const getHeatLevelTagType = (level) => {
   switch (Number(level)) {
     case 1:
@@ -227,6 +230,7 @@ const getHeatLevelTagType = (level) => {
   }
 }
 
+// 校验上传文件是否满足图片类型和大小限制。
 const beforeUpload = (file) => {
   const isImage = file.type.startsWith('image/')
   const isLt5M = file.size / 1024 / 1024 < 5
@@ -242,6 +246,7 @@ const beforeUpload = (file) => {
   return true
 }
 
+// 处理封面图上传成功回调。
 const handleUploadSuccess = (response) => {
   if (response.code === 0) {
     form.coverImage = response.data.url
@@ -251,6 +256,7 @@ const handleUploadSuccess = (response) => {
   ElMessage.error(response.message || '上传失败')
 }
 
+// 处理图集上传成功回调。
 const handleGalleryUploadSuccess = (response) => {
   if (response.code === 0) {
     if (!Array.isArray(form.images)) {
@@ -263,11 +269,13 @@ const handleGalleryUploadSuccess = (response) => {
   ElMessage.error(response.message || '上传失败')
 }
 
+// 删除图集中的单张图片。
 const removeGalleryImage = (index) => {
   if (!Array.isArray(form.images)) return
   form.images.splice(index, 1)
 }
 
+// 统一处理上传失败提示。
 const handleUploadError = () => {
   ElMessage.error('上传失败，请重试')
 }
@@ -417,7 +425,7 @@ const heatRules = {
   heatLevel: [{ required: true, message: '请选择热度档位', trigger: 'change' }]
 }
 
-// 页面初始化
+// 页面挂载后初始化路由筛选、筛选项和首屏列表。
 onMounted(async () => {
   applyRouteQuery()
   await loadFilters()
@@ -425,7 +433,7 @@ onMounted(async () => {
   await loadData()
 })
 
-// 加载筛选项
+// 加载地区和分类筛选项。
 const loadFilters = async () => {
   try {
     const res = await getFilters()
@@ -436,7 +444,7 @@ const loadFilters = async () => {
   } catch (e) {}
 }
 
-// 将界面筛选值同步到查询参数
+// 将界面上的筛选状态同步回查询参数。
 const syncFilters = () => {
   const selectedRegionId = uiFilters.regionPath?.length
     ? uiFilters.regionPath[uiFilters.regionPath.length - 1]
@@ -454,7 +462,7 @@ const syncFilters = () => {
     : Number(uiFilters.published)
 }
 
-// 根据节点 ID 查找级联路径
+// 根据节点 ID 反查级联选择路径。
 const findPathById = (targetId, tree) => {
   if (!targetId || !Array.isArray(tree) || !tree.length) {
     return []
@@ -475,7 +483,7 @@ const findPathById = (targetId, tree) => {
   return []
 }
 
-// 加载景点列表
+// 按当前筛选条件加载景点列表。
 const loadData = async () => {
   loading.value = true
   try {
@@ -488,7 +496,7 @@ const loadData = async () => {
   }
 }
 
-// 搜索操作
+// 按当前关键字和筛选项执行搜索。
 const handleSearch = () => {
   queryParams.page = 1
   syncFilters()
@@ -496,16 +504,18 @@ const handleSearch = () => {
   loadData()
 }
 
+// 筛选项变化后立即重新查询列表。
 const handleFilterChange = () => {
   handleSearch()
 }
 
+// 同步表格排序并重新加载列表。
 const handleSortChange = (sortPayload) => {
   applySortChange(queryParams, sortPayload)
   loadData()
 }
 
-// 重置搜索条件
+// 清空搜索条件并恢复默认筛选状态。
 const handleReset = () => {
   queryParams.keyword = ''
   queryParams.regionId = null
@@ -519,6 +529,7 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 将当前筛选状态同步到路由 query。
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (queryParams.keyword) {
@@ -560,12 +571,13 @@ const syncRouteQuery = () => {
   return changed
 }
 
+// 将路由中的景点 ID 规范化为有效整数。
 const normalizeRouteSpotId = (value) => {
   const spotId = Number(value)
   return Number.isInteger(spotId) && spotId > 0 ? spotId : null
 }
 
-// 同步路由参数
+// 根据路由 query 回填当前筛选状态和高亮景点。
 const applyRouteQuery = () => {
   queryParams.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
   queryParams.regionId = typeof route.query.regionId === 'string' ? Number(route.query.regionId) : null
@@ -583,11 +595,12 @@ const applyRouteQuery = () => {
   activeSpotId.value = nextSpotId
 }
 
+// 为当前高亮景点行附加样式类名。
 const getRowClassName = ({ row }) => {
   return Number(row.id) === activeSpotId.value ? 'spot-highlight-row' : ''
 }
 
-// 重置景点表单
+// 重置景点编辑表单为默认值。
 const resetForm = () => {
   Object.assign(form, {
     name: '',
@@ -608,14 +621,14 @@ const resetForm = () => {
   })
 }
 
-// 新增景点
+// 打开新增景点对话框。
 const handleAdd = () => {
   editId.value = null
   resetForm()
   dialogVisible.value = true
 }
 
-// 编辑景点
+// 加载并打开景点编辑表单。
 const handleEdit = async (row) => {
   editId.value = row.id
   try {
@@ -624,6 +637,7 @@ const handleEdit = async (row) => {
   } catch (e) {}
 }
 
+// 将景点详情数据回填到编辑表单。
 const applySpotDetail = (detail) => {
   Object.assign(form, detail)
   form.regionPath = findPathById(form.regionId, regionCascaderOptions.value)
@@ -632,7 +646,7 @@ const applySpotDetail = (detail) => {
   dialogVisible.value = true
 }
 
-// 根据路由定位景点
+// 根据路由参数自动打开指定景点。
 const openSpotFromRoute = async () => {
   if (!activeSpotId.value || autoOpenedSpotId.value === activeSpotId.value) {
     return
@@ -647,7 +661,7 @@ const openSpotFromRoute = async () => {
   }
 }
 
-// 打开热度档位设置对话框
+// 加载并打开热度档位设置对话框。
 const handleHeatEdit = async (row) => {
   heatEditId.value = row.id
   heatSpotDetail.value = null
@@ -662,18 +676,21 @@ const handleHeatEdit = async (row) => {
   } catch (e) {}
 }
 
+// 重新同步单个景点的评分数据。
 const handleRefreshSpotRating = async (row) => {
   await refreshSpotRating(row.id)
   ElMessage.success('评分已按评价表同步')
   loadData()
 }
 
+// 重新同步单个景点的热度分数。
 const handleRefreshSpotHeat = async (row) => {
   await refreshSpotHeat(row.id)
   ElMessage.success('热度分数已按档位和行为数据同步')
   loadData()
 }
 
+// 批量同步全部景点评分。
 const handleRefreshAllRatings = async () => {
   refreshingAllRatings.value = true
   try {
@@ -685,6 +702,7 @@ const handleRefreshAllRatings = async () => {
   }
 }
 
+// 批量同步全部景点热度分数。
 const handleRefreshAllHeats = async () => {
   refreshingAllHeats.value = true
   try {
@@ -696,10 +714,12 @@ const handleRefreshAllHeats = async () => {
   }
 }
 
+// 切换父分类后清空已选子分类。
 const handleParentCategoryChange = () => {
   form.categoryId = null
 }
 
+// 构建景点创建与更新共用的提交参数。
 const buildSpotPayload = (source) => ({
   name: source.name,
   description: source.description,
@@ -716,10 +736,10 @@ const buildSpotPayload = (source) => ({
   images: Array.isArray(source.images) ? source.images : []
 })
 
-// 构建接口提交参数
+// 基于当前表单构建提交参数。
 const buildSubmitPayload = () => buildSpotPayload(form)
 
-// 提交景点表单
+// 提交景点新增或编辑表单。
 const handleSubmit = async () => {
   await formDialogRef.value?.validate()
   submitting.value = true
@@ -738,7 +758,7 @@ const handleSubmit = async () => {
   }
 }
 
-// 提交热度档位设置
+// 提交热度档位调整。
 const handleHeatSubmit = async () => {
   await heatDialogRef.value?.validate()
   if (!heatSpotDetail.value) {
@@ -760,7 +780,7 @@ const handleHeatSubmit = async () => {
   }
 }
 
-// 切换发布状态
+// 切换单个景点的上架状态。
 const handleTogglePublish = async (row) => {
   const action = row.published ? '下架' : '发布'
   await ElMessageBox.confirm(`确定要${action}该景点吗？`, '状态确认', { type: 'warning' })
@@ -769,7 +789,7 @@ const handleTogglePublish = async (row) => {
   loadData()
 }
 
-// 删除景点
+// 删除单个景点。
 const handleDelete = async (row) => {
   await ElMessageBox.confirm('确定要删除该景点吗？', '删除确认', { type: 'warning' })
   await deleteSpot(row.id)
@@ -777,11 +797,12 @@ const handleDelete = async (row) => {
   loadData()
 }
 
-// --- 批量选中与详情查看逻辑 ---
+// 同步表格批量选中结果。
 const handleSelectionChange = (selection) => {
   selectedSpots.value = selection
 }
 
+// 打开景点详情抽屉。
 const handleView = async (row) => {
   try {
     const res = await getSpotDetail(row.id)
@@ -845,7 +866,7 @@ const handleBatchDelete = async () => {
   })
 }
 
-
+// 监听外部路由筛选变化并刷新列表。
 watch(
   () => [route.query.keyword, route.query.spotId],
   () => {

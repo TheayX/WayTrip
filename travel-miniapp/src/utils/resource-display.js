@@ -23,16 +23,22 @@ export const MINIAPP_INVALID_SPOT_NAMES = [
 ]
 
 // 攻略、分类、用户名都统一提供兜底文案，避免页面模板里散落空值判断。
+
+// 解析小程序攻略标题展示文案。
 export const resolveMiniappGuideDisplayText = (value) => value || MINIAPP_RESOURCE_DISPLAY.guide.unknown
 
+// 解析小程序攻略分类展示文案。
 export const resolveMiniappGuideCategory = (value) => value || MINIAPP_RESOURCE_DISPLAY.guide.unknown
 
+// 解析小程序用户名称展示文案。
 export const resolveMiniappUserDisplayName = (value) => value || MINIAPP_RESOURCE_DISPLAY.user.unknown
 
+// 解析小程序景点名称展示文案。
 export const resolveMiniappSpotDisplayName = (spotName, emptyText = '--') => {
   return MINIAPP_INVALID_SPOT_NAMES.includes(spotName) ? MINIAPP_RESOURCE_DISPLAY.spot.unknown : (spotName || emptyText)
 }
 
+// 判断景点展示文案是否代表无效资源。
 export const isMiniappInvalidSpotDisplay = (spotName) => {
   // 统一复用格式化后的口径，避免调用方自己判断时漏掉某些无效态。
   return MINIAPP_INVALID_SPOT_NAMES.includes(resolveMiniappSpotDisplayName(spotName))

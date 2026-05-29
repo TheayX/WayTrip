@@ -42,6 +42,7 @@ const openLocationSetting = () => new Promise((resolve) => {
   })
 })
 
+// 确保当前具备定位权限。
 export const ensureLocationPermission = async () => {
   try {
     await requestAuthorize()
@@ -51,6 +52,7 @@ export const ensureLocationPermission = async () => {
   }
 }
 
+// 获取实时定位并刷新本地缓存。
 export const getCurrentLocation = () => new Promise((resolve, reject) => {
   uni.getLocation({
     type: 'gcj02',
@@ -62,6 +64,7 @@ export const getCurrentLocation = () => new Promise((resolve, reject) => {
   })
 })
 
+// 读取最近一次定位缓存。
 export const getCachedLocation = () => {
   const cached = uni.getStorageSync(LOCATION_CACHE_KEY)
   if (!cached?.latitude || !cached?.longitude) {
@@ -70,6 +73,7 @@ export const getCachedLocation = () => {
   return cached
 }
 
+// 获取定位快照，优先尝试最新定位，同时保留缓存值。
 export const getLocationSnapshot = async () => {
   const cached = getCachedLocation()
 
@@ -90,6 +94,7 @@ export const getLocationSnapshot = async () => {
   }
 }
 
+// 查询当前定位授权状态。
 export const getLocationPermissionState = () => new Promise((resolve, reject) => {
   uni.getSetting({
     success: (res) => {
@@ -103,6 +108,7 @@ export const getLocationPermissionState = () => new Promise((resolve, reject) =>
   })
 })
 
+// 需要定位时主动申请权限并读取实时位置。
 export const getAuthorizedLocation = async () => {
   const granted = await ensureLocationPermission()
   if (!granted) {
@@ -112,6 +118,7 @@ export const getAuthorizedLocation = async () => {
   return getCurrentLocation()
 }
 
+// 只在已授权时静默读取实时定位。
 export const getLocationIfAuthorized = async () => {
   const permissionState = await getLocationPermissionState()
   // 静默读取只在已授权时触发，避免被动拉起系统权限提示打断当前流程。

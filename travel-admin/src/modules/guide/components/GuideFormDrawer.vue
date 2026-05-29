@@ -179,10 +179,12 @@ const sections = [
   { key: 'content', label: '正文内容', hint: '录入主体内容' }
 ]
 
+// 统一透传抽屉开关状态，便于父层继续按 v-model 方式控制显示。
 const emitVisible = (value) => {
   emit('update:visible', value)
 }
 
+// 收集每个录入区块的 DOM 引用，供侧边导航滚动定位复用。
 const setSectionRef = (key) => (el) => {
   if (el) {
     sectionRefs.set(key, el)
@@ -191,6 +193,7 @@ const setSectionRef = (key) => (el) => {
   }
 }
 
+// 点击侧边导航后滚动到对应录入区块，并同步当前高亮状态。
 const scrollToSection = async (key) => {
   activeSection.value = key
   await nextTick()

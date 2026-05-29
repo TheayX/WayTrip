@@ -305,6 +305,7 @@ const stepValidateFields = {
 
 const isEditMode = computed(() => props.editId !== null && props.editId !== undefined && props.editId !== '')
 
+// 只校验当前步骤所需字段，避免多步表单一次性抛出无关错误。
 const validateStep = async (stepIndex) => {
   const fields = stepValidateFields[stepIndex] || []
   if (!fields.length || !formRef.value) {

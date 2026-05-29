@@ -100,8 +100,13 @@ import { promptLogin } from '@/utils/auth'
 import { getImageUrl } from '@/utils/request'
 import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 
+// 统一解析攻略标题展示文案。
 const resolveGuideText = (value) => resolveMiniappGuideDisplayText(value)
+
+// 统一解析攻略分类展示文案。
 const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
+
+// 列表摘要缺失时回退为默认介绍文案。
 const resolveGuideSummary = (value) => value || '整理路线、玩法与出行经验，帮助你更快形成这次旅程的安排。'
 
 // 页面数据状态
@@ -133,11 +138,12 @@ const isValidGuidePreview = (value) => {
   return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
 }
 
+// 浏览量回写缓存必须同时包含有效 ID 和数值型浏览量。
 const isValidGuideViewCache = (value) => {
   return isValidGuidePreview(value) && typeof value.viewCount === 'number'
 }
 
-// 数据加载方法
+// 加载攻略分类筛选项。
 const fetchCategories = async () => {
   try {
     const res = await getCategories()
@@ -147,6 +153,7 @@ const fetchCategories = async () => {
   }
 }
 
+// 按当前筛选条件加载攻略列表，并兼容刷新与追加两种模式。
 const fetchGuideList = async (isRefresh = false) => {
   if (loading.value) return
   loading.value = true
@@ -179,31 +186,34 @@ const fetchGuideList = async (isRefresh = false) => {
   }
 }
 
-// 交互处理方法
+// 切换分类后重置为当前条件下的第一页结果。
 const selectCategory = (cat) => {
   currentCategory.value = cat
   fetchGuideList(true)
 }
 
+// 切换排序方式后刷新列表。
 const changeSort = (value) => {
   if (sortBy.value === value) return
   sortBy.value = value
   fetchGuideList(true)
 }
 
+// 恢复默认筛选条件并重新加载列表。
 const resetFilters = () => {
   currentCategory.value = ''
   sortBy.value = 'view_count'
   fetchGuideList(true)
 }
 
+// 仅在存在下一页时继续加载更多攻略。
 const loadMore = () => {
   if (hasMore.value && !loading.value) {
     fetchGuideList()
   }
 }
 
-// 页面跳转方法
+// 从列表进入攻略详情页。
 const goDetail = (id) => {
   if (!promptLogin('登录后可查看攻略详情，是否现在去登录？')) {
     return
@@ -211,7 +221,7 @@ const goDetail = (id) => {
   uni.navigateTo({ url: `/pages/guide/detail?id=${id}` })
 }
 
-// 生命周期
+// 首次进入时接收外部传入的分类和排序参数。
 onLoad((options) => {
   if (typeof options?.category === 'string' && options.category) {
     currentCategory.value = decodeURIComponent(options.category)
@@ -222,11 +232,13 @@ onLoad((options) => {
   }
 })
 
+// 页面挂载后初始化分类和首屏列表。
 onMounted(() => {
   fetchCategories()
   fetchGuideList(true)
 })
 
+// 从详情页返回时回写最新攻略内容和浏览量。
 onShow(() => {
   const updatedGuide = uni.getStorageSync('guide_detail_updated')
   if (isValidGuidePreview(updatedGuide)) {

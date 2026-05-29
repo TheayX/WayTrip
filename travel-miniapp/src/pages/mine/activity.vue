@@ -164,7 +164,9 @@ const tabs = [
 // 基础依赖与用户状态
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
+// 解析互动列表中的景点名称展示文案。
 const resolveSpotDisplayName = (spotName) => resolveMiniappSpotDisplayName(spotName)
+// 判断互动记录关联的景点是否已失效。
 const isInvalidSpot = (spotName) => isMiniappInvalidSpotDisplay(spotName)
 
 // 页面数据状态
@@ -216,6 +218,7 @@ const normalizeTab = (tab) => {
   return tabs.some(item => item.key === tab) ? tab : 'browse'
 }
 
+// 确保用户已登录，否则返回上一页。
 const ensureLogin = () => {
   if (isLoggedIn.value) return true
   uni.showToast({ title: '请先登录', icon: 'none' })
@@ -225,6 +228,7 @@ const ensureLogin = () => {
   return false
 }
 
+// 格式化浏览足迹中的时间文案。
 const formatViewedTime = (timestamp) => {
   if (!timestamp) return '-'
   const date = new Date(timestamp)
@@ -237,6 +241,7 @@ const formatViewedTime = (timestamp) => {
   return `${yyyy}-${mm}-${dd} ${hh}:${min}`
 }
 
+// 规范化本地缓存中的浏览足迹结构。
 const normalizeFootprints = (list) => {
   if (!Array.isArray(list)) return []
   return list
@@ -251,12 +256,14 @@ const normalizeFootprints = (list) => {
     }))
 }
 
+// 将浏览足迹写回本地缓存并同步到页面列表。
 const cacheFootprints = (list) => {
   const normalized = normalizeFootprints(list).slice(0, 20)
   uni.setStorageSync('spot_footprints', normalized)
   footprintList.value = normalized
 }
 
+// 从接口拉取最新浏览足迹并回写本地缓存。
 const fetchRemoteFootprints = async () => {
   try {
     const res = await getViewHistory(1, 20)
@@ -291,6 +298,7 @@ const loadFootprints = async () => {
   }
 }
 
+// 加载收藏分页数据，并兼容刷新与追加。
 const fetchFavoritePage = async (reset = false) => {
   if (favoriteLoading.value) return
   favoriteLoading.value = true
@@ -309,6 +317,7 @@ const fetchFavoritePage = async (reset = false) => {
   }
 }
 
+// 加载评价分页数据，并兼容刷新与追加。
 const fetchReviewPage = async (reset = false) => {
   if (reviewLoading.value) return
   reviewLoading.value = true
@@ -327,6 +336,7 @@ const fetchReviewPage = async (reset = false) => {
   }
 }
 
+// 按当前激活标签加载对应内容。
 const loadActiveTab = async (reset = false) => {
   if (activeTab.value === 'browse') {
     await loadFootprints()
@@ -347,6 +357,7 @@ const switchTab = async (tab) => {
   await loadActiveTab(true)
 }
 
+// 加载当前标签下的下一页内容。
 const loadMore = async () => {
   if (activeTab.value === 'favorite' && favoriteList.value.length < favoritePage.total) {
     await fetchFavoritePage()
@@ -356,6 +367,7 @@ const loadMore = async () => {
   }
 }
 
+// 取消收藏并更新当前收藏列表。
 const removeFavoriteHandler = async (spotId) => {
   try {
     await removeFavorite(spotId)
@@ -367,6 +379,7 @@ const removeFavoriteHandler = async (spotId) => {
   }
 }
 
+// 打开评价编辑弹层并回填当前记录。
 const openEdit = (item) => {
   currentReview.value = item
   editForm.score = item.score || 5
@@ -374,10 +387,12 @@ const openEdit = (item) => {
   editVisible.value = true
 }
 
+// 关闭评价编辑弹层。
 const closeEdit = () => {
   editVisible.value = false
 }
 
+// 提交评价编辑结果并刷新列表。
 const submitEdit = async () => {
   if (!currentReview.value) return
   if (editForm.score < 1) {
@@ -398,6 +413,7 @@ const submitEdit = async () => {
   }
 }
 
+// 删除当前评价记录并刷新列表。
 const handleDelete = (item) => {
   uni.showModal({
     title: '删除评价',
@@ -426,6 +442,7 @@ onLoad((options) => {
   activeTab.value = normalizeTab(options?.tab)
 })
 
+// 页面显示时校验登录并刷新当前标签内容。
 onShow(async () => {
   if (!ensureLogin()) return
   await loadActiveTab(true)

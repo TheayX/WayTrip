@@ -269,7 +269,7 @@ const beforeUpload = (file) => {
   return true
 }
 
-// 上传成功
+// 上传成功后回填轮播图地址。
 const handleUploadSuccess = (response) => {
   if (response.code === 0) {
     form.imageUrl = response.data.url
@@ -279,12 +279,12 @@ const handleUploadSuccess = (response) => {
   }
 }
 
-// 上传失败
+// 上传失败时给出统一提示。
 const handleUploadError = () => {
   ElMessage.error('上传失败，请重试')
 }
 
-// 加载轮播图列表
+// 数据加载方法
 const fetchBannerList = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -299,7 +299,7 @@ const fetchBannerList = async () => {
   }
 }
 
-// 加载景点选项
+// 加载轮播图可关联的景点候选项。
 const fetchSpotList = async () => {
   try {
     spotList.value = await fetchAllSpotOptions()
@@ -308,7 +308,7 @@ const fetchSpotList = async () => {
   }
 }
 
-// 新增轮播图
+// 打开新增轮播图弹窗并初始化表单。
 const handleAdd = () => {
   isEdit.value = false
   currentId.value = null
@@ -321,7 +321,7 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
-// 编辑轮播图
+// 打开轮播图编辑弹窗并回填表单。
 const handleEdit = (row) => {
   isEdit.value = true
   currentId.value = row.id
@@ -334,7 +334,7 @@ const handleEdit = (row) => {
   dialogVisible.value = true
 }
 
-// 提交轮播图表单
+// 提交轮播图新增或编辑表单。
 const handleSubmit = async () => {
   try {
     await formRef.value.validate()
@@ -363,7 +363,7 @@ const handleSubmit = async () => {
   }
 }
 
-// 切换启用状态
+// 切换轮播图启用状态并刷新列表。
 const handleToggle = async (row) => {
   try {
     await toggleBannerEnabled(row.id)
@@ -386,7 +386,7 @@ const handleOpenSpot = (row) => {
   })
 }
 
-// 删除轮播图
+// 删除指定轮播图记录。
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除该轮播图吗？', '删除确认', {
@@ -402,7 +402,7 @@ const handleDelete = async (row) => {
   }
 }
 
-// 页面初始化
+// 生命周期
 onMounted(() => {
   fetchBannerList()
   fetchSpotList()

@@ -98,6 +98,4 @@ defineProps({
 
 const emit = defineEmits(['search', 'reset', 'filter-change'])
 const showAdvanced = ref(false)
-
-// 过滤条件变更和显式搜索分开上抛，便于父层区分即时筛选与手动触发查询。
 </script>

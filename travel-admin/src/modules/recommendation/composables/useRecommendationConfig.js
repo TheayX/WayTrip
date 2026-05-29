@@ -82,6 +82,7 @@ const immediateFieldPaths = [
   'cache.userRecTTLMinutes'
 ]
 
+// 复制配置快照，避免表单状态和已保存状态互相引用。
 const cloneConfig = (value) => JSON.parse(JSON.stringify(value))
 
 // 管理推荐配置、矩阵状态和保存动作，避免配置页继续堆积状态型逻辑。
@@ -97,6 +98,7 @@ export function useRecommendationConfig() {
   const saving = ref(false)
   const updatingMatrix = ref(false)
 
+  // 合并服务端配置，并用默认值补齐缺失字段。
   const applyConfig = (nextConfig = {}) => {
     const defaults = createDefaultConfig()
     Object.assign(config.algorithm, defaults.algorithm, nextConfig.algorithm || {})
@@ -106,6 +108,7 @@ export function useRecommendationConfig() {
 
   // 用字段路径比对配置差异，便于区分“即时生效”和“需重建矩阵”的改动。
   const getByPath = (target, path) => path.split('.').reduce((acc, key) => acc?.[key], target)
+  // 计算指定路径集合中实际发生变化的字段。
   const getChangedPaths = (paths) => paths.filter(path => getByPath(config, path) !== getByPath(savedConfig.value, path))
 
   const matrixChangedPaths = computed(() => getChangedPaths(matrixFieldPaths))
@@ -161,6 +164,7 @@ export function useRecommendationConfig() {
       : '当前没有待保存的即时生效字段变更'
   }))
 
+  // 拉取并应用推荐配置。
   const fetchConfig = async () => {
     try {
       const res = await getRecommendationConfig()
@@ -180,6 +184,7 @@ export function useRecommendationConfig() {
     }
   }
 
+  // 拉取推荐运行状态。
   const fetchStatus = async () => {
     try {
       const res = await getRecommendationStatus()
@@ -193,6 +198,7 @@ export function useRecommendationConfig() {
     }
   }
 
+  // 保存当前配置，并根据改动类型提示是否需要重建矩阵。
   const handleSaveConfig = async () => {
     try {
       saving.value = true
@@ -222,6 +228,7 @@ export function useRecommendationConfig() {
     }
   }
 
+  // 恢复默认推荐配置。
   const handleResetConfig = async () => {
     try {
       await ElMessageBox.confirm(
@@ -241,6 +248,7 @@ export function useRecommendationConfig() {
     }
   }
 
+  // 手动重建相似度矩阵。
   const handleUpdateMatrix = async () => {
     try {
       await ElMessageBox.confirm(

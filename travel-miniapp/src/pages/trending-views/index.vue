@@ -56,7 +56,10 @@ const trendingSpots = ref([])
 const trendingDays = ref(14)
 const loading = ref(false)
 
+// 统一格式化热门页价格文案。
 const formatTrendingPrice = (value) => formatFeaturePrice(value, { freeText: '¥0 免费' })
+
+// 统一格式化热门页评分文案。
 const formatTrendingRating = (value) => formatFeatureRating(value)
 
 // 热门页只做整页替换，避免这类短列表引入不必要的分页复杂度。
@@ -84,6 +87,7 @@ const goSpotDetail = (id) => {
   uni.navigateTo({ url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.TRENDING_VIEWS) })
 }
 
+// 进入页面后加载近期热看列表。
 onLoad(() => {
   loadTrendingSpots()
 })

@@ -213,17 +213,24 @@ const pagination = reactive({
   sortBy: '',
   sortOrder: ''
 })
+// 统计当前页评价的平均分。
 const currentPageAverageScore = computed(() => {
   if (!reviewList.value.length) return '0.0'
   const totalScore = reviewList.value.reduce((sum, item) => sum + Number(item.score || 0), 0)
   return (totalScore / reviewList.value.length).toFixed(1)
 })
+// 统计当前页低分评价数量。
 const lowScoreCount = computed(() => reviewList.value.filter((item) => Number(item.score || 0) <= 2).length)
+// 解析评价记录中的用户昵称展示文案。
 const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
+// 判断评价记录关联的用户是否已停用。
 const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
+// 解析评价记录中的景点名称展示文案。
 const getDisplaySpotName = (row) => resolveSpotDisplayName(row?.spotName)
+// 判断评价记录关联的景点是否已失效。
 const isInvalidSpot = (row) => isInvalidSpotDisplay(row?.spotName)
 
+// 将评分筛选预设转换为接口可用的分值范围。
 const resolveScoreRange = (scorePreset) => {
   if (!scorePreset) {
     return { minScore: undefined, maxScore: undefined }
@@ -237,7 +244,7 @@ const resolveScoreRange = (scorePreset) => {
     : { minScore: exactScore, maxScore: exactScore }
 }
 
-// 获取评价列表
+// 按当前筛选条件加载评价列表。
 const fetchReviewList = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -266,12 +273,14 @@ const fetchReviewList = async () => {
   }
 }
 
+// 应用筛选条件并重置到第一页。
 const handleSearch = () => {
   pagination.page = 1
   syncRouteQuery()
   fetchReviewList()
 }
 
+// 清空筛选条件并恢复默认查询状态。
 const handleReset = () => {
   searchForm.nickname = ''
   searchForm.spotName = ''
@@ -280,11 +289,13 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 根据表头排序结果刷新评价列表。
 const handleSortChange = (sortPayload) => {
   applySortChange(pagination, sortPayload)
   fetchReviewList()
 }
 
+// 将当前筛选条件同步回路由参数。
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
@@ -307,6 +318,7 @@ const syncRouteQuery = () => {
   }
 }
 
+// 用路由参数回填当前筛选条件。
 const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.spotName = typeof route.query.spotName === 'string' ? route.query.spotName : ''
@@ -319,6 +331,7 @@ const applyRouteQuery = () => {
   }
 }
 
+// 跳转到用户管理页查看评价所属用户。
 const handleOpenUser = (row) => {
   if (isDeactivatedUser(row)) return
   router.push({ path: '/user', query: { nickname: row.nickname || '' } })
@@ -336,7 +349,7 @@ const handleOpenSpot = (row) => {
   })
 }
 
-// 删除评价
+// 删除单条评价记录并触发评分重算。
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除这条评价记录吗？删除后会同步更新景点评分。', '删除确认', {
@@ -352,12 +365,13 @@ const handleDelete = async (row) => {
   }
 }
 
-// 页面初始化
+// 页面首次进入时按路由条件初始化并加载列表。
 onMounted(() => {
   applyRouteQuery()
   fetchReviewList()
 })
 
+// 监听路由筛选变化，并在外部跳转时重新加载列表。
 watch(
   () => route.query,
   () => {

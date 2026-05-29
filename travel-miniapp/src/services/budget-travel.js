@@ -55,10 +55,9 @@ const dedupeById = (list) => {
   return Array.from(map.values())
 }
 
-// 预算景点列表先基于现有景点接口做多页聚合筛选，后续如果后端支持价格过滤参数，只改这里即可。
 /**
  * 获取预算景点列表
- * 说明：先随机翻页收集候选，再在前端做价格筛选、去重和排序。
+ * 先基于景点列表做多页聚合，再在前端完成预算筛选、去重和排序。
  * @param {{ budgetMode?: string, maxPrice?: number, limit?: number, maxPages?: number }} [options]
  * @returns {Promise<object[]>}
  */
@@ -102,10 +101,9 @@ export const fetchBudgetTravelSpots = async ({
     .slice(0, limit)
 }
 
-// 预算攻略列表走后端直出，页面层继续复用当前结构。
 /**
  * 获取预算攻略列表
- * 说明：后端已按价格模式筛选，前端只负责展示。
+ * 攻略列表直接复用后端预算接口，前端只负责透传筛选条件。
  * @param {{ budgetMode?: string, maxPrice?: number, limit?: number }} [options]
  * @returns {Promise<object[]>}
  */

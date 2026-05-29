@@ -19,6 +19,7 @@ const buildCurrentPageUrl = () => {
   return `/${current.route}${query ? `?${query}` : ''}`
 }
 
+// 持久化有效的登录回跳地址。
 const persistLoginRedirect = (redirect) => {
   // 个人中心本身就是登录入口，不需要再把它当成登录后回跳目标。
   if (!redirect || redirect.startsWith('/pages/mine/')) {
@@ -27,6 +28,7 @@ const persistLoginRedirect = (redirect) => {
   uni.setStorageSync(LOGIN_REDIRECT_KEY, redirect)
 }
 
+// 读取并清除一次性登录回跳地址。
 export const consumeLoginRedirect = () => {
   const redirect = uni.getStorageSync(LOGIN_REDIRECT_KEY)
   if (redirect) {
@@ -35,6 +37,7 @@ export const consumeLoginRedirect = () => {
   return redirect || ''
 }
 
+// 登录取消后回到上一级页面或首页。
 const redirectAfterLoginCancel = () => {
   const pages = getCurrentPages()
   if (pages.length > 1) {

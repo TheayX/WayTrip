@@ -192,6 +192,7 @@ import { getPreferenceList } from '@/modules/user-ops/api/preference.js'
 import { getViewList } from '@/modules/user-ops/api/view-log.js'
 
 const router = useRouter()
+// 页面状态
 const loading = ref(false)
 const errorMessage = ref('')
 const partialWarning = ref('')
@@ -227,6 +228,7 @@ const latestPreference = reactive({
   updatedAt: ''
 })
 
+// 工具方法
 const resolveBehaviorNickname = (nickname, hasBehavior) => {
   if (nickname) return nickname
   return hasBehavior ? resolveUserDisplayName('') : ''
@@ -312,13 +314,13 @@ const tips = [
   }
 ]
 
-// 获取推荐状态
+// 数据加载方法
 const fetchStatus = async () => {
   const res = await getRecommendationStatus()
   Object.assign(status, res.data || {})
 }
 
-// 获取最近行为摘要
+// 获取最近行为摘要，用于展示推荐链路的最近反馈。
 const fetchBehaviorSummary = async () => {
   const [favoriteRes, viewRes, preferenceRes] = await Promise.all([
     getFavoriteList({ page: 1, pageSize: 1 }),
@@ -353,6 +355,7 @@ const fetchBehaviorSummary = async () => {
   })
 }
 
+// 汇总加载推荐状态和最近行为摘要。
 const loadPageData = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -377,12 +380,12 @@ const loadPageData = async () => {
   loading.value = false
 }
 
-// 页面跳转
+// 页面跳转方法
 const goTo = (path) => {
   router.push(path)
 }
 
-// 页面初始化
+// 生命周期
 onMounted(async () => {
   loadPageData()
 })

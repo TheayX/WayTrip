@@ -127,6 +127,7 @@ const handleDateChange = (value) => {
 }
 
 const handleVisitDateChange = (value) => {
+  // 游玩日期和下单日期保持同一回传约定，减少父层对空值的分支处理。
   emit('update:visit-date-range', value || [])
 }
 </script>

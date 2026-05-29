@@ -3,6 +3,7 @@
  */
 export const TABLE_SORT_ORDERS = ['ascending', 'descending']
 
+// 将 Element Plus 的排序事件转换为后端查询参数。
 export const applySortChange = (queryParams, { prop, order }) => {
   // Element Plus 的空排序态不参与请求，后端会自动回落到默认排序。
   queryParams.sortBy = order ? prop : ''

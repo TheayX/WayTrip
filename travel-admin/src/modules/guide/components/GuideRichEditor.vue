@@ -21,6 +21,7 @@ const toolbarRef = ref(null)
 const editorRef = ref(null)
 let editor = null
 
+// 将外部传入的 HTML 同步回编辑器实例，并避免重复写入造成光标抖动。
 const syncEditorHtml = (html) => {
   // 避免父子双向同步时重复写回，减少编辑器光标抖动。
   if (!editor) {
@@ -31,6 +32,7 @@ const syncEditorHtml = (html) => {
   }
 }
 
+// 初始化富文本编辑器实例，并挂载内容同步与工具栏配置。
 const createEditor = async () => {
   await nextTick()
   if (!toolbarRef.value || !editorRef.value) {

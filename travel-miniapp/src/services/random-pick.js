@@ -5,10 +5,9 @@ const RANDOM_PICK_PAGE_SIZE = 12
 // 多尝试几次，尽量避开“与上一次重复”但又不把请求次数放得过高。
 const RANDOM_PICK_MAX_ATTEMPTS = 5
 
-// 随心一选当前先复用景点列表做随机抽取，后续切正式接口时只改这里。
 /**
  * 随机抽取一个景点
- * 说明：先随机页，再在页内随机项，兼顾接口复用和请求成本。
+ * 当前先复用景点列表接口，按随机页再页内随机的方式控制请求成本。
  * @param {{ excludeSpotId?: number | string | null }} [options]
  * @returns {Promise<object | null>}
  */

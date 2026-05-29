@@ -152,11 +152,12 @@ const pagination = reactive({
   sortBy: '',
   sortOrder: ''
 })
-// 当前页统计
+// 统计当前页用户偏好标签的累计数量。
 const currentPageTagCount = computed(() => {
   return tableData.value.reduce((sum, item) => sum + (item.preferenceTags?.length || 0), 0)
 })
 
+// 统计当前页出现频率最高的偏好标签。
 const topPreferenceTag = computed(() => {
   const counter = tableData.value.reduce((acc, item) => {
     ;(item.preferenceTags || []).forEach((tag) => {
@@ -166,13 +167,16 @@ const topPreferenceTag = computed(() => {
   }, {})
   return Object.entries(counter).sort((a, b) => b[1] - a[1])[0]?.[0] || '暂无'
 })
+// 解析偏好记录中的用户昵称展示文案。
 const getDisplayNickname = (row) => resolveUserDisplayName(row?.nickname)
+// 判断偏好记录关联的用户是否已停用。
 const isDeactivatedUser = (row) => isDeactivatedUserDisplay(row?.nickname)
+// 根据用户状态给出偏好为空时的展示文案。
 const getPreferenceEmptyText = (row) => {
   return isDeactivatedUser(row) ? '账号已停用，偏好已收起' : '未设置'
 }
 
-// 格式化手机号显示
+// 统一脱敏展示手机号。
 const formatPhone = (phone) => {
   if (!phone || !phone.trim()) return '未绑定'
   const normalized = phone.trim()
@@ -182,13 +186,13 @@ const formatPhone = (phone) => {
   return normalized
 }
 
-// 获取筛选项
+// 加载偏好筛选所需的景点分类树。
 const fetchFilters = async () => {
   const res = await getFilters()
   categoryTree.value = res.data.categoryTree || []
 }
 
-// 获取偏好列表
+// 按当前筛选条件加载用户偏好列表。
 const fetchPreferenceList = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -211,7 +215,7 @@ const fetchPreferenceList = async () => {
   }
 }
 
-// 搜索操作
+// 应用筛选条件并重置到第一页。
 const handleSearch = () => {
   pagination.page = 1
   searchForm.categoryId = uiFilters.categoryPath?.length
@@ -221,7 +225,7 @@ const handleSearch = () => {
   fetchPreferenceList()
 }
 
-// 重置搜索条件
+// 清空筛选条件并恢复默认查询状态。
 const handleReset = () => {
   searchForm.nickname = ''
   searchForm.categoryId = null
@@ -229,12 +233,13 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 根据表头排序结果刷新偏好列表。
 const handleSortChange = (sortPayload) => {
   applySortChange(pagination, sortPayload)
   fetchPreferenceList()
 }
 
-// 同步路由参数
+// 将当前筛选条件同步回路由参数。
 const syncRouteQuery = () => {
   const nextQuery = {}
   if (searchForm.nickname) nextQuery.nickname = searchForm.nickname
@@ -249,7 +254,7 @@ const syncRouteQuery = () => {
   }
 }
 
-// 回填路由参数
+// 用路由参数回填当前筛选条件。
 const applyRouteQuery = () => {
   searchForm.nickname = typeof route.query.nickname === 'string' ? route.query.nickname : ''
   searchForm.categoryId = typeof route.query.categoryId === 'string' ? Number(route.query.categoryId) : null
@@ -277,12 +282,13 @@ const findPathById = (targetId, tree) => {
   return []
 }
 
+// 跳转到用户管理页查看偏好所属用户。
 const handleOpenUser = (row) => {
   if (isDeactivatedUser(row)) return
   router.push({ path: '/user', query: { nickname: row.nickname || '' } })
 }
 
-// 页面初始化
+// 页面首次进入时加载筛选项并按路由条件初始化列表。
 onMounted(() => {
   fetchFilters().then(() => {
     applyRouteQuery()
@@ -290,6 +296,7 @@ onMounted(() => {
   fetchPreferenceList()
 })
 
+// 监听路由筛选变化，并在外部跳转时重新加载列表。
 watch(
   () => route.query,
   () => {

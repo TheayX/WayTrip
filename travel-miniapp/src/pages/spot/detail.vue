@@ -251,7 +251,7 @@ const similarUpdateTimeText = computed(() => {
   return similarUpdateTime.value ? `更新于 ${similarUpdateTime.value}` : '为你精选'
 })
 
-// 工具方法
+// 将接口异常统一映射为页面可展示的失效提示。
 const resolveSpotInvalidMessage = (error) => {
   const message = error?.data?.message || error?.response?.data?.message || error?.message
   if (message === '景点已下架' || message === '景点不存在') {
@@ -260,6 +260,7 @@ const resolveSpotInvalidMessage = (error) => {
   return '加载失败，请稍后重试'
 }
 
+// 同步详情页最新摘要，便于列表页局部刷新展示。
 const syncSpotPreview = (data) => {
   if (!data?.id) return
   uni.setStorageSync('spot_detail_updated', {
@@ -275,6 +276,7 @@ const syncSpotPreview = (data) => {
   })
 }
 
+// 记录最近浏览足迹，供其他页面复用浏览历史。
 const saveSpotFootprint = (data) => {
   if (!data?.id) return
   const history = uni.getStorageSync('spot_footprints')
@@ -290,7 +292,7 @@ const saveSpotFootprint = (data) => {
   uni.setStorageSync('spot_footprints', nextList)
 }
 
-// 数据加载方法
+// 加载景点详情，并处理评价弹窗的回显状态。
 const fetchSpotDetail = async () => {
   loading.value = true
   loadErrorMessage.value = ''
@@ -316,6 +318,7 @@ const fetchSpotDetail = async () => {
   }
 }
 
+// 加载当前景点的相似推荐列表。
 const fetchSimilarSpots = async () => {
   if (!spotId.value) return
   try {
@@ -328,6 +331,7 @@ const fetchSimilarSpots = async () => {
   }
 }
 
+// 计算用户与景点之间的球面距离。
 const calculateDistanceKm = (fromLatitude, fromLongitude, toLatitude, toLongitude) => {
   const toRadians = (degree) => degree * Math.PI / 180
   const earthRadiusKm = 6371
@@ -340,29 +344,33 @@ const calculateDistanceKm = (fromLatitude, fromLongitude, toLatitude, toLongitud
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
+// 将距离值格式化为米或公里文案。
 const formatDistance = (value) => {
   const distance = Number(value)
   if (!Number.isFinite(distance)) return ''
   return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
 }
 
+// 统一格式化接口返回的时间字符串。
 const formatDateTime = (value) => {
   if (!value) return '暂无信息'
   const normalized = String(value).replace('T', ' ')
   return normalized.slice(0, 19)
 }
 
+// 同步当前授权定位，供距离展示和导航使用。
 const syncCurrentLocation = async () => {
   const snapshot = await getLocationSnapshot()
   currentLocation.value = snapshot.current
 }
 
-// 交互处理方法
+// 预览景点图片轮播中的原图。
 const previewImage = (index) => {
   if (!spotImages.value.length) return
   uni.previewImage({ current: index, urls: spotImages.value })
 }
 
+// 切换当前景点的收藏状态。
 const toggleFavorite = async () => {
   if (!promptLogin('登录后可收藏景点，是否现在去登录？')) {
     return
@@ -385,6 +393,7 @@ const toggleFavorite = async () => {
   }
 }
 
+// 调起系统地图导航到当前景点。
 const openNavigation = () => {
   if (!spot.value.latitude || !spot.value.longitude) {
     uni.showToast({ title: '暂无位置信息', icon: 'none' })
@@ -398,10 +407,12 @@ const openNavigation = () => {
   })
 }
 
+// 判断当前评论是否允许由本人删除。
 const canDeleteComment = (comment) => {
   return userStore.isLoggedIn && comment.userId === userStore.userInfo?.id
 }
 
+// 打开评分弹窗并完成登录兜底校验。
 const showRatingPopup = () => {
   if (!promptLogin('登录后可评价景点，是否现在去登录？')) {
     return
@@ -409,6 +420,7 @@ const showRatingPopup = () => {
   ratingVisible.value = true
 }
 
+// 提交当前景点评分并刷新详情数据。
 const submitRatingHandler = async () => {
   if (!promptLogin('登录后可评价景点，是否现在去登录？')) {
     return
@@ -432,6 +444,7 @@ const submitRatingHandler = async () => {
   }
 }
 
+// 删除自己的评论并同步刷新详情展示。
 const handleDeleteComment = (comment) => {
   if (!promptLogin('登录后可删除评价，是否现在去登录？')) {
     return
@@ -453,7 +466,7 @@ const handleDeleteComment = (comment) => {
   })
 }
 
-// 页面跳转方法
+// 跳转到当前景点的购票下单页。
 const goBuy = () => {
   if (!promptLogin('登录后可创建订单，是否现在去登录？')) {
     return
@@ -461,20 +474,23 @@ const goBuy = () => {
   uni.navigateTo({ url: `/pages/order/create?spotId=${spotId.value}` })
 }
 
+// 从相似推荐列表跳转到新的景点详情。
 const goSimilarSpot = (id) => {
   uni.navigateTo({ url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.SIMILAR) })
 }
 
+// 返回景点列表页重新浏览其他景点。
 const goSpotList = () => {
   uni.navigateTo({ url: '/pages/spot/list' })
 }
 
+// 将相似度分数格式化为固定两位小数。
 const formatSimilarity = (value) => {
   if (typeof value !== 'number') return '0.00'
   return value.toFixed(2)
 }
 
-// 生命周期
+// 初始化详情页参数，并首次拉取详情与相似推荐。
 onLoad((options) => {
   if (!guardLoginPage('登录后可查看景点详情，是否现在去登录？')) {
     loading.value = false
@@ -496,10 +512,12 @@ onLoad((options) => {
   void fetchSimilarSpots()
 })
 
+// 进入页面时记录停留起点，供浏览上报计算时长。
 onShow(() => {
   enterTime = Date.now()
 })
 
+// 上报当前景点的浏览来源与停留时长。
 const reportView = () => {
   if (spotId.value && userStore.isLoggedIn && enterTime > 0) {
     const duration = Math.floor((Date.now() - enterTime) / 1000)
@@ -507,11 +525,13 @@ const reportView = () => {
   }
 }
 
+// 页面隐藏时提交浏览记录并清空计时起点。
 onHide(() => {
   reportView()
   enterTime = 0
 })
 
+// 页面销毁前补发最后一次浏览记录。
 onUnload(() => {
   reportView()
 })

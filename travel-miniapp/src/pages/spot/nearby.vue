@@ -88,8 +88,11 @@ const toFiniteNumber = (value) => {
   return Number.isFinite(num) ? num : null
 }
 
+// 判断纬度值是否处于合法区间。
 const isValidLatitude = (value) => value !== null && value >= -90 && value <= 90
+// 判断经度值是否处于合法区间。
 const isValidLongitude = (value) => value !== null && value >= -180 && value <= 180
+// 判断经纬度组合是否可用于地图与距离计算。
 const isValidCoordinate = (latitude, longitude) => isValidLatitude(latitude) && isValidLongitude(longitude)
 
 // 计算属性
@@ -210,6 +213,7 @@ const emptyDesc = computed(() => {
   return '点击按钮后会重新申请定位并加载附近景点'
 })
 
+// 格式化距离显示文案，兼容米和公里两种单位。
 const formatDistance = (value) => {
   const distance = Number(value)
   if (!Number.isFinite(distance)) return '-- km'
@@ -239,6 +243,7 @@ const fetchNearby = async (latitude, longitude, showErrorToast = false) => {
   }
 }
 
+// 重新获取定位并加载附近景点数据。
 const loadNearby = async () => {
   if (!promptLogin('登录后可查看附近景点，是否现在去登录？')) {
     return
@@ -259,6 +264,7 @@ const handleRetryLocation = () => {
   loadNearby()
 }
 
+// 点击地图标记时跳转到对应景点详情。
 const handleMarkerTap = (event) => {
   const target = nearbySpots.value.find(item => Number(item.id) === Number(event.detail.markerId))
   if (target) {

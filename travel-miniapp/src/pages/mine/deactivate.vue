@@ -70,6 +70,7 @@ const confirmDeactivate = () => {
   })
 }
 
+// 提交账户停用请求，并在成功后退出登录回到首页。
 const doDeactivate = async () => {
   loading.value = true
   try {

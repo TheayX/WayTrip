@@ -120,12 +120,13 @@ import { getImageUrl } from '@/utils/request'
 import { resolveMiniappGuideCategory, resolveMiniappGuideDisplayText } from '@/utils/resource-display'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 
+// 工具方法
 const resolveGuideText = (value) => value || '--'
 const resolveGuideTitle = (value) => resolveMiniappGuideDisplayText(value)
 const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
 const resolveGuideSummary = (value) => value || '这篇攻略里提到的景点更适合低预算出行。'
 
-// 页内同时承接景点和攻略两类低预算内容，因此把标签与预算口径统一放在页面层管理。
+// 页面数据状态
 const tabs = [
   { label: '景点', value: 'spots' },
   { label: '攻略', value: 'guides' }
@@ -138,6 +139,7 @@ const budgetGuides = ref([])
 const loadingSpots = ref(false)
 const loadingGuides = ref(false)
 
+// 计算属性
 const currentLoading = computed(() => (activeTab.value === 'spots' ? loadingSpots.value : loadingGuides.value))
 const currentLoadingText = computed(() => (activeTab.value === 'spots' ? '正在筛选低预算景点...' : '正在整理低预算攻略...'))
 const currentBudgetModeLabel = computed(() => (budgetMode.value === BUDGET_MODE_FREE ? '免费' : '50 元以内'))
@@ -153,7 +155,7 @@ const budgetSummaryText = computed(() => {
 const formatBudgetPrice = (value) => formatFeaturePrice(value, { freeText: '¥0 免费' })
 const formatBudgetRating = (value) => formatFeatureRating(value)
 
-// 景点和攻略分别加载，避免切换标签时互相阻塞。
+// 数据加载方法
 const loadBudgetSpots = async () => {
   if (loadingSpots.value) return
   loadingSpots.value = true
@@ -189,7 +191,7 @@ const loadBudgetGuides = async () => {
   }
 }
 
-// 标签切换只触发当前视图需要的数据，保证交互响应更直接。
+// 交互处理方法
 const switchTab = (value) => {
   activeTab.value = value
   if (value === 'spots') {
@@ -212,7 +214,7 @@ const switchBudgetMode = (value) => {
   loadBudgetGuides()
 }
 
-// 详情来源固定标记为穷游玩法，便于详情页统计不同功能入口。
+// 页面跳转方法
 const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
@@ -227,6 +229,7 @@ const goGuideDetail = (id) => {
   uni.navigateTo({ url: `/pages/guide/detail?id=${id}` })
 }
 
+// 生命周期
 onLoad(() => {
   loadBudgetSpots()
 })

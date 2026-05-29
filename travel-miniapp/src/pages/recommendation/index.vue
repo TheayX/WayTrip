@@ -73,6 +73,7 @@ import { getContentImageUrl } from '@/utils/request'
 import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import { useUserStore } from '@/stores/user'
 
+// 解析推荐卡片中的景点分类文案。
 const resolveSpotCategory = (value) => value || '景点'
 
 // 基础依赖与用户状态
@@ -93,7 +94,7 @@ const {
   savePreferences: persistPreferences
 } = useRecommendationFeed(20)
 
-// 交互处理方法
+// 主动轮换当前推荐列表。
 const refreshList = async () => {
   if (!promptLogin('登录后可换一组推荐，是否现在去登录？')) {
     return
@@ -111,6 +112,7 @@ const refreshList = async () => {
   }
 }
 
+// 打开偏好选择弹层并加载可选分类。
 const showPreferencePopup = async () => {
   if (!promptLogin('登录后可设置推荐偏好，是否现在去登录？')) {
     return
@@ -118,14 +120,17 @@ const showPreferencePopup = async () => {
   await openPreferenceDialog()
 }
 
+// 触发登录引导，便于查看个性推荐。
 const goLogin = () => {
   if (!promptLogin('登录后可查看个性推荐，是否现在去登录？')) {
     return
   }
 }
 
+// 根据登录状态展示推荐页标题。
 const recommendationPageTitle = computed(() => (isLoggedIn.value ? recommendType.value : '个性推荐'))
 
+// 超出偏好选择上限时给出统一提示。
 const handleLimitExceed = () => {
   uni.showToast({ title: '最多选择5个', icon: 'none' })
 }
@@ -135,6 +140,7 @@ const isValidSpotPreview = (value) => {
   return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
 }
 
+// 保存偏好设置后刷新推荐结果。
 const savePreferences = async () => {
   try {
     await persistPreferences()
@@ -146,7 +152,7 @@ const savePreferences = async () => {
   }
 }
 
-// 页面跳转方法
+// 从推荐列表跳转到景点详情页。
 const goSpotDetail = (spotId) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
@@ -154,12 +160,13 @@ const goSpotDetail = (spotId) => {
   uni.navigateTo({ url: buildSpotDetailUrl(spotId, SPOT_DETAIL_SOURCE.RECOMMENDATION) })
 }
 
-// 生命周期
+// 页面初次挂载时初始化已选偏好并加载推荐列表。
 onMounted(() => {
   selectedCategories.value = [...(userStore.userInfo?.preferenceCategoryIds || [])]
   fetchRecommendationList()
 })
 
+// 页面重新展示时合并详情页回写的最新景点快照。
 onShow(() => {
   const updatedSpot = uni.getStorageSync('spot_detail_updated')
   if (isValidSpotPreview(updatedSpot)) {

@@ -293,6 +293,7 @@ const isValidSpotPreview = (value) => {
   return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
 }
 
+// 解析路由或筛选面板中的数字型参数。
 const parseNumberOption = (value) => {
   if (value === undefined || value === null || value === '') {
     return null
@@ -302,6 +303,7 @@ const parseNumberOption = (value) => {
   return Number.isNaN(parsed) ? null : parsed
 }
 
+// 根据当前选中的地区 ID 同步顶部展示文案。
 const syncRegionDisplay = () => {
   if (!activeProvinceId.value && !activeCityId.value) {
     currentRegion.value = null
@@ -322,6 +324,7 @@ const syncRegionDisplay = () => {
   currentRegion.value = province ? { id: province.id, name: province.name } : null
 }
 
+// 根据当前选中的分类 ID 同步顶部展示文案。
 const syncCategoryDisplay = () => {
   if (activeCategoryId.value) {
     for (const parent of categoryTree.value) {
@@ -361,10 +364,12 @@ const toggleTab = (tab) => {
   }
 }
 
+// 关闭当前展开的筛选面板。
 const closeTab = () => {
   activeTab.value = null
 }
 
+// 切换地区左栏父级，并在选择“全部”时直接确认。
 const handleProvinceClick = (provinceId) => {
   tempProvinceId.value = provinceId
   tempCityId.value = null
@@ -373,6 +378,7 @@ const handleProvinceClick = (provinceId) => {
   }
 }
 
+// 确认地区筛选结果并刷新列表。
 const handleRegionConfirm = (city) => {
   activeProvinceId.value = tempProvinceId.value
   if (tempProvinceId.value === null) {
@@ -390,6 +396,7 @@ const handleRegionConfirm = (city) => {
   refreshList()
 }
 
+// 确认排序方式并刷新列表。
 const handleSelectSort = (option) => {
   sortBy.value = option.value
   closeTab()
@@ -430,6 +437,7 @@ const handleCategoryConfirm = (subCategory) => {
   refreshList()
 }
 
+// 清空全部筛选条件并恢复默认排序。
 const resetAll = () => {
   currentRegion.value = null
   activeProvinceId.value = null
@@ -458,6 +466,7 @@ const fetchFilters = async () => {
   }
 }
 
+// 按当前筛选条件加载景点列表，并兼容刷新与分页追加。
 const fetchSpotList = async (isRefresh = false) => {
   if (loading.value) return
   loading.value = true
@@ -501,10 +510,12 @@ const fetchSpotList = async (isRefresh = false) => {
   }
 }
 
+// 刷新景点列表并重置分页。
 const refreshList = () => {
   fetchSpotList(true)
 }
 
+// 加载下一页景点数据。
 const loadMore = () => {
   if (hasMore.value && !loading.value) {
     fetchSpotList()
@@ -513,6 +524,7 @@ const loadMore = () => {
 
 // 页面跳转方法
 const goSearch = () => uni.navigateTo({ url: '/pages/spot/search' })
+// 从景点列表跳转到景点详情页。
 const goDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
@@ -535,6 +547,7 @@ onShow(() => {
   if (updated) uni.removeStorageSync('spot_detail_updated')
 })
 
+// 初始化路由透传的地区、分类和排序条件。
 onLoad((options) => {
   const provinceId = parseNumberOption(options?.provinceId)
   const regionId = parseNumberOption(options?.regionId)

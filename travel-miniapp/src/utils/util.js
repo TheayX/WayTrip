@@ -1,4 +1,6 @@
 // 通用展示格式化工具，集中维护日期、金额和订单状态等基础文案格式规则。
+
+// 按指定格式输出日期文本。
 const formatDate = (date, fmt = 'YYYY-MM-DD') => {
   if (!date) return ''
   if (typeof date === 'string') {
@@ -22,6 +24,7 @@ const formatDate = (date, fmt = 'YYYY-MM-DD') => {
   return fmt
 }
 
+// 格式化金额展示文本。
 const formatPrice = (price) => {
   // 金额展示统一保留两位小数，避免 0、10、10.5 在不同页面表现不一致。
   if (price === undefined || price === null) return '0.00'
@@ -35,6 +38,7 @@ const orderStatusText = {
   'CANCELLED': '已取消'
 }
 
+// 将订单状态码转换为用户可读文案。
 const getOrderStatusText = (status) => {
   // 未识别状态直接回传原值，方便在异常数据场景下仍能看到后端真实状态码。
   return orderStatusText[status] || status

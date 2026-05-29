@@ -113,7 +113,9 @@ const showActions = computed(() => {
   if (!order.value) return false
   return order.value.canPay || order.value.canCancel || order.value.status === 'completed'
 })
+// 解析订单中的景点名称展示文案。
 const resolveSpotDisplayName = (spotName) => resolveMiniappSpotDisplayName(spotName)
+// 判断订单关联的景点是否已失效。
 const isInvalidSpot = (spotName) => isMiniappInvalidSpotDisplay(spotName)
 
 // 数据加载方法
@@ -146,6 +148,7 @@ const fetchOrderDetail = async () => {
   }
 }
 
+// 清理超时刷新重试定时器。
 const clearTimeoutRetry = () => {
   if (timeoutRetryTimer) {
     clearTimeout(timeoutRetryTimer)
@@ -153,6 +156,7 @@ const clearTimeoutRetry = () => {
   }
 }
 
+// 在待支付状态下安排下一次超时刷新重试。
 const scheduleTimeoutRetry = () => {
   clearTimeoutRetry()
   timeoutRetryTimer = setTimeout(() => {
@@ -161,6 +165,7 @@ const scheduleTimeoutRetry = () => {
   }, TIMEOUT_REFRESH_RETRY_DELAY)
 }
 
+// 触发倒计时结束后的订单状态刷新。
 const triggerTimeoutRefresh = () => {
   timeoutRefreshInProgress.value = true
   timeoutRetryCount = 0
@@ -186,6 +191,7 @@ const getStatusDesc = (status) => {
   return descs[status] || ''
 }
 
+// 解析接口返回的时间字符串为可计算的日期对象。
 const parseDateTime = (value) => {
   if (!value) return null
   const normalized = value.includes('T') ? value : value.replace(' ', 'T')
@@ -194,6 +200,7 @@ const parseDateTime = (value) => {
   return date
 }
 
+// 将剩余秒数格式化为分秒倒计时文案。
 const formatRemaining = (seconds) => {
   if (seconds <= 0) return '00:00'
   const m = Math.floor(seconds / 60)
@@ -201,6 +208,7 @@ const formatRemaining = (seconds) => {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
+// 清理订单支付倒计时定时器。
 const clearCountdown = () => {
   if (countdownTimer) {
     clearInterval(countdownTimer)
@@ -208,6 +216,7 @@ const clearCountdown = () => {
   }
 }
 
+// 根据订单创建时间初始化支付倒计时。
 const setupCountdown = () => {
   clearCountdown()
   countdownTargetMs = null
@@ -257,6 +266,7 @@ const handlePay = async () => {
   }
 }
 
+// 取消订单或申请退款，并刷新订单详情。
 const handleCancel = () => {
   uni.showModal({
     title: '提示',
@@ -275,6 +285,7 @@ const handleCancel = () => {
   })
 }
 
+// 从已完成订单跳转到景点详情发起评价。
 const handleReview = () => {
   if (isInvalidSpot(order.value?.spotName)) return
   uni.navigateTo({ url: buildSpotDetailUrl(order.value.spotId, SPOT_DETAIL_SOURCE.ORDER, { openReview: true }) })
@@ -291,6 +302,7 @@ onLoad((options) => {
   fetchOrderDetail()
 })
 
+// 页面重新展示时刷新订单详情。
 onShow(() => {
   if (!accessGranted.value) return
   if (orderId.value) {
@@ -298,6 +310,7 @@ onShow(() => {
   }
 })
 
+// 页面销毁前清理倒计时与重试定时器。
 onUnload(() => {
   clearCountdown()
   clearTimeoutRetry()

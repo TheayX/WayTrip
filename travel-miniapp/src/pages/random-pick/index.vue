@@ -82,7 +82,10 @@ const getRandomReason = () => {
   return randomPickReasons[index]
 }
 
+// 统一格式化随心一选卡片里的评分文案。
 const formatRandomPickRating = (value) => formatFeatureRating(value)
+
+// 统一格式化随心一选卡片里的价格文案。
 const formatRandomPickPrice = (value) => formatFeaturePrice(value)
 
 // 抽取逻辑统一收口在这里，便于后续扩展更多过滤条件或埋点。
@@ -112,6 +115,7 @@ const goDetail = () => {
   uni.navigateTo({ url: buildSpotDetailUrl(spot.value.id, SPOT_DETAIL_SOURCE.RANDOM_PICK) })
 }
 
+// 首次进入页面时立即抽取一个景点。
 onLoad(() => {
   drawSpot()
 })

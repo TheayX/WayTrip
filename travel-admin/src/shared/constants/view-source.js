@@ -51,6 +51,7 @@ export const sourceToBucketMap = {
   review: 'detail'
 }
 
+// 将原始来源枚举转换为页面展示文案。
 export const getSourceLabel = (value) => {
   return sourceOptions.find(item => item.value === value)?.label || SOURCE_DISPLAY_TEXT.UNKNOWN
 }
@@ -60,6 +61,7 @@ export const getSourceBucket = (source) => {
   return sourceToBucketMap[source] || 'detail'
 }
 
+// 将原始来源转换为算法挡位展示文案。
 export const getSourceBucketLabel = (source) => {
   const bucket = getSourceBucket(source)
   return sourceBucketOptions.find(item => item.value === bucket)?.label || bucket

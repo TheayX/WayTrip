@@ -1,5 +1,7 @@
 // 特色功能页展示格式化工具，统一价格和评分文案口径。
 // 首页、更多页和专题页都复用这里的格式规则，避免展示文本各写一套。
+
+// 格式化专题页价格文案。
 export const formatFeaturePrice = (value, {
   freeText = '免费',
   emptyText = '价格待补充',
@@ -10,6 +12,7 @@ export const formatFeaturePrice = (value, {
   return num <= 0 ? freeText : `${prefix}${num}`
 }
 
+// 格式化专题页评分文案。
 export const formatFeatureRating = (value, {
   emptyText = '暂无评价',
   suffix = ' 分'

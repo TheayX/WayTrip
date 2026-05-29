@@ -177,9 +177,13 @@ import { buildSpotDetailUrl, SPOT_DETAIL_SOURCE } from '@/utils/spot-detail'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 import UniSearchBar from '@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue'
 
+// 统一补齐发现页攻略标题的空值兜底。
 const resolveGuideText = (value) => value || '--'
+// 解析攻略标题展示文案。
 const resolveGuideTitle = (value) => resolveMiniappGuideDisplayText(value)
+// 解析攻略分类展示文案。
 const resolveGuideCategory = (value) => resolveMiniappGuideCategory(value)
+// 解析攻略摘要展示文案。
 const resolveGuideSummary = (value) => value || '带上好心情，发现更多旅行灵感。'
 
 // 常量配置
@@ -214,7 +218,7 @@ const isValidPreviewCache = (value) => {
   return value && typeof value === 'object' && !Array.isArray(value) && Number.isFinite(value.id)
 }
 
-// 数据加载方法
+// 加载景点筛选所需的地区和分类数据。
 const fetchSpotFilters = async () => {
   try {
     const res = await getFilters()
@@ -225,6 +229,7 @@ const fetchSpotFilters = async () => {
   }
 }
 
+// 加载攻略主题筛选项。
 const fetchGuideCategories = async () => {
   try {
     const res = await getCategories()
@@ -234,6 +239,7 @@ const fetchGuideCategories = async () => {
   }
 }
 
+// 按当前筛选条件加载景点预览列表。
 const fetchSpotPreview = async () => {
   try {
     const params = { page: 1, pageSize: 6, sortBy: 'heat' }
@@ -246,6 +252,7 @@ const fetchSpotPreview = async () => {
   }
 }
 
+// 按当前筛选条件加载攻略预览列表。
 const fetchGuidePreview = async () => {
   try {
     const params = { page: 1, pageSize: 6, sortBy: 'view_count' }
@@ -257,11 +264,12 @@ const fetchGuidePreview = async () => {
   }
 }
 
+// 同步刷新发现页的景点和攻略预览内容。
 const refreshDiscover = async () => {
   await Promise.all([fetchSpotPreview(), fetchGuidePreview()])
 }
 
-// 工具方法
+// 持久化当前标签和筛选条件，便于返回时恢复现场。
 const persistDiscoverState = () => {
   uni.setStorageSync(DISCOVER_STATE_KEY, {
     tab: activeTab.value,
@@ -271,6 +279,7 @@ const persistDiscoverState = () => {
   })
 }
 
+// 读取并恢复上次离开发现页时的筛选状态。
 const applySavedState = () => {
   const savedState = uni.getStorageSync(DISCOVER_STATE_KEY)
   if (!savedState || typeof savedState !== 'object' || Array.isArray(savedState)) return false
@@ -281,6 +290,7 @@ const applySavedState = () => {
   return true
 }
 
+// 应用其他页面注入的预设筛选条件。
 const applyPreset = () => {
   const preset = uni.getStorageSync('discover_preset')
   if (!preset || typeof preset !== 'object' || Array.isArray(preset)) return false
@@ -292,36 +302,40 @@ const applyPreset = () => {
   return true
 }
 
-// 交互处理方法
+// 切换发现页内容标签并刷新当前预览。
 const switchTab = (value) => {
   activeTab.value = value
   persistDiscoverState()
   refreshDiscover()
 }
 
+// 切换地区筛选并重拉景点预览。
 const selectRegion = (value) => {
   selectedRegionId.value = value
   persistDiscoverState()
   fetchSpotPreview()
 }
 
+// 切换景点分类筛选并重拉景点预览。
 const selectSpotCategory = (value) => {
   selectedSpotCategoryId.value = value
   persistDiscoverState()
   fetchSpotPreview()
 }
 
+// 切换攻略主题筛选并重拉攻略预览。
 const selectGuideCategory = (value) => {
   selectedGuideCategory.value = value
   persistDiscoverState()
   fetchGuidePreview()
 }
 
-// 页面跳转方法
+// 跳转到搜索页发起全局检索。
 const goSearch = () => {
   uni.navigateTo({ url: '/pages/spot/search' })
 }
 
+// 带着当前景点筛选条件跳转到景点列表页。
 const goSpotList = () => {
   const query = ['sortBy=heat']
   if (selectedRegionId.value) query.push(`regionId=${selectedRegionId.value}`)
@@ -329,28 +343,32 @@ const goSpotList = () => {
   uni.navigateTo({ url: `/pages/spot/list?${query.join('&')}` })
 }
 
+// 带着当前攻略筛选条件跳转到攻略列表页。
 const goGuideList = () => {
   const query = ['sortBy=view_count']
   if (selectedGuideCategory.value) query.push(`category=${encodeURIComponent(selectedGuideCategory.value)}`)
   uni.navigateTo({ url: `/pages/guide/list?${query.join('&')}` })
 }
 
+// 跳转到个性推荐页查看推荐景点。
 const goRecommendationSpots = () => {
   if (!promptLogin('登录后可查看个性推荐，是否现在去登录？')) return
   uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 
+// 从发现页跳转到景点详情并标记来源。
 const goSpotDetail = (id) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) return
   uni.navigateTo({ url: buildSpotDetailUrl(id, SPOT_DETAIL_SOURCE.DISCOVER) })
 }
 
+// 从发现页跳转到攻略详情页。
 const goGuideDetail = (id) => {
   if (!promptLogin('登录后可查看攻略详情，是否现在去登录？')) return
   uni.navigateTo({ url: `/pages/guide/detail?id=${id}` })
 }
 
-// 生命周期
+// 页面重新展示时恢复状态、应用预设并刷新预览数据。
 onShow(async () => {
   const updatedSpot = uni.getStorageSync('spot_detail_updated')
   if (isValidPreviewCache(updatedSpot)) {

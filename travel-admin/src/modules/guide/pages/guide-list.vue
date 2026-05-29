@@ -182,22 +182,24 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-// 上传相关配置
+// 生成攻略封面上传接口地址。
 const uploadUrl = computed(() => getAdminUploadUrl('image'))
+// 拼接后台上传鉴权请求头。
 const uploadHeaders = computed(() => ({
   Authorization: `Bearer ${userStore.token}`
 }))
+// 补齐上传场景与默认资源命名信息。
 const uploadData = computed(() => ({
   scene: 'guide',
   name: resolveGuideDisplayText(form.title)
 }))
 
-// 补全图片访问地址
+// 补全后台资源的可访问图片地址。
 const getImageUrl = (url) => {
   return getResourceUrl(url)
 }
 
-// 上传前校验
+// 校验上传文件类型和体积限制。
 const beforeUpload = (file) => {
   const isImage = file.type.startsWith('image/')
   const isLt5M = file.size / 1024 / 1024 < 5
@@ -223,10 +225,12 @@ const handleUploadSuccess = (response) => {
   ElMessage.error(response.message || '上传失败')
 }
 
+// 统一处理上传失败提示。
 const handleUploadError = () => {
   ElMessage.error('上传失败，请重试')
 }
 
+// 格式化后台返回的日期时间字段。
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return dateStr.replace('T', ' ').substring(0, 19)
@@ -290,7 +294,9 @@ const rules = {
   coverImage: [{ required: true, message: '请上传封面图', trigger: 'change' }],
   content: [{ required: true, message: '请输入攻略内容', trigger: 'blur' }]
 }
+// 统计当前页已发布攻略数量。
 const publishedCount = computed(() => tableData.value.filter((item) => item.published).length)
+// 统计当前页未发布攻略数量。
 const unpublishedCount = computed(() => tableData.value.filter((item) => !item.published).length)
 
 // 合并列表景点和编辑回显景点，避免旧关联缺失时无法展示。
@@ -312,6 +318,7 @@ const mergedSpotOptions = computed(() => {
   return Array.from(map.values())
 })
 
+// 首次进入页面时同步路由筛选并拉取基础数据。
 onMounted(async () => {
   applyRouteQuery()
   await loadCategories()
@@ -319,6 +326,7 @@ onMounted(async () => {
   await loadData()
 })
 
+// 加载攻略分类筛选项。
 const loadCategories = async () => {
   try {
     const res = await getCategories()
@@ -326,12 +334,14 @@ const loadCategories = async () => {
   } catch (e) {}
 }
 
+// 加载攻略关联景点候选项。
 const loadSpots = async () => {
   try {
     spotList.value = await fetchAllSpotOptions()
   } catch (e) {}
 }
 
+// 按当前筛选条件加载攻略列表数据。
 const loadData = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -349,6 +359,7 @@ const loadData = async () => {
   }
 }
 
+// 应用筛选面板条件并重新查询列表。
 const handleSearch = () => {
   queryParams.page = 1
   queryParams.published = uiFilters.published === '' || uiFilters.published == null
@@ -362,15 +373,18 @@ const handleSearch = () => {
   loadData()
 }
 
+// 筛选项变化后复用统一查询入口。
 const handleFilterChange = () => {
   handleSearch()
 }
 
+// 根据表头排序结果同步列表查询参数。
 const handleSortChange = (sortPayload) => {
   applySortChange(queryParams, sortPayload)
   loadData()
 }
 
+// 清空当前筛选条件并恢复默认查询状态。
 const handleReset = () => {
   queryParams.keyword = ''
   queryParams.category = ''
@@ -385,6 +399,7 @@ const handleReset = () => {
   handleSearch()
 }
 
+// 将当前筛选条件与详情定位同步回路由参数。
 const syncRouteQuery = (guideId = activeGuideId.value) => {
   const nextQuery = {}
   if (queryParams.keyword) {
@@ -440,11 +455,13 @@ const syncRouteQuery = (guideId = activeGuideId.value) => {
   return changed
 }
 
+// 规范化路由中的攻略主键参数。
 const normalizeRouteGuideId = (value) => {
   const guideId = Number(value)
   return Number.isInteger(guideId) && guideId > 0 ? guideId : null
 }
 
+// 用路由参数回填当前页面筛选和定位状态。
 const applyRouteQuery = () => {
   queryParams.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
   queryParams.category = typeof route.query.category === 'string' ? route.query.category : ''
@@ -467,10 +484,12 @@ const applyRouteQuery = () => {
   activeGuideId.value = nextGuideId
 }
 
+// 高亮当前正在查看详情的攻略行。
 const getRowClassName = ({ row }) => {
   return Number(row.id) === activeGuideId.value ? 'guide-highlight-row' : ''
 }
 
+// 重置新增或编辑弹窗中的表单状态。
 const resetForm = () => {
   Object.assign(form, {
     title: '',
@@ -483,12 +502,14 @@ const resetForm = () => {
   spotOptions.value = []
 }
 
+// 打开新增攻略抽屉并初始化表单。
 const handleAdd = () => {
   editId.value = null
   resetForm()
   dialogVisible.value = true
 }
 
+// 加载攻略详情并回填到编辑表单。
 const handleEdit = async (row) => {
   editId.value = row.id
   try {
@@ -508,6 +529,7 @@ const handleEdit = async (row) => {
   }
 }
 
+// 打开浏览量调整弹窗并回填当前数值。
 const handleEditViewCount = (row) => {
   viewCountTarget.value = { id: row.id, title: row.title }
   viewCountInitial.value = Number(row.viewCount ?? 0)
@@ -515,6 +537,7 @@ const handleEditViewCount = (row) => {
   viewCountDialogVisible.value = true
 }
 
+// 关闭浏览量调整弹窗并清理临时状态。
 const handleCloseViewCountDialog = () => {
   viewCountDialogVisible.value = false
   viewCountTarget.value = null
@@ -522,10 +545,12 @@ const handleCloseViewCountDialog = () => {
   viewCountFormValue.value = 0
 }
 
+// 将浏览量输入恢复为当前实际值。
 const resetViewCountForm = () => {
   viewCountFormValue.value = viewCountInitial.value
 }
 
+// 提交人工调整后的攻略浏览量。
 const handleSubmitViewCount = async () => {
   if (!viewCountTarget.value?.id) {
     ElMessage.warning('当前攻略不存在，无法保存浏览量')
@@ -585,6 +610,7 @@ const openGuideDetail = async (row) => {
   drawerVisible.value = true
 }
 
+// 根据列表行打开攻略详情抽屉。
 const handleView = async (row) => {
   try {
     activeGuideId.value = row.id
@@ -595,6 +621,7 @@ const handleView = async (row) => {
   }
 }
 
+// 按路由中的攻略主键自动打开对应详情。
 const openGuideFromRoute = async () => {
   if (!activeGuideId.value || autoOpenedGuideId.value === activeGuideId.value) {
     return
@@ -611,6 +638,7 @@ const openGuideFromRoute = async () => {
   }
 }
 
+// 组装新增或编辑攻略时提交的请求体。
 const buildSubmitPayload = () => ({
   title: form.title,
   category: form.category,
@@ -620,6 +648,7 @@ const buildSubmitPayload = () => ({
   spotIds: Array.isArray(form.spotIds) ? form.spotIds : []
 })
 
+// 提交攻略表单并刷新列表与分类数据。
 const handleSubmit = async (options = {}) => {
   if (typeof options.published === 'boolean') {
     form.published = options.published
@@ -642,6 +671,7 @@ const handleSubmit = async (options = {}) => {
   }
 }
 
+// 切换攻略发布状态并刷新列表。
 const handleTogglePublish = async (row) => {
   const action = row.published ? '下架' : '发布'
   await ElMessageBox.confirm(`确定要${action}该攻略吗？`, '状态确认', { type: 'warning' })
@@ -650,6 +680,7 @@ const handleTogglePublish = async (row) => {
   loadData()
 }
 
+// 删除单条攻略，并处理详情抽屉同步关闭。
 const handleDelete = async (row) => {
   await ElMessageBox.confirm('确定要删除该攻略吗？', '删除确认', { type: 'warning' })
   await deleteGuide(row.id)
@@ -663,6 +694,7 @@ const handleDelete = async (row) => {
   loadData()
 }
 
+// 记录表格当前选中的攻略集合。
 const handleSelectionChange = (selection) => {
   selectedGuides.value = selection
 }
@@ -698,6 +730,7 @@ const runBatchAction = async ({ rows, requestFactory, successMessage, afterSucce
   }
 }
 
+// 批量切换选中攻略的发布状态。
 const handleBatchPublish = async (status) => {
   if (!selectedGuides.value.length) return
   const action = status ? '发布' : '下架'
@@ -714,6 +747,7 @@ const handleBatchPublish = async (status) => {
   })
 }
 
+// 批量删除当前选中的攻略。
 const handleBatchDelete = async () => {
   if (!selectedGuides.value.length) return
   await ElMessageBox.confirm(`确定要批量删除选中的 ${selectedGuides.value.length} 篇攻略吗？(此操作不可恢复)`, '删除确认', { type: 'error' })
@@ -732,6 +766,7 @@ const handleBatchDelete = async () => {
   })
 }
 
+// 详情抽屉关闭后同步清理当前高亮与路由定位。
 watch(
   () => drawerVisible.value,
   (visible) => {
@@ -743,6 +778,7 @@ watch(
   }
 )
 
+// 监听路由筛选变化，并在外部跳转时重新加载列表。
 watch(
   () => [route.query.keyword, route.query.guideId],
   () => {

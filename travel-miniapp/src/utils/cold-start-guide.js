@@ -1,11 +1,15 @@
 // 冷启动引导状态存储工具，负责按用户维度记录引导是否待展示、已跳过或已完成。
+
+// 根据用户 ID 生成冷启动引导缓存键。
 const buildGuideKey = (userId) => `cold_start_guide:${userId}`
 
+// 过滤无效用户 ID，避免把游客态写入固定缓存键。
 const resolveUserId = (userId) => {
   const value = Number(userId)
   return Number.isInteger(value) && value > 0 ? value : null
 }
 
+// 读取当前用户冷启动引导状态。
 export const getColdStartGuideState = (userId) => {
   const resolvedUserId = resolveUserId(userId)
   if (!resolvedUserId) {
@@ -24,6 +28,7 @@ export const getColdStartGuideState = (userId) => {
   }
 }
 
+// 标记当前用户需要展示冷启动引导。
 export const markColdStartGuidePending = (userId) => {
   const resolvedUserId = resolveUserId(userId)
   if (!resolvedUserId) return
@@ -36,6 +41,7 @@ export const markColdStartGuidePending = (userId) => {
   })
 }
 
+// 标记当前用户已跳过冷启动引导。
 export const markColdStartGuideSkipped = (userId) => {
   const resolvedUserId = resolveUserId(userId)
   if (!resolvedUserId) return
@@ -47,6 +53,7 @@ export const markColdStartGuideSkipped = (userId) => {
   })
 }
 
+// 标记当前用户已完成冷启动引导。
 export const markColdStartGuideCompleted = (userId) => {
   const resolvedUserId = resolveUserId(userId)
   if (!resolvedUserId) return

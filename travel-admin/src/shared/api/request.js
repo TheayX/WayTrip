@@ -15,6 +15,7 @@ const NO_PERMISSION_MESSAGE = '暂无权限访问该功能'
 
 let authRedirectInProgress = false
 
+// 登录失效时统一清理状态并跳回登录页。
 const redirectToLogin = async (message) => {
   const userStore = useUserStore()
   const hadToken = Boolean(userStore.token)
@@ -36,10 +37,12 @@ const redirectToLogin = async (message) => {
   }
 }
 
+// 将业务态鉴权失效统一转入登录失效处理。
 const handleAuthExpired = (message) => {
   void redirectToLogin(message || AUTH_EXPIRED_MESSAGE)
 }
 
+// 没有 response 的错误按网络异常处理。
 const isNetworkError = (error) => !error?.response
 
 /**

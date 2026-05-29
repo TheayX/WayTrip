@@ -235,6 +235,7 @@ const rules = {
   name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }]
 }
 
+// 计算当前弹窗标题，区分分类层级与编辑状态。
 const dialogTitle = computed(() => {
   const levelStr = isLevel2.value ? '二级分类' : '一级分类'
   return isEdit.value ? `编辑${levelStr}` : `新增${levelStr}`
@@ -246,7 +247,7 @@ const getNextSortOrder = (list) => {
   return maxSortOrder + 1
 }
 
-// 加载一级分类
+// 数据加载方法
 const fetchLevel1 = async () => {
   loading1.value = true
   errorMessage.value = ''
@@ -269,13 +270,13 @@ const fetchLevel1 = async () => {
   }
 }
 
-// 选择一级分类
+// 切换一级分类并同步加载其子分类列表。
 const handleSelectParent = (id) => {
   activeParentId.value = id
   fetchLevel2(id)
 }
 
-// 加载二级分类
+// 加载当前一级分类下的二级分类列表。
 const fetchLevel2 = async (parentId) => {
   loading2.value = true
   try {
@@ -289,6 +290,7 @@ const fetchLevel2 = async (parentId) => {
   }
 }
 
+// 刷新左右两侧分类数据。
 const handleRefresh = () => {
   fetchLevel1()
 }
@@ -302,6 +304,7 @@ const handleAddLevel1 = () => {
   dialogVisible.value = true
 }
 
+// 打开一级分类编辑弹窗并回填表单。
 const handleEditLevel1 = (row) => {
   isEdit.value = true
   isLevel2.value = false
@@ -310,6 +313,7 @@ const handleEditLevel1 = (row) => {
   dialogVisible.value = true
 }
 
+// 删除一级分类前校验其子分类是否已清空。
 const handleDeleteLevel1 = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除该一级分类吗？如有子分类请先删除子分类。', '删除确认', { type: 'warning' })
@@ -331,6 +335,7 @@ const handleAddLevel2 = () => {
   dialogVisible.value = true
 }
 
+// 打开二级分类编辑弹窗并回填表单。
 const handleEditLevel2 = (row) => {
   isEdit.value = true
   isLevel2.value = true
@@ -339,6 +344,7 @@ const handleEditLevel2 = (row) => {
   dialogVisible.value = true
 }
 
+// 删除当前一级分类下的指定二级分类。
 const handleDeleteLevel2 = async (row) => {
   try {
     await ElMessageBox.confirm('确定要删除该二级分类吗？', '删除确认', { type: 'warning' })
@@ -355,6 +361,7 @@ const beforeUpload = (file) => {
   return isImage
 }
 
+// 上传成功后回填分类图标地址。
 const handleUploadSuccess = (response) => {
   if (response.code === 0) {
     form.iconUrl = response.data.url
@@ -364,7 +371,7 @@ const handleUploadSuccess = (response) => {
   }
 }
 
-// 提交分类表单
+// 提交分类新增或编辑表单，并按层级刷新对应列表。
 const handleSubmit = async () => {
   if (!formRef.value) return
   await formRef.value.validate()
@@ -392,7 +399,7 @@ const handleSubmit = async () => {
   }
 }
 
-// 页面初始化
+// 生命周期
 onMounted(() => {
   fetchLevel1()
 })

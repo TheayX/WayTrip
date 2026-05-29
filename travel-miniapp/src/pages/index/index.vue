@@ -130,13 +130,17 @@ const primaryPopularSpot = computed(() => popularSpots.value[0] || null)
 const remainingPopularSpots = computed(() => popularSpots.value.slice(1))
 const MAX_NEARBY_DISTANCE_KM = 100
 
+// 将输入值安全转换为有限数字。
 const toFiniteNumber = (value) => {
   const num = Number(value)
   return Number.isFinite(num) ? num : null
 }
 
+// 判断纬度是否落在合法范围内。
 const isValidLatitude = (value) => value !== null && value >= -90 && value <= 90
+// 判断经度是否落在合法范围内。
 const isValidLongitude = (value) => value !== null && value >= -180 && value <= 180
+// 同时校验经纬度是否可用于地图展示。
 const isValidCoordinate = (latitude, longitude) => isValidLatitude(latitude) && isValidLongitude(longitude)
 
 const normalizedNearbySpots = computed(() => {
@@ -261,13 +265,14 @@ const nearbyPlaceholderText = computed(() => {
   return '点击开启定位'
 })
 
-// 工具方法
+// 格式化附近景点距离文案。
 const formatDistance = (value) => {
   const distance = Number(value)
   if (!Number.isFinite(distance)) return '-- km'
   return distance < 1 ? `${Math.max(100, Math.round(distance * 1000))} m` : `${distance.toFixed(1)} km`
 }
 
+// 清空附近景点相关状态。
 const resetNearbyState = () => {
   nearbySpots.value = []
   nearbyLocation.value = null
@@ -304,7 +309,7 @@ const persistHomeBaseCache = () => {
   })
 }
 
-// 数据加载方法
+// 加载首页轮播图。
 const fetchBanners = async () => {
   try {
     const res = await getBanners()
@@ -315,6 +320,7 @@ const fetchBanners = async () => {
   }
 }
 
+// 加载首页热门景点。
 const fetchHotSpots = async () => {
   try {
     const res = await getHotSpots(6)
@@ -325,6 +331,7 @@ const fetchHotSpots = async () => {
   }
 }
 
+// 加载推荐结果，并在需要时触发冷启动引导检查。
 const fetchRecommendations = async () => {
   const data = await fetchRecommendationList()
   if (!userStore.token) {
@@ -336,6 +343,7 @@ const fetchRecommendations = async () => {
   }
 }
 
+// 根据定位坐标加载附近景点列表。
 const fetchNearbyByLocation = async (latitude, longitude, limit = 3) => {
   nearbyLoading.value = true
   try {
@@ -359,6 +367,7 @@ const fetchNearbyByLocation = async (latitude, longitude, limit = 3) => {
   }
 }
 
+// 确保已登录且具备定位权限后再加载附近景点。
 const ensureNearbyAccess = async () => {
   if (!promptLogin('登录后可查看附近景点，是否现在去登录？')) {
     return null
@@ -379,6 +388,7 @@ const ensureNearbyAccess = async () => {
   }
 }
 
+// 已有定位快照时自动加载附近景点。
 const tryLoadNearbyAutomatically = async () => {
   if (!userStore.token) {
     resetNearbyState()
@@ -407,7 +417,7 @@ const tryLoadNearbyAutomatically = async () => {
   }
 }
 
-// 交互处理方法
+// 手动触发推荐换一批。
 const handleRefresh = async () => {
   if (!promptLogin('登录后可换一批推荐，是否现在去登录？')) {
     return
@@ -425,6 +435,7 @@ const handleRefresh = async () => {
   }
 }
 
+// 打开偏好设置弹层。
 const showPreferencePopup = async () => {
   if (!promptLogin('登录后可设置推荐偏好，是否现在去登录？')) {
     return
@@ -432,6 +443,7 @@ const showPreferencePopup = async () => {
   await openPreferenceDialog()
 }
 
+// 在命中冷启动条件时展示偏好引导。
 const maybeShowColdStartGuide = async () => {
   if (!userStore.isLoggedIn) return
   if (!needPreference.value || preferenceVisible.value || preferencePopupTriggered.value) return
@@ -453,10 +465,12 @@ const maybeShowColdStartGuide = async () => {
   preferenceVisible.value = true
 }
 
+// 偏好选择超过上限时提示用户。
 const handleLimitExceed = () => {
   uni.showToast({ title: '最多选择 5 个', icon: 'none' })
 }
 
+// 保存用户偏好并刷新推荐结果。
 const savePreferences = async () => {
   if (!selectedCategories.value.length) {
     uni.showToast({ title: '请至少选择一个', icon: 'none' })
@@ -473,6 +487,7 @@ const savePreferences = async () => {
   }
 }
 
+// 跳过本次冷启动引导并回退到热门推荐。
 const skipColdStartGuide = async () => {
   markColdStartGuideSkipped(userStore.userInfo?.id)
   preferenceVisible.value = false
@@ -491,12 +506,14 @@ const skipColdStartGuide = async () => {
   uni.showToast({ title: '已跳过，后续可在我的-偏好设置里设置', icon: 'none' })
 }
 
+// 点击轮播图时跳转到对应景点详情。
 const handleBannerClick = (banner) => {
   if (banner.spotId) {
     goSpotDetail(banner.spotId)
   }
 }
 
+// 根据首页功能入口执行对应跳转逻辑。
 const handleFeatureEntryClick = (entry) => {
   switch (entry.id) {
     case 'spots':
@@ -531,6 +548,7 @@ const handleFeatureEntryClick = (entry) => {
   }
 }
 
+// 点击附近卡片时优先进入附近列表，缺少定位则先申请权限。
 const handleNearbyCardClick = async () => {
   if (nearbyLocation.value) {
     goNearbyList()
@@ -540,6 +558,7 @@ const handleNearbyCardClick = async () => {
   await ensureNearbyAccess()
 }
 
+// 点击地图标记时打开对应景点详情。
 const handleNearbyMarkerTap = (event) => {
   const spot = displayNearbySpots.value.find(item => Number(item.id) === Number(event.detail.markerId))
   if (spot) {
@@ -547,7 +566,7 @@ const handleNearbyMarkerTap = (event) => {
   }
 }
 
-// 页面跳转方法
+// 从首页进入景点详情页。
 const goSpotDetail = (spotId) => {
   if (!promptLogin('登录后可查看景点详情，是否现在去登录？')) {
     return
@@ -555,14 +574,17 @@ const goSpotDetail = (spotId) => {
   uni.navigateTo({ url: buildSpotDetailUrl(spotId, SPOT_DETAIL_SOURCE.HOME) })
 }
 
+// 进入景点列表页并默认按热度排序。
 const goSpotList = () => {
   uni.navigateTo({ url: '/pages/spot/list?sortBy=heat' })
 }
 
+// 进入攻略列表页并默认按浏览量排序。
 const goGuideList = () => {
   uni.navigateTo({ url: '/pages/guide/list?sortBy=view_count' })
 }
 
+// 进入完整推荐列表页。
 const goRecommendationSpots = () => {
   if (!promptLogin('登录后可查看个性推荐，是否现在去登录？')) {
     return
@@ -570,12 +592,14 @@ const goRecommendationSpots = () => {
   uni.navigateTo({ url: '/pages/recommendation/index' })
 }
 
+// 按功能入口配置跳转到目标页面。
 const navigateFeatureEntry = (id) => {
   const featureEntry = getFeatureEntryById(id)
   if (!featureEntry?.url) return
   uni.navigateTo({ url: featureEntry.url })
 }
 
+// 进入附近景点列表页，并尽量带上当前位置。
 const goNearbyList = (position = nearbyLocation.value) => {
   if (position) {
     uni.navigateTo({
@@ -586,14 +610,17 @@ const goNearbyList = (position = nearbyLocation.value) => {
   uni.navigateTo({ url: '/pages/spot/nearby' })
 }
 
+// 打开景点搜索页。
 const goSearch = () => {
   uni.navigateTo({ url: '/pages/spot/search' })
 }
 
+// 切换到个人中心页。
 const goMine = () => {
   void switchTabSafely('/pages/mine/index')
 }
 
+// 在节流窗口外刷新首页核心内容。
 const refreshHome = async ({ force = false } = {}) => {
   const now = Date.now()
   if (!force && now - lastHomeRefreshAt.value < HOME_REFRESH_INTERVAL_MS) {
@@ -617,12 +644,13 @@ const syncHomeAuthState = () => {
   return true
 }
 
-// 生命周期
+// 下拉刷新时强制重载首页数据。
 onPullDownRefresh(async () => {
   await refreshHome({ force: true })
   uni.stopPullDownRefresh()
 })
 
+// 页面显示时同步登录态并按需刷新首页与附近景点。
 onShow(() => {
   const authChanged = syncHomeAuthState()
 
