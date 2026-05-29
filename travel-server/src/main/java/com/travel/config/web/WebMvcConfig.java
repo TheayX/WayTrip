@@ -50,6 +50,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(java.util.Objects.requireNonNull(authInterceptor))
                 .addPathPatterns("/api/**")
+                // 只排除登录、公开浏览、文档和静态资源路径，其他 API 默认进入鉴权链路。
                 .excludePathPatterns(
                         "/api/v1/auth/wx-login",
                         "/api/v1/auth/wx-prepare-bind-phone",
@@ -85,6 +86,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .normalize()
                 .toUri()
                 .toString();
+        // 这里使用 file URI，而不是手写字符串拼接路径，避免 Windows 和 Linux 下路径格式不一致。
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(normalizedUploadPath);
     }

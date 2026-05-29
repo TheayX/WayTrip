@@ -14,9 +14,6 @@ public class RecommendationViewSourceClassifier {
 
     /**
      * 归一化前端上报的浏览来源。
-     *
-     * @param source 原始来源
-     * @return 推荐侧可识别的标准来源
      */
     public String normalize(String source) {
         if (source == null || source.isBlank()) {

@@ -26,6 +26,9 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    /**
+     * 创建订单。
+     */
     @Operation(summary = "创建订单")
     @PostMapping
     public ApiResponse<OrderDetailResponse> createOrder(@Valid @RequestBody CreateOrderRequest request) {
@@ -34,6 +37,9 @@ public class OrderController {
         return ApiResponse.success(orderService.createOrder(userId, request));
     }
 
+    /**
+     * 获取当前用户的订单列表。
+     */
     @Operation(summary = "获取订单列表")
     @GetMapping
     public ApiResponse<OrderListResponse> getOrders(OrderListRequest request) {
@@ -41,6 +47,9 @@ public class OrderController {
         return ApiResponse.success(orderService.getUserOrders(userId, request));
     }
 
+    /**
+     * 获取订单详情。
+     */
     @Operation(summary = "获取订单详情")
     @GetMapping("/{id}")
     public ApiResponse<OrderDetailResponse> getOrderDetail(@PathVariable("id") Long id) {
@@ -48,6 +57,9 @@ public class OrderController {
         return ApiResponse.success(orderService.getOrderDetail(userId, id));
     }
 
+    /**
+     * 支付指定订单。
+     */
     @Operation(summary = "模拟支付")
     @PostMapping("/{id}/pay")
     public ApiResponse<OrderDetailResponse> payOrder(
@@ -58,6 +70,9 @@ public class OrderController {
         return ApiResponse.success(orderService.payOrder(userId, id, idempotentKey));
     }
 
+    /**
+     * 取消指定订单。
+     */
     @Operation(summary = "取消订单")
     @PostMapping("/{id}/cancel")
     public ApiResponse<OrderDetailResponse> cancelOrder(@PathVariable("id") Long id) {

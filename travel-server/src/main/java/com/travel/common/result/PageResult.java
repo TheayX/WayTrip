@@ -6,6 +6,8 @@ import java.util.List;
 
 /**
  * 分页结果对象。
+ * <p>
+ * 统一返回列表数据和分页元信息，避免控制器层自行拼装分页字段。
  *
  * @param <T> 列表项类型
  */
@@ -51,6 +53,7 @@ public class PageResult<T> {
         this.total = total;
         this.page = page;
         this.pageSize = pageSize;
+        // 总页数在服务端一次性算好，前端只负责展示，不再重复实现分页换算逻辑。
         this.totalPages = (int) Math.ceil((double) total / pageSize);
     }
 

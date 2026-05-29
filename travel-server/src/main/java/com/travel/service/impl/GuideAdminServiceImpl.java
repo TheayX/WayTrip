@@ -50,6 +50,9 @@ public class GuideAdminServiceImpl implements GuideAdminService {
     private final SpotMapper spotMapper;
     private final AdminMapper adminMapper;
 
+    /**
+     * 获取管理端攻略列表，支持筛选与排序。
+     */
     @Override
     public PageResult<AdminGuideListResponse> getAdminGuideList(AdminGuideListRequest request) {
         Page<Guide> page = new Page<>(request.getPage(), request.getPageSize());
@@ -91,6 +94,7 @@ public class GuideAdminServiceImpl implements GuideAdminService {
             .filter(id -> id != null)
             .distinct()
             .collect(Collectors.toList());
+
         // 列表页批量补齐创建管理员信息，避免表格逐行查询产生 N+1。
         java.util.Map<Long, Admin> adminMap = adminIds.isEmpty()
             ? java.util.Map.of()
@@ -102,6 +106,9 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    /**
+     * 获取管理端攻略详情，并回显关联景点与编辑态信息。
+     */
     @Override
     public AdminGuideRequest getAdminGuideDetail(Long guideId) {
         Guide guide = getExistingGuide(guideId);
@@ -139,6 +146,9 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         return response;
     }
 
+    /**
+     * 创建一篇新的后台攻略。
+     */
     @Override
     @Transactional
     public Long createGuide(AdminGuideRequest request, Long adminId) {
@@ -158,6 +168,9 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         return guide.getId();
     }
 
+    /**
+     * 更新指定攻略及其关联景点。
+     */
     @Override
     @Transactional
     public void updateGuide(Long guideId, AdminGuideRequest request) {
@@ -174,6 +187,9 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         log.info("攻略更新成功: guideId={}, title={}", guideId, request.getTitle());
     }
 
+    /**
+     * 手动更新攻略浏览量。
+     */
     @Override
     public void updateGuideViewCount(Long guideId, AdminGuideViewCountRequest request) {
         Guide guide = getExistingGuide(guideId);
@@ -184,6 +200,9 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         log.info("攻略浏览量已更新: guideId={}, viewCount={}", guideId, guide.getViewCount());
     }
 
+    /**
+     * 更新攻略发布状态。
+     */
     @Override
     public void updatePublishStatus(Long guideId, Boolean published) {
         Guide guide = getExistingGuide(guideId);
@@ -192,6 +211,9 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         log.info("攻略发布状态变更: guideId={}, published={}", guideId, published);
     }
 
+    /**
+     * 软删除指定攻略及其关联景点关系。
+     */
     @Override
     @Transactional
     public void deleteGuide(Long guideId) {
@@ -304,6 +326,8 @@ public class GuideAdminServiceImpl implements GuideAdminService {
         // 先去重再保存，避免后台拖拽选择时产生重复关联记录。
         List<Long> uniqueSpotIds = spotIds.stream().distinct().collect(Collectors.toList());
         validateSpotReferences(uniqueSpotIds);
+
+        // 已存在的关联走恢复和重排序，新关联再补插入，避免重复写多份记录。
         List<GuideSpotRelation> existingSpots = guideSpotRelationMapper.selectList(
             new LambdaQueryWrapper<GuideSpotRelation>()
                 .eq(GuideSpotRelation::getGuideId, guideId)

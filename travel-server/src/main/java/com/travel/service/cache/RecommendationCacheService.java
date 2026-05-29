@@ -37,6 +37,7 @@ public class RecommendationCacheService {
      */
     public RecommendationConfigBundleDTO loadConfig() {
         RecommendationConfigBundleDTO mergedConfig = buildDefaultConfig();
+        // 三段配置分别独立存储，读取时统一回并成完整配置快照，避免局部缺失导致整份配置失效。
         applyAlgorithmSection(
             mergedConfig,
             redisTemplate.opsForValue().get(RedisKeyManager.recommendationConfigAlgorithm())
@@ -83,6 +84,7 @@ public class RecommendationCacheService {
      * @param ttlMinutes 过期时间（分钟）
      */
     public void saveUserRecommendation(Long userId, UserRecommendationCacheDTO recommendationCache, long ttlMinutes) {
+        // 用户推荐缓存直接按用户维度覆盖，保证“当前线上基线”始终只有一份最新快照。
         redisTemplate.opsForValue().set(
             RedisKeyManager.recommendationUser(userId),
             recommendationCache,
@@ -105,6 +107,7 @@ public class RecommendationCacheService {
      */
     public void deleteAllUserRecommendations() {
         Set<String> keys = redisTemplate.keys("waytrip:recommendation:user:*");
+        // 这里只按统一前缀批量清理，避免推荐配置或相似度缓存被误删。
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.delete(keys);
         }
@@ -128,6 +131,7 @@ public class RecommendationCacheService {
      * @param ttlHours 过期时间（小时）
      */
     public void saveSimilarity(Long spotId, Map<Long, Double> similarities, long ttlHours) {
+        // 相似度缓存按单景点单键保存，便于离线任务逐个更新和在线按需读取。
         redisTemplate.opsForValue().set(
             RedisKeyManager.recommendationSimilarity(spotId),
             similarities,
@@ -151,6 +155,7 @@ public class RecommendationCacheService {
      * @param statusMap 状态信息映射
      */
     public void saveStatus(Map<String, Object> statusMap) {
+        // 状态摘要和推荐结果分离存储，避免后台状态查询误依赖具体推荐缓存结构。
         redisTemplate.opsForValue().set(RedisKeyManager.recommendationStatus(), statusMap);
     }
 
@@ -185,6 +190,7 @@ public class RecommendationCacheService {
      */
     public void deleteHomeHotSpots() {
         Set<String> keys = redisTemplate.keys("waytrip:home:hot:*");
+        // 热门列表可能按不同 limit 被缓存多份，因此这里按前缀整体失效。
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.delete(keys);
         }
@@ -228,6 +234,7 @@ public class RecommendationCacheService {
      */
     private RecommendationConfigBundleDTO buildDefaultConfig() {
         RecommendationConfigBundleDTO config = RecommendationConfigBundleDTO.defaultConfig();
+        // TTL 默认值优先从应用配置注入，保证 Redis 中尚未写入后台配置时系统也能正常启动。
         config.getCache().setUserRecTTLMinutes(defaultInt(appCacheProperties.getRecommendation().getUserRecTtlMinutes(), 60));
         config.getCache().setSimilarityTTLHours(defaultInt(appCacheProperties.getRecommendation().getSimilarityTtlHours(), 24));
         return config;
@@ -303,6 +310,7 @@ public class RecommendationCacheService {
         }
 
         try {
+            // 兼容 Redis 中历史 Map 结构，避免配置 DTO 演进后旧缓存直接失效。
             Map<String, Object> map = (Map<String, Object>) cached;
             RecommendationAlgorithmConfigDTO config = new RecommendationAlgorithmConfigDTO();
             if (map.containsKey("weightView")) config.setWeightView(toDouble(map.get("weightView")));

@@ -16,6 +16,9 @@ public final class AdminSortSupport {
     private AdminSortSupport() {
     }
 
+    /**
+     * 按白名单字段为管理端列表应用排序规则。
+     */
     public static <T> void applySort(
         LambdaQueryWrapper<T> wrapper,
         String sortBy,
@@ -25,6 +28,7 @@ public final class AdminSortSupport {
     ) {
         SFunction<T, ?> sortField = StringUtils.hasText(sortBy) ? sortableFields.get(sortBy) : null;
         if (sortField == null) {
+            // 非白名单字段统一回退默认排序，避免前端误传参数导致查询语义漂移。
             defaultOrder.run();
             return;
         }

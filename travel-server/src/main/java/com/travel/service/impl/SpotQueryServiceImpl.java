@@ -57,6 +57,9 @@ public class SpotQueryServiceImpl implements SpotQueryService {
     private final SpotResponseAssembler spotResponseAssembler;
     private final SpotTreeSupport spotTreeSupport;
 
+    /**
+     * 获取景点列表，支持地区、分类和排序筛选。
+     */
     @Override
     public PageResult<SpotListResponse> getSpotList(SpotListRequest request) {
         Page<Spot> page = new Page<>(request.getPage(), request.getPageSize());
@@ -65,6 +68,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         wrapper.eq(Spot::getIsDeleted, 0);
 
         if (request.getRegionId() != null) {
+            // 地区筛选默认包含子节点，只有查不到树节点时才退回单点过滤。
             Set<Long> regionIds = spotTreeSupport.findRegionAndChildrenIds(request.getRegionId());
             if (regionIds.isEmpty() || regionIds.size() == 1) {
                 wrapper.eq(Spot::getRegionId, request.getRegionId());
@@ -73,6 +77,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
             }
         }
         if (request.getCategoryId() != null) {
+            // 分类同样按树结构展开，避免前端必须手动拼子分类条件。
             Set<Long> categoryIds = spotTreeSupport.findCategoryAndChildrenIds(request.getCategoryId());
             if (categoryIds.isEmpty()) {
                 wrapper.eq(Spot::getCategoryId, request.getCategoryId());
@@ -99,6 +104,9 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    /**
+     * 按关键词搜索已发布景点。
+     */
     @Override
     public PageResult<SpotListResponse> searchSpots(String keyword, Integer page, Integer pageSize) {
         Page<Spot> pageObj = new Page<>(page, pageSize);
@@ -109,6 +117,9 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         return PageResult.of(list, result.getTotal(), page, pageSize);
     }
 
+    /**
+     * 获取用户最近浏览过的景点历史，并按景点去重。
+     */
     @Override
     public PageResult<SpotViewHistoryResponse> getViewHistory(Long userId, Integer page, Integer pageSize) {
         if (userId == null) {
@@ -122,6 +133,7 @@ public class SpotQueryServiceImpl implements SpotQueryService {
                 .orderByDesc(UserSpotView::getId)
         );
 
+        // 浏览历史只保留每个景点最近一次访问记录，避免高频重复浏览淹没列表。
         Map<Long, UserSpotView> latestBySpot = new LinkedHashMap<>();
         for (UserSpotView view : views) {
             if (view.getSpotId() == null || latestBySpot.containsKey(view.getSpotId())) {
@@ -162,6 +174,9 @@ public class SpotQueryServiceImpl implements SpotQueryService {
         return PageResult.of(new ArrayList<>(allItems.subList(fromIndex, toIndex)), total, safePage, safePageSize);
     }
 
+    /**
+     * 获取景点详情，并补齐图片、互动状态和最新评论。
+     */
     @Override
     public SpotDetailResponse getSpotDetail(Long spotId, Long userId) {
         Spot spot = spotMapper.selectById(spotId);
@@ -216,6 +231,9 @@ public class SpotQueryServiceImpl implements SpotQueryService {
             .build();
     }
 
+    /**
+     * 获取景点筛选面板所需的地区与分类树数据。
+     */
     @Override
     public SpotFilterResponse getFilters() {
         return spotTreeSupport.getFilters();

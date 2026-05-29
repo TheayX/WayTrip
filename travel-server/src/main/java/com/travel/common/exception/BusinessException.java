@@ -48,4 +48,12 @@ public class BusinessException extends RuntimeException {
         this.code = resultCode.getCode();
         this.message = message;
     }
+
+    /**
+     * 保持显式 message 字段，便于统一错误响应直接读取业务消息而不依赖父类序列化行为。
+     */
+    @Override
+    public String getMessage() {
+        return message;
+    }
 }

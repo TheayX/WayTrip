@@ -42,66 +42,105 @@ public class SpotServiceImpl implements SpotService {
         return spotQueryService.getSpotList(request);
     }
 
+    /**
+     * 转发景点关键词搜索。
+     */
     @Override
     public PageResult<SpotListResponse> searchSpots(String keyword, Integer page, Integer pageSize) {
         return spotQueryService.searchSpots(keyword, page, pageSize);
     }
 
+    /**
+     * 转发用户浏览历史查询。
+     */
     @Override
     public PageResult<SpotViewHistoryResponse> getViewHistory(Long userId, Integer page, Integer pageSize) {
         return spotQueryService.getViewHistory(userId, page, pageSize);
     }
 
+    /**
+     * 转发景点详情查询。
+     */
     @Override
     public SpotDetailResponse getSpotDetail(Long spotId, Long userId) {
         return spotQueryService.getSpotDetail(spotId, userId);
     }
 
+    /**
+     * 转发景点浏览行为记录。
+     */
     @Override
     public void recordView(Long spotId, Long userId, String source, Integer duration) {
         spotBehaviorService.recordView(spotId, userId, source, duration);
     }
 
+    /**
+     * 转发景点筛选项查询。
+     */
     @Override
     public SpotFilterResponse getFilters() {
         return spotQueryService.getFilters();
     }
 
+    /**
+     * 转发管理端景点列表查询。
+     */
     @Override
     public PageResult<AdminSpotListResponse> getAdminSpotList(AdminSpotListRequest request) {
         return spotAdminService.getAdminSpotList(request);
     }
 
+    /**
+     * 转发管理端景点详情查询。
+     */
     @Override
     public AdminSpotDetailResponse getAdminSpotDetail(Long spotId) {
         return spotAdminService.getAdminSpotDetail(spotId);
     }
 
+    /**
+     * 转发后台景点创建操作。
+     */
     @Override
     public Long createSpot(AdminSpotUpsertRequest request) {
         return spotAdminService.createSpot(request);
     }
 
+    /**
+     * 转发后台景点更新操作。
+     */
     @Override
     public void updateSpot(Long spotId, AdminSpotUpsertRequest request) {
         spotAdminService.updateSpot(spotId, request);
     }
 
+    /**
+     * 转发景点发布状态更新操作。
+     */
     @Override
     public void updatePublishStatus(Long spotId, Boolean published) {
         spotAdminService.updatePublishStatus(spotId, published);
     }
 
+    /**
+     * 转发后台景点删除操作。
+     */
     @Override
     public void deleteSpot(Long spotId) {
         spotAdminService.deleteSpot(spotId);
     }
 
+    /**
+     * 转发单个景点热度刷新。
+     */
     @Override
     public void refreshSpotHeat(Long spotId) {
         spotHeatService.refreshSpotHeat(spotId);
     }
 
+    /**
+     * 转发全量景点热度刷新。
+     */
     @Override
     public void refreshAllSpotHeat() {
         spotHeatService.refreshAllSpotHeat();

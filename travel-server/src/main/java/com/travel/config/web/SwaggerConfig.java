@@ -52,6 +52,7 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
                 .group("用户端接口")
                 .pathsToMatch("/api/v1/**")
+                // 管理端文档单独分组，避免前后台接口混在同一组里影响查找效率。
                 .pathsToExclude("/api/v1/admin/**")
                 .build();
     }

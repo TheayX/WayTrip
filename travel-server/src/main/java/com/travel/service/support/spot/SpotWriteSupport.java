@@ -106,6 +106,7 @@ public class SpotWriteSupport {
         if (images == null || images.isEmpty()) {
             return;
         }
+        // 图片排序直接按提交顺序固化，后续详情回显和后台编辑都复用这套顺序。
         for (int i = 0; i < images.size(); i++) {
             SpotImage image = new SpotImage();
             image.setSpotId(spotId);

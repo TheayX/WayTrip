@@ -28,12 +28,18 @@ public class HomeController {
     private final RecommendationService recommendationService;
     private final SpotBannerService spotBannerService;
 
+    /**
+     * 获取首页轮播图列表。
+     */
     @Operation(summary = "获取轮播图")
     @GetMapping("/banners")
     public ApiResponse<BannerResponse> getBanners() {
         return ApiResponse.success(spotBannerService.getBanners());
     }
 
+    /**
+     * 获取首页热门景点列表。
+     */
     @Operation(summary = "获取热门景点")
     @GetMapping("/hot")
     public ApiResponse<HotSpotResponse> getHotSpots(
@@ -41,6 +47,9 @@ public class HomeController {
         return ApiResponse.success(recommendationService.getHotSpots(limit));
     }
 
+    /**
+     * 获取首页最近浏览景点列表。
+     */
     @Operation(summary = "获取最近都在看")
     @GetMapping("/recent-views")
     public ApiResponse<RecentViewedSpotResponse> getRecentViewedSpots(
@@ -49,6 +58,9 @@ public class HomeController {
         return ApiResponse.success(recommendationService.getRecentViewedSpots(days, limit));
     }
 
+    /**
+     * 获取附近景点列表。
+     */
     @Operation(summary = "获取附近景点")
     @GetMapping("/nearby")
     public ApiResponse<NearbySpotResponse> getNearbySpots(

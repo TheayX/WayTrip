@@ -46,6 +46,9 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     // 收藏操作与状态判断
 
+    /**
+     * 添加景点收藏，若历史记录存在则直接恢复。
+     */
     @Override
     public void addFavorite(Long userId, Long spotId) {
         getActiveUser(userId);
@@ -79,6 +82,9 @@ public class FavoriteServiceImpl implements FavoriteService {
         log.info("用户添加收藏: userId={}, spotId={}", userId, spotId);
     }
 
+    /**
+     * 取消景点收藏。
+     */
     @Override
     public void removeFavorite(Long userId, Long spotId) {
         getActiveUser(userId);
@@ -94,6 +100,9 @@ public class FavoriteServiceImpl implements FavoriteService {
         log.info("用户取消收藏: userId={}, spotId={}", userId, spotId);
     }
 
+    /**
+     * 判断当前景点是否已被用户收藏。
+     */
     @Override
     public boolean isFavorite(Long userId, Long spotId) {
         getActiveUser(userId);
@@ -107,6 +116,9 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     // 收藏列表查询与转换
 
+    /**
+     * 获取用户收藏列表，并补齐景点展示字段。
+     */
     @Override
     public PageResult<SpotListResponse> getFavoriteList(Long userId, Integer page, Integer pageSize) {
         getActiveUser(userId);
@@ -126,6 +138,7 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .map(UserSpotFavorite::getSpotId)
                 .collect(Collectors.toList());
 
+        // 收藏记录允许保留历史景点引用，展示时再统一降级为可读占位信息。
         Map<Long, Spot> spotMap = spotMapper.selectBatchIds(spotIds).stream()
             .collect(Collectors.toMap(Spot::getId, spot -> spot));
 

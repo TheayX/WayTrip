@@ -43,6 +43,9 @@ public class SpotHeatServiceImpl implements SpotHeatService {
     private final OrderMapper orderMapper;
     private final RecommendationService recommendationService;
 
+    /**
+     * 刷新单个景点的热度分。
+     */
     @Override
     @Transactional
     public void refreshSpotHeat(Long spotId) {
@@ -51,6 +54,9 @@ public class SpotHeatServiceImpl implements SpotHeatService {
         recommendationService.invalidateGlobalRecommendationCaches();
     }
 
+    /**
+     * 批量刷新所有有效景点的热度分。
+     */
     @Override
     @Transactional
     public void refreshAllSpotHeat() {
@@ -67,6 +73,9 @@ public class SpotHeatServiceImpl implements SpotHeatService {
         recommendationService.invalidateGlobalRecommendationCaches();
     }
 
+    /**
+     * 计算并回写景点热度总分。
+     */
     private void applyHeatScore(Spot spot) {
         RecommendationConfigBundleDTO config = recommendationService.getConfig();
         int totalHeatScore = SpotHeatLevelConstants.toBaseScore(spot.getHeatLevel())

@@ -65,6 +65,7 @@ public class UploadPathResolver {
             return fallback;
         }
 
+        // 路径 slug 统一转成简短拼音，避免中文目录、空白字符和特殊符号影响文件系统兼容性。
         String pinyin = PinyinUtil.getPinyin(source.trim(), "");
         String sanitized = pinyin.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
         if (!StringUtils.hasText(sanitized)) {

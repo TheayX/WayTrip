@@ -53,10 +53,6 @@ public class RecommendationScoreSupport {
 
     /**
      * 汇总用户在各类行为上的景点交互权重。
-     *
-     * @param userId 用户 ID
-     * @param config 推荐算法配置
-     * @return 景点交互权重
      */
     public Map<Long, Double> buildUserInteractionWeights(Long userId, RecommendationAlgorithmConfigDTO config) {
         Map<Long, Double> weights = new HashMap<>();
@@ -65,6 +61,7 @@ public class RecommendationScoreSupport {
         Map<Long, Double> reviewWeights = new HashMap<>();
         Map<Long, Double> orderWeights = new HashMap<>();
 
+        // 各类行为先独立收敛，再统一合并，便于后续分别调参和排查单类行为的影响。
         userSpotViewMapper.selectList(
             new LambdaQueryWrapper<UserSpotView>()
                 .eq(UserSpotView::getUserId, userId)
@@ -111,10 +108,6 @@ public class RecommendationScoreSupport {
 
     /**
      * 计算单次浏览行为的权重。
-     *
-     * @param view 浏览记录
-     * @param config 推荐算法配置
-     * @return 浏览权重
      */
     public double calculateViewWeight(UserSpotView view, RecommendationAlgorithmConfigDTO config) {
         double baseWeight = config.getWeightView() == null ? 0.5 : config.getWeightView();
@@ -123,6 +116,9 @@ public class RecommendationScoreSupport {
             * getViewDurationFactor(view.getViewDuration(), config);
     }
 
+    /**
+     * 将单个景点权重累加到总交互权重中。
+     */
     public void mergeInteractionWeight(Map<Long, Double> weights, Long spotId, Double weight) {
         if (weights == null || spotId == null || weight == null || weight <= 0) {
             return;
@@ -130,6 +126,9 @@ public class RecommendationScoreSupport {
         weights.merge(spotId, weight, Double::sum);
     }
 
+    /**
+     * 将单类行为权重按最大值并入行为矩阵。
+     */
     public void mergeBehaviorWeight(Map<Long, Double> weights, Long spotId, Double weight) {
         if (weights == null || spotId == null || weight == null || weight <= 0) {
             return;
@@ -137,6 +136,9 @@ public class RecommendationScoreSupport {
         weights.merge(spotId, weight, Math::max);
     }
 
+    /**
+     * 将一整类行为权重合并到总交互权重中。
+     */
     public void mergeInteractionWeight(Map<Long, Double> targetWeights, Map<Long, Double> behaviorWeights) {
         if (targetWeights == null || behaviorWeights == null || behaviorWeights.isEmpty()) {
             return;
@@ -193,6 +195,9 @@ public class RecommendationScoreSupport {
         return rerankedScores;
     }
 
+    /**
+     * 从候选结果中过滤用户已经发生过关键交互的景点。
+     */
     public List<Long> filterInteractedSpots(Long userId, List<Long> spotIds) {
         if (spotIds == null || spotIds.isEmpty()) {
             return spotIds;
@@ -228,6 +233,9 @@ public class RecommendationScoreSupport {
             .collect(Collectors.toList());
     }
 
+    /**
+     * 按给定景点顺序重建分数映射。
+     */
     public Map<Long, Double> orderScoresByIds(List<Long> orderedIds, Map<Long, Double> scoreMap) {
         if (orderedIds == null || orderedIds.isEmpty() || scoreMap == null || scoreMap.isEmpty()) {
             return Collections.emptyMap();
@@ -242,6 +250,9 @@ public class RecommendationScoreSupport {
         return orderedScores;
     }
 
+    /**
+     * 将缓存中的原始分数字典转换成强类型结构。
+     */
     public Map<Long, Double> castScoreMap(Map<?, ?> rawMap) {
         // Redis 取出的结构类型不稳定，这里统一做一次宽松转换。
         Map<Long, Double> scoreMap = new LinkedHashMap<>();
@@ -255,6 +266,9 @@ public class RecommendationScoreSupport {
         return scoreMap;
     }
 
+    /**
+     * 将任意缓存键值转换为 Long。
+     */
     public Long castToLong(Object value) {
         if (value instanceof Long longValue) {
             return longValue;

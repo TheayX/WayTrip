@@ -24,6 +24,9 @@ public class UploadController {
 
     private final FileUploadService fileUploadService;
 
+    /**
+     * 上传当前用户头像。
+     */
     @Operation(summary = "上传头像")
     @PostMapping("/avatar")
     public ApiResponse<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) {

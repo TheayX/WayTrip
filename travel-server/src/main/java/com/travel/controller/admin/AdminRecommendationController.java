@@ -26,6 +26,9 @@ public class AdminRecommendationController {
 
     private final RecommendationService recommendationService;
 
+    /**
+     * 手动触发相似度矩阵更新。
+     */
     @Operation(summary = "手动更新物品相似度矩阵")
     @PostMapping("/update-matrix")
     public ApiResponse<Void> updateSimilarityMatrix() {
@@ -35,12 +38,18 @@ public class AdminRecommendationController {
         return ApiResponse.success(null);
     }
 
+    /**
+     * 获取推荐算法配置。
+     */
     @Operation(summary = "获取推荐算法配置")
     @GetMapping("/config")
     public ApiResponse<RecommendationConfigBundleDTO> getConfig() {
         return ApiResponse.success(recommendationService.getConfig());
     }
 
+    /**
+     * 更新推荐算法配置。
+     */
     @Operation(summary = "更新推荐算法配置")
     @PutMapping("/config")
     public ApiResponse<Void> updateConfig(@RequestBody RecommendationConfigBundleDTO config) {
@@ -49,6 +58,9 @@ public class AdminRecommendationController {
         return ApiResponse.success(null);
     }
 
+    /**
+     * 获取推荐引擎运行状态。
+     */
     @Operation(summary = "获取推荐引擎运行状态")
     @GetMapping("/status")
     public ApiResponse<RecommendationStatusDTO> getStatus() {

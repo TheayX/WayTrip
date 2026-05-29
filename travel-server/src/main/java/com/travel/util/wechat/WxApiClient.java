@@ -49,6 +49,7 @@ public class WxApiClient {
                 return null;
             }
             
+            // 微信接口返回的是通用 JSON 结构，这里统一先解析错误码，再安全读取 openid。
             JsonNode jsonNode = objectMapper.readTree(response);
             
             // 检查错误码

@@ -44,6 +44,9 @@ public class GuideQueryServiceImpl implements GuideQueryService {
     private final GuideSpotRelationMapper guideSpotRelationMapper;
     private final SpotMapper spotMapper;
 
+    /**
+     * 获取用户端攻略列表，支持关键词、分类与排序筛选。
+     */
     @Override
     public PageResult<GuideListResponse> getGuideList(GuideListRequest request) {
         Page<Guide> page = new Page<>(request.getPage(), request.getPageSize());
@@ -79,6 +82,9 @@ public class GuideQueryServiceImpl implements GuideQueryService {
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    /**
+     * 获取按预算聚合后的攻略列表。
+     */
     @Override
     public PageResult<GuideBudgetListResponse> getBudgetGuideList(GuideBudgetListRequest request) {
         Page<GuideBudgetQueryResult> page = new Page<>(request.getPage(), request.getPageSize());
@@ -94,6 +100,9 @@ public class GuideQueryServiceImpl implements GuideQueryService {
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    /**
+     * 获取用户端攻略详情，并同步累加浏览量。
+     */
     @Override
     public GuideDetailResponse getGuideDetail(Long guideId) {
         Guide guide = getPublishedGuide(guideId);
@@ -120,6 +129,9 @@ public class GuideQueryServiceImpl implements GuideQueryService {
             .build();
     }
 
+    /**
+     * 获取已发布攻略的去重分类列表。
+     */
     @Override
     public List<String> getCategories() {
         return guideMapper.selectDistinctCategories();

@@ -47,6 +47,9 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
     private final UserSpotViewMapper userSpotViewMapper;
 
     // 用户偏好查询
+    /**
+     * 获取管理端用户偏好列表。
+     */
     @Override
     public PageResult<AdminUserPreferenceListItem> getPreferenceList(AdminUserPreferenceListRequest request) {
         LambdaQueryWrapper<UserPreference> preferenceWrapper = new LambdaQueryWrapper<>();
@@ -139,6 +142,9 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
     }
 
     // 用户收藏查询与治理
+    /**
+     * 获取管理端用户收藏列表。
+     */
     @Override
     public PageResult<AdminUserFavoriteListItem> getFavoriteList(AdminUserFavoriteListRequest request) {
         LambdaQueryWrapper<UserSpotFavorite> wrapper = new LambdaQueryWrapper<>();
@@ -183,6 +189,9 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    /**
+     * 删除指定收藏记录。
+     */
     @Override
     @Transactional
     public void deleteFavorite(Long favoriteId) {
@@ -196,6 +205,9 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
     }
 
     // 用户浏览查询与治理
+    /**
+     * 获取管理端用户浏览记录列表。
+     */
     @Override
     public PageResult<AdminUserViewListItem> getViewList(AdminUserViewListRequest request) {
         LambdaQueryWrapper<UserSpotView> wrapper = new LambdaQueryWrapper<>();
@@ -248,6 +260,9 @@ public class AdminUserInsightServiceImpl implements AdminUserInsightService {
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    /**
+     * 删除指定浏览记录。
+     */
     @Override
     @Transactional
     public void deleteView(Long viewId) {

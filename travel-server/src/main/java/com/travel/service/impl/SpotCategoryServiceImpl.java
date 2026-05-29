@@ -30,6 +30,9 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
 
     // 管理端分类查询与维护
 
+    /**
+     * 获取管理端分类列表，可按父节点过滤。
+     */
     @Override
     public List<AdminCategoryResponse> getAdminCategories(Long parentId) {
         LambdaQueryWrapper<SpotCategory> wrapper = new LambdaQueryWrapper<>();
@@ -48,6 +51,9 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 创建新的景点分类节点。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createCategory(AdminCategoryRequest request) {
@@ -61,6 +67,9 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
         save(category);
     }
 
+    /**
+     * 更新指定分类节点及其排序。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCategory(Long id, AdminCategoryRequest request) {
@@ -74,6 +83,9 @@ public class SpotCategoryServiceImpl extends ServiceImpl<SpotCategoryMapper, Spo
         updateById(category);
     }
 
+    /**
+     * 删除指定分类节点。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteCategory(Long id) {

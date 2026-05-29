@@ -24,10 +24,10 @@ public class AppCacheProperties {
      */
     private Home home = new Home();
 
-    @Data
     /**
      * 推荐缓存细分配置。
      */
+    @Data
     public static class Recommendation {
 
         /**
@@ -41,10 +41,10 @@ public class AppCacheProperties {
         private Integer similarityTtlHours = 24;
     }
 
-    @Data
     /**
      * 首页缓存细分配置。
      */
+    @Data
     public static class Home {
 
         /**

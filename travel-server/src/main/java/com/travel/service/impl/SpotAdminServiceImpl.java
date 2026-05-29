@@ -66,6 +66,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
     private final SpotWriteSupport spotWriteSupport;
     private final RecommendationService recommendationService;
 
+    /**
+     * 获取管理端景点列表，支持筛选与排序。
+     */
     @Override
     public PageResult<AdminSpotListResponse> getAdminSpotList(AdminSpotListRequest request) {
         Page<Spot> page = new Page<>(request.getPage(), request.getPageSize());
@@ -115,6 +118,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         return PageResult.of(list, result.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    /**
+     * 获取管理端景点详情及运营统计字段。
+     */
     @Override
     public AdminSpotDetailResponse getAdminSpotDetail(Long spotId) {
         Spot spot = getExistingSpot(spotId);
@@ -164,6 +170,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         return response;
     }
 
+    /**
+     * 创建新的景点及其图片数据。
+     */
     @Override
     @Transactional
     public Long createSpot(AdminSpotUpsertRequest request) {
@@ -177,6 +186,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         return spot.getId();
     }
 
+    /**
+     * 更新指定景点及其图片数据。
+     */
     @Override
     @Transactional
     public void updateSpot(Long spotId, AdminSpotUpsertRequest request) {
@@ -194,6 +206,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         log.info("景点更新成功: spotId={}, name={}", spotId, request.getName());
     }
 
+    /**
+     * 更新景点发布状态。
+     */
     @Override
     public void updatePublishStatus(Long spotId, Boolean published) {
         Spot spot = getExistingSpot(spotId);
@@ -203,6 +218,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
         log.info("景点发布状态变更: spotId={}, published={}", spotId, published);
     }
 
+    /**
+     * 软删除景点，并清理弱引用关联资源。
+     */
     @Override
     @Transactional
     public void deleteSpot(Long spotId) {
@@ -294,6 +312,9 @@ public class SpotAdminServiceImpl implements SpotAdminService {
             });
     }
 
+    /**
+     * 轮播图排序缺失时统一回退为 1，避免排序整理逻辑出现空值分支。
+     */
     private int safeBannerSortOrder(Integer sortOrder) {
         return sortOrder == null ? 1 : sortOrder;
     }

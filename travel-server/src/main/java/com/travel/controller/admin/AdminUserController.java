@@ -28,18 +28,27 @@ public class AdminUserController {
     private final UserProfileService userProfileService;
     private final UserAccountService userAccountService;
 
+    /**
+     * 获取管理端用户列表。
+     */
     @Operation(summary = "获取用户列表")
     @GetMapping
     public ApiResponse<AdminUserListResponse> getUsers(AdminUserListRequest request) {
         return ApiResponse.success(userProfileService.getAdminUsers(request));
     }
 
+    /**
+     * 获取管理端用户详情。
+     */
     @Operation(summary = "获取用户详情")
     @GetMapping("/{id}")
     public ApiResponse<AdminUserDetailResponse> getUserDetail(@PathVariable("id") Long id) {
         return ApiResponse.success(userProfileService.getAdminUserDetail(id));
     }
 
+    /**
+     * 重置用户密码。
+     */
     @Operation(summary = "重置用户密码")
     @PutMapping("/{id}/password")
     public ApiResponse<Void> resetUserPassword(@PathVariable("id") Long id,
@@ -48,6 +57,9 @@ public class AdminUserController {
         return ApiResponse.success();
     }
 
+    /**
+     * 停用用户账号。
+     */
     @Operation(summary = "停用用户")
     @DeleteMapping("/{id}/account")
     public ApiResponse<Void> suspendUserAccount(@PathVariable("id") Long id) {
@@ -55,6 +67,9 @@ public class AdminUserController {
         return ApiResponse.success();
     }
 
+    /**
+     * 恢复用户账号。
+     */
     @Operation(summary = "恢复用户")
     @PutMapping("/{id}/account/restore")
     public ApiResponse<Void> restoreUserAccount(@PathVariable("id") Long id) {

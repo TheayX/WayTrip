@@ -105,6 +105,7 @@ public class SpotTreeSupport {
             .map(SpotFilterResponse.FilterItem::getParentId)
             .filter(parentId -> parentId != null && parentId > 0)
             .collect(Collectors.toSet());
+        // regionLeaves 单独保留给用户端“只看末级地区”的筛选面板使用。
         List<SpotFilterResponse.FilterItem> regionLeaves = regionItems.stream()
             .filter(item -> !regionParentIds.contains(item.getId()))
             .collect(Collectors.toList());

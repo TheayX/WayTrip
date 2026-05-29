@@ -47,6 +47,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     // 账户资料与安全设置
 
+    /**
+     * 获取当前登录用户的账户资料与偏好信息。
+     */
     @Override
     public UserInfoResponse getUserInfo(Long userId) {
         User user = getActiveUser(userId);
@@ -75,6 +78,9 @@ public class UserAccountServiceImpl implements UserAccountService {
                 .build();
     }
 
+    /**
+     * 更新当前登录用户的基础资料。
+     */
     @Override
     public void updateUserInfo(Long userId, UpdateUserInfoRequest request) {
         User user = getActiveUser(userId);
@@ -91,6 +97,9 @@ public class UserAccountServiceImpl implements UserAccountService {
         userMapper.updateById(user);
     }
 
+    /**
+     * 修改当前登录用户的密码。
+     */
     @Override
     public void changePassword(Long userId, ChangePasswordRequest request) {
         User user = getActiveUser(userId);
@@ -110,6 +119,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     // 账户状态与偏好维护
 
+    /**
+     * 注销当前登录用户账号。
+     */
     @Override
     @Transactional
     public void deactivateCurrentAccount(Long userId) {
@@ -117,6 +129,9 @@ public class UserAccountServiceImpl implements UserAccountService {
         applyAccountSuspension(user);
     }
 
+    /**
+     * 管理员停用指定用户账号。
+     */
     @Override
     @Transactional
     public void suspendUserAccountByAdmin(Long userId) {
@@ -127,6 +142,9 @@ public class UserAccountServiceImpl implements UserAccountService {
         applyAccountSuspension(user);
     }
 
+    /**
+     * 管理员恢复指定用户账号。
+     */
     @Override
     @Transactional
     public void restoreUserAccountByAdmin(Long userId) {
@@ -137,6 +155,9 @@ public class UserAccountServiceImpl implements UserAccountService {
         applyAccountRestore(user);
     }
 
+    /**
+     * 用户重新登录时自动恢复被停用的账号。
+     */
     @Override
     @Transactional
     public void restoreUserAccountAfterLogin(Long userId) {
@@ -147,6 +168,9 @@ public class UserAccountServiceImpl implements UserAccountService {
         applyAccountRestore(user);
     }
 
+    /**
+     * 更新用户偏好分类集合。
+     */
     @Override
     @Transactional
     public void setPreferences(Long userId, List<Long> categoryIds) {

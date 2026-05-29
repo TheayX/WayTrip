@@ -23,12 +23,18 @@ public class AdminBannerController {
 
     private final SpotBannerService spotBannerService;
 
+    /**
+     * 获取管理端轮播图列表。
+     */
     @Operation(summary = "获取轮播图列表")
     @GetMapping
     public ApiResponse<AdminBannerListResponse> getBanners() {
         return ApiResponse.success(spotBannerService.getAdminBanners());
     }
 
+    /**
+     * 创建轮播图。
+     */
     @Operation(summary = "创建轮播图")
     @PostMapping
     public ApiResponse<Void> createBanner(@Valid @RequestBody AdminBannerRequest request) {
@@ -36,6 +42,9 @@ public class AdminBannerController {
         return ApiResponse.success();
     }
 
+    /**
+     * 更新轮播图配置。
+     */
     @Operation(summary = "更新轮播图")
     @PutMapping("/{id}")
     public ApiResponse<Void> updateBanner(
@@ -45,6 +54,9 @@ public class AdminBannerController {
         return ApiResponse.success();
     }
 
+    /**
+     * 删除轮播图。
+     */
     @Operation(summary = "删除轮播图")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteBanner(@PathVariable("id") Long id) {
@@ -52,6 +64,9 @@ public class AdminBannerController {
         return ApiResponse.success();
     }
 
+    /**
+     * 切换轮播图启用状态。
+     */
     @Operation(summary = "切换启用状态")
     @PostMapping("/{id}/toggle")
     public ApiResponse<Void> toggleEnabled(@PathVariable("id") Long id) {

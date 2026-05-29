@@ -40,51 +40,81 @@ public class GuideServiceImpl implements GuideService {
         return guideQueryService.getGuideList(request);
     }
 
+    /**
+     * 转发预算型攻略列表查询。
+     */
     @Override
     public PageResult<GuideBudgetListResponse> getBudgetGuideList(GuideBudgetListRequest request) {
         return guideQueryService.getBudgetGuideList(request);
     }
 
+    /**
+     * 转发用户端攻略详情查询。
+     */
     @Override
     public GuideDetailResponse getGuideDetail(Long guideId) {
         return guideQueryService.getGuideDetail(guideId);
     }
 
+    /**
+     * 转发攻略分类列表查询。
+     */
     @Override
     public List<String> getCategories() {
         return guideQueryService.getCategories();
     }
 
+    /**
+     * 转发管理端攻略列表查询。
+     */
     @Override
     public PageResult<AdminGuideListResponse> getAdminGuideList(AdminGuideListRequest request) {
         return guideAdminService.getAdminGuideList(request);
     }
 
+    /**
+     * 转发管理端攻略详情查询。
+     */
     @Override
     public AdminGuideRequest getAdminGuideDetail(Long guideId) {
         return guideAdminService.getAdminGuideDetail(guideId);
     }
 
+    /**
+     * 转发后台攻略创建操作。
+     */
     @Override
     public Long createGuide(AdminGuideRequest request, Long adminId) {
         return guideAdminService.createGuide(request, adminId);
     }
 
+    /**
+     * 转发后台攻略更新操作。
+     */
     @Override
     public void updateGuide(Long guideId, AdminGuideRequest request) {
         guideAdminService.updateGuide(guideId, request);
     }
 
+    /**
+     * 转发后台攻略浏览量更新操作。
+     */
     @Override
     public void updateGuideViewCount(Long guideId, AdminGuideViewCountRequest request) {
         guideAdminService.updateGuideViewCount(guideId, request);
     }
 
+    /**
+     * 转发后台攻略发布状态更新操作。
+     */
     @Override
     public void updatePublishStatus(Long guideId, Boolean published) {
         guideAdminService.updatePublishStatus(guideId, published);
     }
 
+    /**
+     * 转发后台攻略删除操作。
+     */
     @Override
     public void deleteGuide(Long guideId) {
         guideAdminService.deleteGuide(guideId);

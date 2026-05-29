@@ -30,12 +30,18 @@ public class AuthController {
 
     private final UserAuthService userAuthService;
 
+    /**
+     * 处理微信登录请求。
+     */
     @Operation(summary = "微信登录")
     @PostMapping("/wx-login")
     public ApiResponse<WxLoginResponse> wxLogin(@Valid @RequestBody WxLoginRequest request) {
         return ApiResponse.success(userAuthService.wxLogin(request.getCode()));
     }
 
+    /**
+     * 为微信用户绑定手机号并完成登录。
+     */
     @Operation(summary = "小程序端绑定手机号（新用户注册或匹配已有账户合并openid）")
     @PostMapping("/wx-bind-phone")
     public ApiResponse<LoginResponse> wxBindPhone(@Valid @RequestBody WxBindPhoneRequest request) {
@@ -58,12 +64,18 @@ public class AuthController {
         return ApiResponse.success(data);
     }
 
+    /**
+     * 处理 Web 端注册请求。
+     */
     @Operation(summary = "Web端注册")
     @PostMapping("/web-register")
     public ApiResponse<LoginResponse> webRegister(@Valid @RequestBody WebRegisterRequest request) {
         return ApiResponse.success(userAuthService.webRegister(request));
     }
 
+    /**
+     * 预校验 Web 注册请求。
+     */
     @Operation(summary = "Web端第一步校验手机号是否可注册")
     @PostMapping("/web-prepare-register")
     public ApiResponse<Void> prepareWebRegister(@Valid @RequestBody WebRegisterRequest request) {
@@ -71,6 +83,9 @@ public class AuthController {
         return ApiResponse.success(null);
     }
 
+    /**
+     * 处理 Web 端登录请求。
+     */
     @Operation(summary = "Web端登录")
     @PostMapping("/web-login")
     public ApiResponse<LoginResponse> webLogin(@Valid @RequestBody WebLoginRequest request) {

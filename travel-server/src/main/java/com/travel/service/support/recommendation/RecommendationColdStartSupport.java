@@ -32,6 +32,9 @@ public class RecommendationColdStartSupport {
     private final SpotMapper spotMapper;
     private final UserPreferenceMapper userPreferenceMapper;
 
+    /**
+     * 按偏好优先、热门兜底的顺序生成冷启动推荐结果。
+     */
     public RecommendationResponse handleColdStart(
         Long userId,
         Integer limit,
@@ -113,6 +116,9 @@ public class RecommendationColdStartSupport {
         return hotResponseBuilder.apply(hotSpotList);
     }
 
+    /**
+     * 从热门池中排除指定景点后补齐候选。
+     */
     public List<Long> getHotFallbackSpotIds(Collection<Long> excludedSpotIds, int limit) {
         if (limit <= 0) {
             return Collections.emptyList();
@@ -129,6 +135,9 @@ public class RecommendationColdStartSupport {
         return spotMapper.selectList(queryWrapper).stream().map(Spot::getId).collect(Collectors.toList());
     }
 
+    /**
+     * 读取用户偏好对应的分类 ID 列表。
+     */
     public List<Long> getUserPreferenceCategoryIds(Long userId) {
         List<UserPreference> preferences = userPreferenceMapper.selectList(
             new LambdaQueryWrapper<UserPreference>()
@@ -147,6 +156,9 @@ public class RecommendationColdStartSupport {
             .collect(Collectors.toList());
     }
 
+    /**
+     * 将偏好标签解析成分类 ID。
+     */
     public Long parsePreferenceCategoryId(String tag) {
         if (tag == null || tag.isBlank()) {
             return null;

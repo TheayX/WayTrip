@@ -28,6 +28,9 @@ public class SpotBehaviorServiceImpl implements SpotBehaviorService {
     private final SpotMapper spotMapper;
     private final RecommendationService recommendationService;
 
+    /**
+     * 记录用户的景点浏览行为。
+     */
     @Override
     public void recordView(Long spotId, Long userId, String source, Integer duration) {
         // 未登录用户不记录私有行为，避免产生无法归属的浏览数据。

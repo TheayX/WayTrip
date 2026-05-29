@@ -25,6 +25,9 @@ public class AdminUploadController {
 
     private final FileUploadService fileUploadService;
 
+    /**
+     * 上传后台业务图片。
+     */
     @Operation(summary = "上传图片", description = "按资源场景上传图片，例如景点封面、景点相册、攻略封面与首页轮播图")
     @PostMapping("/image")
     public ApiResponse<Map<String, String>> uploadImage(
@@ -44,6 +47,9 @@ public class AdminUploadController {
         };
     }
 
+    /**
+     * 上传分类图标。
+     */
     @Operation(summary = "上传图标", description = "上传分类图标，文件会存入统一图标目录")
     @PostMapping("/icon")
     public ApiResponse<Map<String, String>> uploadIcon(

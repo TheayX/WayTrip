@@ -27,18 +27,27 @@ public class AdminUserInsightController {
 
     private final AdminUserInsightService adminUserInsightService;
 
+    /**
+     * 获取用户偏好列表。
+     */
     @Operation(summary = "获取用户偏好列表")
     @GetMapping("/preferences")
     public ApiResponse<PageResult<AdminUserPreferenceListItem>> getPreferences(AdminUserPreferenceListRequest request) {
         return ApiResponse.success(adminUserInsightService.getPreferenceList(request));
     }
 
+    /**
+     * 获取用户收藏列表。
+     */
     @Operation(summary = "获取用户收藏列表")
     @GetMapping("/favorites")
     public ApiResponse<PageResult<AdminUserFavoriteListItem>> getFavorites(AdminUserFavoriteListRequest request) {
         return ApiResponse.success(adminUserInsightService.getFavoriteList(request));
     }
 
+    /**
+     * 删除收藏记录。
+     */
     @Operation(summary = "删除收藏记录")
     @DeleteMapping("/favorites/{id}")
     public ApiResponse<Void> deleteFavorite(@PathVariable("id") Long id) {
@@ -46,12 +55,18 @@ public class AdminUserInsightController {
         return ApiResponse.success();
     }
 
+    /**
+     * 获取用户浏览记录列表。
+     */
     @Operation(summary = "获取浏览行为列表")
     @GetMapping("/views")
     public ApiResponse<PageResult<AdminUserViewListItem>> getViews(AdminUserViewListRequest request) {
         return ApiResponse.success(adminUserInsightService.getViewList(request));
     }
 
+    /**
+     * 删除浏览记录。
+     */
     @Operation(summary = "删除浏览行为记录")
     @DeleteMapping("/views/{id}")
     public ApiResponse<Void> deleteView(@PathVariable("id") Long id) {

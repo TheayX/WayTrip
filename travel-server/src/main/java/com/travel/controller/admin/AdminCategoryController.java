@@ -25,12 +25,18 @@ public class AdminCategoryController {
 
     private final SpotCategoryService spotCategoryService;
 
+    /**
+     * 获取分类列表。
+     */
     @Operation(summary = "获取分类列表(根据父ID)")
     @GetMapping
     public ApiResponse<List<AdminCategoryResponse>> getCategories(@RequestParam(value = "parentId", required = false) Long parentId) {
         return ApiResponse.success(spotCategoryService.getAdminCategories(parentId));
     }
 
+    /**
+     * 创建分类节点。
+     */
     @Operation(summary = "创建分类")
     @PostMapping
     public ApiResponse<Void> createCategory(@Valid @RequestBody AdminCategoryRequest request) {
@@ -38,6 +44,9 @@ public class AdminCategoryController {
         return ApiResponse.success();
     }
 
+    /**
+     * 更新分类节点。
+     */
     @Operation(summary = "更新分类")
     @PutMapping("/{id}")
     public ApiResponse<Void> updateCategory(@PathVariable("id") Long id, @Valid @RequestBody AdminCategoryRequest request) {
@@ -45,6 +54,9 @@ public class AdminCategoryController {
         return ApiResponse.success();
     }
 
+    /**
+     * 删除分类节点。
+     */
     @Operation(summary = "删除分类")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteCategory(@PathVariable("id") Long id) {

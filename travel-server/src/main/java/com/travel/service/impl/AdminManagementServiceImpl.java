@@ -38,6 +38,9 @@ public class AdminManagementServiceImpl implements AdminManagementService {
 
     // 管理端管理员查询与维护
 
+    /**
+     * 获取管理端管理员列表，支持筛选与排序。
+     */
     @Override
     public AdminListResponse getAdminList(AdminListRequest request) {
         int page = request.getPage() == null || request.getPage() < 1 ? 1 : request.getPage();
@@ -72,6 +75,9 @@ public class AdminManagementServiceImpl implements AdminManagementService {
         return response;
     }
 
+    /**
+     * 创建新的管理员账号。
+     */
     @Override
     @Transactional
     public Long createAdmin(AdminCreateRequest request) {
@@ -99,6 +105,9 @@ public class AdminManagementServiceImpl implements AdminManagementService {
         return admin.getId();
     }
 
+    /**
+     * 更新管理员资料与启用状态。
+     */
     @Override
     @Transactional
     public void updateAdmin(Long id, AdminUpdateRequest request, Long currentAdminId) {
@@ -116,6 +125,9 @@ public class AdminManagementServiceImpl implements AdminManagementService {
         log.info("管理员信息更新：adminId={}, realName={}, status={}", id, request.getRealName(), request.getStatus());
     }
 
+    /**
+     * 重置管理员密码。
+     */
     @Override
     @Transactional
     public void resetPassword(Long id, AdminResetPasswordRequest request) {
@@ -125,6 +137,9 @@ public class AdminManagementServiceImpl implements AdminManagementService {
         log.info("管理员密码已重置：adminId={}", id);
     }
 
+    /**
+     * 软删除指定管理员账号。
+     */
     @Override
     @Transactional
     public void deleteAdmin(Long id, Long currentAdminId) {

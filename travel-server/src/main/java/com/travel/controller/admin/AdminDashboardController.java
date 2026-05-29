@@ -24,12 +24,18 @@ public class AdminDashboardController {
 
     private final DashboardService dashboardService;
 
+    /**
+     * 获取仪表板概览数据。
+     */
     @Operation(summary = "获取概览数据")
     @GetMapping("/overview")
     public ApiResponse<DashboardOverviewResponse> getOverview() {
         return ApiResponse.success(dashboardService.getOverview());
     }
 
+    /**
+     * 获取订单趋势数据。
+     */
     @Operation(summary = "获取订单趋势")
     @GetMapping("/order-trend")
     public ApiResponse<OrderTrendResponse> getOrderTrend(
@@ -38,6 +44,9 @@ public class AdminDashboardController {
         return ApiResponse.success(dashboardService.getOrderTrend(days, mode));
     }
 
+    /**
+     * 获取热门景点统计数据。
+     */
     @Operation(summary = "获取热门景点")
     @GetMapping("/hot-spots")
     public ApiResponse<HotSpotsResponse> getHotSpots(
@@ -45,6 +54,9 @@ public class AdminDashboardController {
         return ApiResponse.success(dashboardService.getHotSpots(limit));
     }
 
+    /**
+     * 获取订单热力图数据。
+     */
     @Operation(summary = "获取订单热力图")
     @GetMapping("/order-heatmap")
     public ApiResponse<OrderHeatmapResponse> getOrderHeatmap(

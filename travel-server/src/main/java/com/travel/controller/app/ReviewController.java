@@ -33,6 +33,9 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
+    /**
+     * 提交或更新评价。
+     */
     @Operation(summary = "提交评价")
     @PostMapping
     public ApiResponse<Void> submitReview(@Valid @RequestBody ReviewRequest request) {
@@ -42,6 +45,9 @@ public class ReviewController {
         return ApiResponse.success();
     }
 
+    /**
+     * 获取当前用户对指定景点的评价。
+     */
     @Operation(summary = "获取用户对景点的评价")
     @GetMapping("/spot/{spotId}")
     public ApiResponse<ReviewResponse> getUserReview(@PathVariable("spotId") Long spotId) {
@@ -49,6 +55,9 @@ public class ReviewController {
         return ApiResponse.success(reviewService.getUserReview(userId, spotId));
     }
 
+    /**
+     * 获取景点评价列表。
+     */
     @Operation(summary = "获取景点评论列表")
     @GetMapping("/spot/{spotId}/comments")
     public ApiResponse<PageResult<ReviewResponse>> getSpotReviews(
@@ -58,12 +67,18 @@ public class ReviewController {
         return ApiResponse.success(reviewService.getSpotReviews(spotId, page, pageSize));
     }
 
+    /**
+     * 获取评价广场列表。
+     */
     @Operation(summary = "获取口碑流")
     @GetMapping("/feed")
     public ApiResponse<PageResult<ReviewResponse>> getReviewFeed(ReviewFeedRequest request) {
         return ApiResponse.success(reviewService.getReviewFeed(request));
     }
 
+    /**
+     * 获取当前用户自己的评价列表。
+     */
     @Operation(summary = "获取当前用户的评价列表")
     @GetMapping("/mine")
     public ApiResponse<PageResult<ReviewResponse>> getMyReviews(
@@ -73,6 +88,9 @@ public class ReviewController {
         return ApiResponse.success(reviewService.getUserReviews(userId, page, pageSize));
     }
 
+    /**
+     * 删除指定评价。
+     */
     @Operation(summary = "删除自己的评价")
     @DeleteMapping("/{reviewId}")
     public ApiResponse<Void> deleteReview(@PathVariable("reviewId") Long reviewId) {

@@ -4,6 +4,8 @@ import lombok.Data;
 
 /**
  * 通用 API 响应对象。
+ * <p>
+ * 前后端统一通过 `code/message/data/timestamp` 这套固定结构交互，避免不同接口各自定义返回格式。
  *
  * @param <T> 响应数据类型
  */

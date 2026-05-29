@@ -20,9 +20,7 @@ public class RecommendationConfigSupport {
     private final RecommendationCacheService recommendationCacheService;
 
     /**
-     * 读取当前推荐配置。
-     *
-     * @return 配置集合
+     * 读取当前推荐配置快照。
      */
     public RecommendationConfigBundleDTO getConfig() {
         return recommendationCacheService.loadConfig();
@@ -30,20 +28,15 @@ public class RecommendationConfigSupport {
 
     /**
      * 更新推荐配置缓存。
-     *
-     * @param config 新配置
      */
     public void updateConfig(RecommendationConfigBundleDTO config) {
         recommendationCacheService.saveConfig(config);
     }
 
-    @SuppressWarnings("unchecked")
     /**
      * 组合推荐引擎运行状态。
-     *
-     * @param computing 当前是否正在计算
-     * @return 运行状态
      */
+    @SuppressWarnings("unchecked")
     public RecommendationStatusDTO buildStatus(boolean computing) {
         RecommendationStatusDTO status = new RecommendationStatusDTO();
         status.setComputing(computing);

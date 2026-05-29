@@ -28,24 +28,36 @@ public class GuideController {
 
     private final GuideService guideService;
 
+    /**
+     * 获取用户端攻略列表。
+     */
     @Operation(summary = "获取攻略列表")
     @GetMapping
     public ApiResponse<PageResult<GuideListResponse>> getGuideList(GuideListRequest request) {
         return ApiResponse.success(guideService.getGuideList(request));
     }
 
+    /**
+     * 获取预算型攻略列表。
+     */
     @Operation(summary = "获取穷游攻略列表")
     @GetMapping("/budget")
     public ApiResponse<PageResult<GuideBudgetListResponse>> getBudgetGuideList(GuideBudgetListRequest request) {
         return ApiResponse.success(guideService.getBudgetGuideList(request));
     }
 
+    /**
+     * 获取攻略详情。
+     */
     @Operation(summary = "获取攻略详情")
     @GetMapping("/{guideId}")
     public ApiResponse<GuideDetailResponse> getGuideDetail(@PathVariable("guideId") Long guideId) {
         return ApiResponse.success(guideService.getGuideDetail(guideId));
     }
 
+    /**
+     * 获取攻略分类列表。
+     */
     @Operation(summary = "获取攻略分类")
     @GetMapping("/categories")
     public ApiResponse<List<String>> getCategories() {

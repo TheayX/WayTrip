@@ -30,6 +30,9 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
 
     // 管理端地区查询与维护
 
+    /**
+     * 获取管理端地区列表，可按父节点过滤。
+     */
     @Override
     public List<AdminRegionResponse> getAdminRegions(Long parentId) {
         LambdaQueryWrapper<SpotRegion> wrapper = new LambdaQueryWrapper<>();
@@ -48,6 +51,9 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 创建新的地区节点。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createRegion(AdminRegionRequest request) {
@@ -61,6 +67,9 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
         save(region);
     }
 
+    /**
+     * 更新指定地区节点及其排序。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateRegion(Long id, AdminRegionRequest request) {
@@ -74,6 +83,9 @@ public class SpotRegionServiceImpl extends ServiceImpl<SpotRegionMapper, SpotReg
         updateById(region);
     }
 
+    /**
+     * 删除指定地区节点。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteRegion(Long id) {

@@ -48,7 +48,6 @@ public class RecommendationServiceImpl implements RecommendationService {
     private static final String PREVIEW_MODE_LATEST = "latest";
 
     // 持久层、缓存与推荐支持组件
-
     private final SpotMapper spotMapper;
     private final ReviewMapper reviewMapper;
     private final UserSpotFavoriteMapper userSpotFavoriteMapper;
@@ -66,8 +65,12 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final RecommendationColdStartSupport recommendationColdStartSupport;
 
     private final AtomicBoolean computing = new AtomicBoolean(false);
+
     // 推荐主链路入口
 
+    /**
+     * 获取用户当前可用的推荐结果，优先复用缓存。
+     */
     @Override
     public RecommendationResponse getRecommendations(Long userId, Integer limit) {
         if (limit == null || limit <= 0) limit = 10;
@@ -84,6 +87,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         return computeRecommendations(userId, limit, false, false, false, true);
     }
 
+    /**
+     * 基于当前推荐基线执行“换一批”轮换。
+     */
     @Override
     public RecommendationResponse rotateRecommendations(Long userId, Integer limit) {
         if (limit == null || limit <= 0) limit = 10;
@@ -99,12 +105,18 @@ public class RecommendationServiceImpl implements RecommendationService {
         return response;
     }
 
+    /**
+     * 强制重新计算用户推荐结果，并覆盖现有缓存。
+     */
     @Override
     public RecommendationResponse recomputeRecommendations(Long userId, Integer limit) {
         if (limit == null || limit <= 0) limit = 10;
         return computeRecommendations(userId, limit, true, false, false, true);
     }
 
+    /**
+     * 按指定模式预览推荐结果，可选写回缓存、轮换和调试输出。
+     */
     @Override
     public RecommendationResponse previewRecommendations(Long userId, Integer limit, String mode,
                                                          Boolean writeCache, Boolean rotate, Boolean debug) {
@@ -122,6 +134,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         return response;
     }
 
+    /**
+     * 失效指定用户的个性化推荐缓存。
+     */
     @Override
     public void invalidateUserRecommendationCache(Long userId) {
         if (userId == null) {
@@ -131,6 +146,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         recommendationCacheService.deleteUserRecommendation(userId);
     }
 
+    /**
+     * 统一清理热门推荐和个性化推荐的全局缓存。
+     */
     @Override
     public void invalidateGlobalRecommendationCaches() {
         // 热门结果和个性化结果都依赖景点热度、配置或相似度矩阵，因此统一失效。
@@ -405,6 +423,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             return spotItems;
         }
 
+        // 轮换结果会被回写缓存，因此这里先复制列表，避免直接修改调用方持有的原集合。
         List<RecommendationResponse.SpotItem> rotatedItems = new ArrayList<>(spotItems);
         int rotationBase = Math.min(limit, rotatedItems.size() - 1);
         if (rotationBase <= 0) {
@@ -452,6 +471,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             return;
         }
 
+        // 缓存里只保留可重建推荐顺序所需的最小快照，避免把展示层冗余字段长期写入缓存。
         UserRecommendationCacheDTO cache = new UserRecommendationCacheDTO();
         cache.setType(response.getType());
         cache.setNeedPreference(response.getNeedPreference());
@@ -478,6 +498,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             return null;
         }
 
+        // 缓存恢复时依然统一走响应组装入口，保证缓存结果和实时结果的返回结构完全一致。
         List<Long> spotIds = cached.getItems().stream()
             .map(UserRecommendationCacheDTO.CacheItem::getSpotId)
             .filter(Objects::nonNull)
@@ -511,6 +532,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                                                                boolean writeCache, boolean rotate) {
         UserRecommendationCacheDTO cached = recommendationCacheService.getUserRecommendation(userId);
         if (cached == null) {
+            // 请求看缓存但当前没有缓存时，直接改看最新结果，避免后台预览页只能返回空壳。
             RecommendationResponse response = computeRecommendations(userId, limit, true, debug, false, false);
             if (writeCache) {
                 saveRecommendationCache(userId, response);
@@ -539,6 +561,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         RecommendationResponse response = buildRecommendationResponseFromCache(cached, limit);
         if (response == null) {
+            // 缓存结构不可读时同样回退到最新结果，方便直接对照排查缓存兼容问题。
             RecommendationResponse latestResponse = computeRecommendations(userId, limit, true, debug, false, false);
             if (writeCache) {
                 saveRecommendationCache(userId, latestResponse);
@@ -567,6 +590,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         boolean rotated = false;
         if (rotate && response.getList() != null && response.getList().size() > 1) {
+            // 缓存预览下的“换一批”只模拟当前缓存基线，不重新触发实时计算。
             response.setList(rotateRecommendationItems(response.getList(), limit));
             rotated = true;
         }
@@ -607,6 +631,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         RecommendationResponse response = computeRecommendations(userId, limit, true, debug, false, false);
         boolean rotated = false;
         if (rotate && writeCache && response != null && response.getList() != null && response.getList().size() > 1) {
+            // 最新结果只有在允许写缓存时才模拟轮换，因为轮换语义依赖先落下一版新的推荐基线。
             response.setList(rotateRecommendationItems(response.getList(), limit));
             rotated = true;
         }
@@ -651,6 +676,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
         debugInfo.setFinalCount(response == null || response.getList() == null ? 0 : response.getList().size());
 
+        // 预览态附加元信息统一挂在 extra 上，便于前端只读一个入口就知道本次预览的真实来源。
         Map<String, Object> extra = debugInfo.getExtra() == null ? new LinkedHashMap<>() : new LinkedHashMap<>(debugInfo.getExtra());
         extra.put("requestedMode", requestedMode);
         extra.put("resultSource", actualSource);
@@ -708,6 +734,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (PREVIEW_MODE_LATEST.equals(mode)) {
             return mode;
         }
+        // 模式非法时默认看缓存，更符合“先看线上当前结果”的管理端使用习惯。
         return PREVIEW_MODE_CACHE;
     }
 
@@ -828,6 +855,9 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     // 热门与附近景点能力
 
+    /**
+     * 获取当前热门景点列表，优先读取首页热门缓存。
+     */
     @Override
     public HotSpotResponse getHotSpots(Integer limit) {
         if (limit == null || limit <= 0) limit = 10;
@@ -875,6 +905,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         return response;
     }
 
+    /**
+     * 获取指定时间窗口内的最近浏览景点列表。
+     */
     @Override
     public RecentViewedSpotResponse getRecentViewedSpots(Integer days, Integer limit) {
         int safeDays = days == null || days <= 0 ? 14 : days;
@@ -892,6 +925,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         return response;
     }
 
+    /**
+     * 按距离返回用户当前位置附近的景点结果。
+     */
     @Override
     public NearbySpotResponse getNearbySpots(BigDecimal latitude, BigDecimal longitude, Integer limit) {
         if (latitude == null || longitude == null) {
@@ -1263,11 +1299,17 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     // 配置管理与状态查询
 
+    /**
+     * 读取当前推荐算法与缓存配置快照。
+     */
     @Override
     public RecommendationConfigBundleDTO getConfig() {
         return recommendationConfigSupport.getConfig();
     }
 
+    /**
+     * 更新推荐配置，并同步失效受影响的推荐缓存。
+     */
     @Override
     public void updateConfig(RecommendationConfigBundleDTO config) {
         // 配置更新后需要同步清理推荐缓存，避免新旧参数混用导致结果不可解释。
@@ -1276,12 +1318,18 @@ public class RecommendationServiceImpl implements RecommendationService {
         log.info("推荐算法配置已更新 {}", config);
     }
 
+    /**
+     * 获取推荐系统当前状态与最近一次离线计算摘要。
+     */
     @Override
     public RecommendationStatusDTO getStatus() {
         // 状态接口统一复用 support 汇总信息，仅在这里补充当前计算标志。
         return recommendationConfigSupport.buildStatus(computing.get());
     }
 
+    /**
+     * 预览指定景点的相似邻居结果及其更新时间。
+     */
     @Override
     public SimilarityPreviewResponse previewSimilarityNeighbors(Long spotId, Integer limit) {
         // 相似景点预览需要携带最近更新时间，便于判断预览结果对应哪次离线矩阵。

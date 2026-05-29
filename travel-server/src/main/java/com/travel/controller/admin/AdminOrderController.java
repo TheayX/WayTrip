@@ -23,36 +23,54 @@ public class AdminOrderController {
 
     private final OrderService orderService;
 
+    /**
+     * 获取管理端订单列表。
+     */
     @Operation(summary = "获取订单列表")
     @GetMapping
     public ApiResponse<AdminOrderListResponse> getOrders(AdminOrderListRequest request) {
         return ApiResponse.success(orderService.getAdminOrders(request));
     }
 
+    /**
+     * 获取管理端订单详情。
+     */
     @Operation(summary = "获取订单详情")
     @GetMapping("/{id}")
     public ApiResponse<OrderDetailResponse> getOrderDetail(@PathVariable("id") Long id) {
         return ApiResponse.success(orderService.getAdminOrderDetail(id));
     }
 
+    /**
+     * 完成订单。
+     */
     @Operation(summary = "完成订单")
     @PostMapping("/{id}/complete")
     public ApiResponse<OrderDetailResponse> completeOrder(@PathVariable("id") Long id) {
         return ApiResponse.success(orderService.completeOrder(id));
     }
 
+    /**
+     * 退款订单。
+     */
     @Operation(summary = "退款订单")
     @PostMapping("/{id}/refund")
     public ApiResponse<OrderDetailResponse> refundOrder(@PathVariable("id") Long id) {
         return ApiResponse.success(orderService.refundOrder(id));
     }
 
+    /**
+     * 取消订单。
+     */
     @Operation(summary = "取消未支付订单")
     @PostMapping("/{id}/cancel")
     public ApiResponse<OrderDetailResponse> cancelOrder(@PathVariable("id") Long id) {
         return ApiResponse.success(orderService.cancelOrderByAdmin(id));
     }
 
+    /**
+     * 恢复订单为已支付状态。
+     */
     @Operation(summary = "恢复已完成订单为已支付")
     @PostMapping("/{id}/reopen")
     public ApiResponse<OrderDetailResponse> reopenOrder(@PathVariable("id") Long id) {

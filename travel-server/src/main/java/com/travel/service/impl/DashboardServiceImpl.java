@@ -38,6 +38,9 @@ public class DashboardServiceImpl implements DashboardService {
 
     // 概览与趋势统计
 
+    /**
+     * 获取仪表板首页概览数据及最近 10 天序列。
+     */
     @Override
     public DashboardOverviewResponse getOverview() {
         DashboardOverviewResponse response = new DashboardOverviewResponse();
@@ -117,6 +120,9 @@ public class DashboardServiceImpl implements DashboardService {
         return response;
     }
 
+    /**
+     * 按日期区间或星期维度返回订单趋势统计。
+     */
     @Override
     public OrderTrendResponse getOrderTrend(Integer days, String mode) {
         if (!"range".equalsIgnoreCase(mode) && !"weekday".equalsIgnoreCase(mode)) {
@@ -128,6 +134,7 @@ public class DashboardServiceImpl implements DashboardService {
             normalizedDays = "weekday".equalsIgnoreCase(mode) ? 0 : 7;
         }
 
+        // 趋势统计统一排除已取消订单，保证订单数和营收口径一致。
         LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<Order>()
             .eq(Order::getIsDeleted, 0)
             .ne(Order::getStatus, OrderStatus.CANCELLED.getCode());
@@ -146,6 +153,9 @@ public class DashboardServiceImpl implements DashboardService {
         return buildRangeTrendResponse(normalizedDays, orders);
     }
 
+    /**
+     * 获取指定年份内按自然日展开的订单热力图数据。
+     */
     @Override
     public OrderHeatmapResponse getOrderHeatmap(Integer year) {
         int targetYear = year == null ? LocalDate.now().getYear() : year;
@@ -160,6 +170,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .ne(Order::getStatus, OrderStatus.CANCELLED.getCode())
         );
 
+        // 热力图需要完整覆盖全年日期，因此先按日期聚合，再补齐没有订单的自然日。
         Map<LocalDate, Long> orderMap = orders.stream()
             .collect(Collectors.groupingBy(order -> order.getCreatedAt().toLocalDate(), Collectors.counting()));
 
@@ -327,11 +338,14 @@ public class DashboardServiceImpl implements DashboardService {
 
     // 热门景点统计
 
+    /**
+     * 获取后台热门景点统计列表，按订单量排序。
+     */
     @Override
     public HotSpotsResponse getHotSpots(Integer limit) {
         if (limit == null || limit <= 0) limit = 10;
 
-        // 统计订单数量 (排除已取消的订单)
+        // 热门口径依赖有效订单数据，已取消订单不计入热度与营收。
         List<Order> orders = orderMapper.selectList(
             new LambdaQueryWrapper<Order>()
                 .eq(Order::getIsDeleted, 0)
@@ -341,7 +355,7 @@ public class DashboardServiceImpl implements DashboardService {
         Map<Long, List<Order>> ordersBySpot = orders.stream()
             .collect(Collectors.groupingBy(Order::getSpotId));
 
-        // 获取景点信息
+        // 只展示当前可见景点；若历史订单对应景点已不可见，则降级为统一占位文案。
         List<Spot> spots = spotMapper.selectList(
             new LambdaQueryWrapper<Spot>()
                 .eq(Spot::getIsPublished, 1)
@@ -351,7 +365,7 @@ public class DashboardServiceImpl implements DashboardService {
         Map<Long, Spot> spotMap = spots.stream()
             .collect(Collectors.toMap(Spot::getId, s -> s));
 
-        // 构建热门景点列表
+        // 最终结果按订单数排序，保证仪表板首先展示交易最活跃的景点。
         List<HotSpotsResponse.SpotItem> list = ordersBySpot.entrySet().stream()
             .map(entry -> {
                 Long spotId = entry.getKey();

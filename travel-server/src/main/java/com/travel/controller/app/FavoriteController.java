@@ -27,6 +27,9 @@ public class FavoriteController {
 
     private final FavoriteService favoriteService;
 
+    /**
+     * 添加景点收藏。
+     */
     @Operation(summary = "添加收藏")
     @PostMapping
     public ApiResponse<Void> addFavorite(@Valid @RequestBody FavoriteRequest request) {
@@ -36,6 +39,9 @@ public class FavoriteController {
         return ApiResponse.success();
     }
 
+    /**
+     * 取消景点收藏。
+     */
     @Operation(summary = "取消收藏")
     @DeleteMapping("/{spotId}")
     public ApiResponse<Void> removeFavorite(@PathVariable("spotId") Long spotId) {
@@ -44,6 +50,9 @@ public class FavoriteController {
         return ApiResponse.success();
     }
 
+    /**
+     * 检查景点是否已被当前用户收藏。
+     */
     @Operation(summary = "检查收藏状态")
     @GetMapping("/check/{spotId}")
     public ApiResponse<Map<String, Boolean>> checkFavorite(@PathVariable("spotId") Long spotId) {
@@ -52,6 +61,9 @@ public class FavoriteController {
         return ApiResponse.success(Map.of("isFavorite", isFavorite));
     }
 
+    /**
+     * 获取当前用户的收藏列表。
+     */
     @Operation(summary = "获取收藏列表")
     @GetMapping
     public ApiResponse<PageResult<SpotListResponse>> getFavoriteList(

@@ -23,6 +23,9 @@ public class RecommendationController {
 
     private final RecommendationService recommendationService;
 
+    /**
+     * 获取当前用户的个性化推荐结果。
+     */
     @Operation(summary = "获取个性化推荐")
     @GetMapping
     public ApiResponse<RecommendationResponse> getRecommendations(
@@ -32,6 +35,9 @@ public class RecommendationController {
         return ApiResponse.success(recommendationService.getRecommendations(userId, limit));
     }
 
+    /**
+     * 基于当前推荐基线执行“换一批”。
+     */
     @Operation(summary = "换一批推荐")
     @PostMapping("/rotate")
     public ApiResponse<RecommendationResponse> rotateRecommendations(
@@ -40,6 +46,9 @@ public class RecommendationController {
         return ApiResponse.success(recommendationService.rotateRecommendations(userId, limit));
     }
 
+    /**
+     * 强制重算当前用户的推荐结果。
+     */
     @Operation(summary = "重算推荐")
     @PostMapping("/recompute")
     public ApiResponse<RecommendationResponse> recomputeRecommendations(
@@ -48,6 +57,9 @@ public class RecommendationController {
         return ApiResponse.success(recommendationService.recomputeRecommendations(userId, limit));
     }
 
+    /**
+     * 获取指定景点的相似景点预览。
+     */
     @Operation(summary = "获取相似景点推荐")
     @GetMapping("/similar")
     public ApiResponse<SimilarityPreviewResponse> getSimilarSpots(

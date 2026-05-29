@@ -47,6 +47,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     // 管理端用户查询与维护
 
+    /**
+     * 获取管理端用户列表，支持筛选与排序。
+     */
     @Override
     public AdminUserListResponse getAdminUsers(AdminUserListRequest request) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
@@ -92,6 +95,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         return response;
     }
 
+    /**
+     * 获取管理端用户详情及行为摘要。
+     */
     @Override
     public AdminUserDetailResponse getAdminUserDetail(Long userId) {
         User user = getManagedUser(userId);
@@ -361,6 +367,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         return item;
     }
 
+    /**
+     * 重置指定用户的登录密码。
+     */
     @Override
     public void resetUserPassword(Long userId, ResetUserPasswordRequest request) {
         User user = getActiveManagedUser(userId);

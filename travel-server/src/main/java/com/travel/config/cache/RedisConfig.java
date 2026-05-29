@@ -50,6 +50,7 @@ public class RedisConfig {
         template.setValueSerializer(redisJsonSerializer);
         template.setHashValueSerializer(redisJsonSerializer);
 
+        // 明确在容器初始化阶段完成序列化器绑定，避免首次访问 Redis 时再暴露配置问题。
         template.afterPropertiesSet();
         return template;
     }

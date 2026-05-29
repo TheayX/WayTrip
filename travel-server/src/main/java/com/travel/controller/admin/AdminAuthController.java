@@ -25,12 +25,18 @@ public class AdminAuthController {
 
     private final AdminAuthService adminAuthService;
 
+    /**
+     * 处理管理员登录请求。
+     */
     @Operation(summary = "管理员登录")
     @PostMapping("/login")
     public ApiResponse<AdminLoginResponse> login(@Valid @RequestBody AdminLoginRequest request) {
         return ApiResponse.success(adminAuthService.adminLogin(request));
     }
 
+    /**
+     * 获取当前管理员身份信息。
+     */
     @Operation(summary = "获取管理员信息")
     @GetMapping("/info")
     public ApiResponse<AdminLoginResponse.AdminInfo> getInfo() {

@@ -51,13 +51,10 @@ public class RecommendationSimilaritySupport {
     private final RecommendationQuerySupport recommendationQuerySupport;
     private final RecommendationScoreSupport recommendationScoreSupport;
 
-    @SuppressWarnings("unchecked")
     /**
      * 读取缓存中的相似景点集合。
-     *
-     * @param spotId 景点 ID
-     * @return 相似度映射
      */
+    @SuppressWarnings("unchecked")
     public Map<Long, Double> getSimilarSpots(Long spotId) {
         Object cached = recommendationCacheService.getSimilarity(spotId);
         if (!(cached instanceof Map<?, ?> rawMap) || rawMap.isEmpty()) {
@@ -77,8 +74,6 @@ public class RecommendationSimilaritySupport {
 
     /**
      * 查询当前仍可参与推荐的景点 ID。
-     *
-     * @return 已发布且未删除的景点 ID 集合
      */
     public Set<Long> getActiveSpotIds() {
         return spotMapper.selectList(
@@ -91,11 +86,6 @@ public class RecommendationSimilaritySupport {
 
     /**
      * 基于 IUF 思路计算两景点的相似度。
-     *
-     * @param usersI 景点 I 的交互用户集合
-     * @param usersJ 景点 J 的交互用户集合
-     * @param userActivityCount 用户活跃度统计
-     * @return 相似度
      */
     public double computeIUFSimilarity(Set<Long> usersI, Set<Long> usersJ, Map<Long, Integer> userActivityCount) {
         Set<Long> smaller = usersI.size() < usersJ.size() ? usersI : usersJ;
@@ -116,6 +106,9 @@ public class RecommendationSimilaritySupport {
         return iufSum / denominator;
     }
 
+    /**
+     * 构建后台相似邻居预览结果。
+     */
     public SimilarityPreviewResponse buildSimilarityPreview(Long spotId, Integer limit, String lastUpdateTime) {
         int safeLimit = limit == null || limit <= 0 ? 10 : limit;
         Map<Long, Double> similarities = getSimilarSpots(spotId);
@@ -244,6 +237,9 @@ public class RecommendationSimilaritySupport {
         return new OfflineMatrixSnapshot(userItemMatrix, allSpotIds);
     }
 
+    /**
+     * 将单类行为矩阵合并到统一用户-景点矩阵。
+     */
     private void mergeBehaviorMatrix(Map<Long, Map<Long, Double>> userItemMatrix, Map<Long, Map<Long, Double>> behaviorMatrix) {
         // 不同行为先各自算权重，再在统一矩阵里按景点合并。
         behaviorMatrix.forEach((userId, spotWeights) -> {
@@ -252,6 +248,9 @@ public class RecommendationSimilaritySupport {
         });
     }
 
+    /**
+     * 汇总每个用户的交互景点数。
+     */
     public Map<Long, Integer> summarizeUserActivityCount(Map<Long, Map<Long, Double>> userItemMatrix) {
         Map<Long, Integer> userActivityCount = new HashMap<>();
         for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
@@ -261,6 +260,9 @@ public class RecommendationSimilaritySupport {
         return userActivityCount;
     }
 
+    /**
+     * 构建景点到用户集合的倒排索引。
+     */
     public Map<Long, Set<Long>> buildSpotUserIndex(Map<Long, Map<Long, Double>> userItemMatrix) {
         Map<Long, Set<Long>> spotUserSets = new HashMap<>();
         for (Map.Entry<Long, Map<Long, Double>> entry : userItemMatrix.entrySet()) {
@@ -272,6 +274,9 @@ public class RecommendationSimilaritySupport {
         return spotUserSets;
     }
 
+    /**
+     * 计算并缓存每个景点的 Top-K 相似邻居。
+     */
     public void cacheSimilarityNeighbors(
         Set<Long> allSpotIds,
         Map<Long, Set<Long>> spotUserSets,
@@ -324,6 +329,9 @@ public class RecommendationSimilaritySupport {
         }
     }
 
+    /**
+     * 保存最近一次离线相似度任务的摘要状态。
+     */
     public void saveOfflineSummary(int totalUsers, int totalSpots) {
         Map<String, Object> statusMap = new HashMap<>();
         statusMap.put("lastUpdateTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));

@@ -27,12 +27,18 @@ public class AdminReviewController {
 
     private final ReviewService reviewService;
 
+    /**
+     * 获取管理端评价列表。
+     */
     @Operation(summary = "分页查询评价列表")
     @GetMapping
     public ApiResponse<PageResult<ReviewResponse>> getReviews(AdminReviewListRequest request) {
         return ApiResponse.success(reviewService.getAdminReviews(request));
     }
 
+    /**
+     * 删除指定评价。
+     */
     @Operation(summary = "删除评价")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteReview(@PathVariable("id") Long id) {

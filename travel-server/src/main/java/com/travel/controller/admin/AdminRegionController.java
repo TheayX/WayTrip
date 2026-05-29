@@ -25,12 +25,18 @@ public class AdminRegionController {
 
     private final SpotRegionService spotRegionService;
 
+    /**
+     * 获取地区列表。
+     */
     @Operation(summary = "获取地区列表(根据父ID)")
     @GetMapping
     public ApiResponse<List<AdminRegionResponse>> getRegions(@RequestParam(value = "parentId", required = false) Long parentId) {
         return ApiResponse.success(spotRegionService.getAdminRegions(parentId));
     }
 
+    /**
+     * 创建地区节点。
+     */
     @Operation(summary = "创建地区")
     @PostMapping
     public ApiResponse<Void> createRegion(@Valid @RequestBody AdminRegionRequest request) {
@@ -38,6 +44,9 @@ public class AdminRegionController {
         return ApiResponse.success();
     }
 
+    /**
+     * 更新地区节点。
+     */
     @Operation(summary = "更新地区")
     @PutMapping("/{id}")
     public ApiResponse<Void> updateRegion(@PathVariable("id") Long id, @Valid @RequestBody AdminRegionRequest request) {
@@ -45,6 +54,9 @@ public class AdminRegionController {
         return ApiResponse.success();
     }
 
+    /**
+     * 删除地区节点。
+     */
     @Operation(summary = "删除地区")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteRegion(@PathVariable("id") Long id) {

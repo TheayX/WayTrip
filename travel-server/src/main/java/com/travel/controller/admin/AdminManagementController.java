@@ -29,12 +29,18 @@ public class AdminManagementController {
 
     private final AdminManagementService adminManagementService;
 
+    /**
+     * 获取管理员列表。
+     */
     @Operation(summary = "获取管理员列表")
     @GetMapping
     public ApiResponse<AdminListResponse> getAdminList(AdminListRequest request) {
         return ApiResponse.success(adminManagementService.getAdminList(request));
     }
 
+    /**
+     * 创建管理员账号。
+     */
     @Operation(summary = "创建管理员")
     @PostMapping
     public ApiResponse<Map<String, Long>> createAdmin(@Valid @RequestBody AdminCreateRequest request) {
@@ -42,6 +48,9 @@ public class AdminManagementController {
         return ApiResponse.success(Map.of("id", id));
     }
 
+    /**
+     * 更新管理员资料。
+     */
     @Operation(summary = "更新管理员信息")
     @PutMapping("/{id}")
     public ApiResponse<Void> updateAdmin(@PathVariable("id") Long id, @Valid @RequestBody AdminUpdateRequest request) {
@@ -50,6 +59,9 @@ public class AdminManagementController {
         return ApiResponse.success();
     }
 
+    /**
+     * 重置管理员密码。
+     */
     @Operation(summary = "重置管理员密码")
     @PutMapping("/{id}/password")
     public ApiResponse<Void> resetPassword(@PathVariable("id") Long id, @Valid @RequestBody AdminResetPasswordRequest request) {
@@ -57,6 +69,9 @@ public class AdminManagementController {
         return ApiResponse.success();
     }
 
+    /**
+     * 删除管理员账号。
+     */
     @Operation(summary = "删除管理员")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteAdmin(@PathVariable("id") Long id) {

@@ -31,18 +31,27 @@ public class AdminSpotController {
     private final SpotService spotService;
     private final ReviewService reviewService;
 
+    /**
+     * 获取管理端景点列表。
+     */
     @Operation(summary = "获取景点列表")
     @GetMapping
     public ApiResponse<PageResult<AdminSpotListResponse>> getSpotList(AdminSpotListRequest request) {
         return ApiResponse.success(spotService.getAdminSpotList(request));
     }
 
+    /**
+     * 获取管理端景点详情。
+     */
     @Operation(summary = "获取景点详情")
     @GetMapping("/{spotId}")
     public ApiResponse<AdminSpotDetailResponse> getSpotDetail(@PathVariable("spotId") Long spotId) {
         return ApiResponse.success(spotService.getAdminSpotDetail(spotId));
     }
 
+    /**
+     * 创建景点。
+     */
     @Operation(summary = "创建景点")
     @PostMapping
     public ApiResponse<Map<String, Long>> createSpot(@Valid @RequestBody AdminSpotUpsertRequest request) {
@@ -50,6 +59,9 @@ public class AdminSpotController {
         return ApiResponse.success(Map.of("id", id));
     }
 
+    /**
+     * 更新景点。
+     */
     @Operation(summary = "更新景点")
     @PutMapping("/{spotId}")
     public ApiResponse<Void> updateSpot(@PathVariable("spotId") Long spotId, @Valid @RequestBody AdminSpotUpsertRequest request) {
@@ -57,6 +69,9 @@ public class AdminSpotController {
         return ApiResponse.success();
     }
 
+    /**
+     * 更新景点发布状态。
+     */
     @Operation(summary = "更新发布状态")
     @PutMapping("/{spotId}/publish")
     public ApiResponse<Void> updatePublishStatus(@PathVariable("spotId") Long spotId, @RequestBody Map<String, Boolean> body) {
@@ -65,6 +80,9 @@ public class AdminSpotController {
         return ApiResponse.success();
     }
 
+    /**
+     * 删除景点。
+     */
     @Operation(summary = "删除景点")
     @DeleteMapping("/{spotId}")
     public ApiResponse<Void> deleteSpot(@PathVariable("spotId") Long spotId) {
@@ -72,6 +90,9 @@ public class AdminSpotController {
         return ApiResponse.success();
     }
 
+    /**
+     * 重算单个景点评分。
+     */
     @Operation(summary = "按评价表重算单个景点评分")
     @PostMapping("/{spotId}/rating/refresh")
     public ApiResponse<Void> refreshSpotRating(@PathVariable("spotId") Long spotId) {
@@ -79,6 +100,9 @@ public class AdminSpotController {
         return ApiResponse.success();
     }
 
+    /**
+     * 重算全部景点评分。
+     */
     @Operation(summary = "按评价表重算全部景点评分")
     @PostMapping("/rating/refresh")
     public ApiResponse<Void> refreshAllSpotRatings() {
@@ -87,6 +111,9 @@ public class AdminSpotController {
         return ApiResponse.success();
     }
 
+    /**
+     * 刷新单个景点热度。
+     */
     @Operation(summary = "按热度档位和行为数据同步单个景点热度")
     @PostMapping("/{spotId}/heat/refresh")
     public ApiResponse<Void> refreshSpotHeat(@PathVariable("spotId") Long spotId) {
@@ -94,6 +121,9 @@ public class AdminSpotController {
         return ApiResponse.success();
     }
 
+    /**
+     * 刷新全部景点热度。
+     */
     @Operation(summary = "按热度档位和行为数据同步全部景点热度")
     @PostMapping("/heat/refresh")
     public ApiResponse<Void> refreshAllSpotHeat() {
@@ -101,6 +131,9 @@ public class AdminSpotController {
         return ApiResponse.success();
     }
 
+    /**
+     * 获取景点筛选项。
+     */
     @Operation(summary = "获取筛选选项（地区、分类）")
     @GetMapping("/filters")
     public ApiResponse<SpotFilterResponse> getFilters() {

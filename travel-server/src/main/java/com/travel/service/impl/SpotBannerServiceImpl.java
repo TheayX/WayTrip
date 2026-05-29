@@ -40,6 +40,9 @@ public class SpotBannerServiceImpl implements SpotBannerService {
 
     // 用户端展示接口
 
+    /**
+     * 获取首页轮播图列表，优先使用缓存结果。
+     */
     @Override
     public BannerResponse getBanners() {
         BannerResponse cachedResponse = recommendationCacheService.getHomeBanners();
@@ -67,6 +70,9 @@ public class SpotBannerServiceImpl implements SpotBannerService {
 
     // 管理端维护接口
 
+    /**
+     * 获取管理端轮播图列表。
+     */
     @Override
     public AdminBannerListResponse getAdminBanners() {
         List<SpotBanner> banners = spotBannerMapper.selectList(
@@ -95,6 +101,9 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         return response;
     }
 
+    /**
+     * 创建新的轮播图配置。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createBanner(AdminBannerRequest request) {
@@ -111,6 +120,9 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         log.info("轮播图创建成功: bannerId={}, spotId={}", banner.getId(), banner.getSpotId());
     }
 
+    /**
+     * 更新指定轮播图配置。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateBanner(Long id, AdminBannerRequest request) {
@@ -132,6 +144,9 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         log.info("轮播图更新成功: bannerId={}", id);
     }
 
+    /**
+     * 删除指定轮播图，并补齐剩余排序。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteBanner(Long id) {
@@ -144,6 +159,9 @@ public class SpotBannerServiceImpl implements SpotBannerService {
         log.info("轮播图已删除: bannerId={}", id);
     }
 
+    /**
+     * 切换轮播图启用状态。
+     */
     @Override
     public void toggleEnabled(Long id) {
         SpotBanner banner = getActiveBanner(id);

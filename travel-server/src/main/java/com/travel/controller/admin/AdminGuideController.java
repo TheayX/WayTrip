@@ -30,24 +30,36 @@ public class AdminGuideController {
 
     private final GuideService guideService;
 
+    /**
+     * 获取管理端攻略列表。
+     */
     @Operation(summary = "获取攻略列表")
     @GetMapping
     public ApiResponse<PageResult<AdminGuideListResponse>> getGuideList(AdminGuideListRequest request) {
         return ApiResponse.success(guideService.getAdminGuideList(request));
     }
 
+    /**
+     * 获取管理端攻略详情。
+     */
     @Operation(summary = "获取攻略详情")
     @GetMapping("/{guideId}")
     public ApiResponse<AdminGuideRequest> getGuideDetail(@PathVariable("guideId") Long guideId) {
         return ApiResponse.success(guideService.getAdminGuideDetail(guideId));
     }
 
+    /**
+     * 获取攻略分类列表。
+     */
     @Operation(summary = "获取攻略分类")
     @GetMapping("/categories")
     public ApiResponse<List<String>> getCategories() {
         return ApiResponse.success(guideService.getCategories());
     }
 
+    /**
+     * 创建攻略。
+     */
     @Operation(summary = "创建攻略")
     @PostMapping
     public ApiResponse<Map<String, Long>> createGuide(@Valid @RequestBody AdminGuideRequest request) {
@@ -57,6 +69,9 @@ public class AdminGuideController {
         return ApiResponse.success(Map.of("id", id));
     }
 
+    /**
+     * 更新攻略。
+     */
     @Operation(summary = "更新攻略")
     @PutMapping("/{guideId}")
     public ApiResponse<Void> updateGuide(@PathVariable("guideId") Long guideId, @RequestBody AdminGuideRequest request) {
@@ -64,6 +79,9 @@ public class AdminGuideController {
         return ApiResponse.success();
     }
 
+    /**
+     * 更新攻略浏览量。
+     */
     @Operation(summary = "更新攻略浏览量")
     @PutMapping("/{guideId}/view-count")
     public ApiResponse<Void> updateGuideViewCount(@PathVariable("guideId") Long guideId, @RequestBody AdminGuideViewCountRequest request) {
@@ -71,6 +89,9 @@ public class AdminGuideController {
         return ApiResponse.success();
     }
 
+    /**
+     * 更新攻略发布状态。
+     */
     @Operation(summary = "更新发布状态")
     @PutMapping("/{guideId}/publish")
     public ApiResponse<Void> updatePublishStatus(@PathVariable("guideId") Long guideId, @RequestBody Map<String, Boolean> body) {
@@ -78,6 +99,9 @@ public class AdminGuideController {
         return ApiResponse.success();
     }
 
+    /**
+     * 删除攻略。
+     */
     @Operation(summary = "删除攻略")
     @DeleteMapping("/{guideId}")
     public ApiResponse<Void> deleteGuide(@PathVariable("guideId") Long guideId) {

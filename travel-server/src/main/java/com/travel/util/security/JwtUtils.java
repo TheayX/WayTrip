@@ -127,6 +127,7 @@ public class JwtUtils {
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (Exception e) {
+            // 控制器和拦截器统一把 null 视为无效令牌，工具层不再区分过期、签名错误等细项异常。
             return null;
         }
     }

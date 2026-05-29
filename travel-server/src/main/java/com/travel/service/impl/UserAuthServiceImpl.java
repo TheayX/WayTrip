@@ -44,6 +44,9 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     // 微信登录与绑定流程
 
+    /**
+     * 处理微信登录，并在必要时返回待绑定手机号状态。
+     */
     @Override
     @Transactional
     public WxLoginResponse wxLogin(String code) {
@@ -97,6 +100,9 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     // Web 端认证流程
 
+    /**
+     * 注册新的 Web 用户账号。
+     */
     @Override
     @Transactional
     public LoginResponse webRegister(WebRegisterRequest request) {
@@ -134,6 +140,9 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .build();
     }
 
+    /**
+     * 预校验 Web 注册请求是否可用。
+     */
     @Override
     public void prepareWebRegister(WebRegisterRequest request) {
         User existUser = userMapper.selectOne(
@@ -146,6 +155,9 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
     }
 
+    /**
+     * 执行 Web 账号密码登录。
+     */
     @Override
     public LoginResponse webLogin(WebLoginRequest request) {
         User user = userMapper.selectOne(
@@ -189,6 +201,9 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .build();
     }
 
+    /**
+     * 为微信用户绑定手机号，并在必要时合并已有账号。
+     */
     @Override
     @Transactional
     public LoginResponse wxBindPhone(WxBindPhoneRequest request) {
@@ -239,6 +254,9 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .build();
     }
 
+    /**
+     * 预处理微信绑定手机号请求，必要时直接返回已有账号登录结果。
+     */
     @Override
     @Transactional
     public LoginResponse prepareWxBindPhone(WxBindPhoneRequest request) {

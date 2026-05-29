@@ -33,6 +33,9 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
     // 管理员认证流程
 
+    /**
+     * 执行管理员账号密码登录。
+     */
     @Override
     public AdminLoginResponse adminLogin(AdminLoginRequest request) {
         Admin admin = findActiveAdminByUsername(request.getUsername());
@@ -64,6 +67,9 @@ public class AdminAuthServiceImpl implements AdminAuthService {
                 .build();
     }
 
+    /**
+     * 获取当前管理员的基础身份信息。
+     */
     @Override
     public AdminLoginResponse.AdminInfo getAdminInfo(Long adminId) {
         Admin admin = adminMapper.selectById(adminId);

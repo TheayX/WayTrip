@@ -27,6 +27,9 @@ public class UserAccountController {
 
     private final UserAccountService userAccountService;
 
+    /**
+     * 获取当前登录用户资料。
+     */
     @Operation(summary = "获取用户信息")
     @GetMapping("/info")
     public ApiResponse<UserInfoResponse> getUserInfo() {
@@ -34,6 +37,9 @@ public class UserAccountController {
         return ApiResponse.success(userAccountService.getUserInfo(userId));
     }
 
+    /**
+     * 更新当前登录用户资料。
+     */
     @Operation(summary = "更新用户信息")
     @PutMapping("/info")
     public ApiResponse<Void> updateUserInfo(@Valid @RequestBody UpdateUserInfoRequest request) {
@@ -42,6 +48,9 @@ public class UserAccountController {
         return ApiResponse.success();
     }
 
+    /**
+     * 设置当前用户偏好分类。
+     */
     @Operation(summary = "设置偏好标签")
     @PostMapping("/preferences")
     public ApiResponse<Void> setPreferences(@Valid @RequestBody PreferencesRequest request) {
@@ -51,6 +60,9 @@ public class UserAccountController {
         return ApiResponse.success();
     }
 
+    /**
+     * 修改当前登录用户密码。
+     */
     @Operation(summary = "修改密码")
     @PutMapping("/password")
     public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
@@ -59,6 +71,9 @@ public class UserAccountController {
         return ApiResponse.success();
     }
 
+    /**
+     * 注销当前登录用户账号。
+     */
     @Operation(summary = "注销账户")
     @DeleteMapping("/account")
     public ApiResponse<Void> deactivateCurrentAccount() {

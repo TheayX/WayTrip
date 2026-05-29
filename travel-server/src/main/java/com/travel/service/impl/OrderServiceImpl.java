@@ -56,6 +56,9 @@ public class OrderServiceImpl implements OrderService {
 
     // 用户端订单操作
 
+    /**
+     * 创建用户订单，并在成功后失效该用户的推荐缓存。
+     */
     @Override
     @Transactional
     public OrderDetailResponse createOrder(Long userId, CreateOrderRequest request) {
@@ -68,6 +71,7 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("景点已下架");
         }
 
+        // 下单时直接固化景点快照字段，避免后续价格变化影响历史订单语义。
         Order order = new Order();
         order.setOrderNo(generateOrderNo());
         order.setUserId(userId);
@@ -90,6 +94,9 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order, false);
     }
 
+    /**
+     * 获取用户自己的订单列表，并补齐景点展示信息。
+     */
     @Override
     public OrderListResponse getUserOrders(Long userId, OrderListRequest request) {
         getActiveUser(userId);
@@ -97,6 +104,7 @@ public class OrderServiceImpl implements OrderService {
         wrapper.eq(Order::getUserId, userId);
         wrapper.eq(Order::getIsDeleted, 0);
 
+        // 用户端状态筛选只接受约定枚举，非法值直接退化为“不按状态过滤”。
         if (request.getStatus() != null && !request.getStatus().isEmpty()) {
             OrderStatus statusEnum = OrderStatus.fromKey(request.getStatus());
             if (statusEnum != null) {
@@ -123,6 +131,9 @@ public class OrderServiceImpl implements OrderService {
         return response;
     }
 
+    /**
+     * 获取用户侧订单详情，并补齐当前景点展示字段。
+     */
     @Override
     public OrderDetailResponse getOrderDetail(Long userId, Long orderId) {
         Order order = getUserOrder(userId, orderId);
@@ -130,6 +141,9 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order, false);
     }
 
+    /**
+     * 按订单号获取用户侧订单详情。
+     */
     @Override
     public OrderDetailResponse getOrderDetailByOrderNo(Long userId, String orderNo) {
         Order order = getUserOrderByOrderNo(userId, orderNo);
@@ -140,6 +154,9 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order, false);
     }
 
+    /**
+     * 支付指定订单，并按幂等语义处理重复支付请求。
+     */
     @Override
     @Transactional
     public OrderDetailResponse payOrder(Long userId, Long orderId, String idempotentKey) {
@@ -170,6 +187,9 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order, false);
     }
 
+    /**
+     * 取消用户订单，并兼容重复取消的幂等返回。
+     */
     @Override
     @Transactional
     public OrderDetailResponse cancelOrder(Long userId, Long orderId) {
@@ -199,6 +219,9 @@ public class OrderServiceImpl implements OrderService {
 
     // 管理端订单查询与状态流转
 
+    /**
+     * 获取管理端订单列表，支持多条件筛选与排序。
+     */
     @Override
     public AdminOrderListResponse getAdminOrders(AdminOrderListRequest request) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
@@ -209,6 +232,7 @@ public class OrderServiceImpl implements OrderService {
         }
         
         if (request.getSpotName() != null && !request.getSpotName().isEmpty()) {
+            // 景点名筛选需要先转成景点 ID 集合，再回落到订单表过滤。
             List<Spot> matchingSpots = spotMapper.selectList(
                 new LambdaQueryWrapper<Spot>().like(Spot::getName, request.getSpotName())
             );
@@ -222,6 +246,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         if (request.getUserNickname() != null && !request.getUserNickname().isEmpty()) {
+            // 用户昵称同样先做一次映射查询，避免在订单表直接承载冗余用户字段。
             List<User> matchingUsers = userMapper.selectList(
                 new LambdaQueryWrapper<User>().like(User::getNickname, request.getUserNickname())
             );
@@ -253,6 +278,7 @@ public class OrderServiceImpl implements OrderService {
             wrapper.le(Order::getVisitDate, request.getVisitEndDate());
         }
 
+        // 管理端排序字段受白名单约束，避免任意字段排序带来语义和安全问题。
         AdminSortSupport.applySort(wrapper, request.getSortBy(), request.getSortOrder(), Map.of(
             "id", Order::getId,
             "totalPrice", Order::getTotalAmount,
@@ -279,6 +305,9 @@ public class OrderServiceImpl implements OrderService {
         return response;
     }
 
+    /**
+     * 获取管理端订单详情。
+     */
     @Override
     public OrderDetailResponse getAdminOrderDetail(Long orderId) {
         Order order = getExistingOrder(orderId);
@@ -286,6 +315,9 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order, true);
     }
 
+    /**
+     * 将已支付订单标记为已完成。
+     */
     @Override
     @Transactional
     public OrderDetailResponse completeOrder(Long orderId) {
@@ -306,6 +338,9 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order, true);
     }
 
+    /**
+     * 将已支付订单执行退款。
+     */
     @Override
     @Transactional
     public OrderDetailResponse refundOrder(Long orderId) {
@@ -326,6 +361,9 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order, true);
     }
 
+    /**
+     * 管理员取消待支付订单。
+     */
     @Override
     @Transactional
     public OrderDetailResponse cancelOrderByAdmin(Long orderId) {
@@ -346,6 +384,9 @@ public class OrderServiceImpl implements OrderService {
         return buildOrderDetail(order, true);
     }
 
+    /**
+     * 将已完成订单恢复为已支付状态。
+     */
     @Override
     @Transactional
     public OrderDetailResponse reopenOrder(Long orderId) {
@@ -353,6 +394,7 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() != OrderStatus.COMPLETED.getCode()) {
             throw new RuntimeException("订单状态不允许恢复");
         }
+        // 恢复订单只回退完成态字段，保留原支付信息，便于后台继续后续处理。
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id", orderId)
                 .set("status", OrderStatus.PAID.getCode())

@@ -27,12 +27,18 @@ public class SpotController {
 
     private final SpotService spotService;
 
+    /**
+     * 获取景点列表。
+     */
     @Operation(summary = "获取景点列表")
     @GetMapping
     public ApiResponse<PageResult<SpotListResponse>> getSpotList(SpotListRequest request) {
         return ApiResponse.success(spotService.getSpotList(request));
     }
 
+    /**
+     * 按关键词搜索景点。
+     */
     @Operation(summary = "搜索景点")
     @GetMapping("/search")
     public ApiResponse<PageResult<SpotListResponse>> searchSpots(
@@ -42,6 +48,9 @@ public class SpotController {
         return ApiResponse.success(spotService.searchSpots(keyword, page, pageSize));
     }
 
+    /**
+     * 获取当前用户的最近浏览历史。
+     */
     @Operation(summary = "获取我的最近浏览")
     @GetMapping("/views")
     public ApiResponse<PageResult<SpotViewHistoryResponse>> getViewHistory(
@@ -52,6 +61,9 @@ public class SpotController {
         return ApiResponse.success(spotService.getViewHistory(userId, page, pageSize));
     }
 
+    /**
+     * 获取景点详情。
+     */
     @Operation(summary = "获取景点详情")
     @GetMapping("/{spotId}")
     public ApiResponse<SpotDetailResponse> getSpotDetail(@PathVariable("spotId") Long spotId) {
@@ -59,6 +71,9 @@ public class SpotController {
         return ApiResponse.success(spotService.getSpotDetail(spotId, userId));
     }
 
+    /**
+     * 上报景点浏览行为。
+     */
     @Operation(summary = "上报浏览行为")
     @PostMapping("/{spotId}/view")
     public ApiResponse<Void> recordView(
@@ -71,6 +86,9 @@ public class SpotController {
         return ApiResponse.success(null);
     }
 
+    /**
+     * 获取景点筛选项。
+     */
     @Operation(summary = "获取筛选选项")
     @GetMapping("/filters")
     public ApiResponse<SpotFilterResponse> getFilters() {

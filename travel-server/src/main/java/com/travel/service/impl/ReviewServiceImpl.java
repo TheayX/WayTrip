@@ -49,6 +49,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 用户端评价操作
 
+    /**
+     * 提交或更新用户对景点的评价。
+     */
     @Override
     @Transactional
     public void submitReview(Long userId, ReviewRequest request) {
@@ -58,6 +61,7 @@ public class ReviewServiceImpl implements ReviewService {
             throw new BusinessException(ResultCode.SPOT_OFFLINE);
         }
 
+        // 同一用户对同一景点只保留一条有效评价，重复提交走覆盖更新。
         Review existingReview = reviewMapper.selectOne(
             new LambdaQueryWrapper<Review>()
                 .eq(Review::getUserId, userId)
@@ -84,6 +88,9 @@ public class ReviewServiceImpl implements ReviewService {
         log.info("用户提交评价: userId={}, spotId={}, score={}", userId, request.getSpotId(), request.getScore());
     }
 
+    /**
+     * 获取用户自己对指定景点的评价。
+     */
     @Override
     public ReviewResponse getUserReview(Long userId, Long spotId) {
         getActiveUser(userId);
@@ -101,6 +108,9 @@ public class ReviewServiceImpl implements ReviewService {
         return convertToResponse(review, false);
     }
 
+    /**
+     * 分页获取某个景点下的公开评价列表。
+     */
     @Override
     public PageResult<ReviewResponse> getSpotReviews(Long spotId, Integer page, Integer pageSize) {
         Page<Review> pageObj = new Page<>(page, pageSize);
@@ -113,6 +123,9 @@ public class ReviewServiceImpl implements ReviewService {
         return PageResult.of(list, pageObj.getTotal(), page, pageSize);
     }
 
+    /**
+     * 获取评价广场列表，按正向或负向评分区间筛选。
+     */
     @Override
     public PageResult<ReviewResponse> getReviewFeed(ReviewFeedRequest request) {
         int minScore = "negative".equals(request.getType()) ? 0 : 4;
@@ -128,6 +141,9 @@ public class ReviewServiceImpl implements ReviewService {
         return PageResult.of(list, pageObj.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    /**
+     * 获取当前用户发表过的评价列表。
+     */
     @Override
     public PageResult<ReviewResponse> getUserReviews(Long userId, Integer page, Integer pageSize) {
         getActiveUser(userId);
@@ -141,6 +157,9 @@ public class ReviewServiceImpl implements ReviewService {
         return PageResult.of(list, pageObj.getTotal(), page, pageSize);
     }
 
+    /**
+     * 删除用户自己的评价，并同步刷新景点评分聚合。
+     */
     @Override
     @Transactional
     public void deleteReview(Long userId, Long reviewId) {
@@ -162,6 +181,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 管理端评价查询与评分刷新、删除
 
+    /**
+     * 获取管理端评价列表，支持条件筛选与排序。
+     */
     @Override
     public PageResult<ReviewResponse> getAdminReviews(AdminReviewListRequest request) {
         Page<Review> pageObj = new Page<>(request.getPage(), request.getPageSize());
@@ -184,6 +206,9 @@ public class ReviewServiceImpl implements ReviewService {
         return PageResult.of(list, pageObj.getTotal(), request.getPage(), request.getPageSize());
     }
 
+    /**
+     * 获取用户当前有效评价数量。
+     */
     @Override
     public int getUserReviewCount(Long userId) {
         getActiveUser(userId);
@@ -194,6 +219,9 @@ public class ReviewServiceImpl implements ReviewService {
         ));
     }
 
+    /**
+     * 刷新单个景点的平均评分与评价数聚合。
+     */
     @Override
     @Transactional
     public void refreshSpotRating(Long spotId) {
@@ -202,6 +230,9 @@ public class ReviewServiceImpl implements ReviewService {
         recommendationService.invalidateGlobalRecommendationCaches();
     }
 
+    /**
+     * 刷新全部有效景点的评分聚合。
+     */
     @Override
     @Transactional
     public void refreshAllSpotRatings() {
@@ -211,12 +242,16 @@ public class ReviewServiceImpl implements ReviewService {
                 .select(Spot::getId)
         );
 
+        // 全量刷新按景点逐个重算，保证聚合口径与单点评分刷新保持一致。
         for (Spot spot : spots) {
             updateSpotAvgRating(spot.getId());
         }
         recommendationService.invalidateGlobalRecommendationCaches();
     }
 
+    /**
+     * 管理员删除指定评价。
+     */
     @Override
     @Transactional
     public void deleteReviewByAdmin(Long reviewId) {
@@ -284,6 +319,9 @@ public class ReviewServiceImpl implements ReviewService {
         return "asc".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
     }
 
+    /**
+     * 按当前有效评价重新回写景点平均分和评价数。
+     */
     private void updateSpotAvgRating(Long spotId) {
         SpotReviewStats stats = reviewMapper.selectSpotReviewStats(spotId);
         BigDecimal avgRating = stats != null && stats.getAvgRating() != null
@@ -304,6 +342,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 响应对象转换方法
     private ReviewResponse convertToResponse(Review review, boolean adminView) {
+        // 优先复用联表结果中的快照字段，缺失时再补查用户和景点，减少不必要查询。
         User user = null;
         if (review.getNickname() == null || review.getAvatarUrl() == null) {
             user = userMapper.selectById(review.getUserId());

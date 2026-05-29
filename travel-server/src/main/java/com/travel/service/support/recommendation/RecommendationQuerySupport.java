@@ -32,8 +32,6 @@ public class RecommendationQuerySupport {
 
     /**
      * 构建分类名称字典。
-     *
-     * @return 分类映射
      */
     public Map<Long, String> getCategoryMap() {
         return categoryMapper.selectList(new LambdaQueryWrapper<SpotCategory>().eq(SpotCategory::getIsDeleted, 0)).stream()
@@ -42,14 +40,15 @@ public class RecommendationQuerySupport {
 
     /**
      * 构建地区名称字典。
-     *
-     * @return 地区映射
      */
     public Map<Long, String> getRegionMap() {
         return spotRegionMapper.selectList(new LambdaQueryWrapper<SpotRegion>().eq(SpotRegion::getIsDeleted, 0)).stream()
             .collect(Collectors.toMap(SpotRegion::getId, SpotRegion::getName));
     }
 
+    /**
+     * 根据景点 ID 查询展示名称。
+     */
     public String getSpotName(Long spotId) {
         if (spotId == null) {
             return ResourceDisplayText.Spot.UNKNOWN;
@@ -77,6 +76,7 @@ public class RecommendationQuerySupport {
         response.setDebugInfo(debugInfo);
 
         if (limitedIds.isEmpty()) {
+            // 空结果也返回标准结构，避免上层再为“无推荐”单独拼装响应。
             response.setList(Collections.emptyList());
             return response;
         }
@@ -93,6 +93,7 @@ public class RecommendationQuerySupport {
 
         response.setList(limitedIds.stream()
             .map(spotMap::get)
+            // 最终出参前统一兜底过滤不可展示景点，避免缓存或候选残留脏数据直接透出。
             .filter(spot -> spot != null && spot.getIsDeleted() == 0 && spot.getIsPublished() == 1)
             .map(spot -> {
                 RecommendationResponse.SpotItem item = new RecommendationResponse.SpotItem();
