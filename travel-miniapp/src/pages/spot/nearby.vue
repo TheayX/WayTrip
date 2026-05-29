@@ -329,6 +329,11 @@ onLoad(async (options) => {
   gap: 20rpx;
 }
 
+.hero-copy {
+  flex: 1;
+  min-width: 0;
+}
+
 .hero-title {
   display: block;
   font-size: 38rpx;
@@ -347,8 +352,11 @@ onLoad(async (options) => {
 .hero-action {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   gap: 8rpx;
-  padding: 14rpx 18rpx;
+  min-width: 120rpx;
+  padding: 14rpx 14rpx;
   border-radius: 999rpx;
   background: rgba(17, 24, 39, 0.06);
   color: #111827;
@@ -357,6 +365,7 @@ onLoad(async (options) => {
 .hero-action-text {
   font-size: 22rpx;
   color: #111827;
+  white-space: nowrap;
 }
 
 .map-card {

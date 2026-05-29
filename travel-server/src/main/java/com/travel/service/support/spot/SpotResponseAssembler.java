@@ -29,6 +29,7 @@ public class SpotResponseAssembler {
             .name(spot.getName())
             .coverImage(spot.getCoverImageUrl())
             .price(spot.getPrice())
+            .heatScore(spot.getHeatScore())
             .avgRating(spot.getAvgRating())
             .reviewCount(spot.getReviewCount())
             .regionName(getRegionName(spot.getRegionId()))
