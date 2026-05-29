@@ -203,7 +203,6 @@ const syncSpotPreview = (data) => {
     id: data.id,
     name: data.name,
     coverImage: data.coverImage,
-    intro: data.intro || data.description || '',
     regionName: data.regionName,
     categoryName: data.categoryName,
     price: data.price,

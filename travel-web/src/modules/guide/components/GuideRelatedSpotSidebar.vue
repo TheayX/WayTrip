@@ -14,7 +14,7 @@
         <div class="related-info">
           <span class="related-name">{{ resolveSpotText(spot.name) }}</span>
           <span class="related-meta">{{ spot.regionName || '精选景点' }}</span>
-          <span class="price">¥{{ spot.price || '--' }}</span>
+          <span class="price">{{ spot.price || '--' }}</span>
         </div>
       </div>
     </div>
