@@ -13,6 +13,7 @@
 
 - [需求文档](./specs/travel-recommendation-system/requirements.md)
 - [设计文档](./specs/travel-recommendation-system/design.md)
+- [推荐算法模块说明](recommendation-algorithm.md)
 - [API 文档](./specs/travel-recommendation-system/api.md)
 - [数据库文档](./specs/travel-recommendation-system/database.md)
 - [任务文档](./specs/travel-recommendation-system/tasks.md)
